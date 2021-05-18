@@ -57,4 +57,7 @@
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.0" />
     <PackageReference Include="Prism.Unity" Version="8.0.0.1909" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\KmyKeiba.JVLink\KmyKeiba.JVLink.csproj" />
+  </ItemGroup>
 </Project>

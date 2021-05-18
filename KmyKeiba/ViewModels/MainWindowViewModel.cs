@@ -35,7 +35,8 @@ namespace KmyKeiba.ViewModels
       //link.NVSetUIProperties();
       var readCount = 0;
       var downloadCount = 0;
-      var rr = link.NVOpen("RACE", "20210517000000", 1, ref readCount, ref downloadCount, out string lastFileTimestamp);
+      var rr = link.NVOpen("RACE", "20210517000000", 4, ref readCount, ref downloadCount, out string lastFileTimestamp);
+      // var rr = link.NVRTOpen("0B15", "20210518");
 
       var buffSize = 110000;
       object buff = new byte[buffSize];
@@ -52,6 +53,7 @@ namespace KmyKeiba.ViewModels
         }
         if (rrr == -3)
         {
+          var downloaded = link.NVStatus();
           Task.Delay(100).Wait();
           continue;
         }
@@ -70,10 +72,19 @@ namespace KmyKeiba.ViewModels
         {
           var data = new JVData_Struct.JV_RA_RACE();
           data.SetDataB(ref d);
-          // if (data.id.JyoCD == "36")
+          if (data.id.JyoCD == "36")
           {
             var race = Race.FromJV(data);
-            Debug.WriteLine($"{race.SubjectName}");
+            Debug.WriteLine($"{race.Name}");
+          }
+        }
+        else if (spec == "YS")
+        {
+          var data = new JVData_Struct.JV_YS_SCHEDULE();
+          data.SetDataB(ref d);
+          if (data.id.JyoCD == "36")
+          {
+            Debug.WriteLine($"{data.JyusyoInfo![0].Hondai.Trim()}");
           }
         }
 

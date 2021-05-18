@@ -1,12 +1,13 @@
-﻿using System;
+﻿using KmyKeiba.JVLink.Wrappers.JVLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KmyKeiba.Models.Entities
+namespace KmyKeiba.JVLink.Entities
 {
-  class Race
+  public class Race
   {
     public string Id { get; init; } = string.Empty;
 
@@ -30,7 +31,7 @@ namespace KmyKeiba.Models.Entities
     /// </summary>
     public DateTime StartTime { get; init; }
 
-    public static Race FromJV(JVLib.JVData_Struct.JV_RA_RACE race)
+    public static Race FromJV(JVData_Struct.JV_RA_RACE race)
     {
       var name = race.RaceInfo.Hondai.Trim();
       if (string.IsNullOrEmpty(name))
