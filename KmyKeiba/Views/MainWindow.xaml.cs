@@ -1,15 +1,17 @@
-﻿using System.Windows;
+﻿using KmyKeiba.Models.Threading;
+using System.Windows;
 
 namespace KmyKeiba.Views
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+  /// <summary>
+  /// Interaction logic for MainWindow.xaml
+  /// </summary>
+  public partial class MainWindow : Window
+  {
+    public MainWindow()
     {
-        public MainWindow()
-        {
-            InitializeComponent();
-        }
+      UiThreadUtil.Dispatcher = this.Dispatcher;
+      InitializeComponent();
     }
+  }
 }

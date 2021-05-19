@@ -7,6 +7,12 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="Resources\Converters.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Resources\DataTemplates.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>

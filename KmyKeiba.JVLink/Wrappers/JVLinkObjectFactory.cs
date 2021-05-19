@@ -68,7 +68,9 @@ namespace KmyKeiba.JVLink.Wrappers
       public int Gets(ref byte[] buff, int size, out string filename)
       {
         object obj = buff;
-        return this.link.JVGets(ref obj, size, out filename);
+        var r = this.link.JVGets(ref obj, size, out filename);
+        buff = (byte[])obj;
+        return r;
       }
 
       public void Skip() => this.link.JVSkip();
@@ -103,7 +105,9 @@ namespace KmyKeiba.JVLink.Wrappers
       public int Gets(ref byte[] buff, int size, out string filename)
       {
         object obj = buff;
-        return this.link.NVGets(ref obj, size, out filename);
+        var r = this.link.NVGets(ref obj, size, out filename);
+        buff = (byte[])obj;
+        return r;
       }
 
       public void Skip() => this.link.NVSkip();

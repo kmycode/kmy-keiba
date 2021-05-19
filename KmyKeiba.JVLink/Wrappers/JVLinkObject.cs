@@ -34,6 +34,79 @@ namespace KmyKeiba.JVLink.Wrappers
       };
     }
 
+    public IJVLinkReader StartRead(JVLinkDataspec dataspec, JVLinkOpenOption options, DateTime from, DateTime? to = null)
+    {
+      this.CheckInitialized();
+      this.CheckOpen();
+
+      if (options == JVLinkOpenOption.RealTime && to != null)
+      {
+        throw new ArgumentException();
+      }
+
+      var specs = new List<JVLinkDataspec>();
+      {
+        var specId = (uint)dataspec;
+        var num = 1u;
+        for (var i = 0; i < 24; i++)
+        {
+          var isHit = (specId & num) != 0;
+          if (isHit)
+          {
+            specs.Add((JVLinkDataspec)num);
+          }
+          num <<= 1;
+        }
+      }
+
+      if (options == JVLinkOpenOption.RealTime && specs.Count > 1)
+      {
+        throw JVLinkException.GetError(JVLinkLoadResult.InvalidDataspec);
+      }
+      if (!specs.Any())
+      {
+        throw JVLinkException.GetError(JVLinkLoadResult.InvalidDataspec);
+      }
+
+      var attributes = specs
+        .Select((s) => s.GetAttribute())
+        .Where((s) => s != null)
+        .ToArray();
+      if (attributes.Any((a) => !a!.Options.HasFlag(options)))
+      {
+        throw JVLinkException.GetError(JVLinkLoadResult.InvalidDataspec);
+      }
+
+      var during = this.ToString(from) + (to != null ? $"-{this.ToString((DateTime)to)}" : string.Empty);
+
+      var readCount = 0;
+      var downloadCount = 0;
+      var result = 0;
+
+      if (options != JVLinkOpenOption.RealTime)
+      {
+        result = this.link.Open(string.Join(string.Empty, attributes.Select((a) => a!.Code)),
+                                during, (int)options,
+                                ref readCount, ref downloadCount, out string lastFileTimeStamp);
+      }
+      else
+      {
+        result = this.link.RtOpen(string.Join(string.Empty, attributes.Select((a) => a!.Code)),
+                                  during);
+      }
+
+      if (result != 0 && result != -1)
+      {
+        throw JVLinkException.GetError((JVLinkLoadResult)result);
+      }
+
+      if (result != -1)
+      {
+        return new JVLinkReader(this.link, readCount, downloadCount);
+      }
+      return new EmptyJVLinkReader();
+    }
+
     private void CheckInitialized()
     {
       if (!this.hasInitialized)
@@ -47,97 +120,20 @@ namespace KmyKeiba.JVLink.Wrappers
       }
     }
 
-    public void Dispose() => this.link.Dispose();
-  }
-
-  public class JVLinkReader : IDisposable
-  {
-    private readonly IJVLinkObject link;
-
-    static JVLinkReader()
+    private void CheckOpen()
     {
-      // SJISを扱う
-      Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-    }
-
-    public JVLinkReader(IJVLinkObject link)
-    {
-      this.link = link;
-      link.IsOpen = true;
-    }
-
-    public JVLinkReaderData Load()
-    {
-      var data = new JVLinkReaderData();
-      var buffSize = 110000;
-      var buff = new byte[buffSize];
-
-      while (true)
+      if (this.link.IsOpen)
       {
-        var result = this.link.Gets(ref buff, buffSize, out string fileName);
-        if (result != 0 && result != -1)
-        {
-          var isBreak = true;
-          switch (result)
-          {
-            case -3:
-              {
-                throw JVLinkException.GetError(JVLinkLoadResult.Downloading);
-              }
-            case -403:
-              {
-                link.FileDelete(fileName);
-                isBreak = false;
-                break;
-              }
-            case -503:
-              {
-                isBreak = false;
-                break;
-              }
-          }
-
-          if (isBreak)
-          {
-            break;
-          }
-          else
-          {
-            continue;
-          }
-        }
-
-        var d = Encoding.GetEncoding(932).GetString(buff);
-        var spec = d.Substring(0, 2);
-
-        switch (spec)
-        {
-          case "RA":
-            {
-              var a = new JVData_Struct.JV_RA_RACE();
-              a.SetDataB(ref d);
-              data.Races.Add(Race.FromJV(a));
-              break;
-            }
-          default:
-            this.link.Skip();
-            break;
-        }
+        throw JVLinkException.GetError(JVLinkLoadResult.AlreadyOpen);
       }
-
-      return data;
     }
 
-    public void Dispose()
+    private string ToString(DateTime dt)
     {
-      this.link.Close();
-      this.link.IsOpen = false;
+      return dt.ToString("yyyyMMddHHmmss");
     }
-  }
 
-  public class JVLinkReaderData
-  {
-    public List<Race> Races { get; } = new();
+    public void Dispose() => this.link.Dispose();
   }
 
   [Flags]
@@ -147,9 +143,11 @@ namespace KmyKeiba.JVLink.Wrappers
     ThisWeek = 2,
     Setup = 4,
     SetupWithoutDialog = 8,
-    All = 255,
+    All = 15,
     SetupAll = 12,
     WithoutThisWeek = 13,
+
+    RealTime = 16,
   }
 
   public class JVLinkDataspecAttribute : Attribute
@@ -166,59 +164,124 @@ namespace KmyKeiba.JVLink.Wrappers
   }
 
   [Flags]
-  enum JVLinkDataspec
+  public enum JVLinkDataspec
   {
     [JVLinkDataspec("TOKU", JVLinkOpenOption.All)]
-    Toku = 1,
+    Toku = 0b1,
 
     [JVLinkDataspec("RACE", JVLinkOpenOption.All)]
-    Race = 2,
+    Race = 0b10,
 
     [JVLinkDataspec("DIFF", JVLinkOpenOption.WithoutThisWeek)]
-    Diff = 4,
+    Diff = 0b100,
 
     [JVLinkDataspec("BLOD", JVLinkOpenOption.WithoutThisWeek)]
-    Blod = 8,
+    Blod = 0b1000,
 
     [JVLinkDataspec("MING", JVLinkOpenOption.WithoutThisWeek)]
-    Ming = 16,
+    Ming = 0b1_0000,
 
     [JVLinkDataspec("SNAP", JVLinkOpenOption.All)]
-    Snap = 32,
+    Snap = 0b10_0000,
 
     [JVLinkDataspec("SLOP", JVLinkOpenOption.WithoutThisWeek)]
-    Slop = 64,
+    Slop = 0b100_0000,
 
     [JVLinkDataspec("YSCH", JVLinkOpenOption.WithoutThisWeek)]
-    Ysch = 128,
+    Ysch = 0b1000_0000,
 
     [JVLinkDataspec("HOSE", JVLinkOpenOption.WithoutThisWeek)]
-    Hose = 256,
+    Hose = 0b1_0000_0000,
 
     [JVLinkDataspec("HOYU", JVLinkOpenOption.WithoutThisWeek)]
-    Hoyu = 512,
+    Hoyu = 0b10_0000_0000,
 
     [JVLinkDataspec("COMM", JVLinkOpenOption.WithoutThisWeek)]
-    Comm = 1024,
+    Comm = 0b100_0000_0000,
 
     [JVLinkDataspec("TCOV", JVLinkOpenOption.ThisWeek)]
-    Tcov = 2048,
+    Tcov = 0b1000_0000_0000,
 
     [JVLinkDataspec("RCOV", JVLinkOpenOption.ThisWeek)]
-    Rcov = 4096,
+    Rcov = 0b1_0000_0000_0000,
+
+    [JVLinkDataspec("0B12", JVLinkOpenOption.RealTime)]
+    RB12 = 0b10_0000_0000_0000,
+
+    [JVLinkDataspec("0B13", JVLinkOpenOption.RealTime)]
+    RB13 = 0b100_0000_0000_0000,
+
+    [JVLinkDataspec("0B14", JVLinkOpenOption.RealTime)]
+    RB14 = 0b1000_0000_0000_0000,
+
+    [JVLinkDataspec("0B15", JVLinkOpenOption.RealTime)]
+    RB15 = 0b1_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B16", JVLinkOpenOption.RealTime)]
+    RB16 = 0b10_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B17", JVLinkOpenOption.RealTime)]
+    RB17 = 0b100_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B11", JVLinkOpenOption.RealTime)]
+    RB11 = 0b1000_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B20", JVLinkOpenOption.RealTime)]
+    RB20 = 0b1_0000_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B30", JVLinkOpenOption.RealTime)]
+    RB30 = 0b10_0000_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B31", JVLinkOpenOption.RealTime)]
+    RB31 = 0b100_0000_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B32", JVLinkOpenOption.RealTime)]
+    RB32 = 0b1000_0000_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B33", JVLinkOpenOption.RealTime)]
+    RB33 = 0b1_0000_0000_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B34", JVLinkOpenOption.RealTime)]
+    RB34 = 0b10_0000_0000_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B35", JVLinkOpenOption.RealTime)]
+    RB35 = 0b100_0000_0000_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B36", JVLinkOpenOption.RealTime)]
+    RB36 = 0b1000_0000_0000_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B41", JVLinkOpenOption.RealTime)]
+    RB41 = 0b1_0000_0000_0000_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B42", JVLinkOpenOption.RealTime)]
+    RB42 = 0b10_0000_0000_0000_0000_0000_0000_0000,
+
+    [JVLinkDataspec("0B51", JVLinkOpenOption.RealTime)]
+    RB51 = 0b100_0000_0000_0000_0000_0000_0000_0000,
   }
 
   static class EnumExtensions
   {
     public static JVLinkDataspecAttribute? GetAttribute(this JVLinkDataspec spec)
+      => GetAttribute<JVLinkDataspecAttribute, JVLinkDataspec>(spec);
+
+    public static ClassNameAttribute? GetAttribute(this RaceClass cls)
+      => GetAttribute<ClassNameAttribute, RaceClass>(cls);
+
+    private static A? GetAttribute<A, T>(T spec) where A : Attribute
     {
+      if (spec == null)
+      {
+        return null;
+      }
+
       var type = spec.GetType();
       var fieldInfo = type.GetField(spec.ToString()!);
       if (fieldInfo == null)
       {
         return null;
       }
-      var attributes = fieldInfo.GetCustomAttributes(typeof(JVLinkDataspecAttribute), false) as JVLinkDataspecAttribute[];
+      var attributes = fieldInfo.GetCustomAttributes(typeof(A), false) as A[];
       if (attributes != null && attributes.Length > 0)
       {
         return attributes[0];
@@ -234,69 +297,6 @@ namespace KmyKeiba.JVLink.Wrappers
     public JVLinkCodeAttribute(string message)
     {
       this.Message = message;
-    }
-  }
-
-  public class JVLinkException<T> : Exception where T : System.Enum
-  {
-    public T Code { get; init; }
-
-    public JVLinkException(T code) : base()
-    {
-      this.Code = code;
-    }
-
-    public JVLinkException(T code, Exception inner) : base(string.Empty, inner)
-    {
-      this.Code = code;
-    }
-  }
-
-  public enum JVLinkCommonCode
-  {
-    [JVLinkCode("不明")]
-    Unknown,
-  }
-
-  public enum JVLinkInitializeResult
-  {
-    [JVLinkCode("不明")]
-    Unknown,
-  }
-
-  public enum JVLinkLoadResult
-  {
-    [JVLinkCode("データダウンロード途中")]
-    Downloading,
-  }
-
-  public class JVLinkException : JVLinkException<JVLinkCommonCode>
-  {
-    public static JVLinkException<T> GetError<T>(T code) where T : System.Enum => new JVLinkException<T>(code);
-    public static JVLinkException<T> GetError<T>(T code, Exception inner) where T : System.Enum => new JVLinkException<T>(code, inner);
-
-    public static JVLinkCodeAttribute GetAttribute(object code)
-    {
-      var type = code.GetType();
-      var fieldInfo = type.GetField(code.ToString()!);
-      if (fieldInfo == null)
-      {
-        return new JVLinkCodeAttribute("不明");
-      }
-      var attributes = fieldInfo.GetCustomAttributes(typeof(JVLinkCodeAttribute), false) as JVLinkCodeAttribute[];
-      if (attributes != null && attributes.Length > 0)
-      {
-        return attributes[0];
-      }
-      return new JVLinkCodeAttribute("不明");
-    }
-
-    public JVLinkException() : base(JVLinkCommonCode.Unknown)
-    {
-    }
-
-    public JVLinkException(Exception inner) : base(JVLinkCommonCode.Unknown, inner)
-    {
     }
   }
 }

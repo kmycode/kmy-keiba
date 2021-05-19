@@ -1,0 +1,23 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <DataTemplate x:Key="RaceInfoTemplate">
+    <Border BorderBrush="#aaaaaa" BorderThickness="1">
+      <StackPanel Background="White">
+        <Border BorderBrush="#cccccc" BorderThickness="0,0,0,1">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="60"/>
+            </Grid.ColumnDefinitions>
+            <Label Content="{Binding Name}" FontSize="24"/>
+            <Label Content="{Binding Subject.ClassName}" FontSize="18" FontWeight="Bold"
+                   Foreground="White" Grid.Column="1"
+                   Background="{Binding Subject.MaxClass,Converter={StaticResource RaceClassBrushConverter}}"
+                   HorizontalContentAlignment="Center"
+                   VerticalContentAlignment="Center"/>
+          </Grid>
+        </Border>
+      </StackPanel>
+    </Border>
+  </DataTemplate>
+</ResourceDictionary>

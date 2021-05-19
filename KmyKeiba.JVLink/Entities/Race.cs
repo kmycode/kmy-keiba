@@ -22,16 +22,16 @@ namespace KmyKeiba.JVLink.Entities
     public string SubName { get; init; } = string.Empty;
 
     /// <summary>
-    /// 参加条件の名前
+    /// 参加条件
     /// </summary>
-    public string SubjectName { get; init; } = string.Empty;
+    public RaceSubject Subject { get; init; } = new();
 
     /// <summary>
     /// 出走日時
     /// </summary>
     public DateTime StartTime { get; init; }
 
-    public static Race FromJV(JVData_Struct.JV_RA_RACE race)
+    internal static Race FromJV(JVData_Struct.JV_RA_RACE race)
     {
       var name = race.RaceInfo.Hondai.Trim();
       if (string.IsNullOrEmpty(name))
@@ -46,7 +46,7 @@ namespace KmyKeiba.JVLink.Entities
         Id = race.id.ToRaceId(),
         Name = name,
         SubName = race.RaceInfo.Fukudai.Trim(),
-        SubjectName = race.JyokenName.Trim(),
+        Subject = RaceSubject.Parse(race.JyokenName.Trim()),
         StartTime = startTime,
       };
       return obj;
