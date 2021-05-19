@@ -2,6 +2,7 @@
 using KmyKeiba.JVLink.Wrappers.JVLib;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,10 @@ namespace KmyKeiba.JVLink.Wrappers
 {
   public interface IJVLinkReader : IDisposable
   {
+    int DownloadedCount => 0;
+
+    int DownloadCount => 0;
+
     JVLinkReaderData Load();
   }
 
@@ -92,9 +97,16 @@ namespace KmyKeiba.JVLink.Wrappers
             {
               var a = new JVData_Struct.JV_RA_RACE();
               a.SetDataB(ref d);
-              var race = Race.FromJV(a);
-              data.Races.RemoveAll((r) => r.Id == race.Id);
-              data.Races.Add(race);
+              var item = Race.FromJV(a);
+              data.Races.Add(item);
+              break;
+            }
+          case "SE":
+            {
+              var a = new JVData_Struct.JV_SE_RACE_UMA();
+              a.SetDataB(ref d);
+              var item = RaceHorse.FromJV(a);
+              data.RaceHorses.Add(item);
               break;
             }
           default:
@@ -102,6 +114,16 @@ namespace KmyKeiba.JVLink.Wrappers
             break;
         }
       }
+
+      data.Races = ((IEnumerable<Race>)data.Races)
+        .Reverse()
+        .Distinct(new SimpleDistinctComparer<Race>((a, b) => a.Key == b.Key))
+        .Reverse()
+        .ToList();
+      data.RaceHorses = ((IEnumerable<RaceHorse>)data.RaceHorses)
+        .Reverse()
+        .Distinct(new SimpleDistinctComparer<RaceHorse>((a, b) => a.Name == b.Name && a.RaceKey == b.RaceKey))
+        .ToList();
 
       return data;
     }
@@ -115,6 +137,32 @@ namespace KmyKeiba.JVLink.Wrappers
 
   public class JVLinkReaderData
   {
-    public List<Race> Races { get; } = new();
+    public List<Race> Races { get; internal set; } = new();
+
+    public List<RaceHorse> RaceHorses { get; internal set; } = new();
+  }
+
+  class SimpleDistinctComparer<T> : IEqualityComparer<T>
+  {
+    private readonly Func<T, T, bool> action;
+
+    public SimpleDistinctComparer(Func<T, T, bool> action)
+    {
+      this.action = action;
+    }
+
+    public bool Equals(T? x, T? y)
+    {
+      if (x != null && y != null)
+      {
+        return this.action(x, y);
+      }
+      return false;
+    }
+
+    public int GetHashCode([DisallowNull] T obj)
+    {
+      return obj.GetHashCode();
+    }
   }
 }

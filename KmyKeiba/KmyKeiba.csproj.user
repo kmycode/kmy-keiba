@@ -13,6 +13,9 @@
     <Page Update="Resources\DataTemplates.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Resources\DataTemplateSelectors.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>

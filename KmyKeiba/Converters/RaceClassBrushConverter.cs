@@ -17,6 +17,7 @@ namespace KmyKeiba.Converters
         RaceClass.ClassA => Brushes.DarkRed,
         RaceClass.ClassB => Brushes.DarkBlue,
         RaceClass.ClassC => Brushes.Green,
+        RaceClass.ClassD => Brushes.Gray,
         RaceClass.Money => Brushes.DarkGoldenrod,
         RaceClass.Age => Brushes.SkyBlue,
         _ => Brushes.LightGray,

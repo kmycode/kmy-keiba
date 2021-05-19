@@ -9,7 +9,7 @@ namespace KmyKeiba.JVLink.Entities
 {
   static class EntityUtil
   {
-    public static string ToRaceId(this JVData_Struct.RACE_ID id)
+    public static string ToRaceKey(this JVData_Struct.RACE_ID id)
     {
       return id.Year + id.MonthDay + id.JyoCD + id.Kaiji + id.Nichiji + id.RaceNum;
     }

@@ -5,8 +5,14 @@
         prism:ViewModelLocator.AutoWireViewModel="True"
         Title="KMY競馬" Height="700" Width="1000">
   <Grid>
-    <ScrollViewer>
-      <ItemsControl ItemsSource="{Binding Races}" ItemTemplate="{StaticResource RaceInfoTemplate}"/>
-    </ScrollViewer>
+    <TabControl ItemsSource="{Binding Tabs}"
+                ContentTemplateSelector="{StaticResource MainTabContentTemplateSelector}">
+      <TabControl.ItemTemplate>
+        <DataTemplate>
+          <TextBlock Text="レース一覧" Width="200" Height="32" FontSize="20"
+                     VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        </DataTemplate>
+      </TabControl.ItemTemplate>
+    </TabControl>
   </Grid>
 </Window>

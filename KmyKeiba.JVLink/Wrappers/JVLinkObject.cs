@@ -265,8 +265,11 @@ namespace KmyKeiba.JVLink.Wrappers
     public static JVLinkDataspecAttribute? GetAttribute(this JVLinkDataspec spec)
       => GetAttribute<JVLinkDataspecAttribute, JVLinkDataspec>(spec);
 
-    public static ClassNameAttribute? GetAttribute(this RaceClass cls)
-      => GetAttribute<ClassNameAttribute, RaceClass>(cls);
+    public static RaceClassInfoAttribute? GetAttribute(this RaceClass cls)
+      => GetAttribute<RaceClassInfoAttribute, RaceClass>(cls);
+
+    public static RaceCourseInfoAttribute? GetAttribute(this RaceCourse cls)
+      => GetAttribute<RaceCourseInfoAttribute, RaceCourse>(cls);
 
     private static A? GetAttribute<A, T>(T spec) where A : Attribute
     {

@@ -102,6 +102,7 @@ namespace KmyKeiba.JVLink.Entities
           "A" => RaceClass.ClassA,
           "B" => RaceClass.ClassB,
           "C" => RaceClass.ClassC,
+          "D" => RaceClass.ClassD,
           _ => RaceClass.Unknown,
         };
 
@@ -208,11 +209,11 @@ namespace KmyKeiba.JVLink.Entities
     }
   }
 
-  class ClassNameAttribute : Attribute
+  class RaceClassInfoAttribute : Attribute
   {
     public string Name { get; }
 
-    public ClassNameAttribute(string name)
+    public RaceClassInfoAttribute(string name)
     {
       this.Name = name;
     }
@@ -222,14 +223,17 @@ namespace KmyKeiba.JVLink.Entities
   {
     Unknown,
 
-    [ClassName("A")]
+    [RaceClassInfo("A")]
     ClassA = 999,
 
-    [ClassName("B")]
+    [RaceClassInfo("B")]
     ClassB = 998,
 
-    [ClassName("C")]
+    [RaceClassInfo("C")]
     ClassC = 997,
+
+    [RaceClassInfo("D")]
+    ClassD = 996,
 
     Money = 10,
 
