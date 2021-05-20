@@ -9,8 +9,6 @@ namespace KmyKeiba.JVLink.Entities
 {
   public class RaceHorse
   {
-    public uint Id { get; set; }
-
     /// <summary>
     /// 出場するレースID
     /// </summary>
@@ -40,6 +38,10 @@ namespace KmyKeiba.JVLink.Entities
     /// 人気
     /// </summary>
     public int Popular { get; set; }
+
+    internal RaceHorse()
+    {
+    }
 
     internal static RaceHorse FromJV(JVData_Struct.JV_SE_RACE_UMA uma)
     {

@@ -1,7 +1,10 @@
 ﻿using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
+using KmyKeiba.Models.Data;
+using KmyKeiba.Models.DataObjects;
 using KmyKeiba.Models.Logics.Tabs;
 using KmyKeiba.Models.Threading;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,13 +19,26 @@ namespace KmyKeiba.Models.Logics
   {
     public ObservableCollection<TabFrame> Tabs { get; } = new();
 
-    public ObservableCollection<Race> Races { get; } = new();
-
     public MainModel()
     {
     }
 
     public async Task LoadAsync()
+    {
+      using (var db = new MyContext())
+      {
+        var raceData = await db.Races!
+          .Where((r) => r.StartTime < DateTime.Today && r.StartTime >= DateTime.Today.AddDays(-1))
+          .ToArrayAsync();
+        var races = raceData.Select((r) => new RaceDataObject(r));
+        this.Tabs.Add(new RaceListTabFrame()
+        {
+          Races = new(races),
+        });
+      }
+    }
+
+    public async Task TestAsync()
     {
       await Task.Run(() =>
       {
@@ -42,21 +58,21 @@ namespace KmyKeiba.Models.Logics
 
         UiThreadUtil.Dispatcher?.Invoke(() =>
         {
-          this.Races.AddRange(data.Races);
+          //this.Races.AddRange(data.Races);
 
           this.Tabs.Add(new RaceListTabFrame
           {
-            Races = this.Races,
+            //Races = this.Races,
           });
         });
       });
     }
 
-    public void OpenRace(Race race)
+    public void OpenRace(RaceDataObject race)
     {
       this.Tabs.Add(new RaceTabFrame
       {
-        Race = { Value = race },
+        // Race = { Value = race },
       });
     }
   }

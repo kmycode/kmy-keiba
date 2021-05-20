@@ -10,8 +10,6 @@ namespace KmyKeiba.JVLink.Entities
 {
   public class Race
   {
-    public uint Id { get; set; }
-
     public string Key { get; set; } = string.Empty;
 
     /// <summary>
@@ -54,6 +52,10 @@ namespace KmyKeiba.JVLink.Entities
     /// 出走日時
     /// </summary>
     public DateTime StartTime { get; set; }
+
+    internal Race()
+    {
+    }
 
     internal static Race FromJV(JVData_Struct.JV_RA_RACE race)
     {
@@ -114,9 +116,9 @@ namespace KmyKeiba.JVLink.Entities
 
   public enum RaceCourseType
   {
-    Central,
-    Local,
-    Foreign,
+    Central = 1,
+    Local = 2,
+    Foreign = 3,
   }
 
   public enum RaceCourse

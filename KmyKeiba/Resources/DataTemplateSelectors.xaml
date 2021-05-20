@@ -1,16 +1,16 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:c="clr-namespace:KmyKeiba.Resources.TemplateSelectors"
-                    xmlns:v="clr-namespace:KmyKeiba.Views">
+                    xmlns:vc="clr-namespace:KmyKeiba.Views.Controls">
   <DataTemplate x:Key="RaceListTemplate">
-    <v:BindableScrollViewer ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}">
+    <vc:BindableScrollViewer ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}">
       <ItemsControl ItemsSource="{Binding Races}" ItemTemplate="{StaticResource RaceInfoTemplate}"/>
-    </v:BindableScrollViewer>
+    </vc:BindableScrollViewer>
   </DataTemplate>
   <DataTemplate x:Key="RaceDetailTemplate">
-    <v:BindableScrollViewer ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}">
+    <vc:BindableScrollViewer ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}">
       <Label Content="{Binding Race.Value.Name}"/>
-    </v:BindableScrollViewer>
+    </vc:BindableScrollViewer>
   </DataTemplate>
   
   <c:MainTabContentTemplateSelector x:Key="MainTabContentTemplateSelector"

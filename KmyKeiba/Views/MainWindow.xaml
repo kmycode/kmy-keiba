@@ -5,7 +5,20 @@
         prism:ViewModelLocator.AutoWireViewModel="True"
         Title="KMY競馬" Height="700" Width="1000">
   <Grid>
-    <TabControl ItemsSource="{Binding Tabs}"
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+    <DockPanel Grid.Row="0">
+      <Menu DockPanel.Dock="Top">
+        <MenuItem Header="ファイル(_F)">
+          <MenuItem Header="JV-Linkからデータをロード(_L)" Command="{Binding OpenJVLinkLoadDialogCommand}"/>
+          <Separator/>
+          <MenuItem Header="終了(_X)"/>
+        </MenuItem>
+      </Menu>
+    </DockPanel>
+    <TabControl Grid.Row="1" ItemsSource="{Binding Tabs}"
                 ContentTemplateSelector="{StaticResource MainTabContentTemplateSelector}">
       <TabControl.ItemTemplate>
         <DataTemplate>

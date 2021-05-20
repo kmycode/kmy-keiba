@@ -16,7 +16,7 @@ namespace KmyKeiba.Converters
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-      if (value is T t && targetType == typeof(O))
+      if (value is T t && (targetType == typeof(O) || targetType == typeof(O?)))
       {
         return this.Convert(t, parameter)!;
       }
@@ -25,7 +25,7 @@ namespace KmyKeiba.Converters
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-      if (value is O t && targetType == typeof(T))
+      if (value is O t && (targetType == typeof(T) || targetType == typeof(T?)))
       {
         return this.ConvertBack(t, parameter)!;
       }

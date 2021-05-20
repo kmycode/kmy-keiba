@@ -1,4 +1,4 @@
-﻿using KmyKeiba.JVLink.Entities;
+﻿using KmyKeiba.Models.DataObjects;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,6 +10,6 @@ namespace KmyKeiba.Models.Logics.Tabs
 {
   class RaceListTabFrame : TabFrame
   {
-    public ObservableCollection<Race> Races { get; set; } = new();
+    public ObservableCollection<RaceDataObject> Races { get; set; } = new();
   }
 }

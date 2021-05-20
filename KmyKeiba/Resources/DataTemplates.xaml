@@ -32,11 +32,11 @@
               <RowDefinition Height="48"/>
             </Grid.RowDefinitions>
             <Label Grid.Column="0" Grid.Row="0"
-                   Content="{Binding Name}" FontSize="28" FontWeight="Bold"/>
+                   Content="{Binding Data.Name}" FontSize="28" FontWeight="Bold"/>
             <Label Grid.Column="1" Grid.Row="0"
-                   Content="{Binding Subject.ClassName}" FontSize="18" FontWeight="Bold"
+                   Content="{Binding Subject.Value.ClassName}" FontSize="18" FontWeight="Bold"
                    Foreground="White"
-                   Background="{Binding Subject.MaxClass,Converter={StaticResource RaceClassBrushConverter}}"
+                   Background="{Binding Subject.Value.MaxClass,Converter={StaticResource RaceClassBrushConverter}}"
                    HorizontalContentAlignment="Center"
                    VerticalContentAlignment="Center"/>
           </Grid>
@@ -54,23 +54,23 @@
               <RowDefinition Height="28"/>
             </Grid.RowDefinitions>
             <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
-                   Content="{Binding Subject.Name}" FontSize="14" Foreground="#888888"
+                   Content="{Binding Subject.Value.Name}" FontSize="14" Foreground="#888888"
                    Padding="0"/>
             <Border Grid.Column="0" Grid.Row="1" BorderBrush="#cccccc" BorderThickness="0,0,1,0">
               <TextBlock FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <Run Text="{Binding HorsesCount}" FontWeight="Bold"/><Run Text="頭"/>
+                <Run Text="{Binding Data.HorsesCount}" FontWeight="Bold"/><Run Text="頭"/>
               </TextBlock>
             </Border>
             <Border Grid.Column="1" Grid.Row="1" BorderBrush="#cccccc" BorderThickness="0,0,1,0">
               <TextBlock FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <Run Text="{Binding CourseName,Mode=OneTime}"/>
-                <Run Text="{Binding CourseRaceNumber}"/>
+                <Run Text="{Binding Data.CourseName,Mode=OneTime}"/>
+                <Run Text="{Binding Data.CourseRaceNumber}"/>
                 <Run Text="R"/>
               </TextBlock>
             </Border>
             <Border Grid.Column="2" Grid.Row="1" BorderBrush="#cccccc" BorderThickness="0,0,1,0">
               <TextBlock FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"
-                         Text="{Binding StartTime,StringFormat=HH:mm}"/>
+                         Text="{Binding Data.StartTime,StringFormat=HH:mm}"/>
             </Border>
           </Grid>
         </Border>

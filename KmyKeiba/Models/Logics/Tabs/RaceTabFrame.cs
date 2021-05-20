@@ -1,4 +1,4 @@
-﻿using KmyKeiba.JVLink.Entities;
+﻿using KmyKeiba.Models.DataObjects;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,6 @@ namespace KmyKeiba.Models.Logics.Tabs
 {
   class RaceTabFrame : TabFrame
   {
-    public ReactiveProperty<Race> Race { get; } = new();
+    public ReactiveProperty<RaceDataObject> Race { get; } = new();
   }
 }

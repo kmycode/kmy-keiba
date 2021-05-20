@@ -6,31 +6,34 @@ using KmyKeiba.Models.Logics;
 using System.Collections.ObjectModel;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Logics.Tabs;
-using ReactiveUI;
 using System.Windows.Input;
 using Prism.Commands;
+using Reactive.Bindings;
+using System.Reactive.Linq;
+using Prism.Services.Dialogs;
+using KmyKeiba.Models.DataObjects;
 
 namespace KmyKeiba.ViewModels
 {
   public class MainWindowViewModel : BindableBase
   {
+    private readonly IDialogService dialogService;
     private readonly MainModel model = new();
-
-    public ObservableCollection<Race> Races => this.model.Races;
 
     public ObservableCollection<TabFrame> Tabs => this.model.Tabs;
 
-    public MainWindowViewModel()
+    public MainWindowViewModel(IDialogService dialogService)
     {
-      var context = new MyContext();
-      context.Database.Migrate();
-      context.Dispose();
+      this.dialogService = dialogService;
+
+      this.OpenRaceCommand.Subscribe((r) => this.model.OpenRace(r));
+      this.OpenJVLinkLoadDialogCommand.Subscribe(() => this.dialogService.ShowDialog("LoadJVLinkDialog"));
 
       this.model.LoadAsync();
     }
 
-    public ICommand OpenRaceCommand =>
-      this._openRaceCommand ??= new DelegateCommand<Race>((r) => this.model.OpenRace(r));
-    private ICommand? _openRaceCommand;
+    public ReactiveCommand<RaceDataObject> OpenRaceCommand { get; } = new();
+
+    public ReactiveCommand OpenJVLinkLoadDialogCommand { get; } = new();
   }
 }

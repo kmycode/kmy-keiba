@@ -34,6 +34,11 @@ namespace KmyKeiba.JVLink.Wrappers
       };
     }
 
+    public void OpenConfigWindow()
+    {
+      this.link.SetUIProperties();
+    }
+
     public IJVLinkReader StartRead(JVLinkDataspec dataspec, JVLinkOpenOption options, DateTime from, DateTime? to = null)
     {
       this.CheckInitialized();

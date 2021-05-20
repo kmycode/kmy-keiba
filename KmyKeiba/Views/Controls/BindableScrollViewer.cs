@@ -6,10 +6,28 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace KmyKeiba.Views
+namespace KmyKeiba.Views.Controls
 {
   class BindableScrollViewer : ScrollViewer
   {
+    public static readonly DependencyProperty ScrollXProperty =
+    DependencyProperty.Register(nameof(ScrollX),
+                                typeof(double),
+                                typeof(BindableScrollViewer),
+                                new FrameworkPropertyMetadata(0.0, new PropertyChangedCallback((sender, e) =>
+                                {
+                                  if (sender is BindableScrollViewer view)
+                                  {
+                                    view.ScrollToHorizontalOffset(view.ScrollX);
+                                  }
+                                })));
+
+    public double ScrollX
+    {
+      get { return (double)GetValue(ScrollXProperty); }
+      set { SetValue(ScrollXProperty, value); }
+    }
+
     public static readonly DependencyProperty ScrollYProperty =
     DependencyProperty.Register(nameof(ScrollY),
                                 typeof(double),
@@ -32,10 +50,12 @@ namespace KmyKeiba.Views
     {
       this.Loaded += (sender, e) =>
       {
+        this.ScrollToHorizontalOffset(this.ScrollX);
         this.ScrollToVerticalOffset(this.ScrollY);
       };
       this.ScrollChanged += (sender, e) =>
       {
+        this.ScrollX = e.HorizontalOffset;
         this.ScrollY = e.VerticalOffset;
       };
     }
