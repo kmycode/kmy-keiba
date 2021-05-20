@@ -20,7 +20,7 @@ namespace KmyKeiba.Resources.TemplateSelectors
       switch (item)
       {
         case RaceTabFrame:
-          return this.RaceListTemplate;
+          return this.RaceDetailTemplate;
         case RaceListTabFrame:
           return this.RaceListTemplate;
       }

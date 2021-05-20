@@ -72,11 +72,46 @@ namespace KmyKeiba.Models.Logics
       });
     }
 
-    public void OpenRace(RaceDataObject race)
+    public async Task OpenRaceAsync(RaceDataObject race)
     {
+      using (var db = new MyContext())
+      {
+        var horses = await db.RaceHorses!
+          .Where((h) => h.RaceKey == race.Data.Key)
+          .ToArrayAsync();
+        race.SetHorses(horses);
+
+        foreach (var horseObj in race.Horses)
+        {
+          var horse = horseObj.Data;
+
+          var sameHorses = await db.RaceHorses!
+            .Where((h) => h.Name == horse.Name)
+            .ToArrayAsync();
+          var raceKeys = sameHorses.Select((h) => h.RaceKey).ToList();
+          var horseRaces = await db.Races!
+            .Where((r) => raceKeys.Contains(r.Key) && r.StartTime < race.Data.StartTime)
+            .ToArrayAsync();
+
+          var sameHorseObjects = new List<RaceHorseDataObject>();
+          foreach (var sameHorse in sameHorses)
+          {
+            var horseRace = horseRaces.FirstOrDefault((r) => r.Key == sameHorse.RaceKey);
+            if (horseRace != null)
+            {
+              var obj = new RaceHorseDataObject(sameHorse);
+              obj.Race.Value = new RaceDataObject(horseRace);
+              sameHorseObjects.Add(obj);
+            }
+          }
+
+          horseObj.SetOldRaceHorses(sameHorseObjects);
+        }
+      }
+
       this.Tabs.Add(new RaceTabFrame
       {
-        // Race = { Value = race },
+        Race = { Value = race },
       });
     }
 

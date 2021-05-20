@@ -4,8 +4,10 @@ using KmyKeiba.Models.Data;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.DataObjects
@@ -17,6 +19,10 @@ namespace KmyKeiba.Models.DataObjects
     public ReactiveProperty<RaceSubject> Subject { get; } = new();
 
     public ReactiveProperty<string> CourseName { get; } = new(string.Empty);
+
+    public ReactiveProperty<string> ShorterName { get; } = new(string.Empty);
+
+    public ObservableCollection<RaceHorseDataObject> Horses { get; } = new();
 
     public void SetEntity(Race race)
     {
@@ -36,6 +42,7 @@ namespace KmyKeiba.Models.DataObjects
     {
       this.Subject.Value = RaceSubject.Parse(this.Data.SubjectName);
       this.CourseName.Value = this.Data.Course.GetName();
+      this.ShorterName.Value = new Regex(@"(\s|　)[\s　]+").Replace(this.Data.Name, "　");
     }
 
     public RaceDataObject()
@@ -53,6 +60,23 @@ namespace KmyKeiba.Models.DataObjects
     {
       this.Data = new();
       this.SetEntity(entity);
+    }
+
+    public void SetHorses(IEnumerable<RaceHorseData> horses)
+    {
+      this.Horses.Clear();
+      this.Horses.AddRange(horses
+        .Where((h) => h.RaceKey == this.Data.Key)
+        .OrderBy((h) => h.Number)
+        .Select((h) => new RaceHorseDataObject(h)));
+    }
+
+    public void SetHorses(IEnumerable<RaceHorseDataObject> horses)
+    {
+      this.Horses.Clear();
+      this.Horses.AddRange(horses
+        .Where((h) => h.Data.RaceKey == this.Data.Key)
+        .OrderBy((h) => h.Data.Number));
     }
   }
 }

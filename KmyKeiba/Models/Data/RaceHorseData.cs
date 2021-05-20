@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Data
 {
-  class RaceHorseData
+  public class RaceHorseData
   {
     public uint Id { get; set; }
 

@@ -36,7 +36,7 @@ namespace KmyKeiba.ViewModels
         }
       };
 
-      this.OpenRaceCommand.Subscribe((r) => this.model.OpenRace(r));
+      this.OpenRaceCommand.Subscribe((r) => this.model.OpenRaceAsync(r));
       this.OpenJVLinkLoadDialogCommand.Subscribe(() =>
       {
         this.dialogService.ShowDialog("LoadJVLinkDialog");

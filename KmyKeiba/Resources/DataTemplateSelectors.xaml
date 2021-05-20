@@ -2,20 +2,23 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:c="clr-namespace:KmyKeiba.Resources.TemplateSelectors"
                     xmlns:vc="clr-namespace:KmyKeiba.Views.Controls">
-  <DataTemplate x:Key="RaceListTemplate">
+  <DataTemplate x:Key="RaceListContentTemplate">
     <vc:BindableScrollViewer ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}">
       <ItemsControl ItemsSource="{Binding Races}" ItemTemplate="{StaticResource RaceInfoTemplate}"/>
     </vc:BindableScrollViewer>
   </DataTemplate>
-  <DataTemplate x:Key="RaceDetailTemplate">
-    <vc:BindableScrollViewer ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}">
-      <Label Content="{Binding Race.Value.Name}"/>
+  <DataTemplate x:Key="RaceDetailContentTemplate">
+    <vc:BindableScrollViewer ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}"
+                             ScrollX="{Binding HorizontalScroll.Value,Mode=TwoWay}"
+                             HorizontalScrollBarVisibility="Visible">
+      <ContentControl ContentTemplate="{StaticResource RaceDetailTemplate}"
+                      Content="{Binding}"/>
     </vc:BindableScrollViewer>
   </DataTemplate>
 
   <c:MainTabContentTemplateSelector x:Key="MainTabContentTemplateSelector"
-                                    RaceListTemplate="{StaticResource RaceListTemplate}"
-                                    RaceDetailTemplate="{StaticResource RaceDetailTemplate}"/>
+                                    RaceListTemplate="{StaticResource RaceListContentTemplate}"
+                                    RaceDetailTemplate="{StaticResource RaceDetailContentTemplate}"/>
 
   <Style TargetType="Button" x:Key="TabCloseButtonStyle">
     <Setter Property="Background" Value="Transparent"/>
@@ -38,8 +41,26 @@
       <Button Grid.Column="1" Style="{StaticResource TabCloseButtonStyle}"/>
     </Grid>
   </DataTemplate>
+  <DataTemplate x:Key="RaceTabTemplate">
+    <Grid Width="200" Height="32">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="auto"/>
+      </Grid.ColumnDefinitions>
+      <Label Grid.Column="0" Width="40"
+             Content="{Binding Race.Value.Subject.Value.ClassName}" FontSize="14" FontWeight="Bold"
+             Foreground="White"
+             Background="{Binding Race.Value.Subject.Value.MaxClass,Converter={StaticResource RaceClassBrushConverter}}"
+             HorizontalContentAlignment="Center"
+             VerticalContentAlignment="Center"/>
+      <TextBlock Grid.Column="1" Text="{Binding Race.Value.ShorterName.Value}" FontSize="16"
+                 VerticalAlignment="Center"/>
+      <Button Grid.Column="2" Style="{StaticResource TabCloseButtonStyle}"/>
+    </Grid>
+  </DataTemplate>
 
   <c:MainTabItemTemplateSelector x:Key="MainTabItemTemplateSelector"
                                  RaceListTemplate="{StaticResource TextOnlyTabTemplate}"
-                                 RaceDetailTemplate="{StaticResource RaceDetailTemplate}"/>
+                                 RaceDetailTemplate="{StaticResource RaceTabTemplate}"/>
 </ResourceDictionary>
