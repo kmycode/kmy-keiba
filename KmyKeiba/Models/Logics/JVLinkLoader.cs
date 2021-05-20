@@ -33,6 +33,10 @@ namespace KmyKeiba.Models.Logics
 
     public ReactiveProperty<int> DownloadSize { get; } = new(1);
 
+    public ReactiveProperty<int> Loaded { get; } = new(0);
+
+    public ReactiveProperty<int> LoadSize { get; } = new(1);
+
     public ReactiveProperty<int> Saved { get; } = new(0);
 
     public ReactiveProperty<int> SaveSize { get; } = new(1);
@@ -41,28 +45,19 @@ namespace KmyKeiba.Models.Logics
 
     public ReactiveProperty<JVLinkReadResult> ReadErrorCode { get; } = new();
 
-    public ReadOnlyReactiveProperty<double> DownloadProgress { get; }
-
-    public ReadOnlyReactiveProperty<double> SaveProgress { get; }
+    public ReactiveProperty<bool> IsDatabaseError { get; } = new(false);
 
     public ReadOnlyReactiveProperty<bool> IsError { get; }
 
     public JVLinkLoader()
     {
-      this.DownloadProgress = this.Downloaded
-        .Merge(this.DownloadSize)
-        .Select((_) => (double)this.Downloaded.Value / Math.Max(1, this.DownloadSize.Value))
-        .ToReadOnlyReactiveProperty(0.0)
-        .AddTo(this.disposables);
-      this.SaveProgress = this.Saved
-        .Merge(this.SaveSize)
-        .Select((_) => (double)this.Saved.Value / Math.Max(1, this.SaveSize.Value))
-        .ToReadOnlyReactiveProperty(0.0)
-        .AddTo(this.disposables);
       this.IsError = this.LoadErrorCode
         .Select((c) => c != JVLinkLoadResult.Succeed)
         .CombineLatest(
           this.ReadErrorCode.Select((c) => c != JVLinkReadResult.Succeed),
+          (a, b) => a || b)
+        .CombineLatest(
+          this.IsDatabaseError,
           (a, b) => a || b)
         .ToReadOnlyReactiveProperty(false)
         .AddTo(this.disposables);
@@ -84,12 +79,15 @@ namespace KmyKeiba.Models.Logics
 
     private async Task LoadAsync(JVLinkObject link)
     {
+      this.LoadSize.Value = 1;
+      this.Loaded.Value = 0;
       this.SaveSize.Value = 1;
       this.Saved.Value = 0;
       this.DownloadSize.Value = 1;
       this.Downloaded.Value = 0;
       this.LoadErrorCode.Value = JVLinkLoadResult.Succeed;
       this.ReadErrorCode.Value = JVLinkReadResult.Succeed;
+      this.IsDatabaseError.Value = false;
 
       this.IsLoading.Value = true;
 
@@ -102,7 +100,6 @@ namespace KmyKeiba.Models.Logics
             this.StartTime.Value,
             this.IsSetEndTime.Value ? this.EndTime.Value : null))
           {
-
             this.DownloadSize.Value = reader.DownloadCount;
             this.Downloaded.Value = reader.DownloadedCount;
 
@@ -118,16 +115,15 @@ namespace KmyKeiba.Models.Logics
               data = reader.Load();
             });
 
-            this.SaveSize.Value = reader.ReadCount;
+            this.LoadSize.Value = reader.ReadCount;
             while (reader.ReadCount > reader.ReadedCount || !loadTask.IsCompleted)
             {
               await Task.Delay(80);
-              this.Saved.Value = reader.ReadedCount;
+              this.Loaded.Value = reader.ReadedCount;
             }
 
             var saved = 0;
             this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count;
-            this.Saved.Value = 0;
 
             UiThreadUtil.Dispatcher?.Invoke(() =>
             {
@@ -162,7 +158,6 @@ namespace KmyKeiba.Models.Logics
                   var obj = new RaceDataObject(item);
                   await db.Races!.AddAsync(obj.Data);
                 }
-                saved = data.Races.Count;
               }
               {
                 var ids = data.RaceHorses.Select((r) => r.Name).ToList();
@@ -180,7 +175,6 @@ namespace KmyKeiba.Models.Logics
                   var obj = new RaceHorseDataObject(item);
                   await db.RaceHorses!.AddAsync(obj.Data);
                 }
-                saved = data.Races.Count + data.RaceHorses.Count;
               }
 
               await db.SaveChangesAsync();
@@ -194,6 +188,10 @@ namespace KmyKeiba.Models.Logics
         catch (JVLinkException<JVLinkReadResult> ex)
         {
           this.ReadErrorCode.Value = ex.Code;
+        }
+        catch
+        {
+          this.IsDatabaseError.Value = true;
         }
         finally
         {

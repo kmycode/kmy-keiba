@@ -13,7 +13,7 @@
       <Setter Property="ShowInTaskbar" Value="False"/>
       <Setter Property="SizeToContent" Value="Manual"/>
       <Setter Property="Width" Value="400" />
-      <Setter Property="Height" Value="400" />
+      <Setter Property="Height" Value="460" />
     </Style>
   </prism:Dialog.WindowStyle>
   <StackPanel>
@@ -42,7 +42,33 @@
       <Button Content="読み込み（中央）" Width="120" Height="40" Command="{Binding LoadCentralCommand}"/>
       <Button Content="読み込み（地方）" Width="120" Height="40" Command="{Binding LoadLocalCommand}"/>
     </StackPanel>
-    <ProgressBar Height="24" Margin="8,0,8,4" Minimum="0" Maximum="{Binding DownloadSize.Value}" Value="{Binding Downloaded.Value}"/>
-    <ProgressBar Height="24" Margin="8,0,8,4" Minimum="0" Maximum="{Binding SaveSize.Value}" Value="{Binding Saved.Value}"/>
+    <StackPanel Visibility="{Binding IsError.Value,Converter={StaticResource BooleanVisibilityConverter}}">
+      <Label Foreground="Red"
+             Visibility="{Binding LoadErrorCode.Value,Converter={StaticResource JVLinkErrorCodeVisibilityConverter}}"
+             Content="{Binding LoadErrorCode.Value,Converter={StaticResource JVLinkErrorCodeMessageConverter}}"/>
+      <Label Foreground="Red"
+             Visibility="{Binding ReadErrorCode.Value,Converter={StaticResource JVLinkErrorCodeVisibilityConverter}}"
+             Content="{Binding ReadErrorCode.Value,Converter={StaticResource JVLinkErrorCodeMessageConverter}}"/>
+      <Label Foreground="Red"
+             Visibility="{Binding IsDatabaseError.Value,Converter={StaticResource BooleanVisibilityConverter}}"
+             Content="データベースとの接続でエラーが発生しました"/>
+    </StackPanel>
+    <StackPanel Visibility="{Binding IsError.Value,Converter={StaticResource NegativeVisibilityConverter}}">
+      <StackPanel Orientation="Horizontal" Margin="8,16,8,4">
+        <Label Width="64" Content="ダウンロード"/>
+        <ProgressBar Width="300" Height="24"
+                     Minimum="0" Maximum="{Binding DownloadSize.Value}" Value="{Binding Downloaded.Value}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Margin="8,0,8,4">
+        <Label Width="64" Content="読み込み"/>
+        <ProgressBar Width="300" Height="24"
+                     Minimum="0" Maximum="{Binding LoadSize.Value}" Value="{Binding Loaded.Value}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Margin="8,0,8,4">
+        <Label Width="64" Content="保存"/>
+        <ProgressBar Width="300" Height="24"
+                     Minimum="0" Maximum="{Binding SaveSize.Value}" Value="{Binding Saved.Value}"/>
+      </StackPanel>
+    </StackPanel>
   </StackPanel>
 </UserControl>

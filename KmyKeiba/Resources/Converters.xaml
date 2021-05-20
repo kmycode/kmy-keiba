@@ -3,6 +3,10 @@
                     xmlns:c="clr-namespace:KmyKeiba.Converters">
   <c:RaceClassBrushConverter x:Key="RaceClassBrushConverter"/>
   <c:NegativeConverter x:Key="NegativeConverter"/>
-  
+  <c:JVLinkErrorCodeMessageConverter x:Key="JVLinkErrorCodeMessageConverter"/>
+  <c:NegativeVisibilityConverter x:Key="NegativeVisibilityConverter"/>
+  <c:BooleanVisibilityConverter x:Key="BooleanVisibilityConverter"/>
+  <c:JVLinkErrorCodeVisibilityConverter x:Key="JVLinkErrorCodeVisibilityConverter"/>
+
   <c:MultiBooleanConverter x:Key="MultiBooleanConverter"/>
 </ResourceDictionary>

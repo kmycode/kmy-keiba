@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Models.Logics;
+﻿using KmyKeiba.JVLink.Wrappers;
+using KmyKeiba.Models.Logics;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
 using Reactive.Bindings;
@@ -17,27 +18,35 @@ namespace KmyKeiba.ViewModels
     private readonly JVLinkLoader model = new();
     private readonly CompositeDisposable disposables = new();
 
-    public ReactiveProperty<DateTime> StartTime => this.model!.StartTime;
+    public ReactiveProperty<DateTime> StartTime => this.model.StartTime;
 
-    public ReactiveProperty<DateTime> EndTime => this.model!.EndTime;
+    public ReactiveProperty<DateTime> EndTime => this.model.EndTime;
 
-    public ReactiveProperty<bool> IsSetEndTime => this.model!.IsSetEndTime;
+    public ReactiveProperty<bool> IsSetEndTime => this.model.IsSetEndTime;
 
-    public ReactiveProperty<bool> IsLoading => this.model!.IsLoading;
+    public ReactiveProperty<bool> IsLoading => this.model.IsLoading;
 
-    public ReactiveProperty<int> Downloaded => this.model!.Downloaded;
+    public ReactiveProperty<int> Downloaded => this.model.Downloaded;
 
-    public ReactiveProperty<int> DownloadSize => this.model!.DownloadSize;
+    public ReactiveProperty<int> DownloadSize => this.model.DownloadSize;
 
-    public ReactiveProperty<int> Saved => this.model!.Saved;
+    public ReactiveProperty<int> Saved => this.model.Saved;
 
-    public ReactiveProperty<int> SaveSize => this.model!.SaveSize;
+    public ReactiveProperty<int> SaveSize => this.model.SaveSize;
 
-    public ReadOnlyReactiveProperty<double> DownloadProgress => this.model!.DownloadProgress;
+    public ReactiveProperty<int> Loaded => this.model.Loaded;
 
-    public ReadOnlyReactiveProperty<double> SaveProgress => this.model!.SaveProgress;
+    public ReactiveProperty<int> LoadSize => this.model.LoadSize;
+
+    public ReactiveProperty<JVLinkLoadResult> LoadErrorCode => this.model.LoadErrorCode;
+
+    public ReactiveProperty<JVLinkReadResult> ReadErrorCode => this.model.ReadErrorCode;
+
+    public ReactiveProperty<bool> IsDatabaseError => this.model.IsDatabaseError;
 
     public ReactiveProperty<bool> CanClose { get; } = new(true);
+
+    public ReadOnlyReactiveProperty<bool> IsError => this.model.IsError;
 
     public string Title => "JV-Linkデータ読み込み";
 

@@ -116,6 +116,7 @@ namespace KmyKeiba.JVLink.Entities
 
   public enum RaceCourseType
   {
+    Unknown = 0,
     Central = 1,
     Local = 2,
     Foreign = 3,

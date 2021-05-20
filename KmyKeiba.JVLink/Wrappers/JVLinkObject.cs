@@ -265,16 +265,22 @@ namespace KmyKeiba.JVLink.Wrappers
     RB51 = 0b100_0000_0000_0000_0000_0000_0000_0000,
   }
 
-  static class EnumExtensions
+  public static class EnumExtensions
   {
-    public static JVLinkDataspecAttribute? GetAttribute(this JVLinkDataspec spec)
+    internal static JVLinkDataspecAttribute? GetAttribute(this JVLinkDataspec spec)
       => GetAttribute<JVLinkDataspecAttribute, JVLinkDataspec>(spec);
 
-    public static RaceClassInfoAttribute? GetAttribute(this RaceClass cls)
+    internal static RaceClassInfoAttribute? GetAttribute(this RaceClass cls)
       => GetAttribute<RaceClassInfoAttribute, RaceClass>(cls);
 
-    public static RaceCourseInfoAttribute? GetAttribute(this RaceCourse cls)
+    internal static RaceCourseInfoAttribute? GetAttribute(this RaceCourse cls)
       => GetAttribute<RaceCourseInfoAttribute, RaceCourse>(cls);
+
+    public static string? GetName(this RaceCourse cls)
+      => cls.GetAttribute()?.Name;
+
+    public static RaceCourseType GetType(this RaceCourse cls)
+      => cls.GetAttribute()?.Type ?? RaceCourseType.Unknown;
 
     private static A? GetAttribute<A, T>(T spec) where A : Attribute
     {
