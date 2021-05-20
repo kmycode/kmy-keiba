@@ -19,6 +19,8 @@ namespace KmyKeiba.Models.Logics
 {
   class JVLinkLoader : IDisposable
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private readonly CompositeDisposable disposables = new();
 
     public ReactiveProperty<DateTime> StartTime { get; } = new(DateTime.Today);
@@ -95,35 +97,54 @@ namespace KmyKeiba.Models.Logics
       {
         try
         {
+          logger.Info("Start Load JVLink");
+          logger.Info($"Load Type: {link.GetType().Name}");
+
           using (var reader = link.StartRead(JVLinkDataspec.Race,
             JVLinkOpenOption.Normal,
             this.StartTime.Value,
             this.IsSetEndTime.Value ? this.EndTime.Value : null))
           {
             this.DownloadSize.Value = reader.DownloadCount;
-            this.Downloaded.Value = reader.DownloadedCount;
+            logger.Info($"Download: {reader.DownloadCount}");
 
-            while (reader.DownloadCount > reader.DownloadedCount)
+            while (this.DownloadSize.Value > this.Downloaded.Value)
             {
               this.Downloaded.Value = reader.DownloadedCount;
               Task.Delay(80).Wait();
             }
+            logger.Info("Download completed");
 
             JVLinkReaderData data = new();
+            Exception? loadException = null;
             var loadTask = Task.Run(() =>
             {
-              data = reader.Load();
+              logger.Info("Load start");
+              try
+              {
+                data = reader.Load();
+              }
+              catch (Exception ex)
+              {
+                loadException = ex;
+              }
             });
 
             this.LoadSize.Value = reader.ReadCount;
-            while (reader.ReadCount > reader.ReadedCount || !loadTask.IsCompleted)
+            while (this.LoadSize.Value > this.Loaded.Value && !loadTask.IsCompleted && loadException == null)
             {
               await Task.Delay(80);
               this.Loaded.Value = reader.ReadedCount;
             }
 
+            if (loadException != null)
+            {
+              throw new Exception("Load error", loadException);
+            }
+
             var saved = 0;
             this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count;
+            logger.Info($"Save size: {this.SaveSize.Value}");
 
             UiThreadUtil.Dispatcher?.Invoke(() =>
             {
@@ -180,18 +201,25 @@ namespace KmyKeiba.Models.Logics
               await db.SaveChangesAsync();
             }
           }
+
+          logger.Info("JVLink load Completed");
         }
         catch (JVLinkException<JVLinkLoadResult> ex)
         {
           this.LoadErrorCode.Value = ex.Code;
+          logger.Error($"error {ex.Code}");
+          logger.Error("error", ex);
         }
         catch (JVLinkException<JVLinkReadResult> ex)
         {
           this.ReadErrorCode.Value = ex.Code;
+          logger.Error($"error {ex.Code}");
+          logger.Error("error", ex);
         }
-        catch
+        catch (Exception ex)
         {
           this.IsDatabaseError.Value = true;
+          logger.Error("error", ex);
         }
         finally
         {

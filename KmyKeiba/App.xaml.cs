@@ -19,6 +19,7 @@ namespace KmyKeiba
   {
     protected override Window CreateShell()
     {
+      log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
       var context = new MyContext();

@@ -19,6 +19,7 @@
     <WarningsAsErrors>;NU1605;CS8600;CS8618</WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.12" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.6">
       <PrivateAssets>all</PrivateAssets>
@@ -32,5 +33,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KmyKeiba.JVLink\KmyKeiba.JVLink.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="log4net.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
