@@ -131,7 +131,7 @@ namespace KmyKeiba.Models.Logics
             });
 
             this.LoadSize.Value = reader.ReadCount;
-            while (this.LoadSize.Value > this.Loaded.Value && !loadTask.IsCompleted && loadException == null)
+            while (!loadTask.IsCompleted && loadException == null)
             {
               await Task.Delay(80);
               this.Loaded.Value = reader.ReadedCount;
@@ -178,23 +178,25 @@ namespace KmyKeiba.Models.Logics
                 {
                   var obj = new RaceDataObject(item);
                   await db.Races!.AddAsync(obj.Data);
+                  saved++;
                 }
               }
               {
-                var ids = data.RaceHorses.Select((r) => r.Name).ToList();
+                var ids = data.RaceHorses.Select((r) => r.Name + r.RaceKey).ToList();
                 var dataItems = await db.RaceHorses!
-                  .Where((r) => ids.Contains(r.Name))
+                  .Where((r) => ids.Contains(r.Name + r.RaceKey))
                   .ToArrayAsync();
-                foreach (var item in dataItems.Join(data.RaceHorses, (d) => d.Name, (e) => e.Name, (d, e) => new { Data = d, Entity = e, }))
+                foreach (var item in dataItems.Join(data.RaceHorses, (d) => d.Name + d.RaceKey, (e) => e.Name + e.RaceKey, (d, e) => new { Data = d, Entity = e, }))
                 {
                   var obj = new RaceHorseDataObject(item.Data);
                   obj.SetEntity(item.Entity);
                   saved++;
                 }
-                foreach (var item in data.RaceHorses.Where((e) => !dataItems.Any((d) => d.Name == e.Name)))
+                foreach (var item in data.RaceHorses.Where((e) => !dataItems.Any((d) => d.Name == e.Name && d.RaceKey == e.RaceKey)))
                 {
                   var obj = new RaceHorseDataObject(item);
                   await db.RaceHorses!.AddAsync(obj.Data);
+                  saved++;
                 }
               }
 
