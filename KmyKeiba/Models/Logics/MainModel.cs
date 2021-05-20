@@ -5,6 +5,7 @@ using KmyKeiba.Models.DataObjects;
 using KmyKeiba.Models.Logics.Tabs;
 using KmyKeiba.Models.Threading;
 using Microsoft.EntityFrameworkCore;
+using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -29,6 +30,7 @@ namespace KmyKeiba.Models.Logics
       {
         var raceData = await db.Races!
           .Where((r) => r.StartTime < DateTime.Today && r.StartTime >= DateTime.Today.AddDays(-1))
+          .OrderBy((r) => r.Key)
           .ToArrayAsync();
         var races = raceData.Select((r) => new RaceDataObject(r));
         this.Tabs.Add(new RaceListTabFrame()

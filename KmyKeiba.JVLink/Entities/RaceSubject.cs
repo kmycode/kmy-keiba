@@ -76,6 +76,13 @@ namespace KmyKeiba.JVLink.Entities
       public int Age { get; init; }
 
       public RaceMoneySubject ClassSubject { get; init; }
+
+      public bool IsDefault =>
+        this.Class != RaceClass.Unknown ||
+        this.Level != 0 ||
+        this.Group != 0 ||
+        this.Age != 0 ||
+        this.ClassSubject != RaceMoneySubject.Unknown;
     }
 
     internal RaceSubject()
@@ -92,6 +99,11 @@ namespace KmyKeiba.JVLink.Entities
 #pragma warning disable CA1416 // プラットフォームの互換性を検証
       text = Microsoft.VisualBasic.Strings.StrConv(text, Microsoft.VisualBasic.VbStrConv.Narrow)!;
 #pragma warning restore CA1416 // プラットフォームの互換性を検証
+
+      if (text == "4歳上OP")
+      {
+
+      }
 
       var reg = new Regex(@"(((?<age>\d)歳\s*)*)(?<class>[A-Z])-*(?<number>\d*)\s*-*(?<group>[一二三四五六七八九\d]*)\s*((?<classsub>以上|未満|以下)*)");
       var match = reg.Match(text);
@@ -143,7 +155,10 @@ namespace KmyKeiba.JVLink.Entities
           Age = age,
           ClassSubject = classSubject,
         };
-        subject.Items.Add(item);
+        if (item.IsDefault)
+        {
+          subject.Items.Add(item);
+        }
       }
 
       reg = new Regex(@"(?<money>[\d\.]+)万((?<moneysub>以上|未満|以下)*)");
@@ -196,7 +211,7 @@ namespace KmyKeiba.JVLink.Entities
       }
       else if (!subject.Items.Any())
       {
-        reg = new Regex(@"(?<age>\d)歳");
+        reg = new Regex(@"(?<age>\d+)歳");
         match = reg.Match(text);
         if (match.Success)
         {

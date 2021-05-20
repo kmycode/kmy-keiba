@@ -26,14 +26,20 @@
       </StackPanel>
       <StackPanel>
         <Label Content="終了日付" HorizontalAlignment="Center"/>
-        <Calendar SelectedDate="{Binding EndTime.Value,Mode=TwoWay}"
-                  IsEnabled="{Binding IsLoading.Value,Converter={StaticResource NegativeConverter}}"/>
+        <Calendar SelectedDate="{Binding EndTime.Value,Mode=TwoWay}">
+          <Calendar.IsEnabled>
+            <MultiBinding Converter="{StaticResource MultiBooleanConverter}">
+              <Binding Path="IsLoading.Value" Converter="{StaticResource NegativeConverter}"/>
+              <Binding Path="IsSetEndTime.Value"/>
+            </MultiBinding>
+          </Calendar.IsEnabled>
+        </Calendar>
         <CheckBox Content="指定しない" IsChecked="{Binding IsSetEndTime.Value,Converter={StaticResource NegativeConverter}}"
                   IsEnabled="{Binding IsLoading.Value,Converter={StaticResource NegativeConverter}}"/>
       </StackPanel>
     </StackPanel>
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
-      <Button Content="読み込み（中央）" Width="120" Height="40"/>
+      <Button Content="読み込み（中央）" Width="120" Height="40" Command="{Binding LoadCentralCommand}"/>
       <Button Content="読み込み（地方）" Width="120" Height="40" Command="{Binding LoadLocalCommand}"/>
     </StackPanel>
     <ProgressBar Height="24" Margin="8,0,8,4" Minimum="0" Maximum="{Binding DownloadSize.Value}" Value="{Binding Downloaded.Value}"/>

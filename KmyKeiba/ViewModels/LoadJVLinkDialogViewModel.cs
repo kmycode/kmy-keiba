@@ -14,7 +14,7 @@ namespace KmyKeiba.ViewModels
 {
   class LoadJVLinkDialogViewModel : BindableBase, IDialogAware
   {
-    private readonly LoadJVLinkModel model = new();
+    private readonly JVLinkLoader model = new();
     private readonly CompositeDisposable disposables = new();
 
     public ReactiveProperty<DateTime> StartTime => this.model!.StartTime;
@@ -50,17 +50,27 @@ namespace KmyKeiba.ViewModels
         .Select((v) => !v)
         .ToReactiveCommand();
       this.LoadLocalCommand.Subscribe(() => this.model.LoadLocalAsync());
+
+      this.LoadCentralCommand = this.model
+        .IsLoading
+        .Select((v) => !v)
+        .ToReactiveCommand();
+      this.LoadCentralCommand.Subscribe(() => this.model.LoadCentralAsync());
     }
 
     public bool CanCloseDialog() => this.CanClose.Value;
 
     public void OnDialogClosed()
     {
+      this.model.Dispose();
+      this.disposables.Dispose();
     }
 
     public void OnDialogOpened(IDialogParameters parameters)
     {
     }
+
+    public ReactiveCommand LoadCentralCommand { get; } = new();
 
     public ReactiveCommand LoadLocalCommand { get; } = new();
   }

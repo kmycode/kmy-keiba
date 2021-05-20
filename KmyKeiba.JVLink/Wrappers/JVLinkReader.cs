@@ -15,6 +15,10 @@ namespace KmyKeiba.JVLink.Wrappers
 
     int DownloadCount => 0;
 
+    int ReadCount => 0;
+
+    int ReadedCount => 0;
+
     JVLinkReaderData Load();
   }
 
@@ -33,12 +37,14 @@ namespace KmyKeiba.JVLink.Wrappers
   class JVLinkReader : IJVLinkReader
   {
     private readonly IJVLinkObject link;
-    private readonly int readCount;
-    private readonly int downloadCount;
 
     public int DownloadedCount => this.link.Status();
 
-    public int DownloadCount => this.downloadCount;
+    public int DownloadCount { get; set; }
+
+    public int ReadCount { get; set; }
+
+    public int ReadedCount { get; set; }
 
     static JVLinkReader()
     {
@@ -48,8 +54,8 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public JVLinkReader(IJVLinkObject link, int readCount, int downloadCount)
     {
-      this.readCount = readCount;
-      this.downloadCount = downloadCount;
+      this.ReadCount = readCount;
+      this.DownloadCount = downloadCount;
 
       this.link = link;
       link.IsOpen = true;
@@ -60,6 +66,8 @@ namespace KmyKeiba.JVLink.Wrappers
       var data = new JVLinkReaderData();
       var buffSize = 110000;
       var buff = new byte[buffSize];
+
+      var lastFileName = string.Empty;
 
       while (true)
       {
@@ -113,6 +121,12 @@ namespace KmyKeiba.JVLink.Wrappers
             this.link.Skip();
             break;
         }
+
+        if (fileName != lastFileName)
+        {
+          this.ReadedCount++;
+          lastFileName = fileName;
+        }
       }
 
       data.Races = ((IEnumerable<Race>)data.Races)
@@ -124,6 +138,8 @@ namespace KmyKeiba.JVLink.Wrappers
         .Reverse()
         .Distinct(new SimpleDistinctComparer<RaceHorse>((a, b) => a.Name == b.Name && a.RaceKey == b.RaceKey))
         .ToList();
+
+      this.ReadedCount = this.ReadCount;
 
       return data;
     }

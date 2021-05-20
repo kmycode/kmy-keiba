@@ -35,6 +35,9 @@ namespace KmyKeiba.JVLink.Wrappers
 
   public enum JVLinkLoadResult
   {
+    [JVLinkCode("成功")]
+    Succeed = 0,
+
     [JVLinkCode("これ以上データはありません")]
     Exit = -1,
 
@@ -104,6 +107,9 @@ namespace KmyKeiba.JVLink.Wrappers
 
   public enum JVLinkReadResult
   {
+    [JVLinkCode("成功")]
+    Succeed = 0,
+
     [JVLinkCode("新しいファイルへ切り替わりました")]
     NewFile = -1,
 

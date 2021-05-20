@@ -300,7 +300,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
   public class JVLinkCodeAttribute : Attribute
   {
-    public string Message { get; set; }
+    public string Message { get; }
 
     public JVLinkCodeAttribute(string message)
     {
