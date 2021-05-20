@@ -22,12 +22,27 @@ namespace KmyKeiba.ViewModels
 
     public ObservableCollection<TabFrame> Tabs => this.model.Tabs;
 
+    public ReactiveProperty<int> TabIndex { get; } = new(0);
+
     public MainWindowViewModel(IDialogService dialogService)
     {
       this.dialogService = dialogService;
 
+      this.Tabs.CollectionChanged += (_, _) =>
+      {
+        if (this.TabIndex.Value < 0)
+        {
+          this.TabIndex.Value = 0;
+        }
+      };
+
       this.OpenRaceCommand.Subscribe((r) => this.model.OpenRace(r));
-      this.OpenJVLinkLoadDialogCommand.Subscribe(() => this.dialogService.ShowDialog("LoadJVLinkDialog"));
+      this.OpenJVLinkLoadDialogCommand.Subscribe(() =>
+      {
+        this.dialogService.ShowDialog("LoadJVLinkDialog");
+        this.model.LoadAsync();
+      });
+      this.CloseTabCommand.Subscribe((t) => this.model.CloseTab(t));
 
       this.model.LoadAsync();
     }
@@ -35,5 +50,7 @@ namespace KmyKeiba.ViewModels
     public ReactiveCommand<RaceDataObject> OpenRaceCommand { get; } = new();
 
     public ReactiveCommand OpenJVLinkLoadDialogCommand { get; } = new();
+
+    public ReactiveCommand<TabFrame> CloseTabCommand { get; } = new();
   }
 }

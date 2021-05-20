@@ -63,7 +63,7 @@
             </Border>
             <Border Grid.Column="1" Grid.Row="1" BorderBrush="#cccccc" BorderThickness="0,0,1,0">
               <TextBlock FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <Run Text="{Binding Data.CourseName,Mode=OneTime}"/>
+                <Run Text="{Binding CourseName.Value,Mode=OneTime}"/>
                 <Run Text="{Binding Data.CourseRaceNumber}"/>
                 <Run Text="R"/>
               </TextBlock>

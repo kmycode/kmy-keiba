@@ -12,8 +12,34 @@
       <Label Content="{Binding Race.Value.Name}"/>
     </vc:BindableScrollViewer>
   </DataTemplate>
-  
+
   <c:MainTabContentTemplateSelector x:Key="MainTabContentTemplateSelector"
                                     RaceListTemplate="{StaticResource RaceListTemplate}"
                                     RaceDetailTemplate="{StaticResource RaceDetailTemplate}"/>
+
+  <Style TargetType="Button" x:Key="TabCloseButtonStyle">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="FontSize" Value="20"/>
+    <Setter Property="Width" Value="32"/>
+    <Setter Property="Content" Value="×"/>
+    <Setter Property="Visibility" Value="{Binding CanClose,Converter={StaticResource BooleanVisibilityConverter}}"/>
+    <Setter Property="Command" Value="{Binding DataContext.CloseTabCommand,RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+    <Setter Property="CommandParameter" Value="{Binding}"/>
+  </Style>
+  <DataTemplate x:Key="TextOnlyTabTemplate">
+    <Grid Width="200" Height="32">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="auto"/>
+      </Grid.ColumnDefinitions>
+      <TextBlock Text="レース一覧" FontSize="20"
+                 TextAlignment="Center" VerticalAlignment="Center"/>
+      <Button Grid.Column="1" Style="{StaticResource TabCloseButtonStyle}"/>
+    </Grid>
+  </DataTemplate>
+
+  <c:MainTabItemTemplateSelector x:Key="MainTabItemTemplateSelector"
+                                 RaceListTemplate="{StaticResource TextOnlyTabTemplate}"
+                                 RaceDetailTemplate="{StaticResource RaceDetailTemplate}"/>
 </ResourceDictionary>

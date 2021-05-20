@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.JVLink.Entities;
+using KmyKeiba.JVLink.Wrappers;
 using KmyKeiba.Models.Data;
 using Reactive.Bindings;
 using System;
@@ -14,6 +15,8 @@ namespace KmyKeiba.Models.DataObjects
     public RaceData Data { get; private set; }
 
     public ReactiveProperty<RaceSubject> Subject { get; } = new();
+
+    public ReactiveProperty<string> CourseName { get; } = new(string.Empty);
 
     public void SetEntity(Race race)
     {
@@ -32,6 +35,7 @@ namespace KmyKeiba.Models.DataObjects
     private void ReadData()
     {
       this.Subject.Value = RaceSubject.Parse(this.Data.SubjectName);
+      this.CourseName.Value = this.Data.Course.GetName();
     }
 
     public RaceDataObject()

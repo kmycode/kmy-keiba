@@ -12,5 +12,10 @@ namespace KmyKeiba.Models.Logics.Tabs
   class RaceListTabFrame : TabFrame
   {
     public ObservableCollection<RaceDataObject> Races { get; set; } = new();
+
+    public RaceListTabFrame()
+    {
+      this.CanClose = false;
+    }
   }
 }

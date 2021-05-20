@@ -276,8 +276,8 @@ namespace KmyKeiba.JVLink.Wrappers
     internal static RaceCourseInfoAttribute? GetAttribute(this RaceCourse cls)
       => GetAttribute<RaceCourseInfoAttribute, RaceCourse>(cls);
 
-    public static string? GetName(this RaceCourse cls)
-      => cls.GetAttribute()?.Name;
+    public static string GetName(this RaceCourse cls)
+      => cls.GetAttribute()?.Name ?? string.Empty;
 
     public static RaceCourseType GetType(this RaceCourse cls)
       => cls.GetAttribute()?.Type ?? RaceCourseType.Unknown;

@@ -11,6 +11,6 @@ namespace KmyKeiba.Models.Logics.Tabs
   {
     public ReactiveProperty<double> VerticalScroll { get; } = new();
 
-    public bool CanClose { get; set; } = true;
+    public bool CanClose { get; protected set; } = true;
   }
 }

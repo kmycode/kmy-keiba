@@ -33,6 +33,8 @@ namespace KmyKeiba.Models.Logics
           .OrderBy((r) => r.Key)
           .ToArrayAsync();
         var races = raceData.Select((r) => new RaceDataObject(r));
+
+        this.Tabs.Clear();
         this.Tabs.Add(new RaceListTabFrame()
         {
           Races = new(races),
@@ -76,6 +78,11 @@ namespace KmyKeiba.Models.Logics
       {
         // Race = { Value = race },
       });
+    }
+
+    public void CloseTab(TabFrame tab)
+    {
+      this.Tabs.Remove(tab);
     }
   }
 }

@@ -18,14 +18,9 @@
         </MenuItem>
       </Menu>
     </DockPanel>
-    <TabControl Grid.Row="1" ItemsSource="{Binding Tabs}"
-                ContentTemplateSelector="{StaticResource MainTabContentTemplateSelector}">
-      <TabControl.ItemTemplate>
-        <DataTemplate>
-          <TextBlock Text="レース一覧" Width="200" Height="32" FontSize="20"
-                     VerticalAlignment="Center" HorizontalAlignment="Center"/>
-        </DataTemplate>
-      </TabControl.ItemTemplate>
+    <TabControl Grid.Row="1" ItemsSource="{Binding Tabs}" SelectedIndex="{Binding TabIndex.Value,Mode=TwoWay}"
+                ContentTemplateSelector="{StaticResource MainTabContentTemplateSelector}"
+                ItemTemplateSelector="{StaticResource MainTabItemTemplateSelector}">
     </TabControl>
   </Grid>
 </Window>
