@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -99,6 +100,18 @@ namespace KmyKeiba.JVLink.Wrappers
         var d = Encoding.GetEncoding(932).GetString(buff);
         var spec = d.Substring(0, 2);
 
+        void Read<T>(T item, IList<T> list, Func<T, T, bool> isEquals)
+          where T : EntityBase
+        {
+          var oldItem = list.FirstOrDefault((r) => isEquals(r, item) && r.LastModified < item.LastModified);
+          if (oldItem != null)
+          {
+            list.Remove(oldItem);
+          }
+
+          list.Add(item);
+        }
+
         switch (spec)
         {
           case "RA":
@@ -106,7 +119,8 @@ namespace KmyKeiba.JVLink.Wrappers
               var a = new JVData_Struct.JV_RA_RACE();
               a.SetDataB(ref d);
               var item = Race.FromJV(a);
-              data.Races.Add(item);
+
+              Read(item, data.Races, (a, b) => a.Key == b.Key);
               break;
             }
           case "SE":
@@ -114,7 +128,8 @@ namespace KmyKeiba.JVLink.Wrappers
               var a = new JVData_Struct.JV_SE_RACE_UMA();
               a.SetDataB(ref d);
               var item = RaceHorse.FromJV(a);
-              data.RaceHorses.Add(item);
+
+              Read(item, data.RaceHorses, (a, b) => a.RaceKey == b.RaceKey && a.Name == b.Name);
               break;
             }
           default:
@@ -129,16 +144,6 @@ namespace KmyKeiba.JVLink.Wrappers
         }
       }
 
-      data.Races = ((IEnumerable<Race>)data.Races)
-        .Reverse()
-        .Distinct(new SimpleDistinctComparer<Race>((a, b) => a.Key == b.Key))
-        .Reverse()
-        .ToList();
-      data.RaceHorses = ((IEnumerable<RaceHorse>)data.RaceHorses)
-        .Reverse()
-        .Distinct(new SimpleDistinctComparer<RaceHorse>((a, b) => a.Name == b.Name && a.RaceKey == b.RaceKey))
-        .ToList();
-
       this.ReadedCount = this.ReadCount;
 
       return data;
@@ -149,6 +154,9 @@ namespace KmyKeiba.JVLink.Wrappers
       this.link.Close();
       this.link.IsOpen = false;
     }
+
+    [DllImport("ole32.dll", SetLastError = true)]
+    static extern void CoTaskMemFree(IntPtr lpMem);
   }
 
   public class JVLinkReaderData

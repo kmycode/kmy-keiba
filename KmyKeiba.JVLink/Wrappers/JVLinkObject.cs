@@ -82,14 +82,13 @@ namespace KmyKeiba.JVLink.Wrappers
         throw JVLinkException.GetError(JVLinkLoadResult.InvalidDataspec);
       }
 
-      var during = this.ToString(from) + (to != null ? $"-{this.ToString((DateTime)to)}" : string.Empty);
-
       var readCount = 0;
       var downloadCount = 0;
       var result = 0;
 
       if (options != JVLinkOpenOption.RealTime)
       {
+        var during = this.ToString(from) + (to != null ? $"-{this.ToString((DateTime)to)}" : string.Empty);
         result = this.link.Open(string.Join(string.Empty, attributes.Select((a) => a!.Code)),
                                 during, (int)options,
                                 ref readCount, ref downloadCount, out string lastFileTimeStamp);
@@ -97,7 +96,7 @@ namespace KmyKeiba.JVLink.Wrappers
       else
       {
         result = this.link.RtOpen(string.Join(string.Empty, attributes.Select((a) => a!.Code)),
-                                  during);
+                                  from.ToString("yyyyMMdd"));
       }
 
       if (result != 0 && result != -1)

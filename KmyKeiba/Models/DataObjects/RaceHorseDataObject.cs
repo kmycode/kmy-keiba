@@ -20,12 +20,7 @@ namespace KmyKeiba.Models.DataObjects
 
     public void SetEntity(RaceHorse entity)
     {
-      this.Data.Name = entity.Name;
-      this.Data.Number = entity.Number;
-      this.Data.Popular = entity.Popular;
-      this.Data.RaceKey = entity.RaceKey;
-      this.Data.ResultOrder = entity.ResultOrder;
-      this.Data.FrameNumber = entity.FrameNumber;
+      this.Data.SetEntity(entity);
     }
 
     public RaceHorseDataObject()

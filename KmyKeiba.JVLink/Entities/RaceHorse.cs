@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.JVLink.Entities
 {
-  public class RaceHorse
+  public class RaceHorse : EntityBase
   {
     /// <summary>
     /// 出場するレースID
@@ -39,6 +39,34 @@ namespace KmyKeiba.JVLink.Entities
     /// </summary>
     public int Popular { get; set; }
 
+    /// <summary>
+    /// 走破タイム
+    /// </summary>
+    public TimeSpan ResultTime { get; set; }
+
+    public int FirstCornerOrder { get; set; }
+
+    public int SecondCornerOrder { get; set; }
+
+    public int ThirdCornerOrder { get; set; }
+
+    public int FourthCornerOrder { get; set; }
+
+    /// <summary>
+    /// 騎手コード
+    /// </summary>
+    public string RiderCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 騎手の名前
+    /// </summary>
+    public string RiderName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 単勝オッズ
+    /// </summary>
+    public double Odds { get; set; }
+
     internal RaceHorse()
     {
     }
@@ -49,15 +77,33 @@ namespace KmyKeiba.JVLink.Entities
       int.TryParse(uma.Wakuban.Trim(), out int wakuNum);
       int.TryParse(uma.KakuteiJyuni.Trim(), out int result);
       int.TryParse(uma.Ninki.Trim(), out int pop);
+      int.TryParse(uma.Jyuni1c.Trim(), out int corner1);
+      int.TryParse(uma.Jyuni2c.Trim(), out int corner2);
+      int.TryParse(uma.Jyuni3c.Trim(), out int corner3);
+      int.TryParse(uma.Jyuni4c.Trim(), out int corner4);
+      double.TryParse(uma.Odds.Trim(), out double odds);
+
+      int.TryParse(uma.Time.Substring(0, 1), out int timeMinutes);
+      int.TryParse(uma.Time.Substring(1, 2), out int timeSeconds);
+      int.TryParse(uma.Time.Substring(3, 1), out int timeMilliSeconds);
 
       var horse = new RaceHorse
       {
+        LastModified = uma.head.MakeDate.ToDateTime(),
         RaceKey = uma.id.ToRaceKey(),
         Name = uma.Bamei.Trim(),
         Number = num,
         FrameNumber = wakuNum,
         ResultOrder = result,
         Popular = pop,
+        FirstCornerOrder = corner1,
+        SecondCornerOrder = corner2,
+        ThirdCornerOrder = corner3,
+        FourthCornerOrder = corner4,
+        ResultTime = new TimeSpan(0, 0, timeMinutes, timeSeconds, timeMilliSeconds * 100),
+        RiderCode = uma.KisyuCode,
+        RiderName = uma.KisyuRyakusyo.Trim(),
+        Odds = odds,
       };
       return horse;
     }

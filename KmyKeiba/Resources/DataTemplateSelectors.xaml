@@ -4,16 +4,30 @@
                     xmlns:vc="clr-namespace:KmyKeiba.Views.Controls">
   <DataTemplate x:Key="RaceListContentTemplate">
     <vc:BindableScrollViewer ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}">
-      <ItemsControl ItemsSource="{Binding Races}" ItemTemplate="{StaticResource RaceInfoTemplate}"/>
+      <Grid>
+        <ItemsControl Visibility="{Binding IsRaceLoadError.Value,Converter={StaticResource NegativeVisibilityConverter}}"
+                      ItemsSource="{Binding Races}" ItemTemplate="{StaticResource RaceInfoTemplate}"/>
+        <TextBlock Visibility="{Binding IsRaceLoadError.Value,Converter={StaticResource BooleanVisibilityConverter}}"
+                   Foreground="Red" FontSize="24" TextAlignment="Center"
+                   VerticalAlignment="Center" HorizontalAlignment="Center">
+          レースのロードでエラーが発生しました<LineBreak/>データベースの読み込みに失敗した可能性があります<LineBreak/>MySQLの設定を確認してください
+        </TextBlock>
+        <TextBlock FontSize="24" TextAlignment="Center"
+                   VerticalAlignment="Center" HorizontalAlignment="Center">
+          <TextBlock.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConverter}">
+              <Binding Path="IsRaceLoadError.Value" Converter="{StaticResource NegativeConverter}"/>
+              <Binding Path="Races" Converter="{StaticResource ListEmptyBooleanConverter}"/>
+            </MultiBinding>
+          </TextBlock.Visibility>
+          レースはありません<LineBreak/>メニューからレースを読み込んでください
+        </TextBlock>
+      </Grid>
     </vc:BindableScrollViewer>
   </DataTemplate>
   <DataTemplate x:Key="RaceDetailContentTemplate">
-    <vc:BindableScrollViewer ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}"
-                             ScrollX="{Binding HorizontalScroll.Value,Mode=TwoWay}"
-                             HorizontalScrollBarVisibility="Visible">
-      <ContentControl ContentTemplate="{StaticResource RaceDetailTemplate}"
+    <ContentControl ContentTemplate="{StaticResource RaceDetailTemplate}"
                       Content="{Binding}"/>
-    </vc:BindableScrollViewer>
   </DataTemplate>
 
   <c:MainTabContentTemplateSelector x:Key="MainTabContentTemplateSelector"

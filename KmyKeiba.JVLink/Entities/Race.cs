@@ -4,11 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.JVLink.Entities
 {
-  public class Race
+  public class Race : EntityBase
   {
     public string Key { get; set; } = string.Empty;
 
@@ -16,6 +17,11 @@ namespace KmyKeiba.JVLink.Entities
     /// レースの名前
     /// </summary>
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// レースの名前（6文字）
+    /// </summary>
+    public string Name6Chars { get; set; } = string.Empty;
 
     /// <summary>
     /// レースの副題
@@ -65,6 +71,12 @@ namespace KmyKeiba.JVLink.Entities
         name = race.JyokenName.Trim();
       }
 
+      var name6 = race.RaceInfo.Ryakusyo6.Trim();
+      if (string.IsNullOrEmpty(name6))
+      {
+        name6 = new Regex(@"(\s|　)[\s　]+").Replace(name6, "　");
+      }
+
       var startTime = DateTime.ParseExact($"{race.id.Year}{race.id.MonthDay}{race.HassoTime}", "yyyyMMddHHmm", null);
 
       var course = RaceCourse.Unknown;
@@ -84,8 +96,10 @@ namespace KmyKeiba.JVLink.Entities
 
       var obj = new Race
       {
+        LastModified = race.head.MakeDate.ToDateTime(),
         Key = race.id.ToRaceKey(),
         Name = name,
+        Name6Chars = name6,
         SubName = race.RaceInfo.Fukudai.Trim(),
         Course = course,
         CourseRaceNumber = courseRaceNum,

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Data
 {
-  class MyContext : DbContext
+  public class MyContext : DbContext
   {
     public DbSet<SystemData>? SystemData { get; set; }
 

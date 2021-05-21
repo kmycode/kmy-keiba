@@ -2,7 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:prism="http://prismlibrary.com/"
-                    xmlns:v="clr-namespace:KmyKeiba.Views">
+                    xmlns:v="clr-namespace:KmyKeiba.Views"
+                    xmlns:vc="clr-namespace:KmyKeiba.Views.Controls">
   <DataTemplate x:Key="RaceInfoTemplate">
     <Border BorderBrush="#aaaaaa" BorderThickness="1" Cursor="Hand">
       <i:Interaction.Triggers>
@@ -54,8 +55,8 @@
               <RowDefinition Height="28"/>
             </Grid.RowDefinitions>
             <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="4"
-                   Content="{Binding Subject.Value.Name}" FontSize="14" Foreground="#888888"
-                   Padding="0"/>
+                    Content="{Binding Subject.Value.Name}" FontSize="14" Foreground="#888888"
+                    Padding="0"/>
             <Border Grid.Column="0" Grid.Row="1" BorderBrush="#cccccc" BorderThickness="0,0,1,0">
               <TextBlock FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <Run Text="{Binding Data.HorsesCount}" FontWeight="Bold"/><Run Text="頭"/>
@@ -63,12 +64,12 @@
             </Border>
             <Border Grid.Column="1" Grid.Row="1" BorderBrush="#cccccc" BorderThickness="0,0,1,0">
               <TextBlock FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <Run Text="{Binding CourseName.Value,Mode=OneTime}"/><Run Text="{Binding Data.CourseRaceNumber}"/><Run Text="R"/>
+                <Run Text="{Binding Data.Course,Converter={StaticResource CourseNameConverter}}"/><Run Text="{Binding Data.CourseRaceNumber}"/><Run Text="R"/>
               </TextBlock>
             </Border>
             <Border Grid.Column="2" Grid.Row="1" BorderBrush="#cccccc" BorderThickness="0,0,1,0">
               <TextBlock FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"
-                         Text="{Binding Data.StartTime,StringFormat=HH:mm}"/>
+                          Text="{Binding Data.StartTime,StringFormat=HH:mm}"/>
             </Border>
           </Grid>
         </Border>
@@ -77,69 +78,88 @@
   </DataTemplate>
 
   <DataTemplate x:Key="RaceDetailTemplate">
-    <StackPanel>
-      <Grid>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="auto"/>
-          <ColumnDefinition Width="auto"/>
-          <ColumnDefinition Width="auto"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="auto"/>
-          <RowDefinition Height="auto"/>
-        </Grid.RowDefinitions>
-        <Label Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
-               Content="{Binding Race.Value.Subject.Value.ClassName}" FontSize="24" FontWeight="Bold"
-               Foreground="White" Width="72"
-               Background="{Binding Race.Value.Subject.Value.MaxClass,Converter={StaticResource RaceClassBrushConverter}}"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"/>
-        <Label Grid.Column="2" Grid.RowSpan="2"
-               Content="{Binding Race.Value.ShorterName.Value}"
-               FontWeight="Bold" FontSize="32"/>
-        <TextBlock Grid.Column="1" Margin="8,0,8,0"
-                   Foreground="#666666" FontSize="20">
-          <Run Text="{Binding Race.Value.CourseName.Value}"/><Run Text="{Binding Race.Value.Data.CourseRaceNumber}"/><Run Text="R"/>
-        </TextBlock>
-        <Label Grid.Column="1" Grid.Row="1"
-               Content="地方" HorizontalContentAlignment="Right"
-               FontWeight="Bold" FontSize="14"/>
-      </Grid>
-      <ItemsControl ItemsSource="{Binding Race.Value.Horses}">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <VirtualizingStackPanel Orientation="Horizontal"/>
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <Border BorderBrush="#999999" BorderThickness="0,1,1,1">
-              <Grid>
-                <Grid.RowDefinitions>
-                  <RowDefinition Height="auto"/>
-                  <RowDefinition Height="auto"/>
-                  <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{Binding Data.Number}" FontSize="20" FontWeight="Bold"
-                           Background="Gray" Foreground="White" Height="28" Margin="0" Padding="0"
-                           TextAlignment="Center"/>
-                <TextBlock Grid.Row="1"
-                           Text="{Binding Data.Name,Converter={StaticResource OneLetterOneLineConverter}}"
-                           TextAlignment="Center" LineStackingStrategy="BlockLineHeight"
-                           FontSize="28" FontWeight="Bold" LineHeight="28"
-                           Width="120" Height="320" Margin="8"/>
-                <ItemsControl Grid.Row="2" ItemsSource="{Binding OldRaceHorses}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <Label Content="{Binding Race.Value.ShorterName.Value}"/>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </Grid>
-            </Border>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-    </StackPanel>
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="auto"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <StackPanel Grid.Row="0">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+          </Grid.RowDefinitions>
+          <Label Grid.Column="0" Grid.Row="0" Grid.RowSpan="3"
+                 Content="{Binding Race.Value.Subject.Value.ClassName}" FontSize="24" FontWeight="Bold"
+                 Foreground="White" Width="72"
+                 Background="{Binding Race.Value.Subject.Value.MaxClass,Converter={StaticResource RaceClassBrushConverter}}"
+                 HorizontalContentAlignment="Center"
+                 VerticalContentAlignment="Center"/>
+          <Label Grid.Column="2" Grid.RowSpan="3" VerticalAlignment="Center"
+                 Content="{Binding Race.Value.ShorterName.Value}"
+                 FontWeight="Bold" FontSize="32"/>
+          <TextBlock Grid.Column="1" Margin="8,0,8,0"
+                     Foreground="#666666" FontSize="20">
+            <Run Text="{Binding Race.Value.Data.Course,Converter={StaticResource CourseNameConverter}}"/><Run Text="{Binding Race.Value.Data.CourseRaceNumber}"/><Run Text="R"/>
+          </TextBlock>
+          <TextBlock Grid.Column="1" Grid.Row="1" Margin="8,0,8,0" FontSize="16" TextAlignment="Right">
+            <Run Text="{Binding Race.Value.Data.StartTime,StringFormat=MM/dd}"/>
+          </TextBlock>
+          <TextBlock Grid.Column="1" Grid.Row="2" Margin="8,0,8,0"
+                     Text="地方" TextAlignment="Right"
+                     FontWeight="Bold" FontSize="14"/>
+        </Grid>
+      </StackPanel>
+      <vc:BindableScrollViewer Grid.Row="1"
+                               ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}"
+                               ScrollX="{Binding HorizontalScroll.Value,Mode=TwoWay}"
+                               HorizontalScrollBarVisibility="Visible">
+        <StackPanel>
+          <ItemsControl ItemsSource="{Binding Race.Value.Horses}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <VirtualizingStackPanel Orientation="Horizontal"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border BorderBrush="#999999" BorderThickness="0,1,1,1" Width="160" MinWidth="160">
+                  <Grid>
+                    <Grid.RowDefinitions>
+                      <RowDefinition Height="auto"/>
+                      <RowDefinition Height="auto"/>
+                      <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="{Binding Data.Number}" FontSize="20" FontWeight="Bold"
+                               Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConverter},ConverterParameter=Background}"
+                               Foreground="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConverter},ConverterParameter=Foreground}"
+                               Height="28" Margin="0" Padding="0"
+                               TextAlignment="Center"/>
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding Data.Name,Converter={StaticResource OneLetterOneLineConverter}}"
+                               TextAlignment="Center" LineStackingStrategy="BlockLineHeight"
+                               FontSize="28" FontWeight="Bold" LineHeight="28"
+                               Height="320" Margin="8"/>
+                    <ItemsControl Grid.Row="2" ItemsSource="{Binding OldRaceHorses}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Label Content="{Binding Race.Value.ShorterName.Value}"/>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </vc:BindableScrollViewer>
+    </Grid>
   </DataTemplate>
 </ResourceDictionary>

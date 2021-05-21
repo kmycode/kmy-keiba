@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Data
 {
-  class SystemData
+  public class SystemData
   {
     public uint Id { get; set; }
     public string Name { get; set; } = string.Empty;

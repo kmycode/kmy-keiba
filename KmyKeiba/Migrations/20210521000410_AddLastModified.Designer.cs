@@ -3,14 +3,16 @@ using System;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace KmyKeiba.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20210521000410_AddLastModified")]
+    partial class AddLastModified
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,10 +45,6 @@ namespace KmyKeiba.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Name6Chars")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime(6)");
 
@@ -69,12 +67,6 @@ namespace KmyKeiba.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int unsigned");
 
-                    b.Property<int>("FirstCornerOrder")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FourthCornerOrder")
-                        .HasColumnType("int");
-
                     b.Property<int>("FrameNumber")
                         .HasColumnType("int");
 
@@ -88,9 +80,6 @@ namespace KmyKeiba.Migrations
                     b.Property<int>("Number")
                         .HasColumnType("int");
 
-                    b.Property<double>("Odds")
-                        .HasColumnType("double");
-
                     b.Property<int>("Popular")
                         .HasColumnType("int");
 
@@ -99,23 +88,6 @@ namespace KmyKeiba.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<int>("ResultOrder")
-                        .HasColumnType("int");
-
-                    b.Property<TimeSpan>("ResultTime")
-                        .HasColumnType("time(6)");
-
-                    b.Property<string>("RiderCode")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("RiderName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("SecondCornerOrder")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ThirdCornerOrder")
                         .HasColumnType("int");
 
                     b.HasKey("Id");

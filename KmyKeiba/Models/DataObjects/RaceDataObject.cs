@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
 using KmyKeiba.Models.Data;
+using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -18,22 +19,13 @@ namespace KmyKeiba.Models.DataObjects
 
     public ReactiveProperty<RaceSubject> Subject { get; } = new();
 
-    public ReactiveProperty<string> CourseName { get; } = new(string.Empty);
-
     public ReactiveProperty<string> ShorterName { get; } = new(string.Empty);
 
     public ObservableCollection<RaceHorseDataObject> Horses { get; } = new();
 
     public void SetEntity(Race race)
     {
-      this.Data.Key = race.Key;
-      this.Data.Name = race.Name;
-      this.Data.SubName = race.SubName;
-      this.Data.SubjectName = race.Subject.Name;
-      this.Data.Course = race.Course;
-      this.Data.CourseRaceNumber = race.CourseRaceNumber;
-      this.Data.HorsesCount = race.HorsesCount;
-      this.Data.StartTime = race.StartTime;
+      this.Data.SetEntity(race);
 
       this.ReadData();
     }
@@ -41,7 +33,6 @@ namespace KmyKeiba.Models.DataObjects
     private void ReadData()
     {
       this.Subject.Value = RaceSubject.Parse(this.Data.SubjectName);
-      this.CourseName.Value = this.Data.Course.GetName();
       this.ShorterName.Value = new Regex(@"(\s|　)[\s　]+").Replace(this.Data.Name, "　");
     }
 
@@ -77,6 +68,49 @@ namespace KmyKeiba.Models.DataObjects
       this.Horses.AddRange(horses
         .Where((h) => h.Data.RaceKey == this.Data.Key)
         .OrderBy((h) => h.Data.Number));
+    }
+
+    public async Task SetRaceHorsesAsync(MyContext db, int nest = 1)
+    {
+      var horses = await db.RaceHorses!
+        .Where((h) => h.RaceKey == this.Data.Key)
+        .ToArrayAsync();
+      this.SetHorses(horses);
+
+      // 出走馬の過去のレースを取得
+      foreach (var horse in this.Horses)
+      {
+        var sameHorses = await db.RaceHorses!
+          .Where((h) => h.Name == horse.Data.Name)
+          .ToArrayAsync();
+        var raceKeys = sameHorses.Select((h) => h.RaceKey).ToList();
+        var horseRaces = await db.Races!
+          .Where((r) => raceKeys.Contains(r.Key) && r.StartTime < this.Data.StartTime)
+          .ToArrayAsync();
+
+        var sameHorseObjects = new List<RaceHorseDataObject>();
+        foreach (var sameHorse in sameHorses)
+        {
+          var horseRace = horseRaces.FirstOrDefault((r) => r.Key == sameHorse.RaceKey);
+          if (horseRace != null)
+          {
+            var obj = new RaceHorseDataObject(sameHorse);
+            obj.Race.Value = new RaceDataObject(horseRace);
+            sameHorseObjects.Add(obj);
+          }
+        }
+
+        horse.SetOldRaceHorses(sameHorseObjects);
+
+        // ネスト
+        if (nest > 1)
+        {
+          foreach (var sameHorseRace in horse.OldRaceHorses.Select((h) => h.Race.Value))
+          {
+            await sameHorseRace.SetRaceHorsesAsync(db, nest - 1);
+          }
+        }
+      }
     }
   }
 }
