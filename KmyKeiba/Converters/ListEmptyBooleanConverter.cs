@@ -15,7 +15,7 @@ namespace KmyKeiba.Converters
     {
       if (value is IEnumerable e)
       {
-        return e.GetEnumerator().MoveNext();
+        return !e.GetEnumerator().MoveNext();
       }
       throw new NotImplementedException();
     }

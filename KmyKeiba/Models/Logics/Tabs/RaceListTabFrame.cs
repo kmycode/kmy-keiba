@@ -15,12 +15,13 @@ namespace KmyKeiba.Models.Logics.Tabs
   {
     private readonly CompositeDisposable disposables = new();
 
-    public ObservableCollection<RaceDataObject> Races { get; set; } = new();
+    public ObservableCollection<RaceDataObject> Races { get; }
 
     public ReactiveProperty<bool> IsRaceLoadError { get; } = new(false);
 
-    public RaceListTabFrame()
+    public RaceListTabFrame(ObservableCollection<RaceDataObject> races)
     {
+      this.Races = races;
       this.CanClose = false;
     }
 

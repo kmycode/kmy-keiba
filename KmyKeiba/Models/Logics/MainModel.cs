@@ -41,10 +41,7 @@ namespace KmyKeiba.Models.Logics
             .ToArrayAsync();
           var races = raceData.Select((r) => new RaceDataObject(r)).ToArray();
 
-          this.Tabs.Add(new RaceListTabFrame()
-          {
-            Races = new(races),
-          });
+          this.Tabs.Add(new RaceListTabFrame(new(races)));
 
           logger.Info($"{races.Length} race(s) loaded");
         }
@@ -52,7 +49,7 @@ namespace KmyKeiba.Models.Logics
       catch (Exception ex)
       {
         logger.Error("Load error", ex);
-        this.Tabs.Add(new RaceListTabFrame()
+        this.Tabs.Add(new RaceListTabFrame(new())
         {
           IsRaceLoadError = { Value = true, },
         });
