@@ -67,6 +67,11 @@ namespace KmyKeiba.JVLink.Entities
     /// </summary>
     public double Odds { get; set; }
 
+    /// <summary>
+    /// 後３ハロンタイム
+    /// </summary>
+    public TimeSpan AfterThirdHalongTime { get; set; }
+
     internal RaceHorse()
     {
     }
@@ -87,6 +92,16 @@ namespace KmyKeiba.JVLink.Entities
       int.TryParse(uma.Time.Substring(1, 2), out int timeSeconds);
       int.TryParse(uma.Time.Substring(3, 1), out int timeMilliSeconds);
 
+      TimeSpan halongTime;
+      if (int.TryParse(uma.HaronTimeL3, out int halongTime10))
+      {
+        halongTime = TimeSpan.FromSeconds((float)halongTime10 / 10);
+      }
+      else
+      {
+        halongTime = default;
+      }
+
       var horse = new RaceHorse
       {
         LastModified = uma.head.MakeDate.ToDateTime(),
@@ -104,6 +119,7 @@ namespace KmyKeiba.JVLink.Entities
         RiderCode = uma.KisyuCode,
         RiderName = uma.KisyuRyakusyo.Trim(),
         Odds = odds,
+        AfterThirdHalongTime = halongTime,
       };
       return horse;
     }

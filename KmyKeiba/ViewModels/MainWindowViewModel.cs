@@ -12,6 +12,7 @@ using Reactive.Bindings;
 using System.Reactive.Linq;
 using Prism.Services.Dialogs;
 using KmyKeiba.Models.DataObjects;
+using KmyKeiba.JVLink.Wrappers;
 
 namespace KmyKeiba.ViewModels
 {
@@ -42,6 +43,8 @@ namespace KmyKeiba.ViewModels
         this.dialogService.ShowDialog("LoadJVLinkDialog");
         this.model.LoadAsync();
       });
+      this.OpenJVLinkConfigCommand.Subscribe(() => this.model.OpenJVLinkConfig());
+      this.OpenNVLinkConfigCommand.Subscribe(() => this.model.OpenNVLinkConfig());
       this.CloseTabCommand.Subscribe((t) => this.model.CloseTab(t));
 
       this.model.LoadAsync();
@@ -50,6 +53,10 @@ namespace KmyKeiba.ViewModels
     public ReactiveCommand<RaceDataObject> OpenRaceCommand { get; } = new();
 
     public ReactiveCommand OpenJVLinkLoadDialogCommand { get; } = new();
+
+    public ReactiveCommand OpenJVLinkConfigCommand { get; } = new();
+
+    public ReactiveCommand OpenNVLinkConfigCommand { get; } = new();
 
     public ReactiveCommand<TabFrame> CloseTabCommand { get; } = new();
   }

@@ -48,6 +48,14 @@ namespace KmyKeiba.ViewModels
 
     public ReadOnlyReactiveProperty<bool> IsError => this.model.IsError;
 
+    public ReactiveProperty<bool> IsCentralError => this.model.IsCentralError;
+
+    public ReactiveProperty<bool> IsLocalError => this.model.IsLocalError;
+
+    public ReactiveProperty<int> ProcessSize => this.model.ProcessSize;
+
+    public ReactiveProperty<int> Processed => this.model.Processed;
+
     public string Title => "JV-Linkデータ読み込み";
 
     public event Action<IDialogResult>? RequestClose;

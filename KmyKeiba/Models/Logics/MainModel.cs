@@ -78,5 +78,15 @@ namespace KmyKeiba.Models.Logics
         disposable.Dispose();
       }
     }
+
+    public void OpenJVLinkConfig()
+    {
+      JVLinkObject.Central.OpenConfigWindow();
+    }
+
+    public void OpenNVLinkConfig()
+    {
+      JVLinkObject.Local.OpenConfigWindow();
+    }
   }
 }

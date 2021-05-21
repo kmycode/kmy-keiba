@@ -45,6 +45,10 @@ namespace KmyKeiba.Models.Logics
 
     public ReactiveProperty<int> SaveSize { get; } = new(1);
 
+    public ReactiveProperty<int> Processed { get; } = new(0);
+
+    public ReactiveProperty<int> ProcessSize { get; } = new(1);
+
     public ReactiveProperty<JVLinkLoadResult> LoadErrorCode { get; } = new();
 
     public ReactiveProperty<JVLinkReadResult> ReadErrorCode { get; } = new();
@@ -52,6 +56,10 @@ namespace KmyKeiba.Models.Logics
     public ReactiveProperty<bool> IsDatabaseError { get; } = new(false);
 
     public ReadOnlyReactiveProperty<bool> IsError { get; }
+
+    public ReactiveProperty<bool> IsCentralError { get; } = new();
+
+    public ReactiveProperty<bool> IsLocalError { get; } = new();
 
     public JVLinkLoader()
     {
@@ -63,6 +71,8 @@ namespace KmyKeiba.Models.Logics
         .CombineLatest(
           this.IsDatabaseError,
           (a, b) => a || b)
+        .CombineLatest(this.IsCentralError, (a, b) => a || b)
+        .CombineLatest(this.IsLocalError, (a, b) => a || b)
         .ToReadOnlyReactiveProperty(false)
         .AddTo(this.disposables);
     }
@@ -77,9 +87,51 @@ namespace KmyKeiba.Models.Logics
       JVLinkObject.Local.OpenConfigWindow();
     }
 
-    public async Task LoadCentralAsync() => await this.LoadAsync(JVLinkObject.Central);
+    private void CrearErrors()
+    {
+      this.IsCentralError.Value = this.IsLocalError.Value = false;
+      this.LoadErrorCode.Value = JVLinkLoadResult.Succeed;
+      this.ReadErrorCode.Value = JVLinkReadResult.Succeed;
+      this.IsDatabaseError.Value = false;
+    }
 
-    public async Task LoadLocalAsync() => await this.LoadAsync(JVLinkObject.Local);
+    public async Task LoadCentralAsync()
+    {
+      this.CrearErrors();
+      JVLinkObject? link = null;
+      try
+      {
+        link = JVLinkObject.Central;
+      }
+      catch (Exception)
+      {
+        this.IsCentralError.Value = true;
+      }
+
+      if (link != null)
+      {
+        await this.LoadAsync(link);
+      }
+    }
+
+    public async Task LoadLocalAsync()
+    {
+      this.CrearErrors();
+      JVLinkObject? link = null;
+      try
+      {
+        link = JVLinkObject.Local;
+      }
+      catch (Exception)
+      {
+        this.IsLocalError.Value = true;
+      }
+
+      if (link != null)
+      {
+        await this.LoadAsync(link);
+      }
+    }
 
     private async Task LoadAsync(JVLinkObject link)
     {
@@ -89,9 +141,8 @@ namespace KmyKeiba.Models.Logics
       this.Saved.Value = 0;
       this.DownloadSize.Value = 1;
       this.Downloaded.Value = 0;
-      this.LoadErrorCode.Value = JVLinkLoadResult.Succeed;
-      this.ReadErrorCode.Value = JVLinkReadResult.Succeed;
-      this.IsDatabaseError.Value = false;
+      this.ProcessSize.Value = 1;
+      this.Processed.Value = 0;
 
       this.IsLoading.Value = true;
 
@@ -102,21 +153,23 @@ namespace KmyKeiba.Models.Logics
           logger.Info("Start Load JVLink");
           logger.Info($"Load Type: {link.GetType().Name}");
 
+          var isOpenRealTime = !this.IsSetEndTime.Value || this.EndTime.Value >= DateTime.Today;
+
           using (var reader = link.StartRead(JVLinkDataspec.Race,
             JVLinkOpenOption.Normal,
             this.StartTime.Value,
             this.IsSetEndTime.Value ? this.EndTime.Value.AddDays(1) : null))
           {
-            await this.LoadAsync(reader);
+            await this.LoadAsync(reader, !isOpenRealTime);
           }
 
-          if (!this.IsSetEndTime.Value || this.EndTime.Value >= DateTime.Today)
+          if (isOpenRealTime)
           {
             using (var reader = link.StartRead(JVLinkDataspec.RB15,
               JVLinkOpenOption.RealTime,
               DateTime.Today))
             {
-              await this.LoadAsync(reader);
+              await this.LoadAsync(reader, true);
             }
           }
 
@@ -146,7 +199,7 @@ namespace KmyKeiba.Models.Logics
       });
     }
 
-    private async Task LoadAsync(IJVLinkReader reader)
+    private async Task LoadAsync(IJVLinkReader reader, bool isProcessing)
     {
       this.DownloadSize.Value = reader.DownloadCount;
       logger.Info($"Download: {reader.DownloadCount}");
@@ -283,6 +336,31 @@ namespace KmyKeiba.Models.Logics
         }
 
         await db.SaveChangesAsync();
+
+        // 後処理　元データにはないデータを追加する
+
+        if (isProcessing)
+        {
+          // それぞれの馬に、第３ハロンタイムの順位をつける（LINQでやると時間がかかる）
+          IEnumerable<string> ids = db.RaceHorses!
+            .Where((h) => h.AfterThirdHalongTimeOrder == 0)
+            .Select((r) => r.RaceKey)
+            .Distinct()
+            .ToArray();
+          this.ProcessSize.Value = (int)Math.Ceiling(ids.Count() / 64.0f);
+          while (ids.Any())
+          {
+            var arr = string.Join("','", ids.Take(64));
+            await db.Database.ExecuteSqlRawAsync($@"
+UPDATE racehorses, (SELECT racekey,`name`,ROW_NUMBER() OVER(PARTITION BY racekey ORDER BY afterthirdhalongtime ASC) halongOrder
+FROM racehorses WHERE racekey IN ('{arr}')) AS buf
+SET racehorses.afterthirdhalongtimeorder=buf.halongOrder
+WHERE racehorses.racekey IN ('{arr}') AND racehorses.RaceKey=buf.racekey AND racehorses.`Name`=buf.`name`");
+
+            ids = ids.Skip(64);
+            this.Processed.Value++;
+          }
+        }
       }
     }
 

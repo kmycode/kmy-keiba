@@ -13,11 +13,11 @@
       <Setter Property="ShowInTaskbar" Value="False"/>
       <Setter Property="SizeToContent" Value="Manual"/>
       <Setter Property="Width" Value="400" />
-      <Setter Property="Height" Value="460" />
+      <Setter Property="Height" Value="490" />
     </Style>
   </prism:Dialog.WindowStyle>
   <StackPanel>
-    <Label Content="JV-Linkデータロード" FontSize="28"/>
+    <Label Content="データの更新" FontSize="28"/>
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
       <StackPanel>
         <Label Content="開始日付" HorizontalAlignment="Center"/>
@@ -52,6 +52,12 @@
       <Label Foreground="Red"
              Visibility="{Binding IsDatabaseError.Value,Converter={StaticResource BooleanVisibilityConverter}}"
              Content="データベースとの接続でエラーが発生しました"/>
+      <Label Foreground="Red"
+             Visibility="{Binding IsCentralError.Value,Converter={StaticResource BooleanVisibilityConverter}}"
+             Content="JV-Linkがインストールされていない可能性があります"/>
+      <Label Foreground="Red"
+             Visibility="{Binding IsLocalError.Value,Converter={StaticResource BooleanVisibilityConverter}}"
+             Content="UmaConnがインストールされていない可能性があります"/>
     </StackPanel>
     <StackPanel Visibility="{Binding IsError.Value,Converter={StaticResource NegativeVisibilityConverter}}">
       <StackPanel Orientation="Horizontal" Margin="8,16,8,4">
@@ -68,6 +74,11 @@
         <Label Width="64" Content="保存"/>
         <ProgressBar Width="300" Height="24"
                      Minimum="0" Maximum="{Binding SaveSize.Value}" Value="{Binding Saved.Value}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Margin="8,0,8,4">
+        <Label Width="64" Content="データ加工"/>
+        <ProgressBar Width="300" Height="24"
+                     Minimum="0" Maximum="{Binding ProcessSize.Value}" Value="{Binding Processed.Value}"/>
       </StackPanel>
     </StackPanel>
   </StackPanel>

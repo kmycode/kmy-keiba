@@ -61,6 +61,16 @@ namespace KmyKeiba.Models.Data
     /// </summary>
     public double Odds { get; set; }
 
+    /// <summary>
+    /// 後３ハロンタイム
+    /// </summary>
+    public TimeSpan AfterThirdHalongTime { get; set; }
+
+    /// <summary>
+    /// 後３ハロンタイムの順位
+    /// </summary>
+    public int AfterThirdHalongTimeOrder { get; set; }
+
     public override void SetEntity(RaceHorse entity)
     {
       this.LastModified = entity.LastModified;
@@ -77,6 +87,7 @@ namespace KmyKeiba.Models.Data
       this.RiderCode = entity.RiderCode;
       this.RiderName = entity.RiderName;
       this.Odds = entity.Odds;
+      this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
     }
 
     public override bool IsEquals(DataBase<RaceHorse> b)

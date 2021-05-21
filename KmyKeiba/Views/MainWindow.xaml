@@ -12,7 +12,9 @@
     <DockPanel Grid.Row="0">
       <Menu DockPanel.Dock="Top">
         <MenuItem Header="ファイル(_F)">
-          <MenuItem Header="JV-Linkからデータをロード(_L)" Command="{Binding OpenJVLinkLoadDialogCommand}"/>
+          <MenuItem Header="データの更新...(_L)" Command="{Binding OpenJVLinkLoadDialogCommand}"/>
+          <MenuItem Header="JV-Link設定..." Command="{Binding OpenJVLinkConfigCommand}"/>
+          <MenuItem Header="UmaConn設定..." Command="{Binding OpenNVLinkConfigCommand}"/>
           <Separator/>
           <MenuItem Header="終了(_X)"/>
         </MenuItem>
