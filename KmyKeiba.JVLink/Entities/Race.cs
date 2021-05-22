@@ -34,6 +34,31 @@ namespace KmyKeiba.JVLink.Entities
     public RaceCourse Course { get; set; }
 
     /// <summary>
+    /// 競馬場の地面
+    /// </summary>
+    public TrackGround TrackGround { get; set; }
+
+    /// <summary>
+    /// 競馬場のコーナーの向き
+    /// </summary>
+    public TrackCornerDirection TrackCornerDirection { get; set; }
+
+    /// <summary>
+    /// 競馬の種類
+    /// </summary>
+    public TrackType TrackType { get; set; }
+
+    /// <summary>
+    /// 競馬場のその他の条件
+    /// </summary>
+    public TrackOption TrackOption { get; set; }
+
+    /// <summary>
+    /// 距離
+    /// </summary>
+    public int Distance { get; set; }
+
+    /// <summary>
     /// 競馬場の名前
     /// </summary>
     public string CourseName => this._courseName ??= this.Course.GetAttribute()?.Name ?? string.Empty;
@@ -91,8 +116,34 @@ namespace KmyKeiba.JVLink.Entities
           .FirstOrDefault((rc) => rc.GetAttribute()?.Key == race.id.JyoCD);
       }
 
+      var subject = RaceSubject.FromJV(race);
+
       int.TryParse(race.id.RaceNum, out int courseRaceNum);
       int.TryParse(race.TorokuTosu, out int horsesCount);
+      int.TryParse(race.Kyori, out int distance);
+
+      var trackGround = TrackGround.Unknown;
+      var trackOption = TrackOption.Unknown;
+      var trackType = TrackType.Unknown;
+      var trackCornerDirection = TrackCornerDirection.Unknown;
+      int.TryParse(race.TrackCD, out int track);
+      trackType = track >= 10 && track <= 29 ? TrackType.Flat :
+        track >= 51 && track <= 59 ? TrackType.Steeplechase :
+        TrackType.Unknown;
+      trackGround = ((track >= 10 && track <= 22) || track == 51 || (track >= 53 && track <= 59)) ? TrackGround.Turf :
+        ((track >= 23 && track <= 26) || track == 29) ? TrackGround.Dirt :
+        (track == 27 || track == 28) ? TrackGround.Sand :
+        track == 52 ? TrackGround.TurfToDirt : TrackGround.Unknown;
+      trackCornerDirection = track == 10 || track == 29 ? TrackCornerDirection.Straight :
+        ((track >= 11 && track <= 16) || track == 23 || track == 25 || track == 27 || track == 53) ? TrackCornerDirection.Left :
+        ((track >= 17 && track <= 22) || track == 24 || track == 26 || track == 28) ? TrackCornerDirection.Right :
+        TrackCornerDirection.Unknown;
+      trackOption = track == 12 || track == 18 || track == 26 || track == 55 ? TrackOption.Outside :
+        track == 13 || track == 19 || track == 57 ? TrackOption.InsideToOutside :
+        track == 14 || track == 20 || track == 56 ? TrackOption.OutsideToInside :
+        track == 15 || track == 21 || track == 58 ? TrackOption.Inside2 :
+        track == 16 || track == 22 || track == 59 ? TrackOption.Outside2 :
+        TrackOption.Unknown;
 
       var obj = new Race
       {
@@ -102,8 +153,13 @@ namespace KmyKeiba.JVLink.Entities
         Name6Chars = name6,
         SubName = race.RaceInfo.Fukudai.Trim(),
         Course = course,
+        TrackGround = trackGround,
+        TrackType = trackType,
+        TrackCornerDirection = trackCornerDirection,
+        TrackOption = trackOption,
+        Distance = distance,
         CourseRaceNumber = courseRaceNum,
-        Subject = RaceSubject.Parse(race.JyokenName.Trim()),
+        Subject = subject,
         HorsesCount = horsesCount,
         StartTime = startTime,
       };
@@ -267,6 +323,9 @@ namespace KmyKeiba.JVLink.Entities
     [RaceCourseInfo(RaceCourseType.Local, "中京(地)")]
     ChukyoLocal = 61,
 
+    [RaceCourseInfo(RaceCourseType.Local, "帯広(ば)")]
+    ObihiroBannei = 83,
+
     [RaceCourseInfo(RaceCourseType.Foreign, "その他の外国", Key = "A0")]
     Foreign = 1000,
 
@@ -418,5 +477,40 @@ namespace KmyKeiba.JVLink.Entities
 バーレーン
     */
 
+  }
+
+  public enum TrackGround
+  {
+    Unknown = 0,
+    Turf = 1,
+    Dirt = 2,
+    TurfToDirt = 3,
+    Sand = 4,
+  }
+
+  public enum TrackCornerDirection
+  {
+    Unknown = 0,
+    Left = 1,
+    Right = 2,
+    Straight = 3,
+  }
+
+  public enum TrackOption
+  {
+    Unknown = 0,
+    Outside = 1,
+    Inside = 2,
+    OutsideToInside = 3,
+    InsideToOutside = 4,
+    Outside2 = 5,
+    Inside2 = 6,
+  }
+
+  public enum TrackType
+  {
+    Unknown = 0,
+    Flat = 1,
+    Steeplechase = 2,
   }
 }

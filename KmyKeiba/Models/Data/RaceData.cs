@@ -19,9 +19,31 @@ namespace KmyKeiba.Models.Data
 
     public RaceCourse Course { get; set; }
 
+    public TrackGround TrackGround { get; set; }
+
+    public TrackCornerDirection TrackCornerDirection { get; set; }
+
+    public TrackType TrackType { get; set; }
+
+    public TrackOption TrackOption { get; set; }
+
+    public int Distance { get; set; }
+
     public int CourseRaceNumber { get; set; }
 
     public string SubjectName { get; set; } = string.Empty;
+
+    public RaceGrade Grade { get; set; }
+
+    public RaceSubjectType SubjectAge2 { get; set; }
+
+    public RaceSubjectType SubjectAge3 { get; set; }
+
+    public RaceSubjectType SubjectAge4 { get; set; }
+
+    public RaceSubjectType SubjectAge5 { get; set; }
+
+    public RaceSubjectType SubjectAgeYounger { get; set; }
 
     public int HorsesCount { get; set; }
 
@@ -36,9 +58,37 @@ namespace KmyKeiba.Models.Data
       this.SubName = race.SubName;
       this.SubjectName = race.Subject.Name;
       this.Course = race.Course;
+      this.TrackGround = race.TrackGround;
+      this.TrackCornerDirection = race.TrackCornerDirection;
+      this.TrackType = race.TrackType;
+      this.TrackOption = race.TrackOption;
+      this.Distance = race.Distance;
       this.CourseRaceNumber = race.CourseRaceNumber;
       this.HorsesCount = race.HorsesCount;
       this.StartTime = race.StartTime;
+
+      this.Grade = race.Subject.Grade;
+      foreach (var sub in race.Subject.AgeSubjects)
+      {
+        switch (sub.Age)
+        {
+          case 2:
+            this.SubjectAge2 = sub.Type;
+            break;
+          case 3:
+            this.SubjectAge3 = sub.Type;
+            break;
+          case 4:
+            this.SubjectAge4 = sub.Type;
+            break;
+          case 5:
+            this.SubjectAge5 = sub.Type;
+            break;
+          case 6:
+            this.SubjectAgeYounger = sub.Type;
+            break;
+        }
+      }
     }
 
     public override bool IsEquals(DataBase<Race> b)

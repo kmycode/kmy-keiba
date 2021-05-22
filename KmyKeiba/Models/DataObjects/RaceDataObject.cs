@@ -23,6 +23,8 @@ namespace KmyKeiba.Models.DataObjects
 
     public ObservableCollection<RaceHorseDataObject> Horses { get; } = new();
 
+    public ReactiveProperty<string> DisplayName { get; } = new(string.Empty);
+
     public void SetEntity(Race race)
     {
       this.Data.SetEntity(race);
@@ -33,7 +35,63 @@ namespace KmyKeiba.Models.DataObjects
     private void ReadData()
     {
       this.Subject.Value = RaceSubject.Parse(this.Data.SubjectName);
-      this.ShorterName.Value = new Regex(@"(\s|　)[\s　]+").Replace(this.Data.Name, "　");
+
+      this.Subject.Value.Grade = this.Data.Grade;
+      if (this.Data.SubjectAge2 != RaceSubjectType.Unknown)
+      {
+        this.Subject.Value.AgeSubjects.Add(new RaceSubject.SubjectTypeItem
+        {
+          Age = 2,
+          Type = this.Data.SubjectAge2,
+        });
+      }
+      if (this.Data.SubjectAge3 != RaceSubjectType.Unknown)
+      {
+        this.Subject.Value.AgeSubjects.Add(new RaceSubject.SubjectTypeItem
+        {
+          Age = 3,
+          Type = this.Data.SubjectAge3,
+        });
+      }
+      if (this.Data.SubjectAge4 != RaceSubjectType.Unknown)
+      {
+        this.Subject.Value.AgeSubjects.Add(new RaceSubject.SubjectTypeItem
+        {
+          Age = 4,
+          Type = this.Data.SubjectAge4,
+        });
+      }
+      if (this.Data.SubjectAge5 != RaceSubjectType.Unknown)
+      {
+        this.Subject.Value.AgeSubjects.Add(new RaceSubject.SubjectTypeItem
+        {
+          Age = 5,
+          Type = this.Data.SubjectAge5,
+        });
+      }
+      if (this.Data.SubjectAgeYounger != RaceSubjectType.Unknown)
+      {
+        this.Subject.Value.AgeSubjects.Add(new RaceSubject.SubjectTypeItem
+        {
+          Age = 6,
+          Type = this.Data.SubjectAgeYounger,
+        });
+      }
+
+      if (!string.IsNullOrWhiteSpace(this.Data.Name))
+      {
+        this.DisplayName.Value = this.Data.Name;
+      }
+      else if (!string.IsNullOrWhiteSpace(this.Data.SubjectName))
+      {
+        this.DisplayName.Value = this.Data.SubjectName;
+      }
+      else
+      {
+        this.DisplayName.Value = this.Subject.Value.ToString();
+      }
+      this.DisplayName.Value = new Regex(@"(\s|　)[\s　]+").Replace(this.DisplayName.Value, "　");
+      this.ShorterName.Value = this.DisplayName.Value.Substring(0, Math.Min(6, this.DisplayName.Value.Length));
     }
 
     public RaceDataObject()

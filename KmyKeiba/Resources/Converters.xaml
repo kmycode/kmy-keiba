@@ -11,6 +11,7 @@
   <c:FrameNumberBrushConverter x:Key="FrameNumberBrushConverter"/>
   <c:ListEmptyBooleanConverter x:Key="ListEmptyBooleanConverter"/>
   <c:CourseNameConverter x:Key="CourseNameConverter"/>
+  <c:TrackConverter x:Key="TrackConverter"/>
 
   <c:MultiBooleanConverter x:Key="MultiBooleanConverter"/>
 </ResourceDictionary>

@@ -155,7 +155,7 @@ namespace KmyKeiba.Models.Logics
 
           var isOpenRealTime = !this.IsSetEndTime.Value || this.EndTime.Value >= DateTime.Today;
 
-          using (var reader = link.StartRead(JVLinkDataspec.Race,
+          using (var reader = link.StartRead(JVLinkDataspec.Race | JVLinkDataspec.Diff,
             JVLinkOpenOption.Normal,
             this.StartTime.Value,
             this.IsSetEndTime.Value ? this.EndTime.Value.AddDays(1) : null))
@@ -267,7 +267,7 @@ namespace KmyKeiba.Models.Logics
             .ToArrayAsync();
           foreach (var item in dataItems
             .Join(entities, (d) => dataId(d), (e) => entityId(e), (d, e) => new { Data = d, Entity = e, })
-            .Where((i) => i.Entity.LastModified >= i.Data.LastModified))
+            .OrderBy((i) => i.Entity.LastModified))
           {
             item.Data.SetEntity(item.Entity);
             saved++;
@@ -343,7 +343,7 @@ namespace KmyKeiba.Models.Logics
         {
           // それぞれの馬に、第３ハロンタイムの順位をつける（LINQでやると時間がかかる）
           IEnumerable<string> ids = db.RaceHorses!
-            .Where((h) => h.AfterThirdHalongTimeOrder == 0)
+            .Where((h) => h.AfterThirdHalongTimeOrder == 0 && h.AfterThirdHalongTime != default)
             .Select((r) => r.RaceKey)
             .Distinct()
             .ToArray();
@@ -352,8 +352,8 @@ namespace KmyKeiba.Models.Logics
           {
             var arr = string.Join("','", ids.Take(64));
             await db.Database.ExecuteSqlRawAsync($@"
-UPDATE racehorses, (SELECT racekey,`name`,ROW_NUMBER() OVER(PARTITION BY racekey ORDER BY afterthirdhalongtime ASC) halongOrder
-FROM racehorses WHERE racekey IN ('{arr}')) AS buf
+UPDATE racehorses, (SELECT racekey,`name`,afterthirdhalongtime,ROW_NUMBER() OVER(PARTITION BY racekey ORDER BY afterthirdhalongtime ASC) halongOrder
+FROM racehorses WHERE racekey IN ('{arr}') AND afterthirdhalongtime <> '00:00:00') AS buf
 SET racehorses.afterthirdhalongtimeorder=buf.halongOrder
 WHERE racehorses.racekey IN ('{arr}') AND racehorses.RaceKey=buf.racekey AND racehorses.`Name`=buf.`name`");
 

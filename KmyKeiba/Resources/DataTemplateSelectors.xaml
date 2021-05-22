@@ -65,10 +65,10 @@
       <Label Grid.Column="0" Width="40"
              Content="{Binding Race.Value.Subject.Value.ClassName}" FontSize="14" FontWeight="Bold"
              Foreground="White"
-             Background="{Binding Race.Value.Subject.Value.MaxClass,Converter={StaticResource RaceClassBrushConverter}}"
+             Background="{Binding Race.Value.Subject.Value.DisplayClass,Converter={StaticResource RaceClassBrushConverter}}"
              HorizontalContentAlignment="Center"
              VerticalContentAlignment="Center"/>
-      <TextBlock Grid.Column="1" Text="{Binding Race.Value.ShorterName.Value}" FontSize="16"
+      <TextBlock Grid.Column="1" Text="{Binding Race.Value.DisplayName.Value}" FontSize="16"
                  VerticalAlignment="Center"/>
       <Button Grid.Column="2" Style="{StaticResource TabCloseButtonStyle}"/>
     </Grid>

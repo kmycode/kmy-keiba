@@ -3,14 +3,16 @@ using System;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace KmyKeiba.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20210522001445_AddRaceSubjects")]
+    partial class AddRaceSubjects
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -27,9 +29,6 @@ namespace KmyKeiba.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("CourseRaceNumber")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Distance")
                         .HasColumnType("int");
 
                     b.Property<int>("Grade")
@@ -78,18 +77,6 @@ namespace KmyKeiba.Migrations
                     b.Property<string>("SubjectName")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<int>("TrackCornerDirection")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TrackGround")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TrackOption")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TrackType")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

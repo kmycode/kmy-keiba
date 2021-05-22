@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.JVLink.Wrappers;
+using KmyKeiba.JVLink.Wrappers.JVLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,16 +24,47 @@ namespace KmyKeiba.JVLink.Entities
 
     public int Age { get; private set; }
 
+    public RaceGrade Grade { get; set; }
+
+    public List<SubjectTypeItem> AgeSubjects { get; } = new();
+
+    public struct SubjectTypeItem
+    {
+      public int Age { get; init; }
+
+      public RaceSubjectType Type { get; init; }
+    }
+
     public RaceClass MaxClass =>
       this.Items.Any() ? this.Items.Max((i) => i.Class) :
       this.Money > 0 ? RaceClass.Money :
       this.Age > 0 ? RaceClass.Age :
       RaceClass.Unknown;
 
+    public object DisplayClass =>
+      this.Grade != RaceGrade.Unknown && this.Grade != RaceGrade.Others ? this.Grade :
+      this.AgeSubjects.Any() ? RaceClass.Age :
+      this.MaxClass;
+
     public string ClassName
     {
       get
       {
+        if (this.Grade != RaceGrade.Unknown && this.Grade != RaceGrade.Others)
+        {
+          return this.Grade.GetLabel();
+        }
+
+        if (this.AgeSubjects.Any())
+        {
+          var age = this.AgeSubjects.Min((s) => s.Age);
+          if (age <= 5)
+          {
+            return age + "歳";
+          }
+          return "最若";
+        }
+
         if (!this.Items.Any())
         {
           if (this.Money > 0)
@@ -222,6 +254,96 @@ namespace KmyKeiba.JVLink.Entities
 
       return subject;
     }
+
+    internal static RaceSubject FromJV(JVData_Struct.JV_RA_RACE race)
+    {
+      var subject = Parse(race.JyokenName.Trim());
+
+      var grade = Enum
+        .GetValues<RaceGrade>()
+        .Select((v) => new { Value = v, Attribute = v.GetAttribute(), })
+        .FirstOrDefault((a) => race.GradeCD == a?.Attribute?.Code);
+      subject.Grade = grade?.Value ?? RaceGrade.Unknown;
+
+      var startTime = DateTime.ParseExact($"{race.id.Year}{race.id.MonthDay}{race.HassoTime}", "yyyyMMddHHmm", null);
+
+      void AddSubjectType(int index)
+      {
+        if (int.TryParse(race.JyokenInfo.JyokenCD[index], out int codeNum))
+        {
+          var age = index + 2;
+          var code = (RaceSubjectType)codeNum;
+
+          if (code == RaceSubjectType.Win1 || code == RaceSubjectType.Win2 || code == RaceSubjectType.Win3)
+          {
+            if (startTime.Year < 2006 || (startTime.Year == 2006 && startTime.Month < 6))
+            {
+              code = (RaceSubjectType)(codeNum + 1000);
+            }
+          }
+
+          if (code != RaceSubjectType.Unknown)
+          {
+            subject!.AgeSubjects.Add(new SubjectTypeItem
+            {
+              Age = age,
+              Type = code,
+            });
+          }
+        }
+      }
+
+      AddSubjectType(0);
+      AddSubjectType(1);
+      AddSubjectType(2);
+      AddSubjectType(3);
+      AddSubjectType(4);
+
+      return subject;
+    }
+
+    public override string ToString()
+    {
+      if (!string.IsNullOrWhiteSpace(this.Name))
+      {
+        return this.Name;
+      }
+
+      if (this.Grade != RaceGrade.Unknown && this.Grade != RaceGrade.Others)
+      {
+        return this.Grade.GetLabel();
+      }
+
+      if (this.AgeSubjects.Any())
+      {
+        var text = string.Empty;
+        foreach (var grp in this.AgeSubjects.GroupBy((s) => s.Type))
+        {
+          var minAge = grp.Min((i) => i.Age);
+          var maxAge = grp.Max((i) => i.Age);
+
+          string age = string.Empty;
+          if (minAge == maxAge)
+          {
+            age = minAge == 5 ? "5歳以上" : minAge == 6 ? "最若" : (minAge + "歳");
+          }
+          else if (maxAge == 5 || maxAge == 6)
+          {
+            age = minAge + "歳";
+          }
+          else
+          {
+            age = minAge + "歳～" + maxAge + "歳";
+          }
+
+          var type = grp.Key.GetLabel();
+          text += $"{age}{type}　";
+        }
+        return text;
+      }
+
+      return base.ToString() ?? string.Empty;
+    }
   }
 
   class RaceClassInfoAttribute : Attribute
@@ -273,5 +395,155 @@ namespace KmyKeiba.JVLink.Entities
     /// 未満
     /// </summary>
     LessThan,
+  }
+
+  class RaceGradeInfoAttribute : Attribute
+  {
+    public string Code { get; }
+
+    public string Label { get; }
+
+    public RaceGradeType Type { get; }
+
+    public RaceGradeInfoAttribute(string code, RaceGradeType type, string label)
+    {
+      this.Code = code;
+      this.Type = type;
+      this.Label = label;
+    }
+  }
+
+  public enum RaceGradeType
+  {
+    Unknown = 0,
+    Grade = 1,
+    NoNamedGrade = 2,
+    NonGradeSpecial = 3,
+    Steeplechase = 4,
+    Listed = 5,
+    Others = 6,
+  }
+
+  public enum RaceGrade
+  {
+    [RaceGradeInfo("", RaceGradeType.Unknown, "不明")]
+    Unknown = 0,
+
+    [RaceGradeInfo("A", RaceGradeType.Grade, "G1")]
+    Grade1 = 1,
+
+    [RaceGradeInfo("B", RaceGradeType.Grade, "G2")]
+    Grade2 = 2,
+
+    [RaceGradeInfo("C", RaceGradeType.Grade, "G3")]
+    Grade3 = 3,
+
+    [RaceGradeInfo("D", RaceGradeType.NoNamedGrade, "G")]
+    NoNamedGrade = 4,
+
+    [RaceGradeInfo("E", RaceGradeType.NonGradeSpecial, "特別")]
+    NonGradeSpecial = 5,
+
+    [RaceGradeInfo("F", RaceGradeType.Steeplechase, "J1")]
+    Steeplechase1 = 6,
+
+    [RaceGradeInfo("G", RaceGradeType.Steeplechase, "J2")]
+    Steeplechase2 = 7,
+
+    [RaceGradeInfo("H", RaceGradeType.Steeplechase, "J3")]
+    Steeplechase3 = 8,
+
+    [RaceGradeInfo("L", RaceGradeType.Listed, "L")]
+    Listed = 9,
+
+    [RaceGradeInfo(" ", RaceGradeType.Others, "")]
+    Others = 10,
+  }
+
+  class RaceSubjectTypeInfoAttribute : Attribute
+  {
+    public string Label { get; }
+
+    public RaceSubjectKind Kind { get; }
+
+    public int Money { get; }
+
+    public int Win { get; }
+
+    public RaceSubjectTypeInfoAttribute(string label, RaceSubjectKind kind, int money = 0)
+    {
+      this.Label = label;
+      this.Kind = kind;
+      if (kind == RaceSubjectKind.MoneyLess)
+      {
+        this.Money = money;
+      }
+      else if (kind == RaceSubjectKind.Win)
+      {
+        this.Win = money;
+      }
+    }
+  }
+
+  public enum RaceSubjectKind
+  {
+    Unknown = 0,
+    MoneyLess = 1,
+    Win = 2,
+    NewComer = 3,
+    Unraced = 4,
+    Maiden = 5,
+    Open = 6,
+  }
+
+  public enum RaceSubjectType
+  {
+    [RaceSubjectTypeInfo("不明", RaceSubjectKind.Unknown)]
+    Unknown = 0,
+
+    [RaceSubjectTypeInfo("100万以下", RaceSubjectKind.MoneyLess, 100)]
+    MoneyLess100 = 1,
+
+    [RaceSubjectTypeInfo("200万以下", RaceSubjectKind.MoneyLess, 200)]
+    MoneyLess200 = 2,
+
+    [RaceSubjectTypeInfo("300万以下", RaceSubjectKind.MoneyLess, 300)]
+    MoneyLess300 = 3,
+
+    [RaceSubjectTypeInfo("500万以下", RaceSubjectKind.MoneyLess, 500)]
+    MoneyLess500 = 1005,
+
+    [RaceSubjectTypeInfo("1000万以下", RaceSubjectKind.MoneyLess, 1000)]
+    MoneyLess1000 = 1010,
+
+    [RaceSubjectTypeInfo("1600万以下", RaceSubjectKind.MoneyLess, 1600)]
+    MoneyLess1600 = 1016,
+
+    [RaceSubjectTypeInfo("1勝クラス", RaceSubjectKind.Win, 1)]
+    Win1 = 5,
+
+    [RaceSubjectTypeInfo("2勝クラス", RaceSubjectKind.Win, 2)]
+    Win2 = 10,
+
+    [RaceSubjectTypeInfo("3勝クラス", RaceSubjectKind.Win, 3)]
+    Win3 = 16,
+
+    [RaceSubjectTypeInfo("9900万以下", RaceSubjectKind.MoneyLess, 9900)]
+    MoneyLess9900 = 99,
+
+    [RaceSubjectTypeInfo("1億以下", RaceSubjectKind.MoneyLess, 10000)]
+    MoneyLess10000 = 100,
+
+    [RaceSubjectTypeInfo("新馬", RaceSubjectKind.NewComer)]
+    NewComer = 701,
+
+    [RaceSubjectTypeInfo("未出走", RaceSubjectKind.Unraced)]
+    Unraced = 702,
+
+    [RaceSubjectTypeInfo("未勝利", RaceSubjectKind.Maiden)]
+    Maiden = 703,
+
+    [RaceSubjectTypeInfo("オープン", RaceSubjectKind.Open)]
+    Open = 999,
   }
 }
