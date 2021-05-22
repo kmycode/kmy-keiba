@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KmyKeiba", "KmyKeiba\KmyKei
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KmyKeiba.JVLink", "KmyKeiba.JVLink\KmyKeiba.JVLink.csproj", "{57F67A2F-0AF7-4206-886A-9691140189C0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KmyKeiba.Data", "KmyKeiba.Data\KmyKeiba.Data.csproj", "{89DACF79-198D-4D1A-80F7-4C80BA7CA0C9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,14 @@ Global
 		{57F67A2F-0AF7-4206-886A-9691140189C0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{57F67A2F-0AF7-4206-886A-9691140189C0}.Release|x86.ActiveCfg = Release|Any CPU
 		{57F67A2F-0AF7-4206-886A-9691140189C0}.Release|x86.Build.0 = Release|Any CPU
+		{89DACF79-198D-4D1A-80F7-4C80BA7CA0C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89DACF79-198D-4D1A-80F7-4C80BA7CA0C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89DACF79-198D-4D1A-80F7-4C80BA7CA0C9}.Debug|x86.ActiveCfg = Debug|x86
+		{89DACF79-198D-4D1A-80F7-4C80BA7CA0C9}.Debug|x86.Build.0 = Debug|x86
+		{89DACF79-198D-4D1A-80F7-4C80BA7CA0C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89DACF79-198D-4D1A-80F7-4C80BA7CA0C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89DACF79-198D-4D1A-80F7-4C80BA7CA0C9}.Release|x86.ActiveCfg = Release|Any CPU
+		{89DACF79-198D-4D1A-80F7-4C80BA7CA0C9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

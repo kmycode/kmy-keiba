@@ -1,7 +1,7 @@
 ﻿using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
 using KmyKeiba.Models.Data;
-using KmyKeiba.Models.DataObjects;
+using KmyKeiba.Data.DataObjects;
 using KmyKeiba.Models.Logics.Tabs;
 using KmyKeiba.Models.Threading;
 using Microsoft.EntityFrameworkCore;

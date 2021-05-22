@@ -1,6 +1,6 @@
-﻿using KmyKeiba.JVLink.Entities;
+﻿using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
-using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using System;
@@ -11,7 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace KmyKeiba.Models.DataObjects
+namespace KmyKeiba.Data.DataObjects
 {
   public class RaceDataObject
   {
@@ -126,7 +126,8 @@ namespace KmyKeiba.Models.DataObjects
         .Where((h) => h.ResultTime != default);
       var minTime = minTimeArray.Any() ? minTimeArray.Min((h) => h.ResultTime).TotalMilliseconds : 0;
       var diffTime = Math.Max(maxTime - minTime, 1);
-      this.Horses.AddRange(horses
+
+      var newHorses = horses
         .Where((h) => h.RaceKey == this.Data.Key)
         .OrderBy((h) => h.Number)
         .Select((h) => {
@@ -135,7 +136,11 @@ namespace KmyKeiba.Models.DataObjects
           {
             TimeRate = { Value = time == default ? 0 : 1 - ((float)h.ResultTime.TotalMilliseconds - minTime) / diffTime },
           };
-        }));
+        });
+      foreach (var horse in newHorses)
+      {
+        this.Horses.Add(horse);
+      }
 
       if (this.Horses.All((h) => h.TimeRate.Value == 1))
       {
@@ -151,12 +156,16 @@ namespace KmyKeiba.Models.DataObjects
     public void SetHorses(IEnumerable<RaceHorseDataObject> horses)
     {
       this.Horses.Clear();
-      this.Horses.AddRange(horses
+      var newHorses = horses
         .Where((h) => h.Data.RaceKey == this.Data.Key)
-        .OrderBy((h) => h.Data.Number));
+        .OrderBy((h) => h.Data.Number);
+      foreach (var horse in newHorses)
+      {
+        this.Horses.Add(horse);
+      }
     }
 
-    public async Task SetRaceHorsesAsync(MyContext db, int nest = 1)
+    public async Task SetRaceHorsesAsync(MyContextBase db, int nest = 1)
     {
       var horses = await db.RaceHorses!
         .Where((h) => h.RaceKey == this.Data.Key)

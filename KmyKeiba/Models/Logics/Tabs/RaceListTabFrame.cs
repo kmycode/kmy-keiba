@@ -1,4 +1,4 @@
-﻿using KmyKeiba.Models.DataObjects;
+﻿using KmyKeiba.Data.DataObjects;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;

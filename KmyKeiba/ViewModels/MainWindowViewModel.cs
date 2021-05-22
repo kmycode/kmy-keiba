@@ -11,7 +11,7 @@ using Prism.Commands;
 using Reactive.Bindings;
 using System.Reactive.Linq;
 using Prism.Services.Dialogs;
-using KmyKeiba.Models.DataObjects;
+using KmyKeiba.Data.DataObjects;
 using KmyKeiba.JVLink.Wrappers;
 
 namespace KmyKeiba.ViewModels
@@ -64,7 +64,7 @@ namespace KmyKeiba.ViewModels
       this.UpdateTodayRacesCommand.Subscribe(() => _ = this.model.UpdateRacesAsync());
 
       this.UpdateCurrentRaceCommand = this.TabIndex
-        .Select((i) => this.model.Tabs[i] is RaceTabFrame)
+        .Select((i) => (this.model.Tabs.Count > i && i >= 0) ? this.model.Tabs[i] is RaceTabFrame : false)
         .ToReactiveCommand();
       this.UpdateCurrentRaceCommand.Subscribe(() => _ = this.model.UpdateRacesByTabIndexAsync(this.TabIndex.Value));
 

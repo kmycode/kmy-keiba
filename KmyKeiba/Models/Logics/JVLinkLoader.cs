@@ -1,7 +1,7 @@
 ﻿using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
 using KmyKeiba.Models.Data;
-using KmyKeiba.Models.DataObjects;
+using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Threading;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;

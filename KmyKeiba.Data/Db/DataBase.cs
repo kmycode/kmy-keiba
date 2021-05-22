@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KmyKeiba.Models.Data
+namespace KmyKeiba.Data.Db
 {
   public abstract class DataBase<T>
   {
