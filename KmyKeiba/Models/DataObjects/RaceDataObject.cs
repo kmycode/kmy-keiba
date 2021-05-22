@@ -25,6 +25,8 @@ namespace KmyKeiba.Models.DataObjects
 
     public ReactiveProperty<string> DisplayName { get; } = new(string.Empty);
 
+    public ReactiveProperty<bool> HasResults { get; } = new();
+
     public void SetEntity(Race race)
     {
       this.Data.SetEntity(race);
@@ -120,15 +122,18 @@ namespace KmyKeiba.Models.DataObjects
       }
 
       var maxTime = horses.Max((h) => h.ResultTime).TotalMilliseconds;
-      var minTime = horses.Min((h) => h.ResultTime).TotalMilliseconds;
+      var minTimeArray = horses
+        .Where((h) => h.ResultTime != default);
+      var minTime = minTimeArray.Any() ? minTimeArray.Min((h) => h.ResultTime).TotalMilliseconds : 0;
       var diffTime = Math.Max(maxTime - minTime, 1);
       this.Horses.AddRange(horses
         .Where((h) => h.RaceKey == this.Data.Key)
         .OrderBy((h) => h.Number)
         .Select((h) => {
+          var time = h.ResultTime;
           return new RaceHorseDataObject(h)
           {
-            TimeRate = { Value = 1 - ((float)h.ResultTime.TotalMilliseconds - minTime) / diffTime },
+            TimeRate = { Value = time == default ? 0 : 1 - ((float)h.ResultTime.TotalMilliseconds - minTime) / diffTime },
           };
         }));
 
@@ -139,6 +144,8 @@ namespace KmyKeiba.Models.DataObjects
           horse.TimeRate.Value = 0;
         }
       }
+
+      this.HasResults.Value = this.Horses.Any((h) => h.Data.ResultOrder > 0);
     }
 
     public void SetHorses(IEnumerable<RaceHorseDataObject> horses)
@@ -165,6 +172,8 @@ namespace KmyKeiba.Models.DataObjects
         var raceKeys = sameHorses.Select((h) => h.RaceKey).ToList();
         var horseRaces = await db.Races!
           .Where((r) => raceKeys.Contains(r.Key) && r.StartTime < this.Data.StartTime)
+          .OrderByDescending((r) => r.StartTime)
+          .Take(10)
           .ToArrayAsync();
 
         var sameHorseObjects = new List<RaceHorseDataObject>();

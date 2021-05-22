@@ -159,7 +159,7 @@ namespace KmyKeiba.JVLink.Entities
         Weight = weight,
         WeightDiff = (short)(uma.ZogenFugo == "+" ? weightDiff : -weightDiff),
         IsBlinkers = uma.Blinker == "1",
-        Odds = odds,
+        Odds = odds / 10,
         AfterThirdHalongTime = halongTime,
         RunningStyle = (RunningStyle)runningStyle,
       };

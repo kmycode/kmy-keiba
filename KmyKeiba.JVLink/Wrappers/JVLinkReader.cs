@@ -25,8 +25,17 @@ namespace KmyKeiba.JVLink.Wrappers
 
   class EmptyJVLinkReader : IJVLinkReader
   {
+    private readonly IJVLinkObject link;
+
+    public EmptyJVLinkReader(IJVLinkObject link)
+    {
+      this.link = link;
+    }
+
     public void Dispose()
     {
+      this.link.Close();
+      this.link.IsOpen = false;
     }
 
     public JVLinkReaderData Load()

@@ -31,7 +31,7 @@ namespace KmyKeiba.JVLink.Wrappers
     int FileDelete(string filename);
   }
 
-  public static class JVLinkObjectFactory
+  internal static class JVLinkObjectFactory
   {
     /// <summary>
     /// 中央競馬
@@ -44,6 +44,66 @@ namespace KmyKeiba.JVLink.Wrappers
     /// </summary>
     /// <returns></returns>
     public static IJVLinkObject CreateLocal() => new NVLinkObjectImpl();
+
+    internal static IJVLinkObject CreateDefault() => new DefaultJVLink();
+
+    private class DefaultJVLink : IJVLinkObject
+    {
+      bool IJVLinkObject.IsOpen { get; set; }
+
+      public void Cancel()
+      {
+      }
+
+      public void Close()
+      {
+      }
+
+      public void Dispose()
+      {
+      }
+
+      public int FileDelete(string filename)
+      {
+        return default;
+      }
+
+      public int Gets(ref byte[] buff, int size, out string filename)
+      {
+        filename = string.Empty;
+        return default;
+      }
+
+      public int Init()
+      {
+        return default;
+      }
+
+      public int Open(string dataspec, string fromtime, int option, ref int readcount, ref int downloadcount, out string lastfiletimestamp)
+      {
+        lastfiletimestamp = string.Empty;
+        return default;
+      }
+
+      public int RtOpen(string dataspec, string key)
+      {
+        return default;
+      }
+
+      public int SetUIProperties()
+      {
+        return default;
+      }
+
+      public void Skip()
+      {
+      }
+
+      public int Status()
+      {
+        return default;
+      }
+    }
 
     private class JVLinkObjectImpl : IJVLinkObject
     {
@@ -77,7 +137,14 @@ namespace KmyKeiba.JVLink.Wrappers
 
       public void Cancel() => this.link.JVCancel();
 
-      public void Close() => this.link.JVClose();
+      public void Close()
+      {
+        var r = this.link.JVClose();
+        if (r != 0)
+        {
+
+        }
+      }
 
       public int FileDelete(string filename) => this.link.JVFiledelete(filename);
     }

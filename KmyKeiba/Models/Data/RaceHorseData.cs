@@ -29,6 +29,11 @@ namespace KmyKeiba.Models.Data
     public int ResultOrder { get; set; }
 
     /// <summary>
+    /// 異常結果
+    /// </summary>
+    public RaceAbnormality AbnormalResult { get; set; }
+
+    /// <summary>
     /// 人気
     /// </summary>
     public int Popular { get; set; }
@@ -119,6 +124,7 @@ namespace KmyKeiba.Models.Data
       this.Odds = entity.Odds;
       this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
       this.RunningStyle = entity.RunningStyle;
+      this.AbnormalResult = entity.AbnormalResult;
     }
 
     public override bool IsEquals(DataBase<RaceHorse> b)

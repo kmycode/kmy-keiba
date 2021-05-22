@@ -170,7 +170,7 @@ namespace KmyKeiba.JVLink.Entities
     public override int GetHashCode() => this.Key.GetHashCode();
   }
 
-  public enum RaceDataStatus
+  public enum RaceDataStatus : short
   {
     Unknown = -1,
 

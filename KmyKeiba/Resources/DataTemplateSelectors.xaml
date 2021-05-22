@@ -3,27 +3,36 @@
                     xmlns:c="clr-namespace:KmyKeiba.Resources.TemplateSelectors"
                     xmlns:vc="clr-namespace:KmyKeiba.Views.Controls">
   <DataTemplate x:Key="RaceListContentTemplate">
-    <vc:BindableScrollViewer ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}">
-      <Grid>
-        <ItemsControl Visibility="{Binding IsRaceLoadError.Value,Converter={StaticResource NegativeVisibilityConverter}}"
-                      ItemsSource="{Binding Races}" ItemTemplate="{StaticResource RaceInfoTemplate}"/>
-        <TextBlock Visibility="{Binding IsRaceLoadError.Value,Converter={StaticResource BooleanVisibilityConverter}}"
-                   Foreground="Red" FontSize="24" TextAlignment="Center"
-                   VerticalAlignment="Center" HorizontalAlignment="Center">
-          レースのロードでエラーが発生しました<LineBreak/>データベースの読み込みに失敗した可能性があります<LineBreak/>MySQLの設定を確認してください
-        </TextBlock>
-        <TextBlock FontSize="24" TextAlignment="Center"
-                   VerticalAlignment="Center" HorizontalAlignment="Center">
-          <TextBlock.Visibility>
-            <MultiBinding Converter="{StaticResource MultiBooleanConverter}">
-              <Binding Path="IsRaceLoadError.Value" Converter="{StaticResource NegativeConverter}"/>
-              <Binding Path="Races" Converter="{StaticResource ListEmptyBooleanConverter}"/>
-            </MultiBinding>
-          </TextBlock.Visibility>
-          レースはありません<LineBreak/>メニューからレースを読み込んでください
-        </TextBlock>
-      </Grid>
-    </vc:BindableScrollViewer>
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <StackPanel>
+        <Calendar SelectedDate="{Binding DataContext.ShowDate.Value,Mode=TwoWay,RelativeSource={RelativeSource AncestorType={x:Type Window}}}"/>
+      </StackPanel>
+      <vc:BindableScrollViewer Grid.Column="1" ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}">
+        <Grid>
+          <ItemsControl Visibility="{Binding IsRaceLoadError.Value,Converter={StaticResource NegativeVisibilityConverter}}"
+                        ItemsSource="{Binding Races}" ItemTemplate="{StaticResource RaceInfoTemplate}"/>
+          <TextBlock Visibility="{Binding IsRaceLoadError.Value,Converter={StaticResource BooleanVisibilityConverter}}"
+                     Foreground="Red" FontSize="24" TextAlignment="Center"
+                     VerticalAlignment="Center" HorizontalAlignment="Center">
+            レースのロードでエラーが発生しました<LineBreak/>データベースの読み込みに失敗した可能性があります<LineBreak/>MySQLの設定を確認してください
+          </TextBlock>
+          <TextBlock FontSize="24" TextAlignment="Center"
+                     VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock.Visibility>
+              <MultiBinding Converter="{StaticResource MultiBooleanConverter}">
+                <Binding Path="IsRaceLoadError.Value" Converter="{StaticResource NegativeConverter}"/>
+                <Binding Path="IsRacesEmpty.Value"/>
+              </MultiBinding>
+            </TextBlock.Visibility>
+            レースはありません<LineBreak/>メニューからレースを読み込んでください
+          </TextBlock>
+        </Grid>
+      </vc:BindableScrollViewer>
+    </Grid>
   </DataTemplate>
   <DataTemplate x:Key="RaceDetailContentTemplate">
     <ContentControl ContentTemplate="{StaticResource RaceDetailTemplate}"

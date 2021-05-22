@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:prism="http://prismlibrary.com/"
         prism:ViewModelLocator.AutoWireViewModel="True"
-        Title="KMY競馬" Height="700" Width="1000">
+        Title="KMY競馬" Height="700" Width="1000" WindowState="Maximized">
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
@@ -13,6 +13,8 @@
       <Menu DockPanel.Dock="Top">
         <MenuItem Header="ファイル(_F)">
           <MenuItem Header="データの更新...(_L)" Command="{Binding OpenJVLinkLoadDialogCommand}"/>
+          <MenuItem Header="今日のデータを更新(_U)" Command="{Binding UpdateTodayRacesCommand}"/>
+          <MenuItem Header="現在開いているレースを更新" Command="{Binding UpdateCurrentRaceCommand}"/>
           <MenuItem Header="JV-Link設定..." Command="{Binding OpenJVLinkConfigCommand}"/>
           <MenuItem Header="UmaConn設定..." Command="{Binding OpenNVLinkConfigCommand}"/>
           <Separator/>
@@ -24,5 +26,17 @@
                 ContentTemplateSelector="{StaticResource MainTabContentTemplateSelector}"
                 ItemTemplateSelector="{StaticResource MainTabItemTemplateSelector}">
     </TabControl>
+    <Border Background="#99000000" Grid.Row="1" Visibility="{Binding IsUpdating.Value,Converter={StaticResource BooleanVisibilityConverter}}">
+      <StackPanel VerticalAlignment="Center">
+        <ProgressBar Height="24"
+                     Maximum="{Binding UpdateSize.Value}" Value="{Binding Updated.Value}"/>
+        <StackPanel Visibility="{Binding IsUpdateError.Value,Converter={StaticResource BooleanVisibilityConverter}}">
+          <TextBlock Foreground="White" FontSize="22" HorizontalAlignment="Center"
+                   Text="ロードでエラーが発生しました"/>
+          <Button FontSize="22" HorizontalAlignment="Center" Padding="32,8"
+                Content="OK" Command="{Binding CloseUpdateErrorCommand}"/>
+        </StackPanel>
+      </StackPanel>
+    </Border>
   </Grid>
 </Window>

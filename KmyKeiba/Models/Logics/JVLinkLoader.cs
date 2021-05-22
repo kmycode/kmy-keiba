@@ -110,7 +110,7 @@ namespace KmyKeiba.Models.Logics
 
       if (link != null)
       {
-        await this.LoadAsync(link);
+        await this.LoadAsync(link, JVLinkDataspec.Race, false);
       }
     }
 
@@ -129,21 +129,33 @@ namespace KmyKeiba.Models.Logics
 
       if (link != null)
       {
-        await this.LoadAsync(link);
+        await this.LoadAsync(link, JVLinkDataspec.Race, false);
       }
     }
 
-    private async Task LoadAsync(JVLinkObject link)
+    public async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, bool isRealtime, string? raceKey,
+      DateTime? startTime, DateTime? endTime)
     {
-      this.LoadSize.Value = 1;
-      this.Loaded.Value = 0;
-      this.SaveSize.Value = 1;
-      this.Saved.Value = 0;
-      this.DownloadSize.Value = 1;
-      this.Downloaded.Value = 0;
-      this.ProcessSize.Value = 1;
-      this.Processed.Value = 0;
+      if (startTime != null)
+      {
+        this.StartTime.Value = (DateTime)startTime;
+      }
+      if (endTime != null)
+      {
+        this.EndTime.Value = (DateTime)endTime;
+        this.IsSetEndTime.Value = true;
+      }
+      else
+      {
+        this.IsSetEndTime.Value = false;
+      }
 
+      await this.LoadAsync(link, dataspec, isRealtime, raceKey);
+    }
+
+    private async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, bool isRealtime, string? raceKey = null, int nest = 0)
+    {
+      this.ResetProgresses();
       this.IsLoading.Value = true;
 
       await Task.Run(async () =>
@@ -153,23 +165,33 @@ namespace KmyKeiba.Models.Logics
           logger.Info("Start Load JVLink");
           logger.Info($"Load Type: {link.GetType().Name}");
 
-          var isOpenRealTime = !this.IsSetEndTime.Value || this.EndTime.Value >= DateTime.Today;
-
-          using (var reader = link.StartRead(JVLinkDataspec.Race | JVLinkDataspec.Diff,
-            JVLinkOpenOption.Normal,
-            this.StartTime.Value,
-            this.IsSetEndTime.Value ? this.EndTime.Value.AddDays(1) : null))
+          if (!isRealtime)
           {
-            await this.LoadAsync(reader, !isOpenRealTime);
-          }
-
-          if (isOpenRealTime)
-          {
-            using (var reader = link.StartRead(JVLinkDataspec.RB15,
-              JVLinkOpenOption.RealTime,
-              DateTime.Today))
+            using (var reader = link.StartRead(dataspec,
+              JVLinkOpenOption.Normal,
+              this.StartTime.Value,
+              this.IsSetEndTime.Value ? this.EndTime.Value.AddDays(1) : null))
             {
               await this.LoadAsync(reader, true);
+            }
+          }
+          else
+          {
+            if (raceKey == null)
+            {
+              using (var reader = link.StartRead(dataspec,
+                JVLinkOpenOption.RealTime, DateTime.Today))
+              {
+                await this.LoadAsync(reader, true);
+              }
+            }
+            else
+            {
+              using (var reader = link.StartRead(dataspec,
+                JVLinkOpenOption.RealTime, raceKey))
+              {
+                await this.LoadAsync(reader, true);
+              }
             }
           }
 
@@ -199,8 +221,22 @@ namespace KmyKeiba.Models.Logics
       });
     }
 
+    private void ResetProgresses()
+    {
+      this.LoadSize.Value = 1;
+      this.Loaded.Value = 0;
+      this.SaveSize.Value = 1;
+      this.Saved.Value = 0;
+      this.DownloadSize.Value = 1;
+      this.Downloaded.Value = 0;
+      this.ProcessSize.Value = 1;
+      this.Processed.Value = 0;
+    }
+
     private async Task LoadAsync(IJVLinkReader reader, bool isProcessing)
     {
+      this.ResetProgresses();
+
       this.DownloadSize.Value = reader.DownloadCount;
       logger.Info($"Download: {reader.DownloadCount}");
 
@@ -267,7 +303,7 @@ namespace KmyKeiba.Models.Logics
             .ToArrayAsync();
           foreach (var item in dataItems
             .Join(entities, (d) => dataId(d), (e) => entityId(e), (d, e) => new { Data = d, Entity = e, })
-            .OrderBy((i) => i.Entity.DataStatus))
+            .OrderBy((i) => (short)i.Entity.DataStatus))
           {
             item.Data.SetEntity(item.Entity);
             saved++;

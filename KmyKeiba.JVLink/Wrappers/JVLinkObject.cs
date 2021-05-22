@@ -24,14 +24,24 @@ namespace KmyKeiba.JVLink.Wrappers
     private readonly IJVLinkObject link;
     private bool hasInitialized = false;
 
+    public bool IsError { get; private set; }
+
     private JVLinkObject(JVLinkObjectType type)
     {
-      this.link = type switch
+      try
       {
-        JVLinkObjectType.Central => JVLinkObjectFactory.CreateCentral(),
-        JVLinkObjectType.Local => JVLinkObjectFactory.CreateLocal(),
-        _ => throw new ArgumentException(),
-      };
+        this.link = type switch
+        {
+          JVLinkObjectType.Central => JVLinkObjectFactory.CreateCentral(),
+          JVLinkObjectType.Local => JVLinkObjectFactory.CreateLocal(),
+          _ => throw new ArgumentException(),
+        };
+      }
+      catch
+      {
+        this.IsError = true;
+        this.link = JVLinkObjectFactory.CreateDefault();
+      }
     }
 
     public void OpenConfigWindow()
@@ -40,6 +50,16 @@ namespace KmyKeiba.JVLink.Wrappers
     }
 
     public IJVLinkReader StartRead(JVLinkDataspec dataspec, JVLinkOpenOption options, DateTime from, DateTime? to = null)
+    {
+      return this.StartRead(dataspec, options, from, to, null);
+    }
+
+    public IJVLinkReader StartRead(JVLinkDataspec dataspec, JVLinkOpenOption options, string raceKey)
+    {
+      return this.StartRead(dataspec, options, null, null, raceKey);
+    }
+
+    private IJVLinkReader StartRead(JVLinkDataspec dataspec, JVLinkOpenOption options, DateTime? from, DateTime? to, string? raceKey)
     {
       this.CheckInitialized();
       this.CheckOpen();
@@ -88,15 +108,17 @@ namespace KmyKeiba.JVLink.Wrappers
 
       if (options != JVLinkOpenOption.RealTime)
       {
-        var during = this.ToString(from) + (to != null ? $"-{this.ToString((DateTime)to)}" : string.Empty);
+        from ??= DateTime.Today;
+        var during = this.ToString((DateTime)from) + (to != null ? $"-{this.ToString((DateTime)to)}" : string.Empty);
         result = this.link.Open(string.Join(string.Empty, attributes.Select((a) => a!.Code)),
                                 during, (int)options,
                                 ref readCount, ref downloadCount, out string lastFileTimeStamp);
       }
       else
       {
+        var key = from != null ? ((DateTime)from).ToString("yyyyMMdd")! : raceKey!;
         result = this.link.RtOpen(string.Join(string.Empty, attributes.Select((a) => a!.Code)),
-                                  from.ToString("yyyyMMdd"));
+                                  raceKey!);
       }
 
       if (result != 0 && result != -1)
@@ -108,7 +130,8 @@ namespace KmyKeiba.JVLink.Wrappers
       {
         return new JVLinkReader(this.link, readCount, downloadCount);
       }
-      return new EmptyJVLinkReader();
+
+      return new EmptyJVLinkReader(this.link);
     }
 
     private void CheckInitialized()
@@ -294,6 +317,9 @@ namespace KmyKeiba.JVLink.Wrappers
       => cls.GetAttribute()?.Label ?? string.Empty;
 
     public static string GetLabel(this RaceSubjectType cls)
+      => cls.GetAttribute()?.Label ?? string.Empty;
+
+    public static string GetLabel(this RaceAbnormality cls)
       => cls.GetAttribute()?.Label ?? string.Empty;
 
     private static A? GetAttribute<A, T>(T spec) where A : Attribute

@@ -15,6 +15,7 @@
   <c:RunningStyleConverter x:Key="RunningStyleConverter"/>
   <c:OrderNumberConverter x:Key="OrderNumberConverter"/>
   <c:RangeNumberConverter x:Key="RangeNumberConverter"/>
+  <c:AbnormalityResultConverter x:Key="AbnormalityResultConverter"/>
 
   <c:MultiBooleanConverter x:Key="MultiBooleanConverter"/>
 </ResourceDictionary>

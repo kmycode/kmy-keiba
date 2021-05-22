@@ -19,10 +19,15 @@ namespace KmyKeiba.Models.Logics.Tabs
 
     public ReactiveProperty<bool> IsRaceLoadError { get; } = new(false);
 
+    public ReactiveProperty<bool> IsRacesEmpty { get; } = new(false);
+
     public RaceListTabFrame(ObservableCollection<RaceDataObject> races)
     {
       this.Races = races;
       this.CanClose = false;
+
+      this.Races.CollectionChanged += (_, _) => this.IsRacesEmpty.Value = !this.Races.Any();
+      this.IsRacesEmpty.Value = !this.Races.Any();
     }
 
     public void Dispose() => this.disposables.Dispose();

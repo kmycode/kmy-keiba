@@ -9,7 +9,7 @@
       <i:Interaction.Triggers>
         <i:EventTrigger EventName="MouseDown">
           <prism:InvokeCommandAction Command="{Binding DataContext.OpenRaceCommand,RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
-                                     CommandParameter="{Binding}"/>
+                                      CommandParameter="{Binding}"/>
         </i:EventTrigger>
       </i:Interaction.Triggers>
       <Border.Style>
@@ -33,13 +33,13 @@
               <RowDefinition Height="48"/>
             </Grid.RowDefinitions>
             <Label Grid.Column="0" Grid.Row="0"
-                   Content="{Binding DisplayName.Value}" FontSize="28" FontWeight="Bold"/>
+                    Content="{Binding DisplayName.Value}" FontSize="28" FontWeight="Bold"/>
             <Label Grid.Column="1" Grid.Row="0"
-                   Content="{Binding Subject.Value.ClassName}" FontSize="18" FontWeight="Bold"
-                   Foreground="White"
-                   Background="{Binding Subject.Value.DisplayClass,Converter={StaticResource RaceClassBrushConverter}}"
-                   HorizontalContentAlignment="Center"
-                   VerticalContentAlignment="Center"/>
+                    Content="{Binding Subject.Value.ClassName}" FontSize="18" FontWeight="Bold"
+                    Foreground="White"
+                    Background="{Binding Subject.Value.DisplayClass,Converter={StaticResource RaceClassBrushConverter}}"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"/>
           </Grid>
         </Border>
         <Border>
@@ -73,7 +73,7 @@
             </Border>
             <Border Grid.Column="2" Grid.Row="1" BorderBrush="#cccccc" BorderThickness="0,0,1,0">
               <TextBlock FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"
-                         Text="{Binding Data.StartTime,StringFormat=HH:mm}"/>
+                          Text="{Binding Data.StartTime,StringFormat=HH:mm}"/>
             </Border>
             <Border Grid.Column="3" Grid.Row="1" BorderBrush="#cccccc" BorderThickness="0,0,1,0">
               <TextBlock FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -133,11 +133,11 @@
             <TextBlock Text="{Binding Race.Value.Subject.Value.Name}" FontSize="14" Foreground="#888888"/>
           </StackPanel>
           <TextBlock Grid.Column="1" Margin="8,0,8,0"
-                     Foreground="#666666" FontSize="20">
+                     Foreground="#666666" FontSize="20" HorizontalAlignment="Right">
             <Run Text="{Binding Race.Value.Data.Course,Converter={StaticResource CourseNameConverter}}"/><Run Text="{Binding Race.Value.Data.CourseRaceNumber}"/><Run Text="R"/>
           </TextBlock>
           <TextBlock Grid.Column="1" Grid.Row="1" Margin="8,0,8,0" FontSize="16" TextAlignment="Right">
-            <Run Text="{Binding Race.Value.Data.StartTime,StringFormat=MM/dd}"/>
+            <Run Text="{Binding Race.Value.Data.StartTime,StringFormat=MM/dd HH\\:mm}"/>
           </TextBlock>
           <TextBlock Grid.Column="1" Grid.Row="2" Margin="8,0,8,0"
                      Text="{Binding Race.Value.Data.Course,Converter={StaticResource CourseNameConverter},ConverterParameter=Type}"
@@ -182,6 +182,7 @@
                       <RowDefinition Height="auto"/>
                       <RowDefinition Height="auto"/>
                       <RowDefinition Height="auto"/>
+                      <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Text="{Binding Data.Number}" FontSize="20" FontWeight="Bold"
                                Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConverter},ConverterParameter=Background}"
@@ -189,13 +190,78 @@
                                Height="28" Margin="0" Padding="0"
                                TextAlignment="Center"/>
                     <Border Grid.Row="1" VerticalAlignment="Bottom" Background="#eef0ff"
-                            Height="{Binding TimeRate.Value,Converter={StaticResource RangeNumberConverter},ConverterParameter=336}"/>
+                            Height="{Binding TimeRate.Value,Converter={StaticResource RangeNumberConverter},ConverterParameter=306}"/>
+                    <Border Grid.Row="1" VerticalAlignment="Stretch" Background="#dedede"
+                            Visibility="{Binding Data.AbnormalResult,Converter={StaticResource AbnormalityResultConverter}}">
+                      <TextBlock VerticalAlignment="Bottom" Margin="0,0,0,16"
+                                 HorizontalAlignment="Center"
+                                 FontSize="32" FontWeight="Bold" Foreground="Red"
+                                 Text="{Binding Data.AbnormalResult,Converter={StaticResource AbnormalityResultConverter}}"/>
+                    </Border>
                     <TextBlock Grid.Row="1"
                                Text="{Binding Data.Name,Converter={StaticResource OneLetterOneLineConverter}}"
                                TextAlignment="Center" LineStackingStrategy="BlockLineHeight"
                                FontSize="28" FontWeight="Bold" LineHeight="28"
-                               Height="320" Margin="8"/>
-                    <ItemsControl Grid.Row="2" ItemsSource="{Binding OldRaceHorses}">
+                               Height="290" Margin="8"/>
+                    <StackPanel Grid.Row="2" Margin="4,4,4,16">
+                      <Border Background="{Binding Data.Popular,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
+                        <TextBlock FontSize="14" HorizontalAlignment="Center">
+                          <Run Text="{Binding Data.Odds}" FontSize="18" FontWeight="Bold"/>
+                          (<Run Text="{Binding Data.Popular}"/>人気)
+                        </TextBlock>
+                      </Border>
+                      <TextBlock FontSize="14" HorizontalAlignment="Center">
+                        <Run Text="{Binding Data.RiderName}"/>
+                        <Run Text="{Binding Data.RiderWeight}"/>kg
+                        <Run Text="{Binding Data.Weight}"/>(<Run Text="{Binding Data.WeightDiff}"/>)
+                      </TextBlock>
+                      <StackPanel Visibility="{Binding DataContext.Race.Value.HasResults.Value,Converter={StaticResource BooleanVisibilityConverter},RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                          <Border Width="60" Height="40" BorderBrush="Gray" BorderThickness="1"
+                                  Margin="0,0,8,0"
+                                  Background="{Binding Data.ResultOrder,Converter={StaticResource OrderNumberConverter}}"
+                                  Visibility="{Binding Data.ResultOrder,Converter={StaticResource OrderNumberConverter}}">
+                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Text="{Binding Data.ResultOrder}" FontSize="28"
+                                       FontWeight="{Binding Data.ResultOrder,Converter={StaticResource OrderNumberConverter}}"/>
+                          </Border>
+                          <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                              <Border Width="30" Height="24" BorderBrush="#cccccc" BorderThickness="1" Margin="0,0,4,0"
+                                      Visibility="{Binding Data.FirstCornerOrder,Converter={StaticResource OrderNumberConverter}}"
+                                      Background="{Binding Data.FirstCornerOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
+                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Text="{Binding Data.FirstCornerOrder}" FontSize="14"/>
+                              </Border>
+                              <Border Width="30" Height="24" BorderBrush="#cccccc" BorderThickness="1" Margin="0,0,4,0"
+                                      Visibility="{Binding Data.SecondCornerOrder,Converter={StaticResource OrderNumberConverter}}"
+                                      Background="{Binding Data.SecondCornerOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
+                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Text="{Binding Data.SecondCornerOrder}" FontSize="14"/>
+                              </Border>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                              <Border Width="30" Height="24" BorderBrush="#cccccc" BorderThickness="1" Margin="0,0,4,0"
+                                      Visibility="{Binding Data.ThirdCornerOrder,Converter={StaticResource OrderNumberConverter}}"
+                                      Background="{Binding Data.ThirdCornerOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
+                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Text="{Binding Data.ThirdCornerOrder}" FontSize="14"/>
+                              </Border>
+                              <Border Width="30" Height="24" BorderBrush="#cccccc" BorderThickness="1"
+                                      Visibility="{Binding Data.FourthCornerOrder,Converter={StaticResource OrderNumberConverter}}"
+                                      Background="{Binding Data.FourthCornerOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
+                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Text="{Binding Data.FourthCornerOrder}" FontSize="14"/>
+                              </Border>
+                            </StackPanel>
+                          </StackPanel>
+                        </StackPanel>
+                        <TextBlock HorizontalAlignment="Center" FontSize="20" FontWeight="Bold"
+                                   Visibility="{Binding Data.ResultOrder,Converter={StaticResource OrderNumberConverter}}"
+                                   Text="{Binding Data.ResultTime,StringFormat=m\\:ss\\.f}"/>
+                      </StackPanel>
+                    </StackPanel>
+                    <ItemsControl Grid.Row="3" ItemsSource="{Binding OldRaceHorses}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate>
                           <Border Background="{Binding Data.ResultOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}"
