@@ -267,7 +267,7 @@ namespace KmyKeiba.Models.Logics
             .ToArrayAsync();
           foreach (var item in dataItems
             .Join(entities, (d) => dataId(d), (e) => entityId(e), (d, e) => new { Data = d, Entity = e, })
-            .OrderBy((i) => i.Entity.LastModified))
+            .OrderBy((i) => i.Entity.DataStatus))
           {
             item.Data.SetEntity(item.Entity);
             saved++;
@@ -281,59 +281,16 @@ namespace KmyKeiba.Models.Logics
           }
         }
 
-        {
-          /*
-          var ids = data.Races.Select((r) => r.Key).ToList();
-          var dataItems = await db.Races!
-            .Where((r) => ids.Contains(r.Key))
-            .ToArrayAsync();
-          foreach (var item in dataItems
-            .Join(data.Races, (d) => d.Key, (e) => e.Key, (d, e) => new { Data = d, Entity = e, })
-            .Where((i) => i.Entity.LastModified >= i.Data.LastModified))
-          {
-            item.Data.SetEntity(item.Entity);
-            saved++;
-          }
-          foreach (var item in data.Races.Where((e) => !dataItems.Any((d) => d.Key == e.Key)))
-          {
-            var obj = new RaceData();
-            obj.SetEntity(item);
-            await db.Races!.AddAsync(obj);
-            saved++;
-          }
-          */
-          await SaveAsync(data.Races,
-            db.Races!,
-            (e) => e.Key,
-            (d) => d.Key,
-            (list) => e => list.Contains(e.Key));
-        }
-        {
-          /*
-          var ids = data.RaceHorses.Select((r) => r.Name + r.RaceKey).ToList();
-          var dataItems = await db.RaceHorses!
-            .Where((r) => ids.Contains(r.Name + r.RaceKey))
-            .ToArrayAsync();
-          foreach (var item in dataItems
-            .Join(data.RaceHorses, (d) => d.Name + d.RaceKey, (e) => e.Name + e.RaceKey, (d, e) => new { Data = d, Entity = e, })
-            .Where((i) => i.Entity.LastModified >= i.Data.LastModified))
-          {
-            item.Data.SetEntity(item.Entity);
-            saved++;
-          }
-          foreach (var item in data.RaceHorses.Where((e) => !dataItems.Any((d) => d.Name == e.Name && d.RaceKey == e.RaceKey)))
-          {
-            var obj = new RaceHorseDataObject(item);
-            await db.RaceHorses!.AddAsync(obj.Data);
-            saved++;
-          }
-          */
-          await SaveAsync(data.RaceHorses,
-            db.RaceHorses!,
-            (e) => e.Name + e.RaceKey,
-            (d) => d.Name + d.RaceKey,
-            (list) => e => list.Contains(e.Name + e.RaceKey));
-        }
+        await SaveAsync(data.Races,
+          db.Races!,
+          (e) => e.Key,
+          (d) => d.Key,
+          (list) => e => list.Contains(e.Key));
+        await SaveAsync(data.RaceHorses,
+          db.RaceHorses!,
+          (e) => e.Name + e.RaceKey,
+          (d) => d.Name + d.RaceKey,
+          (list) => e => list.Contains(e.Name + e.RaceKey));
 
         await db.SaveChangesAsync();
 
@@ -348,6 +305,7 @@ namespace KmyKeiba.Models.Logics
             .Distinct()
             .ToArray();
           this.ProcessSize.Value = (int)Math.Ceiling(ids.Count() / 64.0f);
+          this.Processed.Value = 0;
           while (ids.Any())
           {
             var arr = string.Join("','", ids.Take(64));

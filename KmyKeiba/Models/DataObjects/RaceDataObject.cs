@@ -114,10 +114,31 @@ namespace KmyKeiba.Models.DataObjects
     public void SetHorses(IEnumerable<RaceHorseData> horses)
     {
       this.Horses.Clear();
+      if (!horses.Any())
+      {
+        return;
+      }
+
+      var maxTime = horses.Max((h) => h.ResultTime).TotalMilliseconds;
+      var minTime = horses.Min((h) => h.ResultTime).TotalMilliseconds;
+      var diffTime = Math.Max(maxTime - minTime, 1);
       this.Horses.AddRange(horses
         .Where((h) => h.RaceKey == this.Data.Key)
         .OrderBy((h) => h.Number)
-        .Select((h) => new RaceHorseDataObject(h)));
+        .Select((h) => {
+          return new RaceHorseDataObject(h)
+          {
+            TimeRate = { Value = 1 - ((float)h.ResultTime.TotalMilliseconds - minTime) / diffTime },
+          };
+        }));
+
+      if (this.Horses.All((h) => h.TimeRate.Value == 1))
+      {
+        foreach (var horse in this.Horses)
+        {
+          horse.TimeRate.Value = 0;
+        }
+      }
     }
 
     public void SetHorses(IEnumerable<RaceHorseDataObject> horses)

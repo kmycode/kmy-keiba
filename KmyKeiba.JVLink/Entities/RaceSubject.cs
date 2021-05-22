@@ -50,7 +50,8 @@ namespace KmyKeiba.JVLink.Entities
     {
       get
       {
-        if (this.Grade != RaceGrade.Unknown && this.Grade != RaceGrade.Others)
+        if (this.Grade != RaceGrade.Unknown && this.Grade != RaceGrade.Others &&
+          (string.IsNullOrEmpty(this.Name) || this.Grade != RaceGrade.NonGradeSpecial))
         {
           return this.Grade.GetLabel();
         }
@@ -131,11 +132,6 @@ namespace KmyKeiba.JVLink.Entities
 #pragma warning disable CA1416 // プラットフォームの互換性を検証
       text = Microsoft.VisualBasic.Strings.StrConv(text, Microsoft.VisualBasic.VbStrConv.Narrow)!;
 #pragma warning restore CA1416 // プラットフォームの互換性を検証
-
-      if (text == "4歳上OP")
-      {
-
-      }
 
       var reg = new Regex(@"(((?<age>\d)歳\s*)*)(?<class>[A-Z])-*(?<number>\d*)\s*-*(?<group>[一二三四五六七八九\d]*)\s*((?<classsub>以上|未満|以下)*)");
       var match = reg.Match(text);

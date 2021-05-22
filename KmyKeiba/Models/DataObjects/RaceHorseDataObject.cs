@@ -18,6 +18,8 @@ namespace KmyKeiba.Models.DataObjects
 
     public ObservableCollection<RaceHorseDataObject> OldRaceHorses { get; } = new();
 
+    public ReactiveProperty<double> TimeRate { get; } = new();
+
     public void SetEntity(RaceHorse entity)
     {
       this.Data.SetEntity(entity);

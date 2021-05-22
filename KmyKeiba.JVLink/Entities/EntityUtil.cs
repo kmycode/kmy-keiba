@@ -21,5 +21,29 @@ namespace KmyKeiba.JVLink.Entities
       int.TryParse(dt.Day, out int day);
       return new DateTime(year, month, day);
     }
+
+    public static RaceDataStatus ToDataStatus(this string val)
+    {
+      var dataStatus = RaceDataStatus.Unknown;
+      switch (val)
+      {
+        case "A":
+          dataStatus = RaceDataStatus.Local;
+          break;
+        case "B":
+          dataStatus = RaceDataStatus.Foreign;
+          break;
+        default:
+          {
+            if (int.TryParse(val, out int status))
+            {
+              dataStatus = (RaceDataStatus)status;
+            }
+            break;
+          }
+      }
+
+      return dataStatus;
+    }
   }
 }

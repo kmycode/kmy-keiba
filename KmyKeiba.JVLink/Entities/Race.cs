@@ -149,6 +149,7 @@ namespace KmyKeiba.JVLink.Entities
       {
         LastModified = race.head.MakeDate.ToDateTime(),
         Key = race.id.ToRaceKey(),
+        DataStatus = race.head.DataKubun.ToDataStatus(),
         Name = name,
         Name6Chars = name6,
         SubName = race.RaceInfo.Fukudai.Trim(),
@@ -169,6 +170,66 @@ namespace KmyKeiba.JVLink.Entities
     public override int GetHashCode() => this.Key.GetHashCode();
   }
 
+  public enum RaceDataStatus
+  {
+    Unknown = -1,
+
+    /// <summary>
+    /// 削除
+    /// </summary>
+    Delete = 0,
+
+    /// <summary>
+    /// 出走馬名表
+    /// </summary>
+    Horses = 1,
+
+    /// <summary>
+    /// 出走表
+    /// </summary>
+    Horses2 = 2,
+
+    /// <summary>
+    /// 速報成績（3着まで確定）
+    /// </summary>
+    PreliminaryGrade3 = 3,
+
+    /// <summary>
+    /// 速報成績（５着まで確定）
+    /// </summary>
+    PreliminaryGrade5 = 4,
+
+    /// <summary>
+    /// 速報成績（全員確定）
+    /// </summary>
+    PreliminaryGrade = 5,
+
+    /// <summary>
+    /// 速報成績
+    /// </summary>
+    PreliminaryGradeFull = 6,
+
+    /// <summary>
+    /// 成績
+    /// </summary>
+    Grade = 7,
+
+    /// <summary>
+    /// 中止
+    /// </summary>
+    Aborted = 9,
+
+    /// <summary>
+    /// 地方競馬
+    /// </summary>
+    Local = 101,
+
+    /// <summary>
+    /// 海外
+    /// </summary>
+    Foreign = 102,
+  }
+
   class RaceCourseInfoAttribute : Attribute
   {
     public string Name { get; }
@@ -184,7 +245,7 @@ namespace KmyKeiba.JVLink.Entities
     }
   }
 
-  public enum RaceCourseType
+  public enum RaceCourseType : short
   {
     Unknown = 0,
     Central = 1,
@@ -192,7 +253,7 @@ namespace KmyKeiba.JVLink.Entities
     Foreign = 3,
   }
 
-  public enum RaceCourse
+  public enum RaceCourse : short
   {
     [RaceCourseInfo(RaceCourseType.Central, "不明")]
     Unknown = 0,
@@ -479,7 +540,7 @@ namespace KmyKeiba.JVLink.Entities
 
   }
 
-  public enum TrackGround
+  public enum TrackGround : short
   {
     Unknown = 0,
     Turf = 1,
@@ -488,7 +549,7 @@ namespace KmyKeiba.JVLink.Entities
     Sand = 4,
   }
 
-  public enum TrackCornerDirection
+  public enum TrackCornerDirection : short
   {
     Unknown = 0,
     Left = 1,
@@ -496,7 +557,7 @@ namespace KmyKeiba.JVLink.Entities
     Straight = 3,
   }
 
-  public enum TrackOption
+  public enum TrackOption : short
   {
     Unknown = 0,
     Outside = 1,
@@ -507,7 +568,7 @@ namespace KmyKeiba.JVLink.Entities
     Inside2 = 6,
   }
 
-  public enum TrackType
+  public enum TrackType : short
   {
     Unknown = 0,
     Flat = 1,

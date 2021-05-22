@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KmyKeiba.JVLink.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,8 @@ namespace KmyKeiba.Models.Data
     public uint Id { get; set; }
 
     public DateTime LastModified { get; set; }
+
+    public RaceDataStatus DataStatus { get; set; }
 
     public abstract void SetEntity(T race);
 

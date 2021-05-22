@@ -53,6 +53,7 @@ namespace KmyKeiba.Models.Data
     {
       this.Key = race.Key;
       this.LastModified = race.LastModified;
+      this.DataStatus = race.DataStatus;
       this.Name = race.Name;
       this.Name6Chars = race.Name6Chars;
       this.SubName = race.SubName;

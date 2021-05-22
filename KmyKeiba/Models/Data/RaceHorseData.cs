@@ -57,9 +57,29 @@ namespace KmyKeiba.Models.Data
     public string RiderName { get; set; } = string.Empty;
 
     /// <summary>
+    /// 斤量
+    /// </summary>
+    public float RiderWeight { get; set; }
+
+    /// <summary>
+    /// ブリンカー使用しているか
+    /// </summary>
+    public bool IsBlinkers { get; set; }
+
+    /// <summary>
+    /// 体重
+    /// </summary>
+    public short Weight { get; set; }
+
+    /// <summary>
+    /// 体重の増減
+    /// </summary>
+    public short WeightDiff { get; set; }
+
+    /// <summary>
     /// 単勝オッズ
     /// </summary>
-    public double Odds { get; set; }
+    public float Odds { get; set; }
 
     /// <summary>
     /// 後３ハロンタイム
@@ -71,14 +91,21 @@ namespace KmyKeiba.Models.Data
     /// </summary>
     public int AfterThirdHalongTimeOrder { get; set; }
 
+    /// <summary>
+    /// 脚質
+    /// </summary>
+    public RunningStyle RunningStyle { get; set; }
+
     public override void SetEntity(RaceHorse entity)
     {
       this.LastModified = entity.LastModified;
+      this.DataStatus = entity.DataStatus;
       this.Name = entity.Name;
       this.Number = entity.Number;
       this.Popular = entity.Popular;
       this.RaceKey = entity.RaceKey;
       this.ResultOrder = entity.ResultOrder;
+      this.ResultTime = entity.ResultTime;
       this.FrameNumber = entity.FrameNumber;
       this.FirstCornerOrder = entity.FirstCornerOrder;
       this.SecondCornerOrder = entity.SecondCornerOrder;
@@ -86,8 +113,12 @@ namespace KmyKeiba.Models.Data
       this.FourthCornerOrder = entity.FourthCornerOrder;
       this.RiderCode = entity.RiderCode;
       this.RiderName = entity.RiderName;
+      this.RiderWeight = entity.RiderWeight;
+      this.Weight = entity.Weight;
+      this.WeightDiff = entity.WeightDiff;
       this.Odds = entity.Odds;
       this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
+      this.RunningStyle = entity.RunningStyle;
     }
 
     public override bool IsEquals(DataBase<RaceHorse> b)

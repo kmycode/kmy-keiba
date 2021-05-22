@@ -36,7 +36,7 @@ namespace KmyKeiba.Models.Logics
         using (var db = new MyContext())
         {
           var raceData = await db.Races!
-            .Where((r) => r.StartTime >= DateTime.Today && r.StartTime < DateTime.Today.AddDays(1))
+            .Where((r) => r.StartTime >= DateTime.Today.AddDays(-1) && r.StartTime < DateTime.Today.AddDays(0))
             .OrderBy((r) => r.Key)
             .ToArrayAsync();
           var races = raceData.Select((r) => new RaceDataObject(r)).ToArray();

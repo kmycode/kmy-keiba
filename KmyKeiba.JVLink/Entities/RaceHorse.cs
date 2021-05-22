@@ -35,6 +35,11 @@ namespace KmyKeiba.JVLink.Entities
     public int ResultOrder { get; set; }
 
     /// <summary>
+    /// 異常結果
+    /// </summary>
+    public RaceAbnormality AbnormalResult { get; set; }
+
+    /// <summary>
     /// 人気
     /// </summary>
     public int Popular { get; set; }
@@ -63,14 +68,39 @@ namespace KmyKeiba.JVLink.Entities
     public string RiderName { get; set; } = string.Empty;
 
     /// <summary>
+    /// 斤量
+    /// </summary>
+    public float RiderWeight { get; set; }
+
+    /// <summary>
+    /// ブリンカー使用しているか
+    /// </summary>
+    public bool IsBlinkers { get; set; }
+
+    /// <summary>
+    /// 体重
+    /// </summary>
+    public short Weight { get; set; }
+
+    /// <summary>
+    /// 体重の増減
+    /// </summary>
+    public short WeightDiff { get; set; }
+
+    /// <summary>
     /// 単勝オッズ
     /// </summary>
-    public double Odds { get; set; }
+    public float Odds { get; set; }
 
     /// <summary>
     /// 後３ハロンタイム
     /// </summary>
     public TimeSpan AfterThirdHalongTime { get; set; }
+
+    /// <summary>
+    /// 脚質
+    /// </summary>
+    public RunningStyle RunningStyle { get; set; }
 
     internal RaceHorse()
     {
@@ -86,7 +116,12 @@ namespace KmyKeiba.JVLink.Entities
       int.TryParse(uma.Jyuni2c.Trim(), out int corner2);
       int.TryParse(uma.Jyuni3c.Trim(), out int corner3);
       int.TryParse(uma.Jyuni4c.Trim(), out int corner4);
-      double.TryParse(uma.Odds.Trim(), out double odds);
+      float.TryParse(uma.Odds.Trim(), out float odds);
+      int.TryParse(uma.IJyoCD.Trim(), out int abnormal);
+      int.TryParse(uma.Futan.Trim(), out int riderWeight);
+      short.TryParse(uma.BaTaijyu.Trim(), out short weight);
+      short.TryParse(uma.ZogenSa.Trim(), out short weightDiff);
+      int.TryParse(uma.KyakusituKubun.Trim(), out int runningStyle);
 
       int.TryParse(uma.Time.Substring(0, 1), out int timeMinutes);
       int.TryParse(uma.Time.Substring(1, 2), out int timeSeconds);
@@ -105,11 +140,13 @@ namespace KmyKeiba.JVLink.Entities
       var horse = new RaceHorse
       {
         LastModified = uma.head.MakeDate.ToDateTime(),
+        DataStatus = uma.head.DataKubun.ToDataStatus(),
         RaceKey = uma.id.ToRaceKey(),
         Name = uma.Bamei.Trim(),
         Number = num,
         FrameNumber = wakuNum,
         ResultOrder = result,
+        AbnormalResult = (RaceAbnormality)abnormal,
         Popular = pop,
         FirstCornerOrder = corner1,
         SecondCornerOrder = corner2,
@@ -118,12 +155,79 @@ namespace KmyKeiba.JVLink.Entities
         ResultTime = new TimeSpan(0, 0, timeMinutes, timeSeconds, timeMilliSeconds * 100),
         RiderCode = uma.KisyuCode,
         RiderName = uma.KisyuRyakusyo.Trim(),
+        RiderWeight = (float)riderWeight / 10,
+        Weight = weight,
+        WeightDiff = (short)(uma.ZogenFugo == "+" ? weightDiff : -weightDiff),
+        IsBlinkers = uma.Blinker == "1",
         Odds = odds,
         AfterThirdHalongTime = halongTime,
+        RunningStyle = (RunningStyle)runningStyle,
       };
       return horse;
     }
 
     public override int GetHashCode() => this.Name.GetHashCode();
+  }
+
+  class RaceAbnormalityInfoAttribute : Attribute
+  {
+    public string Label { get; }
+
+    public RaceAbnormalityInfoAttribute(string label)
+    {
+      this.Label = label;
+    }
+  }
+
+  public enum RaceAbnormality : short
+  {
+    [RaceAbnormalityInfo("")]
+    Unknown = 0,
+
+    [RaceAbnormalityInfo("取消")]
+    Scratched = 1,
+
+    [RaceAbnormalityInfo("発除")]
+    ExcludedByStarters = 2,
+
+    [RaceAbnormalityInfo("競除")]
+    ExcludedByStewards = 3,
+
+    [RaceAbnormalityInfo("中止")]
+    FailToFinish = 4,
+
+    [RaceAbnormalityInfo("失格")]
+    Disqualified = 5,
+
+    [RaceAbnormalityInfo("再騎")]
+    Remount = 6,
+
+    [RaceAbnormalityInfo("降着")]
+    DisqualifiedAndPlaced = 7,
+  }
+
+  public enum RunningStyle : short
+  {
+    Unknown,
+
+    /// <summary>
+    /// 逃げ
+    /// </summary>
+    FrontRunner = 1,
+
+    /// <summary>
+    /// 先行
+    /// </summary>
+    Stalker = 2,
+
+    /// <summary>
+    /// 差し
+    /// </summary>
+    Sotp = 3,
+
+    /// <summary>
+    /// 追込
+    /// </summary>
+    SaveRunner = 4,
   }
 }
