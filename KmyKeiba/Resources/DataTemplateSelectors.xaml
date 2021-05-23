@@ -41,7 +41,8 @@
 
   <c:MainTabContentTemplateSelector x:Key="MainTabContentTemplateSelector"
                                     RaceListTemplate="{StaticResource RaceListContentTemplate}"
-                                    RaceDetailTemplate="{StaticResource RaceDetailContentTemplate}"/>
+                                    RaceDetailTemplate="{StaticResource RaceDetailContentTemplate}"
+                                    RiderDetailTemplate="{StaticResource RiderDetailContentTemplate}"/>
 
   <Style TargetType="Button" x:Key="TabCloseButtonStyle">
     <Setter Property="Background" Value="Transparent"/>
@@ -82,8 +83,22 @@
       <Button Grid.Column="2" Style="{StaticResource TabCloseButtonStyle}"/>
     </Grid>
   </DataTemplate>
+  <DataTemplate x:Key="RiderTabTemplate">
+    <Grid Width="200" Height="32">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="auto"/>
+      </Grid.ColumnDefinitions>
+      <TextBlock FontSize="20"
+                 TextAlignment="Center" VerticalAlignment="Center">
+        騎手: <Run Text="{Binding Rider.Value.Data.DisplayName,Mode=OneTime}"/>
+      </TextBlock>
+      <Button Grid.Column="1" Style="{StaticResource TabCloseButtonStyle}"/>
+    </Grid>
+  </DataTemplate>
 
   <c:MainTabItemTemplateSelector x:Key="MainTabItemTemplateSelector"
                                  RaceListTemplate="{StaticResource TextOnlyTabTemplate}"
-                                 RaceDetailTemplate="{StaticResource RaceTabTemplate}"/>
+                                 RaceDetailTemplate="{StaticResource RaceTabTemplate}"
+                                 RiderDetailTemplate="{StaticResource RiderTabTemplate}"/>
 </ResourceDictionary>

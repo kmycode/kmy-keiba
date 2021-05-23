@@ -15,6 +15,8 @@ namespace KmyKeiba.Resources.TemplateSelectors
 
     public DataTemplate RaceDetailTemplate { get; set; } = new();
 
+    public DataTemplate RiderDetailTemplate { get; set; } = new();
+
     public override DataTemplate SelectTemplate(object item, DependencyObject container)
     {
       switch (item)
@@ -23,6 +25,8 @@ namespace KmyKeiba.Resources.TemplateSelectors
           return this.RaceDetailTemplate;
         case RaceListTabFrame:
           return this.RaceListTemplate;
+        case RiderTabFrame:
+          return this.RiderDetailTemplate;
       }
 
       return base.SelectTemplate(item, container);

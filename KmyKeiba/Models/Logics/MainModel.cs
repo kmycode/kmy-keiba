@@ -126,6 +126,28 @@ namespace KmyKeiba.Models.Logics
       }
     }
 
+    public async Task OpenRiderAsync(string code)
+    {
+      try
+      {
+        RiderDataObject rider;
+
+        using (var db = new MyContext())
+        {
+          rider = await RiderDataObject.CreateAsync(db, code);
+        }
+
+        var tab = new RiderTabFrame
+        {
+          Rider = { Value = rider },
+        };
+        this.Tabs.Add(tab);
+      }
+      catch (Exception ex)
+      {
+      }
+    }
+
     public async Task UpdateRacesByTabIndexAsync(int index)
     {
       var tab = this.Tabs[index];

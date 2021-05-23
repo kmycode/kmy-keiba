@@ -33,13 +33,13 @@
               <RowDefinition Height="48"/>
             </Grid.RowDefinitions>
             <Label Grid.Column="0" Grid.Row="0"
-                    Content="{Binding DisplayName.Value}" FontSize="28" FontWeight="Bold"/>
+                   Content="{Binding DisplayName.Value}" FontSize="28" FontWeight="Bold"/>
             <Label Grid.Column="1" Grid.Row="0"
-                    Content="{Binding Subject.Value.ClassName}" FontSize="18" FontWeight="Bold"
-                    Foreground="White"
-                    Background="{Binding Subject.Value.DisplayClass,Converter={StaticResource RaceClassBrushConverter}}"
-                    HorizontalContentAlignment="Center"
-                    VerticalContentAlignment="Center"/>
+                   Content="{Binding Subject.Value.ClassName}" FontSize="18" FontWeight="Bold"
+                   Foreground="White"
+                   Background="{Binding Subject.Value.DisplayClass,Converter={StaticResource RaceClassBrushConverter}}"
+                   HorizontalContentAlignment="Center"
+                   VerticalContentAlignment="Center"/>
           </Grid>
         </Border>
         <Border>
@@ -99,6 +99,121 @@
           </Grid>
         </Border>
       </StackPanel>
+    </Border>
+  </DataTemplate>
+  
+  <DataTemplate x:Key="HorseGradeTemplate">
+    <Border Background="{Binding Data.ResultOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}"
+            Cursor="Hand" Height="180" Width="160" MaxWidth="160">
+      <i:Interaction.Triggers>
+        <i:EventTrigger EventName="MouseDown">
+          <prism:InvokeCommandAction Command="{Binding DataContext.OpenRaceCommand,RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                CommandParameter="{Binding Race.Value}"/>
+        </i:EventTrigger>
+      </i:Interaction.Triggers>
+      <Border Padding="4">
+        <Border.Style>
+          <Style TargetType="Border">
+            <Setter Property="Background" Value="Transparent" />
+            <Style.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#cccccc" />
+              </Trigger>
+            </Style.Triggers>
+          </Style>
+        </Border.Style>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <Label Grid.Column="0" Grid.Row="0" Width="48"
+                  Content="{Binding Race.Value.Subject.Value.ClassName}" FontSize="14" FontWeight="Bold"
+                  Foreground="White"
+                  Background="{Binding Race.Value.Subject.Value.DisplayClass,Converter={StaticResource RaceClassBrushConverter}}"
+                  HorizontalContentAlignment="Center"
+                  VerticalContentAlignment="Center"/>
+          <TextBlock Grid.Column="1" Grid.Row="0" FontSize="12"
+                      Margin="8,0,0,0" VerticalAlignment="Center">
+            <Run Text="{Binding Race.Value.Data.StartTime,StringFormat=MM/dd}" FontSize="14" FontWeight="Bold"/>
+            <Run Text="{Binding Race.Value.Data.Course,Converter={StaticResource CourseNameConverter}}"/><Run Text="{Binding Race.Value.Data.CourseRaceNumber}"/>R
+          </TextBlock>
+          <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1"
+                      Text="{Binding Race.Value.ShorterName.Value}"
+                      FontSize="20" FontWeight="Bold"/>
+          <StackPanel Grid.ColumnSpan="2" Grid.Row="2">
+            <StackPanel Orientation="Horizontal">
+              <Border Width="40" Height="30" BorderBrush="Gray" BorderThickness="1"
+                      Background="{Binding Data.ResultOrder,Converter={StaticResource OrderNumberConverter}}">
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Text="{Binding Data.ResultOrder}" FontSize="18"
+                            FontWeight="{Binding Data.ResultOrder,Converter={StaticResource OrderNumberConverter}}"/>
+              </Border>
+              <TextBlock VerticalAlignment="Center" FontSize="14" Margin="4,0,0,0">
+                <Run Text="{Binding Race.Value.Data.HorsesCount}"/>頭
+                <Run Text="{Binding Data.Number}"/>番
+                <Run Text="{Binding Data.Popular}"/>人気
+              </TextBlock>
+            </StackPanel>
+            <TextBlock FontSize="16" VerticalAlignment="Center">
+              <Run Text="{Binding Race.Value.Data.TrackType,Converter={StaticResource TrackConverter}}" Foreground="{Binding Race.Value.Data.TrackType,Converter={StaticResource TrackConverter}}"/>
+              <Run Text="{Binding Race.Value.Data.Distance}" FontWeight="Bold"/>
+              <Run Text="{Binding Race.Value.Data.TrackGround,Converter={StaticResource TrackConverter}}" Foreground="{Binding Race.Value.Data.TrackGround,Converter={StaticResource TrackConverter}}"/>
+              <Run Text="{Binding Race.Value.Data.TrackCornerDirection,Converter={StaticResource TrackConverter}}" Foreground="{Binding Race.Value.Data.TrackCornerDirection,Converter={StaticResource TrackConverter}}"/>
+              <Run Text="{Binding Race.Value.Data.TrackOption,Converter={StaticResource TrackConverter}}" Foreground="{Binding Race.Value.Data.TrackOption,Converter={StaticResource TrackConverter}}"/>
+            </TextBlock>
+            <TextBlock FontSize="14" VerticalAlignment="Center">
+              <Run Text="{Binding Data.RiderName}"/>
+              <Run Text="{Binding Data.RiderWeight}"/>kg
+              <Run Text="{Binding Data.Weight}"/>(<Run Text="{Binding Data.WeightDiff}"/>)
+            </TextBlock>
+            <StackPanel Orientation="Horizontal">
+              <Border Width="30" Height="24" BorderBrush="#cccccc" BorderThickness="1" Margin="0,0,4,0"
+                      Visibility="{Binding Data.FirstCornerOrder,Converter={StaticResource OrderNumberConverter}}"
+                      Background="{Binding Data.FirstCornerOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Text="{Binding Data.FirstCornerOrder}" FontSize="14"/>
+              </Border>
+              <Border Width="30" Height="24" BorderBrush="#cccccc" BorderThickness="1" Margin="0,0,4,0"
+                      Visibility="{Binding Data.SecondCornerOrder,Converter={StaticResource OrderNumberConverter}}"
+                      Background="{Binding Data.SecondCornerOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Text="{Binding Data.SecondCornerOrder}" FontSize="14"/>
+              </Border>
+              <Border Width="30" Height="24" BorderBrush="#cccccc" BorderThickness="1" Margin="0,0,4,0"
+                      Visibility="{Binding Data.ThirdCornerOrder,Converter={StaticResource OrderNumberConverter}}"
+                      Background="{Binding Data.ThirdCornerOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Text="{Binding Data.ThirdCornerOrder}" FontSize="14"/>
+              </Border>
+              <Border Width="30" Height="24" BorderBrush="#cccccc" BorderThickness="1"
+                      Visibility="{Binding Data.FourthCornerOrder,Converter={StaticResource OrderNumberConverter}}"
+                      Background="{Binding Data.FourthCornerOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Text="{Binding Data.FourthCornerOrder}" FontSize="14"/>
+              </Border>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock FontSize="16" VerticalAlignment="Center">
+                <Run Text="{Binding Data.RunningStyle,Converter={StaticResource RunningStyleConverter}}"/>
+                <Run Text="AH3:" FontSize="12"/>
+              </TextBlock>
+              <Border Background="{Binding Data.AfterThirdHalongTimeOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}"
+                      Padding="2">
+                <TextBlock FontSize="16" VerticalAlignment="Center">
+                  <Run Text="{Binding Data.AfterThirdHalongTime,StringFormat=ss\\.f}"/>
+                  (<Run Text="{Binding Data.AfterThirdHalongTimeOrder}" FontWeight="{Binding Data.AfterThirdHalongTimeOrder,Converter={StaticResource OrderNumberConverter}}"/>)
+                </TextBlock>
+              </Border>
+            </StackPanel>
+          </StackPanel>
+        </Grid>
+      </Border>
     </Border>
   </DataTemplate>
 
@@ -342,11 +457,29 @@
                           (<Run Text="{Binding Data.Popular}"/>人気)
                         </TextBlock>
                       </Border>
-                      <TextBlock FontSize="14" HorizontalAlignment="Center">
-                        <Run Text="{Binding Data.RiderName}"/>
-                        <Run Text="{Binding Data.RiderWeight}"/>kg
-                        <Run Text="{Binding Data.Weight}"/>(<Run Text="{Binding Data.WeightDiff}"/>)
-                      </TextBlock>
+                      <Border Cursor="Hand">
+                        <i:Interaction.Triggers>
+                          <i:EventTrigger EventName="MouseDown">
+                            <prism:InvokeCommandAction Command="{Binding DataContext.OpenRiderCommand,RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                       CommandParameter="{Binding Data.RiderCode}"/>
+                          </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                        <Border.Style>
+                          <Style TargetType="Border">
+                            <Setter Property="Background" Value="White" />
+                            <Style.Triggers>
+                              <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#cccccc" />
+                              </Trigger>
+                            </Style.Triggers>
+                          </Style>
+                        </Border.Style>
+                        <TextBlock FontSize="14" HorizontalAlignment="Center">
+                          <Run Text="{Binding Data.RiderName}"/>
+                          <Run Text="{Binding Data.RiderWeight}"/>kg
+                          <Run Text="{Binding Data.Weight}"/>(<Run Text="{Binding Data.WeightDiff}"/>)
+                        </TextBlock>
+                      </Border>
                       <StackPanel Visibility="{Binding DataContext.Race.Value.HasResults.Value,Converter={StaticResource BooleanVisibilityConverter},RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                           <Border Width="60" Height="40" BorderBrush="Gray" BorderThickness="1"
@@ -393,130 +526,112 @@
                                    Text="{Binding Data.ResultTime,StringFormat=m\\:ss\\.f}"/>
                       </StackPanel>
                     </StackPanel>
-                    <ItemsControl ItemsSource="{Binding OldRaceHorses}">
-                      <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                          <Border Background="{Binding Data.ResultOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}"
-                                  Cursor="Hand" Height="180">
-                            <i:Interaction.Triggers>
-                              <i:EventTrigger EventName="MouseDown">
-                                <prism:InvokeCommandAction Command="{Binding DataContext.OpenRaceCommand,RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
-                                     CommandParameter="{Binding Race.Value}"/>
-                              </i:EventTrigger>
-                            </i:Interaction.Triggers>
-                            <Border Padding="4">
-                              <Border.Style>
-                                <Style TargetType="Border">
-                                  <Setter Property="Background" Value="Transparent" />
-                                  <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                      <Setter Property="Background" Value="#cccccc" />
-                                    </Trigger>
-                                  </Style.Triggers>
-                                </Style>
-                              </Border.Style>
-                              <Grid>
-                                <Grid.ColumnDefinitions>
-                                  <ColumnDefinition Width="auto"/>
-                                  <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                  <RowDefinition Height="auto"/>
-                                  <RowDefinition Height="auto"/>
-                                  <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Label Grid.Column="0" Grid.Row="0" Width="48"
-                                       Content="{Binding Race.Value.Subject.Value.ClassName}" FontSize="14" FontWeight="Bold"
-                                       Foreground="White"
-                                       Background="{Binding Race.Value.Subject.Value.DisplayClass,Converter={StaticResource RaceClassBrushConverter}}"
-                                       HorizontalContentAlignment="Center"
-                                       VerticalContentAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Grid.Row="0" FontSize="12"
-                                           Margin="8,0,0,0" VerticalAlignment="Center">
-                                  <Run Text="{Binding Race.Value.Data.StartTime,StringFormat=MM/dd}" FontSize="14" FontWeight="Bold"/>
-                                  <Run Text="{Binding Race.Value.Data.Course,Converter={StaticResource CourseNameConverter}}"/><Run Text="{Binding Race.Value.Data.CourseRaceNumber}"/>R
-                                </TextBlock>
-                                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1"
-                                           Text="{Binding Race.Value.ShorterName.Value}"
-                                           FontSize="20" FontWeight="Bold"/>
-                                <StackPanel Grid.ColumnSpan="2" Grid.Row="2">
-                                  <StackPanel Orientation="Horizontal">
-                                    <Border Width="40" Height="30" BorderBrush="Gray" BorderThickness="1"
-                                            Background="{Binding Data.ResultOrder,Converter={StaticResource OrderNumberConverter}}">
-                                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                 Text="{Binding Data.ResultOrder}" FontSize="18"
-                                                 FontWeight="{Binding Data.ResultOrder,Converter={StaticResource OrderNumberConverter}}"/>
-                                    </Border>
-                                    <TextBlock VerticalAlignment="Center" FontSize="14" Margin="4,0,0,0">
-                                      <Run Text="{Binding Race.Value.Data.HorsesCount}"/>頭
-                                      <Run Text="{Binding Data.Number}"/>番
-                                      <Run Text="{Binding Data.Popular}"/>人気
-                                    </TextBlock>
-                                  </StackPanel>
-                                  <TextBlock FontSize="16" VerticalAlignment="Center">
-                                    <Run Text="{Binding Race.Value.Data.TrackType,Converter={StaticResource TrackConverter}}" Foreground="{Binding Race.Value.Data.TrackType,Converter={StaticResource TrackConverter}}"/>
-                                    <Run Text="{Binding Race.Value.Data.Distance}" FontWeight="Bold"/>
-                                    <Run Text="{Binding Race.Value.Data.TrackGround,Converter={StaticResource TrackConverter}}" Foreground="{Binding Race.Value.Data.TrackGround,Converter={StaticResource TrackConverter}}"/>
-                                    <Run Text="{Binding Race.Value.Data.TrackCornerDirection,Converter={StaticResource TrackConverter}}" Foreground="{Binding Race.Value.Data.TrackCornerDirection,Converter={StaticResource TrackConverter}}"/>
-                                    <Run Text="{Binding Race.Value.Data.TrackOption,Converter={StaticResource TrackConverter}}" Foreground="{Binding Race.Value.Data.TrackOption,Converter={StaticResource TrackConverter}}"/>
-                                  </TextBlock>
-                                  <TextBlock FontSize="14" VerticalAlignment="Center">
-                                    <Run Text="{Binding Data.RiderName}"/>
-                                    <Run Text="{Binding Data.RiderWeight}"/>kg
-                                    <Run Text="{Binding Data.Weight}"/>(<Run Text="{Binding Data.WeightDiff}"/>)
-                                  </TextBlock>
-                                  <StackPanel Orientation="Horizontal">
-                                    <Border Width="30" Height="24" BorderBrush="#cccccc" BorderThickness="1" Margin="0,0,4,0"
-                                            Visibility="{Binding Data.FirstCornerOrder,Converter={StaticResource OrderNumberConverter}}"
-                                            Background="{Binding Data.FirstCornerOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
-                                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                 Text="{Binding Data.FirstCornerOrder}" FontSize="14"/>
-                                    </Border>
-                                    <Border Width="30" Height="24" BorderBrush="#cccccc" BorderThickness="1" Margin="0,0,4,0"
-                                            Visibility="{Binding Data.SecondCornerOrder,Converter={StaticResource OrderNumberConverter}}"
-                                            Background="{Binding Data.SecondCornerOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
-                                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                 Text="{Binding Data.SecondCornerOrder}" FontSize="14"/>
-                                    </Border>
-                                    <Border Width="30" Height="24" BorderBrush="#cccccc" BorderThickness="1" Margin="0,0,4,0"
-                                            Visibility="{Binding Data.ThirdCornerOrder,Converter={StaticResource OrderNumberConverter}}"
-                                            Background="{Binding Data.ThirdCornerOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
-                                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                 Text="{Binding Data.ThirdCornerOrder}" FontSize="14"/>
-                                    </Border>
-                                    <Border Width="30" Height="24" BorderBrush="#cccccc" BorderThickness="1"
-                                            Visibility="{Binding Data.FourthCornerOrder,Converter={StaticResource OrderNumberConverter}}"
-                                            Background="{Binding Data.FourthCornerOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
-                                      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                 Text="{Binding Data.FourthCornerOrder}" FontSize="14"/>
-                                    </Border>
-                                  </StackPanel>
-                                  <StackPanel Orientation="Horizontal">
-                                    <TextBlock FontSize="16" VerticalAlignment="Center">
-                                      <Run Text="{Binding Data.RunningStyle,Converter={StaticResource RunningStyleConverter}}"/>
-                                      <Run Text="AH3:" FontSize="12"/>
-                                    </TextBlock>
-                                    <Border Background="{Binding Data.AfterThirdHalongTimeOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}"
-                                            Padding="2">
-                                      <TextBlock FontSize="16" VerticalAlignment="Center">
-                                        <Run Text="{Binding Data.AfterThirdHalongTime,StringFormat=ss\\.f}"/>
-                                        (<Run Text="{Binding Data.AfterThirdHalongTimeOrder}" FontWeight="{Binding Data.AfterThirdHalongTimeOrder,Converter={StaticResource OrderNumberConverter}}"/>)
-                                      </TextBlock>
-                                    </Border>
-                                  </StackPanel>
-                                </StackPanel>
-                              </Grid>
-                            </Border>
-                          </Border>
-                        </DataTemplate>
-                      </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <ItemsControl ItemsSource="{Binding OldRaceHorses}" ItemTemplate="{StaticResource HorseGradeTemplate}"/>
                   </StackPanel>
                 </Border>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
         </StackPanel>
+      </vc:BindableScrollViewer>
+    </Grid>
+  </DataTemplate>
+
+  <DataTemplate x:Key="RiderDetailContentTemplate">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="auto"/>
+        <RowDefinition Height="auto"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <TextBlock Text="{Binding Rider.Value.Data.DisplayName,Mode=OneTime}"
+                 FontWeight="Bold" FontSize="32"/>
+      <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="4,16,0,16">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <StackPanel Grid.RowSpan="2">
+            <TextBlock FontSize="16" Text="中央の複勝率" HorizontalAlignment="Center"/>
+            <TextBlock HorizontalAlignment="Center">
+              <Run FontSize="48" FontWeight="Bold" Text="{Binding Rider.Value.CentralGrades.ThirdRatePercentage,StringFormat={}{0:N1},Mode=OneTime}"/><Run FontSize="26" Text="%"/>
+            </TextBlock>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Grid.Row="0">
+            <TextBlock FontSize="12" Text="1着" HorizontalAlignment="Center" Margin="20,0,0,0"/>
+            <TextBlock FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="20,0,0,0"
+                       Text="{Binding Rider.Value.CentralGrades.First}"/>
+          </StackPanel>
+          <StackPanel Grid.Column="2" Grid.Row="0">
+            <TextBlock FontSize="12" Text="2着" HorizontalAlignment="Center" Margin="20,0,0,0"/>
+            <TextBlock FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="20,0,0,0"
+                       Text="{Binding Rider.Value.CentralGrades.Second}"/>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Grid.Row="1">
+            <TextBlock FontSize="12" Text="3着" HorizontalAlignment="Center" Margin="20,0,0,0"/>
+            <TextBlock FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="20,0,0,0"
+                       Text="{Binding Rider.Value.CentralGrades.Third}"/>
+          </StackPanel>
+          <StackPanel Grid.Column="2" Grid.Row="1">
+            <TextBlock FontSize="12" Text="着外" HorizontalAlignment="Center" Margin="20,0,0,0"/>
+            <TextBlock FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="20,0,0,0"
+                       Text="{Binding Rider.Value.CentralGrades.FourthAndWorse}"/>
+          </StackPanel>
+        </Grid>
+        <Grid Margin="48,0,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <StackPanel Grid.RowSpan="2">
+            <TextBlock FontSize="16" Text="地方の複勝率" HorizontalAlignment="Center"/>
+            <TextBlock HorizontalAlignment="Center">
+              <Run FontSize="48" FontWeight="Bold" Text="{Binding Rider.Value.LocalGrades.ThirdRatePercentage,StringFormat={}{0:N1},Mode=OneTime}"/><Run FontSize="26" Text="%"/>
+            </TextBlock>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Grid.Row="0">
+            <TextBlock FontSize="12" Text="1着" HorizontalAlignment="Center" Margin="20,0,0,0"/>
+            <TextBlock FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="20,0,0,0"
+                       Text="{Binding Rider.Value.LocalGrades.First}"/>
+          </StackPanel>
+          <StackPanel Grid.Column="2" Grid.Row="0">
+            <TextBlock FontSize="12" Text="2着" HorizontalAlignment="Center" Margin="20,0,0,0"/>
+            <TextBlock FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="20,0,0,0"
+                       Text="{Binding Rider.Value.LocalGrades.Second}"/>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Grid.Row="1">
+            <TextBlock FontSize="12" Text="3着" HorizontalAlignment="Center" Margin="20,0,0,0"/>
+            <TextBlock FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="20,0,0,0"
+                       Text="{Binding Rider.Value.LocalGrades.Third}"/>
+          </StackPanel>
+          <StackPanel Grid.Column="2" Grid.Row="1">
+            <TextBlock FontSize="12" Text="着外" HorizontalAlignment="Center" Margin="20,0,0,0"/>
+            <TextBlock FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="20,0,0,0"
+                       Text="{Binding Rider.Value.LocalGrades.FourthAndWorse}"/>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+      <vc:BindableScrollViewer Grid.Row="2"
+                               ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}">
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding Rider.Value.RecentRaces}"
+                      ItemTemplate="{StaticResource HorseGradeTemplate}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+        </ItemsControl>
       </vc:BindableScrollViewer>
     </Grid>
   </DataTemplate>

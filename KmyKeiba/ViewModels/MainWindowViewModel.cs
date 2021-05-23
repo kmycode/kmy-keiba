@@ -49,6 +49,7 @@ namespace KmyKeiba.ViewModels
       };
 
       this.OpenRaceCommand.Subscribe((r) => _ = this.model.OpenRaceAsync(r));
+      this.OpenRiderCommand.Subscribe((c) => _ = this.model.OpenRiderAsync(c));
       this.OpenJVLinkLoadDialogCommand.Subscribe(() =>
       {
         this.dialogService.ShowDialog("LoadJVLinkDialog");
@@ -78,6 +79,8 @@ namespace KmyKeiba.ViewModels
     }
 
     public ReactiveCommand<RaceDataObject> OpenRaceCommand { get; } = new();
+
+    public ReactiveCommand<string> OpenRiderCommand { get; } = new();
 
     public ReactiveCommand OpenJVLinkLoadDialogCommand { get; } = new();
 
