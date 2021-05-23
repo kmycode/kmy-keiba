@@ -4,13 +4,14 @@ using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.DataObjects
 {
-  public class RiderDataObject
+  public class RiderDataObject : INotifyPropertyChanged
   {
     public RiderData Data { get; } = new();
 
@@ -21,6 +22,13 @@ namespace KmyKeiba.Data.DataObjects
     public RiderGrades CentralGrades { get; } = new();
 
     public RiderGrades LocalGrades { get; } = new();
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnPropertyChanged(string propertyName)
+    {
+      this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 
     public static async Task<RiderDataObject> CreateAsync(MyContextBase db, string code)
     {
@@ -33,6 +41,7 @@ namespace KmyKeiba.Data.DataObjects
       {
         var first = await horses.FirstAsync();
         obj.Data.Name = first.RiderName;
+        obj.OnPropertyChanged("Data.Name");
 
         var horsesWithRaces = horses
           .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Horse = h, Race = r, });
@@ -55,6 +64,9 @@ namespace KmyKeiba.Data.DataObjects
         obj.AllGrades.Fourth = obj.CentralGrades.Fourth + obj.LocalGrades.Fourth;
         obj.AllGrades.Fifth = obj.CentralGrades.Fifth + obj.LocalGrades.Fifth;
         obj.AllGrades.SixthAndWorse = obj.CentralGrades.SixthAndWorse + obj.LocalGrades.SixthAndWorse;
+        obj.OnPropertyChanged(nameof(CentralGrades));
+        obj.OnPropertyChanged(nameof(LocalGrades));
+        obj.OnPropertyChanged(nameof(AllGrades));
       }
 
       return obj;

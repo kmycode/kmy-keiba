@@ -14,6 +14,7 @@ using Prism.Services.Dialogs;
 using KmyKeiba.Data.DataObjects;
 using KmyKeiba.JVLink.Wrappers;
 using KmyKeiba.Data.Db;
+using System.Threading.Tasks;
 
 namespace KmyKeiba.ViewModels
 {
@@ -48,8 +49,8 @@ namespace KmyKeiba.ViewModels
         }
       };
 
-      this.OpenRaceCommand.Subscribe((r) => _ = this.model.OpenRaceAsync(r));
-      this.OpenRiderCommand.Subscribe((c) => _ = this.model.OpenRiderAsync(c));
+      this.OpenRaceCommand.Subscribe((r) => this.RunTask(() => this.model.OpenRaceAsync(r)));
+      this.OpenRiderCommand.Subscribe((c) => this.RunTask(() => this.model.OpenRiderAsync(c)));
       this.OpenJVLinkLoadDialogCommand.Subscribe(() =>
       {
         this.dialogService.ShowDialog("LoadJVLinkDialog");
@@ -63,19 +64,25 @@ namespace KmyKeiba.ViewModels
       this.UpdateTodayRacesCommand = this.ShowDate
         .Select((d) => d == DateTime.Today)
         .ToReactiveCommand();
-      this.UpdateTodayRacesCommand.Subscribe(() => _ = this.model.UpdateTodayRacesAsync());
+      this.UpdateTodayRacesCommand.Subscribe(() => this.RunTask(() => this.model.UpdateTodayRacesAsync()));
 
-      this.UpdateRecentRacesCommand.Subscribe(() => _ = this.model.UpdateRecentRacesAsync());
-      this.UpdateFutureRacesCommand.Subscribe(() => _ = this.model.UpdateFutureRacesAsync());
+      this.UpdateRecentRacesCommand.Subscribe(() => this.RunTask(() => this.model.UpdateRecentRacesAsync()));
+      this.UpdateFutureRacesCommand.Subscribe(() => this.RunTask(() => this.model.UpdateFutureRacesAsync()));
 
       this.UpdateCurrentRaceCommand = this.TabIndex
         .Select((i) => (this.model.Tabs.Count > i && i >= 0) ? this.model.Tabs[i] is RaceTabFrame : false)
         .ToReactiveCommand();
-      this.UpdateCurrentRaceCommand.Subscribe(() => _ = this.model.UpdateRacesByTabIndexAsync(this.TabIndex.Value));
+      this.UpdateCurrentRaceCommand.Subscribe(() => this.RunTask(() => this.model.UpdateRacesByTabIndexAsync(this.TabIndex.Value)));
 
-      this.MarkHorseCommand.Subscribe((v) => _ = this.model.MarkHorseAsync(v.Horse, v.Mark));
+      this.MarkHorseCommand.Subscribe((v) => this.RunTask(() => this.model.MarkHorseAsync(v.Horse, v.Mark)));
 
       // _ = this.model.LoadRacesAsync();
+    }
+
+    private void RunTask(Func<Task> action)
+    {
+      action();
+      // Task.Run(() => action());
     }
 
     public ReactiveCommand<RaceDataObject> OpenRaceCommand { get; } = new();

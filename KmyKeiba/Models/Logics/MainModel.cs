@@ -80,11 +80,15 @@ namespace KmyKeiba.Models.Logics
           var raceData = await db.Races!
             .Where((r) => r.StartTime >= this.ShowDate.Value.AddDays(0) && r.StartTime < this.ShowDate.Value.AddDays(1))
             .OrderBy((r) => r.Key)
-            .ToArrayAsync();
+            .ToArrayAsync()
+            .ConfigureAwait(false);
           var races = raceData.Select((r) => new RaceDataObject(r)).ToArray();
 
-          tab.Races.Clear();
-          tab.Races.AddRange(races);
+          UiThreadUtil.Dispatcher?.Invoke(() =>
+          {
+            tab.Races.Clear();
+            tab.Races.AddRange(races);
+          });
 
           logger.Info($"{races.Length} race(s) loaded");
         }
@@ -105,10 +109,11 @@ namespace KmyKeiba.Models.Logics
         {
           Race = { Value = race },
         };
+        this.Tabs.Add(tab);
 
         using (var db = new MyContext())
         {
-          await race.SetRaceHorsesAsync(db, 1);
+          await race.SetRaceHorsesAsync(db, 1).ConfigureAwait(false);
         }
         _ = Task.Run(async () =>
         {
@@ -128,8 +133,6 @@ namespace KmyKeiba.Models.Logics
             _ = this.UpdateRaceAsync(race.Data.Key);
           });
         }
-
-        this.Tabs.Add(tab);
       }
       catch
       {
@@ -144,14 +147,17 @@ namespace KmyKeiba.Models.Logics
 
         using (var db = new MyContext())
         {
-          rider = await RiderDataObject.CreateAsync(db, code);
+          rider = await RiderDataObject.CreateAsync(db, code).ConfigureAwait(false);
         }
 
-        var tab = new RiderTabFrame
+        UiThreadUtil.Dispatcher?.Invoke(() =>
         {
-          Rider = { Value = rider },
-        };
-        this.Tabs.Add(tab);
+          var tab = new RiderTabFrame
+          {
+            Rider = { Value = rider },
+          };
+          this.Tabs.Add(tab);
+        });
       }
       catch (Exception ex)
       {
@@ -260,7 +266,8 @@ namespace KmyKeiba.Models.Logics
 
           var keys = await table
             .Select((r) => new { r.Key, r.Course, })
-            .ToArrayAsync();
+            .ToArrayAsync()
+            .ConfigureAwait(false);
           raceKeys = keys.Select((k) => (k.Key, k.Course));
         }
 
@@ -278,7 +285,7 @@ namespace KmyKeiba.Models.Logics
             };
             if (link != null && !link.IsError)
             {
-              await this.loader.LoadAsync(link, JVLinkDataspec.RB12, true, key.Key, null, null);
+              await this.loader.LoadAsync(link, JVLinkDataspec.RB12, true, key.Key, null, null).ConfigureAwait(false);
               await this.loader.LoadAsync(link, JVLinkDataspec.RB31, true, key.Key, null, null);
               await this.UpdateExistsTabsAsync();
             }
