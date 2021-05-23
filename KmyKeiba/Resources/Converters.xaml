@@ -16,6 +16,15 @@
   <c:OrderNumberConverter x:Key="OrderNumberConverter"/>
   <c:RangeNumberConverter x:Key="RangeNumberConverter"/>
   <c:AbnormalityResultConverter x:Key="AbnormalityResultConverter"/>
+  <c:MarkHorseCommandConverter x:Key="MarkHorseCommandConverter"/>
+  <c:HorseMarkConverter x:Key="HorseMarkConverter"
+                        MarkDefault="{StaticResource MarkDefault}"
+                        MarkDoubleCircle="{StaticResource MarkDoubleCircle}"
+                        MarkCircle="{StaticResource MarkCircle}"
+                        MarkTriangle="{StaticResource MarkTriangle}"
+                        MarkFilledTriangle="{StaticResource MarkFilledTriangle}"
+                        MarkStar="{StaticResource MarkStar}"
+                        MarkDeleted="{StaticResource MarkDeleted}"/>
 
   <c:MultiBooleanConverter x:Key="MultiBooleanConverter"/>
 </ResourceDictionary>

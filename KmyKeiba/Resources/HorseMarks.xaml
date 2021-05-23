@@ -1,0 +1,37 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ControlTemplate x:Key="MarkStar" TargetType="ContentControl">
+    <Polygon Stroke="Red" StrokeThickness="1.5" Width="32" Height="32"
+              Points="16 0, 20 12, 32 12, 24 20, 28 32, 16 24, 6 32, 10 20, 0 12, 14 12, 16 0"/>
+  </ControlTemplate>
+  <ControlTemplate x:Key="MarkCircle" TargetType="ContentControl">
+    <Ellipse Width="32" Height="32" StrokeThickness="1.5" Stroke="Red"/>
+  </ControlTemplate>
+  <ControlTemplate x:Key="MarkDoubleCircle" TargetType="ContentControl">
+    <Grid>
+      <Ellipse Width="32" Height="32" StrokeThickness="1.5" Stroke="Red"/>
+      <Ellipse Width="20" Height="20" StrokeThickness="1.5" Stroke="Red"
+                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Grid>
+  </ControlTemplate>
+  <ControlTemplate x:Key="MarkTriangle" TargetType="ContentControl">
+    <Polygon Stroke="Red" StrokeThickness="1.5"
+              Points="16 4, 32 28, 0 28, 16 4" Height="32"/>
+  </ControlTemplate>
+  <ControlTemplate x:Key="MarkFilledTriangle" TargetType="ContentControl">
+    <Polygon Stroke="Red" StrokeThickness="1.5"
+              Points="16 4, 32 28, 0 28, 16 4" Fill="Red" Height="32"/>
+  </ControlTemplate>
+  <ControlTemplate x:Key="MarkDeleted" TargetType="ContentControl">
+    <Grid Width="32" Height="32" Margin="-2,0,0,0">
+      <Polygon Stroke="Black" StrokeThickness="1.5"
+                Points="0 0, 28 28" Width="28" Height="28"/>
+      <Polygon Stroke="Black" StrokeThickness="1.5"
+                Points="28 0, 0 28" Width="28" Height="28"/>
+    </Grid>
+  </ControlTemplate>
+  <ControlTemplate x:Key="MarkDefault" TargetType="ContentControl">
+    <Line StrokeDashArray="2 4" Stroke="Black" StrokeThickness="1.5"
+          Width="32" Height="32" X1="0" X2="32" Y1="16" Y2="16"/>
+  </ControlTemplate>
+</ResourceDictionary>

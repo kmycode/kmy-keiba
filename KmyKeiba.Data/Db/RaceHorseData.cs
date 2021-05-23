@@ -14,6 +14,11 @@ namespace KmyKeiba.Data.Db
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// マーク
+    /// </summary>
+    public RaceHorseMark Mark { get; set; }
+
+    /// <summary>
     /// 番号
     /// </summary>
     public int Number { get; set; }
@@ -137,5 +142,16 @@ namespace KmyKeiba.Data.Db
     {
       return this.Name.GetHashCode() + this.RaceKey.GetHashCode();
     }
+  }
+
+  public enum RaceHorseMark : short
+  {
+    Default = 0,
+    DoubleCircle = 1,
+    Circle = 2,
+    FilledTriangle = 3,
+    Triangle = 4,
+    Star = 5,
+    Deleted = 6,
   }
 }

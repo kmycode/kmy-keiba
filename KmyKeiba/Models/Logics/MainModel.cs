@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using KmyKeiba.Data.Db;
 
 namespace KmyKeiba.Models.Logics
 {
@@ -98,22 +99,31 @@ namespace KmyKeiba.Models.Logics
 
     public async Task OpenRaceAsync(RaceDataObject race)
     {
-      var tab = new RaceTabFrame
+      try
       {
-        Race = { Value = race },
-      };
+        var tab = new RaceTabFrame
+        {
+          Race = { Value = race },
+        };
 
-      using (var db = new MyContext())
-      {
-        await race.SetRaceHorsesAsync(db, 1);
+        using (var db = new MyContext())
+        {
+          await race.SetRaceHorsesAsync(db, 1);
+        }
+
+        if (race.Data.DataStatus < RaceDataStatus.PreliminaryGradeFull)
+        {
+          _ = Task.Run(() =>
+          {
+            _ = this.UpdateRaceAsync(race.Data.Key);
+          });
+        }
+
+        this.Tabs.Add(tab);
       }
-
-      if (race.Data.DataStatus < RaceDataStatus.PreliminaryGradeFull)
+      catch
       {
-        _ = this.UpdateRaceAsync(race.Data.Key);
       }
-
-      this.Tabs.Add(tab);
     }
 
     public async Task UpdateRacesByTabIndexAsync(int index)
@@ -287,6 +297,25 @@ namespace KmyKeiba.Models.Logics
           var obj = new RaceDataObject(race);
           await obj.SetRaceHorsesAsync(db);
           tab.Race.Value = obj;
+        }
+      }
+    }
+
+    public async Task MarkHorseAsync(RaceHorseDataObject horse, RaceHorseMark mark)
+    {
+      if (horse == null)
+      {
+        return;
+      }
+
+      using (var db = new MyContext())
+      {
+        var h = await db.RaceHorses!.FindAsync(horse.Data.Id);
+        if (h != null)
+        {
+          h.Mark = mark;
+          horse.Mark.Value = mark;
+          await db.SaveChangesAsync();
         }
       }
     }

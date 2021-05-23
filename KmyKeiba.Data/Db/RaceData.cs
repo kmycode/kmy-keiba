@@ -27,6 +27,10 @@ namespace KmyKeiba.Data.Db
 
     public TrackOption TrackOption { get; set; }
 
+    public RaceCourseWeather TrackWeather { get; set; }
+
+    public RaceCourseCondition TrackCondition { get; set; }
+
     public int Distance { get; set; }
 
     public int CourseRaceNumber { get; set; }
@@ -63,6 +67,8 @@ namespace KmyKeiba.Data.Db
       this.TrackCornerDirection = race.TrackCornerDirection;
       this.TrackType = race.TrackType;
       this.TrackOption = race.TrackOption;
+      this.TrackWeather = race.TrackWeather;
+      this.TrackCondition = race.TrackCondition;
       this.Distance = race.Distance;
       this.CourseRaceNumber = race.CourseRaceNumber;
       this.HorsesCount = race.HorsesCount;

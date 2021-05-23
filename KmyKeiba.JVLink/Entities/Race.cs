@@ -54,6 +54,16 @@ namespace KmyKeiba.JVLink.Entities
     public TrackOption TrackOption { get; set; }
 
     /// <summary>
+    /// 天気
+    /// </summary>
+    public RaceCourseWeather TrackWeather { get; set; }
+
+    /// <summary>
+    /// 馬場の状態
+    /// </summary>
+    public RaceCourseCondition TrackCondition { get; set; }
+
+    /// <summary>
     /// 距離
     /// </summary>
     public int Distance { get; set; }
@@ -145,6 +155,9 @@ namespace KmyKeiba.JVLink.Entities
         track == 16 || track == 22 || track == 59 ? TrackOption.Outside2 :
         TrackOption.Unknown;
 
+      int.TryParse(race.TenkoBaba.TenkoCD, out int weather);
+      int.TryParse(trackGround == TrackGround.Turf ? race.TenkoBaba.SibaBabaCD : race.TenkoBaba.DirtBabaCD, out int condition);
+
       var obj = new Race
       {
         LastModified = race.head.MakeDate.ToDateTime(),
@@ -158,6 +171,8 @@ namespace KmyKeiba.JVLink.Entities
         TrackType = trackType,
         TrackCornerDirection = trackCornerDirection,
         TrackOption = trackOption,
+        TrackWeather = (RaceCourseWeather)weather,
+        TrackCondition = (RaceCourseCondition)condition,
         Distance = distance,
         CourseRaceNumber = courseRaceNum,
         Subject = subject,
@@ -573,5 +588,25 @@ namespace KmyKeiba.JVLink.Entities
     Unknown = 0,
     Flat = 1,
     Steeplechase = 2,
+  }
+
+  public enum RaceCourseWeather : short
+  {
+    Unknown = 0,
+    Fine = 1,
+    Cloudy = 2,
+    Rainy = 3,
+    Drizzle = 4,
+    Snow = 5,
+    LightSnow = 6,
+  }
+
+  public enum RaceCourseCondition : short
+  {
+    Unknown = 0,
+    Standard = 1,
+    Good = 2,
+    Yielding = 3,
+    Soft = 4,
   }
 }

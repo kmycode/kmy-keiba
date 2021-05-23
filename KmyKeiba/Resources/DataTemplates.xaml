@@ -106,8 +106,14 @@
     <Grid>
       <Grid.RowDefinitions>
         <RowDefinition Height="auto"/>
+        <RowDefinition Height="auto"/>
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
+      <Grid.Resources>
+        <ResourceDictionary>
+          <v:BindingProxy x:Key="proxy" Data="{Binding DataContext,RelativeSource={RelativeSource AncestorType={x:Type Window}}}" />
+        </ResourceDictionary>
+      </Grid.Resources>
       <StackPanel Grid.Row="0">
         <Grid>
           <Grid.ColumnDefinitions>
@@ -164,6 +170,137 @@
         </Grid>
       </StackPanel>
       <vc:BindableScrollViewer Grid.Row="1"
+                               ScrollX="{Binding HorizontalScroll.Value,Mode=TwoWay}"
+                               HorizontalScrollBarVisibility="Hidden"
+                               VerticalScrollBarVisibility="Hidden">
+        <StackPanel Orientation="Horizontal">
+          <ItemsControl ItemsSource="{Binding Race.Value.Horses}" Grid.Row="1">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <VirtualizingStackPanel Orientation="Horizontal"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border BorderBrush="#999999" BorderThickness="0,1,1,1" Width="160">
+                  <StackPanel Margin="4" HorizontalAlignment="Center" Cursor="Hand">
+                    <StackPanel.Resources>
+                      <ResourceDictionary>
+                        <v:BindingProxy x:Key="horse" Data="{Binding}" />
+                      </ResourceDictionary>
+                    </StackPanel.Resources>
+                    <StackPanel.Style>
+                      <Style TargetType="StackPanel">
+                        <Setter Property="Background" Value="White"/>
+                        <Style.Triggers>
+                          <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#cccccc" />
+                          </Trigger>
+                          <EventTrigger RoutedEvent="MouseDown">
+                            <EventTrigger.Actions>
+                              <BeginStoryboard>
+                                <Storyboard>
+                                  <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="ContextMenu.IsOpen">
+                                    <DiscreteBooleanKeyFrame KeyTime="0:0:0" Value="True"/>
+                                  </BooleanAnimationUsingKeyFrames>
+                                </Storyboard>
+                              </BeginStoryboard>
+                            </EventTrigger.Actions>
+                          </EventTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </StackPanel.Style>
+                    <StackPanel.ContextMenu>
+                      <ContextMenu>
+                        <MenuItem Padding="4" Command="{Binding Data.MarkHorseCommand,Source={StaticResource proxy}}">
+                          <MenuItem.Header>
+                            <ContentControl Template="{StaticResource MarkDefault}"/>
+                          </MenuItem.Header>
+                          <MenuItem.CommandParameter>
+                            <MultiBinding Converter="{StaticResource MarkHorseCommandConverter}">
+                              <Binding Path="Data" Source="{StaticResource horse}"/>
+                              <Binding Source="0"/>
+                            </MultiBinding>
+                          </MenuItem.CommandParameter>
+                        </MenuItem>
+                        <MenuItem Padding="4" Command="{Binding Data.MarkHorseCommand,Source={StaticResource proxy}}">
+                          <MenuItem.Header>
+                            <ContentControl Template="{StaticResource MarkDoubleCircle}"/>
+                          </MenuItem.Header>
+                          <MenuItem.CommandParameter>
+                            <MultiBinding Converter="{StaticResource MarkHorseCommandConverter}">
+                              <Binding Path="Data" Source="{StaticResource horse}"/>
+                              <Binding Source="1"/>
+                            </MultiBinding>
+                          </MenuItem.CommandParameter>
+                        </MenuItem>
+                        <MenuItem Padding="4" Command="{Binding Data.MarkHorseCommand,Source={StaticResource proxy}}">
+                          <MenuItem.Header>
+                            <ContentControl Template="{StaticResource MarkCircle}"/>
+                          </MenuItem.Header>
+                          <MenuItem.CommandParameter>
+                            <MultiBinding Converter="{StaticResource MarkHorseCommandConverter}">
+                              <Binding Path="Data" Source="{StaticResource horse}"/>
+                              <Binding Source="2"/>
+                            </MultiBinding>
+                          </MenuItem.CommandParameter>
+                        </MenuItem>
+                        <MenuItem Padding="4" Command="{Binding Data.MarkHorseCommand,Source={StaticResource proxy}}">
+                          <MenuItem.Header>
+                            <ContentControl Template="{StaticResource MarkFilledTriangle}"/>
+                          </MenuItem.Header>
+                          <MenuItem.CommandParameter>
+                            <MultiBinding Converter="{StaticResource MarkHorseCommandConverter}">
+                              <Binding Path="Data" Source="{StaticResource horse}"/>
+                              <Binding Source="3"/>
+                            </MultiBinding>
+                          </MenuItem.CommandParameter>
+                        </MenuItem>
+                        <MenuItem Padding="4" Command="{Binding Data.MarkHorseCommand,Source={StaticResource proxy}}">
+                          <MenuItem.Header>
+                            <ContentControl Template="{StaticResource MarkTriangle}"/>
+                          </MenuItem.Header>
+                          <MenuItem.CommandParameter>
+                            <MultiBinding Converter="{StaticResource MarkHorseCommandConverter}">
+                              <Binding Path="Data" Source="{StaticResource horse}"/>
+                              <Binding Source="4"/>
+                            </MultiBinding>
+                          </MenuItem.CommandParameter>
+                        </MenuItem>
+                        <MenuItem Padding="4" Command="{Binding Data.MarkHorseCommand,Source={StaticResource proxy}}">
+                          <MenuItem.Header>
+                            <ContentControl Template="{StaticResource MarkStar}"/>
+                          </MenuItem.Header>
+                          <MenuItem.CommandParameter>
+                            <MultiBinding Converter="{StaticResource MarkHorseCommandConverter}">
+                              <Binding Path="Data" Source="{StaticResource horse}"/>
+                              <Binding Source="5"/>
+                            </MultiBinding>
+                          </MenuItem.CommandParameter>
+                        </MenuItem>
+                        <MenuItem Padding="4" Command="{Binding Data.MarkHorseCommand,Source={StaticResource proxy}}">
+                          <MenuItem.Header>
+                            <ContentControl Template="{StaticResource MarkDeleted}"/>
+                          </MenuItem.Header>
+                          <MenuItem.CommandParameter>
+                            <MultiBinding Converter="{StaticResource MarkHorseCommandConverter}">
+                              <Binding Path="Data" Source="{StaticResource horse}"/>
+                              <Binding Source="6"/>
+                            </MultiBinding>
+                          </MenuItem.CommandParameter>
+                        </MenuItem>
+                      </ContextMenu>
+                    </StackPanel.ContextMenu>
+                    <ContentControl Template="{Binding Mark.Value,Converter={StaticResource HorseMarkConverter}}"/>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <ScrollBar Orientation="Vertical" Visibility="Hidden"/>
+        </StackPanel>
+      </vc:BindableScrollViewer>
+      <vc:BindableScrollViewer Grid.Row="2"
                                ScrollY="{Binding VerticalScroll.Value,Mode=TwoWay}"
                                ScrollX="{Binding HorizontalScroll.Value,Mode=TwoWay}"
                                HorizontalScrollBarVisibility="Visible">
@@ -177,33 +314,28 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <Border BorderBrush="#999999" BorderThickness="0,1,1,1" Width="160" MinWidth="160">
-                  <Grid>
-                    <Grid.RowDefinitions>
-                      <RowDefinition Height="auto"/>
-                      <RowDefinition Height="auto"/>
-                      <RowDefinition Height="auto"/>
-                      <RowDefinition Height="auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="{Binding Data.Number}" FontSize="20" FontWeight="Bold"
+                  <StackPanel>
+                    <TextBlock Text="{Binding Data.Number}" FontSize="20" FontWeight="Bold"
                                Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConverter},ConverterParameter=Background}"
                                Foreground="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConverter},ConverterParameter=Foreground}"
                                Height="28" Margin="0" Padding="0"
                                TextAlignment="Center"/>
-                    <Border Grid.Row="1" VerticalAlignment="Bottom" Background="#eef0ff"
-                            Height="{Binding TimeRate.Value,Converter={StaticResource RangeNumberConverter},ConverterParameter=306}"/>
-                    <Border Grid.Row="1" VerticalAlignment="Stretch" Background="#dedede"
-                            Visibility="{Binding Data.AbnormalResult,Converter={StaticResource AbnormalityResultConverter}}">
-                      <TextBlock VerticalAlignment="Bottom" Margin="0,0,0,16"
-                                 HorizontalAlignment="Center"
-                                 FontSize="32" FontWeight="Bold" Foreground="Red"
-                                 Text="{Binding Data.AbnormalResult,Converter={StaticResource AbnormalityResultConverter}}"/>
-                    </Border>
-                    <TextBlock Grid.Row="1"
-                               Text="{Binding Data.Name,Converter={StaticResource OneLetterOneLineConverter}}"
-                               TextAlignment="Center" LineStackingStrategy="BlockLineHeight"
-                               FontSize="28" FontWeight="Bold" LineHeight="28"
-                               Height="290" Margin="8"/>
-                    <StackPanel Grid.Row="2" Margin="4,4,4,16">
+                    <Grid>
+                      <Border VerticalAlignment="Bottom" Background="#eef0ff"
+                              Height="{Binding TimeRate.Value,Converter={StaticResource RangeNumberConverter},ConverterParameter=306}"/>
+                      <Border VerticalAlignment="Stretch" Background="#dedede"
+                              Visibility="{Binding Data.AbnormalResult,Converter={StaticResource AbnormalityResultConverter}}">
+                        <TextBlock VerticalAlignment="Bottom" Margin="0,0,0,16"
+                                   HorizontalAlignment="Center"
+                                   FontSize="32" FontWeight="Bold" Foreground="Red"
+                                   Text="{Binding Data.AbnormalResult,Converter={StaticResource AbnormalityResultConverter}}"/>
+                      </Border>
+                      <TextBlock Text="{Binding Data.Name,Converter={StaticResource OneLetterOneLineConverter}}"
+                                 TextAlignment="Center" LineStackingStrategy="BlockLineHeight"
+                                 FontSize="28" FontWeight="Bold" LineHeight="28"
+                                 Height="290" Margin="8"/>
+                    </Grid>
+                    <StackPanel Margin="4,4,4,16">
                       <Border Background="{Binding Data.Popular,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
                         <TextBlock FontSize="14" HorizontalAlignment="Center">
                           <Run Text="{Binding Data.Odds}" FontSize="18" FontWeight="Bold"/>
@@ -261,7 +393,7 @@
                                    Text="{Binding Data.ResultTime,StringFormat=m\\:ss\\.f}"/>
                       </StackPanel>
                     </StackPanel>
-                    <ItemsControl Grid.Row="3" ItemsSource="{Binding OldRaceHorses}">
+                    <ItemsControl ItemsSource="{Binding OldRaceHorses}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate>
                           <Border Background="{Binding Data.ResultOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}"
@@ -379,7 +511,7 @@
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                  </Grid>
+                  </StackPanel>
                 </Border>
               </DataTemplate>
             </ItemsControl.ItemTemplate>

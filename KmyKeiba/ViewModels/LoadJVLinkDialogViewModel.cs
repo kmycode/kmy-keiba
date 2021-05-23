@@ -44,8 +44,6 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<bool> IsDatabaseError => this.model.IsDatabaseError;
 
-    public ReactiveProperty<bool> CanClose { get; } = new(true);
-
     public ReadOnlyReactiveProperty<bool> IsError => this.model.IsError;
 
     public ReactiveProperty<bool> IsCentralError => this.model.IsCentralError;
@@ -66,16 +64,16 @@ namespace KmyKeiba.ViewModels
         .IsLoading
         .Select((v) => !v)
         .ToReactiveCommand();
-      this.LoadLocalCommand.Subscribe(() => this.model.LoadLocalAsync());
+      this.LoadLocalCommand.Subscribe(() => _ = this.model.LoadLocalAsync());
 
       this.LoadCentralCommand = this.model
         .IsLoading
         .Select((v) => !v)
         .ToReactiveCommand();
-      this.LoadCentralCommand.Subscribe(() => this.model.LoadCentralAsync());
+      this.LoadCentralCommand.Subscribe(() => _ = this.model.LoadCentralAsync());
     }
 
-    public bool CanCloseDialog() => this.CanClose.Value;
+    public bool CanCloseDialog() => !this.model.IsLoading.Value;
 
     public void OnDialogClosed()
     {

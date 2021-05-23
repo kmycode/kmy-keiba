@@ -13,6 +13,7 @@ using System.Reactive.Linq;
 using Prism.Services.Dialogs;
 using KmyKeiba.Data.DataObjects;
 using KmyKeiba.JVLink.Wrappers;
+using KmyKeiba.Data.Db;
 
 namespace KmyKeiba.ViewModels
 {
@@ -71,6 +72,8 @@ namespace KmyKeiba.ViewModels
         .ToReactiveCommand();
       this.UpdateCurrentRaceCommand.Subscribe(() => _ = this.model.UpdateRacesByTabIndexAsync(this.TabIndex.Value));
 
+      this.MarkHorseCommand.Subscribe((v) => _ = this.model.MarkHorseAsync(v.Horse, v.Mark));
+
       // _ = this.model.LoadRacesAsync();
     }
 
@@ -93,5 +96,14 @@ namespace KmyKeiba.ViewModels
     public ReactiveCommand UpdateCurrentRaceCommand { get; }
 
     public ReactiveCommand CloseUpdateErrorCommand { get; } = new();
+
+    public ReactiveCommand<MarkHorseCommandParameter> MarkHorseCommand { get; } = new();
+
+    public struct MarkHorseCommandParameter
+    {
+      public RaceHorseDataObject Horse { get; init; }
+
+      public RaceHorseMark Mark { get; init; }
+    }
   }
 }

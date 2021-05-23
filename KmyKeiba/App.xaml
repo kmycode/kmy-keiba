@@ -6,6 +6,7 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Resources/HorseMarks.xaml"/>
         <ResourceDictionary Source="Resources/Converters.xaml"/>
         <ResourceDictionary Source="Resources/DataTemplates.xaml"/>
         <ResourceDictionary Source="Resources/DataTemplateSelectors.xaml"/>

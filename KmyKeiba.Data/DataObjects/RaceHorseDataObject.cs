@@ -20,6 +20,8 @@ namespace KmyKeiba.Data.DataObjects
 
     public ReactiveProperty<double> TimeRate { get; } = new();
 
+    public ReactiveProperty<RaceHorseMark> Mark { get; } = new();
+
     public void SetEntity(RaceHorse entity)
     {
       this.Data.SetEntity(entity);
@@ -28,17 +30,26 @@ namespace KmyKeiba.Data.DataObjects
     public RaceHorseDataObject()
     {
       this.Data = new();
+      this.Initialize();
     }
 
     public RaceHorseDataObject(RaceHorseData data)
     {
       this.Data = data;
+      this.Initialize();
     }
 
     public RaceHorseDataObject(RaceHorse entity)
     {
       this.Data = new();
       this.SetEntity(entity);
+      this.Initialize();
+    }
+
+    private void Initialize()
+    {
+      this.Mark.Value = this.Data.Mark;
+      this.Mark.Subscribe((m) => this.Data.Mark = m);
     }
 
     public void SetOldRaceHorses(IEnumerable<RaceHorseDataObject> horses)

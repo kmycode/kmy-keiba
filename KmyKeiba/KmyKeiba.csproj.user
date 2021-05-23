@@ -21,6 +21,9 @@
     <Page Update="Resources\DataTemplateSelectors.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Resources\HorseMarks.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\LoadJVLinkDialog.xaml">
       <SubType>Designer</SubType>
     </Page>

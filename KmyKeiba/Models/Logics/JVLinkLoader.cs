@@ -104,7 +104,7 @@ namespace KmyKeiba.Models.Logics
     public async Task LoadLocalAsync(DateTime from, DateTime? to = null)
     {
       this.SetParameters(from, to);
-      await this.LoadCentralAsync();
+      await this.LoadLocalAsync();
     }
 
     private void SetParameters(DateTime from, DateTime? to = null)
@@ -136,7 +136,7 @@ namespace KmyKeiba.Models.Logics
 
       if (link != null)
       {
-        await this.LoadAsync(link, JVLinkDataspec.Race | JVLinkDataspec.Diff, false);
+        await this.LoadAsync(link, JVLinkDataspec.Race, false);
       }
     }
 
@@ -159,7 +159,7 @@ namespace KmyKeiba.Models.Logics
 
       if (link != null)
       {
-        await this.LoadAsync(link, JVLinkDataspec.Race | JVLinkDataspec.Diff, false);
+        await this.LoadAsync(link, JVLinkDataspec.Race, false);
       }
     }
 
@@ -212,7 +212,7 @@ namespace KmyKeiba.Models.Logics
               using (var reader = link.StartRead(dataspec,
                 JVLinkOpenOption.RealTime, DateTime.Today))
               {
-                await this.LoadAsync(reader, true);
+                await this.LoadAsync(reader, false);
               }
             }
             else
@@ -220,7 +220,7 @@ namespace KmyKeiba.Models.Logics
               using (var reader = link.StartRead(dataspec,
                 JVLinkOpenOption.RealTime, raceKey))
               {
-                await this.LoadAsync(reader, true);
+                await this.LoadAsync(reader, false);
               }
             }
           }
@@ -305,7 +305,7 @@ namespace KmyKeiba.Models.Logics
       }
 
       var saved = 0;
-      this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + data.SingleAndDoubleWinOdds.Count;
+      this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count;
       logger.Info($"Save size: {this.SaveSize.Value}");
 
       UiThreadUtil.Dispatcher?.Invoke(() =>
@@ -338,13 +338,17 @@ namespace KmyKeiba.Models.Logics
             item.Data.SetEntity(item.Entity);
             saved++;
           }
-          foreach (var item in entities.Where((e) => !dataItems.Any((d) => dataId(d)!.Equals(entityId(e)))))
-          {
-            var obj = new D();
-            obj.SetEntity(item);
-            await dataSet.AddAsync(obj);
-            saved++;
-          }
+
+          var items = entities
+            .Where((e) => !dataItems.Any((d) => dataId(d)!.Equals(entityId(e))))
+            .Select((item) =>
+            {
+              var obj = new D();
+              obj.SetEntity(item);
+              return obj;
+            });
+          await dataSet.AddRangeAsync(items);
+          saved += items.Count();
         }
 
         await SaveAsync(data.Races,
@@ -361,12 +365,16 @@ namespace KmyKeiba.Models.Logics
         await db.SaveChangesAsync();
 
         // 保存後のデータに他のデータを追加する
+        this.ProcessSize.Value = 0;
+        this.Processed.Value = 0;
 
         {
           var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.RaceKey).ToArray();
           var oddsRaceHorses = await db.RaceHorses!
             .Where((r) => oddsRaceKeys.Contains(r.RaceKey))
             .ToArrayAsync();
+          this.ProcessSize.Value += data.SingleAndDoubleWinOdds.Count;
+
           foreach (var odds in data.SingleAndDoubleWinOdds)
           {
             var horses = oddsRaceHorses
@@ -381,7 +389,7 @@ namespace KmyKeiba.Models.Logics
               }
             }
 
-            saved++;
+            this.Processed.Value++;
           }
         }
 
@@ -397,8 +405,7 @@ namespace KmyKeiba.Models.Logics
             .Select((r) => r.RaceKey)
             .Distinct()
             .ToArray();
-          this.ProcessSize.Value = (int)Math.Ceiling(ids.Count() / 64.0f);
-          this.Processed.Value = 0;
+          this.ProcessSize.Value += (int)Math.Ceiling(ids.Count() / 64.0f);
           while (ids.Any())
           {
             var arr = string.Join("','", ids.Take(64));
