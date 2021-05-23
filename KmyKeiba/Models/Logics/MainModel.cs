@@ -119,10 +119,7 @@ namespace KmyKeiba.Models.Logics
         {
           using (var db = new MyContext())
           {
-            foreach (var horse in race.Horses)
-            {
-              await horse.RequestUniformBitmapAsync(db);
-            }
+            await Task.WhenAll(race.Horses.Select((h) => h.RequestUniformBitmapAsync(db)).ToArray());
           }
         });
 
@@ -341,10 +338,7 @@ namespace KmyKeiba.Models.Logics
           {
             using (var d = new MyContext())
             {
-              foreach (var horse in obj.Horses)
-              {
-                await horse.RequestUniformBitmapAsync(d);
-              }
+              await Task.WhenAll(obj.Horses.Select((h) => h.RequestUniformBitmapAsync(d)).ToArray());
             }
           });
         }

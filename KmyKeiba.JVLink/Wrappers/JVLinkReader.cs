@@ -118,7 +118,11 @@ namespace KmyKeiba.JVLink.Wrappers
             list.Remove(oldItem);
           }
 
-          list.Add(item);
+          var newItem = list.FirstOrDefault((r) => isEquals(r, item) && r.LastModified >= item.LastModified);
+          if (newItem == null)
+          {
+            list.Add(item);
+          }
         }
 
         switch (spec)

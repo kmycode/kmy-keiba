@@ -325,9 +325,10 @@ namespace KmyKeiba.Models.Logics
 
       using (var db = new MyContext())
       {
-        async Task SaveAsync<E, D, I>(List<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector) where E : EntityBase where D : DataBase<E>, new()
+        async Task SaveAsync<E, D, I>(List<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
+          where E : EntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
         {
-          var ids = entities.Select(entityId).ToList();
+          var ids = entities.Select(entityId).Distinct().ToList();
           var dataItems = await dataSet!
             .Where(dataIdSelector(ids))
             .ToArrayAsync();
@@ -346,7 +347,8 @@ namespace KmyKeiba.Models.Logics
               var obj = new D();
               obj.SetEntity(item);
               return obj;
-            });
+            })
+            .ToArray();
           await dataSet.AddRangeAsync(items);
           saved += items.Count();
         }
