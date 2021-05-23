@@ -7,7 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KmyKeiba", "KmyKeiba\KmyKei
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KmyKeiba.JVLink", "KmyKeiba.JVLink\KmyKeiba.JVLink.csproj", "{57F67A2F-0AF7-4206-886A-9691140189C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KmyKeiba.Data", "KmyKeiba.Data\KmyKeiba.Data.csproj", "{89DACF79-198D-4D1A-80F7-4C80BA7CA0C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KmyKeiba.Data", "KmyKeiba.Data\KmyKeiba.Data.csproj", "{89DACF79-198D-4D1A-80F7-4C80BA7CA0C9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{15F93A2D-9FE7-4394-BFCE-9877C5C5E11E}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
