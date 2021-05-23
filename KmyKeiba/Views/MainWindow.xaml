@@ -8,17 +8,24 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="*"/>
+      <RowDefinition Height="auto"/>
     </Grid.RowDefinitions>
     <DockPanel Grid.Row="0">
       <Menu DockPanel.Dock="Top">
         <MenuItem Header="ファイル(_F)">
+          <MenuItem Header="終了(_X)"/>
+        </MenuItem>
+        <MenuItem Header="更新(_U)">
           <MenuItem Header="データの更新...(_L)" Command="{Binding OpenJVLinkLoadDialogCommand}"/>
-          <MenuItem Header="今日のデータを更新(_U)" Command="{Binding UpdateTodayRacesCommand}"/>
+          <Separator/>
           <MenuItem Header="現在開いているレースを更新" Command="{Binding UpdateCurrentRaceCommand}"/>
+          <MenuItem Header="今日のデータを更新(_U)" Command="{Binding UpdateTodayRacesCommand}"/>
+          <MenuItem Header="最近7日間のレースを更新" Command="{Binding UpdateRecentRacesCommand}"/>
+          <MenuItem Header="レース予定を更新" Command="{Binding UpdateFutureRacesCommand}"/>
+        </MenuItem>
+        <MenuItem Header="設定(_S)">
           <MenuItem Header="JV-Link設定..." Command="{Binding OpenJVLinkConfigCommand}"/>
           <MenuItem Header="UmaConn設定..." Command="{Binding OpenNVLinkConfigCommand}"/>
-          <Separator/>
-          <MenuItem Header="終了(_X)"/>
         </MenuItem>
       </Menu>
     </DockPanel>
@@ -26,8 +33,10 @@
                 ContentTemplateSelector="{StaticResource MainTabContentTemplateSelector}"
                 ItemTemplateSelector="{StaticResource MainTabItemTemplateSelector}">
     </TabControl>
-    <Border Background="#99000000" Grid.Row="1" Visibility="{Binding IsUpdating.Value,Converter={StaticResource BooleanVisibilityConverter}}">
+    <Border Background="#99000000" Grid.Row="2" VerticalAlignment="Bottom"
+            Visibility="{Binding IsUpdating.Value,Converter={StaticResource BooleanVisibilityConverter}}">
       <StackPanel VerticalAlignment="Center">
+        <TextBlock Text="更新中..." Foreground="White" FontSize="22"/>
         <ProgressBar Height="24"
                      Maximum="{Binding UpdateSize.Value}" Value="{Binding Updated.Value}"/>
         <StackPanel Visibility="{Binding IsUpdateError.Value,Converter={StaticResource BooleanVisibilityConverter}}">

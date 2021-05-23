@@ -95,6 +95,28 @@ namespace KmyKeiba.Models.Logics
       this.IsDatabaseError.Value = false;
     }
 
+    public async Task LoadCentralAsync(DateTime from, DateTime? to = null)
+    {
+      this.SetParameters(from, to);
+      await this.LoadCentralAsync();
+    }
+
+    public async Task LoadLocalAsync(DateTime from, DateTime? to = null)
+    {
+      this.SetParameters(from, to);
+      await this.LoadCentralAsync();
+    }
+
+    private void SetParameters(DateTime from, DateTime? to = null)
+    {
+      this.StartTime.Value = from;
+      this.IsSetEndTime.Value = to != null;
+      if (to != null)
+      {
+        this.EndTime.Value = (DateTime)to;
+      }
+    }
+
     public async Task LoadCentralAsync()
     {
       this.CrearErrors();
@@ -102,6 +124,10 @@ namespace KmyKeiba.Models.Logics
       try
       {
         link = JVLinkObject.Central;
+        if (link.IsError)
+        {
+          throw new Exception();
+        }
       }
       catch (Exception)
       {
@@ -110,7 +136,7 @@ namespace KmyKeiba.Models.Logics
 
       if (link != null)
       {
-        await this.LoadAsync(link, JVLinkDataspec.Race, false);
+        await this.LoadAsync(link, JVLinkDataspec.Race | JVLinkDataspec.Diff, false);
       }
     }
 
@@ -121,6 +147,10 @@ namespace KmyKeiba.Models.Logics
       try
       {
         link = JVLinkObject.Local;
+        if (link.IsError)
+        {
+          throw new Exception();
+        }
       }
       catch (Exception)
       {
@@ -129,7 +159,7 @@ namespace KmyKeiba.Models.Logics
 
       if (link != null)
       {
-        await this.LoadAsync(link, JVLinkDataspec.Race, false);
+        await this.LoadAsync(link, JVLinkDataspec.Race | JVLinkDataspec.Diff, false);
       }
     }
 
@@ -275,7 +305,7 @@ namespace KmyKeiba.Models.Logics
       }
 
       var saved = 0;
-      this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count;
+      this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + data.SingleAndDoubleWinOdds.Count;
       logger.Info($"Save size: {this.SaveSize.Value}");
 
       UiThreadUtil.Dispatcher?.Invoke(() =>
@@ -327,6 +357,33 @@ namespace KmyKeiba.Models.Logics
           (e) => e.Name + e.RaceKey,
           (d) => d.Name + d.RaceKey,
           (list) => e => list.Contains(e.Name + e.RaceKey));
+
+        await db.SaveChangesAsync();
+
+        // 保存後のデータに他のデータを追加する
+
+        {
+          var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.RaceKey).ToArray();
+          var oddsRaceHorses = await db.RaceHorses!
+            .Where((r) => oddsRaceKeys.Contains(r.RaceKey))
+            .ToArrayAsync();
+          foreach (var odds in data.SingleAndDoubleWinOdds)
+          {
+            var horses = oddsRaceHorses
+              .Where((h) => h.RaceKey == odds.RaceKey);
+            foreach (var horse in horses)
+            {
+              var o = odds.SingleOdds.FirstOrDefault((oo) => oo.HorseNumber == horse.Number);
+              if (o.HorseNumber != default)
+              {
+                horse.Odds = o.Odds;
+                horse.Popular = o.Popular;
+              }
+            }
+
+            saved++;
+          }
+        }
 
         await db.SaveChangesAsync();
 

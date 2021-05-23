@@ -61,7 +61,10 @@ namespace KmyKeiba.ViewModels
       this.UpdateTodayRacesCommand = this.ShowDate
         .Select((d) => d == DateTime.Today)
         .ToReactiveCommand();
-      this.UpdateTodayRacesCommand.Subscribe(() => _ = this.model.UpdateRacesAsync());
+      this.UpdateTodayRacesCommand.Subscribe(() => _ = this.model.UpdateTodayRacesAsync());
+
+      this.UpdateRecentRacesCommand.Subscribe(() => _ = this.model.UpdateRecentRacesAsync());
+      this.UpdateFutureRacesCommand.Subscribe(() => _ = this.model.UpdateFutureRacesAsync());
 
       this.UpdateCurrentRaceCommand = this.TabIndex
         .Select((i) => (this.model.Tabs.Count > i && i >= 0) ? this.model.Tabs[i] is RaceTabFrame : false)
@@ -82,6 +85,10 @@ namespace KmyKeiba.ViewModels
     public ReactiveCommand<TabFrame> CloseTabCommand { get; } = new();
 
     public ReactiveCommand UpdateTodayRacesCommand { get; }
+
+    public ReactiveCommand UpdateRecentRacesCommand { get; } = new();
+
+    public ReactiveCommand UpdateFutureRacesCommand { get; } = new();
 
     public ReactiveCommand UpdateCurrentRaceCommand { get; }
 

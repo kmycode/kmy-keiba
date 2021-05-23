@@ -108,6 +108,11 @@ namespace KmyKeiba.Models.Logics
         await race.SetRaceHorsesAsync(db, 1);
       }
 
+      if (race.Data.DataStatus < RaceDataStatus.PreliminaryGradeFull)
+      {
+        _ = this.UpdateRaceAsync(race.Data.Key);
+      }
+
       this.Tabs.Add(tab);
     }
 
@@ -116,12 +121,67 @@ namespace KmyKeiba.Models.Logics
       var tab = this.Tabs[index];
       if (tab is RaceTabFrame r)
       {
-        await this.UpdateRacesAsync(r.Race.Value.Data.Key);
+        await this.UpdateRaceAsync(r.Race.Value.Data.Key);
       }
     }
 
-    public async Task UpdateRacesAsync(string? raceKey = null)
+    public async Task UpdateTodayRacesAsync()
+      => await this.UpdateRacesAsync(null, DateTime.Today);
+
+    public async Task UpdateRecentRacesAsync()
+      => await this.UpdateRacesAsync(null, DateTime.Today.AddDays(-7));
+
+    public async Task UpdateRaceAsync(string key)
+      => await this.UpdateRacesAsync(key, null);
+
+    public async Task UpdateFutureRacesAsync()
     {
+      this.UpdateSize.Value = 1;
+      this.Updated.Value = 0;
+      this.IsUpdating.Value = true;
+      this.IsUpdateError.Value = false;
+
+      if (JVLinkObject.Central.IsError && JVLinkObject.Local.IsError)
+      {
+        this.IsUpdateError.Value = true;
+        return;
+      }
+
+      try
+      {
+        // 将来のレースを更新する
+        try
+        {
+          await this.loader.LoadCentralAsync(DateTime.Today);
+        }
+        catch
+        {
+        }
+
+        try
+        {
+          await this.loader.LoadLocalAsync(DateTime.Today);
+        }
+        catch
+        {
+        }
+
+        await this.UpdateExistsTabsAsync();
+        this.IsUpdating.Value = false;
+      }
+      catch
+      {
+        this.IsUpdateError.Value = true;
+      }
+    }
+
+    private async Task UpdateRacesAsync(string? raceKey, DateTime? date)
+    {
+      if (this.IsUpdating.Value)
+      {
+        return;
+      }
+
       this.UpdateSize.Value = 1;
       this.Updated.Value = 0;
       this.IsUpdating.Value = true;
@@ -139,15 +199,21 @@ namespace KmyKeiba.Models.Logics
         IEnumerable<(string Key, RaceCourse Course)> raceKeys;
         using (var db = new MyContext())
         {
-          var table = db.Races!.Where((r) => r.StartTime >= DateTime.Today);
+          var from = DateTime.Today.AddDays(-7);
+          var table = db.Races!.Where((r) => r.StartTime >= from);
           if (raceKey != null)
           {
             table = table.Where((r) => r.Key == raceKey);
           }
+          else if (date != null)
+          {
+            var d = (DateTime)date;
+            table = table.Where((r) => r.StartTime >= date);
+            // table = table.Where((r) => (r.StartTime > DateTime.Now && (short)r.DataStatus < 2) || (r.StartTime <= DateTime.Now && (short)r.DataStatus < 6));
+          }
           else
           {
-            table = table.Where((r) => r.StartTime >= DateTime.Today &&
-              ((r.StartTime > DateTime.Now && (short)r.DataStatus < 2) || (r.StartTime <= DateTime.Now && (short)r.DataStatus < 6)));
+            table = table.Where((r) => (r.StartTime > DateTime.Now && (short)r.DataStatus < 2) || (r.StartTime <= DateTime.Now && (short)r.DataStatus < 6));
           }
 
           var keys = await table
@@ -171,7 +237,8 @@ namespace KmyKeiba.Models.Logics
             if (link != null && !link.IsError)
             {
               await this.loader.LoadAsync(link, JVLinkDataspec.RB12, true, key.Key, null, null);
-              await Task.Delay(100);
+              await this.loader.LoadAsync(link, JVLinkDataspec.RB31, true, key.Key, null, null);
+              await this.UpdateExistsTabsAsync();
             }
 
             if (this.loader.IsError.Value)
@@ -191,8 +258,6 @@ namespace KmyKeiba.Models.Logics
           this.Updated.Value++;
         }
 
-        await this.UpdateExistsTabsAsync();
-
         if (!this.IsUpdateError.Value)
         {
           this.IsUpdating.Value = false;
@@ -208,15 +273,20 @@ namespace KmyKeiba.Models.Logics
     {
       using (var db = new MyContext())
       {
-        foreach (var tab in this.Tabs.OfType<RaceTabFrame>())
+        await this.UpdateExistsTabsAsync(db);
+      }
+    }
+
+    private async Task UpdateExistsTabsAsync(MyContext db)
+    {
+      foreach (var tab in this.Tabs.OfType<RaceTabFrame>())
+      {
+        var race = await db.Races!.FirstOrDefaultAsync((r) => r.Key == tab.Race.Value.Data.Key);
+        if (race != null)
         {
-          var race = await db.Races!.FirstOrDefaultAsync((r) => r.Key == tab.Race.Value.Data.Key);
-          if (race != null)
-          {
-            var obj = new RaceDataObject(race);
-            await obj.SetRaceHorsesAsync(db);
-            tab.Race.Value = obj;
-          }
+          var obj = new RaceDataObject(race);
+          await obj.SetRaceHorsesAsync(db);
+          tab.Race.Value = obj;
         }
       }
     }

@@ -141,6 +141,15 @@ namespace KmyKeiba.JVLink.Wrappers
               Read(item, data.RaceHorses, (a, b) => a.RaceKey == b.RaceKey && a.Name == b.Name);
               break;
             }
+          case "O1":
+            {
+              var a = new JVData_Struct.JV_O1_ODDS_TANFUKUWAKU();
+              a.SetDataB(ref d);
+              var item = SingleAndDoubleWinOdds.FromJV(a);
+
+              Read(item, data.SingleAndDoubleWinOdds, (a, b) => a.RaceKey == b.RaceKey);
+              break;
+            }
           default:
             this.link.Skip();
             break;
@@ -173,6 +182,8 @@ namespace KmyKeiba.JVLink.Wrappers
     public List<Race> Races { get; internal set; } = new();
 
     public List<RaceHorse> RaceHorses { get; internal set; } = new();
+
+    public List<SingleAndDoubleWinOdds> SingleAndDoubleWinOdds { get; internal set; } = new();
   }
 
   class SimpleDistinctComparer<T> : IEqualityComparer<T>
