@@ -198,7 +198,8 @@
                             Text="{Binding Data.FourthCornerOrder}" FontSize="14"/>
               </Border>
             </StackPanel>
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal"
+                        Visibility="{Binding Data.AbnormalResult,Converter={StaticResource AbnormalityResultConverter},ConverterParameter=Reverse}">
               <TextBlock FontSize="16" VerticalAlignment="Center">
                 <Run Text="{Binding Data.RunningStyle,Converter={StaticResource RunningStyleConverter}}"/>
                 <Run Text="AH3:" FontSize="12"/>
@@ -211,6 +212,12 @@
                 </TextBlock>
               </Border>
             </StackPanel>
+            <Border VerticalAlignment="Stretch" Background="#dedede"
+                    Visibility="{Binding Data.AbnormalResult,Converter={StaticResource AbnormalityResultConverter}}">
+              <TextBlock HorizontalAlignment="Center"
+                         FontSize="16" FontWeight="Bold" Foreground="Red"
+                         Text="{Binding Data.AbnormalResult,Converter={StaticResource AbnormalityResultConverter}}"/>
+            </Border>
           </StackPanel>
         </Grid>
       </Border>
@@ -474,11 +481,16 @@
                             </Style.Triggers>
                           </Style>
                         </Border.Style>
-                        <TextBlock FontSize="14" HorizontalAlignment="Center">
-                          <Run Text="{Binding Data.RiderName}"/>
-                          <Run Text="{Binding Data.RiderWeight}"/>kg
-                          <Run Text="{Binding Data.Weight}"/>(<Run Text="{Binding Data.WeightDiff}"/>)
-                        </TextBlock>
+                        <StackPanel Orientation="Horizontal">
+                          <Image Width="50" Height="50"
+                                 Source="{Binding Uniform.Value,Converter={StaticResource BitmapConverter}}"/>
+                          <TextBlock FontSize="14" HorizontalAlignment="Center" Margin="8,0,0,0">
+                            <Run Text="{Binding Data.RiderName}" FontSize="16"/><LineBreak/>
+                            <Run Text="{Binding RiderFirst.Value}"/>-<Run Text="{Binding RiderSecond.Value}"/>-<Run Text="{Binding RiderThird.Value}"/>-<Run Text="{Binding RiderFourthAndWorse.Value}"/><LineBreak/>
+                            <Run Text="{Binding Data.RiderWeight}"/>kg
+                            <Run Text="{Binding Data.Weight}"/>(<Run Text="{Binding Data.WeightDiff}"/>)
+                          </TextBlock>
+                        </StackPanel>
                       </Border>
                       <StackPanel Visibility="{Binding DataContext.Race.Value.HasResults.Value,Converter={StaticResource BooleanVisibilityConverter},RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">

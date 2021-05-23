@@ -3,14 +3,16 @@ using System;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace KmyKeiba.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20210523091954_AddHorseUniform")]
+    partial class AddHorseUniform
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -121,8 +123,7 @@ namespace KmyKeiba.Migrations
                         .HasColumnType("int");
 
                     b.Property<short>("Course")
-                        .HasColumnType("smallint")
-                        .HasColumnName("CourseCode");
+                        .HasColumnType("smallint");
 
                     b.Property<short>("DataStatus")
                         .HasColumnType("smallint");
@@ -194,8 +195,8 @@ namespace KmyKeiba.Migrations
 
                     b.Property<byte[]>("UniformFormatData")
                         .IsRequired()
-                        .HasMaxLength(8000)
-                        .HasColumnType("VARBINARY(8000)");
+                        .HasMaxLength(7500)
+                        .HasColumnType("VARBINARY");
 
                     b.Property<short>("Weight")
                         .HasColumnType("smallint");

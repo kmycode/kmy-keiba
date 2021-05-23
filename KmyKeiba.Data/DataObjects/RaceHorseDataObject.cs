@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
+using KmyKeiba.JVLink.Wrappers;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,16 @@ namespace KmyKeiba.Data.DataObjects
     public ReactiveProperty<double> TimeRate { get; } = new();
 
     public ReactiveProperty<RaceHorseMark> Mark { get; } = new();
+
+    public ReactiveProperty<byte[]> Uniform { get; } = new();
+
+    public ReactiveProperty<int> RiderFirst { get; } = new();
+
+    public ReactiveProperty<int> RiderSecond { get; } = new();
+
+    public ReactiveProperty<int> RiderThird { get; } = new();
+
+    public ReactiveProperty<int> RiderFourthAndWorse { get; } = new();
 
     public void SetEntity(RaceHorse entity)
     {
@@ -62,6 +73,40 @@ namespace KmyKeiba.Data.DataObjects
       {
         this.OldRaceHorses.Add(horse);
       }
+    }
+
+    public async Task RequestUniformBitmapAsync(MyContextBase db)
+    {
+      if (this.Data.UniformFormatData == null || this.Data.UniformFormatData.Length <= 0)
+      {
+        // 服の画像を設定
+        try
+        {
+          var link = this.Data.Course.GetCourseType() switch
+          {
+            RaceCourseType.Central => JVLinkObject.Central,
+            RaceCourseType.Local => JVLinkObject.Local,
+            _ => JVLinkObject.Local,
+          };
+          if (!link.IsError)
+          {
+            var buff = link.GetUniformBitmap(this.Data.UniformFormat);
+            this.Data.UniformFormatData = buff;
+
+            var horse = await db.RaceHorses!.FindAsync(this.Data.Id);
+            if (horse != null)
+            {
+              horse.UniformFormatData = buff;
+              await db.SaveChangesAsync();
+            }
+          }
+        }
+        catch (Exception ex)
+        {
+        }
+      }
+
+      this.Uniform.Value = this.Data.UniformFormatData!;
     }
   }
 }

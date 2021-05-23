@@ -30,6 +30,11 @@ namespace KmyKeiba.JVLink.Entities
     public int FrameNumber { get; set; }
 
     /// <summary>
+    /// 競馬場
+    /// </summary>
+    public RaceCourse Course { get; set; }
+
+    /// <summary>
     /// 着順
     /// </summary>
     public int ResultOrder { get; set; }
@@ -102,6 +107,11 @@ namespace KmyKeiba.JVLink.Entities
     /// </summary>
     public RunningStyle RunningStyle { get; set; }
 
+    /// <summary>
+    /// 勝負服の模様
+    /// </summary>
+    public string UniformFormat { get; set; } = string.Empty;
+
     internal RaceHorse()
     {
     }
@@ -122,6 +132,7 @@ namespace KmyKeiba.JVLink.Entities
       short.TryParse(uma.BaTaijyu.Trim(), out short weight);
       short.TryParse(uma.ZogenSa.Trim(), out short weightDiff);
       int.TryParse(uma.KyakusituKubun.Trim(), out int runningStyle);
+      int.TryParse(uma.id.JyoCD.Trim(), out int course);
 
       int.TryParse(uma.Time.Substring(0, 1), out int timeMinutes);
       int.TryParse(uma.Time.Substring(1, 2), out int timeSeconds);
@@ -142,6 +153,7 @@ namespace KmyKeiba.JVLink.Entities
         LastModified = uma.head.MakeDate.ToDateTime(),
         DataStatus = uma.head.DataKubun.ToDataStatus(),
         RaceKey = uma.id.ToRaceKey(),
+        Course = (RaceCourse)course,
         Name = uma.Bamei.Trim(),
         Number = num,
         FrameNumber = wakuNum,
@@ -162,6 +174,7 @@ namespace KmyKeiba.JVLink.Entities
         Odds = odds / 10,
         AfterThirdHalongTime = halongTime,
         RunningStyle = (RunningStyle)runningStyle,
+        UniformFormat = uma.Fukusyoku.Trim(),
       };
       return horse;
     }

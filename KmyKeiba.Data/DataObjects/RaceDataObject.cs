@@ -172,9 +172,9 @@ namespace KmyKeiba.Data.DataObjects
         .ToArrayAsync();
       this.SetHorses(horses);
 
-      // 出走馬の過去のレースを取得
       foreach (var horse in this.Horses)
       {
+        // 出走馬の過去のレースを取得
         var sameHorses = await db.RaceHorses!
           .Where((h) => h.Name == horse.Data.Name)
           .ToArrayAsync();
@@ -198,6 +198,13 @@ namespace KmyKeiba.Data.DataObjects
         }
 
         horse.SetOldRaceHorses(sameHorseObjects);
+
+        // 騎手の成績を取得
+        var sameRider = sameHorses.Where((h) => h.RiderCode == horse.Data.RiderCode).ToArray();
+        horse.RiderFirst.Value = sameRider.Count((h) => h.ResultOrder == 1);
+        horse.RiderSecond.Value = sameRider.Count((h) => h.ResultOrder == 2);
+        horse.RiderThird.Value = sameRider.Count((h) => h.ResultOrder == 3);
+        horse.RiderFourthAndWorse.Value = sameRider.Count((h) => h.ResultOrder >= 4);
 
         // ネスト
         if (nest > 1)

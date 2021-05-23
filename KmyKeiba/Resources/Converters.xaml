@@ -25,6 +25,7 @@
                         MarkFilledTriangle="{StaticResource MarkFilledTriangle}"
                         MarkStar="{StaticResource MarkStar}"
                         MarkDeleted="{StaticResource MarkDeleted}"/>
+  <c:BitmapConverter x:Key="BitmapConverter"/>
 
   <c:MultiBooleanConverter x:Key="MultiBooleanConverter"/>
 </ResourceDictionary>

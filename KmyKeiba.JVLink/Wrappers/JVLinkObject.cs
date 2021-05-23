@@ -134,6 +134,21 @@ namespace KmyKeiba.JVLink.Wrappers
       return new EmptyJVLinkReader(this.link);
     }
 
+    public byte[] GetUniformBitmap(string format)
+    {
+      this.CheckInitialized();
+
+      var buff = new byte[3 * 50 * 50];
+      var result = this.link.Fuku(format, ref buff);
+
+      if (result == 0 || result == -1)
+      {
+        return buff;
+      }
+
+      throw JVLinkException.GetError((JVLinkUniformResult)result);
+    }
+
     private void CheckInitialized()
     {
       if (!this.hasInitialized)

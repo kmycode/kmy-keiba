@@ -1,6 +1,8 @@
 ﻿using KmyKeiba.JVLink.Entities;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +14,9 @@ namespace KmyKeiba.Data.Db
     public string RaceKey { get; set; } = string.Empty;
 
     public string Name { get; set; } = string.Empty;
+
+    [Column("CourseCode")]
+    public RaceCourse Course { get; set; }
 
     /// <summary>
     /// マーク
@@ -106,6 +111,17 @@ namespace KmyKeiba.Data.Db
     /// </summary>
     public RunningStyle RunningStyle { get; set; }
 
+    /// <summary>
+    /// 勝負服の模様
+    /// </summary>
+    public string UniformFormat { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 勝負服の画像
+    /// </summary>
+    [MaxLength(8000), Column(TypeName = "VARBINARY(8000)")]
+    public byte[] UniformFormatData { get; set; } = new byte[0];
+
     public override void SetEntity(RaceHorse entity)
     {
       this.LastModified = entity.LastModified;
@@ -114,6 +130,7 @@ namespace KmyKeiba.Data.Db
       this.Number = entity.Number;
       this.Popular = entity.Popular;
       this.RaceKey = entity.RaceKey;
+      this.Course = entity.Course;
       this.ResultOrder = entity.ResultOrder;
       this.ResultTime = entity.ResultTime;
       this.FrameNumber = entity.FrameNumber;
@@ -130,6 +147,12 @@ namespace KmyKeiba.Data.Db
       this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
       this.RunningStyle = entity.RunningStyle;
       this.AbnormalResult = entity.AbnormalResult;
+
+      if (this.UniformFormat != entity.UniformFormat)
+      {
+        this.UniformFormat = entity.UniformFormat;
+        this.UniformFormatData = new byte[0];
+      }
     }
 
     public override bool IsEquals(DataBase<RaceHorse> b)

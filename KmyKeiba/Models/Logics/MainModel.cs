@@ -110,6 +110,16 @@ namespace KmyKeiba.Models.Logics
         {
           await race.SetRaceHorsesAsync(db, 1);
         }
+        _ = Task.Run(async () =>
+        {
+          using (var db = new MyContext())
+          {
+            foreach (var horse in race.Horses)
+            {
+              await horse.RequestUniformBitmapAsync(db);
+            }
+          }
+        });
 
         if (race.Data.DataStatus < RaceDataStatus.PreliminaryGradeFull)
         {
@@ -319,6 +329,17 @@ namespace KmyKeiba.Models.Logics
           var obj = new RaceDataObject(race);
           await obj.SetRaceHorsesAsync(db);
           tab.Race.Value = obj;
+
+          _ = Task.Run(async () =>
+          {
+            using (var d = new MyContext())
+            {
+              foreach (var horse in obj.Horses)
+              {
+                await horse.RequestUniformBitmapAsync(d);
+              }
+            }
+          });
         }
       }
     }

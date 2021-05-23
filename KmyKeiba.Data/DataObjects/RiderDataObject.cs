@@ -36,7 +36,7 @@ namespace KmyKeiba.Data.DataObjects
       }
 
       var horsesWithRaces = horses.Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Horse = h, Race = r, });
-      foreach (var item in horsesWithRaces.Take(72))
+      foreach (var item in horsesWithRaces.OrderByDescending((i) => i.Race.StartTime).Take(72))
       {
         var ho = new RaceHorseDataObject(item.Horse);
         ho.Race.Value = new RaceDataObject(item.Race);

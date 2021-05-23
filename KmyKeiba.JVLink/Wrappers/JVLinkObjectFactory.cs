@@ -29,6 +29,8 @@ namespace KmyKeiba.JVLink.Wrappers
     void Close();
 
     int FileDelete(string filename);
+
+    int Fuku(string pattern, ref byte[] buff);
   }
 
   internal static class JVLinkObjectFactory
@@ -103,6 +105,11 @@ namespace KmyKeiba.JVLink.Wrappers
       {
         return default;
       }
+
+      public int Fuku(string pattern, ref byte[] buff)
+      {
+        return default;
+      }
     }
 
     private class JVLinkObjectImpl : IJVLinkObject
@@ -147,6 +154,14 @@ namespace KmyKeiba.JVLink.Wrappers
       }
 
       public int FileDelete(string filename) => this.link.JVFiledelete(filename);
+
+      public int Fuku(string pattern, ref byte[] buff)
+      {
+        object obj = buff;
+        var r = this.link.JVFuku(pattern, ref obj);
+        buff = (byte[])obj;
+        return r;
+      }
     }
 
     private class NVLinkObjectImpl : IJVLinkObject
@@ -184,6 +199,14 @@ namespace KmyKeiba.JVLink.Wrappers
       public void Close() => this.link.NVClose();
 
       public int FileDelete(string filename) => this.link.NVFiledelete(filename);
+
+      public int Fuku(string pattern, ref byte[] buff)
+      {
+        object obj = buff;
+        var r = this.link.NVFuku(pattern, ref obj);
+        buff = (byte[])obj;
+        return r;
+      }
     }
   }
 }
