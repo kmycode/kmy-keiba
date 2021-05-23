@@ -33,28 +33,29 @@ namespace KmyKeiba.Data.DataObjects
       {
         var first = await horses.FirstAsync();
         obj.Data.Name = first.RiderName;
+
+        var horsesWithRaces = horses
+          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Horse = h, Race = r, });
+        foreach (var item in horsesWithRaces.OrderByDescending((i) => i.Race.StartTime).Take(72))
+        {
+          var ho = new RaceHorseDataObject(item.Horse);
+          ho.Race.Value = new RaceDataObject(item.Race);
+          obj.RecentRaces.Add(ho);
+        }
+
+        var centrals = horsesWithRaces.Where((h) => (short)h.Race.Course < 30);
+        var locals = horsesWithRaces.Where((h) => (short)h.Race.Course >= 30);
+
+        await obj.CentralGrades.SetCountsAsync(centrals.Select((h) => h.Horse));
+        await obj.LocalGrades.SetCountsAsync(locals.Select((h) => h.Horse));
+        obj.AllGrades.AllCount = obj.CentralGrades.AllCount + obj.LocalGrades.AllCount;
+        obj.AllGrades.First = obj.CentralGrades.First + obj.LocalGrades.First;
+        obj.AllGrades.Second = obj.CentralGrades.Second + obj.LocalGrades.Second;
+        obj.AllGrades.Third = obj.CentralGrades.Third + obj.LocalGrades.Third;
+        obj.AllGrades.Fourth = obj.CentralGrades.Fourth + obj.LocalGrades.Fourth;
+        obj.AllGrades.Fifth = obj.CentralGrades.Fifth + obj.LocalGrades.Fifth;
+        obj.AllGrades.SixthAndWorse = obj.CentralGrades.SixthAndWorse + obj.LocalGrades.SixthAndWorse;
       }
-
-      var horsesWithRaces = horses.Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Horse = h, Race = r, });
-      foreach (var item in horsesWithRaces.OrderByDescending((i) => i.Race.StartTime).Take(72))
-      {
-        var ho = new RaceHorseDataObject(item.Horse);
-        ho.Race.Value = new RaceDataObject(item.Race);
-        obj.RecentRaces.Add(ho);
-      }
-
-      var centrals = horsesWithRaces.Where((h) => (short)h.Race.Course < 30);
-      var locals = horsesWithRaces.Where((h) => (short)h.Race.Course >= 30);
-
-      await obj.CentralGrades.SetCountsAsync(centrals.Select((h) => h.Horse));
-      await obj.LocalGrades.SetCountsAsync(locals.Select((h) => h.Horse));
-      obj.AllGrades.AllCount = obj.CentralGrades.AllCount + obj.LocalGrades.AllCount;
-      obj.AllGrades.First = obj.CentralGrades.First + obj.LocalGrades.First;
-      obj.AllGrades.Second = obj.CentralGrades.Second + obj.LocalGrades.Second;
-      obj.AllGrades.Third = obj.CentralGrades.Third + obj.LocalGrades.Third;
-      obj.AllGrades.Fourth = obj.CentralGrades.Fourth + obj.LocalGrades.Fourth;
-      obj.AllGrades.Fifth = obj.CentralGrades.Fifth + obj.LocalGrades.Fifth;
-      obj.AllGrades.SixthAndWorse = obj.CentralGrades.SixthAndWorse + obj.LocalGrades.SixthAndWorse;
 
       return obj;
     }

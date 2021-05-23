@@ -200,7 +200,10 @@ namespace KmyKeiba.Data.DataObjects
         horse.SetOldRaceHorses(sameHorseObjects);
 
         // 騎手の成績を取得
-        var sameRider = sameHorses.Where((h) => h.RiderCode == horse.Data.RiderCode).ToArray();
+        var sameRider = sameHorses
+          .Where((h) => h.RiderCode == horse.Data.RiderCode)
+          .Join(horseRaces.Where((r) => r.StartTime < this.Data.StartTime), (h) => h.RaceKey, (r) => r.Key, (h, r) => h)
+          .ToArray();
         horse.RiderFirst.Value = sameRider.Count((h) => h.ResultOrder == 1);
         horse.RiderSecond.Value = sameRider.Count((h) => h.ResultOrder == 2);
         horse.RiderThird.Value = sameRider.Count((h) => h.ResultOrder == 3);
