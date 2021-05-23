@@ -10,5 +10,10 @@ namespace KmyKeiba.Models.Data
 {
   public class MyContext : MyContextBase
   {
+    public MyContext()
+    {
+      var config = DatabaseConfigManager.GetCurrentConfigFile();
+      this.ConnectionString = config.GetConnectionString();
+    }
   }
 }

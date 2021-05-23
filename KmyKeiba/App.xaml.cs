@@ -22,9 +22,9 @@ namespace KmyKeiba
       log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo("log4net.config"));
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-      var context = new MyContext();
-      context.Database.Migrate();
-      context.Dispose();
+      // var context = new MyContext();
+      // context.Database.Migrate();
+      // context.Dispose();
 
       return Container.Resolve<MainWindow>();
     }

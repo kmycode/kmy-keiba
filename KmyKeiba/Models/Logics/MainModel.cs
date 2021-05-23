@@ -20,6 +20,7 @@ namespace KmyKeiba.Models.Logics
   {
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
     private readonly JVLinkLoader loader = new();
+    private bool isInitialLoaded = false;
 
     public ObservableCollection<TabFrame> Tabs { get; } = new();
 
@@ -35,12 +36,26 @@ namespace KmyKeiba.Models.Logics
 
     public MainModel()
     {
+      _ = this.InitializeAsync();
+    }
+
+    private async Task InitializeAsync()
+    {
+      var dbm = new DatabaseConfigManager();
+      await dbm.TryMigrateAsync();
+
       this.ShowDate.Subscribe((d) => _ = this.LoadRacesAsync());
+
+      if (!this.isInitialLoaded)
+      {
+        await this.LoadRacesAsync();
+      }
     }
 
     public async Task LoadRacesAsync()
     {
       logger.Info("Start loading main tab races");
+      this.isInitialLoaded = true;
 
       var tabs = this.Tabs.OfType<RaceListTabFrame>();
       if (tabs.Count() > 1)

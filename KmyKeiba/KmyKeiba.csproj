@@ -38,6 +38,9 @@
     <ProjectReference Include="..\KmyKeiba.JVLink\KmyKeiba.JVLink.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="database.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

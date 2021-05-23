@@ -1,0 +1,4 @@
+﻿host=localhost
+database=kmykeiba
+username=root
+password=takaki
