@@ -159,6 +159,7 @@ namespace KmyKeiba.Data.DataObjects
         });
       foreach (var horse in newHorses)
       {
+        horse.Race.Value = this;
         this.Horses.Add(horse);
       }
 
@@ -212,12 +213,6 @@ namespace KmyKeiba.Data.DataObjects
             var obj = new RaceHorseDataObject(sameHorse);
             obj.Race.Value = new RaceDataObject(horseRace);
             sameHorseObjects.Add(obj);
-
-            // 競馬新聞は過去10レースだけのせる
-            if (sameHorseObjects.Count >= 10)
-            {
-              break;
-            }
           }
         }
 

@@ -282,8 +282,8 @@ namespace KmyKeiba.Models.Logics
             };
             if (link != null && !link.IsError)
             {
-              await this.loader.LoadAsync(link, JVLinkDataspec.RB12, true, key.Key, null, null).ConfigureAwait(false);
-              await this.loader.LoadAsync(link, JVLinkDataspec.RB31, true, key.Key, null, null);
+              await this.loader.LoadAsync(link, JVLinkDataspec.RB12, JVLinkOpenOption.RealTime, key.Key, null, null).ConfigureAwait(false);
+              await this.loader.LoadAsync(link, JVLinkDataspec.RB31, JVLinkOpenOption.RealTime, key.Key, null, null);
               await this.UpdateExistsTabsAsync();
             }
 

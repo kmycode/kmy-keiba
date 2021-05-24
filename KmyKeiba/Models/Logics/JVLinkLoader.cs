@@ -118,35 +118,18 @@ namespace KmyKeiba.Models.Logics
     }
 
     public async Task LoadCentralAsync()
-    {
-      this.CrearErrors();
-      JVLinkObject? link = null;
-      try
-      {
-        link = JVLinkObject.Central;
-        if (link.IsError)
-        {
-          throw new Exception();
-        }
-      }
-      catch (Exception)
-      {
-        this.IsCentralError.Value = true;
-      }
-
-      if (link != null)
-      {
-        await this.LoadAsync(link, JVLinkDataspec.Race, false);
-      }
-    }
+      => await this.LoadAsync(() => JVLinkObject.Local);
 
     public async Task LoadLocalAsync()
+      => await this.LoadAsync(() => JVLinkObject.Local);
+
+    private async Task LoadAsync(Func<JVLinkObject> linkGetter)
     {
       this.CrearErrors();
       JVLinkObject? link = null;
       try
       {
-        link = JVLinkObject.Local;
+        link = linkGetter();
         if (link.IsError)
         {
           throw new Exception();
@@ -159,11 +142,13 @@ namespace KmyKeiba.Models.Logics
 
       if (link != null)
       {
-        await this.LoadAsync(link, JVLinkDataspec.Race, false);
+        var opt = this.StartTime.Value >= DateTime.Today.AddYears(-1) ?
+          JVLinkOpenOption.Normal : JVLinkOpenOption.Setup;
+        await this.LoadAsync(link, JVLinkDataspec.Race, opt);
       }
     }
 
-    public async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, bool isRealtime, string? raceKey,
+    public async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey,
       DateTime? startTime, DateTime? endTime)
     {
       if (startTime != null)
@@ -180,10 +165,10 @@ namespace KmyKeiba.Models.Logics
         this.IsSetEndTime.Value = false;
       }
 
-      await this.LoadAsync(link, dataspec, isRealtime, raceKey);
+      await this.LoadAsync(link, dataspec, option, raceKey);
     }
 
-    private async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, bool isRealtime, string? raceKey = null, int nest = 0)
+    private async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey = null, int nest = 0)
     {
       this.ResetProgresses();
       this.IsLoading.Value = true;
@@ -195,14 +180,14 @@ namespace KmyKeiba.Models.Logics
           logger.Info("Start Load JVLink");
           logger.Info($"Load Type: {link.GetType().Name}");
 
-          if (!isRealtime)
+          if (option != JVLinkOpenOption.RealTime)
           {
             using (var reader = link.StartRead(dataspec,
-              JVLinkOpenOption.Normal,
+              option,
               this.StartTime.Value,
               this.IsSetEndTime.Value ? this.EndTime.Value.AddDays(1) : null))
             {
-              await this.LoadAsync(reader, true, isRealtime);
+              await this.LoadAsync(reader, true, false);
             }
           }
           else
@@ -212,7 +197,7 @@ namespace KmyKeiba.Models.Logics
               using (var reader = link.StartRead(dataspec,
                 JVLinkOpenOption.RealTime, DateTime.Today))
               {
-                await this.LoadAsync(reader, false, isRealtime);
+                await this.LoadAsync(reader, false, true);
               }
             }
             else
@@ -220,7 +205,7 @@ namespace KmyKeiba.Models.Logics
               using (var reader = link.StartRead(dataspec,
                 JVLinkOpenOption.RealTime, raceKey))
               {
-                await this.LoadAsync(reader, false, isRealtime);
+                await this.LoadAsync(reader, false, true);
               }
             }
           }
@@ -328,6 +313,8 @@ namespace KmyKeiba.Models.Logics
         async Task SaveAsync<E, D, I>(List<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
           where E : EntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
         {
+          var copyed = entities.ToList();
+
           var ids = entities.Select(entityId).Distinct().ToList();
           var dataItems = await dataSet!
             .Where(dataIdSelector(ids))
@@ -337,10 +324,11 @@ namespace KmyKeiba.Models.Logics
             .OrderBy((i) => (short)i.Entity.DataStatus))
           {
             item.Data.SetEntity(item.Entity);
+            copyed.Remove(item.Entity);
             saved++;
           }
 
-          var items = entities
+          var items = copyed
             .Where((e) => !dataItems.Any((d) => dataId(d)!.Equals(entityId(e))))
             .Select((item) =>
             {
@@ -348,10 +336,11 @@ namespace KmyKeiba.Models.Logics
               obj.SetEntity(item);
               saved++;
               return obj;
-            })
-            .ToArray();
+            });
           await dataSet.AddRangeAsync(items);
           // saved += items.Count();
+
+          await db.SaveChangesAsync();
         }
 
         await SaveAsync(data.Races,
@@ -364,8 +353,6 @@ namespace KmyKeiba.Models.Logics
           (e) => e.Name + e.RaceKey,
           (d) => d.Name + d.RaceKey,
           (list) => e => list.Contains(e.Name + e.RaceKey));
-
-        await db.SaveChangesAsync();
 
         // 保存後のデータに他のデータを追加する
         this.ProcessSize.Value = 0;
@@ -408,8 +395,7 @@ namespace KmyKeiba.Models.Logics
           IEnumerable<string> ids = db.RaceHorses!
             .Where((h) => h.AfterThirdHalongTimeOrder == 0 && h.AfterThirdHalongTime != default)
             .Select((r) => r.RaceKey)
-            .Distinct()
-            .ToArray();
+            .Distinct();
           this.ProcessSize.Value += (int)Math.Ceiling(ids.Count() / 64.0f);
           while (ids.Any())
           {

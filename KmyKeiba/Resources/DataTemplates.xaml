@@ -232,12 +232,23 @@
     </Border>
   </DataTemplate>
 
+  <DataTemplate x:Key="HorseAnalyticsResultRowTemplate">
+    <StackPanel>
+      <TextBlock Text="{Binding Group.Label}" FontSize="16"/>
+      <TextBlock>
+        <Run Text="{Binding ThirdRatePercentage,StringFormat={}{0:N1},Mode=OneWay}"
+             FontWeight="Bold" FontSize="28"/><Run Text="%" FontSize="18"/>
+      </TextBlock>
+    </StackPanel>
+  </DataTemplate>
+
   <DataTemplate x:Key="RaceDetailTemplate">
     <Grid>
       <Grid.RowDefinitions>
         <RowDefinition Height="auto"/>
         <RowDefinition Height="auto"/>
         <RowDefinition Height="*"/>
+        <RowDefinition Height="auto"/>
       </Grid.RowDefinitions>
       <Grid.Resources>
         <ResourceDictionary>
@@ -251,6 +262,7 @@
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
           </Grid.ColumnDefinitions>
           <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -297,6 +309,8 @@
               <Run Text="{Binding Race.Value.Data.TrackOption,Converter={StaticResource TrackConverter}}" Foreground="{Binding Race.Value.Data.TrackOption,Converter={StaticResource TrackConverter}}"/>
             </TextBlock>
           </Grid>
+          <ToggleButton Grid.Column="4" Grid.RowSpan="3" VerticalAlignment="Center" Width="160" Height="40"
+                        Margin="0,0,16,0" Content="データ表示" IsChecked="{Binding IsDataMode.Value}"/>
         </Grid>
       </StackPanel>
       <vc:BindableScrollViewer Grid.Row="1"
@@ -546,7 +560,10 @@
                                    Text="{Binding Data.ResultTime,StringFormat=m\\:ss\\.f}"/>
                       </StackPanel>
                     </StackPanel>
-                    <ItemsControl ItemsSource="{Binding OldRaceHorses}" ItemTemplate="{StaticResource HorseGradeTemplate}"/>
+                    <ItemsControl ItemsSource="{Binding OldRaceHorses}" ItemTemplate="{StaticResource HorseGradeTemplate}"
+                                  Visibility="{Binding DataContext.IsDataMode.Value,Converter={StaticResource NegativeVisibilityConverter},RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                    <ItemsControl ItemsSource="{Binding AnalyticsResults}" ItemTemplate="{StaticResource HorseAnalyticsResultRowTemplate}"
+                                  Visibility="{Binding DataContext.IsDataMode.Value,Converter={StaticResource BooleanVisibilityConverter},RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
                   </StackPanel>
                 </Border>
               </DataTemplate>
@@ -554,6 +571,22 @@
           </ItemsControl>
         </StackPanel>
       </vc:BindableScrollViewer>
+      <ItemsControl Grid.Row="3" ItemsSource="{Binding AnalyticsFilters}"
+                    Visibility="{Binding IsDataMode.Value,Converter={StaticResource BooleanVisibilityConverter}}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border>
+              <CheckBox Content="{Binding Label}" IsChecked="{Binding IsEnabled.Value}"
+                        FontSize="16" Margin="12" IsEnabled="{Binding IsDataUpdating.Value,Converter={StaticResource NegativeConverter},RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
     </Grid>
   </DataTemplate>
 
@@ -564,7 +597,7 @@
         <RowDefinition Height="auto"/>
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
-      <TextBlock Text="{Binding Rider.Value.Data.DisplayName,Mode=OneTime}"
+      <TextBlock Text="{Binding Rider.Value.Data.DisplayName,Mode=OneWay}"
                  FontWeight="Bold" FontSize="32"/>
       <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="4,16,0,16">
         <Grid>
@@ -580,7 +613,7 @@
           <StackPanel Grid.RowSpan="2">
             <TextBlock FontSize="16" Text="中央の複勝率" HorizontalAlignment="Center"/>
             <TextBlock HorizontalAlignment="Center">
-              <Run FontSize="48" FontWeight="Bold" Text="{Binding Rider.Value.CentralGrades.ThirdRatePercentage,StringFormat={}{0:N1},Mode=OneTime}"/><Run FontSize="26" Text="%"/>
+              <Run FontSize="48" FontWeight="Bold" Text="{Binding Rider.Value.CentralGrades.ThirdRatePercentage,StringFormat={}{0:N1},Mode=OneWay}"/><Run FontSize="26" Text="%"/>
             </TextBlock>
           </StackPanel>
           <StackPanel Grid.Column="1" Grid.Row="0">
@@ -617,7 +650,7 @@
           <StackPanel Grid.RowSpan="2">
             <TextBlock FontSize="16" Text="地方の複勝率" HorizontalAlignment="Center"/>
             <TextBlock HorizontalAlignment="Center">
-              <Run FontSize="48" FontWeight="Bold" Text="{Binding Rider.Value.LocalGrades.ThirdRatePercentage,StringFormat={}{0:N1},Mode=OneTime}"/><Run FontSize="26" Text="%"/>
+              <Run FontSize="48" FontWeight="Bold" Text="{Binding Rider.Value.LocalGrades.ThirdRatePercentage,StringFormat={}{0:N1},Mode=OneWay}"/><Run FontSize="26" Text="%"/>
             </TextBlock>
           </StackPanel>
           <StackPanel Grid.Column="1" Grid.Row="0">

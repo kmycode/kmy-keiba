@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -27,7 +28,14 @@ namespace KmyKeiba.Converters
             bmp = new Bitmap(stream);
           }
 
-          return Imaging.CreateBitmapSourceFromHBitmap(bmp.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+          try
+          {
+            return Imaging.CreateBitmapSourceFromHBitmap(bmp.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+          }
+          finally
+          {
+            DeleteObject(bmp.GetHbitmap());
+          }
         }
 
         return null;
@@ -42,5 +50,9 @@ namespace KmyKeiba.Converters
     {
       throw new NotImplementedException();
     }
+
+    [DllImport("gdi32.dll", EntryPoint = "DeleteObject")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool DeleteObject([In] IntPtr hObject);
   }
 }
