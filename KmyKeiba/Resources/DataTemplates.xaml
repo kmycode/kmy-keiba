@@ -172,7 +172,8 @@
               <Run Text="{Binding Data.RiderWeight}"/>kg
               <Run Text="{Binding Data.Weight}"/>(<Run Text="{Binding Data.WeightDiff}"/>)
             </TextBlock>
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal"
+                        Visibility="{Binding Race.Value.IsCanceled.Value,Converter={StaticResource NegativeVisibilityConverter}}">
               <Border Width="30" Height="24" BorderBrush="#cccccc" BorderThickness="1" Margin="0,0,4,0"
                       Visibility="{Binding Data.FirstCornerOrder,Converter={StaticResource OrderNumberConverter}}"
                       Background="{Binding Data.FirstCornerOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}">
@@ -198,10 +199,17 @@
                             Text="{Binding Data.FourthCornerOrder}" FontSize="14"/>
               </Border>
             </StackPanel>
+            <Border VerticalAlignment="Stretch" Background="#dedede" Height="25"
+                    Visibility="{Binding Race.Value.IsCanceled.Value,Converter={StaticResource BooleanVisibilityConverter}}">
+              <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                         FontSize="16" FontWeight="Bold" Foreground="Red"
+                         Text="レース中止"/>
+            </Border>
             <StackPanel Orientation="Horizontal"
                         Visibility="{Binding Data.AbnormalResult,Converter={StaticResource AbnormalityResultConverter},ConverterParameter=Reverse}">
               <TextBlock FontSize="16" VerticalAlignment="Center">
-                <Run Text="{Binding Data.RunningStyle,Converter={StaticResource RunningStyleConverter}}"/>
+                <Run Text="{Binding Data.RunningStyle,Converter={StaticResource RunningStyleConverter}}"
+                     Foreground="{Binding Data.IsRunningStyleSetManually,Converter={StaticResource MachineLearningRunningStyleLabelConverter}}"/>
                 <Run Text="AH3:" FontSize="12"/>
               </TextBlock>
               <Border Background="{Binding Data.AfterThirdHalongTimeOrder,Converter={StaticResource OrderNumberConverter},ConverterParameter=Thin}"

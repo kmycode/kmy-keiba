@@ -33,7 +33,7 @@ namespace KmyKeiba.Data.DataObjects
 
     public ReactiveProperty<int> RiderFourthAndWorse { get; } = new();
 
-    public void SetEntity(RaceHorse entity)
+    private void SetEntity(RaceHorse entity)
     {
       this.Data.SetEntity(entity);
     }

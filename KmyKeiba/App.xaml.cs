@@ -32,6 +32,7 @@ namespace KmyKeiba
     protected override void RegisterTypes(IContainerRegistry containerRegistry)
     {
       containerRegistry.RegisterDialog<LoadJVLinkDialog>();
+      containerRegistry.RegisterDialog<PredictRunningStyleDialog>();
     }
   }
 }

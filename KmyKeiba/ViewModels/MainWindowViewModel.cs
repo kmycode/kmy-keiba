@@ -56,6 +56,12 @@ namespace KmyKeiba.ViewModels
         this.dialogService.ShowDialog("LoadJVLinkDialog");
         _ = this.model.LoadRacesAsync();
       });
+      this.OpenPredictRunningStyleCommand.Subscribe(() =>
+      {
+        this.dialogService.ShowDialog("PredictRunningStyleDialog");
+        _ = this.model.LoadRacesAsync();
+      });
+
       this.OpenJVLinkConfigCommand.Subscribe(() => this.model.OpenJVLinkConfig());
       this.OpenNVLinkConfigCommand.Subscribe(() => this.model.OpenNVLinkConfig());
       this.CloseTabCommand.Subscribe((t) => this.model.CloseTab(t));
@@ -90,6 +96,8 @@ namespace KmyKeiba.ViewModels
     public ReactiveCommand<string> OpenRiderCommand { get; } = new();
 
     public ReactiveCommand OpenJVLinkLoadDialogCommand { get; } = new();
+
+    public ReactiveCommand OpenPredictRunningStyleCommand { get; } = new();
 
     public ReactiveCommand OpenJVLinkConfigCommand { get; } = new();
 

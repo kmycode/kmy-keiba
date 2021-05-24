@@ -27,6 +27,8 @@ namespace KmyKeiba.Data.DataObjects
 
     public ReactiveProperty<bool> HasResults { get; } = new();
 
+    public ReactiveProperty<bool> IsCanceled { get; } = new();
+
     public void SetEntity(Race race)
     {
       this.Data.SetEntity(race);
@@ -36,6 +38,8 @@ namespace KmyKeiba.Data.DataObjects
 
     private void ReadData()
     {
+      this.IsCanceled.Value = this.Data.DataStatus == RaceDataStatus.Aborted;
+
       this.Subject.Value = RaceSubject.Parse(this.Data.SubjectName);
 
       this.Subject.Value.Grade = this.Data.Grade;
@@ -78,6 +82,22 @@ namespace KmyKeiba.Data.DataObjects
           Age = 6,
           Type = this.Data.SubjectAgeYounger,
         });
+      }
+
+      if ((short)this.Data.Course >= 30)
+      {
+        if (this.Subject.Value.Grade == RaceGrade.Grade1)
+        {
+          this.Subject.Value.Grade = RaceGrade.LocalGrade1;
+        }
+        if (this.Subject.Value.Grade == RaceGrade.Grade2)
+        {
+          this.Subject.Value.Grade = RaceGrade.LocalGrade2;
+        }
+        if (this.Subject.Value.Grade == RaceGrade.Grade3)
+        {
+          this.Subject.Value.Grade = RaceGrade.LocalGrade3;
+        }
       }
 
       if (!string.IsNullOrWhiteSpace(this.Data.Name))
@@ -179,11 +199,9 @@ namespace KmyKeiba.Data.DataObjects
           .Where((h) => h.Name == horse.Data.Name)
           .ToArrayAsync();
         var raceKeys = sameHorses.Select((h) => h.RaceKey).ToList();
-        var horseRaces = await db.Races!
+        var horseRaces = db.Races!
           .Where((r) => raceKeys.Contains(r.Key) && r.StartTime < this.Data.StartTime)
-          .OrderByDescending((r) => r.StartTime)
-          .Take(10)
-          .ToArrayAsync();
+          .OrderByDescending((r) => r.StartTime);
 
         var sameHorseObjects = new List<RaceHorseDataObject>();
         foreach (var sameHorse in sameHorses)
@@ -194,6 +212,12 @@ namespace KmyKeiba.Data.DataObjects
             var obj = new RaceHorseDataObject(sameHorse);
             obj.Race.Value = new RaceDataObject(horseRace);
             sameHorseObjects.Add(obj);
+
+            // 競馬新聞は過去10レースだけのせる
+            if (sameHorseObjects.Count >= 10)
+            {
+              break;
+            }
           }
         }
 

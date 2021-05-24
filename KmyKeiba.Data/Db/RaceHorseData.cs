@@ -111,6 +111,8 @@ namespace KmyKeiba.Data.Db
     /// </summary>
     public RunningStyle RunningStyle { get; set; }
 
+    public bool IsRunningStyleSetManually { get; set; }
+
     /// <summary>
     /// 勝負服の模様
     /// </summary>
@@ -145,8 +147,12 @@ namespace KmyKeiba.Data.Db
       this.WeightDiff = entity.WeightDiff;
       this.Odds = entity.Odds;
       this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
-      this.RunningStyle = entity.RunningStyle;
       this.AbnormalResult = entity.AbnormalResult;
+
+      if (!this.IsRunningStyleSetManually)
+      {
+        this.RunningStyle = entity.RunningStyle;
+      }
 
       if (this.UniformFormat != entity.UniformFormat)
       {

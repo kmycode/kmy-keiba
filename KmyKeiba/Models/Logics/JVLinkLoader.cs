@@ -202,7 +202,7 @@ namespace KmyKeiba.Models.Logics
               this.StartTime.Value,
               this.IsSetEndTime.Value ? this.EndTime.Value.AddDays(1) : null))
             {
-              await this.LoadAsync(reader, true);
+              await this.LoadAsync(reader, true, isRealtime);
             }
           }
           else
@@ -212,7 +212,7 @@ namespace KmyKeiba.Models.Logics
               using (var reader = link.StartRead(dataspec,
                 JVLinkOpenOption.RealTime, DateTime.Today))
               {
-                await this.LoadAsync(reader, false);
+                await this.LoadAsync(reader, false, isRealtime);
               }
             }
             else
@@ -220,7 +220,7 @@ namespace KmyKeiba.Models.Logics
               using (var reader = link.StartRead(dataspec,
                 JVLinkOpenOption.RealTime, raceKey))
               {
-                await this.LoadAsync(reader, false);
+                await this.LoadAsync(reader, false, isRealtime);
               }
             }
           }
@@ -263,7 +263,7 @@ namespace KmyKeiba.Models.Logics
       this.Processed.Value = 0;
     }
 
-    private async Task LoadAsync(IJVLinkReader reader, bool isProcessing)
+    private async Task LoadAsync(IJVLinkReader reader, bool isProcessing, bool isRealtime)
     {
       this.ResetProgresses();
 
@@ -346,11 +346,12 @@ namespace KmyKeiba.Models.Logics
             {
               var obj = new D();
               obj.SetEntity(item);
+              saved++;
               return obj;
             })
             .ToArray();
           await dataSet.AddRangeAsync(items);
-          saved += items.Count();
+          // saved += items.Count();
         }
 
         await SaveAsync(data.Races,
@@ -370,7 +371,9 @@ namespace KmyKeiba.Models.Logics
         this.ProcessSize.Value = 0;
         this.Processed.Value = 0;
 
+        if (isRealtime)
         {
+          // 単勝オッズを設定する
           var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.RaceKey).ToArray();
           var oddsRaceHorses = await db.RaceHorses!
             .Where((r) => oddsRaceKeys.Contains(r.RaceKey))
