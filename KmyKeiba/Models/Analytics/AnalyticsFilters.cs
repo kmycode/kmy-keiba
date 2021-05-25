@@ -20,13 +20,13 @@ namespace KmyKeiba.Models.Analytics
       this.Label = label;
     }
 
-    public abstract string Filtering(RaceHorseDataObject horse);
+    public abstract IEnumerable<HorseRaceAnalyticsData> Filtering(IEnumerable<HorseRaceAnalyticsData> data, RaceHorseDataObject horse);
   }
 
   class SameWeatherHorseAnalyticsFilter : HorseAnalyticsFilterBase
   {
-    public override string Filtering(RaceHorseDataObject horse)
-      => $"Races.TrackWeather = {(short)horse.Race.Value.Data.TrackWeather}";
+    public override IEnumerable<HorseRaceAnalyticsData> Filtering(IEnumerable<HorseRaceAnalyticsData> data, RaceHorseDataObject horse)
+      => data.Where((d) => d.Race.TrackWeather == horse.Race.Value.Data.TrackWeather);
 
     public SameWeatherHorseAnalyticsFilter() : base("天気")
     {
@@ -35,8 +35,9 @@ namespace KmyKeiba.Models.Analytics
 
   class NearCourseDistanceHorseAnalyticsFilter : HorseAnalyticsFilterBase
   {
-    public override string Filtering(RaceHorseDataObject horse)
-      => $"Races.Distance >= {horse.Race.Value.Data.Distance} - 100 AND Races.Distance <= {horse.Race.Value.Data.Distance}";
+    public override IEnumerable<HorseRaceAnalyticsData> Filtering(IEnumerable<HorseRaceAnalyticsData> data, RaceHorseDataObject horse)
+      => data.Where((d) => d.Race.Distance >= horse.Race.Value.Data.Distance - 100 &&
+                           d.Race.Distance <= horse.Race.Value.Data.Distance + 100);
 
     public NearCourseDistanceHorseAnalyticsFilter() : base("距離 ±100m")
     {
@@ -45,10 +46,30 @@ namespace KmyKeiba.Models.Analytics
 
   class SameRunningStyleHorseAnalyticsFilter : HorseAnalyticsFilterBase
   {
-    public override string Filtering(RaceHorseDataObject horse)
-      => $"Horse.RunningStyle = {(short)horse.MajorRunningStyle.Value}";
+    public override IEnumerable<HorseRaceAnalyticsData> Filtering(IEnumerable<HorseRaceAnalyticsData> data, RaceHorseDataObject horse)
+      => data.Where((d) => d.Horse.RunningStyle == horse.MajorRunningStyle.Value);
 
     public SameRunningStyleHorseAnalyticsFilter() : base("脚質")
+    {
+    }
+  }
+
+  class SameCourseHorseAnalyticsFilter : HorseAnalyticsFilterBase
+  {
+    public override IEnumerable<HorseRaceAnalyticsData> Filtering(IEnumerable<HorseRaceAnalyticsData> data, RaceHorseDataObject horse)
+      => data.Where((d) => d.Horse.Course == horse.Data.Course);
+
+    public SameCourseHorseAnalyticsFilter() : base("競馬場")
+    {
+    }
+  }
+
+  class SameCourseConditionHorseAnalyticsFilter : HorseAnalyticsFilterBase
+  {
+    public override IEnumerable<HorseRaceAnalyticsData> Filtering(IEnumerable<HorseRaceAnalyticsData> data, RaceHorseDataObject horse)
+      => data.Where((d) => d.Race.TrackCondition == horse.Race.Value.Data.TrackCondition);
+
+    public SameCourseConditionHorseAnalyticsFilter() : base("競馬場の状態")
     {
     }
   }

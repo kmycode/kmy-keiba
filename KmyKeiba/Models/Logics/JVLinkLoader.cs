@@ -21,6 +21,7 @@ namespace KmyKeiba.Models.Logics
 {
   class JVLinkLoader : IDisposable
   {
+    private static int alreadyOpenCount = 0;
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
     private readonly CompositeDisposable disposables = new();
@@ -217,6 +218,16 @@ namespace KmyKeiba.Models.Logics
           this.LoadErrorCode.Value = ex.Code;
           logger.Error($"error {ex.Code}");
           logger.Error("error", ex);
+
+          if (ex.Code == JVLinkLoadResult.AlreadyOpen)
+          {
+            alreadyOpenCount++;
+            if (alreadyOpenCount >= 10)
+            {
+              alreadyOpenCount = 0;
+              link.Dispose();
+            }
+          }
         }
         catch (JVLinkException<JVLinkReadResult> ex)
         {

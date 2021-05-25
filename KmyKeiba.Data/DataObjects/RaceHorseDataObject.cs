@@ -35,7 +35,7 @@ namespace KmyKeiba.Data.DataObjects
 
     public ReactiveProperty<int> RiderFourthAndWorse { get; } = new();
 
-    public ObservableCollection<HorseAnalyticsResult> AnalyticsResults { get; } = new();
+    public ReactiveCollection<HorseAnalyticsResult> AnalyticsResults { get; } = new();
 
     public ReactiveProperty<RunningStyle> MajorRunningStyle { get; } = new();
 
@@ -123,87 +123,53 @@ namespace KmyKeiba.Data.DataObjects
       this.Uniform.Value = this.Data.UniformFormatData!;
     }
 
-    public async Task AnalyticsAsync(string connectionString, string dbName, IEnumerable<IHorseAnalyticsGroup> groups,
+    public void Analytics(
+      IEnumerable<HorseRaceAnalyticsData> cache,
+      Func<IEnumerable<IHorseAnalyticsGroup>> groups,
       IEnumerable<IHorseAnalyticsFilter> filters)
     {
-      this.AnalyticsResults.Clear();
-
-      var connection = new MySqlConnection(connectionString);
-      await connection.OpenAsync();
-
-      using (var cmd = connection.CreateCommand())
+      var activeGroups = this.AnalyticsResults.Select((r) => r.Group).ToArray() as IEnumerable<IHorseAnalyticsGroup>;
+      if (!activeGroups.Any())
       {
-        cmd.CommandText = $"USE `{dbName}`";
-        await cmd.ExecuteNonQueryAsync();
+        activeGroups = groups();
       }
 
-      foreach (var group in groups)
       {
-        /*
-        var data = group.CreateAnalyticsGroup(db.RaceHorses!, this);
+        foreach (var group in activeGroups.Where((g) => g.GetCache(this) == null || g.GetCache(this)!.Count < 10000))
+        {
+          var data = group.CreateAnalyticsGroup(cache, this)
+            .Where((h) => h.Race.StartTime < this.Race.Value.Data.StartTime)
+            .OrderByDescending((h) => h.Race.StartTime)
+            .Take(10000)
+            .ToArray();
+          group.SetCache(data
+            .Select((d) => new HorseRaceAnalyticsData(d.Horse, d.Race))
+            .ToArray(), this);
+        }
+      }
+
+      this.AnalyticsResults.Clear();
+
+
+      foreach (var group in activeGroups)
+      {
+        var data = group.GetCache(this) as IEnumerable<HorseRaceAnalyticsData>;
+        if (data == null)
+        {
+          continue;
+        }
+
         foreach (var filter in filters.Where((f) => f.IsEnabled.Value))
         {
-          if (filter is IHorseOnlyAnalyticsFilter ho)
-          {
-            data = ho.Filtering(data, this);
-          }
-          else if (filter is IHorseRaceAnalyticsFilter hr)
-          {
-            data = hr.Filtering(data, db.Races!, this);
-          }
-        }
-        */
-        var whereQuery = new List<string>();
-        whereQuery.Add(group.CreateAnalyticsGroup(this));
-        foreach (var filter in filters.Where((f) => f.IsEnabled.Value))
-        {
-          whereQuery.Add(filter.Filtering(this));
-        }
-
-        async Task<int> GetCountQueryAsync(int order)
-        {
-          /*SELECT COUNT(*) FROM
-	(SELECT g.Id FROM (SELECT * FROM racehorses 
-	   ORDER BY RaceKey DESC LIMIT 30000) AS g
-		INNER JOIN Races ON g.RaceKey LIKE Races.Key
-		WHERE g.CourseCode = 36)
-	AS c;*/
-          var subject = string.Join(" AND ", whereQuery!);
-          if (order != 0)
-          {
-            if (string.IsNullOrEmpty(subject))
-            {
-              subject = $"Horse.ResultOrder = {order}";
-            }
-            else
-            {
-              subject = subject + $" AND Horse.ResultOrder = {order}";
-            }
-          }
-          var q =  @$"SELECT COUNT(*) FROM (SELECT Horse.Id FROM (SELECT * FROM RaceHorses
-ORDER BY RaceKey DESC LIMIT 20000) AS Horse
-INNER JOIN Races ON Horse.RaceKey LIKE Races.Key WHERE {subject}) AS c";
-
-          using var cmd = connection.CreateCommand();
-          cmd.CommandText = q;
-          cmd.CommandTimeout = 90;
-
-          using (var reader = await cmd.ExecuteReaderAsync())
-          {
-            await reader.ReadAsync();
-            var count = reader.GetValue(0).ToString();
-            int.TryParse(count, out int c);
-
-            return c;
-          }
+          data = filter.Filtering(data, this);
         }
 
         var result = new HorseAnalyticsResult(group)
         {
-          AllCount = await GetCountQueryAsync(0),
-          First = await GetCountQueryAsync(1),
-          Second = await GetCountQueryAsync(2),
-          Third = await GetCountQueryAsync(3),
+          AllCount = data!.Count(),
+          First = data!.Count((c) => c.Horse.ResultOrder == 1),
+          Second = data!.Count((c) => c.Horse.ResultOrder == 2),
+          Third = data!.Count((c) => c.Horse.ResultOrder == 3),
         };
         this.AnalyticsResults.Add(result);
       }
@@ -214,9 +180,15 @@ INNER JOIN Races ON Horse.RaceKey LIKE Races.Key WHERE {subject}) AS c";
   {
     public string Label { get; }
 
+    public IReadOnlyList<HorseRaceAnalyticsData>? GetCache(RaceHorseDataObject horse);
+
+    public void SetCache(IReadOnlyList<HorseRaceAnalyticsData> cache, RaceHorseDataObject horse);
+
     // IQueryable<RaceHorseData> CreateAnalyticsGroup(IQueryable<RaceHorseData> horses, RaceHorseDataObject horse);
 
-    string CreateAnalyticsGroup(RaceHorseDataObject horse);
+    // string CreateAnalyticsGroup(RaceHorseDataObject horse);
+
+    IEnumerable<HorseRaceAnalyticsData> CreateAnalyticsGroup(IEnumerable<HorseRaceAnalyticsData> horses, RaceHorseDataObject horse);
   }
 
   public interface IHorseAnalyticsFilter
@@ -225,7 +197,7 @@ INNER JOIN Races ON Horse.RaceKey LIKE Races.Key WHERE {subject}) AS c";
 
     ReactiveProperty<bool> IsEnabled { get; }
 
-    string Filtering(RaceHorseDataObject horse);
+    IEnumerable<HorseRaceAnalyticsData> Filtering(IEnumerable<HorseRaceAnalyticsData> data, RaceHorseDataObject horse);
   }
 
   public interface IHorseOnlyAnalyticsFilter : IHorseAnalyticsFilter
@@ -236,6 +208,19 @@ INNER JOIN Races ON Horse.RaceKey LIKE Races.Key WHERE {subject}) AS c";
   public interface IHorseRaceAnalyticsFilter : IHorseAnalyticsFilter
   {
     IQueryable<RaceHorseData> Filtering(IQueryable<RaceHorseData> query, IQueryable<RaceData> races, RaceHorseDataObject horse);
+  }
+
+  public class HorseRaceAnalyticsData
+  {
+    public RaceHorseData Horse { get; }
+
+    public RaceData Race { get; }
+
+    public HorseRaceAnalyticsData(RaceHorseData horse, RaceData race)
+    {
+      this.Horse = horse;
+      this.Race = race;
+    }
   }
 
   public class HorseAnalyticsResult

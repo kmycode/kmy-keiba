@@ -233,12 +233,36 @@
   </DataTemplate>
 
   <DataTemplate x:Key="HorseAnalyticsResultRowTemplate">
-    <StackPanel>
-      <TextBlock Text="{Binding Group.Label}" FontSize="16"/>
+    <StackPanel Margin="8,0,8,16">
+      <TextBlock Text="{Binding Group.Label}" FontSize="14"/>
       <TextBlock>
         <Run Text="{Binding ThirdRatePercentage,StringFormat={}{0:N1},Mode=OneWay}"
-             FontWeight="Bold" FontSize="28"/><Run Text="%" FontSize="18"/>
+             FontWeight="Bold" FontSize="36"/><Run Text="%" FontSize="18"/>
       </TextBlock>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="1.6*"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition/>
+          <RowDefinition/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Column="0" Text="全" FontSize="14" HorizontalAlignment="Center"/>
+        <TextBlock Grid.Column="0" Grid.Row="1" Text="{Binding AllCount}" FontSize="22"
+                   FontWeight="Bold" HorizontalAlignment="Center"/>
+        <TextBlock Grid.Column="1" Text="1" FontSize="14" HorizontalAlignment="Center"/>
+        <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding First}" FontSize="16"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <TextBlock Grid.Column="2" Text="2" FontSize="14" HorizontalAlignment="Center"/>
+        <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding Second}" FontSize="16"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <TextBlock Grid.Column="3" Text="3" FontSize="14" HorizontalAlignment="Center"/>
+        <TextBlock Grid.Column="3" Grid.Row="1" Text="{Binding Third}" FontSize="16"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      </Grid>
     </StackPanel>
   </DataTemplate>
 
@@ -582,7 +606,7 @@
           <DataTemplate>
             <Border>
               <CheckBox Content="{Binding Label}" IsChecked="{Binding IsEnabled.Value}"
-                        FontSize="16" Margin="12" IsEnabled="{Binding IsDataUpdating.Value,Converter={StaticResource NegativeConverter},RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                        FontSize="16" Margin="12" IsEnabled="{Binding DataContext.IsDataUpdating.Value,Converter={StaticResource NegativeConverter},RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
             </Border>
           </DataTemplate>
         </ItemsControl.ItemTemplate>

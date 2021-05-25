@@ -10,12 +10,15 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace KmyKeiba.Models.Logics.Tabs
 {
   class RaceTabFrame : TabFrame, IDisposable
   {
     private readonly CompositeDisposable disposables = new();
+    private readonly DispatcherTimer timer = new();
+    private bool isAnalytics;
 
     public ReactiveProperty<RaceDataObject> Race { get; } = new();
 
@@ -23,7 +26,7 @@ namespace KmyKeiba.Models.Logics.Tabs
 
     public ReactiveProperty<bool> IsDataUpdating { get; } = new();
 
-    public List<IHorseAnalyticsGroup> AnalyticsGroups { get; } = new()
+    private Func<IEnumerable<IHorseAnalyticsGroup>> AnalyticsGroups { get; } = () => new IHorseAnalyticsGroup[]
     {
       new SelfHorseAnalyticsGroup(),
       new RiderHorseAnalyticsGroup(),
@@ -35,6 +38,8 @@ namespace KmyKeiba.Models.Logics.Tabs
       new SameWeatherHorseAnalyticsFilter(),
       new NearCourseDistanceHorseAnalyticsFilter(),
       new SameRunningStyleHorseAnalyticsFilter(),
+      new SameCourseHorseAnalyticsFilter(),
+      new SameCourseConditionHorseAnalyticsFilter(),
     };
 
     public RaceTabFrame()
@@ -59,22 +64,40 @@ namespace KmyKeiba.Models.Logics.Tabs
       {
         await this.UpdateAnalyticsAsync();
       }).AddTo(this.disposables);
+
+      this.timer.Interval = TimeSpan.FromSeconds(30);
+      this.timer.Tick += (sender, e) =>
+      {
+        if (this.isAnalytics)
+        {
+          this.UpdateAnalyticsAsync();
+        }
+      };
+      this.disposables.Add(Disposable.Create(() => this.timer.Stop()));
+      this.timer.Start();
     }
 
     private async Task UpdateAnalyticsAsync()
     {
-      if (this.Race.Value == null)
+      if (this.Race.Value == null || this.IsDataUpdating.Value)
       {
         return;
       }
 
-      var dbConfig = DatabaseConfigManager.GetCurrentConfigFile();
-
       this.IsDataUpdating.Value = true;
-      foreach (var horse in this.Race.Value.Horses)
+      this.isAnalytics = true;
+
+      try
       {
-        await horse.AnalyticsAsync(dbConfig.GetConnectionString(), dbConfig.Database, this.AnalyticsGroups, this.AnalyticsFilters);
+        foreach (var horse in this.Race.Value.Horses)
+        {
+          horse.Analytics(CacheDataManager.Cache, this.AnalyticsGroups, this.AnalyticsFilters);
+        }
       }
+      catch
+      {
+      }
+
       this.IsDataUpdating.Value = false;
     }
 

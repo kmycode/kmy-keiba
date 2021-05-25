@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Data.DataObjects;
 using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,19 @@ namespace KmyKeiba.Models.Analytics
   {
     public string Label { get; }
 
-    public abstract string CreateAnalyticsGroup(RaceHorseDataObject horse);
+    private IReadOnlyList<HorseRaceAnalyticsData>? cache;
+
+    public virtual IReadOnlyList<HorseRaceAnalyticsData>? GetCache(RaceHorseDataObject horse)
+    {
+      return this.cache;
+    }
+
+    public virtual void SetCache(IReadOnlyList<HorseRaceAnalyticsData> cache, RaceHorseDataObject horse)
+    {
+      this.cache = cache;
+    }
+
+    public abstract IEnumerable<HorseRaceAnalyticsData> CreateAnalyticsGroup(IEnumerable<HorseRaceAnalyticsData> horses, RaceHorseDataObject horse);
 
     protected HorseAnalyticsGroupBase(string label)
     {
@@ -22,8 +35,8 @@ namespace KmyKeiba.Models.Analytics
 
   class SelfHorseAnalyticsGroup : HorseAnalyticsGroupBase
   {
-    public override string CreateAnalyticsGroup(RaceHorseDataObject horse)
-      => $"Horse.Name LIKE '{horse.Data.Name}'";
+    public override IEnumerable<HorseRaceAnalyticsData> CreateAnalyticsGroup(IEnumerable<HorseRaceAnalyticsData> horses, RaceHorseDataObject horse)
+      => horses.Where((h) => h.Horse.Name == horse.Data.Name);
 
     public SelfHorseAnalyticsGroup() : base("この馬の成績")
     {
@@ -32,8 +45,24 @@ namespace KmyKeiba.Models.Analytics
 
   class RiderHorseAnalyticsGroup : HorseAnalyticsGroupBase
   {
-    public override string CreateAnalyticsGroup(RaceHorseDataObject horse)
-      => $"Horse.RiderCode LIKE '{horse.Data.RiderCode}'";
+    private static readonly Dictionary<string, IReadOnlyList<HorseRaceAnalyticsData>> caches = new();
+
+    public override IReadOnlyList<HorseRaceAnalyticsData>? GetCache(RaceHorseDataObject horse)
+    {
+      if (caches.TryGetValue(horse.Data.RiderCode, out var value))
+      {
+        return value;
+      }
+      return null;
+    }
+
+    public override void SetCache(IReadOnlyList<HorseRaceAnalyticsData> cache, RaceHorseDataObject horse)
+    {
+      caches[horse.Data.RiderCode] = cache;
+    }
+
+    public override IEnumerable<HorseRaceAnalyticsData> CreateAnalyticsGroup(IEnumerable<HorseRaceAnalyticsData> horses, RaceHorseDataObject horse)
+      => horses.Where((h) => h.Horse.RiderCode == horse.Data.RiderCode);
 
     public RiderHorseAnalyticsGroup() : base("騎手の成績")
     {
@@ -42,8 +71,24 @@ namespace KmyKeiba.Models.Analytics
 
   class CourseHorseAnalyticsGroup : HorseAnalyticsGroupBase
   {
-    public override string CreateAnalyticsGroup(RaceHorseDataObject horse)
-      => $"Horse.CourseCode = {(short)horse.Data.Course}";
+    private static readonly Dictionary<RaceCourse, IReadOnlyList<HorseRaceAnalyticsData>> caches = new();
+
+    public override IReadOnlyList<HorseRaceAnalyticsData>? GetCache(RaceHorseDataObject horse)
+    {
+      if (caches.TryGetValue(horse.Data.Course, out var value))
+      {
+        return value;
+      }
+      return null;
+    }
+
+    public override void SetCache(IReadOnlyList<HorseRaceAnalyticsData> cache, RaceHorseDataObject horse)
+    {
+      caches[horse.Data.Course] = cache;
+    }
+
+    public override IEnumerable<HorseRaceAnalyticsData> CreateAnalyticsGroup(IEnumerable<HorseRaceAnalyticsData> horses, RaceHorseDataObject horse)
+      => horses.Where((h) => h.Horse.Course == horse.Data.Course);
 
     public CourseHorseAnalyticsGroup() : base("競馬場の傾向")
     {

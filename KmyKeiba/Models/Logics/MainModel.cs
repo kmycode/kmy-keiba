@@ -38,6 +38,7 @@ namespace KmyKeiba.Models.Logics
     public MainModel()
     {
       _ = this.InitializeAsync();
+      CacheDataManager.BeginCache();
     }
 
     private async Task InitializeAsync()
