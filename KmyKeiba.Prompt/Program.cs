@@ -23,6 +23,7 @@ using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Logics.Logics;
 using KmyKeiba.Prompt.Models.Brains;
 using System.Threading;
+using System.Text;
 
 namespace KmyKeiba.Prompt
 {
@@ -48,6 +49,8 @@ namespace KmyKeiba.Prompt
 
     static void Main(string[] args)
     {
+      Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
       using (var db = new MyContext())
       {
         db.Database.Migrate();
@@ -76,6 +79,7 @@ namespace KmyKeiba.Prompt
   dl <load|save> <fileName without extensions>
   dl predict <racekey>         予測
   dl training <yyyymmdd-yyyymmdd> トレーニング
+  dl reset                     学習データのリセット
 ";
       }
 
@@ -99,7 +103,7 @@ namespace KmyKeiba.Prompt
 
 コマンドを入力してください...
 ");
-        var input = Console.ReadLine();
+        var input = Console.ReadLine() ?? string.Empty;
 
         var parameters = input.Split(" ");
         var command = parameters[0];
@@ -228,6 +232,9 @@ namespace KmyKeiba.Prompt
                   {
                     Learning(parameters[2]);
                   }
+                  break;
+                case "reset":
+                  ai!.Reset();
                   break;
                 default:
                   Console.WriteLine("パラメータが不正です");
@@ -488,20 +495,17 @@ namespace KmyKeiba.Prompt
       }
 
       Console.WriteLine("ファイルロード中...");
-      Task.Run(() =>
+      try
       {
-        try
-        {
-          ai.LoadFile(fileName);
-        }
-        catch (Exception ex)
-        {
-          Console.WriteLine("読み込めませんでした");
-          Console.WriteLine(ex.Message);
-          Console.WriteLine(ex.StackTrace);
-          Console.ReadLine();
-        }
-      }).Wait();
+        ai.LoadFile(fileName);
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine("読み込めませんでした");
+        Console.WriteLine(ex.Message);
+        Console.WriteLine(ex.StackTrace);
+        Console.ReadLine();
+      }
     }
 
     static void SaveLearningData(string fileName)
@@ -519,20 +523,17 @@ namespace KmyKeiba.Prompt
       }
 
       Console.WriteLine("ファイル保存中...");
-      Task.Run(() =>
+      try
       {
-        try
-        {
-          ai.SaveFile(fileName);
-        }
-        catch (Exception ex)
-        {
-          Console.WriteLine("保存できませんでした");
-          Console.WriteLine(ex.Message);
-          Console.WriteLine(ex.StackTrace);
-          Console.ReadLine();
-        }
-      }).Wait();
+        ai.SaveFile(fileName);
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine("保存できませんでした");
+        Console.WriteLine(ex.Message);
+        Console.WriteLine(ex.StackTrace);
+        Console.ReadLine();
+      }
     }
 
     static void Learning(string dateFormat)
@@ -569,6 +570,70 @@ namespace KmyKeiba.Prompt
       Learning(startTime, endTime ?? DateTime.Today);
     }
 
+    class DataLoader
+    {
+      public int TotalHorses { get; set; }
+
+      public int Learned { get; set; }
+
+      public float[,] Data { get; set; } = new float[0, 0];
+
+      public float[] Results { get; set; } = new float[0];
+
+      public async Task LearnAsync(DateTime f1, DateTime f2)
+      {
+        using (var db = new MyContext())
+        {
+          var races = await db.Races!
+            .Where((r) => r.StartTime >= f1 && r.StartTime < f2)
+            .ToArrayAsync();
+          var raceKeys = races.Select((r) => r.Key).ToArray();
+          var allHorsesCount = await db.RaceHorses!.CountAsync((h) => raceKeys.Contains(h.RaceKey) && h.ResultOrder <= 8 && h.ResultOrder != 0);
+
+          var shape = LearningData.GetShape();
+          var row = 0;
+          var data = new float[allHorsesCount, shape];
+          var results = new float[allHorsesCount];
+          this.Data = data;
+          this.Results = results;
+
+          this.TotalHorses = allHorsesCount;
+
+          foreach (var race in races)
+          {
+            var horses = await db.RaceHorses!.Where((h) => h.ResultOrder <= 8 && h.ResultOrder != 0 && h.RaceKey == race.Key).ToArrayAsync();
+            foreach (var horse in horses)
+            {
+              var history = await db.RaceHorses!
+                .Where((h) => h.Name == horse.Name && h.ResultOrder != 0)
+                .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Race = r, Horse = h, })
+                .Where((d) => d.Race.StartTime < race.StartTime)
+                .OrderByDescending((d) => d.Race.StartTime)
+                .Take(5)
+                .ToArrayAsync();
+              var rawData = LearningData.Create(race, horse, history.Select((h) => (h.Race, h.Horse)));
+              var raw = rawData.ToArray();
+              for (var i = 0; i < shape; i++)
+              {
+                data[row, i] = raw[i];
+              }
+              results[row] = rawData.Result;
+              row++;
+
+              this.Learned++;
+            }
+          }
+
+          /*
+          var races = await db.Races!
+            .Where((r) => r.StartTime >= from && r.StartTime < to)
+            .Join(db.RaceHorses!, (h) => h.Key, (r) => r.RaceKey, (h, r) => new { Horse = r, Race = h, })
+            .Where((d) => d.Horse.ResultOrder != 0);
+          */
+        }
+      }
+    }
+
     static void Learning(DateTime from, DateTime to)
     {
       if (ai == null)
@@ -576,24 +641,56 @@ namespace KmyKeiba.Prompt
         return;
       }
 
-      var data = new float[0, 0];
-      var results = new float[0];
+      Console.WriteLine();
+      Console.WriteLine();
+      Console.WriteLine();
+      Console.WriteLine("レースのロード中...");
 
-      Task.Run(async () =>
+      var splits = 8;
+      var seconds = (to - from).TotalSeconds / splits;
+      var d1 = from;
+      var d2 = from.AddSeconds(seconds);
+      var tasks = new List<Task>();
+      var learnings = new List<DataLoader>();
+      for (var m = 0; m < splits; m++)
       {
-        using (var db = new MyContext())
-        {
-          /*
-          var races = await db.Races!
-            .Where((r) => r.StartTime >= from && r.StartTime < to)
-            .Join(db.RaceHorses!, (h) => h.Key, (r) => r.RaceKey, (h, r) => new { Horse = r, Race = h, })
-            .Where((d) => d.Horse.ResultOrder != 0)
-            .ToArrayAsync();
-          */
-        }
-      }).Wait();
+        var learning = new DataLoader();
+        learnings.Add(learning);
+        tasks.Add(learning.LearnAsync(d1, d2));
+        d1 = d1.AddSeconds(seconds);
+        d2 = d2.AddSeconds(seconds);
+      }
+      while (!tasks.All((t) => t.IsCompleted))
+      {
+        StepProgress(learnings.Sum((l) => l.Learned), learnings.Sum((l) => l.TotalHorses));
+        Task.Delay(1000).Wait();
+      }
 
+      var data = new float[learnings.Sum((l) => l.Data.GetLength(0)), LearningData.GetShape()];
+      var results = new float[learnings.Sum((l) => l.Results.Length)];
+      var i = 0;
+      foreach (var learning in learnings)
+      {
+        for (var j = 0; j < learning.Data.GetLength(0); j++)
+        {
+          for (var k = 0; k < learning.Data.GetLength(1); k++)
+          {
+            data[i, k] = learning.Data[j, k];
+          }
+          results[i] = learning.Results[j];
+          i++;
+        }
+      }
+
+      Console.WriteLine();
+      Console.WriteLine("トレーニング中...");
       ai.Training(data, results);
+
+      Console.WriteLine();
+      Console.WriteLine();
+      Console.WriteLine();
+      Console.WriteLine("トレーニングが完了しました。損失値を確認してください");
+      Console.ReadLine();
     }
 
     static void PredictRunningStyles(string fileName, string saveFileName)
@@ -645,7 +742,12 @@ namespace KmyKeiba.Prompt
         return;
       }
 
-      var data = new float[0, 0];
+      Console.WriteLine();
+      Console.WriteLine();
+      Console.WriteLine();
+      Console.WriteLine("データ読み込み中...");
+
+      List<(float[,] DataSet, RaceHorseData Horse)> dataSets = new();
 
       Task.Run(async () =>
       {
@@ -658,7 +760,35 @@ namespace KmyKeiba.Prompt
           var race = await db.Races!.FirstOrDefaultAsync((r) => r.Key == key);
           if (race != null)
           {
-            var horses = await db.RaceHorses!.Where((h) => h.RaceKey == key).OrderBy((h) => h.Number).ToArrayAsync();
+            var horses = await db.RaceHorses!
+              .Where((h) => h.RaceKey == key)
+              .OrderBy((h) => h.Number)
+              .ToArrayAsync();
+
+            var progress = 0;
+            StepProgress(0, horses.Length);
+
+            foreach (var horse in horses)
+            {
+              var history = await db.RaceHorses!
+                .Where((h) => h.Name == horse.Name && h.AbnormalResult == RaceAbnormality.Unknown)
+                .Join(db.Races!.Where((r) => r.StartTime < race.StartTime), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Race = r, Horse = h, })
+                .OrderByDescending((d) => d.Race.StartTime)
+                .Take(5)
+                .ToArrayAsync();
+              var rawData = LearningData.Create(race, horse, history.Select((h) => (h.Race, h.Horse)));
+              var raw = rawData.ToArray();
+
+              var shape = LearningData.GetShape();
+              var dataSet = new float[1, shape];
+              for (var i = 0; i < shape; i++)
+              {
+                dataSet[0, i] = raw[i];
+              }
+              dataSets.Add((dataSet, horse));
+
+              StepProgress(++progress, horses.Length);
+            }
           }
           else
           {
@@ -668,10 +798,18 @@ namespace KmyKeiba.Prompt
         }
       }).Wait();
 
-      Console.WriteLine();
-      Console.WriteLine();
-      Console.WriteLine();
-      Console.WriteLine(ai.Predict(data)[0]);
+      var predicted = new List<(float Prediction, RaceHorseData Horse)>();
+      foreach (var dataSet in dataSets)
+      {
+        var prediction = ai.Predict(dataSet.DataSet);
+        predicted.Add((prediction[0], dataSet.Horse));
+      }
+      foreach (var p in predicted.OrderByDescending((pp) => pp.Prediction))
+      {
+        Console.Write($"{p.Horse.Number} : {p.Horse.Name}\n");
+        Console.Write($"{p.Prediction}\n\n");
+      }
+
       Console.ReadLine();
     }
 

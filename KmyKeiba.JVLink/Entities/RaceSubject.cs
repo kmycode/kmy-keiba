@@ -463,6 +463,15 @@ namespace KmyKeiba.JVLink.Entities
 
     [RaceGradeInfo("Jpn3", RaceGradeType.Grade, "Jpn3")]
     LocalGrade3 = 103,
+
+    [RaceGradeInfo("JpnD", RaceGradeType.NoNamedGrade, "G")]
+    LocalNoNamedGrade = 104,
+
+    [RaceGradeInfo("JpnE", RaceGradeType.NonGradeSpecial, "特別")]
+    LocalNonGradeSpecial = 105,
+
+    [RaceGradeInfo("JpnL", RaceGradeType.Listed, "L")]
+    LocalListed = 109,
   }
 
   class RaceSubjectTypeInfoAttribute : Attribute
