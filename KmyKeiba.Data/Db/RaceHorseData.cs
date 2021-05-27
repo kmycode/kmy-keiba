@@ -15,6 +15,10 @@ namespace KmyKeiba.Data.Db
 
     public string Name { get; set; } = string.Empty;
 
+    public short Age { get; set; }
+
+    public HorseSex Sex { get; set; }
+
     [Column("CourseCode")]
     public RaceCourse Course { get; set; }
 
@@ -97,6 +101,16 @@ namespace KmyKeiba.Data.Db
     public float Odds { get; set; }
 
     /// <summary>
+    /// 最低複勝オッズ
+    /// </summary>
+    public float PlaceOddsMin { get; set; }
+
+    /// <summary>
+    /// 最大複勝オッズ
+    /// </summary>
+    public float PlaceOddsMax { get; set; }
+
+    /// <summary>
     /// 後３ハロンタイム
     /// </summary>
     public TimeSpan AfterThirdHalongTime { get; set; }
@@ -129,6 +143,8 @@ namespace KmyKeiba.Data.Db
       this.LastModified = entity.LastModified;
       this.DataStatus = entity.DataStatus;
       this.Name = entity.Name;
+      this.Age = entity.Age;
+      this.Sex = entity.Sex;
       this.Number = entity.Number;
       this.Popular = entity.Popular;
       this.RaceKey = entity.RaceKey;

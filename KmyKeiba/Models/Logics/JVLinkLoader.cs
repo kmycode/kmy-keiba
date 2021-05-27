@@ -384,7 +384,7 @@ namespace KmyKeiba.Models.Logics
               .Where((h) => h.RaceKey == odds.RaceKey);
             foreach (var horse in horses)
             {
-              var o = odds.SingleOdds.FirstOrDefault((oo) => oo.HorseNumber == horse.Number);
+              var o = odds.Odds.FirstOrDefault((oo) => oo.HorseNumber == horse.Number);
               if (o.HorseNumber != default)
               {
                 horse.Odds = o.Odds;

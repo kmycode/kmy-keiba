@@ -15,6 +15,20 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<RaceHorseData>? RaceHorses { get; set; }
 
+    public DbSet<FrameNumberOddsData>? FrameNumberOdds { get; set; }
+
+    public DbSet<QuinellaOddsData>? QuinellaOdds { get; set; }
+
+    public DbSet<QuinellaPlaceOddsData>? QuinellaPlaceOdds { get; set; }
+
+    public DbSet<ExactaOddsData>? ExactaOdds { get; set; }
+
+    public DbSet<TrioOddsData>? TrioOdds { get; set; }
+
+    public DbSet<TrifectaOddsData>? TrifectaOdds { get; set; }
+
+    public DbSet<RefundData>? Refunds { get; set; }
+
     protected string ConnectionString { get; set; } = string.Empty;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

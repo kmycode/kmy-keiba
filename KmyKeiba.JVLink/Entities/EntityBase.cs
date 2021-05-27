@@ -6,7 +6,14 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.JVLink.Entities
 {
-  public abstract class EntityBase
+  public interface IEntityBase
+  {
+    public DateTime LastModified { get; set; }
+
+    public RaceDataStatus DataStatus { get; set; }
+  }
+
+  public abstract class EntityBase : IEntityBase
   {
     public DateTime LastModified { get; set; }
 

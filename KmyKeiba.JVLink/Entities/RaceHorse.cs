@@ -20,6 +20,16 @@ namespace KmyKeiba.JVLink.Entities
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// 年齢
+    /// </summary>
+    public short Age { get; set; }
+
+    /// <summary>
+    /// 性別
+    /// </summary>
+    public HorseSex Sex { get; set; }
+
+    /// <summary>
     /// 番号
     /// </summary>
     public int Number { get; set; }
@@ -118,6 +128,8 @@ namespace KmyKeiba.JVLink.Entities
 
     internal static RaceHorse FromJV(JVData_Struct.JV_SE_RACE_UMA uma)
     {
+      short.TryParse(uma.Barei.Trim(), out short age);
+      short.TryParse(uma.SexCD.Trim(), out short sex);
       int.TryParse(uma.Umaban.Trim(), out int num);
       int.TryParse(uma.Wakuban.Trim(), out int wakuNum);
       int.TryParse(uma.KakuteiJyuni.Trim(), out int result);
@@ -153,6 +165,8 @@ namespace KmyKeiba.JVLink.Entities
         LastModified = uma.head.MakeDate.ToDateTime(),
         DataStatus = uma.head.DataKubun.ToDataStatus(),
         RaceKey = uma.id.ToRaceKey(),
+        Age = age,
+        Sex = (HorseSex)sex,
         Course = (RaceCourse)course,
         Name = uma.Bamei.Trim(),
         Number = num,
@@ -217,6 +231,14 @@ namespace KmyKeiba.JVLink.Entities
 
     [RaceAbnormalityInfo("降着")]
     DisqualifiedAndPlaced = 7,
+  }
+
+  public enum HorseSex : short
+  {
+    Unknown,
+    Male = 1,
+    Female = 2,
+    Castrated = 3,
   }
 
   public enum RunningStyle : short
