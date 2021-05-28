@@ -24,6 +24,9 @@ using KmyKeiba.Logics.Logics;
 using KmyKeiba.Prompt.Models.Brains;
 using System.Threading;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
+using System.Reflection;
 
 namespace KmyKeiba.Prompt
 {
@@ -51,6 +54,9 @@ namespace KmyKeiba.Prompt
     {
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+      // var g = new KerasModel();
+      // g.Training(new float[,] { { 0, 0, 0 }, { 1,0,0, } }, new float[] { 1, 0 });
+
       using (var db = new MyContext())
       {
         db.Database.Migrate();
@@ -64,10 +70,10 @@ namespace KmyKeiba.Prompt
       Console.Clear();
       var isExit = false;
 
-      var addMenu = "";
+      Func<string> addMenu;
       if (!isX64)
       {
-        addMenu = @"
+        addMenu = () => @"
   update                       最新データ取得
   update <yyyymmdd-yyyymmdd>   指定期間データ取得
   update <yyyymmdd>            指定日以降データ取得
@@ -75,11 +81,15 @@ namespace KmyKeiba.Prompt
       }
       else
       {
-        addMenu = @"
+        addMenu = () => $@"
   dl <load|save> <fileName without extensions>
-  dl predict <racekey>         予測
-  dl training <yyyymmdd-yyyymmdd> トレーニング
-  dl reset                     学習データのリセット
+  dl predict <racekey>
+  dl <training|simulate> <yyyymmdd-yyyymmdd>
+  dl retraining
+  dl config <epochs|batch_size|activation|optimizer|loss|isreguressor> <value>
+    ep:{ai!.Epochs}  ba:{ai!.BatchSize}  ac:{ai!.Activation}
+    op:{ai!.Optimizer}  lo:{ai!.Loss} is:{ai!.IsKerasReguressor}
+  dl reset
 ";
       }
 
@@ -95,7 +105,7 @@ namespace KmyKeiba.Prompt
 
   races                        今日のレース一覧
   race <key>                   レース情報表示
-{addMenu}
+{addMenu()}
   ml rs                        脚質判定（機械学習）
 
   exit                         終了
@@ -222,6 +232,17 @@ namespace KmyKeiba.Prompt
                     PredictRaceResult(parameters[2]);
                   }
                   break;
+                case "simulate":
+                  if (parameters.Length != 3)
+                  {
+                    Console.WriteLine("パラメータが不正です");
+                    Task.Delay(3000).Wait();
+                  }
+                  else
+                  {
+                    SimulateRaceResults(parameters[2]);
+                  }
+                  break;
                 case "training":
                   if (parameters.Length != 3)
                   {
@@ -235,6 +256,20 @@ namespace KmyKeiba.Prompt
                   break;
                 case "reset":
                   ai!.Reset();
+                  break;
+                case "retraining":
+                  ReLearning();
+                  break;
+                case "config":
+                  if (parameters.Length != 4)
+                  {
+                    Console.WriteLine("パラメータが不正です");
+                    Task.Delay(3000).Wait();
+                  }
+                  else
+                  {
+                    SetConfig(parameters[2], parameters[3]);
+                  }
                   break;
                 default:
                   Console.WriteLine("パラメータが不正です");
@@ -584,8 +619,14 @@ namespace KmyKeiba.Prompt
       {
         using (var db = new MyContext())
         {
+          Expression<Func<RaceData, bool>> subject =
+            mode == "地方" ? (r) => (short)r.Course >= 30 :
+                              (r) => (short)r.Course < 30;
+
           var races = await db.Races!
             .Where((r) => r.StartTime >= f1 && r.StartTime < f2)
+            .Where((r) => r.TrackType == TrackType.Flat)
+            .Where(subject)
             .ToArrayAsync();
           var raceKeys = races.Select((r) => r.Key).ToArray();
           var allHorsesCount = await db.RaceHorses!.CountAsync((h) => raceKeys.Contains(h.RaceKey) && h.ResultOrder <= 8 && h.ResultOrder != 0);
@@ -601,9 +642,18 @@ namespace KmyKeiba.Prompt
 
           foreach (var race in races)
           {
+            var sinceTime = race.StartTime.AddYears(-1);
+
             var horses = await db.RaceHorses!.Where((h) => h.ResultOrder <= 8 && h.ResultOrder != 0 && h.RaceKey == race.Key).ToArrayAsync();
+            var horseNames = horses.Select((h) => h.Name);
+            var allHorseHistories = (await db.RaceHorses!
+              .Where((h) => horseNames.Contains(h.Name))
+              .Join(db.Races!.Where((r) => r.StartTime < race.StartTime && r.StartTime >= sinceTime), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Horse = h, Race = r, })
+              .OrderByDescending((h) => h.Race.StartTime)
+              .ToArrayAsync());
             foreach (var horse in horses)
             {
+              /*
               var history = await db.RaceHorses!
                 .Where((h) => h.Name == horse.Name && h.ResultOrder != 0)
                 .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Race = r, Horse = h, })
@@ -611,7 +661,13 @@ namespace KmyKeiba.Prompt
                 .OrderByDescending((d) => d.Race.StartTime)
                 .Take(5)
                 .ToArrayAsync();
-              var rawData = LearningData.Create(race, horse, history.Select((h) => (h.Race, h.Horse)));
+              */
+              var history = allHorseHistories.Where((h) => h.Horse.Name == horse.Name).ToArray();
+              var rawData = LearningData.Create(
+                race,
+                horse,
+                history.Select((h) => (h.Race, h.Horse)),
+                allHorseHistories.Select((h) => (h.Race, h.Horse)));
               var raw = rawData.ToArray();
               for (var i = 0; i < shape; i++)
               {
@@ -682,15 +738,74 @@ namespace KmyKeiba.Prompt
         }
       }
 
+      dataCache = data;
+      resultsCache = results;
+      ReLearning();
+    }
+    private static float[,]? dataCache;
+    private static float[]? resultsCache;
+
+    static void ReLearning()
+    {
+      if (dataCache == null || resultsCache == null)
+      {
+        return;
+      }
+
       Console.WriteLine();
       Console.WriteLine("トレーニング中...");
-      ai.Training(data, results);
+      try
+      {
+        ai!.Reset();
+        ai!.Training(dataCache, resultsCache);
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine();
+        Console.WriteLine();
+        Console.WriteLine(ex.Message);
+        Console.WriteLine(ex.StackTrace);
+        return;
+      }
 
       Console.WriteLine();
       Console.WriteLine();
       Console.WriteLine();
       Console.WriteLine("トレーニングが完了しました。損失値を確認してください");
       Console.ReadLine();
+    }
+
+    static void SetConfig(string name, string value)
+    {
+      if (ai == null)
+      {
+        return;
+      }
+
+      int.TryParse(value, out int intValue);
+
+      // <epochs|batch_size|activation|optimizer|loss|isreguressor>
+      switch (name)
+      {
+        case "epochs":
+          ai.Epochs = intValue;
+          break;
+        case "batch_size":
+          ai.BatchSize = intValue;
+          break;
+        case "activation":
+          ai.Activation = value;
+          break;
+        case "optimizer":
+          ai.Optimizer = value;
+          break;
+        case "loss":
+          ai.Loss = value;
+          break;
+        case "isreguressor":
+          ai.IsKerasReguressor = value == "true";
+          break;
+      }
     }
 
     static void PredictRunningStyles(string fileName, string saveFileName)
@@ -749,54 +864,10 @@ namespace KmyKeiba.Prompt
 
       List<(float[,] DataSet, RaceHorseData Horse)> dataSets = new();
 
-      Task.Run(async () =>
+      using (var db = new MyContext())
       {
-        Expression<Func<RaceData, bool>> subject =
-          mode == "地方" ? (r) => (short)r.Course >= 30 :
-                           (r) => (short)r.Course < 30;
-
-        using (var db = new MyContext())
-        {
-          var race = await db.Races!.FirstOrDefaultAsync((r) => r.Key == key);
-          if (race != null)
-          {
-            var horses = await db.RaceHorses!
-              .Where((h) => h.RaceKey == key)
-              .OrderBy((h) => h.Number)
-              .ToArrayAsync();
-
-            var progress = 0;
-            StepProgress(0, horses.Length);
-
-            foreach (var horse in horses)
-            {
-              var history = await db.RaceHorses!
-                .Where((h) => h.Name == horse.Name && h.AbnormalResult == RaceAbnormality.Unknown)
-                .Join(db.Races!.Where((r) => r.StartTime < race.StartTime), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Race = r, Horse = h, })
-                .OrderByDescending((d) => d.Race.StartTime)
-                .Take(5)
-                .ToArrayAsync();
-              var rawData = LearningData.Create(race, horse, history.Select((h) => (h.Race, h.Horse)));
-              var raw = rawData.ToArray();
-
-              var shape = LearningData.GetShape();
-              var dataSet = new float[1, shape];
-              for (var i = 0; i < shape; i++)
-              {
-                dataSet[0, i] = raw[i];
-              }
-              dataSets.Add((dataSet, horse));
-
-              StepProgress(++progress, horses.Length);
-            }
-          }
-          else
-          {
-            Console.WriteLine("レースはありません");
-            Task.Delay(3000).Wait();
-          }
-        }
-      }).Wait();
+        dataSets = GetPredictDataAsync(db, key).Result;
+      }
 
       var predicted = new List<(float Prediction, RaceHorseData Horse)>();
       foreach (var dataSet in dataSets)
@@ -810,38 +881,217 @@ namespace KmyKeiba.Prompt
         Console.Write($"{p.Prediction}\n\n");
       }
 
+      Console.WriteLine();
+      Console.WriteLine("--------------------------------");
+
+      try
+      {
+        var items = Buyer.Select(predicted.Select((p) => new BuyCandidate { Horse = p.Horse, Prediction = p.Prediction, }));
+        Console.WriteLine(string.Join("\n", items.Select((i) => i.Text).Where((i) => !string.IsNullOrEmpty(i))));
+      }
+      catch
+      {
+        Console.WriteLine("馬券購入処理でエラー発生しました");
+      }
+
       Console.ReadLine();
+    }
+
+    static async Task<List<(float[,] DataSet, RaceHorseData Horse)>> GetPredictDataAsync(MyContext db, string raceKey)
+    {
+      var list = new List<(float[,] DataSet, RaceHorseData Horse)>();
+
+      var race = await db.Races!.FirstOrDefaultAsync((r) => r.Key == raceKey);
+      if (race != null)
+      {
+        var sinceTime = race.StartTime.AddYears(-1);
+
+        var horses = await db.RaceHorses!
+          .Where((h) => h.RaceKey == raceKey)
+          .OrderBy((h) => h.Number)
+          .ToArrayAsync();
+        var horseNames = horses.Select((h) => h.Name);
+        var allHorseHistories = (await db.RaceHorses!
+          .Where((h) => horseNames.Contains(h.Name))
+          .Join(db.Races!.Where((r) => r.StartTime < race.StartTime && r.StartTime >= sinceTime), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Horse = h, Race = r, })
+          .OrderByDescending((h) => h.Race.StartTime)
+          .ToArrayAsync());
+
+        // var progress = 0;
+        // StepProgress(0, horses.Length);
+
+        foreach (var horse in horses)
+        {
+          var history = allHorseHistories.Where((h) => h.Horse.Name == horse.Name).ToArray();
+          var rawData = LearningData.Create(
+            race,
+            horse,
+            history.Select((h) => (h.Race, h.Horse)),
+            allHorseHistories.Select((h) => (h.Race, h.Horse)));
+          var raw = rawData.ToArray();
+
+          var shape = LearningData.GetShape();
+          var dataSet = new float[1, shape];
+          for (var i = 0; i < shape; i++)
+          {
+            dataSet[0, i] = raw[i];
+          }
+          list.Add((dataSet, horse));
+
+          // StepProgress(++progress, horses.Length);
+        }
+      }
+
+      return list;
+    }
+
+    static void SimulateRaceResults(string parameter)
+    {
+      var date = parameter.Split("-");
+      if (date.Length != 2)
+      {
+        Console.WriteLine("日付の形式が不正です");
+        Task.Delay(3000).Wait();
+        return;
+      }
+
+      DateTime startTime;
+      DateTime endTime;
+      try
+      {
+        startTime = DateTime.ParseExact(date[0], "yyyyMMdd", null, System.Globalization.DateTimeStyles.None);
+      }
+      catch
+      {
+        Console.WriteLine("日付の形式が不正です");
+        Task.Delay(3000).Wait();
+        return;
+      }
+      try
+      {
+        endTime = DateTime.ParseExact(date[1], "yyyyMMdd", null, System.Globalization.DateTimeStyles.None);
+        endTime = endTime.AddDays(1);
+      }
+      catch
+      {
+        Console.WriteLine("日付の形式が不正です");
+        Task.Delay(3000).Wait();
+        return;
+      }
+
+      SimulateRaceResults(startTime, endTime);
     }
 
     static void SimulateRaceResults(DateTime from, DateTime to)
     {
-      Task.Run(async () =>
+      var allCount = 0;
+      var hit = 0;
+      var hitAll = 0;
+      var pay = 0;
+      var income = 0;
+      var data = new List<(List<(float[,] DataSet, RaceHorseData Horse)> DataSets, int HorsesCount, RefundData Refund)>();
+
+      Expression <Func<RaceData, bool>> subject =
+        mode == "地方" ? (r) => (short)r.Course >= 30 :
+                          (r) => (short)r.Course < 30;
+
+      Console.WriteLine("データベースから取得中...");
+      var a = 0;
+      var racesCount = 0;
+
       {
-        var allCount = 0;
-        var processed = 0;
-        var hit = 0;
-
-        Expression<Func<RaceData, bool>> subject =
-          mode == "地方" ? (r) => (short)r.Course >= 30 :
-                           (r) => (short)r.Course < 30;
-
-        using (var db = new MyContext())
+        var splits = 8;
+        var seconds = (to - from).TotalSeconds / splits;
+        var d1 = from;
+        var d2 = from.AddSeconds(seconds);
+        var tasks = new List<Task>();
+        for (var m = 0; m < splits; m++)
         {
-          Console.WriteLine("データベースから取得中...");
-          var races = await db.Races!
-            .Where((r) => r.StartTime >= from && r.StartTime < to)
-            .Join(db.RaceHorses!, (r) => r.Key, (h) => h.RaceKey, (r, h) => new { Race = r, Horse = h, })
-            .ToArrayAsync();
-          allCount = races.Length;
-
-          foreach (var race in races)
+          tasks.Add(Task.Run(() =>
           {
-            StepProgress(++processed, allCount);
+            using (var db = new MyContext())
+            {
+              var races = db.Races!
+                .Where((r) => r.StartTime >= d1 && r.StartTime < d2)
+                .Join(db.Refunds!, (r) => r.Key, (r) => r.RaceKey, (r, rr) => new { Race = r, Refund = rr, })
+                .Select((r) => new { r.Race.Key, r.Race.HorsesCount, r.Refund, }).ToArrayAsync().Result;
+              racesCount += races.Length;
+
+              foreach (var race in races)
+              {
+                var dataSets = GetPredictDataAsync(db, race.Key).Result;
+                data.Add((dataSets, race.HorsesCount, race.Refund));
+
+                Interlocked.Increment(ref a);
+              }
+            }
+          }));
+          d1 = d1.AddSeconds(seconds);
+          d2 = d2.AddSeconds(seconds);
+        }
+        while (!tasks.All((t) => t.IsCompleted))
+        {
+          StepProgress(a, racesCount);
+          Task.Delay(1000).Wait();
+        }
+      }
+
+      racesCount = data.Count;
+      a = 0;
+      foreach (var dataSet in data)
+      {
+        var rs = new List<(float Prediction, RaceHorseData Horse)>();
+        var dd = new float[dataSet.DataSets.Count, dataSet.DataSets.FirstOrDefault().DataSet?.GetLength(1) ?? 0];
+        var i = 0;
+        foreach (var d in dataSet.DataSets)
+        {
+          for (var j = 0; j < d.DataSet.GetLength(1); j++)
+          {
+            dd[i, j] = d.DataSet[0, j];
           }
+          i++;
+        }
+        var prediction = ai!.Predict(dd);
+        i = 0;
+        foreach (var d in dataSet.DataSets)
+        {
+          rs.Add((prediction[i], d.Horse));
+          i++;
+        }
+        var needOrder = (dataSet.HorsesCount > 7 ? 3 : 2);
+        var hits = rs.OrderByDescending((r) => r.Prediction).Take(3).Count((r) => r.Horse.ResultOrder <= needOrder);
+        allCount += needOrder;
+        hit += hits;
+        if (needOrder == hits)
+        {
+          hitAll++;
         }
 
-        Console.WriteLine($"的中率: {hit} / {allCount} = {((float)hit / Math.Max(1, allCount)) / 100} %");
-      }).Wait();
+        try
+        {
+          var buyItems = Buyer.Select(rs.Select((d) => new BuyCandidate { Horse = d.Horse, Prediction = d.Prediction, }));
+          var buyResult = Buyer.Buy(dataSet.Refund, buyItems);
+          pay += buyResult.Pay;
+          income += buyResult.Income;
+        }
+        catch (Exception ex)
+        {
+          Console.WriteLine(ex.Message);
+          Console.WriteLine(ex.StackTrace);
+          Console.ReadLine();
+          return;
+        }
+
+        StepProgress(++a, racesCount);
+      }
+
+      Console.WriteLine();
+      Console.WriteLine();
+      Console.WriteLine();
+      Console.WriteLine($"        的中率: {hit} / {allCount} = {((float)hit / Math.Max(1, allCount)) * 100} %");
+      Console.WriteLine($"複勝全員的中率: {hitAll} / {allCount} = {((float)hitAll / Math.Max(1, allCount)) * 100} %");
+      Console.WriteLine($"        回収率: {income} / {pay} = {((float)income / Math.Max(1, pay)) * 100} %");
+      Console.ReadLine();
     }
 
     static void StepProgress(int processed, int processSize)

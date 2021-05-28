@@ -23,6 +23,7 @@
   <ItemGroup>
     <PackageReference Include="Keras.NET" Version="3.8.5" />
     <PackageReference Include="LargeAddressAware" Version="1.0.5" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.10.0-3.final" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.6">
       <PrivateAssets>all</PrivateAssets>

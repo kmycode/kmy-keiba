@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace KmyKeiba.JVLink.Entities
 {
   /// <summary>
-  /// ３連複
+  /// ３連単
   /// </summary>
   public class TrifectaOdds : EntityBase
   {
