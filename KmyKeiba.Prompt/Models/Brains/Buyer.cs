@@ -60,7 +60,8 @@ namespace KmyKeiba.Prompt.Models.Brains
         {
           if (numbers[i, 0] == item.Number1)
           {
-            income += numbers[i, 1];
+            item.Income += numbers[i, 1];
+            income += item.Income;
           }
         }
       }
@@ -72,7 +73,8 @@ namespace KmyKeiba.Prompt.Models.Brains
           if ((numbers[i, 0] == item.Number1 || numbers[i, 0] == item.Number2) &&
             (numbers[i, 1] == item.Number1 || numbers[i, 1] == item.Number2))
           {
-            income += numbers[i, 2];
+            item.Income += numbers[i, 2];
+            income += item.Income;
           }
         }
       }
@@ -83,7 +85,8 @@ namespace KmyKeiba.Prompt.Models.Brains
         {
           if (numbers[i, 0] == item.Number1 && numbers[i, 1] == item.Number2)
           {
-            income += numbers[i, 2];
+            item.Income += numbers[i, 2];
+            income += item.Income;
           }
         }
       }
@@ -93,21 +96,22 @@ namespace KmyKeiba.Prompt.Models.Brains
         for (var i = 0; i < numbers.GetLength(0); i++)
         {
           var c = 0;
-          if (numbers[i, 0] == item.Number1 || numbers[i, 0] == item.Number2 || numbers[i, 0] == item.Number3)
+          if (numbers[i, 0] == item.Number1 || numbers[i, 0] == item.Number2)
           {
             c++;
           }
-          if (numbers[i, 1] == item.Number1 || numbers[i, 1] == item.Number2 || numbers[i, 1] == item.Number3)
+          if (numbers[i, 1] == item.Number1 || numbers[i, 1] == item.Number2)
           {
             c++;
           }
-          if (numbers[i, 2] == item.Number1 || numbers[i, 2] == item.Number2 || numbers[i, 2] == item.Number3)
+          if (numbers[i, 2] == item.Number1 || numbers[i, 2] == item.Number2)
           {
             c++;
           }
           if (c >= 2)
           {
-            income += numbers[i, 2];
+            item.Income += numbers[i, 2];
+            income += item.Income;
           }
         }
       }
@@ -120,7 +124,8 @@ namespace KmyKeiba.Prompt.Models.Brains
             (numbers[i, 1] == item.Number1 || numbers[i, 1] == item.Number2 || numbers[i, 1] == item.Number3) &&
             (numbers[i, 2] == item.Number1 || numbers[i, 2] == item.Number2 || numbers[i, 2] == item.Number3))
           {
-            income += numbers[i, 3];
+            item.Income += numbers[i, 3];
+            income += item.Income;
           }
         }
       }
@@ -131,7 +136,8 @@ namespace KmyKeiba.Prompt.Models.Brains
         {
           if (numbers[i, 0] == item.Number1 && numbers[i, 1] == item.Number2 && numbers[i, 2] == item.Number3)
           {
-            income += numbers[i, 3];
+            item.Income += numbers[i, 3];
+            income += item.Income;
           }
         }
       }
@@ -258,6 +264,10 @@ namespace KmyKeiba.Prompt.Models.Brains
     public int Number3 { get; set; }
 
     internal string Text { get; set; } = string.Empty;
+
+    internal int Pay => this.Unit * 100;
+
+    internal int Income { get; set; }
 
     internal void SetText(string text)
     {
@@ -403,11 +413,12 @@ namespace KmyKeiba.Prompt.Models.Brains
         .Where((i) => jiku2 == 0 || (i.Number1 == jiku2 || i.Number2 == jiku2 || i.Number3 == jiku2));
     }
 
-    public static IEnumerable<BuyItem> Formation(BuyType type, int unit, bool isOrdered, int[] jiku1, int[] jiku2, params int[] numbers)
+    public static IEnumerable<BuyItem> Formation(BuyType type, int unit, bool isOrdered, int[] jiku1, int[] jiku2, int[] jiku3)
     {
-      return Box3(type, unit, isOrdered, numbers)
+      return Box3(type, unit, isOrdered, jiku1.Concat(jiku2).Concat(jiku3).Distinct().ToArray())
         .Where((i) => jiku1.Contains(i.Number1) || jiku1.Contains(i.Number2) || jiku1.Contains(i.Number3))
-        .Where((i) => jiku2.Length == 0 || (jiku2.Contains(i.Number1) || jiku2.Contains(i.Number2) || jiku2.Contains(i.Number3)));
+        .Where((i) => jiku2.Length == 0 || (jiku2.Contains(i.Number1) || jiku2.Contains(i.Number2) || jiku2.Contains(i.Number3)))
+        .Where((i) => jiku3.Length == 0 || (jiku3.Contains(i.Number1) || jiku3.Contains(i.Number2) || jiku3.Contains(i.Number3)));
     }
 
     public static IEnumerable<BuyItem> Single(int unit, params int[] numbers)
@@ -557,10 +568,10 @@ namespace KmyKeiba.Prompt.Models.Brains
       return r;
     }
 
-    public static IEnumerable<BuyItem> TrifectaFormation(int unit, int[] jiku1, int[] jiku2, params int[] numbers)
+    public static IEnumerable<BuyItem> TrifectaFormation(int unit, int[] jiku1, int[] jiku2, int[] jiku3)
     {
-      var r = Formation(BuyType.Trifecta, unit, true, jiku1, jiku2, numbers);
-      r.FirstOrDefault()?.SetText($"３連単フォメ　軸{string.Join(",", jiku1)}　軸{string.Join(",", jiku2)}　{string.Join(",", numbers)}");
+      var r = Formation(BuyType.Trifecta, unit, true, jiku1, jiku2, jiku3);
+      r.FirstOrDefault()?.SetText($"３連単フォメ　軸{string.Join(",", jiku1)}　軸{string.Join(",", jiku2)}　軸{string.Join(",", jiku3)}");
       return r;
     }
 
@@ -580,21 +591,21 @@ namespace KmyKeiba.Prompt.Models.Brains
     public static IEnumerable<BuyItem> TrioBox(int unit, params int[] numbers)
     {
       var r = Box3(BuyType.Trio, unit, false, numbers);
-      r.FirstOrDefault()?.SetText($"３連単BOX　{string.Join(",", numbers)}");
+      r.FirstOrDefault()?.SetText($"３連複BOX　{string.Join(",", numbers)}");
       return r;
     }
 
     public static IEnumerable<BuyItem> TrioNagashi(int unit, int jiku1, int jiku2, params int[] numbers)
     {
       var r = Nagashi3(BuyType.Trio, unit, false, jiku1, jiku2, numbers);
-      r.FirstOrDefault()?.SetText($"３連単流し　軸{jiku1},{jiku2}　{string.Join(",", numbers)}");
+      r.FirstOrDefault()?.SetText($"３連複流し　軸{jiku1},{jiku2}　{string.Join(",", numbers)}");
       return r;
     }
 
-    public static IEnumerable<BuyItem> TrioFormation(int unit, int[] jiku1, int[] jiku2, params int[] numbers)
+    public static IEnumerable<BuyItem> TrioFormation(int unit, int[] jiku1, int[] jiku2, int[] jiku3)
     {
-      var r = Formation(BuyType.Trio, unit, false, jiku1, jiku2, numbers);
-      r.FirstOrDefault()?.SetText($"３連単フォメ　軸{string.Join(",", jiku1)}　軸{string.Join(",", jiku2)}　{string.Join(",", numbers)}");
+      var r = Formation(BuyType.Trio, unit, false, jiku1, jiku2, jiku3);
+      r.FirstOrDefault()?.SetText($"３連複フォメ　軸{string.Join(",", jiku1)}　軸{string.Join(",", jiku2)}　軸{string.Join(",", jiku3)}");
       return r;
     }
   }
