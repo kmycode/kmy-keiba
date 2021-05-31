@@ -85,7 +85,7 @@ namespace KmyKeiba.Prompt
         addMenu = () => $@"
   dl <load|save> <fileName without extensions>
   dl predict <racekey>
-  dl <training|simulate> <yyyymmdd-yyyymmdd>
+  dl <training|simulate|cache> <yyyymmdd-yyyymmdd>
   dl retraining
   dl config <epochs|batch_size|activation|optimizer|loss|isreguressor> <value>
     ep:{ai!.Epochs}  ba:{ai!.BatchSize}  ac:{ai!.Activation}
@@ -246,6 +246,7 @@ namespace KmyKeiba.Prompt
                     SimulateRaceResults(parameters[2], parameters.Length >= 4 ? parameters[3] : string.Empty);
                   }
                   break;
+                case "cache":
                 case "training":
                   if (parameters.Length != 3)
                   {
@@ -254,7 +255,14 @@ namespace KmyKeiba.Prompt
                   }
                   else
                   {
-                    Learning(parameters[2]);
+                    if (parameters[1] == "cache")
+                    {
+                      Learning(parameters[2], true);
+                    }
+                    else
+                    {
+                      Learning(parameters[2], false);
+                    }
                   }
                   break;
                 case "reset":
@@ -584,7 +592,7 @@ namespace KmyKeiba.Prompt
       }
     }
 
-    static void Learning(string dateFormat)
+    static void Learning(string dateFormat, bool isCache)
     {
       var date = dateFormat.Split("-");
 
@@ -615,7 +623,7 @@ namespace KmyKeiba.Prompt
         }
       }
 
-      Learning(startTime, endTime ?? DateTime.Today);
+      Learning(startTime, endTime ?? DateTime.Today, isCache);
     }
 
     class DataLoader
@@ -773,7 +781,7 @@ namespace KmyKeiba.Prompt
       }
     }
 
-    static void Learning(DateTime from, DateTime to)
+    static void Learning(DateTime from, DateTime to, bool isCache)
     {
       if (ai == null)
       {
@@ -803,6 +811,11 @@ namespace KmyKeiba.Prompt
       {
         StepProgress(learnings.Sum((l) => l.Learned), learnings.Sum((l) => l.TotalHorses));
         Task.Delay(1000).Wait();
+      }
+
+      if (isCache)
+      {
+        return;
       }
 
       var data = new float[learnings.Sum((l) => l.Data.GetLength(0)), LearningData.GetShape()];
