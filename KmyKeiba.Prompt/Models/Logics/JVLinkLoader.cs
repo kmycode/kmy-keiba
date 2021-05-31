@@ -534,7 +534,7 @@ namespace KmyKeiba.Prompt.Logics
         {
           // それぞれの馬に、第３ハロンタイムの順位をつける（LINQでやると時間がかかる）
           IEnumerable<string> ids = db.RaceHorses!
-            .Where((h) => h.AfterThirdHalongTimeOrder == 0 && h.AfterThirdHalongTime != default)
+            .Where((h) => h.AfterThirdHalongTimeOrder == 0 && h.AfterThirdHalongTime > TimeSpan.Zero)
             .Select((r) => r.RaceKey)
             .Distinct();
           this.ProcessSize.Value += (int)Math.Ceiling(ids.Count() / 64.0f);

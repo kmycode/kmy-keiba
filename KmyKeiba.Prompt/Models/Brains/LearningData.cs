@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,6 @@ namespace KmyKeiba.Prompt.Models.Brains
 {
   class LearningData
   {
-    public float RiderWinRate;
     public float Weather;
     public float Course;
     public float Ground;
@@ -21,12 +21,47 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Grade;
     public float Weight;
     public float WeightDiff;
+    public float Sex;
+    public float Age;
+    public float MyRunningStyle;
+
+    // 騎手の成績
+    public float RiderWinRate;
+    public float WeatherRiderWinRate;
+    public float HorseRiderWinRate;
+    public float CourseRiderWinRate;
+    public float GroundRiderWinRate;
+    public float RunningStyleRiderWinRate;
+
+    // 馬の成績
+    public float WinRate;
+    public float SameGradeWinRate;
     public float NearDistanceTime;
+    public float NearDistanceWinRate;
+    public float CourseWinRate;
+    public float GroundWinRate;
+    public float ConditionWinRate;
+
+    // コースの成績
+    public float CourseFrameWinRate;
+    public float CourseRunningStyleWinRate;
+
+    // 調教師の成績
+    public float TrainerWinRate;
+    public float CourseTrainerWinRate;
+
     public float MyPoint;
     public float Enemy1Point;
     public float Enemy2Point;
     public float Enemy3Point;
 
+    // 同じレースに出てくる、各作戦をとりそうな馬の割合
+    public float EnemyFrontRunnerCount;
+    public float EnemyStalkerCount;
+    public float EnemySotpCount;
+    public float EnemySaveRunnerCount;
+
+    // レースのペースを追加
     public float Race1RiderWinRate;
     public float Race1Weather;
     public float Race1Course;
@@ -36,6 +71,7 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Race1Grade;
     public float Race1RunningStyle;
     public float Race1A3HalongTimeOrder;
+    public float Race1Pace;
     public float Race1Result;
     // public float Race1ResultTime;
 
@@ -48,6 +84,7 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Race2Grade;
     public float Race2RunningStyle;
     public float Race2A3HalongTimeOrder;
+    public float Race2Pace;
     public float Race2Result;
     // public float Race2ResultTime;
 
@@ -60,6 +97,7 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Race3Grade;
     public float Race3RunningStyle;
     public float Race3A3HalongTimeOrder;
+    public float Race3Pace;
     public float Race3Result;
     // public float Race3ResultTime;
 
@@ -72,6 +110,7 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Race4Grade;
     public float Race4RunningStyle;
     public float Race4A3HalongTimeOrder;
+    public float Race4Pace;
     public float Race4Result;
     // public float Race4ResultTime;
 
@@ -84,22 +123,36 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Race5Grade;
     public float Race5RunningStyle;
     public float Race5A3HalongTimeOrder;
+    public float Race5Pace;
     public float Race5Result;
     // public float Race5ResultTime;
 
     public float Result;
 
-    public static LearningData Create(RaceData race, RaceHorseData horse, IEnumerable<(RaceData Race, RaceHorseData Horse)> horseHistories, IEnumerable<(RaceData Race, RaceHorseData Horse)> otherHorseHistories, IEnumerable<RaceHorseData> riderGrades)
+    public const int VERSION = 7;
+
+    public static async Task<LearningData> CreateAsync(MyContextBase db, RaceData race, RaceHorseData horse, IEnumerable<(RaceData Race, RaceHorseData Horse)> horseHistories, IEnumerable<(RaceData Race, RaceHorseData Horse)> otherHorseHistories)
     {
       var isLocal = race.Course.GetCourseType() == RaceCourseType.Local;
-      var riderWinRate = (float)riderGrades.Count((r) => r.RiderCode == horse.RiderCode && r.ResultOrder <= 3 && r.ResultOrder != 0) /
-        Math.Max(1, riderGrades.Count((r) => r.RiderCode == horse.RiderCode && r.ResultOrder != 0));
+      var riderWinRate = (float)(await db.RaceHorses!.CountAsync((r) => r.RiderCode == horse.RiderCode && r.ResultOrder <= 3 && r.ResultOrder != 0)) /
+        Math.Max(1, await db.RaceHorses!.CountAsync((r) => r.RiderCode == horse.RiderCode && r.ResultOrder != 0));
       var nearDistanceTime = horseHistories
         .Where((h) => h.Horse.ResultTime.TotalSeconds > 0 && h.Horse.ResultOrder > 0)
         .OrderBy((h) => h.Horse.ResultTime)
         .OrderBy((h) => Math.Abs(race.Distance - h.Race.Distance))
         .Select((h) => h.Horse.ResultTime)
         .FirstOrDefault();
+
+      RunningStyle GetRunningStyle(IEnumerable<(RaceData Race, RaceHorseData Horse)> histories)
+      {
+        var runningStyle = RunningStyle.Unknown;
+        var runningStyles = histories.GroupBy((h) => h.Horse.RunningStyle);
+        if (runningStyles.Any())
+        {
+          runningStyle = runningStyles.OrderByDescending((g) => g.Count()).First().Key;
+        }
+        return runningStyle;
+      }
 
       var d = new LearningData
       {
@@ -113,56 +166,220 @@ namespace KmyKeiba.Prompt.Models.Brains
         Grade = GetGrade(isLocal, race.Name, race.Grade, new RaceSubjectType[] { race.SubjectAge2, race.SubjectAge3, race.SubjectAge4, race.SubjectAge5, race.SubjectAgeYounger, }, race.SubjectName),
         Weight = horse.Weight / 999f,
         WeightDiff = (Math.Min(30f, Math.Max(-30f, horse.WeightDiff)) + 30) / 60f,
+        Sex = (horse.Sex == HorseSex.Castrated ? 1.5f : (float)horse.Sex) / 2f,
+        Age = Math.Min(horse.Age, (short)10) / 10f,
+        MyRunningStyle = (float)GetRunningStyle(horseHistories) / 4f,
         NearDistanceTime = (float)nearDistanceTime.TotalMilliseconds / 6000f,
         MyPoint = GetRaceHorsePoint(otherHorseHistories.Where((h) => h.Horse.Name == horse.Name)),
 
         Result = (race.HorsesCount <= 7 ? horse.ResultOrder <= 2 : horse.ResultOrder <= 3) ? 1 : 0,
       };
 
+      {
+        var info = await db.RaceHorses!
+          .Where((h) => h.RiderCode == horse.RiderCode)
+          .Join(db.Races!.Where((r) => r.TrackWeather == race.TrackWeather), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .ToArrayAsync();
+        d.WeatherRiderWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+                                Math.Max(1, info.Count());
+      }
+      {
+        var info = await db.RaceHorses!
+          .Where((h) => h.RiderCode == horse.RiderCode && h.Name == horse.Name)
+          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .ToArrayAsync();
+        d.HorseRiderWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+                                Math.Max(1, info.Count());
+      }
+      {
+        var info = await db.RaceHorses!
+          .Where((h) => h.RiderCode == horse.RiderCode && h.Course == horse.Course)
+          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .ToArrayAsync();
+        d.CourseRiderWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+                                Math.Max(1, info.Count());
+      }
+      {
+        var info = await db.RaceHorses!
+          .Where((h) => h.RiderCode == horse.RiderCode)
+          .Join(db.Races!.Where((r) => r.TrackGround == race.TrackGround), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .ToArrayAsync();
+        d.GroundRiderWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+                                Math.Max(1, info.Count());
+      }
+      {
+        var info = await db.RaceHorses!
+          .Where((h) => h.RiderCode == horse.RiderCode && h.RunningStyle == horse.RunningStyle)
+          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .ToArrayAsync();
+        d.RunningStyleRiderWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+                                Math.Max(1, info.Count());
+      }
+      {
+        var info = await db.RaceHorses!
+          .Where((h) => h.Course == horse.Course && h.FrameNumber == horse.FrameNumber)
+          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .ToArrayAsync();
+        d.CourseFrameWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+                                Math.Max(1, info.Count());
+      }
+      {
+        var runningStyle = GetRunningStyle(horseHistories);
+        var info = await db.RaceHorses!
+          .Where((h) => h.Course == horse.Course && h.RunningStyle == runningStyle)
+          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .ToArrayAsync();
+        d.CourseRunningStyleWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+                                Math.Max(1, info.Count());
+      }
+
+      {
+        var info = await db.RaceHorses!
+          .Where((h) => h.Name == horse.Name)
+          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key,
+            (h, r) => new { h.ResultOrder, r.HorsesCount, h.Course, r.TrackGround, r.TrackCondition, RaceName = r.Name, r.Distance, r.StartTime,
+              r.Grade, r.SubjectAge2, r.SubjectAge3, r.SubjectAge4, r.SubjectAge5, r.SubjectAgeYounger, r.SubjectName, })
+          .ToArrayAsync();
+        d.WinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+                                (float)Math.Max(1, info.Count());
+
+        var a = info
+          .Where((i) => GetGrade(i.Course.GetCourseType() == RaceCourseType.Local, i.RaceName, i.Grade, new RaceSubjectType[] { i.SubjectAge2, i.SubjectAge3, i.SubjectAge4, i.SubjectAge5, i.SubjectAgeYounger, }, i.SubjectName) >= d.Grade - 0.01f);
+        d.SameGradeWinRate = (float)a.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+          (float)Math.Max(1, a.Count());
+
+        a = info
+          .Where((i) => i.Distance >= race.Distance - 200 && i.Distance <= race.Distance + 200);
+        d.NearDistanceWinRate = a.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+          (float)Math.Max(1, a.Count());
+
+        a = info.Where((i) => i.Course == race.Course);
+        d.CourseWinRate = a.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+          (float)Math.Max(1, a.Count());
+
+        a = info.Where((i) => i.TrackGround == race.TrackGround);
+        d.GroundWinRate = a.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+          (float)Math.Max(1, a.Count());
+
+        a = info.Where((i) => i.TrackCondition == race.TrackCondition);
+        d.ConditionWinRate = a.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+          (float)Math.Max(1, a.Count());
+      }
+
+      {
+        var info = await db.RaceHorses!
+          .Where((h) => h.TrainerName == horse.TrainerName && !string.IsNullOrEmpty(h.TrainerName))
+          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { r.Course, h.ResultOrder, r.HorsesCount, })
+          .ToArrayAsync();
+        d.TrainerWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+          Math.Max(1, info.Count());
+
+        var a = info.Where((i) => i.Course == race.Course);
+        d.CourseTrainerWinRate = a.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
+          (float)Math.Max(1, a.Count());
+      }
+
+      {
+        var otherHorseRunningStyles = otherHorseHistories
+          .Where((h) => h.Horse.Name != horse.Name)
+          .GroupBy((h) => h.Horse.Name)
+          .Select((h) => GetRunningStyle(h))
+          .ToArray();
+        d.EnemyFrontRunnerCount = (float)otherHorseRunningStyles.Count((r) => r == RunningStyle.FrontRunner) / Math.Max(1, race.HorsesCount);
+        d.EnemyStalkerCount = (float)otherHorseRunningStyles.Count((r) => r == RunningStyle.Stalker) / Math.Max(1, race.HorsesCount);
+        d.EnemySotpCount = (float)otherHorseRunningStyles.Count((r) => r == RunningStyle.Sotp) / Math.Max(1, race.HorsesCount);
+        d.EnemySaveRunnerCount = (float)otherHorseRunningStyles.Count((r) => r == RunningStyle.SaveRunner) / Math.Max(1, race.HorsesCount);
+      }
+
       var otherPoints = otherHorseHistories
         .Where((h) => h.Horse.Name != horse.Name)
         .GroupBy((h) => h.Horse.Name)
         .Select((g) => GetRaceHorsePoint(g))
         .OrderByDescending((p) => p)
+        .Take(3)
         .ToArray();
       d.Enemy1Point = otherPoints.ElementAtOrDefault(0);
       d.Enemy2Point = otherPoints.ElementAtOrDefault(1);
       d.Enemy3Point = otherPoints.ElementAtOrDefault(2);
 
-      var index = 1;
-      foreach (var r in horseHistories)
+      for (var i = 1; i <= 5; i++)
       {
+        var r = horseHistories.ElementAtOrDefault(i - 1);
+
         var fields = typeof(LearningData)
           .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
-          .Where((f) => f.Name.StartsWith("Race" + index))
+          .Where((f) => f.Name.StartsWith("Race" + i))
           .ToArray();
         if (!fields.Any())
         {
           break;
         }
-
-        var oldRiderWinRate = (float)riderGrades.Count((rr) => rr.RiderCode == r.Horse.RiderCode && rr.ResultOrder <= 3 && rr.ResultOrder != 0) /
-          Math.Max(1, riderGrades.Count((rr) => rr.RiderCode == r.Horse.RiderCode && rr.ResultOrder != 0));
-
         void SetValue(string fieldName, float value)
         {
-          fields!.FirstOrDefault((f) => f.Name == "Race" + index + fieldName)!.SetValue(d, value);
+          fields!.FirstOrDefault((f) => f.Name == "Race" + i + fieldName)!.SetValue(d, value);
+        }
+        async Task<float> GetCourseRacePaceAsync(RaceData rc)
+        {
+          var raceTopTime = await db.RaceHorses!
+            .Where((h) => h.RaceKey == rc.Key && h.ResultOrder == 1)
+            .Select((h) => new { h.ResultTime, })
+            .FirstOrDefaultAsync();
+          if (raceTopTime != null)
+          {
+            var sameCourseResults = await db.RaceHorses!
+              .Where((h) => h.ResultOrder == 1 && h.Course == rc.Course)
+              .Join(db.Races!.Where((r) => r.Distance == rc.Distance && r.TrackGround == rc.TrackGround), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultTime })
+              .ToArrayAsync();
+            if (sameCourseResults.Any())
+            {
+              var average = sameCourseResults.Average((r) => (float)r.ResultTime.TotalMilliseconds / 1000);
+              var topTime = (float)raceTopTime.ResultTime.TotalMilliseconds / 1000f;
+              return (average - topTime) / 30f + 0.5f;
+            }
+          }
+
+          return 0.5f;
         }
 
-        var isLocalRace = r.Race.Course.GetCourseType() == RaceCourseType.Local;
-        SetValue("RiderWinRate", oldRiderWinRate);
-        SetValue("Weather", (short)r.Race.TrackWeather / 6f);
-        SetValue("Course", (short)r.Race.Course / 100f);
-        // SetValue("Ground", (short)r.Race.TrackGround / 4f);
-        // SetValue("Condition", (short)r.Race.TrackCondition / 4f);
-        SetValue("Distance", Math.Min(r.Race.Distance, 5000) / 5000f);
-        SetValue("Grade", GetGrade(isLocalRace, r.Race.Name, r.Race.Grade, new RaceSubjectType[] { r.Race.SubjectAge2, r.Race.SubjectAge3, r.Race.SubjectAge4, r.Race.SubjectAge5, r.Race.SubjectAgeYounger, }, r.Race.SubjectName));
-        SetValue("RunningStyle", (short)r.Horse.RunningStyle / 4f);
-        SetValue("A3HalongTimeOrder", (float)(r.Horse.AfterThirdHalongTimeOrder - 1) / Math.Max(1, r.Race.HorsesCount - 1));
-        SetValue("Result", (r.Race.HorsesCount <= 7 ? r.Horse.ResultOrder <= 2 : r.Horse.ResultOrder <= 3) ? 1 : 0);
-        // SetValue("ResultTime", (float)r.Horse.ResultTime.TotalMilliseconds / 6000);
+        if (r.Horse != null)
+        {
+          var oldRiderWinRate = (float)await db.RaceHorses!.CountAsync((rr) => rr.RiderCode == r.Horse.RiderCode && rr.ResultOrder <= 3 && rr.ResultOrder != 0) /
+            Math.Max(1, await db.RaceHorses!.CountAsync((rr) => rr.RiderCode == r.Horse.RiderCode && rr.ResultOrder != 0));
 
-        index++;
+          var isLocalRace = r.Race.Course.GetCourseType() == RaceCourseType.Local;
+          SetValue("RiderWinRate", oldRiderWinRate);
+          SetValue("Weather", (short)r.Race.TrackWeather / 6f);
+          SetValue("Course", (short)r.Race.Course / 100f);
+          // SetValue("Ground", (short)r.Race.TrackGround / 4f);
+          // SetValue("Condition", (short)r.Race.TrackCondition / 4f);
+          SetValue("Distance", Math.Min(r.Race.Distance, 5000) / 5000f);
+          SetValue("Grade", GetGrade(isLocalRace, r.Race.Name, r.Race.Grade, new RaceSubjectType[] { r.Race.SubjectAge2, r.Race.SubjectAge3, r.Race.SubjectAge4, r.Race.SubjectAge5, r.Race.SubjectAgeYounger, }, r.Race.SubjectName));
+          SetValue("RunningStyle", (short)r.Horse.RunningStyle / 4f);
+          SetValue("A3HalongTimeOrder", r.Horse.AfterThirdHalongTimeOrder == 0 ? 0.5f : (float)(r.Horse.AfterThirdHalongTimeOrder - 1) / Math.Max(1, r.Race.HorsesCount - 1));
+          SetValue("Pace", await GetCourseRacePaceAsync(r.Race));
+          if (r.Horse.ResultOrder != 0)
+          {
+            SetValue("Result", (r.Race.HorsesCount <= 7 ? r.Horse.ResultOrder <= 2 : r.Horse.ResultOrder <= 3) ? 1 : 0);
+          }
+          // SetValue("ResultTime", (float)r.Horse.ResultTime.TotalMilliseconds / 6000);
+        }
+        else
+        {
+          // 前走情報がないときのデフォルト値
+          var isLocalRace = horse.Course.GetCourseType() == RaceCourseType.Local;
+          SetValue("RiderWinRate", 0f);
+          SetValue("Weather", 0f);
+          SetValue("Course", (short)horse.Course / 100f);
+          // SetValue("Ground", (short)r.Race.TrackGround / 4f);
+          // SetValue("Condition", (short)r.Race.TrackCondition / 4f);
+          SetValue("Distance", Math.Min(race.Distance, 5000) / 5000f);
+          SetValue("Grade", 0f);
+          SetValue("RunningStyle", 0f);
+          SetValue("A3HalongTimeOrder", 1f);
+          SetValue("Pace", 0.5f);
+          SetValue("Result", 0);
+          // SetValue("ResultTime", (float)r.Horse.ResultTime.TotalMilliseconds / 6000);
+        }
       }
 
       return d;
@@ -287,6 +504,11 @@ namespace KmyKeiba.Prompt.Models.Brains
         .Select((f) => (float)(f!))
         .ToArray();
       return values;
+    }
+
+    public string ToCacheString()
+    {
+      return string.Join(",", this.ToArray()) + "," + this.Result;
     }
 
     public static int GetShape()

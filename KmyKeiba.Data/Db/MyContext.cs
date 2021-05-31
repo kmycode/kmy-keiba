@@ -29,6 +29,8 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<RefundData>? Refunds { get; set; }
 
+    public DbSet<LearningDataCache>? LearningDataCaches { get; set; }
+
     protected string ConnectionString { get; set; } = string.Empty;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

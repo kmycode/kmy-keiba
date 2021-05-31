@@ -87,6 +87,10 @@ namespace KmyKeiba.JVLink.Entities
     /// </summary>
     public float RiderWeight { get; set; }
 
+    public string TrainerCode { get; set; } = string.Empty;
+
+    public string TrainerName { get; set; } = string.Empty;
+
     /// <summary>
     /// ブリンカー使用しているか
     /// </summary>
@@ -182,6 +186,8 @@ namespace KmyKeiba.JVLink.Entities
         RiderCode = uma.KisyuCode,
         RiderName = uma.KisyuRyakusyo.Trim(),
         RiderWeight = (float)riderWeight / 10,
+        TrainerCode = uma.ChokyosiCode,
+        TrainerName = uma.ChokyosiRyakusyo,
         Weight = weight,
         WeightDiff = (short)(uma.ZogenFugo == "+" ? weightDiff : -weightDiff),
         IsBlinkers = uma.Blinker == "1",

@@ -80,6 +80,10 @@ namespace KmyKeiba.Data.Db
     /// </summary>
     public float RiderWeight { get; set; }
 
+    public string TrainerCode { get; set; } = string.Empty;
+
+    public string TrainerName { get; set; } = string.Empty;
+
     /// <summary>
     /// ブリンカー使用しているか
     /// </summary>
@@ -159,6 +163,8 @@ namespace KmyKeiba.Data.Db
       this.RiderCode = entity.RiderCode;
       this.RiderName = entity.RiderName;
       this.RiderWeight = entity.RiderWeight;
+      this.TrainerCode = entity.TrainerCode;
+      this.TrainerName = entity.TrainerName;
       this.Weight = entity.Weight;
       this.WeightDiff = entity.WeightDiff;
       this.Odds = entity.Odds;
