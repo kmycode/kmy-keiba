@@ -1013,6 +1013,7 @@ namespace KmyKeiba.Prompt
           .OrderByDescending((h) => h.RaceKey)
           .Take(100)
           .ToArrayAsync());
+        var caches = await db.LearningDataCaches!.Where((c) => c.RaceKey == race.Key).ToArrayAsync();
 
         // var progress = 0;
         // StepProgress(0, horses.Length);
@@ -1020,7 +1021,7 @@ namespace KmyKeiba.Prompt
         foreach (var horse in horses)
         {
           float[] raw = new float[0];
-          var cache = await db.LearningDataCaches.FirstOrDefaultAsync((c) => c.RaceKey == horse.RaceKey && c.HorseName == horse.Name);
+          var cache = caches.FirstOrDefault((c) => c.HorseName == horse.Name);
 
           if (cache != null)
           {

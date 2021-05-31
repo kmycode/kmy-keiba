@@ -129,13 +129,19 @@ namespace KmyKeiba.Prompt.Models.Brains
 
     public float Result;
 
-    public const int VERSION = 7;
+    public const int VERSION = 8;
 
     public static async Task<LearningData> CreateAsync(MyContextBase db, RaceData race, RaceHorseData horse, IEnumerable<(RaceData Race, RaceHorseData Horse)> horseHistories, IEnumerable<(RaceData Race, RaceHorseData Horse)> otherHorseHistories)
     {
+      var pastRaces = db.Races!.Where((r) => r.StartTime < race.StartTime);
+
       var isLocal = race.Course.GetCourseType() == RaceCourseType.Local;
-      var riderWinRate = (float)(await db.RaceHorses!.CountAsync((r) => r.RiderCode == horse.RiderCode && r.ResultOrder <= 3 && r.ResultOrder != 0)) /
-        Math.Max(1, await db.RaceHorses!.CountAsync((r) => r.RiderCode == horse.RiderCode && r.ResultOrder != 0));
+      var riderWinRate = (float)(await db.RaceHorses!
+        .Join(pastRaces, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.RiderCode, h.ResultOrder, })
+        .CountAsync((r) => r.RiderCode == horse.RiderCode && r.ResultOrder <= 3 && r.ResultOrder != 0)) /
+        Math.Max(1, await db.RaceHorses!
+            .Join(pastRaces, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.RiderCode, h.ResultOrder, })
+            .CountAsync((r) => r.RiderCode == horse.RiderCode && r.ResultOrder != 0));
       var nearDistanceTime = horseHistories
         .Where((h) => h.Horse.ResultTime.TotalSeconds > 0 && h.Horse.ResultOrder > 0)
         .OrderBy((h) => h.Horse.ResultTime)
@@ -178,7 +184,7 @@ namespace KmyKeiba.Prompt.Models.Brains
       {
         var info = await db.RaceHorses!
           .Where((h) => h.RiderCode == horse.RiderCode)
-          .Join(db.Races!.Where((r) => r.TrackWeather == race.TrackWeather), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .Join(pastRaces.Where((r) => r.TrackWeather == race.TrackWeather), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
           .ToArrayAsync();
         d.WeatherRiderWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
                                 Math.Max(1, info.Count());
@@ -186,7 +192,7 @@ namespace KmyKeiba.Prompt.Models.Brains
       {
         var info = await db.RaceHorses!
           .Where((h) => h.RiderCode == horse.RiderCode && h.Name == horse.Name)
-          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .Join(pastRaces, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
           .ToArrayAsync();
         d.HorseRiderWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
                                 Math.Max(1, info.Count());
@@ -194,7 +200,7 @@ namespace KmyKeiba.Prompt.Models.Brains
       {
         var info = await db.RaceHorses!
           .Where((h) => h.RiderCode == horse.RiderCode && h.Course == horse.Course)
-          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .Join(pastRaces, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
           .ToArrayAsync();
         d.CourseRiderWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
                                 Math.Max(1, info.Count());
@@ -202,7 +208,7 @@ namespace KmyKeiba.Prompt.Models.Brains
       {
         var info = await db.RaceHorses!
           .Where((h) => h.RiderCode == horse.RiderCode)
-          .Join(db.Races!.Where((r) => r.TrackGround == race.TrackGround), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .Join(pastRaces.Where((r) => r.TrackGround == race.TrackGround), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
           .ToArrayAsync();
         d.GroundRiderWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
                                 Math.Max(1, info.Count());
@@ -210,7 +216,7 @@ namespace KmyKeiba.Prompt.Models.Brains
       {
         var info = await db.RaceHorses!
           .Where((h) => h.RiderCode == horse.RiderCode && h.RunningStyle == horse.RunningStyle)
-          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .Join(pastRaces, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
           .ToArrayAsync();
         d.RunningStyleRiderWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
                                 Math.Max(1, info.Count());
@@ -218,7 +224,7 @@ namespace KmyKeiba.Prompt.Models.Brains
       {
         var info = await db.RaceHorses!
           .Where((h) => h.Course == horse.Course && h.FrameNumber == horse.FrameNumber)
-          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .Join(pastRaces, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
           .ToArrayAsync();
         d.CourseFrameWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
                                 Math.Max(1, info.Count());
@@ -227,7 +233,7 @@ namespace KmyKeiba.Prompt.Models.Brains
         var runningStyle = GetRunningStyle(horseHistories);
         var info = await db.RaceHorses!
           .Where((h) => h.Course == horse.Course && h.RunningStyle == runningStyle)
-          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
+          .Join(pastRaces, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, r.HorsesCount, })
           .ToArrayAsync();
         d.CourseRunningStyleWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
                                 Math.Max(1, info.Count());
@@ -236,7 +242,7 @@ namespace KmyKeiba.Prompt.Models.Brains
       {
         var info = await db.RaceHorses!
           .Where((h) => h.Name == horse.Name)
-          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key,
+          .Join(pastRaces, (h) => h.RaceKey, (r) => r.Key,
             (h, r) => new { h.ResultOrder, r.HorsesCount, h.Course, r.TrackGround, r.TrackCondition, RaceName = r.Name, r.Distance, r.StartTime,
               r.Grade, r.SubjectAge2, r.SubjectAge3, r.SubjectAge4, r.SubjectAge5, r.SubjectAgeYounger, r.SubjectName, })
           .ToArrayAsync();
@@ -269,7 +275,7 @@ namespace KmyKeiba.Prompt.Models.Brains
       {
         var info = await db.RaceHorses!
           .Where((h) => h.TrainerName == horse.TrainerName && !string.IsNullOrEmpty(h.TrainerName))
-          .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { r.Course, h.ResultOrder, r.HorsesCount, })
+          .Join(pastRaces, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { r.Course, h.ResultOrder, r.HorsesCount, })
           .ToArrayAsync();
         d.TrainerWinRate = (float)info.Count((i) => i.HorsesCount <= 7 ? i.ResultOrder <= 2 : i.ResultOrder <= 3) /
           Math.Max(1, info.Count());
@@ -322,13 +328,13 @@ namespace KmyKeiba.Prompt.Models.Brains
         {
           var raceTopTime = await db.RaceHorses!
             .Where((h) => h.RaceKey == rc.Key && h.ResultOrder == 1)
-            .Select((h) => new { h.ResultTime, })
+            .Join(pastRaces, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultTime, })
             .FirstOrDefaultAsync();
           if (raceTopTime != null)
           {
             var sameCourseResults = await db.RaceHorses!
               .Where((h) => h.ResultOrder == 1 && h.Course == rc.Course)
-              .Join(db.Races!.Where((r) => r.Distance == rc.Distance && r.TrackGround == rc.TrackGround), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultTime })
+              .Join(pastRaces.Where((r) => r.Distance == rc.Distance && r.TrackGround == rc.TrackGround), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultTime })
               .ToArrayAsync();
             if (sameCourseResults.Any())
             {
@@ -343,8 +349,12 @@ namespace KmyKeiba.Prompt.Models.Brains
 
         if (r.Horse != null)
         {
-          var oldRiderWinRate = (float)await db.RaceHorses!.CountAsync((rr) => rr.RiderCode == r.Horse.RiderCode && rr.ResultOrder <= 3 && rr.ResultOrder != 0) /
-            Math.Max(1, await db.RaceHorses!.CountAsync((rr) => rr.RiderCode == r.Horse.RiderCode && rr.ResultOrder != 0));
+          var oldRiderWinRate = (float)await db.RaceHorses!
+            .Join(pastRaces, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.ResultOrder, h.RiderCode, })
+            .CountAsync((rr) => rr.RiderCode == r.Horse.RiderCode && rr.ResultOrder <= 3 && rr.ResultOrder != 0) /
+            Math.Max(1, await db.RaceHorses!
+            .Join(pastRaces, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { h.RiderCode, h.ResultOrder, })
+            .CountAsync((rr) => rr.RiderCode == r.Horse.RiderCode && rr.ResultOrder != 0));
 
           var isLocalRace = r.Race.Course.GetCourseType() == RaceCourseType.Local;
           SetValue("RiderWinRate", oldRiderWinRate);
