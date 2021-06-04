@@ -80,6 +80,11 @@ namespace KmyKeiba.JVLink.Entities
     public int CourseRaceNumber { get; set; }
 
     /// <summary>
+    /// コースの種類
+    /// </summary>
+    public string CourseType { get; set; } = string.Empty;
+
+    /// <summary>
     /// 参加条件
     /// </summary>
     public RaceSubject Subject { get; set; } = new();
@@ -167,6 +172,7 @@ namespace KmyKeiba.JVLink.Entities
         Name6Chars = name6,
         SubName = race.RaceInfo.Fukudai.Trim(),
         Course = course,
+        CourseType = race.CourseKubunCD.Trim(),
         TrackGround = trackGround,
         TrackType = trackType,
         TrackCornerDirection = trackCornerDirection,

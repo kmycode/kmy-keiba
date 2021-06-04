@@ -2,6 +2,7 @@
 using Keras.Callbacks;
 using Keras.Layers;
 using Keras.Models;
+using Keras.Optimizers;
 using Keras.Utils;
 using KmyKeiba.Models.Data;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -22,6 +23,7 @@ namespace KmyKeiba.Prompt.Models.Brains
   {
     private BaseModel? model = null;
     private int epochs = 0;
+    private dynamic? radam;
 
     public bool CanPredict => this.model != null;
 
@@ -95,7 +97,12 @@ namespace KmyKeiba.Prompt.Models.Brains
           }
         }
 
-        this.model.Compile(optimizer: this.Optimizer, loss: this.Loss, metrics: new string[] { "accuracy" });
+        if (this.radam == null)
+        {
+          this.radam = Py.Import("keras_radam");
+        }
+
+        this.model.Compile(optimizer: new KerasObjectWrapper(this.radam.RAdam()), loss: this.Loss, metrics: new string[] { "accuracy" });
       }
 
 
@@ -152,7 +159,18 @@ namespace KmyKeiba.Prompt.Models.Brains
 
     public void LoadFile(string fileName)
     {
-      var loaded_model = Sequential.LoadModel(fileName);
+      if (this.radam == null)
+      {
+        var model = new Sequential();
+        this.radam = Py.Import("keras_radam");
+      }
+
+      var customObjects = new Dictionary<string, PyObject>
+      {
+        { "RAdam", (PyObject)this.radam.RAdam() }
+      };
+
+      var loaded_model = Sequential.LoadModel(fileName, customObjects);
       // var loaded_model = Sequential.ModelFromJson(File.ReadAllText(fileName + ".json"));
       // loaded_model.LoadWeight(fileName + ".h5");
       this.model = loaded_model;
@@ -167,6 +185,15 @@ namespace KmyKeiba.Prompt.Models.Brains
       // this.model?.Dispose();
       this.model = null;
       this.epochs = 0;
+    }
+  }
+
+  class KerasObjectWrapper : Base
+  {
+    public KerasObjectWrapper(dynamic obj)
+    {
+      var field = typeof(KerasReguressor).GetField("PyInstance", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.SetField | System.Reflection.BindingFlags.GetField);
+      field!.SetValue(this, obj);
     }
   }
 

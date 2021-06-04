@@ -19,6 +19,8 @@ namespace KmyKeiba.Data.Db
 
     public RaceCourse Course { get; set; }
 
+    public string CourseType { get; set; } = string.Empty;
+
     public TrackGround TrackGround { get; set; }
 
     public TrackCornerDirection TrackCornerDirection { get; set; }
@@ -53,6 +55,10 @@ namespace KmyKeiba.Data.Db
 
     public DateTime StartTime { get; set; }
 
+    public float CourseBaseTimeCache { get; set; }
+
+    public int CourseBaseTimeCacheVersion { get; set; }
+
     public override void SetEntity(Race race)
     {
       this.Key = race.Key;
@@ -63,6 +69,7 @@ namespace KmyKeiba.Data.Db
       this.SubName = race.SubName;
       this.SubjectName = race.Subject.Name;
       this.Course = race.Course;
+      this.CourseType = race.CourseType;
       this.TrackGround = race.TrackGround;
       this.TrackCornerDirection = race.TrackCornerDirection;
       this.TrackType = race.TrackType;

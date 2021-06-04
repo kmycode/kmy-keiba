@@ -10,8 +10,10 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Prompt.Models.Brains
 {
-  class LearningData
+  class LearningDatav10
   {
+    // TODO: 季節、ハンデを追加
+
     public float Weather;
     public float Course;
     public float Ground;
@@ -19,15 +21,14 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float TrackOption;
     public float Distance;
     public float Grade;
-    public float Season;
-    public float RiderWeight;
-    public float HandiCap;
+    public float Season;          //
+    public float RiderWeight;     //
+    public float HandiCap;        //
     public float Weight;
     public float WeightDiff;
     public float Sex;
     public float Age;
     public float MyRunningStyle;
-    public float Speed;
 
     // 騎手の成績
     public float RiderWinRate;
@@ -45,8 +46,8 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float CourseWinRate;
     public float GroundWinRate;
     public float ConditionWinRate;
-    public float RiderWeightWinRate;
-    public float SeasonWinRate;
+    public float RiderWeightWinRate;      //
+    public float SeasonWinRate;           //
 
     // コースの成績
     public float CourseFrameWinRate;
@@ -69,78 +70,73 @@ namespace KmyKeiba.Prompt.Models.Brains
 
     // レースのペースを追加
     public float Race1RiderWinRate;
-    // public float Race1Weather;
+    public float Race1Weather;
     public float Race1Course;
-    // public float Race1Ground;
-    // public float Race1Condition;
-    // public float Race1Distance;
+    public float Race1Ground;
+    public float Race1Condition;
+    public float Race1Distance;
     public float Race1Grade;
     public float Race1RunningStyle;
     public float Race1A3HalongTimeOrder;
     public float Race1Pace;
-    public float Race1Result;
+    // public float Race1Result;
     public float Race1ResultTime;
-    public float Race1Speed;
 
     public float Race2RiderWinRate;
-    // public float Race2Weather;
+    public float Race2Weather;
     public float Race2Course;
-    // public float Race2Ground;
-    // public float Race2Condition;
-    // public float Race2Distance;
+    public float Race2Ground;
+    public float Race2Condition;
+    public float Race2Distance;
     public float Race2Grade;
     public float Race2RunningStyle;
     public float Race2A3HalongTimeOrder;
     public float Race2Pace;
-    public float Race2Result;
+    // public float Race2Result;
     public float Race2ResultTime;
-    public float Race2Speed;
 
     public float Race3RiderWinRate;
-    // public float Race3Weather;
+    public float Race3Weather;
     public float Race3Course;
-    // public float Race3Ground;
-    // public float Race3Condition;
-    // public float Race3Distance;
+    public float Race3Ground;
+    public float Race3Condition;
+    public float Race3Distance;
     public float Race3Grade;
     public float Race3RunningStyle;
     public float Race3A3HalongTimeOrder;
     public float Race3Pace;
-    public float Race3Result;
+    // public float Race3Result;
     public float Race3ResultTime;
-    public float Race3Speed;
 
     public float Race4RiderWinRate;
-    // public float Race4Weather;
+    public float Race4Weather;
     public float Race4Course;
-    // public float Race4Ground;
-    // public float Race4Condition;
-    // public float Race4Distance;
+    public float Race4Ground;
+    public float Race4Condition;
+    public float Race4Distance;
     public float Race4Grade;
     public float Race4RunningStyle;
     public float Race4A3HalongTimeOrder;
     public float Race4Pace;
-    public float Race4Result;
+    // public float Race4Result;
     public float Race4ResultTime;
-    public float Race4Speed;
 
     public float Race5RiderWinRate;
-    // public float Race5Weather;
+    public float Race5Weather;
     public float Race5Course;
-    // public float Race5Ground;
-    // public float Race5Condition;
-    // public float Race5Distance;
+    public float Race5Ground;
+    public float Race5Condition;
+    public float Race5Distance;
     public float Race5Grade;
     public float Race5RunningStyle;
     public float Race5A3HalongTimeOrder;
     public float Race5Pace;
-    public float Race5Result;
+    // public float Race5Result;
     public float Race5ResultTime;
-    public float Race5Speed;
 
     public float Result;
 
-    public const int VERSION = 13;
+    public const int VERSION = 10;
 
     public static async Task<LearningData> CreateAsync(MyContextBase db, RaceData race, RaceHorseData horse, IEnumerable<(RaceData Race, RaceHorseData Horse)> horseHistories, IEnumerable<(RaceData Race, RaceHorseData Horse)> otherHorseHistories)
     {
@@ -191,10 +187,10 @@ namespace KmyKeiba.Prompt.Models.Brains
         Sex = (horse.Sex == HorseSex.Castrated ? 1.5f : (float)horse.Sex) / 2f,
         Age = Math.Min(horse.Age, (short)10) / 10f,
         MyRunningStyle = (float)GetRunningStyle(horseHistories) / 4f,
-        NearDistanceTime = (float)nearDistanceTime.TotalMilliseconds / 300_000f,
+        NearDistanceTime = (float)nearDistanceTime.TotalMilliseconds / 6000f,
         MyPoint = GetRaceHorsePoint(otherHorseHistories.Where((h) => h.Horse.Name == horse.Name)),
 
-        Result = (horse.ResultOrder <= (race.HorsesCount <= 7 ? 2 : 3)) ? 1f : 0f,
+        Result = 1 - (horse.ResultOrder - 1) / Math.Max(1f, race.HorsesCount - 1),
       };
 
       {
@@ -344,9 +340,6 @@ namespace KmyKeiba.Prompt.Models.Brains
       d.Enemy2Point = otherPoints.ElementAtOrDefault(1);
       d.Enemy3Point = otherPoints.ElementAtOrDefault(2);
 
-      var oldRaceCount = 0;
-      var speedSum = 0f;
-
       for (var i = 1; i <= 5; i++)
       {
         var r = horseHistories.ElementAtOrDefault(i - 1);
@@ -378,7 +371,7 @@ namespace KmyKeiba.Prompt.Models.Brains
             if (sameCourseResults.Any())
             {
               var average = sameCourseResults.Average((r) => (float)r.ResultTime.TotalMilliseconds / 1000);
-              var topTime = (float)raceTopTime.ResultTime.TotalMilliseconds / 300_000f;
+              var topTime = (float)raceTopTime.ResultTime.TotalMilliseconds / 1000f;
               return (average - topTime) / 30f + 0.5f;
             }
           }
@@ -397,104 +390,41 @@ namespace KmyKeiba.Prompt.Models.Brains
 
           var isLocalRace = r.Race.Course.GetCourseType() == RaceCourseType.Local;
           SetValue("RiderWinRate", oldRiderWinRate);
-          // SetValue("Weather", (short)r.Race.TrackWeather / 6f);
+          SetValue("Weather", (short)r.Race.TrackWeather / 6f);
           SetValue("Course", (short)r.Race.Course / 100f);
-          // SetValue("Ground", (short)r.Race.TrackGround / 4f);
-          // SetValue("Condition", (short)r.Race.TrackCondition / 4f);
-          // SetValue("Distance", Math.Min(r.Race.Distance, 5000) / 5000f);
+          SetValue("Ground", (short)r.Race.TrackGround / 4f);
+          SetValue("Condition", (short)r.Race.TrackCondition / 4f);
+          SetValue("Distance", Math.Min(r.Race.Distance, 5000) / 5000f);
           SetValue("Grade", GetGrade(isLocalRace, r.Race.Name, r.Race.Grade, new RaceSubjectType[] { r.Race.SubjectAge2, r.Race.SubjectAge3, r.Race.SubjectAge4, r.Race.SubjectAge5, r.Race.SubjectAgeYounger, }, r.Race.SubjectName));
           SetValue("RunningStyle", (short)r.Horse.RunningStyle / 4f);
           SetValue("A3HalongTimeOrder", r.Horse.AfterThirdHalongTimeOrder == 0 ? 0.5f : (float)(r.Horse.AfterThirdHalongTimeOrder - 1) / Math.Max(1, r.Race.HorsesCount - 1));
           SetValue("Pace", await GetCourseRacePaceAsync(r.Race));
           if (r.Horse.ResultOrder != 0)
           {
-            SetValue("Result", (r.Horse.ResultOrder <= (r.Race.HorsesCount <= 7 ? 2 : 3)) ? 1f : 0f);
+            // SetValue("Result", (r.Race.HorsesCount <= 7 ? r.Horse.ResultOrder <= 2 : r.Horse.ResultOrder <= 3) ? 1 : 0);
           }
-          SetValue("ResultTime", (float)r.Horse.ResultTime.TotalMilliseconds / 300_000f);
-
-          var speed = await CalcSpeedValueAsync(db, r.Race, r.Horse);
-          SetValue("Speed", speed);
-
-          oldRaceCount++;
-          speedSum += speed;
+          SetValue("ResultTime", (float)r.Horse.ResultTime.TotalMilliseconds / 6000);
         }
         else
         {
           // 前走情報がないときのデフォルト値
           var isLocalRace = horse.Course.GetCourseType() == RaceCourseType.Local;
           SetValue("RiderWinRate", 0f);
-          // SetValue("Weather", 0f);
+          SetValue("Weather", 0f);
           SetValue("Course", (short)horse.Course / 100f);
-          // SetValue("Ground", 0f);
-          // SetValue("Condition", 0f);
-          // SetValue("Distance", 0f);
+          SetValue("Ground", 0f);
+          SetValue("Condition", 0f);
+          SetValue("Distance", 0f);
           SetValue("Grade", 0f);
           SetValue("RunningStyle", 0f);
           SetValue("A3HalongTimeOrder", 1f);
           SetValue("Pace", 0.5f);
-          SetValue("Result", 0);
+          // SetValue("Result", 0);
           SetValue("ResultTime", 1f);
-          SetValue("Speed", 0f);
         }
-      }
-
-      if (oldRaceCount > 0)
-      {
-        d.Speed = speedSum / oldRaceCount;
-      }
-      else
-      {
-        d.Speed = 0.5f;
       }
 
       return d;
-    }
-
-    public const int RACE_BASETIME_CACHE_VERSION = 1;
-
-    public static async Task<float> CalcSpeedValueAsync(MyContextBase db, RaceData race, RaceHorseData horse)
-    {
-      if (race.CourseBaseTimeCacheVersion == RACE_BASETIME_CACHE_VERSION)
-      {
-        if (race.CourseBaseTimeCache == 0)
-        {
-          return 0.5f;
-        }
-
-        var thisSpeed = (race.CourseBaseTimeCache * 10 - horse.ResultTime.TotalSeconds * 10) *
-          (1 / (race.CourseBaseTimeCache * 10) * 1000) + (horse.RiderWeight - 55) * 2 +
-          ((short)race.TrackCondition - 1) * 8 + 80;
-        return Math.Clamp((float)thisSpeed / 180f, 0f, 1f);
-      }
-
-      var pastLimit = race.StartTime.AddMonths(-18);
-      var sameCourseInfo = await db.RaceHorses!
-        .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Horse = h, Race = r, })
-        .Where((r) => r.Race.StartTime < race.StartTime && r.Race.StartTime >= pastLimit)
-        .Where((r) => r.Race.Course == race.Course && r.Race.CourseType == race.CourseType && r.Race.Distance == race.Distance && r.Race.TrackGround == race.TrackGround)
-        .Where((r) => r.Horse.ResultOrder != 0 && r.Horse.ResultOrder <= 3 &&
-          ((short)r.Race.Course >= 30 ||
-            (r.Race.SubjectAge2 == RaceSubjectType.Win3 || r.Race.SubjectAge3 == RaceSubjectType.Win3 || r.Race.SubjectAge4 == RaceSubjectType.Win3 || r.Race.SubjectAge5 == RaceSubjectType.Win3 || r.Race.SubjectAgeYounger == RaceSubjectType.Win3) ||
-            (r.Race.SubjectAge2 == RaceSubjectType.Win2 || r.Race.SubjectAge3 == RaceSubjectType.Win2 || r.Race.SubjectAge4 == RaceSubjectType.Win2 || r.Race.SubjectAge5 == RaceSubjectType.Win2 || r.Race.SubjectAgeYounger == RaceSubjectType.Win2)))
-        .Select((r) => r.Horse.ResultTime)
-        .ToArrayAsync();
-
-      race.CourseBaseTimeCacheVersion = RACE_BASETIME_CACHE_VERSION;
-      if (sameCourseInfo.Any())
-      {
-        var sameCourseBaseSpeed = sameCourseInfo.Average((c) => c.TotalSeconds);
-        if (sameCourseBaseSpeed != 0)
-        {
-          var thisSpeed = (sameCourseBaseSpeed * 10 - horse.ResultTime.TotalSeconds * 10) *
-            (1 / (sameCourseBaseSpeed * 10) * 1000) + (horse.RiderWeight - 55) * 2 +
-            ((short)race.TrackCondition - 1) * 8 + 80;
-
-          race.CourseBaseTimeCache = (float)sameCourseBaseSpeed;
-
-          return Math.Clamp((float)thisSpeed / 180f, 0f, 1f);
-        }
-      }
-      return 0.5f;
     }
 
     private static float GetRaceHorsePoint(IEnumerable<(RaceData Race, RaceHorseData Horse)> history)
@@ -546,32 +476,32 @@ namespace KmyKeiba.Prompt.Models.Brains
 
       if (cls != RaceClass.Unknown)
       {
-        val = cls switch
+        val += cls switch
         {
-          RaceClass.ClassA => 0.4f,
-          RaceClass.ClassB => 0.3f,
-          RaceClass.ClassC => 0.2f,
-          RaceClass.ClassD => 0.2f,
-          RaceClass.Age => 0.35f,
-          RaceClass.Money => subject.Money > 0 ? Math.Min(subject.Money / 10000, 1000) / 2200f : 0.2f,
+          RaceClass.ClassA => 0.3f,
+          RaceClass.ClassB => 0.2f,
+          RaceClass.ClassC => 0.1f,
+          RaceClass.ClassD => 0.05f,
+          RaceClass.Age => 0.25f,
+          RaceClass.Money => subject.Money > 0 ? Math.Min(subject.Money / 10000, 1000) / 1000f : 0.2f,
           _ => 0f,
         };
       }
       if (grade != RaceGrade.Unknown)
       {
-        val = grade switch
+        val += grade switch
         {
-          RaceGrade.Grade1 => 0.95f,
-          RaceGrade.Grade2 => 0.85f,
-          RaceGrade.Grade3 => 0.85f,
-          RaceGrade.NoNamedGrade => 0.8f,
-          RaceGrade.NonGradeSpecial => 0.7f,
-          RaceGrade.Listed => 0.7f,
-          RaceGrade.LocalGrade1 => 0.6f,
-          RaceGrade.LocalGrade2 => 0.5f,
-          RaceGrade.LocalGrade3 => 0.5f,
-          RaceGrade.LocalNoNamedGrade => 0.5f,
-          RaceGrade.LocalListed => 0.5f,
+          RaceGrade.Grade1 => 0.85f,
+          RaceGrade.Grade2 => 0.7f,
+          RaceGrade.Grade3 => 0.6f,
+          RaceGrade.NoNamedGrade => 0.6f,
+          RaceGrade.NonGradeSpecial => 0.4f,
+          RaceGrade.Listed => 0.4f,
+          RaceGrade.LocalGrade1 => 0.1f,
+          RaceGrade.LocalGrade2 => 0.05f,
+          RaceGrade.LocalGrade3 => 0.025f,
+          RaceGrade.LocalNoNamedGrade => 0.025f,
+          RaceGrade.LocalListed => 0.025f,
           _ => 0f,
         };
         if (!isLocal && (raceName.Contains("皐月賞") || raceName.Contains("東京優駿") || raceName.Contains("菊花賞")))
@@ -590,14 +520,14 @@ namespace KmyKeiba.Prompt.Models.Brains
       if (availableSubjects.Any())
       {
         var maxSubject = availableSubjects.FirstOrDefault();
-        val = maxSubject switch
+        val -= maxSubject switch
         {
-          RaceSubjectType.NewComer => 0.5f,
-          RaceSubjectType.Unraced => 0.5f,
-          RaceSubjectType.Maiden => 0.45f,
-          RaceSubjectType.Win1 => 0.6f,
-          RaceSubjectType.Win2 => 0.7f,
-          RaceSubjectType.Win3 => 0.8f,
+          RaceSubjectType.NewComer => 0.1f,
+          RaceSubjectType.Unraced => 0.1f,
+          RaceSubjectType.Maiden => 0.15f,
+          RaceSubjectType.Win1 => 0.1f,
+          RaceSubjectType.Win2 => 0.08f,
+          RaceSubjectType.Win3 => 0.05f,
           _ => 0f,
         };
       }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Prompt.Models.Brains
 {
-  class LearningData
+  class LearningDatav12
   {
     public float Weather;
     public float Course;
@@ -140,7 +140,7 @@ namespace KmyKeiba.Prompt.Models.Brains
 
     public float Result;
 
-    public const int VERSION = 13;
+    public const int VERSION = 12;
 
     public static async Task<LearningData> CreateAsync(MyContextBase db, RaceData race, RaceHorseData horse, IEnumerable<(RaceData Race, RaceHorseData Horse)> horseHistories, IEnumerable<(RaceData Race, RaceHorseData Horse)> otherHorseHistories)
     {
@@ -546,32 +546,32 @@ namespace KmyKeiba.Prompt.Models.Brains
 
       if (cls != RaceClass.Unknown)
       {
-        val = cls switch
+        val += cls switch
         {
-          RaceClass.ClassA => 0.4f,
-          RaceClass.ClassB => 0.3f,
-          RaceClass.ClassC => 0.2f,
-          RaceClass.ClassD => 0.2f,
-          RaceClass.Age => 0.35f,
-          RaceClass.Money => subject.Money > 0 ? Math.Min(subject.Money / 10000, 1000) / 2200f : 0.2f,
+          RaceClass.ClassA => 0.3f,
+          RaceClass.ClassB => 0.2f,
+          RaceClass.ClassC => 0.1f,
+          RaceClass.ClassD => 0.05f,
+          RaceClass.Age => 0.25f,
+          RaceClass.Money => subject.Money > 0 ? Math.Min(subject.Money / 10000, 1000) / 1000f : 0.2f,
           _ => 0f,
         };
       }
       if (grade != RaceGrade.Unknown)
       {
-        val = grade switch
+        val += grade switch
         {
-          RaceGrade.Grade1 => 0.95f,
-          RaceGrade.Grade2 => 0.85f,
-          RaceGrade.Grade3 => 0.85f,
-          RaceGrade.NoNamedGrade => 0.8f,
-          RaceGrade.NonGradeSpecial => 0.7f,
-          RaceGrade.Listed => 0.7f,
-          RaceGrade.LocalGrade1 => 0.6f,
-          RaceGrade.LocalGrade2 => 0.5f,
-          RaceGrade.LocalGrade3 => 0.5f,
-          RaceGrade.LocalNoNamedGrade => 0.5f,
-          RaceGrade.LocalListed => 0.5f,
+          RaceGrade.Grade1 => 0.85f,
+          RaceGrade.Grade2 => 0.7f,
+          RaceGrade.Grade3 => 0.6f,
+          RaceGrade.NoNamedGrade => 0.6f,
+          RaceGrade.NonGradeSpecial => 0.4f,
+          RaceGrade.Listed => 0.4f,
+          RaceGrade.LocalGrade1 => 0.1f,
+          RaceGrade.LocalGrade2 => 0.05f,
+          RaceGrade.LocalGrade3 => 0.025f,
+          RaceGrade.LocalNoNamedGrade => 0.025f,
+          RaceGrade.LocalListed => 0.025f,
           _ => 0f,
         };
         if (!isLocal && (raceName.Contains("皐月賞") || raceName.Contains("東京優駿") || raceName.Contains("菊花賞")))
@@ -590,14 +590,14 @@ namespace KmyKeiba.Prompt.Models.Brains
       if (availableSubjects.Any())
       {
         var maxSubject = availableSubjects.FirstOrDefault();
-        val = maxSubject switch
+        val += maxSubject switch
         {
-          RaceSubjectType.NewComer => 0.5f,
-          RaceSubjectType.Unraced => 0.5f,
-          RaceSubjectType.Maiden => 0.45f,
-          RaceSubjectType.Win1 => 0.6f,
-          RaceSubjectType.Win2 => 0.7f,
-          RaceSubjectType.Win3 => 0.8f,
+          RaceSubjectType.NewComer => 0.25f,
+          RaceSubjectType.Unraced => 0.25f,
+          RaceSubjectType.Maiden => 0.25f,
+          RaceSubjectType.Win1 => 0.3f,
+          RaceSubjectType.Win2 => 0.3f,
+          RaceSubjectType.Win3 => 0.35f,
           _ => 0f,
         };
       }

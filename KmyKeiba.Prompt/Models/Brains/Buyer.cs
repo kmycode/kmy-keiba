@@ -60,7 +60,7 @@ namespace KmyKeiba.Prompt.Models.Brains
         {
           if (numbers[i, 0] == item.Number1)
           {
-            item.Income += numbers[i, 1];
+            item.Income += numbers[i, 1] * item.Unit;
             income += item.Income;
           }
         }
@@ -73,7 +73,7 @@ namespace KmyKeiba.Prompt.Models.Brains
           if ((numbers[i, 0] == item.Number1 || numbers[i, 0] == item.Number2) &&
             (numbers[i, 1] == item.Number1 || numbers[i, 1] == item.Number2))
           {
-            item.Income += numbers[i, 2];
+            item.Income += numbers[i, 2] * item.Unit;
             income += item.Income;
           }
         }
@@ -85,7 +85,7 @@ namespace KmyKeiba.Prompt.Models.Brains
         {
           if (numbers[i, 0] == item.Number1 && numbers[i, 1] == item.Number2)
           {
-            item.Income += numbers[i, 2];
+            item.Income += numbers[i, 2] * item.Unit;
             income += item.Income;
           }
         }
@@ -110,7 +110,7 @@ namespace KmyKeiba.Prompt.Models.Brains
           }
           if (c >= 2)
           {
-            item.Income += numbers[i, 2];
+            item.Income += numbers[i, 2] * item.Unit;
             income += item.Income;
           }
         }
@@ -124,7 +124,7 @@ namespace KmyKeiba.Prompt.Models.Brains
             (numbers[i, 1] == item.Number1 || numbers[i, 1] == item.Number2 || numbers[i, 1] == item.Number3) &&
             (numbers[i, 2] == item.Number1 || numbers[i, 2] == item.Number2 || numbers[i, 2] == item.Number3))
           {
-            item.Income += numbers[i, 3];
+            item.Income += numbers[i, 3] * item.Unit;
             income += item.Income;
           }
         }
@@ -136,7 +136,7 @@ namespace KmyKeiba.Prompt.Models.Brains
         {
           if (numbers[i, 0] == item.Number1 && numbers[i, 1] == item.Number2 && numbers[i, 2] == item.Number3)
           {
-            item.Income += numbers[i, 3];
+            item.Income += numbers[i, 3] * item.Unit;
             income += item.Income;
           }
         }

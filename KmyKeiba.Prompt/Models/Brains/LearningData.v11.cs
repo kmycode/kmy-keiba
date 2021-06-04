@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Prompt.Models.Brains
 {
-  class LearningData
+  class LearningDatav11
   {
     public float Weather;
     public float Course;
@@ -140,7 +140,7 @@ namespace KmyKeiba.Prompt.Models.Brains
 
     public float Result;
 
-    public const int VERSION = 13;
+    public const int VERSION = 11;
 
     public static async Task<LearningData> CreateAsync(MyContextBase db, RaceData race, RaceHorseData horse, IEnumerable<(RaceData Race, RaceHorseData Horse)> horseHistories, IEnumerable<(RaceData Race, RaceHorseData Horse)> otherHorseHistories)
     {
@@ -194,7 +194,7 @@ namespace KmyKeiba.Prompt.Models.Brains
         NearDistanceTime = (float)nearDistanceTime.TotalMilliseconds / 300_000f,
         MyPoint = GetRaceHorsePoint(otherHorseHistories.Where((h) => h.Horse.Name == horse.Name)),
 
-        Result = (horse.ResultOrder <= (race.HorsesCount <= 7 ? 2 : 3)) ? 1f : 0f,
+        Result = 1 - (horse.ResultOrder - 1) / Math.Max(1f, race.HorsesCount - 1),
       };
 
       {
@@ -408,11 +408,11 @@ namespace KmyKeiba.Prompt.Models.Brains
           SetValue("Pace", await GetCourseRacePaceAsync(r.Race));
           if (r.Horse.ResultOrder != 0)
           {
-            SetValue("Result", (r.Horse.ResultOrder <= (r.Race.HorsesCount <= 7 ? 2 : 3)) ? 1f : 0f);
+            SetValue("Result", 1 - (r.Horse.ResultOrder - 1) / Math.Max(1f, r.Race.HorsesCount - 1));
           }
           SetValue("ResultTime", (float)r.Horse.ResultTime.TotalMilliseconds / 300_000f);
 
-          var speed = await CalcSpeedValueAsync(db, r.Race, r.Horse);
+          var speed = await CalcSpeedValueAsync(db, r.Race, r.Horse) / 180f;
           SetValue("Speed", speed);
 
           oldRaceCount++;
@@ -442,10 +442,6 @@ namespace KmyKeiba.Prompt.Models.Brains
       {
         d.Speed = speedSum / oldRaceCount;
       }
-      else
-      {
-        d.Speed = 0.5f;
-      }
 
       return d;
     }
@@ -456,15 +452,10 @@ namespace KmyKeiba.Prompt.Models.Brains
     {
       if (race.CourseBaseTimeCacheVersion == RACE_BASETIME_CACHE_VERSION)
       {
-        if (race.CourseBaseTimeCache == 0)
-        {
-          return 0.5f;
-        }
-
         var thisSpeed = (race.CourseBaseTimeCache * 10 - horse.ResultTime.TotalSeconds * 10) *
           (1 / (race.CourseBaseTimeCache * 10) * 1000) + (horse.RiderWeight - 55) * 2 +
           ((short)race.TrackCondition - 1) * 8 + 80;
-        return Math.Clamp((float)thisSpeed / 180f, 0f, 1f);
+        return (float)thisSpeed;
       }
 
       var pastLimit = race.StartTime.AddMonths(-18);
@@ -478,23 +469,19 @@ namespace KmyKeiba.Prompt.Models.Brains
             (r.Race.SubjectAge2 == RaceSubjectType.Win2 || r.Race.SubjectAge3 == RaceSubjectType.Win2 || r.Race.SubjectAge4 == RaceSubjectType.Win2 || r.Race.SubjectAge5 == RaceSubjectType.Win2 || r.Race.SubjectAgeYounger == RaceSubjectType.Win2)))
         .Select((r) => r.Horse.ResultTime)
         .ToArrayAsync();
-
-      race.CourseBaseTimeCacheVersion = RACE_BASETIME_CACHE_VERSION;
       if (sameCourseInfo.Any())
       {
         var sameCourseBaseSpeed = sameCourseInfo.Average((c) => c.TotalSeconds);
-        if (sameCourseBaseSpeed != 0)
-        {
-          var thisSpeed = (sameCourseBaseSpeed * 10 - horse.ResultTime.TotalSeconds * 10) *
-            (1 / (sameCourseBaseSpeed * 10) * 1000) + (horse.RiderWeight - 55) * 2 +
-            ((short)race.TrackCondition - 1) * 8 + 80;
+        var thisSpeed = (sameCourseBaseSpeed * 10 - horse.ResultTime.TotalSeconds * 10) *
+          (1 / (sameCourseBaseSpeed * 10) * 1000) + (horse.RiderWeight - 55) * 2 +
+          ((short)race.TrackCondition - 1) * 8 + 80;
 
-          race.CourseBaseTimeCache = (float)sameCourseBaseSpeed;
+        race.CourseBaseTimeCache = (float)sameCourseBaseSpeed;
+        race.CourseBaseTimeCacheVersion = RACE_BASETIME_CACHE_VERSION;
 
-          return Math.Clamp((float)thisSpeed / 180f, 0f, 1f);
-        }
+        return (float)thisSpeed;
       }
-      return 0.5f;
+      return 0f;
     }
 
     private static float GetRaceHorsePoint(IEnumerable<(RaceData Race, RaceHorseData Horse)> history)
@@ -546,32 +533,32 @@ namespace KmyKeiba.Prompt.Models.Brains
 
       if (cls != RaceClass.Unknown)
       {
-        val = cls switch
+        val += cls switch
         {
-          RaceClass.ClassA => 0.4f,
-          RaceClass.ClassB => 0.3f,
-          RaceClass.ClassC => 0.2f,
-          RaceClass.ClassD => 0.2f,
-          RaceClass.Age => 0.35f,
-          RaceClass.Money => subject.Money > 0 ? Math.Min(subject.Money / 10000, 1000) / 2200f : 0.2f,
+          RaceClass.ClassA => 0.3f,
+          RaceClass.ClassB => 0.2f,
+          RaceClass.ClassC => 0.1f,
+          RaceClass.ClassD => 0.05f,
+          RaceClass.Age => 0.25f,
+          RaceClass.Money => subject.Money > 0 ? Math.Min(subject.Money / 10000, 1000) / 1000f : 0.2f,
           _ => 0f,
         };
       }
       if (grade != RaceGrade.Unknown)
       {
-        val = grade switch
+        val += grade switch
         {
-          RaceGrade.Grade1 => 0.95f,
-          RaceGrade.Grade2 => 0.85f,
-          RaceGrade.Grade3 => 0.85f,
-          RaceGrade.NoNamedGrade => 0.8f,
-          RaceGrade.NonGradeSpecial => 0.7f,
-          RaceGrade.Listed => 0.7f,
-          RaceGrade.LocalGrade1 => 0.6f,
-          RaceGrade.LocalGrade2 => 0.5f,
-          RaceGrade.LocalGrade3 => 0.5f,
-          RaceGrade.LocalNoNamedGrade => 0.5f,
-          RaceGrade.LocalListed => 0.5f,
+          RaceGrade.Grade1 => 0.85f,
+          RaceGrade.Grade2 => 0.7f,
+          RaceGrade.Grade3 => 0.6f,
+          RaceGrade.NoNamedGrade => 0.6f,
+          RaceGrade.NonGradeSpecial => 0.4f,
+          RaceGrade.Listed => 0.4f,
+          RaceGrade.LocalGrade1 => 0.1f,
+          RaceGrade.LocalGrade2 => 0.05f,
+          RaceGrade.LocalGrade3 => 0.025f,
+          RaceGrade.LocalNoNamedGrade => 0.025f,
+          RaceGrade.LocalListed => 0.025f,
           _ => 0f,
         };
         if (!isLocal && (raceName.Contains("皐月賞") || raceName.Contains("東京優駿") || raceName.Contains("菊花賞")))
@@ -590,14 +577,14 @@ namespace KmyKeiba.Prompt.Models.Brains
       if (availableSubjects.Any())
       {
         var maxSubject = availableSubjects.FirstOrDefault();
-        val = maxSubject switch
+        val += maxSubject switch
         {
-          RaceSubjectType.NewComer => 0.5f,
-          RaceSubjectType.Unraced => 0.5f,
-          RaceSubjectType.Maiden => 0.45f,
-          RaceSubjectType.Win1 => 0.6f,
-          RaceSubjectType.Win2 => 0.7f,
-          RaceSubjectType.Win3 => 0.8f,
+          RaceSubjectType.NewComer => 0.25f,
+          RaceSubjectType.Unraced => 0.25f,
+          RaceSubjectType.Maiden => 0.25f,
+          RaceSubjectType.Win1 => 0.3f,
+          RaceSubjectType.Win2 => 0.3f,
+          RaceSubjectType.Win3 => 0.35f,
           _ => 0f,
         };
       }

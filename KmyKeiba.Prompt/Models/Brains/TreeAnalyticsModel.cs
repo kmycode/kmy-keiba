@@ -35,6 +35,18 @@ namespace KmyKeiba.Prompt.Models.Brains
       var arr = new float[this.data.Sum((d) => d.Data.GetLength(0)), this.data[0].Data.GetLength(1)];
       var arr2 = new float[this.data.Sum((d) => d.Results.Length)];
 
+      for (var i = 0; i < arr.GetLength(0); i++)
+      {
+        for (var j = 0; j < arr.GetLength(1); j++)
+        {
+          if (float.IsNaN(arr[i, j]))
+          {
+            this.data.Clear();
+            return;
+          }
+        }
+      }
+
       var x = 0;
       var y = 0;
       foreach (var d in this.data)
