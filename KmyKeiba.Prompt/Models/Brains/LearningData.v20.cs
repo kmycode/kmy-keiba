@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Prompt.Models.Brains
 {
-  class LearningData
+  class LearningDatav20
   {
     public float Weather;
     public float Course;
@@ -34,8 +34,6 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float IntervalDays;
     // public float Popular;
     public float MyHistoryOrder;
-    public float HorsesCount;
-    public float Number;
 
     // 騎手の成績
     public float RiderWinRate;
@@ -87,6 +85,7 @@ namespace KmyKeiba.Prompt.Models.Brains
 
     // レースのペースを追加
     public float Race1RiderWinRate;
+    public float Race1Popular;
     public float Race1Weather;
     public float Race1Course;
     // public float Race1Ground;
@@ -105,6 +104,7 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Race1CornerOrder4;
 
     public float Race2RiderWinRate;
+    public float Race2Popular;
     public float Race2Weather;
     public float Race2Course;
     // public float Race2Ground;
@@ -119,6 +119,7 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Race2Speed;
 
     public float Race3RiderWinRate;
+    public float Race3Popular;
     public float Race3Weather;
     public float Race3Course;
     // public float Race3Ground;
@@ -133,6 +134,7 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Race3Speed;
 
     public float Race4RiderWinRate;
+    public float Race4Popular;
     public float Race4Weather;
     public float Race4Course;
     // public float Race4Ground;
@@ -147,6 +149,7 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Race4Speed;
 
     public float Race5RiderWinRate;
+    public float Race5Popular;
     public float Race5Weather;
     public float Race5Course;
     // public float Race5Ground;
@@ -162,9 +165,9 @@ namespace KmyKeiba.Prompt.Models.Brains
 
     public float Result;
 
-    public const int VERSION = 23;
+    public const int VERSION = 20;
 
-    public static async Task<LearningData> CreateAsync(MyContextBase db, RaceData race, RaceHorseData horse, IEnumerable<(RaceData Race, RaceHorseData Horse)> horseHistories, IEnumerable<(RaceData Race, RaceHorseData Horse)> otherHorseHistories, IEnumerable<RaceHorseData> historyOrder)
+    public static async Task<LearningData> CreateAsync(MyContextBase db, RaceData race, RaceHorseData horse, IEnumerable<(RaceData Race, RaceHorseData Horse)> horseHistories, IEnumerable<(RaceData Race, RaceHorseData Horse)> otherHorseHistories)
     {
       var lastYear = race.StartTime.Date.AddMonths(-15);
       var raceDate = race.StartTime.Date;
@@ -182,6 +185,12 @@ namespace KmyKeiba.Prompt.Models.Brains
       var myHistoryOrder = race.HorsesCount / 2;
       try
       {
+        var historyOrder = otherHorseHistories
+          .Select((h) => h.Horse)
+          .GroupBy((h) => h.Name)
+          .Select((h) => h.First())
+          .OrderBy((h) => h, new HorseHistoryResultComparer(otherHorseHistories.Select((hh) => hh.Horse)))
+          .ToArray();
         myHistoryOrder = historyOrder
           .Select((h, i) => new { Horse = h, Index = i, })
           .FirstOrDefault((h) => h.Horse.Name == horse.Name)?
@@ -220,16 +229,6 @@ namespace KmyKeiba.Prompt.Models.Brains
         return val / 50f;
       }
 
-      // 未来のデータ（学習の時のみに使う）
-      var timeMax = TimeSpan.Zero;
-      var timeMin = TimeSpan.Zero;
-      if (allHorses.Any())
-      {
-        timeMax = allHorses.Max((h) => h.ResultTime);
-        timeMin = allHorses.Min((h) => h.ResultTime);
-      }
-      var timeDiff = timeMax - timeMin;
-
       var runningStyle = GetRunningStyle(horseHistories);
       var secondRunningStyle = GetRunningStyle(horseHistories, 1);
       var prevRaceStartTime = horseHistories.OrderByDescending((h) => h.Race.StartTime).FirstOrDefault().Race?.StartTime;
@@ -262,10 +261,8 @@ namespace KmyKeiba.Prompt.Models.Brains
         IntervalDays = GetIntervalDate(prevRaceStartTime, race.StartTime),
         // Popular = (float)horse.Popular / Math.Max(1, race.HorsesCount),
         MyHistoryOrder = (float)myHistoryOrder / Math.Max(1, race.HorsesCount),
-        HorsesCount = (float)race.HorsesCount / 20,
-        Number = (float)horse.Number / Math.Max(1, race.HorsesCount),
 
-        Result = 1 - (float)(horse.ResultOrder - 1) / Math.Max(1, race.HorsesCount - 1),
+        Result = (horse.ResultOrder <= (race.HorsesCount <= 7 ? 2 : 3)) ? 1f : 0f,
       };
 
       {
@@ -499,6 +496,7 @@ namespace KmyKeiba.Prompt.Models.Brains
 
           var isLocalRace = r.Race.Course.GetCourseType() == RaceCourseType.Local;
           SetValue("RiderWinRate", oldRiderWinRate);
+          SetValue("Popular", (float)(r.Horse.Popular - 1) / Math.Max(r.Race.HorsesCount - 1, 1));
           SetValue("Weather", (short)r.Race.TrackWeather / 6f);
           SetValue("Course", (short)r.Race.Course / 100f);
           // SetValue("Ground", (short)r.Race.TrackGround / 4f);
@@ -540,6 +538,7 @@ namespace KmyKeiba.Prompt.Models.Brains
           // 前走情報がないときのデフォルト値
           var isLocalRace = horse.Course.GetCourseType() == RaceCourseType.Local;
           SetValue("RiderWinRate", 0f);
+          SetValue("Popular", 0.5f);
           // SetValue("Weather", 0f);
           SetValue("Course", (short)horse.Course / 100f);
           // SetValue("Ground", 0f);
@@ -725,7 +724,7 @@ namespace KmyKeiba.Prompt.Models.Brains
       return Math.Min(val, 1.0f);
     }
 
-    public class HorseHistoryResultComparer : IComparer<RaceHorseData>
+    private class HorseHistoryResultComparer : IComparer<RaceHorseData>
     {
       private readonly IEnumerable<RaceHorseData> histories;
       private readonly IEnumerable<IGrouping<string, RaceHorseData>> group;
@@ -779,16 +778,6 @@ namespace KmyKeiba.Prompt.Models.Brains
           });
       }
 
-      private IEnumerable<(RaceHorseData X, RaceHorseData Y)> GetBattles(RaceHorseData x, RaceHorseData y)
-      {
-        return this.group
-          .Where((g) => g.Any((h) => h.Name == x.Name) && g.Any((h) => h.Name == y.Name))
-          .Select((g) =>
-          {
-            return (g.First((h) => h.Name == x.Name), g.First((h) => h.Name == y.Name));
-          });
-      }
-
       private int IsStrong(RaceHorseData x, RaceHorseData y, int depth = 0)
       {
         // yが強ければ1、xが強ければ-1
@@ -818,20 +807,9 @@ namespace KmyKeiba.Prompt.Models.Brains
 
         if (strongers1.Any((h) => h.Name == y.Name) && strongers2.Any((h) => h.Name == x.Name))
         {
-          var last = this.GetBattles(x, y).OrderByDescending((a) => a.X.RaceKey).FirstOrDefault();
-          if (last.X != null)
-          {
-            if (last.X.ResultOrder < last.Y.ResultOrder)
-            {
-              return -1;
-            }
-            if (last.Y.ResultOrder < last.X.ResultOrder)
-            {
-              return 1;
-            }
-            return 0;
-          }
-          return 0;
+          var ywin = strongers1.Count((h) => h.Name == y.Name);
+          var xwin = strongers2.Count((h) => h.Name == x.Name);
+          return ywin > xwin ? 1 : xwin > ywin ? -1 : 0;
         }
 
         if (strongers1.Any((h) => h.Name == y.Name))

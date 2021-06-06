@@ -88,9 +88,9 @@ namespace KmyKeiba.Prompt
   dl predict <racekey>
   dl <training|simulate|cache> <yyyymmdd-yyyymmdd>
   dl retraining
-  dl config <epochs|batch_size|activation|optimizer|loss|isreguressor> <value>
-    ep:{ai!.Epochs}  ba:{ai!.BatchSize}  ac:{ai!.Activation}
-    op:{ai!.Optimizer}  lo:{ai!.Loss} is:{ai!.IsKerasReguressor}
+  dl config <epochs|batch_size|loss|isreguressor> <value>
+    ep:{ai!.Epochs}  ba:{ai!.BatchSize}
+    lo:{ai!.Loss}  is:{ai!.IsKerasReguressor}
   dl reset
 ";
       }
@@ -678,19 +678,26 @@ namespace KmyKeiba.Prompt
               .Join(db.Races!.Where((r) => r.StartTime < race.StartTime && r.StartTime >= sinceTime), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Horse = h, Race = r, })
               .OrderByDescending((h) => h.Race.StartTime)
               .ToArrayAsync());
-            var caches = await db.LearningDataCaches!.Where((c) => c.RaceKey == race.Key && c.CacheVersion == LearningData.VERSION).ToArrayAsync();
+            IEnumerable<RaceHorseData> historyOrder = Enumerable.Empty<RaceHorseData>();
+            var caches = await db.LearningDataCaches!
+              .Where((c) => c.RaceKey == race.Key && c.CacheVersion == LearningData.VERSION).ToArrayAsync();
+            if (!horses.All((h) => caches.Any((c) => h.Name == c.HorseName)))
+            {
+              try
+              {
+                historyOrder = allHorseHistories
+                  .Select((h) => h.Horse)
+                  .GroupBy((h) => h.Name)
+                  .Select((h) => h.First())
+                  .OrderBy((h) => h, new LearningData.HorseHistoryResultComparer(allHorseHistories.Select((hh) => hh.Horse)))
+                  .ToArray();
+              }
+              catch { }
+            }
 
             foreach (var horse in horses)
             {
-              var cache = caches.FirstOrDefault((c) => c.HorseName == horse.Name);
-              if (cache != null)
-              {
-                if (cache.CacheVersion != LearningData.VERSION)
-                {
-                  // db.LearningDataCaches!.Remove(cache);
-                  cache = null;
-                }
-              }
+              var cache = caches.FirstOrDefault((c) => c.HorseName == horse.Name && c.CacheVersion == LearningData.VERSION);
 
               float[] raw;
               float result;
@@ -723,7 +730,8 @@ namespace KmyKeiba.Prompt
                   race,
                   horse,
                   history.Select((h) => (h.Race, h.Horse)),
-                  allHorseHistories.Select((h) => (h.Race, h.Horse)));
+                  allHorseHistories.Select((h) => (h.Race, h.Horse)),
+                  historyOrder);
                 raw = rawData.ToArray();
                 result = rawData.Result;
 
@@ -915,12 +923,6 @@ namespace KmyKeiba.Prompt
         case "batch_size":
           ai.BatchSize = intValue;
           break;
-        case "activation":
-          ai.Activation = value;
-          break;
-        case "optimizer":
-          ai.Optimizer = value;
-          break;
         case "loss":
           ai.Loss = value;
           break;
@@ -1057,14 +1059,22 @@ namespace KmyKeiba.Prompt
           .Join(db.Races!.Where((r) => r.StartTime < race.StartTime && r.StartTime >= sinceTime), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Horse = h, Race = r, })
           .OrderByDescending((h) => h.Race.StartTime)
           .ToArrayAsync());
-        var horseRiders = allHorseHistories.Select((h) => h.Horse.RiderCode);
-        var allRiderHistories = (await db.RaceHorses!
-          .Where((h) => horseRiders.Contains(h.RiderCode) && h.ResultOrder != 0)
-          .Where(subject2)
-          .OrderByDescending((h) => h.RaceKey)
-          .Take(100)
-          .ToArrayAsync());
-        var caches = await db.LearningDataCaches!.Where((c) => c.RaceKey == race.Key && c.CacheVersion == LearningData.VERSION).ToArrayAsync();
+        IEnumerable<RaceHorseData> historyOrder = Enumerable.Empty<RaceHorseData>();
+        var caches = await db.LearningDataCaches!
+          .Where((c) => c.RaceKey == race.Key && c.CacheVersion == LearningData.VERSION).ToArrayAsync();
+        if (!horses.All((h) => caches.Any((c) => h.Name == c.HorseName)))
+        {
+          try
+          {
+            historyOrder = allHorseHistories
+              .Select((h) => h.Horse)
+              .GroupBy((h) => h.Name)
+              .Select((h) => h.First())
+              .OrderBy((h) => h, new LearningData.HorseHistoryResultComparer(allHorseHistories.Select((hh) => hh.Horse)))
+              .ToArray();
+          }
+          catch { }
+        }
 
         // var progress = 0;
         // StepProgress(0, horses.Length);
@@ -1076,11 +1086,6 @@ namespace KmyKeiba.Prompt
 
           if (cache != null)
           {
-            if (cache.CacheVersion != LearningData.VERSION)
-            {
-              // db.LearningDataCaches!.Remove(cache);
-              cache = null;
-            }
             if (!isUseCache)
             {
               cache = null;
@@ -1114,7 +1119,8 @@ namespace KmyKeiba.Prompt
               race,
               horse,
               history.Select((h) => (h.Race, h.Horse)),
-              allHorseHistories.Select((h) => (h.Race, h.Horse)));
+              allHorseHistories.Select((h) => (h.Race, h.Horse)),
+              historyOrder);
             raw = rawData.ToArray();
 
             if (isUseCache)

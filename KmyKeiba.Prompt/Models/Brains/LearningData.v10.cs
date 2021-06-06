@@ -138,7 +138,7 @@ namespace KmyKeiba.Prompt.Models.Brains
 
     public const int VERSION = 10;
 
-    public static async Task<LearningData> CreateAsync(MyContextBase db, RaceData race, RaceHorseData horse, IEnumerable<(RaceData Race, RaceHorseData Horse)> horseHistories, IEnumerable<(RaceData Race, RaceHorseData Horse)> otherHorseHistories)
+    public static async Task<LearningDatav10> CreateAsync(MyContextBase db, RaceData race, RaceHorseData horse, IEnumerable<(RaceData Race, RaceHorseData Horse)> horseHistories, IEnumerable<(RaceData Race, RaceHorseData Horse)> otherHorseHistories)
     {
       var lastYear = race.StartTime.Date.AddMonths(-15);
       var pastRaces = db.Races!.Where((r) => r.StartTime < race.StartTime && r.StartTime >= lastYear);
@@ -169,7 +169,7 @@ namespace KmyKeiba.Prompt.Models.Brains
         return runningStyle;
       }
 
-      var d = new LearningData
+      var d = new LearningDatav10
       {
         RiderWinRate = riderWinRate,
         Season = race.StartTime.Date.DayOfYear / 366f,

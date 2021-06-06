@@ -27,12 +27,10 @@ namespace KmyKeiba.Prompt.Models.Brains
 
     public bool CanPredict => this.model != null;
 
-    public int Epochs { get; set; } = 200;
+    public int Epochs { get; set; } = 50;
     public int BatchSize { get; set; } = 2;
-    public string Activation { get; set; } = "relu";
-    public string Optimizer { get; set; } = "adam";
-    public string Loss { get; set; } = "binary_crossentropy";
-    public bool IsKerasReguressor { get; set; } = false;
+    public string Loss { get; set; } = "mae";
+    public bool IsKerasReguressor { get; set; } = true;
 
     public void Training(float[,] data, float[] results)
     {
@@ -86,7 +84,7 @@ namespace KmyKeiba.Prompt.Models.Brains
         if (!layers.Any())
         {
           model.Add(new Dense(32, activation: "relu", input_shape: new Shape(data.GetLength(1))));
-          model.Add(new Dense(64, activation: this.Activation));
+          model.Add(new Dense(64, activation: "relu"));
           model.Add(new Dense(1, activation: "sigmoid"));
         }
         else

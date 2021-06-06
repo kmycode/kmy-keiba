@@ -73,6 +73,10 @@ namespace KmyKeiba.Prompt.Models.Brains
           if ((numbers[i, 0] == item.Number1 || numbers[i, 0] == item.Number2) &&
             (numbers[i, 1] == item.Number1 || numbers[i, 1] == item.Number2))
           {
+            if (item.Income > 0)
+            {
+
+            }
             item.Income += numbers[i, 2] * item.Unit;
             income += item.Income;
           }
@@ -124,6 +128,10 @@ namespace KmyKeiba.Prompt.Models.Brains
             (numbers[i, 1] == item.Number1 || numbers[i, 1] == item.Number2 || numbers[i, 1] == item.Number3) &&
             (numbers[i, 2] == item.Number1 || numbers[i, 2] == item.Number2 || numbers[i, 2] == item.Number3))
           {
+            if (item.Income > 0)
+            {
+
+            }
             item.Income += numbers[i, 3] * item.Unit;
             income += item.Income;
           }
@@ -324,6 +332,13 @@ namespace KmyKeiba.Prompt.Models.Brains
       return Box2(type, unit, isOrdered, numbers).Where((i) => i.Number1 == jiku || i.Number2 == jiku);
     }
 
+    public static IEnumerable<BuyItem> Formation2(BuyType type, int unit, bool isOrdered, int[] jiku1, int[] jiku2)
+    {
+      return Box3(type, unit, isOrdered, jiku1.Concat(jiku2).Distinct().ToArray())
+        .Where((i) => jiku1.Contains(i.Number1) || jiku1.Contains(i.Number2))
+        .Where((i) => jiku2.Length == 0 || (jiku2.Contains(i.Number1) || jiku2.Contains(i.Number2)));
+    }
+
     public static IEnumerable<BuyItem> Box3(BuyType type, int unit, bool isOrdered, params int[] numbers)
     {
       numbers = numbers.Where((n) => n != 0).ToArray();
@@ -413,7 +428,7 @@ namespace KmyKeiba.Prompt.Models.Brains
         .Where((i) => jiku2 == 0 || (i.Number1 == jiku2 || i.Number2 == jiku2 || i.Number3 == jiku2));
     }
 
-    public static IEnumerable<BuyItem> Formation(BuyType type, int unit, bool isOrdered, int[] jiku1, int[] jiku2, int[] jiku3)
+    public static IEnumerable<BuyItem> Formation3(BuyType type, int unit, bool isOrdered, int[] jiku1, int[] jiku2, int[] jiku3)
     {
       return Box3(type, unit, isOrdered, jiku1.Concat(jiku2).Concat(jiku3).Distinct().ToArray())
         .Where((i) => jiku1.Contains(i.Number1) || jiku1.Contains(i.Number2) || jiku1.Contains(i.Number3))
@@ -463,6 +478,13 @@ namespace KmyKeiba.Prompt.Models.Brains
       return r;
     }
 
+    public static IEnumerable<BuyItem> FrameFormation(int unit, int[] jiku1, int[] jiku2)
+    {
+      var r = Formation2(BuyType.Frame, unit, false, jiku1, jiku2);
+      r.FirstOrDefault()?.SetText($"枠連フォメ　軸{string.Join(",", jiku1)}　軸{string.Join(",", jiku2)}");
+      return r;
+    }
+
     public static IEnumerable<BuyItem> Exacta(int unit, int number1, int number2)
     {
       yield return new BuyItem
@@ -486,6 +508,13 @@ namespace KmyKeiba.Prompt.Models.Brains
     {
       var r = Nagashi2(BuyType.Exacta, unit, true, jiku, numbers);
       r.FirstOrDefault()?.SetText($"馬単流し　軸{jiku}　{string.Join(",", numbers)}");
+      return r;
+    }
+
+    public static IEnumerable<BuyItem> ExactaFormation(int unit, int[] jiku1, int[] jiku2)
+    {
+      var r = Formation2(BuyType.Quinella, unit, true, jiku1, jiku2);
+      r.FirstOrDefault()?.SetText($"馬単フォメ　軸{string.Join(",", jiku1)}　軸{string.Join(",", jiku2)}");
       return r;
     }
 
@@ -515,6 +544,13 @@ namespace KmyKeiba.Prompt.Models.Brains
       return r;
     }
 
+    public static IEnumerable<BuyItem> QuinellaFormation(int unit, int[] jiku1, int[] jiku2)
+    {
+      var r = Formation2(BuyType.Quinella, unit, false, jiku1, jiku2);
+      r.FirstOrDefault()?.SetText($"馬連フォメ　軸{string.Join(",", jiku1)}　軸{string.Join(",", jiku2)}");
+      return r;
+    }
+
     public static IEnumerable<BuyItem> QuinellaPlace(int unit, int number1, int number2)
     {
       yield return new BuyItem
@@ -538,6 +574,13 @@ namespace KmyKeiba.Prompt.Models.Brains
     {
       var r = Nagashi2(BuyType.QuinellaPlace, unit, false, jiku1, numbers);
       r.FirstOrDefault()?.SetText($"ワイド流し　軸{jiku1}　{string.Join(",", numbers)}");
+      return r;
+    }
+
+    public static IEnumerable<BuyItem> QuinellaPlaceFormation(int unit, int[] jiku1, int[] jiku2)
+    {
+      var r = Formation2(BuyType.QuinellaPlace, unit, false, jiku1, jiku2);
+      r.FirstOrDefault()?.SetText($"ワイドフォメ　軸{string.Join(",", jiku1)}　軸{string.Join(",", jiku2)}");
       return r;
     }
 
@@ -570,7 +613,7 @@ namespace KmyKeiba.Prompt.Models.Brains
 
     public static IEnumerable<BuyItem> TrifectaFormation(int unit, int[] jiku1, int[] jiku2, int[] jiku3)
     {
-      var r = Formation(BuyType.Trifecta, unit, true, jiku1, jiku2, jiku3);
+      var r = Formation3(BuyType.Trifecta, unit, true, jiku1, jiku2, jiku3);
       r.FirstOrDefault()?.SetText($"３連単フォメ　軸{string.Join(",", jiku1)}　軸{string.Join(",", jiku2)}　軸{string.Join(",", jiku3)}");
       return r;
     }
@@ -604,7 +647,7 @@ namespace KmyKeiba.Prompt.Models.Brains
 
     public static IEnumerable<BuyItem> TrioFormation(int unit, int[] jiku1, int[] jiku2, int[] jiku3)
     {
-      var r = Formation(BuyType.Trio, unit, false, jiku1, jiku2, jiku3);
+      var r = Formation3(BuyType.Trio, unit, false, jiku1, jiku2, jiku3);
       r.FirstOrDefault()?.SetText($"３連複フォメ　軸{string.Join(",", jiku1)}　軸{string.Join(",", jiku2)}　軸{string.Join(",", jiku3)}");
       return r;
     }
