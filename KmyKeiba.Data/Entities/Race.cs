@@ -1,4 +1,5 @@
-﻿using KmyKeiba.JVLink.Wrappers;
+﻿using KmyKeiba.Data.Wrappers;
+using KmyKeiba.JVLink.Wrappers;
 using KmyKeiba.JVLink.Wrappers.JVLib;
 using System;
 using System.Collections.Generic;
@@ -103,7 +104,7 @@ namespace KmyKeiba.JVLink.Entities
     {
     }
 
-    internal static Race FromJV(JVData_Struct.JV_RA_RACE race)
+    public static Race FromJV(JVData_Struct.JV_RA_RACE race)
     {
       var name = race.RaceInfo.Hondai.Trim();
       if (string.IsNullOrEmpty(name))

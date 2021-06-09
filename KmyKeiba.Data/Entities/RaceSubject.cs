@@ -1,4 +1,5 @@
-﻿using KmyKeiba.JVLink.Wrappers;
+﻿using KmyKeiba.Data.Wrappers;
+using KmyKeiba.JVLink.Wrappers;
 using KmyKeiba.JVLink.Wrappers.JVLib;
 using System;
 using System.Collections.Generic;
@@ -342,7 +343,7 @@ namespace KmyKeiba.JVLink.Entities
     }
   }
 
-  class RaceClassInfoAttribute : Attribute
+  public class RaceClassInfoAttribute : Attribute
   {
     public string Name { get; }
 

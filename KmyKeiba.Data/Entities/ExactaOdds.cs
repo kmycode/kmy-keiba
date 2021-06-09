@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace KmyKeiba.JVLink.Entities
 {
   /// <summary>
-  /// 3連複
+  /// 馬単
   /// </summary>
-  public class TrioOdds : EntityBase
+  public class ExactaOdds : EntityBase
   {
     public string RaceKey { get; set; } = string.Empty;
 
@@ -28,17 +28,15 @@ namespace KmyKeiba.JVLink.Entities
 
       public short HorseNumber2 { get; init; }
 
-      public short HorseNumber3 { get; init; }
-
       public float Odds { get; init; }
 
       public override int GetHashCode()
-        => $"{this.RaceKey}{this.HorseNumber1} {this.HorseNumber2} {this.HorseNumber3}".GetHashCode();
+        => $"{this.RaceKey}{this.HorseNumber1} {this.HorseNumber2}".GetHashCode();
     }
 
-    internal static TrioOdds FromJV(JVData_Struct.JV_O5_ODDS_SANREN odds)
+    public static ExactaOdds FromJV(JVData_Struct.JV_O4_ODDS_UMATAN odds)
     {
-      var od = new TrioOdds
+      var od = new ExactaOdds
       {
         DataStatus = odds.head.DataKubun.ToDataStatus(),
         LastModified = odds.head.MakeDate.ToDateTime(),
@@ -46,13 +44,12 @@ namespace KmyKeiba.JVLink.Entities
       };
 
       int.TryParse(odds.TorokuTosu, out int horsesCount);
-      foreach (var data in odds.OddsSanrenInfo
+      foreach (var data in odds.OddsUmatanInfo
         .Where((o) => o.Odds != "000000" && o.Odds != "******" && o.Odds != "------" && !string.IsNullOrWhiteSpace(o.Odds)).OrderBy((o) => o.Odds).Take(20))
       {
         short.TryParse(data.Kumi.Substring(0, 2), out short num1);
         short.TryParse(data.Kumi.Substring(2, 2), out short num2);
-        short.TryParse(data.Kumi.Substring(4, 2), out short num3);
-        if (num1 > horsesCount || num1 <= 0 || num2 > horsesCount || num2 <= 0 || num3 > horsesCount || num3 <= 0)
+        if (num1 > horsesCount || num1 <= 0 || num2 > horsesCount || num2 <= 0)
         {
           continue;
         }
@@ -66,7 +63,6 @@ namespace KmyKeiba.JVLink.Entities
           RaceKey = od.RaceKey,
           HorseNumber1 = num1,
           HorseNumber2 = num2,
-          HorseNumber3 = num3,
           Odds = oval / 10,
         });
       }

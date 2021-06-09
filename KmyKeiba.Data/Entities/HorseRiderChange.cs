@@ -23,7 +23,7 @@ namespace KmyKeiba.JVLink.Entities
     {
     }
 
-    internal static HorseRiderChange FromJV(JVData_Struct.JV_JC_INFO jc)
+    public static HorseRiderChange FromJV(JVData_Struct.JV_JC_INFO jc)
     {
       int.TryParse(jc.Umaban.Trim(), out int num);
       int.TryParse(jc.JCInfoAfter.Futan.Trim(), out int riderWeight);

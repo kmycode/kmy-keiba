@@ -19,14 +19,32 @@ namespace KmyKeiba.Prompt.Models.Brains
 
   class Buyer
   {
-    public static IEnumerable<BuyItem> Select(IEnumerable<BuyCandidate> data)
+    private static Script<object>? script;
+
+    public static void UpdateScript()
     {
       try
       {
         var text = File.ReadAllText("scripts/buyer.txt");
         var options = ScriptOptions.Default.AddReferences(Assembly.GetAssembly(typeof(Buyer)));
-        var script = CSharpScript.Create(text, options, typeof(BuyerScriptData));
-        var result = script.RunAsync(new BuyerScriptData { Data = data.ToList(), }).Result.ReturnValue;
+        script = CSharpScript.Create(text, options, typeof(BuyerScriptData));
+      }
+      catch (Exception ex)
+      {
+        throw new Exception("", ex);
+      }
+    }
+
+    public static IEnumerable<BuyItem> Select(IEnumerable<BuyCandidate> data)
+    {
+      try
+      {
+        if (script == null)
+        {
+          UpdateScript();
+        }
+
+        var result = script!.RunAsync(new BuyerScriptData { Data = data.ToList(), }).Result.ReturnValue;
 
         if (result is IEnumerable<BuyItem> items)
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KmyKeiba.Data.Wrappers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

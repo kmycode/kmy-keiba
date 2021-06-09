@@ -31,7 +31,7 @@ namespace KmyKeiba.JVLink.Entities
         => $"{this.RaceKey}{this.Frame1} {this.Frame2}".GetHashCode();
     }
 
-    internal static FrameNumberOdds FromJV(JVData_Struct.JV_O1_ODDS_TANFUKUWAKU odds)
+    public static FrameNumberOdds FromJV(JVData_Struct.JV_O1_ODDS_TANFUKUWAKU odds)
     {
       var od = new FrameNumberOdds
       {

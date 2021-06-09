@@ -15,7 +15,7 @@ namespace KmyKeiba.JVLink.Entities
 
     public int HorseNumber { get; set; }
 
-    internal static HorseAbnormality FromJV(JVData_Struct.JV_AV_INFO av)
+    public static HorseAbnormality FromJV(JVData_Struct.JV_AV_INFO av)
     {
       int.TryParse(av.Umaban, out int number);
 

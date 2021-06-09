@@ -28,6 +28,7 @@ using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
+using KmyKeiba.Data.Wrappers;
 
 namespace KmyKeiba.Prompt
 {
@@ -87,7 +88,7 @@ namespace KmyKeiba.Prompt
   dl <load|save> <fileName without extensions>
   dl predict <racekey>
   dl <training|simulate|cache> <yyyymmdd-yyyymmdd>
-  dl retraining
+  dl <retraining|resimulate>
   dl config <epochs|batch_size|loss|isreguressor> <value>
     ep:{ai!.Epochs}  ba:{ai!.BatchSize}
     lo:{ai!.Loss}  is:{ai!.IsKerasReguressor}
@@ -271,6 +272,9 @@ namespace KmyKeiba.Prompt
                   break;
                 case "retraining":
                   ReLearning();
+                  break;
+                case "resimulate":
+                  ResimulateRaceResults();
                   break;
                 case "config":
                   if (parameters.Length != 4)
@@ -636,7 +640,7 @@ namespace KmyKeiba.Prompt
 
       public float[] Results { get; set; } = new float[0];
 
-      public async Task LearnAsync(DateTime f1, DateTime f2)
+      public async Task LearnAsync(DateTime f1, DateTime f2, bool isCache)
       {
         using (var db = new MyContext())
         {
@@ -647,6 +651,8 @@ namespace KmyKeiba.Prompt
             mode == "地方" ? (r) => (short)r.Course >= 30 :
                               (r) => (short)r.Course < 30;
 
+          var maxOrder = isCache ? 100 : MAX_RACE_ORDER;
+
           var races = await db.Races!
             .Where((r) => r.StartTime >= f1 && r.StartTime < f2)
             .Where((r) => r.TrackType == TrackType.Flat)
@@ -655,7 +661,7 @@ namespace KmyKeiba.Prompt
             .ToArrayAsync();
           races = races.Distinct(new RaceComparer()).ToArray();
           var raceKeys = races.Select((r) => r.Key).ToArray();
-          var allHorsesCount = await db.RaceHorses!.CountAsync((h) => raceKeys.Contains(h.RaceKey) && h.ResultOrder <= MAX_RACE_ORDER && h.ResultOrder != 0);
+          var allHorsesCount = await db.RaceHorses!.CountAsync((h) => raceKeys.Contains(h.RaceKey) && h.ResultOrder <= maxOrder && h.ResultOrder != 0);
 
           var shape = LearningData.GetShape();
           var row = 0;
@@ -671,12 +677,14 @@ namespace KmyKeiba.Prompt
           {
             var sinceTime = race.StartTime.AddYears(-1);
 
-            var horses = await db.RaceHorses!.Where((h) => h.ResultOrder <= MAX_RACE_ORDER && h.ResultOrder != 0 && h.RaceKey == race.Key).ToArrayAsync();
+            var allHorses = await db.RaceHorses!.Where((h) => h.ResultOrder != 0 && h.RaceKey == race.Key).ToArrayAsync();
+            var horses = allHorses.Where((h) => h.ResultOrder <= maxOrder);
             var horseNames = horses.Select((h) => h.Name);
             var allHorseHistories = (await db.RaceHorses!
               .Where((h) => horseNames.Contains(h.Name))
               .Join(db.Races!.Where((r) => r.StartTime < race.StartTime && r.StartTime >= sinceTime), (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Horse = h, Race = r, })
               .OrderByDescending((h) => h.Race.StartTime)
+              .Take(1000)
               .ToArrayAsync());
             IEnumerable<RaceHorseData> historyOrder = Enumerable.Empty<RaceHorseData>();
             var caches = await db.LearningDataCaches!
@@ -779,7 +787,6 @@ namespace KmyKeiba.Prompt
               }
               catch (Exception ex)
               {
-                break;
               }
 
               this.Learned++;
@@ -837,7 +844,7 @@ namespace KmyKeiba.Prompt
       {
         var learning = new DataLoader();
         learnings.Add(learning);
-        tasks.Add(learning.LearnAsync(d1, d2));
+        tasks.Add(learning.LearnAsync(d1, d2, isCache));
         d1 = d1.AddSeconds(seconds);
         d2 = d2.AddSeconds(seconds);
       }
@@ -1024,6 +1031,7 @@ namespace KmyKeiba.Prompt
 
       try
       {
+        Buyer.UpdateScript();
         var items = Buyer.Select(predicted.Select((p) => new BuyCandidate { Horse = p.Horse, Prediction = p.Prediction, }));
         Console.WriteLine(string.Join("\n", items.Select((i) => i.Text).Where((i) => !string.IsNullOrEmpty(i))));
       }
@@ -1196,21 +1204,13 @@ namespace KmyKeiba.Prompt
       }
     }
 
+    private static List<(List<(float[,] DataSet, RaceHorseData Horse)> DataSets, int HorsesCount, RefundData Refund)>? simulateDataCache;
+
     static void SimulateRaceResults(DateTime from, DateTime to, bool isGonly)
     {
-      var allCount = 0;
-      var hit = 0;
-      var hitAll = 0;
-      var winHit = 0;
-      var secondHit = 0;
-      var rentaiHit = 0;
-      var topFukuHit = 0;
-      var pay = 0;
-      var income = 0;
       var data = new List<(List<(float[,] DataSet, RaceHorseData Horse)> DataSets, int HorsesCount, RefundData Refund)>();
-      var buyTypeResult = new Dictionary<BuyType, (int Pay, int Income, int Unit)>();
 
-      Expression <Func<RaceData, bool>> subject =
+      Expression<Func<RaceData, bool>> subject =
         mode == "地方" ? (r) => (short)r.Course >= 30 :
                           (r) => (short)r.Course < 30;
       Expression<Func<RaceData, bool>> gonly =
@@ -1263,9 +1263,60 @@ namespace KmyKeiba.Prompt
         }
       }
 
+      simulateDataCache = data;
+
+      ResimulateRaceResults();
+    }
+
+    private class RaceWinCountData
+    {
+      public int PredictedOrder { get; set; }
+      public int AllRacesCount { get; set; }
+      public int FirstCount { get; set; }
+      public int SecondCount { get; set; }
+      public int PlaceCount { get; set; }
+    }
+
+    static void ResimulateRaceResults()
+    {
+      if (simulateDataCache == null)
+      {
+        return;
+      }
+
+      try
+      {
+        Buyer.UpdateScript();
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine(ex.Message);
+        Console.WriteLine(ex.StackTrace);
+        Console.ReadLine();
+        return;
+      }
+
+      var winCounts = new List<RaceWinCountData>();
+      for (var i = 0; i < 12; i++)
+      {
+        winCounts.Add(new() { PredictedOrder = i + 1, });
+      }
+
+      var buyTypeResult = new Dictionary<BuyType, (int Pay, int Income, int Unit)>();
+      var allCount = 0;
+      var hit = 0;
+      var hitAll = 0;
+      var winHit = 0;
+      var secondHit = 0;
+      var rentaiHit = 0;
+      var topFukuHit = 0;
+      var pay = 0;
+      var income = 0;
+
+      var data = simulateDataCache;
       var tree = new TreeAnalyticsModel(6);
-      racesCount = data.Count;
-      a = 0;
+      var racesCount = data.Count;
+      var a = 0;
       foreach (var dataSet in data)
       {
         var rs = new List<(float Prediction, RaceHorseData Horse)>();
@@ -1314,6 +1365,33 @@ namespace KmyKeiba.Prompt
         if (top.Horse?.ResultOrder == 1 || second.Horse?.ResultOrder == 1)
         {
           secondHit++;
+        }
+
+        var reals = rs.OrderByDescending((r) => r.Prediction).Select((r, i) => new { PredictedOrder = i + 1, ResultOrder = r.Horse.ResultOrder, });
+        var realTop = reals.FirstOrDefault((r) => r.ResultOrder == 1);
+        var realSecond = reals.FirstOrDefault((r) => r.ResultOrder == 2);
+        var realThird = reals.FirstOrDefault((r) => r.ResultOrder == 3);
+        foreach (var real in winCounts.Where((w) => w.PredictedOrder <= rs.Count))
+        {
+          real.AllRacesCount++;
+          if (real.PredictedOrder == realTop?.PredictedOrder)
+          {
+            real.FirstCount++;
+            real.SecondCount++;
+            real.PlaceCount++;
+          }
+          if (real.PredictedOrder == realSecond?.PredictedOrder)
+          {
+            real.SecondCount++;
+            real.PlaceCount++;
+          }
+          if (real.PredictedOrder == realThird?.PredictedOrder)
+          {
+            if (needOrder >= 3)
+            {
+              real.PlaceCount++;
+            }
+          }
         }
 
         try
@@ -1365,6 +1443,12 @@ namespace KmyKeiba.Prompt
       Console.WriteLine($"複勝的中率（馬）    : {hit} / {allCount} = {((float)hit / Math.Max(1, allCount)) * 100} %");
       Console.WriteLine($"複勝全員的中率      : {hitAll} / {allCount} = {((float)hitAll / Math.Max(1, allCount)) * 100} %");
       Console.WriteLine($"回収率              : {income} / {pay} = {((float)income / Math.Max(1, pay)) * 100} %");
+      Console.WriteLine();
+      Console.WriteLine("予想順位　単勝率　連対率　複勝率");
+      foreach (var real in winCounts)
+      {
+        Console.WriteLine($"{real.PredictedOrder}　{(float)real.FirstCount / Math.Max(1, real.AllRacesCount)}　{(float)real.SecondCount / Math.Max(1, real.AllRacesCount)}　{(float)real.PlaceCount / Math.Max(1, real.AllRacesCount)}");
+      }
       Console.ReadLine();
     }
 

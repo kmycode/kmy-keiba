@@ -21,7 +21,7 @@ namespace KmyKeiba.JVLink.Entities
     {
     }
 
-    internal static CourseWeatherCondition FromJV(JVData_Struct.JV_WE_WEATHER we)
+    public static CourseWeatherCondition FromJV(JVData_Struct.JV_WE_WEATHER we)
     {
       int.TryParse(we.TenkoBaba.TenkoCD, out int weather);
       int.TryParse(we.TenkoBaba.SibaBabaCD, out int turf);

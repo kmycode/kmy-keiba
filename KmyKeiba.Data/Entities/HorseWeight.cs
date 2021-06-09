@@ -26,7 +26,7 @@ namespace KmyKeiba.JVLink.Entities
     {
     }
 
-    internal static HorseWeight FromJV(JVData_Struct.JV_WH_BATAIJYU weight)
+    public static HorseWeight FromJV(JVData_Struct.JV_WH_BATAIJYU weight)
     {
       var infos = new List<Info>();
       foreach (var w in weight.BataijyuInfo)

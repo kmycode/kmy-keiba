@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace KmyKeiba.JVLink.Entities
 {
   /// <summary>
-  /// 馬連
+  /// ワイド
   /// </summary>
-  public class QuinellaOdds : EntityBase
+  public class QuinellaPlaceOdds : EntityBase
   {
     public string RaceKey { get; set; } = string.Empty;
 
@@ -28,15 +28,17 @@ namespace KmyKeiba.JVLink.Entities
 
       public short HorseNumber2 { get; init; }
 
-      public float Odds { get; init; }
+      public float PlaceOddsMin { get; init; }
+
+      public float PlaceOddsMax { get; init; }
 
       public override int GetHashCode()
         => $"{this.RaceKey}{this.HorseNumber1} {this.HorseNumber2}".GetHashCode();
     }
 
-    internal static QuinellaOdds FromJV(JVData_Struct.JV_O2_ODDS_UMAREN odds)
+    public static QuinellaPlaceOdds FromJV(JVData_Struct.JV_O3_ODDS_WIDE odds)
     {
-      var od = new QuinellaOdds
+      var od = new QuinellaPlaceOdds
       {
         DataStatus = odds.head.DataKubun.ToDataStatus(),
         LastModified = odds.head.MakeDate.ToDateTime(),
@@ -44,8 +46,8 @@ namespace KmyKeiba.JVLink.Entities
       };
 
       int.TryParse(odds.TorokuTosu, out int horsesCount);
-      foreach (var data in odds.OddsUmarenInfo
-        .Where((o) => o.Odds != "000000" && o.Odds != "******" && o.Odds != "------" && !string.IsNullOrWhiteSpace(o.Odds)).OrderBy((o) => o.Odds).Take(20))
+      foreach (var data in odds.OddsWideInfo
+        .Where((o) => o.OddsLow != "00000" && o.OddsLow != "*****" && o.OddsLow != "------" && !string.IsNullOrWhiteSpace(o.OddsLow)).OrderBy((o) => o.OddsLow).Take(20))
       {
         short.TryParse(data.Kumi.Substring(0, 2), out short num1);
         short.TryParse(data.Kumi.Substring(2, 2), out short num2);
@@ -54,7 +56,8 @@ namespace KmyKeiba.JVLink.Entities
           continue;
         }
 
-        float.TryParse(data.Odds, out float oval);
+        float.TryParse(data.OddsHigh, out float oval2max);
+        float.TryParse(data.OddsLow, out float oval2min);
 
         od.Odds.Add(new OddsData
         {
@@ -63,7 +66,8 @@ namespace KmyKeiba.JVLink.Entities
           RaceKey = od.RaceKey,
           HorseNumber1 = num1,
           HorseNumber2 = num2,
-          Odds = oval / 10,
+          PlaceOddsMax = oval2max / 10,
+          PlaceOddsMin = oval2min / 10,
         });
       }
 

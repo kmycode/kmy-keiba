@@ -130,7 +130,7 @@ namespace KmyKeiba.JVLink.Entities
     {
     }
 
-    internal static RaceHorse FromJV(JVData_Struct.JV_SE_RACE_UMA uma)
+    public static RaceHorse FromJV(JVData_Struct.JV_SE_RACE_UMA uma)
     {
       short.TryParse(uma.Barei.Trim(), out short age);
       short.TryParse(uma.SexCD.Trim(), out short sex);

@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
 using Microsoft.EntityFrameworkCore;
@@ -94,6 +95,7 @@ namespace KmyKeiba.Data.DataObjects
       if (this.Data.UniformFormatData == null || this.Data.UniformFormatData.Length <= 0)
       {
         // 服の画像を設定
+        /*
         try
         {
           var link = this.Data.Course.GetCourseType() switch
@@ -118,6 +120,8 @@ namespace KmyKeiba.Data.DataObjects
         catch (Exception ex)
         {
         }
+        */
+        throw new NotSupportedException();
       }
 
       this.Uniform.Value = this.Data.UniformFormatData!;

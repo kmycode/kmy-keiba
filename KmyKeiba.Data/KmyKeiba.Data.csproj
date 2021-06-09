@@ -26,8 +26,4 @@
     <PackageReference Include="ReactiveProperty" Version="7.10.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\KmyKeiba.JVLink\KmyKeiba.JVLink.csproj" />
-  </ItemGroup>
-
 </Project>

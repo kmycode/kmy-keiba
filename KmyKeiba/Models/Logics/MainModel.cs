@@ -14,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using KmyKeiba.Data.Db;
+using KmyKeiba.Data.Wrappers;
 
 namespace KmyKeiba.Models.Logics
 {
@@ -126,10 +127,12 @@ namespace KmyKeiba.Models.Logics
 
         if (race.Data.DataStatus < RaceDataStatus.PreliminaryGradeFull)
         {
+          /*
           _ = Task.Run(() =>
           {
             _ = this.UpdateRaceAsync(race.Data.Key);
           });
+          */
         }
       }
       catch

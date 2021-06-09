@@ -62,7 +62,7 @@ namespace KmyKeiba.JVLink.Entities
       public int Money { get; init; }
     }
 
-    internal static Refund FromJV(JVData_Struct.JV_HR_PAY hr)
+    public static Refund FromJV(JVData_Struct.JV_HR_PAY hr)
     {
       var obj = new Refund
       {

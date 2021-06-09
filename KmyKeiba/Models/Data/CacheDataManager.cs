@@ -72,6 +72,10 @@ namespace KmyKeiba.Models.Data
                     {
                       await Task.Delay(100);
                     }
+                    else if (Cache.Count > 10_0000)
+                    {
+                      await Task.Delay(1200_000);
+                    }
                     else
                     {
                       await Task.Delay(1_000);

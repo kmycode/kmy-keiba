@@ -26,7 +26,7 @@ namespace KmyKeiba.JVLink.Entities
       public float PlaceOddsMax { get; init; }
     }
 
-    internal static SingleAndDoubleWinOdds FromJV(JVData_Struct.JV_O1_ODDS_TANFUKUWAKU odds)
+    public static SingleAndDoubleWinOdds FromJV(JVData_Struct.JV_O1_ODDS_TANFUKUWAKU odds)
     {
       var od = new SingleAndDoubleWinOdds
       {

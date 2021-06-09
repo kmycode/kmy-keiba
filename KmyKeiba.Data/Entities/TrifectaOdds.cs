@@ -36,7 +36,7 @@ namespace KmyKeiba.JVLink.Entities
         => $"{this.RaceKey}{this.HorseNumber1} {this.HorseNumber2} {this.HorseNumber3}".GetHashCode();
     }
 
-    internal static TrifectaOdds FromJV(JVData_Struct.JV_O6_ODDS_SANRENTAN odds)
+    public static TrifectaOdds FromJV(JVData_Struct.JV_O6_ODDS_SANRENTAN odds)
     {
       var od = new TrifectaOdds
       {

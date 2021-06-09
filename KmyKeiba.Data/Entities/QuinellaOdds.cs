@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace KmyKeiba.JVLink.Entities
 {
   /// <summary>
-  /// 馬単
+  /// 馬連
   /// </summary>
-  public class ExactaOdds : EntityBase
+  public class QuinellaOdds : EntityBase
   {
     public string RaceKey { get; set; } = string.Empty;
 
@@ -34,9 +34,9 @@ namespace KmyKeiba.JVLink.Entities
         => $"{this.RaceKey}{this.HorseNumber1} {this.HorseNumber2}".GetHashCode();
     }
 
-    internal static ExactaOdds FromJV(JVData_Struct.JV_O4_ODDS_UMATAN odds)
+    public static QuinellaOdds FromJV(JVData_Struct.JV_O2_ODDS_UMAREN odds)
     {
-      var od = new ExactaOdds
+      var od = new QuinellaOdds
       {
         DataStatus = odds.head.DataKubun.ToDataStatus(),
         LastModified = odds.head.MakeDate.ToDateTime(),
@@ -44,7 +44,7 @@ namespace KmyKeiba.JVLink.Entities
       };
 
       int.TryParse(odds.TorokuTosu, out int horsesCount);
-      foreach (var data in odds.OddsUmatanInfo
+      foreach (var data in odds.OddsUmarenInfo
         .Where((o) => o.Odds != "000000" && o.Odds != "******" && o.Odds != "------" && !string.IsNullOrWhiteSpace(o.Odds)).OrderBy((o) => o.Odds).Take(20))
       {
         short.TryParse(data.Kumi.Substring(0, 2), out short num1);

@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace KmyKeiba.JVLink.Entities
 {
   /// <summary>
-  /// ワイド
+  /// 3連複
   /// </summary>
-  public class QuinellaPlaceOdds : EntityBase
+  public class TrioOdds : EntityBase
   {
     public string RaceKey { get; set; } = string.Empty;
 
@@ -28,17 +28,17 @@ namespace KmyKeiba.JVLink.Entities
 
       public short HorseNumber2 { get; init; }
 
-      public float PlaceOddsMin { get; init; }
+      public short HorseNumber3 { get; init; }
 
-      public float PlaceOddsMax { get; init; }
+      public float Odds { get; init; }
 
       public override int GetHashCode()
-        => $"{this.RaceKey}{this.HorseNumber1} {this.HorseNumber2}".GetHashCode();
+        => $"{this.RaceKey}{this.HorseNumber1} {this.HorseNumber2} {this.HorseNumber3}".GetHashCode();
     }
 
-    internal static QuinellaPlaceOdds FromJV(JVData_Struct.JV_O3_ODDS_WIDE odds)
+    public static TrioOdds FromJV(JVData_Struct.JV_O5_ODDS_SANREN odds)
     {
-      var od = new QuinellaPlaceOdds
+      var od = new TrioOdds
       {
         DataStatus = odds.head.DataKubun.ToDataStatus(),
         LastModified = odds.head.MakeDate.ToDateTime(),
@@ -46,18 +46,18 @@ namespace KmyKeiba.JVLink.Entities
       };
 
       int.TryParse(odds.TorokuTosu, out int horsesCount);
-      foreach (var data in odds.OddsWideInfo
-        .Where((o) => o.OddsLow != "00000" && o.OddsLow != "*****" && o.OddsLow != "------" && !string.IsNullOrWhiteSpace(o.OddsLow)).OrderBy((o) => o.OddsLow).Take(20))
+      foreach (var data in odds.OddsSanrenInfo
+        .Where((o) => o.Odds != "000000" && o.Odds != "******" && o.Odds != "------" && !string.IsNullOrWhiteSpace(o.Odds)).OrderBy((o) => o.Odds).Take(20))
       {
         short.TryParse(data.Kumi.Substring(0, 2), out short num1);
         short.TryParse(data.Kumi.Substring(2, 2), out short num2);
-        if (num1 > horsesCount || num1 <= 0 || num2 > horsesCount || num2 <= 0)
+        short.TryParse(data.Kumi.Substring(4, 2), out short num3);
+        if (num1 > horsesCount || num1 <= 0 || num2 > horsesCount || num2 <= 0 || num3 > horsesCount || num3 <= 0)
         {
           continue;
         }
 
-        float.TryParse(data.OddsHigh, out float oval2max);
-        float.TryParse(data.OddsLow, out float oval2min);
+        float.TryParse(data.Odds, out float oval);
 
         od.Odds.Add(new OddsData
         {
@@ -66,8 +66,8 @@ namespace KmyKeiba.JVLink.Entities
           RaceKey = od.RaceKey,
           HorseNumber1 = num1,
           HorseNumber2 = num2,
-          PlaceOddsMax = oval2max / 10,
-          PlaceOddsMin = oval2min / 10,
+          HorseNumber3 = num3,
+          Odds = oval / 10,
         });
       }
 
