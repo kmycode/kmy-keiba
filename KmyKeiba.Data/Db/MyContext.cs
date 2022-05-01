@@ -15,6 +15,12 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<RaceHorseData>? RaceHorses { get; set; }
 
+    public DbSet<HorseData>? Horses { get; set; }
+
+    public DbSet<HorseBloodData>? HorseBloods { get; set; }
+
+    public DbSet<SingleOddsTimeline>? SingleOddsTimelines { get; set; }
+
     public DbSet<FrameNumberOddsData>? FrameNumberOdds { get; set; }
 
     public DbSet<QuinellaOddsData>? QuinellaOdds { get; set; }
@@ -30,6 +36,8 @@ namespace KmyKeiba.Data.Db
     public DbSet<RefundData>? Refunds { get; set; }
 
     public DbSet<LearningDataCache>? LearningDataCaches { get; set; }
+
+    public DbSet<TrainingData>? Trainings { get; set; }
 
     protected string ConnectionString { get; set; } = string.Empty;
 

@@ -10,3 +10,7 @@ KmyKeiba.Data/bin/
 KmyKeiba.JVLink/JVLib/structures.cs
 KmyKeiba.Prompt/bin/
 KmyKeiba.Prompt/obj/
+KmyKeiba.Downloader/bin/
+KmyKeiba.Downloader/obj/
+KmyKeiba.Old/bin/
+KmyKeiba.Old/obj/

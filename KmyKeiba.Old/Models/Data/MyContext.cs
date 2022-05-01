@@ -12,7 +12,8 @@ namespace KmyKeiba.Models.Data
   {
     public MyContext()
     {
-      this.ConnectionString = "server=localhost;database=kmykeiba;uid=root;pwd=takaki;";
+      var config = DatabaseConfigManager.GetCurrentConfigFile();
+      this.ConnectionString = config.GetConnectionString();
     }
   }
 }

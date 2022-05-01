@@ -100,6 +100,30 @@ namespace KmyKeiba.JVLink.Entities
     /// </summary>
     public DateTime StartTime { get; set; }
 
+    public string Corner1Result { get; set; } = string.Empty;
+
+    public short Corner1Position { get; set; }
+
+    public short Corner1Number { get; set; }
+
+    public string Corner2Result { get; set; } = string.Empty;
+
+    public short Corner2Position { get; set; }
+
+    public short Corner2Number { get; set; }
+
+    public string Corner3Result { get; set; } = string.Empty;
+
+    public short Corner3Position { get; set; }
+
+    public short Corner3Number { get; set; }
+
+    public string Corner4Result { get; set; } = string.Empty;
+
+    public short Corner4Position { get; set; }
+
+    public short Corner4Number { get; set; }
+
     internal Race()
     {
     }
@@ -164,6 +188,15 @@ namespace KmyKeiba.JVLink.Entities
       int.TryParse(race.TenkoBaba.TenkoCD, out int weather);
       int.TryParse(trackGround == TrackGround.Turf ? race.TenkoBaba.SibaBabaCD : race.TenkoBaba.DirtBabaCD, out int condition);
 
+      short.TryParse(race.CornerInfo[0].Syukaisu, out var cnum1);
+      short.TryParse(race.CornerInfo[0].Corner, out var cn1);
+      short.TryParse(race.CornerInfo[1].Syukaisu, out var cnum2);
+      short.TryParse(race.CornerInfo[1].Corner, out var cn2);
+      short.TryParse(race.CornerInfo[2].Syukaisu, out var cnum3);
+      short.TryParse(race.CornerInfo[2].Corner, out var cn3);
+      short.TryParse(race.CornerInfo[3].Syukaisu, out var cnum4);
+      short.TryParse(race.CornerInfo[3].Corner, out var cn4);
+
       var obj = new Race
       {
         LastModified = race.head.MakeDate.ToDateTime(),
@@ -185,6 +218,18 @@ namespace KmyKeiba.JVLink.Entities
         Subject = subject,
         HorsesCount = horsesCount,
         StartTime = startTime,
+        Corner1Position = cn1,
+        Corner1Number = cnum1,
+        Corner1Result = race.CornerInfo[0].Jyuni.Trim(),
+        Corner2Position = cn2,
+        Corner2Number = cnum2,
+        Corner2Result = race.CornerInfo[1].Jyuni.Trim(),
+        Corner3Position = cn3,
+        Corner3Number = cnum3,
+        Corner3Result = race.CornerInfo[2].Jyuni.Trim(),
+        Corner4Position = cn4,
+        Corner4Number = cnum4,
+        Corner4Result = race.CornerInfo[3].Jyuni.Trim(),
       };
       return obj;
     }

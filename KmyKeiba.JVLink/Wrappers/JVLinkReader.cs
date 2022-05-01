@@ -95,6 +95,7 @@ namespace KmyKeiba.JVLink.Wrappers
             case -403:
             case -502:
             case -503:
+            case -203:
               {
                 this.link.FileDelete(fileName);
                 this.link.Close();
@@ -184,6 +185,24 @@ namespace KmyKeiba.JVLink.Wrappers
                 Read(item, data.HorseAbnormalities, (a, b) => a.RaceKey + a.HorseNumber == b.RaceKey + b.HorseNumber);
                 break;
               }
+            case "UM":
+              {
+                var a = new JVData_Struct.JV_UM_UMA();
+                a.SetDataB(ref d);
+                var item = Horse.FromJV(a);
+
+                Read(item, data.Horses, (a, b) => a.Code == b.Code);
+                break;
+              }
+            case "HN":
+              {
+                var a = new JVData_Struct.JV_HN_HANSYOKU();
+                a.SetDataB(ref d);
+                var item = HorseBlood.FromJV(a);
+
+                Read(item, data.HorseBloods, (a, b) => a.Key == b.Key);
+                break;
+              }
             case "JC":
               {
                 var a = new JVData_Struct.JV_JC_INFO();
@@ -191,6 +210,15 @@ namespace KmyKeiba.JVLink.Wrappers
                 var item = HorseRiderChange.FromJV(a);
 
                 Read(item, data.HorseRiderChanges, (a, b) => a.RaceKey + a.HorseNumber == b.RaceKey + b.HorseNumber);
+                break;
+              }
+            case "HC":
+              {
+                var a = new JVData_Struct.JV_HC_HANRO();
+                a.SetDataB(ref d);
+                var item = Training.FromJV(a);
+
+                Read(item, data.Trainings, (a, b) => a.HorseKey == b.HorseKey && a.StartTime == b.StartTime);
                 break;
               }
             case "HR":
@@ -209,7 +237,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 var item = SingleAndDoubleWinOdds.FromJV(a);
                 var item2 = FrameNumberOdds.FromJV(a);
 
-                Read(item, data.SingleAndDoubleWinOdds, (a, b) => a.RaceKey == b.RaceKey);
+                Read(item, data.SingleAndDoubleWinOdds, (a, b) => a.RaceKey == b.RaceKey && a.Time == b.Time);
                 Read(item2, data.FrameNumberOdds, (a, b) => a.RaceKey == b.RaceKey);
                 break;
               }
@@ -300,6 +328,10 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public List<RaceHorse> RaceHorses { get; internal set; } = new();
 
+    public List<Horse> Horses { get; internal set; } = new();
+
+    public List<HorseBlood> HorseBloods { get; internal set; } = new();
+
     public List<SingleAndDoubleWinOdds> SingleAndDoubleWinOdds { get; internal set; } = new();
 
     public List<FrameNumberOdds> FrameNumberOdds { get; internal set; } = new();
@@ -323,6 +355,8 @@ namespace KmyKeiba.JVLink.Wrappers
     public List<HorseAbnormality> HorseAbnormalities { get; internal set; } = new();
 
     public List<HorseRiderChange> HorseRiderChanges { get; internal set; } = new();
+
+    public List<Training> Trainings { get; internal set; } = new();
   }
 
   class SimpleDistinctComparer<T> : IEqualityComparer<T>

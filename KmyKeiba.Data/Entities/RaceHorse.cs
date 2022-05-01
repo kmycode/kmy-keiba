@@ -9,6 +9,8 @@ namespace KmyKeiba.JVLink.Entities
 {
   public class RaceHorse : EntityBase
   {
+    public string Key { get; set; } = string.Empty;
+
     /// <summary>
     /// 出場するレースID
     /// </summary>
@@ -20,6 +22,11 @@ namespace KmyKeiba.JVLink.Entities
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// 血統登録番号
+    /// </summary>
+    public string Code => this.Key;
+
+    /// <summary>
     /// 年齢
     /// </summary>
     public short Age { get; set; }
@@ -28,6 +35,10 @@ namespace KmyKeiba.JVLink.Entities
     /// 性別
     /// </summary>
     public HorseSex Sex { get; set; }
+
+    public HorseType Type { get; set; }
+
+    public HorseBodyColor Color { get; set; }
 
     /// <summary>
     /// 番号
@@ -53,6 +64,15 @@ namespace KmyKeiba.JVLink.Entities
     /// 異常結果
     /// </summary>
     public RaceAbnormality AbnormalResult { get; set; }
+
+    /// <summary>
+    /// 着差
+    /// </summary>
+    public short ResultLength1 { get; set; }
+
+    public short ResultLength2 { get; set; }
+
+    public short ResultLength3 { get; set; }
 
     /// <summary>
     /// 人気
@@ -135,6 +155,7 @@ namespace KmyKeiba.JVLink.Entities
       short.TryParse(uma.Barei.Trim(), out short age);
       short.TryParse(uma.SexCD.Trim(), out short sex);
       int.TryParse(uma.Umaban.Trim(), out int num);
+      int.TryParse(uma.UmaKigoCD, out int tc);
       int.TryParse(uma.Wakuban.Trim(), out int wakuNum);
       int.TryParse(uma.KakuteiJyuni.Trim(), out int result);
       int.TryParse(uma.Ninki.Trim(), out int pop);
@@ -149,6 +170,7 @@ namespace KmyKeiba.JVLink.Entities
       short.TryParse(uma.ZogenSa.Trim(), out short weightDiff);
       int.TryParse(uma.KyakusituKubun.Trim(), out int runningStyle);
       int.TryParse(uma.id.JyoCD.Trim(), out int course);
+      short.TryParse(uma.KeiroCD, out var color);
 
       int.TryParse(uma.Time.Substring(0, 1), out int timeMinutes);
       int.TryParse(uma.Time.Substring(1, 2), out int timeSeconds);
@@ -164,18 +186,57 @@ namespace KmyKeiba.JVLink.Entities
         halongTime = default;
       }
 
+      short GetLength(string len)
+      {
+        switch (len)
+        {
+          case "A  ":
+            return (short)HorseLength.Head;
+          case "D  ":
+            return (short)HorseLength.Same;
+          case "H  ":
+            return (short)HorseLength.Nose;
+          case "K  ":
+            return (short)HorseLength.Neck;
+          case "Z  ":
+            return 10 * 100;
+          case "T  ":
+            return 15 * 100;
+          case "   ":
+            return (short)HorseLength.Unknown;
+        }
+        if (int.TryParse(len, out var num))
+        {
+          int.TryParse(len[0].ToString(), out var a);
+          int.TryParse(len[1].ToString(), out var b);
+          int.TryParse(len[2].ToString(), out var c);
+          if (c > 0)
+          {
+            return (short)((a + b / (float)c) * 100);
+          }
+          return (short)(a * 100);
+        }
+        return (short)HorseLength.Unknown;
+      }
+
       var horse = new RaceHorse
       {
         LastModified = uma.head.MakeDate.ToDateTime(),
         DataStatus = uma.head.DataKubun.ToDataStatus(),
+        Key = uma.KettoNum,
         RaceKey = uma.id.ToRaceKey(),
         Age = age,
         Sex = (HorseSex)sex,
+        Type = Horse.ToHorseType(tc),
+        Color = (HorseBodyColor)color,
         Course = (RaceCourse)course,
         Name = uma.Bamei.Trim(),
         Number = num,
         FrameNumber = wakuNum,
         ResultOrder = result,
+        ResultLength1 = GetLength(uma.ChakusaCD),
+        ResultLength2 = GetLength(uma.ChakusaCDP),
+        ResultLength3 = GetLength(uma.ChakusaCDPP),
         AbnormalResult = (RaceAbnormality)abnormal,
         Popular = pop,
         FirstCornerOrder = corner1,
@@ -183,7 +244,7 @@ namespace KmyKeiba.JVLink.Entities
         ThirdCornerOrder = corner3,
         FourthCornerOrder = corner4,
         ResultTime = new TimeSpan(0, 0, timeMinutes, timeSeconds, timeMilliSeconds * 100),
-        RiderCode = uma.KisyuCode,
+        RiderCode = uma.KisyuCode.Trim(),
         RiderName = uma.KisyuRyakusyo.Trim(),
         RiderWeight = (float)riderWeight / 10,
         TrainerCode = uma.ChokyosiCode,
@@ -237,6 +298,31 @@ namespace KmyKeiba.JVLink.Entities
 
     [RaceAbnormalityInfo("降着")]
     DisqualifiedAndPlaced = 7,
+  }
+
+  public enum HorseLength : short
+  {
+    Unknown = 0,
+
+    /// <summary>
+    /// あたま
+    /// </summary>
+    Head = 1,
+
+    /// <summary>
+    /// 同着
+    /// </summary>
+    Same = 2,
+
+    /// <summary>
+    /// はな
+    /// </summary>
+    Nose = 3,
+
+    /// <summary>
+    /// くび
+    /// </summary>
+    Neck = 4,
   }
 
   public enum HorseSex : short

@@ -1,6 +1,5 @@
 ﻿using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
-using KmyKeiba.Models.Data;
 using KmyKeiba.Data.Db;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
@@ -15,7 +14,7 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KmyKeiba.Prompt.Logics
+namespace KmyKeiba.Downloader
 {
   class JVLinkLoader : IDisposable
   {
@@ -119,7 +118,7 @@ namespace KmyKeiba.Prompt.Logics
     }
 
     public async Task LoadCentralAsync()
-      => await this.LoadAsync(() => JVLinkObject.Local);
+      => await this.LoadAsync(() => JVLinkObject.Central);
 
     public async Task LoadLocalAsync()
       => await this.LoadAsync(() => JVLinkObject.Local);
@@ -302,11 +301,11 @@ namespace KmyKeiba.Prompt.Logics
       }
 
       var saved = 0;
-      this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Sum((o) => o.Odds.Count)
+      this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + /*data.ExactaOdds.Sum((o) => o.Odds.Count)
         + data.FrameNumberOdds.Sum((o) => o.Odds.Count) +
         data.QuinellaOdds.Sum((o) => o.Odds.Count) + data.QuinellaPlaceOdds.Sum((o) => o.Odds.Count) +
-        data.Refunds.Count + data.TrifectaOdds.Sum((o) => o.Odds.Count) + data.TrioOdds.Sum((o) => o.Odds.Count) +
-        data.Trainings.Count;
+         data.TrifectaOdds.Sum((o) => o.Odds.Count) + data.TrioOdds.Sum((o) => o.Odds.Count) + */
+        data.Refunds.Count + data.Trainings.Count;
       logger.Info($"Save size: {this.SaveSize.Value}");
 
       var timer = new ReactiveTimer(TimeSpan.FromMilliseconds(80));
@@ -327,6 +326,7 @@ namespace KmyKeiba.Prompt.Logics
         {
           var copyed = entities.ToList();
 
+          var changed = 0;
           var ids = entities.Select(entityId).Distinct().ToList();
           var dataItems = await dataSet!
             .Where(dataIdSelector(ids))
@@ -338,7 +338,15 @@ namespace KmyKeiba.Prompt.Logics
             item.Data.SetEntity(item.Entity);
             copyed.Remove(item.Entity);
             saved++;
+            changed++;
+
+            if (changed == 10000)
+            {
+              await db.SaveChangesAsync();
+              changed = 0;
+            }
           }
+          await db.SaveChangesAsync();
 
           var items = copyed
             .Where((e) => !dataItems.Any((d) => dataId(d)!.Equals(entityId(e))))
@@ -349,10 +357,19 @@ namespace KmyKeiba.Prompt.Logics
               saved++;
               return obj;
             });
-          await dataSet.AddRangeAsync(items);
-          // saved += items.Count();
 
-          await db.SaveChangesAsync();
+          // 大量のデータを分割して保存する
+          var i = 0;
+          var position = items;
+          while (position.Any())
+          {
+            var chunk = position.Take(10000);
+            await dataSet.AddRangeAsync(chunk);
+            await db.SaveChangesAsync();
+
+            position = position.Skip(10000);
+          }
+          // saved += items.Count();
         }
 
         await SaveAsync(data.Races,
@@ -365,7 +382,18 @@ namespace KmyKeiba.Prompt.Logics
           (e) => e.Name + e.RaceKey,
           (d) => d.Name + d.RaceKey,
           (list) => e => list.Contains(e.Name + e.RaceKey));
+        await SaveAsync(data.Horses,
+          db.Horses!,
+          (e) => e.Code,
+          (d) => d.Code,
+          (list) => e => list.Contains(e.Code));
+        await SaveAsync(data.HorseBloods,
+          db.HorseBloods!,
+          (e) => e.Key,
+          (d) => d.Key,
+          (list) => e => list.Contains(e.Key));
 
+        /*
         await SaveAsync(data.FrameNumberOdds.SelectMany((o) => o.Odds),
           db.FrameNumberOdds!,
           (e) => e.RaceKey + e.Frame1 + " " + e.Frame2,
@@ -396,6 +424,7 @@ namespace KmyKeiba.Prompt.Logics
           (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3,
           (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2 + " " + d.HorseNumber3,
           (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3));
+        */
         await SaveAsync(data.Refunds,
           db.Refunds!,
           (e) => e.RaceKey,
@@ -544,6 +573,7 @@ namespace KmyKeiba.Prompt.Logics
 
         if (isProcessing)
         {
+          /*
           // それぞれの馬に、第３ハロンタイムの順位をつける（LINQでやると時間がかかる）
           IEnumerable<string> ids = db.RaceHorses!
             .Where((h) => h.AfterThirdHalongTimeOrder == 0 && h.AfterThirdHalongTime > TimeSpan.Zero)
@@ -562,6 +592,7 @@ WHERE racehorses.racekey IN ('{arr}') AND racehorses.RaceKey=buf.racekey AND rac
             ids = ids.Skip(64);
             this.Processed.Value++;
           }
+          */
         }
       }
     }

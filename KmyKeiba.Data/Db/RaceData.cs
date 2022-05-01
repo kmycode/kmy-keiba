@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.JVLink.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
+  // [Index(nameof(Key), nameof(Name), nameof(Course))]
   public class RaceData : DataBase<Race>
   {
     public string Key { get; set; } = string.Empty;
@@ -59,6 +61,30 @@ namespace KmyKeiba.Data.Db
 
     public int CourseBaseTimeCacheVersion { get; set; }
 
+    public string Corner1Result { get; set; } = string.Empty;
+
+    public short Corner1Position { get; set; }
+
+    public short Corner1Number { get; set; }
+
+    public string Corner2Result { get; set; } = string.Empty;
+
+    public short Corner2Position { get; set; }
+
+    public short Corner2Number { get; set; }
+
+    public string Corner3Result { get; set; } = string.Empty;
+
+    public short Corner3Position { get; set; }
+
+    public short Corner3Number { get; set; }
+
+    public string Corner4Result { get; set; } = string.Empty;
+
+    public short Corner4Position { get; set; }
+
+    public short Corner4Number { get; set; }
+
     public override void SetEntity(Race race)
     {
       this.Key = race.Key;
@@ -80,6 +106,18 @@ namespace KmyKeiba.Data.Db
       this.CourseRaceNumber = race.CourseRaceNumber;
       this.HorsesCount = race.HorsesCount;
       this.StartTime = race.StartTime;
+      this.Corner1Result = race.Corner1Result;
+      this.Corner1Position = race.Corner1Position;
+      this.Corner1Number = race.Corner1Number;
+      this.Corner2Result = race.Corner2Result;
+      this.Corner2Position = race.Corner2Position;
+      this.Corner2Number = race.Corner2Number;
+      this.Corner3Result = race.Corner3Result;
+      this.Corner3Position = race.Corner3Position;
+      this.Corner3Number = race.Corner3Number;
+      this.Corner4Result = race.Corner4Result;
+      this.Corner4Position = race.Corner4Position;
+      this.Corner4Number = race.Corner4Number;
 
       this.Grade = race.Subject.Grade;
       foreach (var sub in race.Subject.AgeSubjects)

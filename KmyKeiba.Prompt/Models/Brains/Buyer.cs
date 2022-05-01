@@ -15,6 +15,10 @@ namespace KmyKeiba.Prompt.Models.Brains
   public class BuyerScriptData
   {
     public List<BuyCandidate> Data { get; set; } = new();
+
+    public bool IsLargeDiff { get; set; }
+
+    public bool IsLargeDiffAll { get; set; }
   }
 
   class Buyer
@@ -35,7 +39,7 @@ namespace KmyKeiba.Prompt.Models.Brains
       }
     }
 
-    public static IEnumerable<BuyItem> Select(IEnumerable<BuyCandidate> data)
+    public static IEnumerable<BuyItem> Select(IEnumerable<BuyCandidate> data, bool isLargeDiff = false, bool isLargeDiffAll = false)
     {
       try
       {
@@ -44,7 +48,7 @@ namespace KmyKeiba.Prompt.Models.Brains
           UpdateScript();
         }
 
-        var result = script!.RunAsync(new BuyerScriptData { Data = data.ToList(), }).Result.ReturnValue;
+        var result = script!.RunAsync(new BuyerScriptData { Data = data.ToList(), IsLargeDiff = isLargeDiff, IsLargeDiffAll = isLargeDiffAll, }).Result.ReturnValue;
 
         if (result is IEnumerable<BuyItem> items)
         {

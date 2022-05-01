@@ -7,33 +7,7 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Views\LoadJVLinkDialog.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Views\PredictRunningStyleDialog.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Resources\Converters.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Resources\DataTemplates.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Resources\DataTemplateSelectors.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Resources\HorseMarks.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\LoadJVLinkDialog.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\MainWindow.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\PredictRunningStyleDialog.xaml">
+    <Page Update="MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

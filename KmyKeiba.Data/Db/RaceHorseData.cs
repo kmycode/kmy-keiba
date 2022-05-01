@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.JVLink.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -9,8 +10,11 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
+  // [Index(nameof(RaceKey), nameof(Key), nameof(RiderCode), nameof(TrainerCode), nameof(RiderName), nameof(TrainerName))]
   public class RaceHorseData : DataBase<RaceHorse>
   {
+    public string Key { get; set; } = string.Empty;
+
     public string RaceKey { get; set; } = string.Empty;
 
     public string Name { get; set; } = string.Empty;
@@ -18,6 +22,10 @@ namespace KmyKeiba.Data.Db
     public short Age { get; set; }
 
     public HorseSex Sex { get; set; }
+
+    public HorseType Type { get; set; }
+
+    public HorseBodyColor Color { get; set; }
 
     [Column("CourseCode")]
     public RaceCourse Course { get; set; }
@@ -41,6 +49,15 @@ namespace KmyKeiba.Data.Db
     /// 着順
     /// </summary>
     public int ResultOrder { get; set; }
+
+    /// <summary>
+    /// 着差
+    /// </summary>
+    public short ResultLength1 { get; set; }
+
+    public short ResultLength2 { get; set; }
+
+    public short ResultLength3 { get; set; }
 
     /// <summary>
     /// 異常結果
@@ -146,15 +163,21 @@ namespace KmyKeiba.Data.Db
     {
       this.LastModified = entity.LastModified;
       this.DataStatus = entity.DataStatus;
+      this.Key = entity.Key;
       this.Name = entity.Name;
       this.Age = entity.Age;
       this.Sex = entity.Sex;
+      this.Type = entity.Type;
+      this.Color = entity.Color;
       this.Number = entity.Number;
       this.Popular = entity.Popular;
       this.RaceKey = entity.RaceKey;
       this.Course = entity.Course;
       this.ResultOrder = entity.ResultOrder;
       this.ResultTime = entity.ResultTime;
+      this.ResultLength1 = entity.ResultLength1;
+      this.ResultLength2 = entity.ResultLength2;
+      this.ResultLength3 = entity.ResultLength3;
       this.FrameNumber = entity.FrameNumber;
       this.FirstCornerOrder = entity.FirstCornerOrder;
       this.SecondCornerOrder = entity.SecondCornerOrder;

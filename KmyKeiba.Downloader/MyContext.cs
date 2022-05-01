@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KmyKeiba.Models.Data
+namespace KmyKeiba.Downloader
 {
   public class MyContext : MyContextBase
   {

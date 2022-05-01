@@ -73,7 +73,7 @@ namespace KmyKeiba.JVLink.Wrappers
       {
         var specId = (uint)dataspec;
         var num = 1u;
-        for (var i = 0; i < 24; i++)
+        for (var i = 0; i < 32; i++)
         {
           var isHit = (specId & num) != 0;
           if (isHit)

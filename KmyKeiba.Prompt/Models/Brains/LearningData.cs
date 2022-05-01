@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Prompt.Models.Brains
 {
-  class LearningData
+  class LearningDatav30
   {
     public float Weather;
     public float Course;
@@ -27,14 +27,14 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float WeightDiff;
     public float Sex;
     public float Age;
-    public float MyRunningStyle;
-    public float MySecondRunningStyle;
-    public float MyRunningStyleUseRate;
-    public float MySecondRunningStyleUseRate;
+    // public float MyRunningStyle;
+    // public float MySecondRunningStyle;
+    // public float MyRunningStyleUseRate;
+    // public float MySecondRunningStyleUseRate;
     public float Speed;
     public float IntervalDays;
-    public float Odds;
-    public float OddsWinRate;
+    // public float Odds;
+    // public float OddsWinRate;
     public float MyHistoryOrder;
     public float HorsesCount;
     public float Number;
@@ -87,6 +87,19 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float EnemySotpCount;
     public float EnemySaveRunnerCount;
 
+    public float MyPoint;
+    public float Enemy1Point;
+    // public float Enemy2Point;
+    public float Enemy3Point;
+    public float EnemyPointsAverage;
+    public float Enemy1Speed;
+    public float Enemy3Speed;
+    public float EnemySpeedsAverage;
+    public float Enemy1WinRate;
+    public float Enemy3WinRate;
+    public float EnemyWinRatesAverage;
+    public float EnemyCourseWinRatesAverage;
+
     // レースのペースを追加
     public float Race1RiderWinRate;
     public float Race1Weather;
@@ -116,7 +129,7 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Race2RunningStyle;
     public float Race2A3HalongTimeOrder;
     public float Race2Pace;
-    public float Race2Result;
+    // public float Race2Result;
     // public float Race2ResultTime;
     public float Race2Speed;
 
@@ -130,7 +143,7 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Race3RunningStyle;
     public float Race3A3HalongTimeOrder;
     public float Race3Pace;
-    public float Race3Result;
+    // public float Race3Result;
     // public float Race3ResultTime;
     public float Race3Speed;
 
@@ -144,7 +157,7 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Race4RunningStyle;
     public float Race4A3HalongTimeOrder;
     public float Race4Pace;
-    public float Race4Result;
+    // public float Race4Result;
     // public float Race4ResultTime;
     public float Race4Speed;
 
@@ -158,15 +171,15 @@ namespace KmyKeiba.Prompt.Models.Brains
     public float Race5RunningStyle;
     public float Race5A3HalongTimeOrder;
     public float Race5Pace;
-    public float Race5Result;
+    // public float Race5Result;
     // public float Race5ResultTime;
     public float Race5Speed;
 
     public float Result;
 
-    public const int VERSION = 25;
+    public const int VERSION = 30;
 
-    public static async Task<LearningData> CreateAsync(MyContextBase db, RaceData race, RaceHorseData horse, IEnumerable<(RaceData Race, RaceHorseData Horse)> horseHistories, IEnumerable<(RaceData Race, RaceHorseData Horse)> otherHorseHistories, IEnumerable<RaceHorseData> historyOrder)
+    public static async Task<LearningDatav30> CreateAsync(MyContextBase db, RaceData race, RaceHorseData horse, IEnumerable<(RaceData Race, RaceHorseData Horse)> horseHistories, IEnumerable<(RaceData Race, RaceHorseData Horse)> otherHorseHistories, IEnumerable<RaceHorseData> historyOrder)
     {
       var isLocal = race.Course.GetCourseType() == RaceCourseType.Local;
 
@@ -290,7 +303,7 @@ namespace KmyKeiba.Prompt.Models.Brains
       var runningStyle = GetRunningStyle(horseHistories);
       var secondRunningStyle = GetRunningStyle(horseHistories, 1);
       var prevRaceStartTime = horseHistories.OrderByDescending((h) => h.Race.StartTime).FirstOrDefault().Race?.StartTime;
-      var d = new LearningData
+      var d = new LearningDatav30
       {
         RiderWinRate = riderWinRate,
         Season = race.StartTime.Date.DayOfYear / 366f,
@@ -307,19 +320,20 @@ namespace KmyKeiba.Prompt.Models.Brains
         WeightDiff = (Math.Min(30f, Math.Max(-30f, horse.WeightDiff)) + 30) / 60f,
         Sex = (horse.Sex == HorseSex.Castrated ? 1.5f : (float)horse.Sex) / 2f,
         Age = Math.Min(horse.Age, (short)10) / 10f,
-        MyRunningStyle = (float)runningStyle / 4f,
-        MySecondRunningStyle = (float)secondRunningStyle / 4f,
-        MyRunningStyleUseRate = (float)horseHistories.Count((h) => h.Horse.RunningStyle == runningStyle) / Math.Max(1, horseHistories.Count()),
-        MySecondRunningStyleUseRate = (float)horseHistories.Count((h) => h.Horse.RunningStyle == secondRunningStyle) / Math.Max(1, horseHistories.Count()),
+        // MyRunningStyle = (float)runningStyle / 4f,
+        // MySecondRunningStyle = (float)secondRunningStyle / 4f,
+        // MyRunningStyleUseRate = (float)horseHistories.Count((h) => h.Horse.RunningStyle == runningStyle) / Math.Max(1, horseHistories.Count()),
+        // MySecondRunningStyleUseRate = (float)horseHistories.Count((h) => h.Horse.RunningStyle == secondRunningStyle) / Math.Max(1, horseHistories.Count()),
         FrontRunnerWinRate = (float)horseHistories.Count((h) => h.Horse.RunningStyle == RunningStyle.FrontRunner && h.Horse.ResultOrder != 0 && h.Horse.ResultOrder <= (h.Race.HorsesCount <= 7 ? 2 : 3)) / Math.Max(1, horseHistories.Count()),
         StalkerWinRate = (float)horseHistories.Count((h) => h.Horse.RunningStyle == RunningStyle.Stalker && h.Horse.ResultOrder != 0 && h.Horse.ResultOrder <= (h.Race.HorsesCount <= 7 ? 2 : 3)) / Math.Max(1, horseHistories.Count()),
         SotpWinRate = (float)horseHistories.Count((h) => h.Horse.RunningStyle == RunningStyle.Sotp && h.Horse.ResultOrder != 0 && h.Horse.ResultOrder <= (h.Race.HorsesCount <= 7 ? 2 : 3)) / Math.Max(1, horseHistories.Count()),
         SaveRunnerWinRate = (float)horseHistories.Count((h) => h.Horse.RunningStyle == RunningStyle.SaveRunner && h.Horse.ResultOrder != 0 && h.Horse.ResultOrder <= (h.Race.HorsesCount <= 7 ? 2 : 3)) / Math.Max(1, horseHistories.Count()),
         // MyPoint = GetRaceHorsePoint(otherHorseHistories.Where((h) => h.Horse.Name == horse.Name)),
         IntervalDays = GetIntervalDate(prevRaceStartTime, race.StartTime),
-        Odds = Math.Min(100f, horse.Odds) / 100f,
-        OddsWinRate = await GetOddsWinRateAsync(horse.Odds),
+        // Odds = Math.Min(100f, horse.Odds) / 100f,
+        // OddsWinRate = await GetOddsWinRateAsync(horse.Odds),
         MyHistoryOrder = (float)myHistoryOrder / Math.Max(1, race.HorsesCount),
+        MyPoint = GetRaceHorsePoint(otherHorseHistories.Where((h) => h.Horse.Name == horse.Name)),
         HorsesCount = (float)race.HorsesCount / 20,
         Number = (float)horse.Number / Math.Max(1, race.HorsesCount),
 
@@ -525,19 +539,6 @@ namespace KmyKeiba.Prompt.Models.Brains
         d.EnemySaveRunnerCount = (float)otherHorseRunningStyles.Count((r) => r == RunningStyle.SaveRunner) / Math.Max(1, race.HorsesCount);
       }
 
-      /*
-      var otherPoints = otherHorseHistories
-        .Where((h) => h.Horse.Name != horse.Name)
-        .GroupBy((h) => h.Horse.Name)
-        .Select((g) => GetRaceHorsePoint(g))
-        .OrderByDescending((p) => p)
-        .Take(3)
-        .ToArray();
-      d.Enemy1Point = otherPoints.ElementAtOrDefault(0);
-      d.Enemy2Point = otherPoints.ElementAtOrDefault(1);
-      d.Enemy3Point = otherPoints.ElementAtOrDefault(2);
-      */
-
       var oldRaceCount = 0;
       var speedSum = 0f;
 
@@ -602,13 +603,16 @@ namespace KmyKeiba.Prompt.Models.Brains
           SetValue("RunningStyle", (short)r.Horse.RunningStyle / 4f);
           SetValue("A3HalongTimeOrder", r.Horse.AfterThirdHalongTimeOrder == 0 ? 0.5f : (float)(r.Horse.AfterThirdHalongTimeOrder - 1) / Math.Max(1, r.Race.HorsesCount - 1));
           SetValue("Pace", await GetCourseRacePaceAsync(r.Race));
-          if (r.Horse.ResultOrder != 0)
+          if (i == 1)
           {
-            SetValue("Result", 1 - (float)(r.Horse.ResultOrder - 1) / Math.Max(1, r.Race.HorsesCount - 1));
-          }
-          else
-          {
-            SetValue("Result", 0.5f);
+            if (r.Horse.ResultOrder != 0)
+            {
+              SetValue("Result", 1 - (float)(r.Horse.ResultOrder - 1) / Math.Max(1, r.Race.HorsesCount - 1));
+            }
+            else
+            {
+              SetValue("Result", 0.5f);
+            }
           }
           // SetValue("ResultTime", (float)r.Horse.ResultTime.TotalMilliseconds / 300_000f);
 
@@ -647,7 +651,7 @@ namespace KmyKeiba.Prompt.Models.Brains
           SetValue("RunningStyle", 0f);
           SetValue("A3HalongTimeOrder", 1f);
           SetValue("Pace", 0.5f);
-          SetValue("Result", 0.5f);
+          // SetValue("Result", 0.5f);
           // SetValue("ResultTime", 1f);
           SetValue("Speed", 0f);
         }
@@ -663,6 +667,41 @@ namespace KmyKeiba.Prompt.Models.Brains
       }
 
       return d;
+    }
+
+    public static void Merge(IEnumerable<LearningDatav30> data)
+    {
+      var otherPoints = data.OrderByDescending((d) => d.MyPoint);
+      var enemy1Point = otherPoints.ElementAtOrDefault(0)?.MyPoint ?? 0.5f;
+      // d.Enemy2Point = otherPoints.ElementAtOrDefault(1);
+      var enemy3Point = (otherPoints.ElementAtOrDefault(1)?.MyPoint ?? 0.5f + otherPoints.ElementAtOrDefault(2)?.MyPoint ?? 0.5f) / 2;
+      var enemyPointsAverage = otherPoints.Any() ? otherPoints.Average((d) => d.MyPoint) : 0.5f;
+
+      var otherSpeeds = data.OrderByDescending((d) => d.Speed);
+      var enemy1Speed = otherSpeeds.ElementAtOrDefault(0)?.Speed ?? 0.5f;
+      var enemy3Speed = (otherSpeeds.ElementAtOrDefault(1)?.Speed ?? 0.5f + otherSpeeds.ElementAtOrDefault(2)?.Speed ?? 0.5f) / 2;
+      var enemySpeedsAverage = otherSpeeds.Any() ? otherSpeeds.Average((d) => d.Speed) : 0.5f;
+
+      var otherWinRates = data.OrderByDescending((d) => d.WinRate);
+      var enemy1WinRate = otherWinRates.ElementAtOrDefault(0)?.WinRate ?? 0.5f;
+      var enemy3WinRate = (otherWinRates.ElementAtOrDefault(1)?.WinRate ?? 0.5f + otherWinRates.ElementAtOrDefault(2)?.WinRate ?? 0.5f) / 2;
+      var enemyWinRatesAverage = otherWinRates.Any() ? otherWinRates.Average((d) => d.WinRate) : 0.5f;
+
+      var courseWinRatesAverage = data.Any() ? data.Average((d) => d.CourseWinRate) : 0.5f;
+
+      foreach (var d in data)
+      {
+        d.Enemy1Point = enemy1Point;
+        d.Enemy3Point = enemy3Point;
+        d.EnemyPointsAverage = Math.Clamp(enemyPointsAverage - d.MyPoint + 0.5f, 0f, 1f);
+        d.Enemy1Speed = enemy1Speed;
+        d.Enemy3Speed = enemy3Speed;
+        d.EnemySpeedsAverage = Math.Clamp(enemySpeedsAverage - d.Speed + 0.5f, 0f, 1f);
+        d.Enemy1WinRate = enemy1WinRate;
+        d.Enemy3WinRate = enemy3WinRate;
+        d.EnemyWinRatesAverage = Math.Clamp(enemyWinRatesAverage - d.WinRate + 0.5f, 0f, 1f);
+        d.EnemyCourseWinRatesAverage = Math.Clamp(courseWinRatesAverage - d.CourseWinRate + 0.5f, 0f, 1f);
+      }
     }
 
     public const int RACE_BASETIME_CACHE_VERSION = 1;
@@ -717,14 +756,21 @@ namespace KmyKeiba.Prompt.Models.Brains
 
     private static float GetRaceHorsePoint(IEnumerable<(RaceData Race, RaceHorseData Horse)> history)
     {
-      var point = 0f;
+      var points = new float[10];
       var raceCount = 0;
-      foreach (var horse in history.Where((h) => h.Horse.ResultOrder > 0).OrderByDescending((h) => h.Race.StartTime).Take(5))
+      foreach (var horse in history
+        .Where((h) => h.Horse.ResultOrder > 0 && h.Race.HorsesCount > 0)
+        .OrderByDescending((h) => h.Race.StartTime)
+        .Take(10))
       {
         var isLocalRace = horse.Race.Course.GetCourseType() == RaceCourseType.Local;
         var cls = GetGrade(isLocalRace, horse.Race.Name, horse.Race.Grade, new RaceSubjectType[] { horse.Race.SubjectAge2, horse.Race.SubjectAge3, horse.Race.SubjectAge4, horse.Race.SubjectAge5, horse.Race.SubjectAgeYounger, }, horse.Race.SubjectName);
         var order = 1f - ((float)(horse.Horse.ResultOrder - 1) / Math.Max(1, horse.Race.HorsesCount - 1));
-        point += cls + order;
+        points[raceCount] = cls * 0.4f + order * 0.6f;
+        if (points[raceCount] < 0)
+        {
+
+        }
         raceCount++;
       }
 
@@ -734,7 +780,16 @@ namespace KmyKeiba.Prompt.Models.Brains
       }
       else
       {
-        return point / raceCount / 2;
+        return points[0] * 0.35f +
+          points[1] * 0.23f +
+          points[2] * 0.17f +
+          points[3] * 0.12f +
+          points[4] * 0.08f +
+          points[5] * 0.01f +
+          points[6] * 0.01f +
+          points[7] * 0.01f +
+          points[8] * 0.01f +
+          points[9] * 0.01f;
       }
     }
 

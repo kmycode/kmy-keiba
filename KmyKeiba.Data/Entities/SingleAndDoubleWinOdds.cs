@@ -11,6 +11,8 @@ namespace KmyKeiba.JVLink.Entities
   {
     public string RaceKey { get; set; } = string.Empty;
 
+    public DateTime Time { get; set; }
+
     public List<OddsData> Odds { get; } = new();
 
     public struct OddsData
@@ -33,6 +35,7 @@ namespace KmyKeiba.JVLink.Entities
         DataStatus = odds.head.DataKubun.ToDataStatus(),
         LastModified = odds.head.MakeDate.ToDateTime(),
         RaceKey = odds.id.ToRaceKey(),
+        Time = odds.HappyoTime.ToDateTime(odds.id),
       };
 
       int.TryParse(odds.TorokuTosu, out int horsesCount);
@@ -63,6 +66,6 @@ namespace KmyKeiba.JVLink.Entities
     }
 
     public override int GetHashCode()
-      => this.RaceKey.GetHashCode();
+      => (this.RaceKey + this.Time).GetHashCode();
   }
 }

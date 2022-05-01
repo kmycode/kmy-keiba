@@ -49,8 +49,8 @@ namespace KmyKeiba.Prompt
 
     static Program()
     {
-      link = JVLinkObject.Local;
-      mode = "地方";
+      link = JVLinkObject.Central;
+      mode = "中央";
     }
 
     static void Main(string[] args)
@@ -153,6 +153,7 @@ namespace KmyKeiba.Prompt
           case "update":
           case "updateforce":
           case "updatetoday":
+          case "updateyearodds":
             if (isX64)
             {
               Console.WriteLine("64bit では実行できません");
@@ -294,6 +295,27 @@ namespace KmyKeiba.Prompt
               }
             }
             break;
+          case "simulate":
+            if (parameters.Length <= 1)
+            {
+              SimulateAsukaPointResults("20201101-20201130");
+            }
+            else
+            {
+              SimulateAsukaPointResults(parameters[1]);
+            }
+            break;
+          case "predict":
+            if (parameters.Length <= 1)
+            {
+              Console.WriteLine("パラメータが不正です");
+              Task.Delay(3000).Wait();
+            }
+            else
+            {
+              PredictAsukaPointResult(parameters[1]);
+            }
+            break;
           case "exit":
             isExit = true;
             break;
@@ -325,11 +347,16 @@ namespace KmyKeiba.Prompt
             Expression<Func<RaceData, bool>> force =
               parameters[0] == "updateforce" ? (r) => true :
               parameters[0] == "updatetoday" ? (r) => true :
+              parameters[0] == "updateyearodds" ? (r) => true :
                                                (r) => (short)r.DataStatus < (short)RaceDataStatus.PreliminaryGradeFull;
             var upto = DateTime.Today.AddDays(-3);
             if (parameters[0] == "updatetoday")
             {
               upto = DateTime.Today;
+            }
+            if (parameters[0] == "updateyearodds")
+            {
+              upto = DateTime.Today.AddYears(-1);
             }
 
             planKeys = await db.Races!
@@ -346,7 +373,7 @@ namespace KmyKeiba.Prompt
               .ToArrayAsync();
           }
 
-          var processSize = startKeys.Concat(planKeys).Count() * 3;
+          var processSize = startKeys.Concat(planKeys).Count() * 4;
           var processed = 0;
           if (processSize == 0)
           {
@@ -359,22 +386,36 @@ namespace KmyKeiba.Prompt
           Console.WriteLine();
 
           await loader.LoadAsync(link, JVLinkDataspec.RB14, JVLinkOpenOption.RealTime, DateTime.Today.ToString("yyyyMMdd"), null, null);
-          foreach (var key in planKeys.Concat(startKeys))
+          if (parameters[0] != "updateyearodds")
           {
-            if (startKeys.Contains(key))
+            foreach (var key in planKeys.Concat(startKeys))
             {
-              await loader.LoadAsync(link, JVLinkDataspec.RB12, JVLinkOpenOption.RealTime, key, null, null);
-            }
-            else
-            {
-              await loader.LoadAsync(link, JVLinkDataspec.RB15, JVLinkOpenOption.RealTime, key, null, null);
-            }
-            StepProgress(++processed, processSize);
+              if (startKeys.Contains(key))
+              {
+                await loader.LoadAsync(link, JVLinkDataspec.RB12, JVLinkOpenOption.RealTime, key, null, null);
+              }
+              else
+              {
+                await loader.LoadAsync(link, JVLinkDataspec.RB15, JVLinkOpenOption.RealTime, key, null, null);
+              }
+              StepProgress(++processed, processSize);
 
-            await loader.LoadAsync(link, JVLinkDataspec.RB30, JVLinkOpenOption.RealTime, key, null, null);
-            StepProgress(++processed, processSize);
-            await loader.LoadAsync(link, JVLinkDataspec.RB11, JVLinkOpenOption.RealTime, key, null, null);
-            StepProgress(++processed, processSize);
+              await loader.LoadAsync(link, JVLinkDataspec.RB30, JVLinkOpenOption.RealTime, key, null, null);
+              StepProgress(++processed, processSize);
+              await loader.LoadAsync(link, JVLinkDataspec.RB11, JVLinkOpenOption.RealTime, key, null, null);
+              StepProgress(++processed, processSize);
+              await loader.LoadAsync(link, JVLinkDataspec.RB41, JVLinkOpenOption.RealTime, key, null, null);
+              StepProgress(++processed, processSize);
+            }
+          }
+          else
+          {
+            foreach (var key in planKeys.Concat(startKeys))
+            {
+              await loader.LoadAsync(link, JVLinkDataspec.RB41, JVLinkOpenOption.RealTime, key, null, null);
+              processed += 4;
+              StepProgress(processed, processSize);
+            }
           }
         }).Wait();
 
@@ -437,7 +478,7 @@ namespace KmyKeiba.Prompt
             var task = Task.Run(async () =>
             {
               await loader.LoadAsync(link,
-                JVLinkDataspec.Race,
+                JVLinkDataspec.Race | JVLinkDataspec.Slop,
                 day >= DateTime.Today.AddMonths(-1) ? JVLinkOpenOption.Normal : JVLinkOpenOption.Setup,
                 null,
                 day,
@@ -701,33 +742,11 @@ namespace KmyKeiba.Prompt
                   .ToArray();
               }
               catch { }
-            }
 
-            foreach (var horse in horses)
-            {
-              var cache = caches.FirstOrDefault((c) => c.HorseName == horse.Name && c.CacheVersion == LearningData.VERSION);
+              var rawList = new List<(LearningData Data, RaceHorseData Horse)>();
 
-              float[] raw;
-              float result;
-
-              if (cache == null)
+              foreach (var horse in horses)
               {
-                cache = new()
-                {
-                  RaceKey = race.Key,
-                  HorseName = horse.Name,
-                  CacheVersion = LearningData.VERSION,
-                };
-
-                /*
-                var history = await db.RaceHorses!
-                  .Where((h) => h.Name == horse.Name && h.ResultOrder != 0)
-                  .Join(db.Races!, (h) => h.RaceKey, (r) => r.Key, (h, r) => new { Race = r, Horse = h, })
-                  .Where((d) => d.Race.StartTime < race.StartTime)
-                  .OrderByDescending((d) => d.Race.StartTime)
-                  .Take(5)
-                  .ToArrayAsync();
-                */
                 var horseRiders = allHorseHistories
                   .Where((h) => h.Horse.Name == horse.Name)
                   .Select((h) => h.Horse.RiderCode)
@@ -740,56 +759,105 @@ namespace KmyKeiba.Prompt
                   history.Select((h) => (h.Race, h.Horse)),
                   allHorseHistories.Select((h) => (h.Race, h.Horse)),
                   historyOrder);
-                raw = rawData.ToArray();
-                result = rawData.Result;
 
-                cache.Cache = rawData.ToCacheString();
+                rawList.Add((rawData, horse));
+
+                this.Learned++;
+              }
+
+              LearningData.Merge(rawList.Select((r) => r.Data));
+
+              foreach (var rawData in rawList)
+              {
+                var oldCache = caches.FirstOrDefault((c) => c.HorseName == rawData.Horse.Name && c.CacheVersion == LearningData.VERSION);
+                if (oldCache != null)
+                {
+                  db.LearningDataCaches!.Remove(oldCache);
+                }
+
+                var cache = new LearningDataCache
+                {
+                  RaceKey = race.Key,
+                  HorseName = rawData.Horse.Name,
+                  CacheVersion = LearningData.VERSION,
+                };
+
+                cache.Cache = rawData.Data.ToCacheString();
                 await db.LearningDataCaches!.AddAsync(cache);
 
                 if (newCacheCount++ % 100 == 0)
                 {
                   await db.SaveChangesAsync();
                 }
-              }
-              else
-              {
-                var cacheData = cache.Cache.Split(",");
-                raw = new float[cacheData.Length - 1];
-                for (var i = 0; i < raw.Length; i++)
+
+                float[] raw = rawData.Data.ToArray();
+                float result = rawData.Data.Result;
+
+                try
                 {
-                  if (float.TryParse(cacheData[i], out float f))
+                  for (var i = 0; i < shape; i++)
                   {
-                    raw[i] = f;
+                    data[row, i] = raw[i];
                   }
-                  else if (int.TryParse(cacheData[i], out int ii))
+                  results[row] = result;
+                  row++;
+                }
+                catch (Exception ex)
+                {
+                }
+              }
+            }
+            else
+            {
+              foreach (var horse in horses)
+              {
+                var cache = caches.FirstOrDefault((c) => c.HorseName == horse.Name && c.CacheVersion == LearningData.VERSION);
+                float[] raw;
+                float result;
+
+                if (cache != null)
+                {
+                  var cacheData = cache.Cache.Split(",");
+                  raw = new float[cacheData.Length - 1];
+                  for (var i = 0; i < raw.Length; i++)
                   {
-                    raw[i] = i;
+                    if (float.TryParse(cacheData[i], out float f))
+                    {
+                      raw[i] = f;
+                    }
+                    else if (int.TryParse(cacheData[i], out int ii))
+                    {
+                      raw[i] = i;
+                    }
+                    else if (double.TryParse(cacheData[i], out double d))
+                    {
+                      raw[i] = (float)d;
+                    }
                   }
-                  else if (double.TryParse(cacheData[i], out double d))
-                  {
-                    raw[i] = (float)d;
-                  }
+
+                  float.TryParse(cacheData.Last(), out float ff);
+                  result = ff;
+                }
+                else
+                {
+                  continue;
                 }
 
-                float.TryParse(cacheData.Last(), out float ff);
-                result = ff;
-              }
-
-
-              try
-              {
-                for (var i = 0; i < shape; i++)
+                try
                 {
-                  data[row, i] = raw[i];
+                  for (var i = 0; i < shape; i++)
+                  {
+                    data[row, i] = raw[i];
+                  }
+                  results[row] = result;
+                  row++;
                 }
-                results[row] = result;
-                row++;
-              }
-              catch (Exception ex)
-              {
-              }
+                catch (Exception ex)
+                {
+                }
 
-              this.Learned++;
+                this.Learned++;
+              }
             }
           }
 
@@ -1082,22 +1150,66 @@ namespace KmyKeiba.Prompt
               .ToArray();
           }
           catch { }
-        }
 
-        // var progress = 0;
-        // StepProgress(0, horses.Length);
+          var rawList = new List<(LearningData Data, RaceHorseData Horse)>();
 
-        foreach (var horse in horses)
-        {
-          float[] raw = new float[0];
-          var cache = caches.FirstOrDefault((c) => c.HorseName == horse.Name);
-
-          if (cache != null)
+          foreach (var horse in horses)
           {
-            if (!isUseCache)
+            var horseRiders = allHorseHistories
+              .Where((h) => h.Horse.Name == horse.Name)
+              .Select((h) => h.Horse.RiderCode)
+              .ToArray();
+            var history = allHorseHistories.Where((h) => h.Horse.Name == horse.Name).ToArray();
+            var rawData = await LearningData.CreateAsync(
+              db,
+              race,
+              horse,
+              history.Select((h) => (h.Race, h.Horse)),
+              allHorseHistories.Select((h) => (h.Race, h.Horse)),
+              historyOrder);
+
+            rawList.Add((rawData, horse));
+          }
+
+          LearningData.Merge(rawList.Select((r) => r.Data));
+
+          foreach (var rawData in rawList)
+          {
+            var oldCache = caches.FirstOrDefault((c) => c.HorseName == rawData.Horse.Name && c.CacheVersion == LearningData.VERSION);
+            if (oldCache != null)
             {
-              cache = null;
+              db.LearningDataCaches!.Remove(oldCache);
             }
+
+            var cache = new LearningDataCache
+            {
+              RaceKey = race.Key,
+              HorseName = rawData.Horse.Name,
+              CacheVersion = LearningData.VERSION,
+            };
+
+            cache.Cache = rawData.Data.ToCacheString();
+            await db.LearningDataCaches!.AddAsync(cache);
+
+            float[] raw = rawData.Data.ToArray();
+            var shape = LearningData.GetShape();
+            var dataSet = new float[1, shape];
+            for (var i = 0; i < shape; i++)
+            {
+              dataSet[0, i] = raw[i];
+            }
+
+            list.Add((dataSet, rawData.Horse));
+          }
+        }
+        else
+        {
+          foreach (var horse in horses)
+          {
+            var cache = caches.FirstOrDefault((c) => c.HorseName == horse.Name && c.CacheVersion == LearningData.VERSION);
+            float[] raw;
+            float result;
+
             if (cache != null)
             {
               var cacheData = cache.Cache.Split(",");
@@ -1117,42 +1229,24 @@ namespace KmyKeiba.Prompt
                   raw[i] = (float)d;
                 }
               }
-            }
-          }
-          if (cache == null)
-          {
-            var history = allHorseHistories.Where((h) => h.Horse.Name == horse.Name).ToArray();
-            var rawData = await LearningData.CreateAsync(
-              db,
-              race,
-              horse,
-              history.Select((h) => (h.Race, h.Horse)),
-              allHorseHistories.Select((h) => (h.Race, h.Horse)),
-              historyOrder);
-            raw = rawData.ToArray();
 
-            if (isUseCache)
+              float.TryParse(cacheData.Last(), out float ff);
+              result = ff;
+            }
+            else
             {
-              cache = new LearningDataCache
-              {
-                HorseName = horse.Name,
-                RaceKey = race.Key,
-                CacheVersion = LearningData.VERSION,
-                Cache = rawData.ToCacheString(),
-              };
-              await db.LearningDataCaches!.AddAsync(cache);
+              continue;
             }
-          }
 
-          var shape = LearningData.GetShape();
-          var dataSet = new float[1, shape];
-          for (var i = 0; i < shape; i++)
-          {
-            dataSet[0, i] = raw[i];
-          }
-          list.Add((dataSet, horse));
+            var shape = LearningData.GetShape();
+            var dataSet = new float[1, shape];
+            for (var i = 0; i < shape; i++)
+            {
+              dataSet[0, i] = raw[i];
+            }
 
-          // StepProgress(++progress, horses.Length);
+            list.Add((dataSet, horse));
+          }
         }
       }
 
@@ -1270,11 +1364,9 @@ namespace KmyKeiba.Prompt
 
     private class RaceWinCountData
     {
-      public int PredictedOrder { get; set; }
-      public int AllRacesCount { get; set; }
-      public int FirstCount { get; set; }
-      public int SecondCount { get; set; }
-      public int PlaceCount { get; set; }
+      public int Popular { get; set; }
+      public int[] RacesCount { get; } = new int[12];
+      public int[] OrderCount { get; } = new int[12];
     }
 
     static void ResimulateRaceResults()
@@ -1296,10 +1388,12 @@ namespace KmyKeiba.Prompt
         return;
       }
 
+      var placeCounts = new List<RaceWinCountData>();
       var winCounts = new List<RaceWinCountData>();
       for (var i = 0; i < 12; i++)
       {
-        winCounts.Add(new() { PredictedOrder = i + 1, });
+        placeCounts.Add(new() { Popular = i + 1, });
+        winCounts.Add(new() { Popular = i + 1, });
       }
 
       var buyTypeResult = new Dictionary<BuyType, (int Pay, int Income, int Unit)>();
@@ -1367,29 +1461,25 @@ namespace KmyKeiba.Prompt
           secondHit++;
         }
 
-        var reals = rs.OrderByDescending((r) => r.Prediction).Select((r, i) => new { PredictedOrder = i + 1, ResultOrder = r.Horse.ResultOrder, });
-        var realTop = reals.FirstOrDefault((r) => r.ResultOrder == 1);
-        var realSecond = reals.FirstOrDefault((r) => r.ResultOrder == 2);
-        var realThird = reals.FirstOrDefault((r) => r.ResultOrder == 3);
-        foreach (var real in winCounts.Where((w) => w.PredictedOrder <= rs.Count))
-        {
-          real.AllRacesCount++;
-          if (real.PredictedOrder == realTop?.PredictedOrder)
+        var reals = rs.OrderByDescending((r) => r.Prediction).Select((r, i) => new { PredictedOrder = i + 1, r.Horse.Popular, r.Horse.ResultOrder, });
+        for (var j = 0; j < 12 && j < rs.Count; j++) {
+          var order = reals.FirstOrDefault((r) => r.PredictedOrder == j + 1);
+          var real = placeCounts.FirstOrDefault((w) => w.Popular == order?.Popular);
+          var real2 = winCounts.FirstOrDefault((w) => w.Popular == order?.Popular);
+          if (real != null && order != null)
           {
-            real.FirstCount++;
-            real.SecondCount++;
-            real.PlaceCount++;
-          }
-          if (real.PredictedOrder == realSecond?.PredictedOrder)
-          {
-            real.SecondCount++;
-            real.PlaceCount++;
-          }
-          if (real.PredictedOrder == realThird?.PredictedOrder)
-          {
-            if (needOrder >= 3)
+            real.RacesCount[j]++;
+            if (order.ResultOrder <= needOrder)
             {
-              real.PlaceCount++;
+              real.OrderCount[j]++;
+            }
+          }
+          if (real2 != null && order != null)
+          {
+            real2.RacesCount[j]++;
+            if (order.ResultOrder <= 1)
+            {
+              real2.OrderCount[j]++;
             }
           }
         }
@@ -1444,11 +1534,386 @@ namespace KmyKeiba.Prompt
       Console.WriteLine($"複勝全員的中率      : {hitAll} / {allCount} = {((float)hitAll / Math.Max(1, allCount)) * 100} %");
       Console.WriteLine($"回収率              : {income} / {pay} = {((float)income / Math.Max(1, pay)) * 100} %");
       Console.WriteLine();
-      Console.WriteLine("予想順位　単勝率　連対率　複勝率");
+      Console.WriteLine("人気　予想１位勝率　予想２位勝率　予想３位勝率");
+      foreach (var real in placeCounts)
+      {
+        Console.WriteLine($"{real.Popular}　{(string.Join("　", real.OrderCount.Select((_, i) => $"{(float)real.OrderCount[i] / Math.Max(real.RacesCount[i], 1):f3}")))}");
+      }
+      Console.WriteLine();
       foreach (var real in winCounts)
       {
-        Console.WriteLine($"{real.PredictedOrder}　{(float)real.FirstCount / Math.Max(1, real.AllRacesCount)}　{(float)real.SecondCount / Math.Max(1, real.AllRacesCount)}　{(float)real.PlaceCount / Math.Max(1, real.AllRacesCount)}");
+        Console.WriteLine($"{real.Popular}　{(string.Join("　", real.OrderCount.Select((_, i) => $"{(float)real.OrderCount[i] / Math.Max(real.RacesCount[i], 1):f3}")))}");
       }
+      Console.ReadLine();
+    }
+
+    static void SimulateAsukaPointResults(string parameter)
+    {
+      var date = parameter.Split("-");
+      if (date.Length != 2)
+      {
+        Console.WriteLine("日付の形式が不正です");
+        Task.Delay(3000).Wait();
+        return;
+      }
+
+      DateTime startTime;
+      DateTime endTime;
+      try
+      {
+        startTime = DateTime.ParseExact(date[0], "yyyyMMdd", null, System.Globalization.DateTimeStyles.None);
+      }
+      catch
+      {
+        Console.WriteLine("日付の形式が不正です");
+        Task.Delay(3000).Wait();
+        return;
+      }
+      try
+      {
+        endTime = DateTime.ParseExact(date[1], "yyyyMMdd", null, System.Globalization.DateTimeStyles.None);
+        endTime = endTime.AddDays(1);
+      }
+      catch
+      {
+        Console.WriteLine("日付の形式が不正です");
+        Task.Delay(3000).Wait();
+        return;
+      }
+
+      SimulateAsukaPointResults(startTime, endTime);
+    }
+
+    class AsukaPointLoader
+    {
+      public int RacesCount { get; private set; }
+
+      public int LoadedCount { get; private set; }
+
+      public List<AsukaPointRace> Results { get; } = new();
+
+      public async Task SimulateAsync(DateTime from, DateTime to)
+      {
+        using (var db = new MyContext())
+        {
+          var races = db.Races!
+            .Where((r) => r.StartTime >= from && r.StartTime < to);
+          if (mode == "地方")
+          {
+            races = races.Where((r) => (short)r.Course >= 30);
+          }
+          else
+          {
+            races = races.Where((r) => (short)r.Course < 30);
+          }
+          var rs = await races.ToArrayAsync();
+          this.RacesCount = rs.Length;
+
+          foreach (var race in rs)
+          {
+            var points = await AsukaPointRace.CreateAsync(db, race);
+            this.Results.Add(points);
+
+            this.LoadedCount++;
+          }
+        }
+      }
+    }
+
+    static void SimulateAsukaPointResults(DateTime from, DateTime to)
+    {
+      try
+      {
+        Buyer.UpdateScript();
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine(ex.Message);
+        Console.WriteLine(ex.StackTrace);
+        Console.ReadLine();
+        return;
+      }
+
+      var placeCounts = new List<RaceWinCountData>();
+      var winCounts = new List<RaceWinCountData>();
+      for (var i = 0; i < 12; i++)
+      {
+        placeCounts.Add(new() { Popular = i + 1, });
+        winCounts.Add(new() { Popular = i + 1, });
+      }
+
+      var buyTypeResult = new Dictionary<BuyType, (int Pay, int Income, int Unit)>();
+      var allCount = 0;
+      var hit = 0;
+      var hitAll = 0;
+      var hitWide = 0;
+      var winHit = 0;
+      var secondHit = 0;
+      var rentaiHit = 0;
+      var topFukuHit = 0;
+      var pay = 0;
+      var income = 0;
+
+      var largeDiffCount = 0;
+      var largeDiffWinCount = 0;
+      var largeDiffAllCount = 0;
+      var largeDiffAllWinCount = 0;
+
+      var splits = 8;
+      var seconds = (to - from).TotalSeconds / splits;
+      var d1 = from;
+      var d2 = from.AddSeconds(seconds);
+      var tasks = new List<Task>();
+      var objs = new List<AsukaPointLoader>();
+      for (var m = 0; m < splits; m++)
+      {
+        var loader = new AsukaPointLoader();
+        objs.Add(loader);
+        tasks.Add(loader.SimulateAsync(d1, d2));
+        d1 = d1.AddSeconds(seconds);
+        d2 = d2.AddSeconds(seconds);
+      }
+      while (!tasks.All((t) => t.IsCompleted))
+      {
+        StepProgress(objs.Sum((l) => l.LoadedCount), objs.Sum((l) => l.RacesCount));
+        Task.Delay(1000).Wait();
+      }
+      var exs = tasks.Where((t) => t.Exception != null).Select((t) => t.Exception);
+      if (exs.Any())
+      {
+        return;
+      }
+
+      var data = objs.SelectMany((o) => o.Results).ToArray();
+      var racesCount = data.Count();
+      var a = 0;
+      foreach (var dataSet in data)
+      {
+        var needOrder = (dataSet.Race.HorsesCount > 7 ? 3 : 2);
+        var hits = dataSet.Horses.OrderByDescending((r) => r.Prediction).Take(3).Count((r) => r.Horse.ResultOrder <= needOrder);
+        allCount += needOrder;
+        hit += hits;
+
+        var isLargeDiff = false;
+        var prediction1 = dataSet.Horses.OrderByDescending((r) => r.Prediction).ElementAtOrDefault(0);
+        var prediction2 = dataSet.Horses.OrderByDescending((r) => r.Prediction).ElementAtOrDefault(1);
+        var prediction3 = dataSet.Horses.OrderByDescending((r) => r.Prediction).ElementAtOrDefault(2);
+        var prediction4 = dataSet.Horses.OrderByDescending((r) => r.Prediction).ElementAtOrDefault(3);
+        var prediction6 = dataSet.Horses.OrderByDescending((r) => r.Prediction).ElementAtOrDefault(5);
+        if (prediction4 != null)
+        {
+          if (prediction2!.Prediction / prediction1!.Prediction < 0.85f)
+          {
+            isLargeDiff = true;
+            largeDiffCount++;
+            if (prediction1!.Horse.ResultOrder <= needOrder)
+            {
+              largeDiffWinCount++;
+            }
+          }
+          else if (prediction3!.Prediction / prediction2!.Prediction < 0.88f)
+          {
+            isLargeDiff = true;
+            largeDiffCount++;
+            if (prediction1!.Horse.ResultOrder <= needOrder)
+            {
+              largeDiffWinCount++;
+            }
+          }
+          else if (needOrder >= 3 && prediction4!.Prediction / prediction3!.Prediction < 0.9f)
+          {
+            isLargeDiff = true;
+            largeDiffCount++;
+            if (prediction1!.Horse.ResultOrder <= needOrder)
+            {
+              largeDiffWinCount++;
+            }
+          }
+        }
+
+        var isLargeDiffAll = false;
+        if (prediction6 != null && prediction6.Prediction / prediction1!.Prediction < 0.65f)
+        {
+          isLargeDiffAll = true;
+          largeDiffAllCount++;
+        }
+
+        if (dataSet.Horses.OrderByDescending((r) => r.Prediction).Take(4).Count((r) => r.Horse.ResultOrder <= 3) == 3)
+        {
+          hitAll++;
+          if (isLargeDiffAll)
+          {
+            largeDiffAllWinCount++;
+          }
+        }
+
+        if (dataSet.Horses.OrderByDescending((r) => r.Prediction).Take(4).Count((r) => r.Horse.ResultOrder <= 3) >= 2)
+        {
+          hitWide++;
+        }
+
+        var top = dataSet.Horses.OrderByDescending((r) => r.Prediction).FirstOrDefault();
+        if (top?.Horse?.ResultOrder == 1)
+        {
+          winHit++;
+        }
+        if (top?.Horse?.ResultOrder <= 2)
+        {
+          rentaiHit++;
+        }
+        if (top?.Horse?.ResultOrder <= needOrder)
+        {
+          topFukuHit++;
+        }
+
+        var second = dataSet.Horses.OrderByDescending((r) => r.Prediction).ElementAtOrDefault(1);
+        if (top?.Horse?.ResultOrder == 1 || second?.Horse?.ResultOrder == 1)
+        {
+          secondHit++;
+        }
+
+        var reals = dataSet.Horses.OrderByDescending((r) => r.Prediction).Select((r, i) => new { PredictedOrder = i + 1, r.Horse.Popular, r.Horse.ResultOrder, });
+        for (var j = 0; j < 12 && j < dataSet.Horses.Count; j++)
+        {
+          var order = reals.FirstOrDefault((r) => r.PredictedOrder == j + 1);
+          var real = placeCounts.FirstOrDefault((w) => w.Popular == order?.Popular);
+          var real2 = winCounts.FirstOrDefault((w) => w.Popular == order?.Popular);
+          if (real != null && order != null)
+          {
+            real.RacesCount[j]++;
+            if (order.ResultOrder <= needOrder)
+            {
+              real.OrderCount[j]++;
+            }
+          }
+          if (real2 != null && order != null)
+          {
+            real2.RacesCount[j]++;
+            if (order.ResultOrder <= 1)
+            {
+              real2.OrderCount[j]++;
+            }
+          }
+        }
+
+        try
+        {
+          var buyItems = Buyer.Select(dataSet.Horses.Select((d) => new BuyCandidate { Horse = d.Horse, Prediction = d.Prediction, }), isLargeDiff, isLargeDiffAll).ToArray();
+          var buyResult = Buyer.Buy(dataSet.Refund ?? new(), buyItems);
+          pay += buyResult.Pay;
+          income += buyResult.Income;
+
+          foreach (var buyType in buyItems.GroupBy((i) => i.Type))
+          {
+            if (buyTypeResult.ContainsKey(buyType.Key))
+            {
+              var old = buyTypeResult[buyType.Key];
+              buyTypeResult[buyType.Key] = (old.Pay + buyType.Sum((i) => i.Pay), old.Income + buyType.Sum((i) => i.Income), old.Unit + buyType.Sum((i) => i.Unit));
+            }
+            else
+            {
+              buyTypeResult[buyType.Key] = (buyType.Sum((i) => i.Pay), buyType.Sum((i) => i.Income), buyType.Sum((i) => i.Unit));
+            }
+          }
+        }
+        catch (Exception ex)
+        {
+          Console.WriteLine(ex.Message);
+          Console.WriteLine(ex.StackTrace);
+          Console.ReadLine();
+          return;
+        }
+
+        StepProgress(++a, racesCount);
+      }
+
+      Console.WriteLine();
+      Console.WriteLine();
+      Console.WriteLine();
+      foreach (var buy in buyTypeResult)
+      {
+        Console.WriteLine($"{buy.Key} ({buy.Value.Unit})  : {buy.Value.Income} / {buy.Value.Pay} = {((float)buy.Value.Income / Math.Max(1, buy.Value.Pay) * 100)} %");
+      }
+      Console.WriteLine();
+      Console.WriteLine($"１着的中率          : {winHit} / {racesCount} = {((float)winHit / Math.Max(1, racesCount)) * 100} %");
+      Console.WriteLine($"12予想の勝率        : {secondHit} / {racesCount} = {((float)secondHit / Math.Max(1, racesCount)) * 100} %");
+      Console.WriteLine($"予想１位連対率      : {rentaiHit} / {racesCount} = {((float)rentaiHit / Math.Max(1, racesCount)) * 100} %");
+      Console.WriteLine($"予想１位複勝率      : {topFukuHit} / {racesCount} = {((float)topFukuHit / Math.Max(1, racesCount)) * 100} %");
+      Console.WriteLine($"予想１位複勝率(大差): {largeDiffWinCount} / {largeDiffCount} = {((float)largeDiffWinCount / Math.Max(1, largeDiffCount)) * 100} %");
+      Console.WriteLine($"複勝的中率（馬）    : {hit} / {allCount} = {((float)hit / Math.Max(1, allCount)) * 100} %");
+      Console.WriteLine($"３連全員的中率      : {hitAll} / {allCount} = {((float)hitAll / Math.Max(1, allCount)) * 100} %");
+      Console.WriteLine($"３連全員的中率(大差): {largeDiffAllWinCount} / {largeDiffAllCount} = {((float)largeDiffAllWinCount / Math.Max(1, largeDiffAllCount)) * 100} %");
+      Console.WriteLine($"ワイド的中率        : {hitWide} / {allCount} = {((float)hitWide / Math.Max(1, allCount)) * 100} %");
+      Console.WriteLine($"回収率              : {income} / {pay} = {((float)income / Math.Max(1, pay)) * 100} %");
+      Console.WriteLine();
+      Console.WriteLine("人気　予想１位勝率　予想２位勝率　予想３位勝率");
+      foreach (var real in placeCounts)
+      {
+        Console.WriteLine($"{real.Popular}　{(string.Join("　", real.OrderCount.Select((_, i) => real.RacesCount[i] == 0 ? "-.---" : $"{(float)real.OrderCount[i] / real.RacesCount[i]:f3}")))}");
+      }
+      Console.WriteLine();
+      foreach (var real in winCounts)
+      {
+        Console.WriteLine($"{real.Popular}　{(string.Join("　", real.OrderCount.Select((_, i) => real.RacesCount[i] == 0 ? "-.---" : $"{(float)real.OrderCount[i] / real.RacesCount[i]:f3}")))}");
+      }
+      Console.ReadLine();
+    }
+
+    static void PredictAsukaPointResult(string key)
+    {
+      Console.WriteLine();
+      Console.WriteLine();
+      Console.WriteLine();
+      Console.WriteLine("データ読み込み中...");
+
+      AsukaPointRace data;
+
+      using (var db = new MyContext())
+      {
+        if (key.Length == 4)
+        {
+          int.TryParse(key.Substring(0, 2), out int course);
+          int.TryParse(key.Substring(2, 2), out int r);
+          var race = db.Races!
+            .FirstOrDefault((rr) => rr.StartTime.Date == DateTime.Today && (short)rr.Course == course && rr.CourseRaceNumber == r);
+          if (race != null)
+          {
+            key = race.Key;
+          }
+        }
+
+        var rr = db.Races!.FirstOrDefault((r) => r.Key == key);
+        if (rr == null)
+        {
+          Console.WriteLine();
+          Console.WriteLine("レースが見つかりませんでした");
+          Task.Delay(3000).Wait();
+          return;
+        }
+
+        data = AsukaPointRace.CreateAsync(db, rr).Result;
+      }
+
+      foreach (var p in data.Horses.OrderByDescending((pp) => pp.Prediction))
+      {
+        Console.Write($"{p.Horse.Number} : {p.Horse.Name}\n");
+        Console.Write($"{p.Prediction}\n\n");
+      }
+
+      Console.WriteLine();
+      Console.WriteLine("--------------------------------");
+
+      try
+      {
+        Buyer.UpdateScript();
+        var items = Buyer.Select(data.Horses.Select((p) => new BuyCandidate { Horse = p.Horse, Prediction = p.Prediction, }));
+        Console.WriteLine(string.Join("\n", items.Select((i) => i.Text).Where((i) => !string.IsNullOrEmpty(i))));
+      }
+      catch
+      {
+        Console.WriteLine("馬券購入処理でエラー発生しました");
+      }
+
       Console.ReadLine();
     }
 

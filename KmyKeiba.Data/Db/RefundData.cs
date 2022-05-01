@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.JVLink.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
+  // [Index(nameof(RaceKey))]
   public class RefundData : DataBase<Refund>
   {
     public string RaceKey { get; set; } = string.Empty;
