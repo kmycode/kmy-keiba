@@ -331,6 +331,20 @@ namespace KmyKeiba.Downloader
         async Task SaveAsync<E, D, I>(IEnumerable<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
           where E : IEntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
         {
+          var position = entities;
+
+          while (position.Any())
+          {
+            var chunk = position.Take(10000);
+            await SaveAsyncPrivate(chunk, dataSet, entityId, dataId, dataIdSelector);
+
+            position = position.Skip(10000);
+          }
+        }
+
+        async Task SaveAsyncPrivate<E, D, I>(IEnumerable<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
+          where E : IEntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
+        {
           var copyed = entities.ToList();
 
           var changed = 0;
@@ -347,7 +361,7 @@ namespace KmyKeiba.Downloader
             copyed.Remove(item.Entity);
             changed++;
 
-            if (changed == 10000)
+            if (changed == 1000)
             {
               await db.SaveChangesAsync();
               saved += changed;
@@ -370,12 +384,12 @@ namespace KmyKeiba.Downloader
           var position = newItems;
           while (position.Any())
           {
-            var chunk = position.Take(10000).ToArray();
+            var chunk = position.Take(1000);
             await dataSet.AddRangeAsync(chunk);
             await db.SaveChangesAsync();
-            saved += chunk.Length;
+            saved += chunk.Count();
 
-            position = position.Skip(10000);
+            position = position.Skip(1000);
           }
           // saved += items.Count();
         }

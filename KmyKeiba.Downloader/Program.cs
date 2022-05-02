@@ -11,7 +11,7 @@ namespace KmyKeiba.Downloader
       Task.Run(async () =>
       {
         using var db = new MyContext();
-        db.Database.SetCommandTimeout(7200);
+        db.Database.SetCommandTimeout(60);
         await db.Database.MigrateAsync();
       }).Wait();
 
