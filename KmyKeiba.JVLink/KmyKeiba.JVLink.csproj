@@ -54,4 +54,8 @@
     <ProjectReference Include="..\KmyKeiba.Data\KmyKeiba.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="新しいフォルダー\" />
+  </ItemGroup>
+
 </Project>

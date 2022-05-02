@@ -2,15 +2,17 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  // [Index(nameof(Code), nameof(FatherBreedingCode), nameof(MotherBreedingCode))]
+  [Index(nameof(Code), nameof(FatherBreedingCode), nameof(MotherBreedingCode))]
   public class HorseData : DataBase<Horse>
   {
+    [StringLength(16)]
     public string Code { get; set; } = string.Empty;
 
     public DateTime Entried { get; set; }
@@ -19,6 +21,7 @@ namespace KmyKeiba.Data.Db
 
     public DateTime Born { get; set; }
 
+    [StringLength(72)]
     public string Name { get; set; } = string.Empty;
 
     public HorseSex Sex { get; set; }
@@ -27,41 +30,64 @@ namespace KmyKeiba.Data.Db
 
     public HorseBodyColor Color { get; set; }
 
+    [StringLength(12)]
     public string FatherBreedingCode { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string MotherBreedingCode { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string FFBreedingCode { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string FMBreedingCode { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string MFBreedingCode { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string MMBreedingCode { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string FFFBreedingCode { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string FFMBreedingCode { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string FMFBreedingCode { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string FMMBreedingCode { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string MFFBreedingCode { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string MFMBreedingCode { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string MMFBreedingCode { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string MMMBreedingCode { get; set; } = string.Empty;
 
     public HorseBelongs Belongs { get; set; }
 
+    [StringLength(8)]
     public string TrainerCode { get; set; } = string.Empty;
 
+    [StringLength(16)]
     public string TrainerName { get; set; } = string.Empty;
 
+    [StringLength(40)]
     public string InviteFrom { get; set; } = string.Empty;
+
+    [StringLength(10)]
+    public string ProducingCode { get; set; } = string.Empty;
+
+    [StringLength(10)]
+    public string OwnerCode { get; set; } = string.Empty;
 
     public override void SetEntity(Horse horse)
     {
@@ -93,6 +119,8 @@ namespace KmyKeiba.Data.Db
       this.TrainerCode = horse.TrainerCode;
       this.TrainerName = horse.TrainerName;
       this.InviteFrom = horse.InviteFrom;
+      this.ProducingCode = horse.ProducingCode;
+      this.OwnerCode = horse.OwnerCode;
     }
   }
 }

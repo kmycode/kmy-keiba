@@ -106,11 +106,15 @@ namespace KmyKeiba.JVLink.Entities
 
     public short Corner1Number { get; set; }
 
+    public TimeSpan Corner1LapTime { get; set; }
+
     public string Corner2Result { get; set; } = string.Empty;
 
     public short Corner2Position { get; set; }
 
     public short Corner2Number { get; set; }
+
+    public TimeSpan Corner2LapTime { get; set; }
 
     public string Corner3Result { get; set; } = string.Empty;
 
@@ -118,11 +122,15 @@ namespace KmyKeiba.JVLink.Entities
 
     public short Corner3Number { get; set; }
 
+    public TimeSpan Corner3LapTime { get; set; }
+
     public string Corner4Result { get; set; } = string.Empty;
 
     public short Corner4Position { get; set; }
 
     public short Corner4Number { get; set; }
+
+    public TimeSpan Corner4LapTime { get; set; }
 
     internal Race()
     {
@@ -197,6 +205,11 @@ namespace KmyKeiba.JVLink.Entities
       short.TryParse(race.CornerInfo[3].Syukaisu, out var cnum4);
       short.TryParse(race.CornerInfo[3].Corner, out var cn4);
 
+      int.TryParse(race.LapTime[0], out var lap1);
+      int.TryParse(race.LapTime[1], out var lap2);
+      int.TryParse(race.LapTime[2], out var lap3);
+      int.TryParse(race.LapTime[3], out var lap4);
+
       var obj = new Race
       {
         LastModified = race.head.MakeDate.ToDateTime(),
@@ -221,15 +234,19 @@ namespace KmyKeiba.JVLink.Entities
         Corner1Position = cn1,
         Corner1Number = cnum1,
         Corner1Result = race.CornerInfo[0].Jyuni.Trim(),
+        Corner1LapTime = new TimeSpan(0, 0, 0, lap1 / 10, lap1 % 10 * 100),
         Corner2Position = cn2,
         Corner2Number = cnum2,
         Corner2Result = race.CornerInfo[1].Jyuni.Trim(),
+        Corner2LapTime = new TimeSpan(0, 0, 0, lap2 / 10, lap1 % 10 * 100),
         Corner3Position = cn3,
         Corner3Number = cnum3,
         Corner3Result = race.CornerInfo[2].Jyuni.Trim(),
+        Corner3LapTime = new TimeSpan(0, 0, 0, lap3 / 10, lap1 % 10 * 100),
         Corner4Position = cn4,
         Corner4Number = cnum4,
         Corner4Result = race.CornerInfo[3].Jyuni.Trim(),
+        Corner4LapTime = new TimeSpan(0, 0, 0, lap4 / 10, lap1 % 10 * 100),
       };
       return obj;
     }

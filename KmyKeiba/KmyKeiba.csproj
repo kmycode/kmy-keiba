@@ -9,6 +9,20 @@
 
   <ItemGroup>
     <PackageReference Include="CefSharp.Wpf.NetCore" Version="100.0.230" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.6">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1" />
+    <PackageReference Include="ReactiveProperty" Version="8.1.0" />
+    <PackageReference Include="ReactiveProperty.WPF" Version="8.1.0" />
+    <PackageReference Include="SkiaSharp" Version="2.80.3" />
+    <PackageReference Include="SkiaSharp.Views.Wpf" Version="2.80.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KmyKeiba.Data\KmyKeiba.Data.csproj" />
   </ItemGroup>
 
 </Project>

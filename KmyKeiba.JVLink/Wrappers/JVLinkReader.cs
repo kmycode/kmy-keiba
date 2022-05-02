@@ -36,7 +36,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public void Dispose()
     {
-      this.link.Close();
+      // this.link.Close();
       this.link.IsOpen = false;
     }
 
@@ -60,19 +60,26 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public int ReadedEntityCount { get; set; }
 
+    public DateTime StartDate { get; }
+
+    public DateTime EndDate { get; }
+
     static JVLinkReader()
     {
       // SJISを扱う
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     }
 
-    public JVLinkReader(IJVLinkObject link, int readCount, int downloadCount)
+    public JVLinkReader(IJVLinkObject link, int readCount, int downloadCount, DateTime? start, DateTime? end)
     {
       this.ReadCount = readCount;
       this.DownloadCount = downloadCount;
 
       this.link = link;
       link.IsOpen = true;
+
+      this.StartDate = start ?? default;
+      this.EndDate = end ?? default;
     }
 
     public JVLinkReaderData Load(IEnumerable<string>? targetSpecs = null)
@@ -98,7 +105,7 @@ namespace KmyKeiba.JVLink.Wrappers
             case -203:
               {
                 this.link.FileDelete(fileName);
-                this.link.Close();
+                // this.link.Close();
                 continue;
               }
             default:
@@ -115,20 +122,66 @@ namespace KmyKeiba.JVLink.Wrappers
         var d = Encoding.GetEncoding(932).GetString(buff);
         var spec = d.Substring(0, 2);
 
-        void Read<T>(T item, IList<T> list, Func<T, T, bool> isEquals)
+        void Read<T>(T item, List<T> list, Func<T, T, bool> isEquals, IComparer<T> comparer)
           where T : EntityBase
         {
-          var oldItem = list.FirstOrDefault((r) => isEquals(r, item) && r.LastModified < item.LastModified);
-          if (oldItem != null)
+          /*
+          var oldItemIndex = list.BinarySearch(item, comparer);
+          if (oldItemIndex >= 0)
           {
-            list.Remove(oldItem);
+            var oldItem = list[oldItemIndex];
+            if (oldItem.LastModified < item.LastModified)
+            {
+              list[oldItemIndex] = item;
+            }
           }
-
-          var newItem = list.FirstOrDefault((r) => isEquals(r, item) && r.LastModified >= item.LastModified);
-          if (newItem == null)
+          else
           {
             list.Add(item);
+            list.Sort(comparer);
           }
+          */
+          /*
+          if (item.LastModified != default && (item.LastModified < this.StartDate || item.LastModified > this.EndDate))
+          {
+            this.ReadedEntityCount--;
+            return;
+          }
+          */
+
+          var oldItem = list.FirstOrDefault((r) => isEquals(r, item));
+          if (oldItem != null)
+          {
+            if (oldItem.LastModified < item.LastModified)
+            {
+              list.Remove(oldItem);
+            }
+            if (oldItem.LastModified >= item.LastModified)
+            {
+              return;
+            }
+          }
+
+          list.Add(item);
+        }
+
+        void ReadDic<KEY, T>(T item, Dictionary<KEY, T> list, KEY key)
+          where T : EntityBase where KEY : IComparable
+        {
+          list.TryGetValue(key, out var oldItem);
+          if (oldItem != null)
+          {
+            // if (oldItem.LastModified < item.LastModified)
+            // {
+            //   list.Remove(key);
+            // }
+            if (oldItem.LastModified >= item.LastModified)
+            {
+              return;
+            }
+          }
+
+          list[key] = item;
         }
 
         if (targetSpecs != null && targetSpecs.Any() && !targetSpecs.Contains(spec))
@@ -146,7 +199,8 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = Race.FromJV(a);
 
-                Read(item, data.Races, (a, b) => a.Key == b.Key);
+                // Read(item, data.Races, (a, b) => a.Key == b.Key, new ComparableComparer<Race>(r => r.Key));
+                ReadDic(item, data.Races, item.Key);
                 break;
               }
             case "SE":
@@ -155,7 +209,8 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = RaceHorse.FromJV(a);
 
-                Read(item, data.RaceHorses, (a, b) => a.RaceKey == b.RaceKey && a.Name == b.Name);
+                // Read(item, data.RaceHorses, (a, b) => a.RaceKey == b.RaceKey && a.Name == b.Name, new ComparableComparer<RaceHorse>(x => x?.RaceKey + x?.Name));
+                ReadDic(item, data.RaceHorses, item.RaceKey + item.Name);
                 break;
               }
             case "WH":
@@ -164,7 +219,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = HorseWeight.FromJV(a);
 
-                Read(item, data.HorseWeights, (a, b) => a.RaceKey == b.RaceKey);
+                Read(item, data.HorseWeights, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<HorseWeight>(x => x?.RaceKey));
                 break;
               }
             case "WE":
@@ -173,7 +228,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = CourseWeatherCondition.FromJV(a);
 
-                Read(item, data.CourseWeatherConditions, (a, b) => a.RaceKeyWithoutRaceNum == b.RaceKeyWithoutRaceNum);
+                Read(item, data.CourseWeatherConditions, (a, b) => a.RaceKeyWithoutRaceNum == b.RaceKeyWithoutRaceNum, new ComparableComparer<CourseWeatherCondition>(x => x?.RaceKeyWithoutRaceNum));
                 break;
               }
             case "AV":
@@ -182,7 +237,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = HorseAbnormality.FromJV(a);
 
-                Read(item, data.HorseAbnormalities, (a, b) => a.RaceKey + a.HorseNumber == b.RaceKey + b.HorseNumber);
+                Read(item, data.HorseAbnormalities, (a, b) => a.RaceKey + a.HorseNumber == b.RaceKey + b.HorseNumber, new ComparableComparer<HorseAbnormality>(x => x?.RaceKey + x?.HorseNumber));
                 break;
               }
             case "UM":
@@ -191,7 +246,8 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = Horse.FromJV(a);
 
-                Read(item, data.Horses, (a, b) => a.Code == b.Code);
+                // Read(item, data.Horses, (a, b) => a.Code == b.Code, new ComparableComparer<Horse>(x => x?.Code));
+                ReadDic(item, data.Horses, item.Code);
                 break;
               }
             case "HN":
@@ -200,7 +256,8 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = HorseBlood.FromJV(a);
 
-                Read(item, data.HorseBloods, (a, b) => a.Key == b.Key);
+                // Read(item, data.HorseBloods, (a, b) => a.Key == b.Key, new ComparableComparer<HorseBlood>(x => x?.Key));
+                ReadDic(item, data.HorseBloods, item.Key);
                 break;
               }
             case "JC":
@@ -209,7 +266,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = HorseRiderChange.FromJV(a);
 
-                Read(item, data.HorseRiderChanges, (a, b) => a.RaceKey + a.HorseNumber == b.RaceKey + b.HorseNumber);
+                Read(item, data.HorseRiderChanges, (a, b) => a.RaceKey + a.HorseNumber == b.RaceKey + b.HorseNumber, new ComparableComparer<HorseRiderChange>(x => x?.RaceKey + x?.HorseNumber));
                 break;
               }
             case "HC":
@@ -218,7 +275,8 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = Training.FromJV(a);
 
-                Read(item, data.Trainings, (a, b) => a.HorseKey == b.HorseKey && a.StartTime == b.StartTime);
+                // Read(item, data.Trainings, (a, b) => a.HorseKey == b.HorseKey && a.StartTime == b.StartTime, new ComparableComparer<Training>(x => x?.HorseKey + x?.StartTime));
+                ReadDic(item, data.Trainings, item.HorseKey + item.StartTime);
                 break;
               }
             case "HR":
@@ -227,7 +285,8 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = Refund.FromJV(a);
 
-                Read(item, data.Refunds, (a, b) => a.RaceKey == b.RaceKey);
+                // Read(item, data.Refunds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<Refund>(x => x?.RaceKey));
+                ReadDic(item, data.Refunds, item.RaceKey);
                 break;
               }
             case "O1":
@@ -237,8 +296,8 @@ namespace KmyKeiba.JVLink.Wrappers
                 var item = SingleAndDoubleWinOdds.FromJV(a);
                 var item2 = FrameNumberOdds.FromJV(a);
 
-                Read(item, data.SingleAndDoubleWinOdds, (a, b) => a.RaceKey == b.RaceKey && a.Time == b.Time);
-                Read(item2, data.FrameNumberOdds, (a, b) => a.RaceKey == b.RaceKey);
+                Read(item, data.SingleAndDoubleWinOdds, (a, b) => a.RaceKey == b.RaceKey && a.Time == b.Time, new ComparableComparer<SingleAndDoubleWinOdds>(x => x?.RaceKey + x?.Time));
+                Read(item2, data.FrameNumberOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<FrameNumberOdds>(x => x?.RaceKey));
                 break;
               }
             case "O2":
@@ -247,7 +306,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = QuinellaOdds.FromJV(a);
 
-                Read(item, data.QuinellaOdds, (a, b) => a.RaceKey == b.RaceKey);
+                Read(item, data.QuinellaOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<QuinellaOdds>(x => x?.RaceKey));
                 break;
               }
             case "O3":
@@ -256,7 +315,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = QuinellaPlaceOdds.FromJV(a);
 
-                Read(item, data.QuinellaPlaceOdds, (a, b) => a.RaceKey == b.RaceKey);
+                Read(item, data.QuinellaPlaceOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<QuinellaPlaceOdds>(x => x?.RaceKey));
                 break;
               }
             case "O4":
@@ -265,7 +324,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = ExactaOdds.FromJV(a);
 
-                Read(item, data.ExactaOdds, (a, b) => a.RaceKey == b.RaceKey);
+                Read(item, data.ExactaOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<ExactaOdds>(x => x?.RaceKey));
                 break;
               }
             case "O5":
@@ -274,7 +333,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = TrioOdds.FromJV(a);
 
-                Read(item, data.TrioOdds, (a, b) => a.RaceKey == b.RaceKey);
+                Read(item, data.TrioOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<TrioOdds>(x => x?.RaceKey));
                 break;
               }
             case "O6":
@@ -283,7 +342,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = TrifectaOdds.FromJV(a);
 
-                Read(item, data.TrifectaOdds, (a, b) => a.RaceKey == b.RaceKey);
+                Read(item, data.TrifectaOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<TrifectaOdds>(x => x?.RaceKey));
                 break;
               }
             default:
@@ -309,7 +368,10 @@ namespace KmyKeiba.JVLink.Wrappers
     {
       try
       {
-        this.link.Close();
+        if (this.ReadedEntityCount > 0)
+        {
+          this.link.Close();
+        }
         this.link.IsOpen = false;
       }
       catch
@@ -324,13 +386,13 @@ namespace KmyKeiba.JVLink.Wrappers
 
   public class JVLinkReaderData
   {
-    public List<Race> Races { get; internal set; } = new();
+    public Dictionary<string, Race> Races { get; internal set; } = new();
 
-    public List<RaceHorse> RaceHorses { get; internal set; } = new();
+    public Dictionary<string, RaceHorse> RaceHorses { get; internal set; } = new();
 
-    public List<Horse> Horses { get; internal set; } = new();
+    public Dictionary<string, Horse> Horses { get; internal set; } = new();
 
-    public List<HorseBlood> HorseBloods { get; internal set; } = new();
+    public Dictionary<string, HorseBlood> HorseBloods { get; internal set; } = new();
 
     public List<SingleAndDoubleWinOdds> SingleAndDoubleWinOdds { get; internal set; } = new();
 
@@ -346,7 +408,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public List<TrifectaOdds> TrifectaOdds { get; internal set; } = new();
 
-    public List<Refund> Refunds { get; internal set; } = new();
+    public Dictionary<string, Refund> Refunds { get; internal set; } = new();
 
     public List<HorseWeight> HorseWeights { get; internal set; } = new();
 
@@ -356,7 +418,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public List<HorseRiderChange> HorseRiderChanges { get; internal set; } = new();
 
-    public List<Training> Trainings { get; internal set; } = new();
+    public Dictionary<string, Training> Trainings { get; internal set; } = new();
   }
 
   class SimpleDistinctComparer<T> : IEqualityComparer<T>

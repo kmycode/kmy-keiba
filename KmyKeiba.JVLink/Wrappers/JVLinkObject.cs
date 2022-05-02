@@ -128,7 +128,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
       if (result != -1)
       {
-        return new JVLinkReader(this.link, readCount, downloadCount);
+        return new JVLinkReader(this.link, readCount, downloadCount, from, to);
       }
 
       return new EmptyJVLinkReader(this.link);

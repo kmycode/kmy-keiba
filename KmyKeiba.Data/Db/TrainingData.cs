@@ -2,15 +2,17 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  // [Index(nameof(HorseKey))]
+  [Index(nameof(HorseKey))]
   public class TrainingData : DataBase<Training>
   {
+    [StringLength(16)]
     public string HorseKey { get; set; } = string.Empty;
 
     public TrainingCenter Center { get; set; }

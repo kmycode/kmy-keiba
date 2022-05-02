@@ -4,10 +4,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:cef="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
+        xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
         xmlns:local="clr-namespace:KmyKeiba"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
   <Grid>
     <!--<cef:ChromiumWebBrowser x:Name="Browser" Address="https://google.co.jp"/>-->
+    <skia:SKElement x:Name="Canvas"/>
   </Grid>
 </Window>

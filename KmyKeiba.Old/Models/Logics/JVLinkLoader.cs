@@ -321,6 +321,12 @@ namespace KmyKeiba.Models.Logics
 
       using (var db = new MyContext())
       {
+        async Task SaveDicAsync<E, D, I, KEY>(Dictionary<KEY, E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
+          where E : EntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I> where KEY : IComparable
+        {
+          await SaveAsync(entities.Select(e => e.Value).ToList(), dataSet, entityId, dataId, dataIdSelector);
+        }
+
         async Task SaveAsync<E, D, I>(List<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
           where E : EntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
         {
@@ -354,12 +360,12 @@ namespace KmyKeiba.Models.Logics
           await db.SaveChangesAsync();
         }
 
-        await SaveAsync(data.Races,
+        await SaveDicAsync(data.Races,
           db.Races!,
           (e) => e.Key,
           (d) => d.Key,
           (list) => e => list.Contains(e.Key));
-        await SaveAsync(data.RaceHorses,
+        await SaveDicAsync(data.RaceHorses,
           db.RaceHorses!,
           (e) => e.Name + e.RaceKey,
           (d) => d.Name + d.RaceKey,

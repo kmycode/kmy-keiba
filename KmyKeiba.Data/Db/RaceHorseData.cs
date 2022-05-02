@@ -10,13 +10,16 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  // [Index(nameof(RaceKey), nameof(Key), nameof(RiderCode), nameof(TrainerCode), nameof(RiderName), nameof(TrainerName))]
+  [Index(nameof(RaceKey), nameof(Key), nameof(RiderCode), nameof(TrainerCode), nameof(RiderName), nameof(TrainerName))]
   public class RaceHorseData : DataBase<RaceHorse>
   {
+    [StringLength(16)]
     public string Key { get; set; } = string.Empty;
 
+    [StringLength(20)]
     public string RaceKey { get; set; } = string.Empty;
 
+    [StringLength(72)]
     public string Name { get; set; } = string.Empty;
 
     public short Age { get; set; }
@@ -85,11 +88,13 @@ namespace KmyKeiba.Data.Db
     /// <summary>
     /// 騎手コード
     /// </summary>
+    [StringLength(8)]
     public string RiderCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 騎手の名前
     /// </summary>
+    [StringLength(16)]
     public string RiderName { get; set; } = string.Empty;
 
     /// <summary>
@@ -97,9 +102,17 @@ namespace KmyKeiba.Data.Db
     /// </summary>
     public float RiderWeight { get; set; }
 
+    [StringLength(8)]
     public string TrainerCode { get; set; } = string.Empty;
 
+    [StringLength(16)]
     public string TrainerName { get; set; } = string.Empty;
+
+    [StringLength(8)]
+    public string OwnerCode { get; set; } = string.Empty;
+
+    [StringLength(128)]
+    public string OwnerName { get; set; } = string.Empty;
 
     /// <summary>
     /// ブリンカー使用しているか
@@ -151,6 +164,7 @@ namespace KmyKeiba.Data.Db
     /// <summary>
     /// 勝負服の模様
     /// </summary>
+    [StringLength(120)]
     public string UniformFormat { get; set; } = string.Empty;
 
     /// <summary>
@@ -188,6 +202,8 @@ namespace KmyKeiba.Data.Db
       this.RiderWeight = entity.RiderWeight;
       this.TrainerCode = entity.TrainerCode;
       this.TrainerName = entity.TrainerName;
+      this.OwnerCode = entity.OwnerCode;
+      this.OwnerName = entity.OwnerName;
       this.Weight = entity.Weight;
       this.WeightDiff = entity.WeightDiff;
       this.Odds = entity.Odds;

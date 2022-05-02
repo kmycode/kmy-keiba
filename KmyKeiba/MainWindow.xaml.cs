@@ -1,4 +1,6 @@
 ﻿using CefSharp.Wpf;
+using KmyKeiba.Models.Image;
+using KmyKeiba.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +26,10 @@ namespace KmyKeiba
     public MainWindow()
     {
       InitializeComponent();
+
+      this.DataContext = new MainViewModel();
+
+      this.Canvas.PaintSurface += (sender, e) => new RaceHorsePassingOrderImage().OnPaint(e.Surface);
     }
   }
 }

@@ -2,15 +2,17 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  // [Index(nameof(RaceKey))]
+  [Index(nameof(RaceKey))]
   public class RefundData : DataBase<Refund>
   {
+    [StringLength(20)]
     public string RaceKey { get; set; } = string.Empty;
 
     public short SingleNumber1 { get; set; }

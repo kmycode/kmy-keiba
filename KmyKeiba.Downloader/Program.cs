@@ -11,6 +11,7 @@ namespace KmyKeiba.Downloader
       Task.Run(async () =>
       {
         using var db = new MyContext();
+        db.Database.SetCommandTimeout(7200);
         await db.Database.MigrateAsync();
       }).Wait();
 
@@ -25,31 +26,61 @@ namespace KmyKeiba.Downloader
 
       while (!isLoaded)
       {
-        Console.Write($"\rDWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
+        Console.Write($"\rDWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) SV [{loader.Saved.Value} / {loader.SaveSize.Value}] PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
         Task.Delay(100).Wait();
       }
     }
 
     private static async Task LoadAsync(JVLinkLoader loader)
     {
-      for (var year = 2003; year <= 2022; year++)
+      // 2005  2011-
+      for (var year = 2017; year <= 2022; year++)
+      {
+        Console.WriteLine($"{year} 年");
+        await loader.LoadAsync(JVLinkObject.Local,
+          // JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
+          JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
+          JVLinkOpenOption.Setup,
+          raceKey: null,
+          startTime: new DateTime(year, 1, 1),
+          endTime: new DateTime(year + 1, 1, 1),
+          loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "JC", "HC", "HR", });
+        Console.WriteLine();
+        Console.WriteLine();
+      }
+
+
+      for (var year = 2017; year <= 2022; year++)
       {
         for (var month = 1; month <= 12; month++)
         {
-          if (year < 2009) continue;
-          if (year == 2009 && month <= 5) continue;
-
-          Console.WriteLine($"{year} 年 {month} 月");
           var start = new DateTime(year, month, 1);
-          await loader.LoadAsync(JVLinkObject.Central,
-            JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
-            JVLinkOpenOption.Setup,
-            raceKey: null,
-            startTime: start,
-            endTime: start.AddMonths(1),
-            loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "JC", "HC", "HR", });
-          Console.WriteLine();
-          Console.WriteLine();
+
+          var dates = new DateTime[]
+          {
+            // start, start.AddDays(15),
+            // start.AddDays(15), start.AddMonths(1),
+            start, start.AddMonths(1),
+          };
+          for (var i = 0; i < /*dates.Length / 2*/ 1; i++)
+          {
+            //if (year < 2021) continue;
+            //if (year == 2021 && month < 10) continue;
+            //if (year == 2021 && month == 10 && i < 1) continue;
+            if (year == 2017 && month <= 3) continue;
+
+            Console.WriteLine($"{year} 年 {month} 月 {dates[i * 2].Day} 日");
+            await loader.LoadAsync(JVLinkObject.Local,
+              // JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
+              JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
+              JVLinkOpenOption.Setup,
+              raceKey: null,
+              startTime: dates[i * 2],
+              endTime: dates[i * 2 + 1],
+              loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "JC", "HC", "HR", });
+            Console.WriteLine();
+            Console.WriteLine();
+          }
         }
       }
       /*

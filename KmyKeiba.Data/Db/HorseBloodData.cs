@@ -2,25 +2,29 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  // [Index(nameof(Key), nameof(Code))]
+  [Index(nameof(Key), nameof(Code))]
   public class HorseBloodData : DataBase<HorseBlood>
   {
     /// <summary>
     /// 繁殖登録番号
     /// </summary>
+    [StringLength(12)]
     public string Key { get; set; } = string.Empty;
 
     /// <summary>
     ///  血統登録番号
     /// </summary>
+    [StringLength(16)]
     public string Code { get; set; } = string.Empty;
 
+    [StringLength(72)]
     public string Name { get; set; } = string.Empty;
 
     public int BornYear { get; set; }
@@ -31,10 +35,13 @@ namespace KmyKeiba.Data.Db
 
     public HorseBloodFrom From { get; set; }
 
+    [StringLength(40)]
     public string ProductingName { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string FatherKey { get; set; } = string.Empty;
 
+    [StringLength(12)]
     public string MotherKey { get; set; } = string.Empty;
 
     public override void SetEntity(HorseBlood horse)

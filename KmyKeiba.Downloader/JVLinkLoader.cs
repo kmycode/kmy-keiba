@@ -185,7 +185,7 @@ namespace KmyKeiba.Downloader
             using (var reader = link.StartRead(dataspec,
               option,
               this.StartTime.Value,
-              this.IsSetEndTime.Value ? this.EndTime.Value.AddDays(1) : null))
+              this.IsSetEndTime.Value ? this.EndTime.Value : null))
             {
               await this.LoadAsync(reader, loadSpecs, true, false);
             }
@@ -216,7 +216,6 @@ namespace KmyKeiba.Downloader
         {
           this.LoadErrorCode.Value = ex.Code;
           logger.Error($"error {ex.Code}");
-          logger.Error("error", ex);
 
           if (ex.Code == JVLinkLoadResult.AlreadyOpen)
           {
@@ -227,6 +226,8 @@ namespace KmyKeiba.Downloader
               link.Dispose();
             }
           }
+
+          logger.Error("error", ex);
         }
         catch (JVLinkException<JVLinkReadResult> ex)
         {
@@ -273,39 +274,39 @@ namespace KmyKeiba.Downloader
       logger.Info("Download completed");
 
       JVLinkReaderData data = new();
-      Exception? loadException = null;
-      var loadTask = Task.Run(() =>
+      var isLoaded = false;
+      var loadTask = Task.Run(async () =>
       {
-        logger.Info("Load start");
-        try
+        while (!isLoaded)
         {
-          data = reader.Load(loadSpecs);
-        }
-        catch (Exception ex)
-        {
-          loadException = ex;
+          await Task.Delay(80);
+          this.Loaded.Value = reader.ReadedCount;
+          this.LoadEntityCount.Value = reader.ReadedEntityCount;
         }
       });
 
-      this.LoadSize.Value = reader.ReadCount;
-      while (!loadTask.IsCompleted && loadException == null)
-      {
-        await Task.Delay(80);
-        this.Loaded.Value = reader.ReadedCount;
-        this.LoadEntityCount.Value = reader.ReadedEntityCount;
-      }
+      // while (!loadTask.IsCompleted && loadException == null)
+      // {
+      // }
 
-      if (loadException != null)
+      this.LoadSize.Value = reader.ReadCount;
+      logger.Info("Load start");
+      try
       {
-        throw new Exception("Load error", loadException);
+        data = reader.Load(loadSpecs);
       }
+      catch (Exception ex)
+      {
+        throw new Exception("Load error", ex);
+      }
+      isLoaded = true;
 
       var saved = 0;
       this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + /*data.ExactaOdds.Sum((o) => o.Odds.Count)
         + data.FrameNumberOdds.Sum((o) => o.Odds.Count) +
         data.QuinellaOdds.Sum((o) => o.Odds.Count) + data.QuinellaPlaceOdds.Sum((o) => o.Odds.Count) +
          data.TrifectaOdds.Sum((o) => o.Odds.Count) + data.TrioOdds.Sum((o) => o.Odds.Count) + */
-        data.Refunds.Count + data.Trainings.Count;
+        data.Refunds.Count + data.Trainings.Count + data.Horses.Count + data.HorseBloods.Count;
       logger.Info($"Save size: {this.SaveSize.Value}");
 
       var timer = new ReactiveTimer(TimeSpan.FromMilliseconds(80));
@@ -321,12 +322,19 @@ namespace KmyKeiba.Downloader
 
       using (var db = new MyContext())
       {
+        async Task SaveDicAsync<E, D, I, KEY>(Dictionary<KEY, E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
+          where E : EntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I> where KEY : IComparable
+        {
+          await SaveAsync(entities.Select(e => e.Value).ToList(), dataSet, entityId, dataId, dataIdSelector);
+        }
+
         async Task SaveAsync<E, D, I>(IEnumerable<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
           where E : IEntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
         {
           var copyed = entities.ToList();
 
           var changed = 0;
+
           var ids = entities.Select(entityId).Distinct().ToList();
           var dataItems = await dataSet!
             .Where(dataIdSelector(ids))
@@ -337,57 +345,57 @@ namespace KmyKeiba.Downloader
           {
             item.Data.SetEntity(item.Entity);
             copyed.Remove(item.Entity);
-            saved++;
             changed++;
 
             if (changed == 10000)
             {
               await db.SaveChangesAsync();
+              saved += changed;
               changed = 0;
             }
           }
           await db.SaveChangesAsync();
+          saved += changed;
 
-          var items = copyed
+          var newItems = copyed
             .Where((e) => !dataItems.Any((d) => dataId(d)!.Equals(entityId(e))))
             .Select((item) =>
             {
               var obj = new D();
               obj.SetEntity(item);
-              saved++;
               return obj;
             });
 
           // 大量のデータを分割して保存する
-          var i = 0;
-          var position = items;
+          var position = newItems;
           while (position.Any())
           {
-            var chunk = position.Take(10000);
+            var chunk = position.Take(10000).ToArray();
             await dataSet.AddRangeAsync(chunk);
             await db.SaveChangesAsync();
+            saved += chunk.Length;
 
             position = position.Skip(10000);
           }
           // saved += items.Count();
         }
 
-        await SaveAsync(data.Races,
+        await SaveDicAsync(data.Races,
           db.Races!,
           (e) => e.Key,
           (d) => d.Key,
           (list) => e => list.Contains(e.Key));
-        await SaveAsync(data.RaceHorses,
+        await SaveDicAsync(data.RaceHorses,
           db.RaceHorses!,
           (e) => e.Name + e.RaceKey,
           (d) => d.Name + d.RaceKey,
           (list) => e => list.Contains(e.Name + e.RaceKey));
-        await SaveAsync(data.Horses,
+        await SaveDicAsync(data.Horses,
           db.Horses!,
           (e) => e.Code,
           (d) => d.Code,
           (list) => e => list.Contains(e.Code));
-        await SaveAsync(data.HorseBloods,
+        await SaveDicAsync(data.HorseBloods,
           db.HorseBloods!,
           (e) => e.Key,
           (d) => d.Key,
@@ -425,7 +433,7 @@ namespace KmyKeiba.Downloader
           (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2 + " " + d.HorseNumber3,
           (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3));
         */
-        await SaveAsync(data.Refunds,
+        await SaveDicAsync(data.Refunds,
           db.Refunds!,
           (e) => e.RaceKey,
           (d) => d.RaceKey,
@@ -436,7 +444,7 @@ namespace KmyKeiba.Downloader
           (e) => e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute,
           (d) => d.RaceKey + d.Time.Month + "_" + d.Time.Day + "_" + d.Time.Hour + "_" + d.Time.Minute,
           (list) => e => list.Contains(e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute));
-        await SaveAsync(data.Trainings,
+        await SaveDicAsync(data.Trainings,
           db.Trainings!,
           (e) => e.HorseKey + e.StartTime,
           (d) => d.HorseKey + d.StartTime,
