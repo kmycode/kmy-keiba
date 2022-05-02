@@ -28,8 +28,6 @@ namespace KmyKeiba
       InitializeComponent();
 
       this.DataContext = new MainViewModel();
-
-      this.Canvas.PaintSurface += (sender, e) => new RaceHorsePassingOrderImage().OnPaint(e.Surface);
     }
   }
 }

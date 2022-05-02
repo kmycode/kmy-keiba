@@ -41,9 +41,9 @@ namespace KmyKeiba.Data.Db
 
     public RaceCourseCondition TrackCondition { get; set; }
 
-    public int Distance { get; set; }
+    public short Distance { get; set; }
 
-    public int CourseRaceNumber { get; set; }
+    public short CourseRaceNumber { get; set; }
 
     public string SubjectName { get; set; } = string.Empty;
 
@@ -59,13 +59,9 @@ namespace KmyKeiba.Data.Db
 
     public RaceSubjectType SubjectAgeYounger { get; set; }
 
-    public int HorsesCount { get; set; }
+    public short HorsesCount { get; set; }
 
     public DateTime StartTime { get; set; }
-
-    public float CourseBaseTimeCache { get; set; }
-
-    public int CourseBaseTimeCacheVersion { get; set; }
 
     [StringLength(80)]
     public string Corner1Result { get; set; } = string.Empty;

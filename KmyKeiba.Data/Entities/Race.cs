@@ -67,7 +67,7 @@ namespace KmyKeiba.JVLink.Entities
     /// <summary>
     /// 距離
     /// </summary>
-    public int Distance { get; set; }
+    public short Distance { get; set; }
 
     /// <summary>
     /// 競馬場の名前
@@ -78,7 +78,7 @@ namespace KmyKeiba.JVLink.Entities
     /// <summary>
     /// 競馬場内のコース番号
     /// </summary>
-    public int CourseRaceNumber { get; set; }
+    public short CourseRaceNumber { get; set; }
 
     /// <summary>
     /// コースの種類
@@ -93,7 +93,7 @@ namespace KmyKeiba.JVLink.Entities
     /// <summary>
     /// 馬の数
     /// </summary>
-    public int HorsesCount { get; set; }
+    public short HorsesCount { get; set; }
 
     /// <summary>
     /// 出走日時
@@ -166,9 +166,9 @@ namespace KmyKeiba.JVLink.Entities
 
       var subject = RaceSubject.FromJV(race);
 
-      int.TryParse(race.id.RaceNum, out int courseRaceNum);
-      int.TryParse(race.TorokuTosu, out int horsesCount);
-      int.TryParse(race.Kyori, out int distance);
+      short.TryParse(race.id.RaceNum, out short courseRaceNum);
+      short.TryParse(race.TorokuTosu, out short horsesCount);
+      short.TryParse(race.Kyori, out short distance);
 
       var trackGround = TrackGround.Unknown;
       var trackOption = TrackOption.Unknown;

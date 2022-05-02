@@ -17,11 +17,11 @@ namespace KmyKeiba.JVLink.Entities
 
     public struct OddsData
     {
-      public int HorseNumber { get; init; }
+      public short HorseNumber { get; init; }
 
       public float Odds { get; init; }
 
-      public int Popular { get; init; }
+      public short Popular { get; init; }
 
       public float PlaceOddsMin { get; init; }
 
@@ -41,14 +41,14 @@ namespace KmyKeiba.JVLink.Entities
       int.TryParse(odds.TorokuTosu, out int horsesCount);
       foreach (var data in odds.OddsTansyoInfo.Join(odds.OddsFukusyoInfo, (t) => t.Umaban, (f) => f.Umaban, (t, f) => new { Single = t, Multiple = f, }))
       {
-        int.TryParse(data.Single.Umaban, out int horseNumber);
+        short.TryParse(data.Single.Umaban, out short horseNumber);
         if (horseNumber > horsesCount || horseNumber <= 0)
         {
           continue;
         }
 
         float.TryParse(data.Single.Odds, out float oval);
-        int.TryParse(data.Single.Ninki, out int popular);
+        short.TryParse(data.Single.Ninki, out short popular);
         float.TryParse(data.Multiple.OddsHigh, out float oval2max);
         float.TryParse(data.Multiple.OddsLow, out float oval2min);
 

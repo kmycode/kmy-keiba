@@ -21,9 +21,10 @@ namespace KmyKeiba.Models.Race
       var db = new MyContext();
 
       this.RaceKey.Value = defaultRaceKey;
-      this.Info.Value = new RaceInfo(db, this.RaceKey.Value);
-
-      this.Info.Value.InitializeAsync();
+      
+      var info = new RaceInfo(db, this.RaceKey.Value);
+      info.InitializeAsync()
+        .ContinueWith((task) => this.Info.Value = info);
     }
   }
 }

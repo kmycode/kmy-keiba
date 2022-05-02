@@ -43,12 +43,12 @@ namespace KmyKeiba.JVLink.Entities
     /// <summary>
     /// 番号
     /// </summary>
-    public int Number { get; set; }
+    public short Number { get; set; }
 
     /// <summary>
     /// 枠番
     /// </summary>
-    public int FrameNumber { get; set; }
+    public short FrameNumber { get; set; }
 
     /// <summary>
     /// 競馬場
@@ -58,7 +58,7 @@ namespace KmyKeiba.JVLink.Entities
     /// <summary>
     /// 着順
     /// </summary>
-    public int ResultOrder { get; set; }
+    public short ResultOrder { get; set; }
 
     /// <summary>
     /// 異常結果
@@ -77,20 +77,20 @@ namespace KmyKeiba.JVLink.Entities
     /// <summary>
     /// 人気
     /// </summary>
-    public int Popular { get; set; }
+    public short Popular { get; set; }
 
     /// <summary>
     /// 走破タイム
     /// </summary>
     public TimeSpan ResultTime { get; set; }
 
-    public int FirstCornerOrder { get; set; }
+    public short FirstCornerOrder { get; set; }
 
-    public int SecondCornerOrder { get; set; }
+    public short SecondCornerOrder { get; set; }
 
-    public int ThirdCornerOrder { get; set; }
+    public short ThirdCornerOrder { get; set; }
 
-    public int FourthCornerOrder { get; set; }
+    public short FourthCornerOrder { get; set; }
 
     /// <summary>
     /// 騎手コード
@@ -158,15 +158,15 @@ namespace KmyKeiba.JVLink.Entities
     {
       short.TryParse(uma.Barei.Trim(), out short age);
       short.TryParse(uma.SexCD.Trim(), out short sex);
-      int.TryParse(uma.Umaban.Trim(), out int num);
-      int.TryParse(uma.UmaKigoCD, out int tc);
-      int.TryParse(uma.Wakuban.Trim(), out int wakuNum);
-      int.TryParse(uma.KakuteiJyuni.Trim(), out int result);
-      int.TryParse(uma.Ninki.Trim(), out int pop);
-      int.TryParse(uma.Jyuni1c.Trim(), out int corner1);
-      int.TryParse(uma.Jyuni2c.Trim(), out int corner2);
-      int.TryParse(uma.Jyuni3c.Trim(), out int corner3);
-      int.TryParse(uma.Jyuni4c.Trim(), out int corner4);
+      short.TryParse(uma.Umaban.Trim(), out short num);
+      short.TryParse(uma.UmaKigoCD, out short tc);
+      short.TryParse(uma.Wakuban.Trim(), out short wakuNum);
+      short.TryParse(uma.KakuteiJyuni.Trim(), out short result);
+      short.TryParse(uma.Ninki.Trim(), out short pop);
+      short.TryParse(uma.Jyuni1c.Trim(), out short corner1);
+      short.TryParse(uma.Jyuni2c.Trim(), out short corner2);
+      short.TryParse(uma.Jyuni3c.Trim(), out short corner3);
+      short.TryParse(uma.Jyuni4c.Trim(), out short corner4);
       float.TryParse(uma.Odds.Trim(), out float odds);
       int.TryParse(uma.IJyoCD.Trim(), out int abnormal);
       int.TryParse(uma.Futan.Trim(), out int riderWeight);

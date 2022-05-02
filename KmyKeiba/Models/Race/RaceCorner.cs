@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KmyKeiba.Models.Image;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,26 +7,39 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race
 {
-  internal class RaceHorsePassingOrder
+  /// <summary>
+  /// 馬のコーナー順位を管理するクラス
+  /// </summary>
+  public sealed class RaceCorner
   {
     public IReadOnlyList<Group> Groups { get; init; } = Array.Empty<Group>();
 
-    private RaceHorsePassingOrder()
+    public RaceHorsePassingOrderImage Image { get; } = new();
+
+    public int Number { get; set; }
+
+    public int Position { get; set; }
+
+    public TimeSpan LapTime { get; set; }
+
+    private RaceCorner()
     {
     }
 
-    public static RaceHorsePassingOrder FromString(string orderString)
+    public static RaceCorner FromString(string orderString)
     {
-      return new Builder(orderString).Build();
+      var instance = new Builder(orderString).Build();
+      instance.Image.Order = instance;
+      return instance;
     }
 
-    public class Group
+    public sealed class Group
     {
-      public AheadSpaceType AheadSpace { get; set; }
+      public AheadSpaceType AheadSpace { get; init; }
 
-      public IReadOnlyList<int> HorseNumbers { get; set; } = Array.Empty<int>();
+      public IReadOnlyList<int> HorseNumbers { get; init; } = Array.Empty<int>();
 
-      public int TopHorseNumber { get; set; }
+      public int TopHorseNumber { get; init; }
 
       public enum AheadSpaceType
       {
@@ -36,7 +50,26 @@ namespace KmyKeiba.Models.Race
         /// <summary>
         /// このコーナーを通過しなかった
         /// </summary>
-        Dead,
+        Retired,
+      }
+    }
+
+    private class MutableGroup
+    {
+      public Group.AheadSpaceType AheadSpace { get; set; }
+
+      public IReadOnlyList<int> HorseNumbers { get; set; } = Array.Empty<int>();
+
+      public int TopHorseNumber { get; set; }
+
+      public Group ToImmutable()
+      {
+        return new Group
+        {
+          AheadSpace = this.AheadSpace,
+          HorseNumbers = this.HorseNumbers,
+          TopHorseNumber = this.TopHorseNumber,
+        };
       }
     }
 
@@ -49,7 +82,7 @@ namespace KmyKeiba.Models.Race
         this.text = text;
       }
 
-      public RaceHorsePassingOrder Build()
+      public RaceCorner Build()
       {
         var tokens = this.Parse(text.Trim());
         var groups = this.GetGroups(tokens);
@@ -126,7 +159,7 @@ namespace KmyKeiba.Models.Race
         var groups = new List<Group>();
         var isInGroup = false;
         var currentGroupHorses = new List<int>();
-        var currentGroup = new Group();
+        var currentGroup = new MutableGroup();
         currentGroup.HorseNumbers = currentGroupHorses;
 
         foreach (var token in tokens)
@@ -138,7 +171,7 @@ namespace KmyKeiba.Models.Race
 
           void UpdateGroup()
           {
-            groups.Add(currentGroup);
+            groups.Add(currentGroup.ToImmutable());
 
             currentGroup = new();
             currentGroupHorses = new();
@@ -166,7 +199,7 @@ namespace KmyKeiba.Models.Race
           }
           else if (token[0] == '*' && token.Length > 1 && int.TryParse(token.AsSpan(1), out var num2))
           {
-            AddHorseNumber(num, true);
+            AddHorseNumber(num2, true);
           }
 
           else if (token == "(")
@@ -188,7 +221,7 @@ namespace KmyKeiba.Models.Race
           }
           else if (token == "   ")
           {
-            currentGroup.AheadSpace = Group.AheadSpaceType.Dead;
+            currentGroup.AheadSpace = Group.AheadSpaceType.Retired;
           }
         }
 

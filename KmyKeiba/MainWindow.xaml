@@ -5,11 +5,21 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:cef="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
         xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:b="clr-namespace:KmyKeiba.Behaviors"
         xmlns:local="clr-namespace:KmyKeiba"
+        xmlns:uc="clr-namespace:KmyKeiba.Views.Controls"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
   <Grid>
-    <!--<cef:ChromiumWebBrowser x:Name="Browser" Address="https://google.co.jp"/>-->
-    <skia:SKElement x:Name="Canvas"/>
+    <ScrollViewer>
+      <StackPanel Orientation="Vertical">
+        <!--<cef:ChromiumWebBrowser x:Name="Browser" Address="https://google.co.jp"/>-->
+        <uc:RaceCornerView RaceCorner="{Binding Race.Value.Corner1}"/>
+        <uc:RaceCornerView RaceCorner="{Binding Race.Value.Corner2}"/>
+        <uc:RaceCornerView RaceCorner="{Binding Race.Value.Corner3}"/>
+        <uc:RaceCornerView RaceCorner="{Binding Race.Value.Corner4}"/>
+      </StackPanel>
+    </ScrollViewer>
   </Grid>
 </Window>

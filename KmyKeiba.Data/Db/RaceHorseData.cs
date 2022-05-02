@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  [Index(nameof(RaceKey), nameof(Key), nameof(RiderCode), nameof(TrainerCode), nameof(RiderName), nameof(TrainerName))]
+  [Index(nameof(RaceKey), nameof(Key), nameof(RiderCode), nameof(TrainerCode), nameof(Course))]
   public class RaceHorseData : DataBase<RaceHorse>
   {
     [StringLength(16)]
@@ -41,17 +41,17 @@ namespace KmyKeiba.Data.Db
     /// <summary>
     /// 番号
     /// </summary>
-    public int Number { get; set; }
+    public short Number { get; set; }
 
     /// <summary>
     /// 枠版
     /// </summary>
-    public int FrameNumber { get; set; }
+    public short FrameNumber { get; set; }
 
     /// <summary>
     /// 着順
     /// </summary>
-    public int ResultOrder { get; set; }
+    public short ResultOrder { get; set; }
 
     /// <summary>
     /// 着差
@@ -70,20 +70,20 @@ namespace KmyKeiba.Data.Db
     /// <summary>
     /// 人気
     /// </summary>
-    public int Popular { get; set; }
+    public short Popular { get; set; }
 
     /// <summary>
     /// 走破タイム
     /// </summary>
     public TimeSpan ResultTime { get; set; }
 
-    public int FirstCornerOrder { get; set; }
+    public short FirstCornerOrder { get; set; }
 
-    public int SecondCornerOrder { get; set; }
+    public short SecondCornerOrder { get; set; }
 
-    public int ThirdCornerOrder { get; set; }
+    public short ThirdCornerOrder { get; set; }
 
-    public int FourthCornerOrder { get; set; }
+    public short FourthCornerOrder { get; set; }
 
     /// <summary>
     /// 騎手コード
@@ -152,14 +152,17 @@ namespace KmyKeiba.Data.Db
     /// <summary>
     /// 後３ハロンタイムの順位
     /// </summary>
-    public int AfterThirdHalongTimeOrder { get; set; }
+    public short AfterThirdHalongTimeOrder { get; set; }
 
     /// <summary>
     /// 脚質
     /// </summary>
     public RunningStyle RunningStyle { get; set; }
 
-    public bool IsRunningStyleSetManually { get; set; }
+    /// <summary>
+    /// 独自に計算した脚質
+    /// </summary>
+    public RunningStyle CalcedRunningStyle { get; set; }
 
     /// <summary>
     /// 勝負服の模様
@@ -209,11 +212,7 @@ namespace KmyKeiba.Data.Db
       this.Odds = entity.Odds;
       this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
       this.AbnormalResult = entity.AbnormalResult;
-
-      if (!this.IsRunningStyleSetManually)
-      {
-        this.RunningStyle = entity.RunningStyle;
-      }
+      this.RunningStyle = entity.RunningStyle;
 
       if (this.UniformFormat != entity.UniformFormat)
       {

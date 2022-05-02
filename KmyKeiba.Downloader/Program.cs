@@ -11,8 +11,11 @@ namespace KmyKeiba.Downloader
       Task.Run(async () =>
       {
         using var db = new MyContext();
-        db.Database.SetCommandTimeout(60);
+        db.Database.SetCommandTimeout(1200);
         await db.Database.MigrateAsync();
+
+        // 通常のクエリは３分まで
+        db.Database.SetCommandTimeout(180);
       }).Wait();
 
       using var loader = new JVLinkLoader();
@@ -34,13 +37,13 @@ namespace KmyKeiba.Downloader
     private static async Task LoadAsync(JVLinkLoader loader)
     {
       // 2005  2011-
-      for (var year = 2017; year <= 2022; year++)
+      for (var year = 2018; year <= 2022; year++)
       {
         Console.WriteLine($"{year} 年");
         await loader.LoadAsync(JVLinkObject.Local,
           // JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
           JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
-          JVLinkOpenOption.Setup,
+          JVLinkOpenOption.Normal,
           raceKey: null,
           startTime: new DateTime(year, 1, 1),
           endTime: new DateTime(year + 1, 1, 1),
