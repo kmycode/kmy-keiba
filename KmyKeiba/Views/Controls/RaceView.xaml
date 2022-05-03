@@ -36,6 +36,12 @@
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
+      <TextBlock Text="結果" FontSize="26" Margin="0,32,0,0"/>
+      <skia:SKElement>
+        <i:Interaction.Behaviors>
+          <b:DisplayImageBehavior Image="{Binding Race.ResultMap,ElementName=Root}"/>
+        </i:Interaction.Behaviors>
+      </skia:SKElement>
     </StackPanel>
   </Grid>
 </UserControl>

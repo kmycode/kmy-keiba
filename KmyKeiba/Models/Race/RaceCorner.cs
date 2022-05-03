@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Models.Image;
+﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Models.Image;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,17 @@ namespace KmyKeiba.Models.Race
   /// </summary>
   public sealed class RaceCorner
   {
-    public IReadOnlyList<Group> Groups { get; init; } = Array.Empty<Group>();
+    public IEnumerable<Group> Groups
+    {
+      get => this.Image.Groups ?? Array.Empty<Group>();
+      set
+      {
+        if (this.Groups != value)
+        {
+          this.Image.Groups = value;
+        }
+      }
+    }
 
     public RaceHorsePassingOrderImage Image { get; } = new();
 
@@ -29,8 +40,67 @@ namespace KmyKeiba.Models.Race
     public static RaceCorner FromString(string orderString)
     {
       var instance = new Builder(orderString).Build();
-      instance.Image.Order = instance;
       return instance;
+    }
+
+    public static IReadOnlyList<Group> GetGroupListFromResult(IEnumerable<RaceHorseData> horses)
+    {
+      var groups = new List<Group>();
+      var currentNumbers = new List<int>();
+      var currentGroup = new MutableGroup
+      {
+        HorseNumbers = currentNumbers,
+      };
+
+      var x = 0;
+      var lastGroupX = 0;
+
+      void AddGroup()
+      {
+        if (groups == null || currentGroup == null || !currentNumbers.Any())
+        {
+          return;
+        }
+
+        if (currentGroup.HorseNumbers.Count() == 1)
+        {
+          currentGroup.TopHorseNumber = default;
+        }
+
+        groups.Add(currentGroup.ToImmutable());
+        currentNumbers = new();
+        lastGroupX = x;
+      }
+
+      foreach (var horse in horses.OrderBy(h => h.ResultOrder))
+      {
+        x += Math.Max(horse.ResultLength1, Math.Max(horse.ResultLength2, horse.ResultLength3));
+        if (x >= lastGroupX + 100)
+        {
+          var d = x - lastGroupX;
+
+          if (currentNumbers.Any())
+          {
+            AddGroup();
+          }
+
+          currentGroup = new MutableGroup
+          {
+            AheadSpace = d >= 500 ? Group.AheadSpaceType.Large : d >= 200 ? Group.AheadSpaceType.Small : Group.AheadSpaceType.None,
+            TopHorseNumber = horse.Number,
+            HorseNumbers = currentNumbers,
+          };
+        }
+
+        currentNumbers.Add(horse.Number);
+        if (currentGroup.TopHorseNumber == default)
+        {
+          currentGroup.TopHorseNumber = horse.Number;
+        }
+      }
+
+      AddGroup();
+      return groups;
     }
 
     public sealed class Group

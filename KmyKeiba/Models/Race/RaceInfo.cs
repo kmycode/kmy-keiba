@@ -20,14 +20,17 @@ namespace KmyKeiba.Models.Race
 
     public ObservableCollection<RaceCorner> Corners { get; } = new();
 
+    public RaceHorsePassingOrderImage ResultMap { get; } = new();
+
     public RaceSubjectInfo Subject { get; }
 
     public string Name => this.Subject.DisplayName;
 
-    private RaceInfo(RaceData race)
+    private RaceInfo(RaceData race, IReadOnlyList<RaceHorseData> horses)
     {
       this.Data = race;
       this.Subject = new(race);
+      this.ResultMap.Groups = RaceCorner.GetGroupListFromResult(horses);
     }
 
     public static async Task<RaceInfo?> FromKeyAsync(MyContext db, string key)
@@ -38,7 +41,9 @@ namespace KmyKeiba.Models.Race
         return null;
       }
 
-      var info = new RaceInfo(race);
+      var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == key).ToArrayAsync();
+
+      var info = new RaceInfo(race, horses);
       AddCorner(info.Corners, race.Corner1Result, race.Corner1Number, race.Corner1Position, race.Corner1LapTime);
       AddCorner(info.Corners, race.Corner2Result, race.Corner2Number, race.Corner2Position, race.Corner2LapTime);
       AddCorner(info.Corners, race.Corner3Result, race.Corner3Number, race.Corner3Position, race.Corner3LapTime);

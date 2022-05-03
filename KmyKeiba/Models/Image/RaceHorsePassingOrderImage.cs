@@ -17,19 +17,19 @@ namespace KmyKeiba.Models.Image
   {
     private SKBitmap? _bitmap;
 
-    public RaceCorner? Order
+    public IEnumerable<RaceCorner.Group>? Groups
     {
-      get => this._order;
+      get => this._groups;
       set
       {
-        if (this._order != value)
+        if (this._groups != value)
         {
-          this._order = value;
+          this._groups = value;
           this.UpdateBitmap();
         }
       }
     }
-    private RaceCorner? _order;
+    private IEnumerable<RaceCorner.Group>? _groups;
 
     private float _width;
     private float _height;
@@ -44,7 +44,7 @@ namespace KmyKeiba.Models.Image
 
     private void UpdateBitmap()
     {
-      if (this.Order == null || !this.Order.Groups.Any())
+      if (this.Groups == null || !this.Groups.Any())
       {
         return;
       }
@@ -60,21 +60,21 @@ namespace KmyKeiba.Models.Image
       var horceNumberPlateItemForeground = ResourceUtil.TryGetResource<RHColor>("HorseNumberPlateItemForeground")?.ToSKColor()
         ?? SKColors.Black;
 
-      const int SmallSpaceSize = 20;
-      const int LargeSpaceSize = 50;
+      const int SmallSpaceSize = 40;
+      const int LargeSpaceSize = 100;
       const int HorseNumberSize = 30;
       const int HorseNumberMargin = 16;
       const int HorseNumberMarginVertical = 5;
       const int GroupTopHorseMargin = 8;
 
-      var width = this.Order.Groups
+      var width = this.Groups
         .Where(g => g.AheadSpace != RaceCorner.Group.AheadSpaceType.Retired)
         .Select(g => HorseNumberSize + HorseNumberMargin +
                          (g.TopHorseNumber != 0 ? GroupTopHorseMargin : 0) +
                          (g.AheadSpace == RaceCorner.Group.AheadSpaceType.Small ? SmallSpaceSize :
                           g.AheadSpace == RaceCorner.Group.AheadSpaceType.Large ? LargeSpaceSize : 0))
         .Sum() + HorseNumberMargin;
-      var height = this.Order.Groups.Max(g => g.HorseNumbers.Count) * (HorseNumberSize + HorseNumberMarginVertical) + HorseNumberMargin * 2;
+      var height = this.Groups.Max(g => g.HorseNumbers.Count) * (HorseNumberSize + HorseNumberMarginVertical) + HorseNumberMargin * 2;
 
       this._width = width;
       this._height = height;
@@ -118,10 +118,10 @@ namespace KmyKeiba.Models.Image
           Color = horceNumberPlateBackground,
         });
 
-      var groupHorsesMax = this.Order.Groups.Max(g => g.HorseNumbers.Count);
+      var groupHorsesMax = this.Groups.Max(g => g.HorseNumbers.Count);
 
       var x = HorseNumberMargin;
-      foreach (var group in this.Order.Groups.Where(g => g.AheadSpace != RaceCorner.Group.AheadSpaceType.Retired))
+      foreach (var group in this.Groups.Where(g => g.AheadSpace != RaceCorner.Group.AheadSpaceType.Retired))
       {
         var y = HorseNumberMargin;
 
