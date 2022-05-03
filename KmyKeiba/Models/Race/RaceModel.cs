@@ -12,19 +12,21 @@ namespace KmyKeiba.Models.Race
   {
     private const string defaultRaceKey = "2010073110010511";
 
-    public readonly ReactiveProperty<string> RaceKey = new();
+    public readonly ReactiveProperty<string> RaceKey = new(string.Empty);
 
-    public readonly ReactiveProperty<RaceInfo> Info = new();
+    public readonly ReactiveProperty<RaceInfo?> Info = new();
 
     public RaceModel()
     {
       var db = new MyContext();
 
       this.RaceKey.Value = defaultRaceKey;
-      
-      var info = new RaceInfo(db, this.RaceKey.Value);
-      info.InitializeAsync()
-        .ContinueWith((task) => this.Info.Value = info);
+
+      Task.Run(async () =>
+      {
+        var race = await RaceInfo.FromKeyAsync(db, this.RaceKey.Value);
+        this.Info.Value = race;
+      });
     }
   }
 }

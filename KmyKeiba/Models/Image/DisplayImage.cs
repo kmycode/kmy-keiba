@@ -17,5 +17,29 @@ namespace KmyKeiba.Models.Image
     public abstract float Height { get; }
 
     public abstract void OnPaint(SKSurface surface);
+
+    protected void Invalidate()
+    {
+      this.Updated?.Invoke(this, EventArgs.Empty);
+    }
+
+    public event EventHandler? Updated;
+  }
+
+  internal static class SKUtils
+  {
+    public static void DrawRectWithBorder(this SKCanvas canvas, float x, float y, float w, float h, SKPaint border, SKPaint fill)
+    {
+      var oldBorderStroke = border.IsStroke;
+      var oldFillStroke = fill.IsStroke;
+      border.IsStroke = true;
+      fill.IsStroke = false;
+
+      canvas.DrawRect(x, y, w, h, fill);
+      canvas.DrawRect(x, y, w - border.StrokeWidth, h - border.StrokeWidth, border);
+
+      border.IsStroke = oldBorderStroke;
+      fill.IsStroke = oldFillStroke;
+    }
   }
 }

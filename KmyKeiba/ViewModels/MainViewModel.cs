@@ -13,7 +13,7 @@ namespace KmyKeiba.ViewModels
   {
     private readonly RaceModel model = new();
 
-    public ReactiveProperty<RaceInfo> Race => this.model.Info;
+    public ReactiveProperty<RaceInfo?> Race => this.model.Info;
 
     public MainViewModel()
     {

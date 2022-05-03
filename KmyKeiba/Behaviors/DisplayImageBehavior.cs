@@ -24,6 +24,15 @@ namespace KmyKeiba.Behaviors
               if (sender is DisplayImageBehavior view)
               {
                 view.OnImageChanged();
+
+                if (e.OldValue is DisplayImage old)
+                {
+                  old.Updated -= view.OnImageChanged;
+                }
+                if (e.NewValue is DisplayImage @new)
+                {
+                  @new.Updated += view.OnImageChanged;
+                }
               }
             }));
 
@@ -41,14 +50,26 @@ namespace KmyKeiba.Behaviors
       this.AssociatedObject.MinWidth = 1;
       this.AssociatedObject.MinHeight = 1;
 
-      this.AssociatedObject.PaintSurface += AssociatedObject_PaintSurface;
+      this.AssociatedObject.PaintSurface += this.AssociatedObject_PaintSurface;
       this.OnImageChanged();
+    }
+
+    protected override void OnDetaching()
+    {
+      base.OnDetaching();
+
+      this.AssociatedObject.PaintSurface -= this.AssociatedObject_PaintSurface;
     }
 
     private void OnImageChanged()
     {
       // PaintSurfaceイベントに着火
       this.AssociatedObject.InvalidateVisual();
+    }
+
+    private void OnImageChanged(object? sender, EventArgs e)
+    {
+      this.OnImageChanged();
     }
 
     private void AssociatedObject_PaintSurface(object? sender, SkiaSharp.Views.Desktop.SKPaintSurfaceEventArgs e)

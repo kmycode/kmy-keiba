@@ -13,13 +13,7 @@
         Title="MainWindow" Height="450" Width="800">
   <Grid>
     <ScrollViewer>
-      <StackPanel Orientation="Vertical">
-        <!--<cef:ChromiumWebBrowser x:Name="Browser" Address="https://google.co.jp"/>-->
-        <uc:RaceCornerView RaceCorner="{Binding Race.Value.Corner1}"/>
-        <uc:RaceCornerView RaceCorner="{Binding Race.Value.Corner2}"/>
-        <uc:RaceCornerView RaceCorner="{Binding Race.Value.Corner3}"/>
-        <uc:RaceCornerView RaceCorner="{Binding Race.Value.Corner4}"/>
-      </StackPanel>
+      <uc:RaceView Race="{Binding Race.Value}"/>
     </ScrollViewer>
   </Grid>
 </Window>

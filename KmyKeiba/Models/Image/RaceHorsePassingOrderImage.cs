@@ -76,18 +76,17 @@ namespace KmyKeiba.Models.Image
           return;
         }
 
-        canvas.DrawRect(x, y, HorseNumberSize, HorseNumberSize, new SKPaint
-        {
-          Color = SKColors.White,
-          IsStroke = false,
-        });
-        canvas.DrawRect(x, y, HorseNumberSize, HorseNumberSize, new SKPaint
-        {
-          Color = SKColors.Black,
-          StrokeWidth = 1,
-          IsStroke = true,
-        });
-        canvas.DrawText(num.ToString(), x + HorseNumberSize / 2, y + HorseNumberSize - 5, new SKPaint
+        canvas.DrawRectWithBorder(x, y, HorseNumberSize, HorseNumberSize,
+          new SKPaint
+          {
+            Color = SKColors.Black,
+            StrokeWidth = 1,
+          },
+          new SKPaint
+          {
+            Color = SKColors.White,
+          });
+        canvas.DrawText(num.ToString(), x + HorseNumberSize / 2, y + HorseNumberSize - 6, new SKPaint
         {
           Color = SKColors.Black,
           TextSize = 22,
@@ -95,17 +94,16 @@ namespace KmyKeiba.Models.Image
         });
       }
 
-      canvas.DrawRect(0, 0, width, height, new SKPaint
-      {
-        Color = new SKColor(255, 255, 230),
-        IsStroke = false,
-      });
-      canvas.DrawRect(0, 0, width - 1, height - 1, new SKPaint
-      {
-        Color = new SKColor(0, 128, 0),
-        StrokeWidth = 1,
-        IsStroke = true,
-      });
+      canvas.DrawRectWithBorder(0, 0, width, height,
+        new SKPaint
+        {
+          Color = new SKColor(0, 128, 0),
+          StrokeWidth = 1,
+        },
+        new SKPaint
+        {
+          Color = new SKColor(255, 255, 230),
+        });
 
       var groupHorsesMax = this.Order.Groups.Max(g => g.HorseNumbers.Count);
 
@@ -152,6 +150,8 @@ namespace KmyKeiba.Models.Image
       }
 
       this._bitmap = bitmap;
+
+      this.Invalidate();
     }
 
     public override void OnPaint(SKSurface surface)
@@ -162,8 +162,6 @@ namespace KmyKeiba.Models.Image
       {
         canvas.DrawBitmap(this._bitmap, 0, 0);
       }
-
-      System.Diagnostics.Debug.WriteLine(DateTime.Now);
     }
   }
 }
