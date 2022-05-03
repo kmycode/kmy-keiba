@@ -1,10 +1,12 @@
 ﻿using KmyKeiba.Models.Race;
+using KmyKeiba.Common;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace KmyKeiba.Models.Image
 {
@@ -47,6 +49,17 @@ namespace KmyKeiba.Models.Image
         return;
       }
 
+      var horceNumberPlateBackground = ResourceUtil.TryGetResource<RHColor>("HorseNumberPlateBackground")?.ToSKColor()
+        ?? new SKColor(255, 255, 230);
+      var horceNumberPlateBorder = ResourceUtil.TryGetResource<RHColor>("HorseNumberPlateBorder")?.ToSKColor()
+        ?? new SKColor(0, 128, 0);
+      var horceNumberPlateItemBackground = ResourceUtil.TryGetResource<RHColor>("HorseNumberPlateItemBackground")?.ToSKColor()
+        ?? SKColors.White;
+      var horceNumberPlateItemBorder = ResourceUtil.TryGetResource<RHColor>("HorseNumberPlateItemBorder")?.ToSKColor()
+        ?? SKColors.Black;
+      var horceNumberPlateItemForeground = ResourceUtil.TryGetResource<RHColor>("HorseNumberPlateItemForeground")?.ToSKColor()
+        ?? SKColors.Black;
+
       const int SmallSpaceSize = 20;
       const int LargeSpaceSize = 50;
       const int HorseNumberSize = 30;
@@ -79,16 +92,16 @@ namespace KmyKeiba.Models.Image
         canvas.DrawRectWithBorder(x, y, HorseNumberSize, HorseNumberSize,
           new SKPaint
           {
-            Color = SKColors.Black,
+            Color = horceNumberPlateItemBorder,
             StrokeWidth = 1,
           },
           new SKPaint
           {
-            Color = SKColors.White,
+            Color = horceNumberPlateItemBackground,
           });
         canvas.DrawText(num.ToString(), x + HorseNumberSize / 2, y + HorseNumberSize - 6, new SKPaint
         {
-          Color = SKColors.Black,
+          Color = horceNumberPlateItemForeground,
           TextSize = 22,
           TextAlign = SKTextAlign.Center,
         });
@@ -97,12 +110,12 @@ namespace KmyKeiba.Models.Image
       canvas.DrawRectWithBorder(0, 0, width, height,
         new SKPaint
         {
-          Color = new SKColor(0, 128, 0),
+          Color = horceNumberPlateBorder,
           StrokeWidth = 1,
         },
         new SKPaint
         {
-          Color = new SKColor(255, 255, 230),
+          Color = horceNumberPlateBackground,
         });
 
       var groupHorsesMax = this.Order.Groups.Max(g => g.HorseNumbers.Count);

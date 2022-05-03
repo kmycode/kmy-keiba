@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Models.Race;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Models.Race;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,8 @@ namespace KmyKeiba.ViewModels
 
     public MainViewModel()
     {
+      // TODO: いずれModelにうつす
+      ThemeUtil.Current = ApplicationTheme.Dark;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
