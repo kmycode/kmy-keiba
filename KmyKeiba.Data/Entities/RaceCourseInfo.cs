@@ -59,6 +59,8 @@ namespace KmyKeiba.JVLink.Entities
       list = list.Where(c => c.Option == TrackOption.Unknown || c.Option == race.TrackOption);
       list = list.Where(c => string.IsNullOrEmpty(c.CourseName) || c.CourseName == race.CourseName);
       list = list.Where(c => c.Direction == TrackCornerDirection.Unknown || c.Direction == race.TrackCornerDirection);
+      list = list.Where(c => c.StartUsingDate == null || c.StartUsingDate <= race.StartTime);
+      list = list.Where(c => c.EndUsingDate == null || c.EndUsingDate > race.StartTime);
 
       return list.FirstOrDefault();
     }
@@ -507,6 +509,74 @@ namespace KmyKeiba.JVLink.Entities
       {
         Course = RaceCourse.Saga,
         Length = 1100, LastStraightLineLength = 200,
+      },
+
+      // 1990年以降に廃止された競馬場。確認してないけどNVLinkにデータが残ってるかもしれないので
+      new()
+      {
+        EndUsingDate = new DateTime(2005, 3, 14).AddDays(1),
+        Course = RaceCourse.Utsunomiya,
+        Length = 1300, LastStraightLineLength = 200,
+      },
+      new()
+      {
+        EndUsingDate = new DateTime(2004, 12, 31).AddDays(1),
+        Course = RaceCourse.Takasaki,
+        Length = 1200, LastStraightLineLength = 300,
+      },
+      new()
+      {
+        EndUsingDate = new DateTime(2001, 8, 16).AddDays(1),
+        Course = RaceCourse.Sanjo,
+        Length = 1000, LastStraightLineLength = 195,
+      },
+      new()
+      {
+        EndUsingDate = new DateTime(2001, 6, 3).AddDays(1),
+        Course = RaceCourse.Nakatsu,
+        Length = 1000, LastStraightLineLength = 195,
+      },
+      new()
+      {
+        EndUsingDate = new DateTime(2002, 8, 31).AddDays(1),    // 日付は仮。月までしかわからなかった
+        Course = RaceCourse.Masuda,
+        Length = 1000, LastStraightLineLength = 200,
+      },
+      new()
+      {
+        EndUsingDate = new DateTime(2003, 3, 31).AddDays(1),    // 日付は仮。月までしかわからなかった
+        Course = RaceCourse.Ashikaka,
+        Length = 1100, LastStraightLineLength = 237,
+      },
+      new()
+      {
+        EndUsingDate = new DateTime(2003, 11, 30).AddDays(1),
+        Course = RaceCourse.Kaminoyama,
+        Length = 1050, LastStraightLineLength = 200,    // 直線の数字は仮。調べたが不明
+      },
+      new()
+      {
+        EndUsingDate = new DateTime(2006, 10, 2).AddDays(1),
+        Course = RaceCourse.Iwamizawa,
+        Length = 1200, LastStraightLineLength = 270,
+      },
+      new()
+      {
+        EndUsingDate = new DateTime(2008, 10, 16).AddDays(1),
+        Course = RaceCourse.Asahikawa,
+        Length = 1300, LastStraightLineLength = 262,
+      },
+      new()
+      {
+        EndUsingDate = new DateTime(2011, 12, 23).AddDays(1),
+        Course = RaceCourse.Arao,
+        Length = 1200, LastStraightLineLength = 220,
+      },
+      new()
+      {
+        EndUsingDate = new DateTime(2013, 3, 24).AddDays(1),
+        Course = RaceCourse.Fukuyama,
+        Length = 1000, LastStraightLineLength = 200,
       },
     };
   }
