@@ -10,7 +10,7 @@ namespace KmyKeiba.Models.Race
 {
   internal class RaceModel
   {
-    private const string defaultRaceKey = "2010073110010511";
+    private const string defaultRaceKey = "2020032807010710";
 
     public readonly ReactiveProperty<string> RaceKey = new(string.Empty);
 
