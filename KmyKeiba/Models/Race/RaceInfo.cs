@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
 using Microsoft.EntityFrameworkCore;
@@ -13,14 +14,20 @@ namespace KmyKeiba.Models.Race
 {
   public class RaceInfo
   {
-    public RaceData? Data { get; private init; }
+    public RaceData? Data { get; }
 
     public ObservableCollection<RaceHorseInfo> Horses { get; } = new();
 
     public ObservableCollection<RaceCorner> Corners { get; } = new();
 
-    private RaceInfo()
+    public RaceSubjectInfo Subject { get; }
+
+    public string Name => this.Subject.DisplayName;
+
+    private RaceInfo(RaceData race)
     {
+      this.Data = race;
+      this.Subject = new(race);
     }
 
     public static async Task<RaceInfo?> FromKeyAsync(MyContext db, string key)
@@ -31,10 +38,7 @@ namespace KmyKeiba.Models.Race
         return null;
       }
 
-      var info = new RaceInfo()
-      {
-        Data = race,
-      };
+      var info = new RaceInfo(race);
       AddCorner(info.Corners, race.Corner1Result, race.Corner1Number, race.Corner1Position, race.Corner1LapTime);
       AddCorner(info.Corners, race.Corner2Result, race.Corner2Number, race.Corner2Position, race.Corner2LapTime);
       AddCorner(info.Corners, race.Corner3Result, race.Corner3Number, race.Corner3Position, race.Corner3LapTime);

@@ -7,12 +7,15 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:b="clr-namespace:KmyKeiba.Behaviors"
              xmlns:uc="clr-namespace:KmyKeiba.Views.Controls"
+             xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
              xmlns:local="clr-namespace:KmyKeiba.Views.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
   <Grid>
     <StackPanel Orientation="Vertical">
       <!--<cef:ChromiumWebBrowser x:Name="Browser" Address="https://google.co.jp"/>-->
+      <up:RaceSubjectIcon Subject="{Binding Race.Subject.Subject,ElementName=Root}"/>
+      <TextBlock Text="{Binding Race.Name,ElementName=Root}" FontSize="26" FontWeight="Bold"/>
       <ItemsControl ItemsSource="{Binding Race.Corners,ElementName=Root}">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>

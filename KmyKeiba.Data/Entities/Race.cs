@@ -339,6 +339,9 @@ namespace KmyKeiba.JVLink.Entities
 
   public enum RaceCourse : short
   {
+    LocalMinValue = 30,
+    CentralMaxValue = 29,
+
     [RaceCourseInfo(RaceCourseType.Central, "不明")]
     Unknown = 0,
 

@@ -10,7 +10,7 @@
         xmlns:local="clr-namespace:KmyKeiba"
         xmlns:uc="clr-namespace:KmyKeiba.Views.Controls"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="KMY競馬" Height="450" Width="800">
   <Grid>
     <ScrollViewer>
       <uc:RaceView Race="{Binding Race.Value}"/>
