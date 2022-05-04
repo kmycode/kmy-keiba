@@ -279,6 +279,16 @@ namespace KmyKeiba.JVLink.Wrappers
                 ReadDic(item, data.Trainings, item.HorseKey + item.StartTime);
                 break;
               }
+            case "WC":
+              {
+                var a = new JVData_Struct.JV_WC_WOODTIP();
+                a.SetDataB(ref d);
+                var item = WoodtipTraining.FromJV(a);
+
+                // Read(item, data.Trainings, (a, b) => a.HorseKey == b.HorseKey && a.StartTime == b.StartTime, new ComparableComparer<Training>(x => x?.HorseKey + x?.StartTime));
+                ReadDic(item, data.WoodtipTrainings, item.HorseKey + item.StartTime);
+                break;
+              }
             case "HR":
               {
                 var a = new JVData_Struct.JV_HR_PAY();
@@ -419,6 +429,8 @@ namespace KmyKeiba.JVLink.Wrappers
     public List<HorseRiderChange> HorseRiderChanges { get; internal set; } = new();
 
     public Dictionary<string, Training> Trainings { get; internal set; } = new();
+
+    public Dictionary<string, WoodtipTraining> WoodtipTrainings { get; internal set; } = new();
   }
 
   class SimpleDistinctComparer<T> : IEqualityComparer<T>

@@ -52,4 +52,19 @@ namespace KmyKeiba.JVLink.Entities
     Miura = 0,
     Ritto = 1,
   }
+
+  public enum WoodtipCourse : short
+  {
+    A = 0,
+    B = 1,
+    C = 2,
+    D = 3,
+    E = 4,
+  }
+
+  public enum WoodtipDirection : short
+  {
+    Right = 0,
+    Left = 1,
+  }
 }

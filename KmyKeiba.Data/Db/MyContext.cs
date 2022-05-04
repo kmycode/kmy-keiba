@@ -39,6 +39,8 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<TrainingData>? Trainings { get; set; }
 
+    public DbSet<WoodtipTrainingData>? WoodtipTrainings { get; set; }
+
     protected string ConnectionString { get; set; } = string.Empty;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

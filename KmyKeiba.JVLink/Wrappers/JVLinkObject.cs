@@ -206,7 +206,7 @@ namespace KmyKeiba.JVLink.Wrappers
   }
 
   [Flags]
-  public enum JVLinkDataspec
+  public enum JVLinkDataspec : ulong
   {
     [JVLinkDataspec("TOKU", JVLinkOpenOption.All)]
     Toku = 0b1,
@@ -300,6 +300,9 @@ namespace KmyKeiba.JVLink.Wrappers
 
     [JVLinkDataspec("0B51", JVLinkOpenOption.RealTime)]
     RB51 = 0b100_0000_0000_0000_0000_0000_0000_0000,
+
+    [JVLinkDataspec("WOOD", JVLinkOpenOption.WithoutThisWeek)]
+    Wood = 0b1000_0000_0000_0000_0000_0000_0000_0000,
   }
 
   public static class JVLinkExtensions

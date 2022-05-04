@@ -13,7 +13,7 @@ namespace KmyKeiba.JVLink.Wrappers.JVLib
   /// 最終更新日：2009年12月8日
   /// (C) Copyright JRA SYSTEM SERVICE CO.,LTD. 2009 All rights reserved
   /// </remarks>
-  public static class JVData_Struct
+  public static partial class JVData_Struct
   {
     #region セットデータのプログラミングパーツ
 
@@ -30,7 +30,7 @@ namespace KmyKeiba.JVLink.Wrappers.JVLib
     {
       // 文字を任意に切出す
 
-      return Encoding.GetEncoding(932).GetString(myByte, bSt - 1, bLen);
+      return Encoding.GetEncoding("Shift_JIS").GetString(myByte, bSt - 1, bLen);
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ namespace KmyKeiba.JVLink.Wrappers.JVLib
     public static byte[] Str2Byte(ref string myString)
     {
       // Shift JISに変換する
-      return Encoding.GetEncoding(932).GetBytes(myString);
+      return Encoding.GetEncoding("Shift_JIS").GetBytes(myString);
     }
 
     #endregion

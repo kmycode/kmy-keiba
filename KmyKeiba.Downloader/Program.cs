@@ -40,16 +40,19 @@ namespace KmyKeiba.Downloader
       for (var year = 2018; year <= 2022; year++)
       {
         Console.WriteLine($"{year} 年");
-        await loader.LoadAsync(JVLinkObject.Local,
+        await loader.LoadAsync(JVLinkObject.Central,
           // JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
-          JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
+          // JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
+          JVLinkDataspec.Wood,
           JVLinkOpenOption.Normal,
           raceKey: null,
-          startTime: new DateTime(year, 1, 1),
-          endTime: new DateTime(year + 1, 1, 1),
-          loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "JC", "HC", "HR", });
+          startTime: new DateTime(2010, 1, 1),
+          endTime: new DateTime(2022 + 1, 1, 1),
+          // loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "JC", "HC", "HR", });
+          loadSpecs: new string[] { "WC", "UM", });
         Console.WriteLine();
         Console.WriteLine();
+        break;
       }
 
 

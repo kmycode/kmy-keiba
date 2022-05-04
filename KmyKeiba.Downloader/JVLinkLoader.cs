@@ -306,7 +306,7 @@ namespace KmyKeiba.Downloader
         + data.FrameNumberOdds.Sum((o) => o.Odds.Count) +
         data.QuinellaOdds.Sum((o) => o.Odds.Count) + data.QuinellaPlaceOdds.Sum((o) => o.Odds.Count) +
          data.TrifectaOdds.Sum((o) => o.Odds.Count) + data.TrioOdds.Sum((o) => o.Odds.Count) + */
-        data.Refunds.Count + data.Trainings.Count + data.Horses.Count + data.HorseBloods.Count;
+        data.Refunds.Count + data.Trainings.Count + data.WoodtipTrainings.Count + data.Horses.Count + data.HorseBloods.Count;
       logger.Info($"Save size: {this.SaveSize.Value}");
 
       var timer = new ReactiveTimer(TimeSpan.FromMilliseconds(80));
@@ -460,6 +460,11 @@ namespace KmyKeiba.Downloader
           (list) => e => list.Contains(e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute));
         await SaveDicAsync(data.Trainings,
           db.Trainings!,
+          (e) => e.HorseKey + e.StartTime,
+          (d) => d.HorseKey + d.StartTime,
+          (list) => e => list.Contains(e.HorseKey + e.StartTime));
+        await SaveDicAsync(data.WoodtipTrainings,
+          db.WoodtipTrainings!,
           (e) => e.HorseKey + e.StartTime,
           (d) => d.HorseKey + d.StartTime,
           (list) => e => list.Contains(e.HorseKey + e.StartTime));
