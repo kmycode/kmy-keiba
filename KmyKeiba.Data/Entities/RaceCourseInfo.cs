@@ -52,17 +52,22 @@ namespace KmyKeiba.JVLink.Entities
 
   public static class RaceCourses
   {
-    public static RaceCourseInfo? TryGetCourse(Race race)
+    public static IReadOnlyList<RaceCourseInfo> TryGetCourses(Race race)
     {
       var list = Courses.Where(c => c.Course == race.Course);
-      list = list.Where(c => c.Ground == race.TrackGround);
-      list = list.Where(c => c.Option == TrackOption.Unknown || c.Option == race.TrackOption);
       list = list.Where(c => string.IsNullOrEmpty(c.CourseName) || c.CourseName == race.CourseName);
       list = list.Where(c => c.Direction == TrackCornerDirection.Unknown || c.Direction == race.TrackCornerDirection);
       list = list.Where(c => c.StartUsingDate == null || c.StartUsingDate <= race.StartTime);
       list = list.Where(c => c.EndUsingDate == null || c.EndUsingDate > race.StartTime);
 
-      return list.FirstOrDefault();
+      list = list.Where(c => c.Option == TrackOption.Unknown ||
+        ((race.TrackOption == TrackOption.OutsideToInside || race.TrackOption == TrackOption.InsideToOutside) ? (c.Option == TrackOption.Inside || c.Option == TrackOption.Outside) :
+         (race.TrackOption == TrackOption.Outside2) ? c.Option == TrackOption.Outside :
+         (race.TrackOption == TrackOption.Inside2) ? c.Option == TrackOption.Inside :
+        race.TrackOption == c.Option));
+      list = list.Where(c => race.TrackGround == TrackGround.TurfToDirt ? true : c.Ground == race.TrackGround);
+
+      return list.ToArray();
     }
 
     public static IReadOnlyList<RaceCourseInfo> Courses { get; } = new List<RaceCourseInfo>

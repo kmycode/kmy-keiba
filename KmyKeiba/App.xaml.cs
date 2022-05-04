@@ -35,7 +35,7 @@ namespace KmyKeiba
       {
         Source = new Uri(name, UriKind.Relative),
       };
-      this.Resources.MergedDictionaries.Clear();
+      // this.Resources.MergedDictionaries.RemoveAt(0);
       this.Resources.MergedDictionaries.Add(dic);
     }
   }

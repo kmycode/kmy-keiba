@@ -1,0 +1,10 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:cv="clr-namespace:KmyKeiba.Converters">
+  <cv:CourseNameConverter x:Key="CourseNameConv"/>
+  <cv:NegativeConverter x:Key="NegativeConv"/>
+  <cv:NegativeVisibilityConverter x:Key="NegativeVisibilityConv"/>
+  <cv:BooleanVisibilityConverter x:Key="BooleanVisibilityConv"/>
+  <cv:MultiBooleanConverter x:Key="MultiBooleanConv"/>
+  <cv:TrackConverter x:Key="TrackConv"/>
+</ResourceDictionary>

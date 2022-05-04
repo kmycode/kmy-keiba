@@ -11,7 +11,7 @@ namespace KmyKeiba.Common
   /// </summary>
   internal static class ThemeUtil
   {
-    private static ApplicationTheme _currentTheme = ApplicationTheme.Classic;
+    private static ApplicationTheme _currentTheme = ApplicationTheme.Unset;
 
     public static ApplicationTheme Current
     {
@@ -29,6 +29,7 @@ namespace KmyKeiba.Common
 
   internal enum ApplicationTheme
   {
+    Unset,
     Classic,
     Dark,
   }

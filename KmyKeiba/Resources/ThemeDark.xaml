@@ -7,10 +7,15 @@
   <u:RHColor x:Key="HorseNumberPlateItemBorder" Red="0" Green="0" Blue="0"/>
   <u:RHColor x:Key="HorseNumberPlateItemForeground" Red="0" Green="0" Blue="0"/>
 
-  <Style TargetType="StackPanel">
-    <Setter Property="Background" Value="#030303"/>
-  </Style>
-  <Style TargetType="TextBlock">
-    <Setter Property="Foreground" Value="#f0f0f0"/>
-  </Style>
+  <SolidColorBrush x:Key="BaseBackground" Color="#030303"/>
+  <SolidColorBrush x:Key="BaseForeground" Color="#f0f0f0"/>
+  <SolidColorBrush x:Key="BaseBorderBrush" Color="#cccccc"/>
+
+  <SolidColorBrush x:Key="HoverBackground" Color="#444444"/>
+  <SolidColorBrush x:Key="PressedBackground" Color="#9999bb"/>
+  <SolidColorBrush x:Key="CheckedBackground" Color="#8888de"/>
+
+  <SolidColorBrush x:Key="RaceNumberBackground" Color="#222266"/>
+  <SolidColorBrush x:Key="RaceNumberForeground" Color="#c0c0ff"/>
+
 </ResourceDictionary>

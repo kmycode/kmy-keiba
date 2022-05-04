@@ -26,11 +26,16 @@ namespace KmyKeiba.Models.Race
 
     public string Name => this.Subject.DisplayName;
 
-    private RaceInfo(RaceData race, IReadOnlyList<RaceHorseData> horses)
+    private RaceInfo(RaceData race, IReadOnlyList<RaceHorseInfo> horses)
     {
       this.Data = race;
       this.Subject = new(race);
-      this.ResultMap.Groups = RaceCorner.GetGroupListFromResult(horses);
+      this.ResultMap.Groups = RaceCorner.GetGroupListFromResult(horses.Select(h => h.Data));
+
+      foreach (var horse in horses.OrderBy(h => h.Data.Number))
+      {
+        this.Horses.Add(horse);
+      }
     }
 
     public static async Task<RaceInfo?> FromKeyAsync(MyContext db, string key)
@@ -43,7 +48,13 @@ namespace KmyKeiba.Models.Race
 
       var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == key).ToArrayAsync();
 
-      var info = new RaceInfo(race, horses);
+      var horseInfos = new List<RaceHorseInfo>();
+      foreach (var horse in horses)
+      {
+        horseInfos.Add(await RaceHorseInfo.FromDataAsync(db, horse));
+      }
+
+      var info = new RaceInfo(race, horseInfos);
       AddCorner(info.Corners, race.Corner1Result, race.Corner1Number, race.Corner1Position, race.Corner1LapTime);
       AddCorner(info.Corners, race.Corner2Result, race.Corner2Number, race.Corner2Position, race.Corner2LapTime);
       AddCorner(info.Corners, race.Corner3Result, race.Corner3Number, race.Corner3Position, race.Corner3LapTime);

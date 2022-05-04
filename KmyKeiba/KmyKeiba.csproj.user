@@ -18,6 +18,12 @@
     <Page Update="MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Resources\ControlStyles.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Resources\Converters.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Resources\ThemeClassic.xaml">
       <SubType>Designer</SubType>
     </Page>
