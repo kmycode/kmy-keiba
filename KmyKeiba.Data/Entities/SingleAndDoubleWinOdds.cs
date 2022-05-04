@@ -19,13 +19,13 @@ namespace KmyKeiba.JVLink.Entities
     {
       public short HorseNumber { get; init; }
 
-      public float Odds { get; init; }
+      public short Odds { get; init; }
 
       public short Popular { get; init; }
 
-      public float PlaceOddsMin { get; init; }
+      public short PlaceOddsMin { get; init; }
 
-      public float PlaceOddsMax { get; init; }
+      public short PlaceOddsMax { get; init; }
     }
 
     public static SingleAndDoubleWinOdds FromJV(JVData_Struct.JV_O1_ODDS_TANFUKUWAKU odds)
@@ -47,18 +47,18 @@ namespace KmyKeiba.JVLink.Entities
           continue;
         }
 
-        float.TryParse(data.Single.Odds, out float oval);
+        short.TryParse(data.Single.Odds, out short oval);
         short.TryParse(data.Single.Ninki, out short popular);
-        float.TryParse(data.Multiple.OddsHigh, out float oval2max);
-        float.TryParse(data.Multiple.OddsLow, out float oval2min);
+        short.TryParse(data.Multiple.OddsHigh, out short oval2max);
+        short.TryParse(data.Multiple.OddsLow, out short oval2min);
 
         od.Odds.Add(new OddsData
         {
           HorseNumber = horseNumber,
-          Odds = oval / 10,
+          Odds = oval,
           Popular = popular,
-          PlaceOddsMax = oval2max / 10,
-          PlaceOddsMin = oval2min / 10,
+          PlaceOddsMax = oval2max,
+          PlaceOddsMin = oval2min,
         });
       }
 

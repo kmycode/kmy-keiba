@@ -96,7 +96,10 @@ using System.Text;
 namespace KmyKeiba.JVLink.Wrappers.JVLib
 {
 
-    <ここに元々のstructures.csの内容を挿入>
+    // <ここに元々のstructures.csの内容を挿入>
+
+    // <JVData_Structの最初の行にpartialを追加してください>
+    // public static partial class JVData_Struct
 
 }
 ```

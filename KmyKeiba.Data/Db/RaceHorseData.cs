@@ -100,7 +100,7 @@ namespace KmyKeiba.Data.Db
     /// <summary>
     /// 斤量
     /// </summary>
-    public float RiderWeight { get; set; }
+    public short RiderWeight { get; set; }
 
     [StringLength(8)]
     public string TrainerCode { get; set; } = string.Empty;
@@ -132,17 +132,17 @@ namespace KmyKeiba.Data.Db
     /// <summary>
     /// 単勝オッズ
     /// </summary>
-    public float Odds { get; set; }
+    public short Odds { get; set; }
 
     /// <summary>
     /// 最低複勝オッズ
     /// </summary>
-    public float PlaceOddsMin { get; set; }
+    public short PlaceOddsMin { get; set; }
 
     /// <summary>
     /// 最大複勝オッズ
     /// </summary>
-    public float PlaceOddsMax { get; set; }
+    public short PlaceOddsMax { get; set; }
 
     /// <summary>
     /// 後３ハロンタイム

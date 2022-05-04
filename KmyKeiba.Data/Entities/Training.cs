@@ -15,33 +15,33 @@ namespace KmyKeiba.JVLink.Entities
 
     public DateTime StartTime { get; set; }
 
-    public float FirstLapTime { get; set; }
+    public short FirstLapTime { get; set; }
 
-    public float SecondLapTime { get; set; }
+    public short SecondLapTime { get; set; }
 
-    public float ThirdLapTime { get; set; }
+    public short ThirdLapTime { get; set; }
 
-    public float FourthLapTime { get; set; }
+    public short FourthLapTime { get; set; }
 
     public static Training FromJV(JVData_Struct.JV_HC_HANRO tr)
     {
       short.TryParse(tr.TresenKubun, out short center);
-      float.TryParse(tr.LapTime1, out float lap1);
-      float.TryParse(tr.LapTime2, out float lap2);
-      float.TryParse(tr.LapTime3, out float lap3);
-      float.TryParse(tr.LapTime4, out float lap4);
+      short.TryParse(tr.LapTime1, out short lap1);
+      short.TryParse(tr.LapTime2, out short lap2);
+      short.TryParse(tr.LapTime3, out short lap3);
+      short.TryParse(tr.LapTime4, out short lap4);
 
       var obj = new Training
       {
         LastModified = tr.head.MakeDate.ToDateTime(),
         DataStatus = tr.head.DataKubun.ToDataStatus(),
         HorseKey = tr.KettoNum,
-        StartTime = tr.ChokyoDate.ToDateTime(),
+        StartTime = tr.ChokyoDate.ToDateTime(tr.ChokyoTime),
         Center = (TrainingCenter)center,
-        FirstLapTime = lap1 / 10,
-        SecondLapTime = lap2 / 10,
-        ThirdLapTime = lap3 / 10,
-        FourthLapTime = lap4 / 10,
+        FirstLapTime = lap1,
+        SecondLapTime = lap2,
+        ThirdLapTime = lap3,
+        FourthLapTime = lap4,
       };
       return obj;
     }

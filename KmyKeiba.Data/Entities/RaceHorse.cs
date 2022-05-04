@@ -105,7 +105,7 @@ namespace KmyKeiba.JVLink.Entities
     /// <summary>
     /// 斤量
     /// </summary>
-    public float RiderWeight { get; set; }
+    public short RiderWeight { get; set; }
 
     public string TrainerCode { get; set; } = string.Empty;
 
@@ -133,7 +133,7 @@ namespace KmyKeiba.JVLink.Entities
     /// <summary>
     /// 単勝オッズ
     /// </summary>
-    public float Odds { get; set; }
+    public short Odds { get; set; }
 
     /// <summary>
     /// 後３ハロンタイム
@@ -167,7 +167,7 @@ namespace KmyKeiba.JVLink.Entities
       short.TryParse(uma.Jyuni2c.Trim(), out short corner2);
       short.TryParse(uma.Jyuni3c.Trim(), out short corner3);
       short.TryParse(uma.Jyuni4c.Trim(), out short corner4);
-      float.TryParse(uma.Odds.Trim(), out float odds);
+      short.TryParse(uma.Odds.Trim(), out short odds);
       int.TryParse(uma.IJyoCD.Trim(), out int abnormal);
       int.TryParse(uma.Futan.Trim(), out int riderWeight);
       short.TryParse(uma.BaTaijyu.Trim(), out short weight);
@@ -250,7 +250,7 @@ namespace KmyKeiba.JVLink.Entities
         ResultTime = new TimeSpan(0, 0, timeMinutes, timeSeconds, timeMilliSeconds * 100),
         RiderCode = uma.KisyuCode.Trim(),
         RiderName = uma.KisyuRyakusyo.Trim(),
-        RiderWeight = (float)riderWeight / 10,
+        RiderWeight = (short)riderWeight,
         TrainerCode = uma.ChokyosiCode,
         TrainerName = uma.ChokyosiRyakusyo,
         OwnerCode = uma.BanusiCode.Trim(),
@@ -258,7 +258,7 @@ namespace KmyKeiba.JVLink.Entities
         Weight = weight,
         WeightDiff = (short)(uma.ZogenFugo == "+" ? weightDiff : -weightDiff),
         IsBlinkers = uma.Blinker == "1",
-        Odds = odds / 10,
+        Odds = odds,
         AfterThirdHalongTime = halongTime,
         RunningStyle = (RunningStyle)runningStyle,
         UniformFormat = uma.Fukusyoku.Trim(),

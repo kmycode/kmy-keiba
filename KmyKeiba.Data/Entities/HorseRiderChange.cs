@@ -13,7 +13,7 @@ namespace KmyKeiba.JVLink.Entities
 
     public int HorseNumber { get; set; }
 
-    public float RiderWeight { get; set; }
+    public short RiderWeight { get; set; }
 
     public string RiderName { get; set; } = string.Empty;
 
@@ -36,7 +36,7 @@ namespace KmyKeiba.JVLink.Entities
         HorseNumber = num,
         RiderCode = jc.JCInfoAfter.KisyuCode,
         RiderName = jc.JCInfoAfter.KisyuName.Trim(),
-        RiderWeight = (float)riderWeight / 10,
+        RiderWeight = (short)riderWeight,
       };
       return obj;
     }

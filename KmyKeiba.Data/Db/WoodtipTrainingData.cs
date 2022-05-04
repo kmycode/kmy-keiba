@@ -23,25 +23,25 @@ namespace KmyKeiba.Data.Db
 
     public WoodtipDirection Direction { get; set; }
 
-    public float Lap1Time { get; set; }
+    public short Lap1Time { get; set; }
 
-    public float Lap2Time { get; set; }
+    public short Lap2Time { get; set; }
 
-    public float Lap3Time { get; set; }
+    public short Lap3Time { get; set; }
 
-    public float Lap4Time { get; set; }
+    public short Lap4Time { get; set; }
 
-    public float Lap5Time { get; set; }
+    public short Lap5Time { get; set; }
 
-    public float Lap6Time { get; set; }
+    public short Lap6Time { get; set; }
 
-    public float Lap7Time { get; set; }
+    public short Lap7Time { get; set; }
 
-    public float Lap8Time { get; set; }
+    public short Lap8Time { get; set; }
 
-    public float Lap9Time { get; set; }
+    public short Lap9Time { get; set; }
 
-    public float Lap10Time { get; set; }
+    public short Lap10Time { get; set; }
 
     public override void SetEntity(WoodtipTraining race)
     {

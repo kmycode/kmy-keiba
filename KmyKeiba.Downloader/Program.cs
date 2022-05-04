@@ -43,13 +43,13 @@ namespace KmyKeiba.Downloader
         await loader.LoadAsync(JVLinkObject.Central,
           // JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
           // JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
-          JVLinkDataspec.Wood,
-          JVLinkOpenOption.Normal,
+          JVLinkDataspec.Wood | JVLinkDataspec.Slop,
+          JVLinkOpenOption.Setup,
           raceKey: null,
-          startTime: new DateTime(2010, 1, 1),
-          endTime: new DateTime(2022 + 1, 1, 1),
+          startTime: new DateTime(2011, 1, 1),
+          endTime: new DateTime(2014 + 1, 1, 1),
           // loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "JC", "HC", "HR", });
-          loadSpecs: new string[] { "WC", "UM", });
+          loadSpecs: new string[] { "WC", "HC", });
         Console.WriteLine();
         Console.WriteLine();
         break;

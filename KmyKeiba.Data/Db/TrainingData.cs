@@ -19,13 +19,13 @@ namespace KmyKeiba.Data.Db
 
     public DateTime StartTime { get; set; }
 
-    public float FirstLapTime { get; set; }
+    public short FirstLapTime { get; set; }
 
-    public float SecondLapTime { get; set; }
+    public short SecondLapTime { get; set; }
 
-    public float ThirdLapTime { get; set; }
+    public short ThirdLapTime { get; set; }
 
-    public float FourthLapTime { get; set; }
+    public short FourthLapTime { get; set; }
 
     public override void SetEntity(Training race)
     {

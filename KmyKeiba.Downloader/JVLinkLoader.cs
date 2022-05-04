@@ -490,10 +490,10 @@ namespace KmyKeiba.Downloader
               var o = odds.Odds.FirstOrDefault((oo) => oo.HorseNumber == horse.Number);
               if (o.HorseNumber != default)
               {
-                horse.Odds = o.Odds;
+                horse.Odds = (short)o.Odds;
                 horse.Popular = o.Popular;
-                horse.PlaceOddsMax = o.PlaceOddsMax;
-                horse.PlaceOddsMin = o.PlaceOddsMin;
+                horse.PlaceOddsMax = (short)o.PlaceOddsMax;
+                horse.PlaceOddsMin = (short)o.PlaceOddsMin;
               }
             }
 
