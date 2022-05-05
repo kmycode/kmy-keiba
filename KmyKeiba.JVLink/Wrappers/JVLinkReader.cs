@@ -378,7 +378,7 @@ namespace KmyKeiba.JVLink.Wrappers
     {
       try
       {
-        if (this.ReadedEntityCount > 0)
+        // if (this.ReadedEntityCount > 0)
         {
           this.link.Close();
         }

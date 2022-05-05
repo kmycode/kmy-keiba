@@ -182,31 +182,25 @@ namespace KmyKeiba.Downloader
 
           if (option != JVLinkOpenOption.RealTime)
           {
-            using (var reader = link.StartRead(dataspec,
-              option,
-              this.StartTime.Value,
-              this.IsSetEndTime.Value ? this.EndTime.Value : null))
-            {
-              await this.LoadAsync(reader, loadSpecs, true, false);
-            }
+            var reader = link.StartRead(dataspec,
+               option,
+               this.StartTime.Value,
+               this.IsSetEndTime.Value ? this.EndTime.Value : null);
+            await this.LoadAsync(reader, loadSpecs, true, false, isDisposeReader: true);
           }
           else
           {
             if (raceKey == null)
             {
-              using (var reader = link.StartRead(dataspec,
-                JVLinkOpenOption.RealTime, DateTime.Today))
-              {
-                await this.LoadAsync(reader, loadSpecs, false, true);
-              }
+              var reader = link.StartRead(dataspec,
+                 JVLinkOpenOption.RealTime, DateTime.Today);
+              await this.LoadAsync(reader, loadSpecs, false, true, isDisposeReader: true);
             }
             else
             {
-              using (var reader = link.StartRead(dataspec,
-                JVLinkOpenOption.RealTime, raceKey))
-              {
-                await this.LoadAsync(reader, loadSpecs, false, true);
-              }
+              var reader = link.StartRead(dataspec,
+                  JVLinkOpenOption.RealTime, raceKey);
+              await this.LoadAsync(reader, loadSpecs, false, true, isDisposeReader: true);
             }
           }
 
@@ -259,7 +253,7 @@ namespace KmyKeiba.Downloader
       this.Processed.Value = 0;
     }
 
-    private async Task LoadAsync(IJVLinkReader reader, IEnumerable<string> loadSpecs, bool isProcessing, bool isRealtime)
+    private async Task LoadAsync(IJVLinkReader reader, IEnumerable<string> loadSpecs, bool isProcessing, bool isRealtime, bool isDisposeReader = false)
     {
       this.ResetProgresses();
 
@@ -300,6 +294,12 @@ namespace KmyKeiba.Downloader
         throw new Exception("Load error", ex);
       }
       isLoaded = true;
+
+      if (isDisposeReader)
+      {
+        // EntityFrameworkメソッドの呼び出しでスレッドが変わることがあるので、ここで破棄する
+        reader.Dispose();
+      }
 
       var saved = 0;
       this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + /*data.ExactaOdds.Sum((o) => o.Odds.Count)
