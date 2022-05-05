@@ -16,6 +16,7 @@
   <SolidColorBrush x:Key="BaseBackground" Color="#030303"/>
   <SolidColorBrush x:Key="BaseForeground" Color="#f0f0f0"/>
   <SolidColorBrush x:Key="BaseBorderBrush" Color="#cccccc"/>
+  <SolidColorBrush x:Key="SubForeground" Color="#b0b0b0"/>
 
   <SolidColorBrush x:Key="HoverBackground" Color="#444444"/>
   <SolidColorBrush x:Key="PressedBackground" Color="#9999bb"/>

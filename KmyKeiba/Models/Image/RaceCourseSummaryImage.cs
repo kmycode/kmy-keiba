@@ -97,12 +97,12 @@ namespace KmyKeiba.Models.Image
 
         if (slope == TrackSlope.LargeDownhill)
         {
-          size += size / 2;
+          size *= 2;
           slope = TrackSlope.Downhill;
         }
         else if (slope == TrackSlope.LargeUphill)
         {
-          size += size / 2;
+          size *= 2;
           slope = TrackSlope.Uphill;
         }
         else if (slope == TrackSlope.DownToUphill)

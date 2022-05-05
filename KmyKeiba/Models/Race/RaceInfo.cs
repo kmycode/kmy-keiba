@@ -17,6 +17,8 @@ namespace KmyKeiba.Models.Race
   {
     public RaceData Data { get; }
 
+    public ObservableCollection<RaceCourseDetail> CourseDetails { get; } = new();
+
     public RaceAnalyzer Analyzer => this._analyzer ??= new(this);
     private RaceAnalyzer? _analyzer;
 
@@ -36,6 +38,12 @@ namespace KmyKeiba.Models.Race
     {
       this.Data = race;
       this.Subject = new(race);
+
+      var details = RaceCourses.TryGetCourses(race);
+      foreach (var detail in details)
+      {
+        this.CourseDetails.Add(detail);
+      }
 
       this.ResultMap.Groups = RaceCorner.GetGroupListFromResult(horses.Select(h => h.Data));
       this.CourseSummaryImage.Race = race;

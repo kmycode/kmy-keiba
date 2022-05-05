@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.JVLink.Entities
 {
-  public class RaceCourseInfo
+  public class RaceCourseDetail
   {
     public string Name
     {
@@ -53,7 +53,7 @@ namespace KmyKeiba.JVLink.Entities
 
   public static class RaceCourses
   {
-    public static IReadOnlyList<RaceCourseInfo> TryGetCourses(RaceData race)
+    public static IReadOnlyList<RaceCourseDetail> TryGetCourses(RaceData race)
     {
       var list = Courses.Where(c => c.Course == race.Course);
       list = list.Where(c => string.IsNullOrEmpty(c.CourseName) || c.CourseName == race.CourseType);
@@ -71,7 +71,7 @@ namespace KmyKeiba.JVLink.Entities
       return list.ToArray();
     }
 
-    public static IReadOnlyList<RaceCourseInfo> Courses { get; } = new List<RaceCourseInfo>
+    public static IReadOnlyList<RaceCourseDetail> Courses { get; } = new List<RaceCourseDetail>
     {
       new()
       {
