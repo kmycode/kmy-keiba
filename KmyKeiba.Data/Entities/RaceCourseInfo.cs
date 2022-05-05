@@ -152,34 +152,40 @@ namespace KmyKeiba.JVLink.Entities
       new()
       {
         Course = RaceCourse.Niigata, Ground = TrackGround.Turf, CourseName = "A",
-        Length = 1623, LastStraightLineLength = 358, Option = TrackOption.Inside,
+        Length = 1623, LastStraightLineLength = 358, Option = TrackOption.Inside, Direction = TrackCornerDirection.Left,
         Corner3Slope = TrackSlope.Uphill, Corner2Slope = TrackSlope.Downhill,
       },
       new()
       {
         Course = RaceCourse.Niigata, Ground = TrackGround.Turf, CourseName = "A",
-        Length = 2223, LastStraightLineLength = 658, Option = TrackOption.Outside,
+        Length = 2223, LastStraightLineLength = 658, Option = TrackOption.Outside, Direction = TrackCornerDirection.Left,
         Corner4Slope = TrackSlope.Uphill, Corner3Slope = TrackSlope.Uphill,
         Corner23LineSlope = TrackSlope.Downhill, Corner2Slope = TrackSlope.Downhill,
       },
       new()
       {
         Course = RaceCourse.Niigata, Ground = TrackGround.Turf, CourseName = "B",
-        Length = 1648, LastStraightLineLength = 358, Option = TrackOption.Inside,
+        Length = 1648, LastStraightLineLength = 358, Option = TrackOption.Inside, Direction = TrackCornerDirection.Left,
         Corner3Slope = TrackSlope.Uphill, Corner2Slope = TrackSlope.Downhill,
       },
       new()
       {
         Course = RaceCourse.Niigata, Ground = TrackGround.Turf, CourseName = "B",
-        Length = 2248, LastStraightLineLength = 658, Option = TrackOption.Outside,
+        Length = 2248, LastStraightLineLength = 658, Option = TrackOption.Outside, Direction = TrackCornerDirection.Left,
         Corner4Slope = TrackSlope.Uphill, Corner3Slope = TrackSlope.Uphill,
         Corner23LineSlope = TrackSlope.Downhill, Corner2Slope = TrackSlope.Downhill,
       },
       new()
       {
         Course = RaceCourse.Niigata, Ground = TrackGround.Dirt,
-        Length = 1472, LastStraightLineLength = 353,
+        Length = 1472, LastStraightLineLength = 353, Direction = TrackCornerDirection.Left,
         Corner3Slope = TrackSlope.Uphill, Corner2Slope = TrackSlope.Downhill,
+      },
+      new()
+      {
+        Course = RaceCourse.Niigata, Ground = TrackGround.Turf,
+        Length = 1000, LastStraightLineLength = 1000, Direction = TrackCornerDirection.Straight,
+        LastLineSlope = TrackSlope.UpToDownhill,
       },
       new()
       {

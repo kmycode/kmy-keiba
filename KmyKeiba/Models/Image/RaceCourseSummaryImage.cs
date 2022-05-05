@@ -142,9 +142,9 @@ namespace KmyKeiba.Models.Image
 
         return pos switch
         {
-          CoursePosition.Corner2 => (x + height / 2 * sq, y + height / 2 * sq),
-          CoursePosition.Corner1 => (x + height / 2 * sq, y + height - (height / 2 * sq)),
-          CoursePosition.Corner3 => (x + width - (height / 2 * sq), y + height / 2 * sq),
+          CoursePosition.Corner2 => (x + height / 2 * sq, y + height / 2 * 0.3f),
+          CoursePosition.Corner1 => (x + height / 2 * sq, y + height - (height / 2 * 0.3f)),
+          CoursePosition.Corner3 => (x + width - (height / 2 * sq), y + height / 2 * 0.3f),
           CoursePosition.Corner4 => (x + width - (height / 2 * sq), y + height - (height / 2 * sq)),
           CoursePosition.First => (x + width / 2, strokeWidth),
           CoursePosition.LastLine => (x + width / 2, height - strokeWidth),
@@ -188,38 +188,54 @@ namespace KmyKeiba.Models.Image
         }
       }
 
-      DrawTrack(0, 0, this.Width, this.Height, outTrack);
-
-      // 坂を描画
       var courseInfos = RaceCourses.TryGetCourses(this.Race);
-      if (courseInfos.Any())
+      if (this.Race.TrackCornerDirection != TrackCornerDirection.Straight)
       {
-        var info = courseInfos.FirstOrDefault(c => inTrack == null || (c.Option == TrackOption.Outside || c.Option == TrackOption.Unknown));
-        if (info != null)
-        {
-          DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.Corner1, info.Corner1Slope);
-          DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.Corner2, info.Corner2Slope);
-          DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.Corner3, info.Corner3Slope);
-          DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.Corner4, info.Corner4Slope);
-          DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.First, info.Corner23LineSlope);
-          DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.LastLine, info.LastLineSlope);
-        }
-      }
+        DrawTrack(0, 0, this.Width, this.Height, outTrack);
 
-      // 外と内を両方使う場合、内側のトラック
-      if (inTrack != null)
-      {
-        DrawTrack(20, 20, this.Width - 40, this.Height - 40, inTrack);
+        // 坂を描画
         if (courseInfos.Any())
         {
-          var info = courseInfos.FirstOrDefault(c => c.Option == TrackOption.Inside);
+          var info = courseInfos.FirstOrDefault(c => inTrack == null || (c.Option == TrackOption.Outside || c.Option == TrackOption.Unknown));
           if (info != null)
           {
-            DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.Corner1, info.Corner1Slope);
-            DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.Corner2, info.Corner2Slope);
-            DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.Corner3, info.Corner3Slope);
-            DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.Corner4, info.Corner4Slope);
-            DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.First, info.Corner23LineSlope);
+            DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.Corner1, info.Corner1Slope);
+            DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.Corner2, info.Corner2Slope);
+            DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.Corner3, info.Corner3Slope);
+            DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.Corner4, info.Corner4Slope);
+            DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.First, info.Corner23LineSlope);
+            DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.LastLine, info.LastLineSlope);
+          }
+        }
+
+        // 外と内を両方使う場合、内側のトラック
+        if (inTrack != null)
+        {
+          DrawTrack(20, 20, this.Width - 40, this.Height - 40, inTrack);
+          if (courseInfos.Any())
+          {
+            var info = courseInfos.FirstOrDefault(c => c.Option == TrackOption.Inside);
+            if (info != null)
+            {
+              DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.Corner1, info.Corner1Slope);
+              DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.Corner2, info.Corner2Slope);
+              DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.Corner3, info.Corner3Slope);
+              DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.Corner4, info.Corner4Slope);
+              DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.First, info.Corner23LineSlope);
+              DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.LastLine, info.LastLineSlope);
+            }
+          }
+        }
+      }
+      else
+      {
+        // 直線レース
+        canvas.DrawLine(0, this.Height - strokeWidth / 2, this.Width, this.Height - strokeWidth / 2, outTrack);
+        if (courseInfos.Any())
+        {
+          var info = courseInfos.FirstOrDefault(c => c.Direction == TrackCornerDirection.Straight);
+          if (info != null)
+          {
             DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.LastLine, info.LastLineSlope);
           }
         }
