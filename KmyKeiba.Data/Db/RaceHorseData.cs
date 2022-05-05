@@ -160,11 +160,6 @@ namespace KmyKeiba.Data.Db
     public RunningStyle RunningStyle { get; set; }
 
     /// <summary>
-    /// 独自に計算した脚質
-    /// </summary>
-    public RunningStyle CalcedRunningStyle { get; set; }
-
-    /// <summary>
     /// 勝負服の模様
     /// </summary>
     [StringLength(120)]
@@ -174,7 +169,7 @@ namespace KmyKeiba.Data.Db
     /// 勝負服の画像
     /// </summary>
     [MaxLength(8000), Column(TypeName = "VARBINARY(8000)")]
-    public byte[] UniformFormatData { get; set; } = new byte[0];
+    public byte[] UniformFormatData { get; set; } = Array.Empty<byte>();
 
     public override void SetEntity(RaceHorse entity)
     {

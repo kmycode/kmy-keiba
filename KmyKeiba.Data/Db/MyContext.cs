@@ -11,6 +11,8 @@ namespace KmyKeiba.Data.Db
   {
     public DbSet<SystemData>? SystemData { get; set; }
 
+    #region Data
+
     public DbSet<RaceData>? Races { get; set; }
 
     public DbSet<RaceHorseData>? RaceHorses { get; set; }
@@ -40,6 +42,14 @@ namespace KmyKeiba.Data.Db
     public DbSet<TrainingData>? Trainings { get; set; }
 
     public DbSet<WoodtipTrainingData>? WoodtipTrainings { get; set; }
+
+    #endregion
+
+    #region Analysis
+
+    public DbSet<RaceHorseAnalysisData>? RaceHorseAnalysis { get; set; }
+
+    #endregion
 
     protected string ConnectionString { get; set; } = string.Empty;
 

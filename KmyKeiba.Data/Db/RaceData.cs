@@ -114,8 +114,6 @@ namespace KmyKeiba.Data.Db
       this.TrackCornerDirection = race.TrackCornerDirection;
       this.TrackType = race.TrackType;
       this.TrackOption = race.TrackOption;
-      this.TrackWeather = race.TrackWeather;
-      this.TrackCondition = race.TrackCondition;
       this.Distance = race.Distance;
       this.CourseRaceNumber = race.CourseRaceNumber;
       this.HorsesCount = race.HorsesCount;
@@ -136,6 +134,16 @@ namespace KmyKeiba.Data.Db
       this.Corner4Position = race.Corner4Position;
       this.Corner4Number = race.Corner4Number;
       this.Corner4LapTime = race.Corner4LapTime;
+
+      // NVLink（地方競馬）でRealTimeデータを取得するときに欠損していることがある
+      if (race.TrackWeather != RaceCourseWeather.Unknown)
+      {
+        this.TrackWeather = race.TrackWeather;
+      }
+      if (race.TrackCondition != RaceCourseCondition.Unknown)
+      {
+        this.TrackCondition = race.TrackCondition;
+      }
 
       this.Grade = race.Subject.Grade;
       foreach (var sub in race.Subject.AgeSubjects)

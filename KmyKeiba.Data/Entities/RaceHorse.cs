@@ -362,5 +362,10 @@ namespace KmyKeiba.JVLink.Entities
     /// 追込
     /// </summary>
     SaveRunner = 4,
+
+    /// <summary>
+    /// 不明（追い込み失敗、型なし）（独自分析用の値）
+    /// </summary>
+    NotClear = 101,
   }
 }
