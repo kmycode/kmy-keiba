@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Data.Wrappers;
+﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Data.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,10 +53,10 @@ namespace KmyKeiba.JVLink.Entities
 
   public static class RaceCourses
   {
-    public static IReadOnlyList<RaceCourseInfo> TryGetCourses(Race race)
+    public static IReadOnlyList<RaceCourseInfo> TryGetCourses(RaceData race)
     {
       var list = Courses.Where(c => c.Course == race.Course);
-      list = list.Where(c => string.IsNullOrEmpty(c.CourseName) || c.CourseName == race.CourseName);
+      list = list.Where(c => string.IsNullOrEmpty(c.CourseName) || c.CourseName == race.CourseType);
       list = list.Where(c => c.Direction == TrackCornerDirection.Unknown || c.Direction == race.TrackCornerDirection);
       list = list.Where(c => c.StartUsingDate == null || c.StartUsingDate <= race.StartTime);
       list = list.Where(c => c.EndUsingDate == null || c.EndUsingDate > race.StartTime);

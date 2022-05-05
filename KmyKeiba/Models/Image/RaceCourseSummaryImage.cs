@@ -53,6 +53,10 @@ namespace KmyKeiba.Models.Image
         ?? new SKColor(16, 16, 16);
       var subTextColor = ResourceUtil.TryGetResource<RHColor>("SubTextColor")?.ToSKColor()
         ?? new SKColor(99, 99, 99);
+      var uphillColor = ResourceUtil.TryGetResource<RHColor>("UphillColor")?.ToSKColor()
+        ?? SKColors.Red;
+      var downhillColor = ResourceUtil.TryGetResource<RHColor>("DownhillColor")?.ToSKColor()
+        ?? SKColors.Blue;
 
       var strokeWidth = 8;
       var turf = new SKPaint
@@ -64,6 +68,14 @@ namespace KmyKeiba.Models.Image
       var dirt = turf.Clone();
       dirt.Color = dirtColor;
 
+      var slopUp = new SKPaint
+      {
+        IsStroke = false,
+        Color = uphillColor,
+      };
+      var slopDown = slopUp.Clone();
+      slopDown.Color = downhillColor;
+
       void DrawTrack(float x, float y, float width, float height, SKPaint paint)
       {
         canvas.DrawArc(new SKRect(x + strokeWidth, y + strokeWidth, x + height - strokeWidth, y + height - strokeWidth),
@@ -72,6 +84,78 @@ namespace KmyKeiba.Models.Image
                        270, 180, false, paint);
         canvas.DrawLine(x + height / 2, y + strokeWidth, x + width - height / 2, y + strokeWidth, paint);
         canvas.DrawLine(x + height / 2, y + height - strokeWidth, x + width - height / 2, y + height - strokeWidth, paint);
+      }
+
+      void DrawSlop(float x, float y, TrackSlope slope)
+      {
+        if (slope == TrackSlope.Flat)
+        {
+          return;
+        }
+
+        var size = 20;
+
+        if (slope == TrackSlope.LargeDownhill)
+        {
+          size += size / 2;
+          slope = TrackSlope.Downhill;
+        }
+        else if (slope == TrackSlope.LargeUphill)
+        {
+          size += size / 2;
+          slope = TrackSlope.Uphill;
+        }
+        else if (slope == TrackSlope.DownToUphill)
+        {
+          DrawSlop(x - size / 2, y, TrackSlope.Downhill);
+          DrawSlop(x + size / 2, y, TrackSlope.Uphill);
+          return;
+        }
+        else if (slope == TrackSlope.UpToDownhill)
+        {
+          DrawSlop(x - size / 2, y, TrackSlope.Uphill);
+          DrawSlop(x + size / 2, y, TrackSlope.Downhill);
+          return;
+        }
+
+        var path = new SKPath();
+        if (slope == TrackSlope.Uphill)
+        {
+          path.MoveTo(x, y - size / 2);
+          path.LineTo(x + size / 2, y + size / 2);
+          path.LineTo(x - size / 2, y + size / 2);
+          path.LineTo(x, y - size / 2);
+        }
+        else
+        {
+          path.MoveTo(x, y + size / 2);
+          path.LineTo(x + size / 2, y - size / 2);
+          path.LineTo(x - size / 2, y - size / 2);
+          path.LineTo(x, y + size / 2);
+        }
+        canvas.DrawPath(path, slope == TrackSlope.Uphill ? slopUp : slopDown);
+      }
+
+      (float x, float y) CalcSlopPosition(float x, float y, float width, float height, CoursePosition pos)
+      {
+        var sq = (float)(1 - MathF.Sqrt(2) / 2);
+
+        return pos switch
+        {
+          CoursePosition.Corner2 => (x + height / 2 * sq, y + height / 2 * sq),
+          CoursePosition.Corner1 => (x + height / 2 * sq, y + height - (height / 2 * sq)),
+          CoursePosition.Corner3 => (x + width - (height / 2 * sq), y + height / 2 * sq),
+          CoursePosition.Corner4 => (x + width - (height / 2 * sq), y + height - (height / 2 * sq)),
+          CoursePosition.First => (x + width / 2, strokeWidth),
+          CoursePosition.LastLine => (x + width / 2, height - strokeWidth),
+          _ => default,
+        };
+      }
+
+      void DrawSlopWithPosition(float x, float y, float width, float height, CoursePosition pos, TrackSlope slope)
+      {
+        var point = CalcSlopPosition(x, y, width, height, pos);
+        DrawSlop(point.x, point.y, slope);
       }
 
       SKPaint? outTrack, inTrack;
@@ -106,10 +190,39 @@ namespace KmyKeiba.Models.Image
 
       DrawTrack(0, 0, this.Width, this.Height, outTrack);
 
+      // 坂を描画
+      var courseInfos = RaceCourses.TryGetCourses(this.Race);
+      if (courseInfos.Any())
+      {
+        var info = courseInfos.FirstOrDefault(c => inTrack == null || (c.Option == TrackOption.Outside || c.Option == TrackOption.Unknown));
+        if (info != null)
+        {
+          DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.Corner1, info.Corner1Slope);
+          DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.Corner2, info.Corner2Slope);
+          DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.Corner3, info.Corner3Slope);
+          DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.Corner4, info.Corner4Slope);
+          DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.First, info.Corner23LineSlope);
+          DrawSlopWithPosition(0, 0, this.Width, this.Height, CoursePosition.LastLine, info.LastLineSlope);
+        }
+      }
+
       // 外と内を両方使う場合、内側のトラック
       if (inTrack != null)
       {
         DrawTrack(20, 20, this.Width - 40, this.Height - 40, inTrack);
+        if (courseInfos.Any())
+        {
+          var info = courseInfos.FirstOrDefault(c => c.Option == TrackOption.Inside);
+          if (info != null)
+          {
+            DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.Corner1, info.Corner1Slope);
+            DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.Corner2, info.Corner2Slope);
+            DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.Corner3, info.Corner3Slope);
+            DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.Corner4, info.Corner4Slope);
+            DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.First, info.Corner23LineSlope);
+            DrawSlopWithPosition(20, 20, this.Width - 40, this.Height - 40, CoursePosition.LastLine, info.LastLineSlope);
+          }
+        }
       }
 
       // レースの長さを描画
