@@ -37,7 +37,7 @@ namespace KmyKeiba.Downloader
     private static async Task LoadAsync(JVLinkLoader loader)
     {
       // 2005  2011-
-      for (var year = 2018; year <= 2022; year++)
+      for (var year = 2017; year <= 2022; year++)
       {
         Console.WriteLine($"{year} 年");
         await loader.LoadAsync(JVLinkObject.Central,
@@ -46,13 +46,12 @@ namespace KmyKeiba.Downloader
           JVLinkDataspec.Wood | JVLinkDataspec.Slop,
           JVLinkOpenOption.Setup,
           raceKey: null,
-          startTime: new DateTime(2011, 1, 1),
-          endTime: new DateTime(2014 + 1, 1, 1),
+          startTime: new DateTime(year, 1, 1),
+          endTime: new DateTime(year + 1, 1, 1),
           // loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "JC", "HC", "HR", });
           loadSpecs: new string[] { "WC", "HC", });
         Console.WriteLine();
         Console.WriteLine();
-        break;
       }
 
 

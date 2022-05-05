@@ -1,0 +1,60 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Controls.RaceResultAllView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:b="clr-namespace:KmyKeiba.Behaviors"
+             xmlns:uc="clr-namespace:KmyKeiba.Views.Controls"
+             xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
+             xmlns:local="clr-namespace:KmyKeiba.Views.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Name="Root">
+  <Grid Grid.Column="1" Margin="8,0,0,0">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto"/>
+      <RowDefinition/>
+    </Grid.RowDefinitions>
+
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+      </Grid.ColumnDefinitions>
+      <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                       Content="着順" Name="S_RaceResultOrderList"/>
+      <RadioButton Grid.Column="1" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                       Content="レース傾向" Name="S_RaceResultTrend"/>
+      <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                       Content="展開" Name="S_RaceResultSituation"/>
+    </Grid>
+
+    <ScrollViewer Grid.Row="1">
+
+      <!-- 展開 -->
+      <StackPanel Margin="0,8,4,8" Visibility="{Binding IsChecked,ElementName=S_RaceResultSituation,Converter={StaticResource BooleanVisibilityConv}}">
+        <!--<cef:ChromiumWebBrowser x:Name="Browser" Address="https://google.co.jp"/>-->
+        <ItemsControl ItemsSource="{Binding Race.Corners,ElementName=Root}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <uc:RaceCornerView RaceCorner="{Binding}"/>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock Text="結果" FontSize="26" Margin="0,32,0,0"/>
+        <skia:SKElement>
+          <i:Interaction.Behaviors>
+            <b:DisplayImageBehavior Image="{Binding Race.ResultMap,ElementName=Root}"/>
+          </i:Interaction.Behaviors>
+        </skia:SKElement>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

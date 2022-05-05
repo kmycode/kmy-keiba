@@ -10,6 +10,9 @@
     <Compile Update="Views\Controls\RaceCornerView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Controls\RaceResultAllView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Controls\RaceView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -31,6 +34,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Controls\RaceCornerView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Controls\RaceResultAllView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Controls\RaceView.xaml">

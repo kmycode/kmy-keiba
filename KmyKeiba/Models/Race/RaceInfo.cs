@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +15,10 @@ namespace KmyKeiba.Models.Race
 {
   public class RaceInfo
   {
-    public RaceData? Data { get; }
+    public RaceData Data { get; }
+
+    public RaceAnalyzer Analyzer => this._analyzer ??= new(this);
+    private RaceAnalyzer? _analyzer;
 
     public ObservableCollection<RaceHorseInfo> Horses { get; } = new();
 
@@ -46,7 +50,12 @@ namespace KmyKeiba.Models.Race
         return null;
       }
 
-      var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == key).ToArrayAsync();
+      return await FromDataAsync(db, race);
+    }
+
+    public static async Task<RaceInfo> FromDataAsync(MyContext db, RaceData race)
+    {
+      var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == race.Key).ToArrayAsync();
 
       var horseInfos = new List<RaceHorseInfo>();
       foreach (var horse in horses)

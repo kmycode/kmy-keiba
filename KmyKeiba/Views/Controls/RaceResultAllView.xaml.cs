@@ -17,15 +17,15 @@ using System.Windows.Shapes;
 namespace KmyKeiba.Views.Controls
 {
   /// <summary>
-  /// RaceView.xaml の相互作用ロジック
+  /// RaceResultAllView.xaml の相互作用ロジック
   /// </summary>
-  public partial class RaceView : UserControl
+  public partial class RaceResultAllView : UserControl
   {
     public static readonly DependencyProperty RaceProperty
     = DependencyProperty.Register(
         nameof(Race),
         typeof(RaceInfo),
-        typeof(RaceView),
+        typeof(RaceResultAllView),
         new PropertyMetadata(null));
 
     public RaceInfo? Race
@@ -34,11 +34,9 @@ namespace KmyKeiba.Views.Controls
       set { SetValue(RaceProperty, value); }
     }
 
-    public Guid UniqueId { get; } = Guid.NewGuid();
+    public Guid UniqueId3 { get; } = Guid.NewGuid();
 
-    public Guid UniqueId2 { get; } = Guid.NewGuid();
-
-    public RaceView()
+    public RaceResultAllView()
     {
       InitializeComponent();
     }

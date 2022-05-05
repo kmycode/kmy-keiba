@@ -15,6 +15,11 @@
   <SolidColorBrush x:Key="PressedBackground" Color="#9999bb"/>
   <SolidColorBrush x:Key="CheckedBackground" Color="#8888de"/>
 
+  <SolidColorBrush x:Key="TabBarBackground" Color="#aaaadd"/>
+  <SolidColorBrush x:Key="TabBarHoverBackground" Color="#444444"/>
+  <SolidColorBrush x:Key="TabBarPressedBackground" Color="#9999cc"/>
+  <SolidColorBrush x:Key="TabBarCheckedBackground" Color="#666699"/>
+
   <SolidColorBrush x:Key="RaceNumberBackground" Color="#222266"/>
   <SolidColorBrush x:Key="RaceNumberForeground" Color="#c0c0ff"/>
 
