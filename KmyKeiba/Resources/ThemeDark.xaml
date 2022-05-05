@@ -1,11 +1,15 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:u="clr-namespace:KmyKeiba.Common">
+  <u:RHColor x:Key="BaseTextColor" Red="248" Green="248" Blue="248"/>
+  <u:RHColor x:Key="SubTextColor" Red="128" Green="128" Blue="128"/>
   <u:RHColor x:Key="HorseNumberPlateBackground" Red="148" Green="148" Blue="66"/>
   <u:RHColor x:Key="HorseNumberPlateBorder" Red="240" Green="240" Blue="240"/>
   <u:RHColor x:Key="HorseNumberPlateItemBackground" Red="200" Green="200" Blue="200"/>
   <u:RHColor x:Key="HorseNumberPlateItemBorder" Red="0" Green="0" Blue="0"/>
   <u:RHColor x:Key="HorseNumberPlateItemForeground" Red="0" Green="0" Blue="0"/>
+  <u:RHColor x:Key="TurfColor" Red="0" Green="128" Blue="0"/>
+  <u:RHColor x:Key="DirtColor" Red="132" Green="132" Blue="0"/>
 
   <SolidColorBrush x:Key="BaseBackground" Color="#030303"/>
   <SolidColorBrush x:Key="BaseForeground" Color="#f0f0f0"/>

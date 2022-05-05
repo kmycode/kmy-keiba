@@ -26,6 +26,8 @@ namespace KmyKeiba.Models.Race
 
     public RaceHorsePassingOrderImage ResultMap { get; } = new();
 
+    public RaceCourseSummaryImage CourseSummaryImage { get; } = new();
+
     public RaceSubjectInfo Subject { get; }
 
     public string Name => this.Subject.DisplayName;
@@ -34,7 +36,9 @@ namespace KmyKeiba.Models.Race
     {
       this.Data = race;
       this.Subject = new(race);
+
       this.ResultMap.Groups = RaceCorner.GetGroupListFromResult(horses.Select(h => h.Data));
+      this.CourseSummaryImage.Race = race;
 
       foreach (var horse in horses.OrderBy(h => h.Data.Number))
       {

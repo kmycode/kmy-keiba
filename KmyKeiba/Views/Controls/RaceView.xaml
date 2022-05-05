@@ -65,6 +65,18 @@
       </Grid.Resources>
 
       <StackPanel Grid.Column="0" Width="200" Orientation="Vertical">
+        <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Summary">
+          概要
+          <ToggleButton.Style>
+            <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource LargeToggleButtonDefault}">
+              <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                  <Setter Property="Background" Value="#271"/>
+                </Trigger>
+              </Style.Triggers>
+            </Style>
+          </ToggleButton.Style>
+        </RadioButton>
         <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Predict">
           予想
           <ToggleButton.Style>
@@ -107,6 +119,15 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
       </StackPanel>
+
+      <!-- レース概要 -->
+      <uc:RaceSummaryView Race="{Binding Race,ElementName=Root}" Grid.Column="1">
+        <Control.Visibility>
+          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+            <Binding Path="IsChecked" ElementName="S_Summary"/>
+          </MultiBinding>
+        </Control.Visibility>
+      </uc:RaceSummaryView>
 
       <!-- 結果・全体 -->
       <uc:RaceResultAllView Race="{Binding Race,ElementName=Root}" Grid.Column="1">
