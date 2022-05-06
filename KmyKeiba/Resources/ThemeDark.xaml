@@ -18,9 +18,11 @@
   <SolidColorBrush x:Key="BaseBorderBrush" Color="#cccccc"/>
   <SolidColorBrush x:Key="SubForeground" Color="#b0b0b0"/>
 
+  <SolidColorBrush x:Key="ClickableBackground" Color="#202020"/>
   <SolidColorBrush x:Key="HoverBackground" Color="#444444"/>
   <SolidColorBrush x:Key="PressedBackground" Color="#9999bb"/>
   <SolidColorBrush x:Key="CheckedBackground" Color="#8888de"/>
+  <SolidColorBrush x:Key="DisabledBackground" Color="#3333cc"/>
 
   <SolidColorBrush x:Key="TabBarBackground" Color="#aaaadd"/>
   <SolidColorBrush x:Key="TabBarHoverBackground" Color="#444444"/>

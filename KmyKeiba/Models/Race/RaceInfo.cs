@@ -22,6 +22,8 @@ namespace KmyKeiba.Models.Race
     public RaceAnalyzer Analyzer => this._analyzer ??= new(this);
     private RaceAnalyzer? _analyzer;
 
+    public RaceTrendAnalysisOperator TrendAnalyzers { get; }
+
     public ObservableCollection<RaceHorseInfo> Horses { get; } = new();
 
     public ObservableCollection<RaceCorner> Corners { get; } = new();
@@ -44,6 +46,8 @@ namespace KmyKeiba.Models.Race
       {
         this.CourseDetails.Add(detail);
       }
+
+      this.TrendAnalyzers = new RaceTrendAnalysisOperator(race);
 
       this.ResultMap.Groups = RaceCorner.GetGroupListFromResult(horses.Select(h => h.Data));
       this.CourseSummaryImage.Race = race;

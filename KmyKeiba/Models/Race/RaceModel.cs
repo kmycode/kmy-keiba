@@ -1,32 +1,52 @@
 ﻿using KmyKeiba.Models.Data;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race
 {
-  internal class RaceModel
+  internal class RaceModel : IDisposable
   {
     private const string defaultRaceKey = "2020032807010710";
+    private readonly MyContext _db = new();
+    private readonly CompositeDisposable _disposables = new();
 
-    public readonly ReactiveProperty<string> RaceKey = new(string.Empty);
+    public ReactiveProperty<string> RaceKey { get; } = new(string.Empty);
 
-    public readonly ReactiveProperty<RaceInfo?> Info = new();
+    public ReactiveProperty<RaceInfo?> Info { get; } = new();
+
+    public ReactiveProperty<bool> IsLoaded { get; }
 
     public RaceModel()
     {
-      var db = new MyContext();
+      this.IsLoaded = this.Info
+        .Select(i => i != null)
+        .ToReactiveProperty()
+        .AddTo(this._disposables);
 
       this.RaceKey.Value = defaultRaceKey;
 
       Task.Run(async () =>
       {
-        var race = await RaceInfo.FromKeyAsync(db, this.RaceKey.Value);
+        var race = await RaceInfo.FromKeyAsync(this._db, this.RaceKey.Value);
         this.Info.Value = race;
       });
+    }
+
+    public void BeginUpdateRaceTrendAnalysis()
+    {
+      this.Info.Value?.TrendAnalyzers.BeginLoad(this._db);
+    }
+
+    public void Dispose()
+    {
+      this._disposables.Dispose();
     }
   }
 }

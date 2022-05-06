@@ -65,7 +65,7 @@
       </Grid.Resources>
 
       <StackPanel Grid.Column="0" Width="200" Orientation="Vertical">
-        <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Summary">
+        <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Summary" IsChecked="True">
           概要
           <ToggleButton.Style>
             <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource LargeToggleButtonDefault}">
@@ -103,8 +103,10 @@
         </RadioButton>
 
         <RadioButton FontSize="18" Content="全体" Margin="0,12,0,0" GroupName="{Binding UniqueId,ElementName=Root}"
-                     Style="{StaticResource InnerToggleButtonDefault}" Name="S_All"/>
-        <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}">
+                     Style="{StaticResource InnerToggleButtonDefault}" Name="S_All" IsChecked="True"
+                     Visibility="{Binding IsChecked,ElementName=S_Summary,Converter={StaticResource NegativeVisibilityConv}}"/>
+        <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}"
+                      Visibility="{Binding IsChecked,ElementName=S_Summary,Converter={StaticResource NegativeVisibilityConv}}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <WrapPanel Orientation="Horizontal"/>

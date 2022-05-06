@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace KmyKeiba.ViewModels
 {
@@ -21,6 +22,11 @@ namespace KmyKeiba.ViewModels
       // TODO: いずれModelにうつす
       ThemeUtil.Current = ApplicationTheme.Dark;
     }
+
+    public ICommand UpdateRaceTrendAnalysisCommand =>
+      this._updateRaceTrendAnalysisCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.model.BeginUpdateRaceTrendAnalysis());
+    private ReactiveCommand? _updateRaceTrendAnalysisCommand;
 
     public event PropertyChangedEventHandler? PropertyChanged;
   }
