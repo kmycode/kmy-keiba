@@ -19,6 +19,9 @@
     <Compile Update="Views\Controls\RaceView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Controls\TrendAnalyzerView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Page Update="MainWindow.xaml">
@@ -46,6 +49,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Controls\RaceView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Controls\TrendAnalyzerView.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

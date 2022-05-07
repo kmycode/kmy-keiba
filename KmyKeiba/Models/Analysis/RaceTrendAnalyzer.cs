@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
+using KmyKeiba.Models.Analysis.Generic;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -13,8 +14,17 @@ namespace KmyKeiba.Models.Analysis
   /// <summary>
   /// 過去レースと比較したレースの傾向を解析
   /// </summary>
-  public class RaceTrendAnalyzer
+  public class RaceTrendAnalyzer : TrendAnalyzer<RaceTrendAnalyzer.Key>
   {
+    public enum Key
+    {
+      [Label("スピード")]
+      Speed,
+
+      [Label("脚質")]
+      RunningStyle,
+    }
+
     public RaceData Race { get; }
 
     public IReadOnlyList<RaceData> Source => this._source;
@@ -56,6 +66,7 @@ namespace KmyKeiba.Models.Analysis
     private void Analyze()
     {
       // TODO: 実装
+      this.MenuItemsPrivate.SetValue(Key.Speed, "並み");
     }
   }
 

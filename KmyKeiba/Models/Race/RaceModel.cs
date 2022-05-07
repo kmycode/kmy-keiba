@@ -39,11 +39,6 @@ namespace KmyKeiba.Models.Race
       });
     }
 
-    public void BeginUpdateRaceTrendAnalysis()
-    {
-      this.Info.Value?.TrendAnalyzers.BeginLoad(this._db);
-    }
-
     public void Dispose()
     {
       this._disposables.Dispose();

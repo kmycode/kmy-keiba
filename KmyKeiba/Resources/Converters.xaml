@@ -7,4 +7,5 @@
   <cv:BooleanVisibilityConverter x:Key="BooleanVisibilityConv"/>
   <cv:MultiBooleanConverter x:Key="MultiBooleanConv"/>
   <cv:TrackConverter x:Key="TrackConv"/>
+  <cv:LabelConverter x:Key="LabelConv"/>
 </ResourceDictionary>

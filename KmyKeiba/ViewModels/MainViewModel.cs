@@ -23,10 +23,12 @@ namespace KmyKeiba.ViewModels
       ThemeUtil.Current = ApplicationTheme.Dark;
     }
 
+    /*
     public ICommand UpdateRaceTrendAnalysisCommand =>
       this._updateRaceTrendAnalysisCommand ??=
         new ReactiveCommand().WithSubscribe(() => this.model.BeginUpdateRaceTrendAnalysis());
     private ReactiveCommand? _updateRaceTrendAnalysisCommand;
+    */
 
     public event PropertyChangedEventHandler? PropertyChanged;
   }

@@ -41,61 +41,13 @@
         </Grid.ColumnDefinitions>
 
         <!--左側のサイドメニュー-->
-        <Grid>
-          <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition/>
-          </Grid.RowDefinitions>
-
-          <WrapPanel Orientation="Horizontal" Width="180">
-            <WrapPanel.Resources>
-              <Style TargetType="ToggleButton" BasedOn="{StaticResource ToggleButtonDefault}">
-                <Setter Property="Width" Value="60"/>
-                <Setter Property="Height" Value="30"/>
-                <Setter Property="FontSize" Value="14"/>
-                <Setter Property="Padding" Value="0"/>
-              </Style>
-            </WrapPanel.Resources>
-            <ToggleButton Content="コース" IsChecked="True"/>
-            <ToggleButton Content="馬場状態"/>
-            <ToggleButton Content="レース名"/>
-            <ToggleButton Content="格"/>
-            <ToggleButton Content="時刻"/>
-            <ToggleButton Content="季節"/>
-          </WrapPanel>
-
-          <ScrollViewer Grid.Row="1" Margin="0,8,0,0">
-            <StackPanel>
-              <StackPanel.Resources>
-                <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
-                  <Setter Property="Width" Value="180"/>
-                  <Setter Property="Height" Value="60"/>
-                  <Setter Property="GroupName" Value="{Binding UniqueId4,ElementName=Root}"/>
-                </Style>
-                <Style TargetType="StackPanel" x:Key="ButtonContent">
-                  <Setter Property="Width" Value="160"/>
-                </Style>
-              </StackPanel.Resources>
-              <RadioButton>
-                <StackPanel Style="{StaticResource ButtonContent}">
-                  <TextBlock FontSize="16" Text="スピード"/>
-                  <TextBlock FontSize="24" FontWeight="Bold" Text="並み"/>
-                </StackPanel>
-              </RadioButton>
-              <RadioButton>
-                <StackPanel Style="{StaticResource ButtonContent}">
-                  <TextBlock FontSize="16" Text="脚質"/>
-                  <TextBlock FontSize="24" FontWeight="Bold" Text="並み"/>
-                </StackPanel>
-              </RadioButton>
-            </StackPanel>
-          </ScrollViewer>
-        </Grid>
+        <uc:TrendAnalyzerView Selector="{Binding Race.TrendAnalyzers,ElementName=Root}">
+        </uc:TrendAnalyzerView>
       </Grid>
 
       <!-- 展開 -->
-      <ScrollViewer Margin="0,8,4,8" Visibility="{Binding IsChecked,ElementName=S_RaceResultSituation,Converter={StaticResource BooleanVisibilityConv}}">
-        <StackPanel>
+      <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_RaceResultSituation,Converter={StaticResource BooleanVisibilityConv}}">
+        <StackPanel Margin="0,8,4,8">
           <!--<cef:ChromiumWebBrowser x:Name="Browser" Address="https://google.co.jp"/>-->
           <ItemsControl ItemsSource="{Binding Race.Corners,ElementName=Root}">
             <ItemsControl.ItemsPanel>

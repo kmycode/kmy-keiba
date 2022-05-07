@@ -22,7 +22,7 @@ namespace KmyKeiba.Models.Race
     public RaceAnalyzer Analyzer => this._analyzer ??= new(this);
     private RaceAnalyzer? _analyzer;
 
-    public RaceTrendAnalysisOperator TrendAnalyzers { get; }
+    public RaceTrendAnalysisSelector TrendAnalyzers { get; }
 
     public ObservableCollection<RaceHorseInfo> Horses { get; } = new();
 
@@ -36,7 +36,7 @@ namespace KmyKeiba.Models.Race
 
     public string Name => this.Subject.DisplayName;
 
-    private RaceInfo(RaceData race, IReadOnlyList<RaceHorseInfo> horses)
+    private RaceInfo(MyContext db, RaceData race, IReadOnlyList<RaceHorseInfo> horses)
     {
       this.Data = race;
       this.Subject = new(race);
@@ -47,7 +47,7 @@ namespace KmyKeiba.Models.Race
         this.CourseDetails.Add(detail);
       }
 
-      this.TrendAnalyzers = new RaceTrendAnalysisOperator(race);
+      this.TrendAnalyzers = new RaceTrendAnalysisSelector(db, race);
 
       this.ResultMap.Groups = RaceCorner.GetGroupListFromResult(horses.Select(h => h.Data));
       this.CourseSummaryImage.Race = race;
@@ -79,7 +79,7 @@ namespace KmyKeiba.Models.Race
         horseInfos.Add(await RaceHorseInfo.FromDataAsync(db, horse));
       }
 
-      var info = new RaceInfo(race, horseInfos);
+      var info = new RaceInfo(db, race, horseInfos);
       AddCorner(info.Corners, race.Corner1Result, race.Corner1Number, race.Corner1Position, race.Corner1LapTime);
       AddCorner(info.Corners, race.Corner2Result, race.Corner2Number, race.Corner2Position, race.Corner2LapTime);
       AddCorner(info.Corners, race.Corner3Result, race.Corner3Number, race.Corner3Position, race.Corner3LapTime);
