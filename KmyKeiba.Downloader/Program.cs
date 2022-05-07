@@ -14,11 +14,14 @@ namespace KmyKeiba.Downloader
         using var db = new MyContext();
         db.Database.SetCommandTimeout(1200);
         await db.Database.MigrateAsync();
-
-        // 通常のクエリは３分まで
-        db.Database.SetCommandTimeout(180);
       }).Wait();
 
+      // StartSetPreviousRaceDays();
+      StartLoad();
+    }
+
+    private static void StartLoad()
+    {
       using var loader = new JVLinkLoader();
 
       var isLoaded = false;
@@ -98,5 +101,70 @@ namespace KmyKeiba.Downloader
         endTime: null);
       */
     }
+
+    /*
+    private static void StartSetPreviousRaceDays()
+    {
+      Task.Run(async () => await SetPreviousRaceDays()).Wait();
+    }
+
+    private static async Task SetPreviousRaceDays()
+    {
+      var count = 0;
+
+      using (var db = new MyContext())
+      {
+        // 通常のクエリは３分まで
+        db.Database.SetCommandTimeout(180);
+
+        var allTargets = db.RaceHorses!
+          .Where(rh => rh.PreviousRaceDays == 0)
+          .Where(rh => rh.Key != "0000000000")
+          .GroupBy(rh => rh.Key)
+          .Select(g => g.Key);
+
+        var targets = await allTargets.Take(1000).ToArrayAsync();
+
+        while (targets.Any())
+        {
+          foreach (var horse in targets)
+          {
+            var races = db.RaceHorses!.Where(rh => rh.Key == horse);
+            var beforeRaceDh = DateTime.MinValue;
+            var isFirst = true;
+
+            foreach (var race in races.OrderBy(rh => rh.RaceKey))
+            {
+              var y = race.RaceKey.Substring(0, 4);
+              var m = race.RaceKey.Substring(4, 2);
+              var d = race.RaceKey.Substring(6, 2);
+              int.TryParse(y, out var year);
+              int.TryParse(m, out var month);
+              int.TryParse(d, out var day);
+              var dh = new DateTime(year, month, day);
+
+              if (!isFirst)
+              {
+                race.PreviousRaceDays = (short)(dh - beforeRaceDh).TotalDays;
+              }
+              else
+              {
+                race.PreviousRaceDays = -1;
+                isFirst = false;
+              }
+
+              beforeRaceDh = dh;
+              count++;
+            }
+          }
+
+          await db.SaveChangesAsync();
+          Console.WriteLine($"完了: {count}");
+
+          targets = await allTargets.Take(1000).ToArrayAsync();
+        }
+      }
+    }
+    */
   }
 }
