@@ -35,9 +35,9 @@ namespace KmyKeiba.Models.Analysis
     public IReadOnlyList<LightRaceInfo> Source => this._source;
     private readonly ReactiveCollection<LightRaceInfo> _source = new();
 
-    public ReactiveProperty<bool> IsLoaded { get; } = new();
-
     public StatisticSingleArray SpeedPoints { get; } = new();
+
+    public StatisticDoubleArray SpeedDatePoints { get; private set; } = StatisticDoubleArray.Empty;
 
     public StatisticSingleArray RunningStylePoints { get; } = new();
 
@@ -61,7 +61,14 @@ namespace KmyKeiba.Models.Analysis
 
     private void Analyze(IList<LightRaceInfo> source)
     {
+      var startDate = new DateTime(1980, 1, 1);
+      var datePoints = new StatisticSingleArray
+      {
+        Values = source.Select(s => (s.Data.StartTime.Date - startDate).TotalDays).ToArray(),
+      };
+
       this.SpeedPoints.Values = source.Select(s => s.ResultTimePerMeter).ToArray();
+      this.SpeedDatePoints = new StatisticDoubleArray(this.SpeedPoints, datePoints);
 
       // TODO: 実装
       this.MenuItemsPrivate.AddValues(new[] {
@@ -74,10 +81,12 @@ namespace KmyKeiba.Models.Analysis
       parameters.Add(new(Key.Speed, "平均", this.SpeedPoints.Average.ToString(".0000"), "", AnalysisParameterType.Standard));
       parameters.Add(new(Key.Speed, "中央値", this.SpeedPoints.Median.ToString(".0000"), "", AnalysisParameterType.Standard));
       parameters.Add(new(Key.Speed, "標準偏差", this.SpeedPoints.Deviation.ToString(".0000"), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.Speed, "日付との相関係数", "TODO", "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.Speed, "回帰直線の傾き", "TODO", "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.Speed, "日付との相関係数", this.SpeedDatePoints.CorrelationCoefficient.ToString(".000"), "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.Speed, "回帰直線の傾き", this.SpeedDatePoints.Regressionline.ToString(".00000"), "", AnalysisParameterType.Standard));
 
       this.Parameters.AddRangeOnScheduler(parameters);
+
+      this.IsAnalyzed.Value = true;
     }
 
     public class LightRaceInfo

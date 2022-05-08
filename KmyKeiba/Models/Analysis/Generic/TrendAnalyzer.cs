@@ -15,12 +15,17 @@ namespace KmyKeiba.Models.Analysis.Generic
   public class TrendAnalyzer<KEY> : IDisposable where KEY : Enum, IComparable
   {
     private readonly CompositeDisposable _disposables = new();
+    private readonly List<Action> _postAnalysis = new();
 
     public IList MenuItems => this.MenuItemsPrivate;
 
     protected TrendAnalyzerMenuItemCollection MenuItemsPrivate { get; } = new();
 
     public ReactiveCollection<AnalysisParameter> Parameters { get; } = new();
+
+    public ReactiveProperty<bool> IsLoaded { get; } = new();
+
+    public ReactiveProperty<bool> IsAnalyzed { get; } = new();
 
     protected TrendAnalyzer()
     {
@@ -32,9 +37,34 @@ namespace KmyKeiba.Models.Analysis.Generic
           parameter.IsActive.Value = parameter.Key.Equals(k);
         }
       }).AddTo(this._disposables);
+
+      this.IsAnalyzed.Subscribe(a =>
+      {
+        foreach (var action in this._postAnalysis)
+        {
+          action();
+        }
+        this._postAnalysis.Clear();
+      });
     }
 
-    public void Dispose() => this._disposables.Dispose();
+    public void PostAnalysis(Action action)
+    {
+      if (this.IsAnalyzed.Value)
+      {
+        action();
+      }
+      else
+      {
+        this._postAnalysis.Add(action);
+      }
+    }
+
+    public void Dispose()
+    {
+      this._disposables.Dispose();
+      this._postAnalysis.Clear();
+    }
 
     protected class TrendAnalyzerMenuItem
     {
