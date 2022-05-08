@@ -43,6 +43,8 @@ namespace KmyKeiba.Models.Analysis
 
     public StatisticSingleArray RunningStylePoints { get; } = new();
 
+    public StatisticDoubleArray RunningStyleDatePoints { get; private set; } = StatisticDoubleArray.Empty;
+
     public RaceTrendAnalyzer(RaceData race)
     {
       this.Race = race;
@@ -64,6 +66,8 @@ namespace KmyKeiba.Models.Analysis
 
     private void Analyze(IList<LightRaceInfo> source)
     {
+      var topHorse = this._raceHorses.FirstOrDefault(rh => rh.ResultOrder == 1) ?? new RaceHorseData();
+
       var startDate = new DateTime(1980, 1, 1);
       var datePoints = new StatisticSingleArray
       {
@@ -72,20 +76,30 @@ namespace KmyKeiba.Models.Analysis
 
       this.SpeedPoints.Values = source.Select(s => s.ResultTimePerMeter).ToArray();
       this.SpeedDatePoints = new StatisticDoubleArray(datePoints, this.SpeedPoints);
+      this.RunningStylePoints.Values = source.SelectMany(s => s.RunningStyles).Select(r => (double)r).ToArray();
+      this.RunningStyleDatePoints = new StatisticDoubleArray(datePoints, this.RunningStylePoints);
 
       var raceTime = this._raceHorses.FirstOrDefault(rh => rh.ResultOrder == 1)?.ResultTime ?? TimeSpan.Zero;
-      var speedD = 100 - this.SpeedPoints.CalcDeviationValue((this._raceHorses.FirstOrDefault(rh => rh.ResultOrder == 1)?.ResultTime.TotalSeconds ?? 0.0) / this.Race.Distance);
+      var speedD = 100 - this.SpeedPoints.CalcDeviationValue(topHorse.ResultTime.TotalSeconds) / this.Race.Distance;
 
       var parameters = new List<AnalysisParameter>();
       parameters.Add(new(Key.Speed, "平均", TimeSpan.FromSeconds(this.SpeedPoints.Average * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
       parameters.Add(new(Key.Speed, "中央値", TimeSpan.FromSeconds(this.SpeedPoints.Median * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
       parameters.Add(new(Key.Speed, "標準偏差", TimeSpan.FromSeconds(this.SpeedPoints.Deviation * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
       parameters.Add(new(Key.Speed, "予想タイム", TimeSpan.FromSeconds(this.SpeedDatePoints.CalcRegressionValue((this.Race.StartTime.Date - startDate).TotalDays) * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.RunningStyle, "平均", this.RunningStylePoints.Average.ToString("0.00"), "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.RunningStyle, "中央値", this.RunningStylePoints.Median.ToString("0.00"), "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.RunningStyle, "標準偏差", this.RunningStylePoints.Deviation.ToString("0.00"), "", AnalysisParameterType.Standard));
+
+      var runningStyleDeviation = this.RunningStylePoints.Deviation;
+      var predictRunningStyle = (this.RunningStyleDatePoints.CalcRegressionValue((this.Race.StartTime.Date - startDate).TotalDays) + 0.4999);
+      parameters.Add(new(Key.RunningStyle, "予想脚質", ((RunningStyle)(int)(predictRunningStyle - runningStyleDeviation)).ToLabelString().Substring(0, 1) + "～" +
+                                                      ((RunningStyle)(int)(predictRunningStyle + runningStyleDeviation)).ToLabelString().Substring(0, 1), "", AnalysisParameterType.Standard));
       this.Parameters.AddRangeOnScheduler(parameters);
 
       this.MenuItemsPrivate.AddValues(new[] {
         (Key.Speed, raceTime.ToString("mm\\:ss")),
-        (Key.RunningStyle, "並み"),
+        (Key.RunningStyle, AnalysisUtil.GetRunningStyleInfo(this.Race, topHorse).RunningStyle.ToLabelString()),
       });
 
       this.IsAnalyzed.Value = true;
@@ -101,6 +115,10 @@ namespace KmyKeiba.Models.Analysis
 
       public IReadOnlyList<RaceHorseData> TopHorses { get; }
 
+      public RunningStyle TopRunningStyle { get; }
+
+      public IReadOnlyList<RunningStyle> RunningStyles { get; }
+
       public double ResultTimePerMeter { get; }
 
       public LightRaceInfo(RaceData race, IReadOnlyList<RaceHorseData> topHorses)
@@ -110,6 +128,8 @@ namespace KmyKeiba.Models.Analysis
         this.Data = race;
         this.TopHorses = topHorses;
         this.Subject = new RaceSubjectInfo(race);
+        this.RunningStyles = topHorses.OrderBy(h => h.ResultOrder).Take(3).Select(rh => AnalysisUtil.GetRunningStyleInfo(race, rh).RunningStyle).ToArray();
+        this.TopRunningStyle = this.RunningStyles.FirstOrDefault();
 
         this.ResultTimePerMeter = (float)topHorse.ResultTime.TotalSeconds / race.Distance;
       }

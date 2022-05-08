@@ -19,9 +19,6 @@ namespace KmyKeiba.Models.Race
 
     public ObservableCollection<RaceCourseDetail> CourseDetails { get; } = new();
 
-    public RaceAnalyzer Analyzer => this._analyzer ??= new(this);
-    private RaceAnalyzer? _analyzer;
-
     public RaceTrendAnalysisSelector TrendAnalyzers { get; }
 
     public ObservableCollection<RaceHorseInfo> Horses { get; } = new();

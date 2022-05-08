@@ -87,6 +87,7 @@
               <TextBlock Text="レース名" Width="180"/>
               <TextBlock Text="1着タイム" Width="80"/>
               <TextBlock Text="タイム/m" Width="80"/>
+              <TextBlock Text="1着脚質" Width="80"/>
             </StackPanel>
             <ItemsControl ItemsSource="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.Source,ElementName=Root}">
               <ItemsControl.ItemsPanel>
@@ -102,6 +103,7 @@
                     <Label Content="{Binding Subject.DisplayName}" FontSize="16" FontWeight="Bold" Width="180"/>
                     <Label Content="{Binding TopHorse.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="80"/>
                     <Label Content="{Binding ResultTimePerMeter,Converter={StaticResource StringFormatConv},ConverterParameter=F4}" FontSize="16" Width="80"/>
+                    <Label Content="{Binding TopRunningStyle,Converter={StaticResource RunningStyleConv}}" FontSize="16" Width="80"/>
                   </StackPanel>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
