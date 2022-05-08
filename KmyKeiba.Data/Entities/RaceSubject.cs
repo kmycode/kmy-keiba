@@ -441,13 +441,13 @@ namespace KmyKeiba.JVLink.Entities
     [RaceGradeInfo("E", RaceGradeType.NonGradeSpecial, "特別")]
     NonGradeSpecial = 5,
 
-    [RaceGradeInfo("F", RaceGradeType.Steeplechase, "J1")]
+    [RaceGradeInfo("F", RaceGradeType.Steeplechase, "Jpn1")]
     Steeplechase1 = 6,
 
-    [RaceGradeInfo("G", RaceGradeType.Steeplechase, "J2")]
+    [RaceGradeInfo("G", RaceGradeType.Steeplechase, "Jpn2")]
     Steeplechase2 = 7,
 
-    [RaceGradeInfo("H", RaceGradeType.Steeplechase, "J3")]
+    [RaceGradeInfo("H", RaceGradeType.Steeplechase, "Jpn3")]
     Steeplechase3 = 8,
 
     [RaceGradeInfo("L", RaceGradeType.Listed, "L")]

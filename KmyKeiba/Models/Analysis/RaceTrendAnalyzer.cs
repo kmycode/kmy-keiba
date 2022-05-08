@@ -23,7 +23,7 @@ namespace KmyKeiba.Models.Analysis
     {
       Unset,
 
-      [Label("スピード")]
+      [Label("タイム")]
       Speed,
 
       [Label("脚質")]
@@ -31,6 +31,8 @@ namespace KmyKeiba.Models.Analysis
     }
 
     public RaceData Race { get; }
+
+    private IReadOnlyList<RaceHorseData> _raceHorses { get; set; }
 
     public IReadOnlyList<LightRaceInfo> Source => this._source;
     private readonly ReactiveCollection<LightRaceInfo> _source = new();
@@ -46,7 +48,7 @@ namespace KmyKeiba.Models.Analysis
       this.Race = race;
     }
 
-    public void SetRaces(IEnumerable<LightRaceInfo> source)
+    public void SetRaces(IEnumerable<LightRaceInfo> source, IEnumerable<RaceHorseData> raceHorses)
     {
       if (this.IsLoaded.Value)
       {
@@ -55,6 +57,7 @@ namespace KmyKeiba.Models.Analysis
       this.IsLoaded.Value = true;
 
       this._source.AddRangeOnScheduler(source);
+      this._raceHorses = raceHorses.ToArray();
 
       this.Analyze(source.ToArray());
     }
@@ -70,22 +73,20 @@ namespace KmyKeiba.Models.Analysis
       this.SpeedPoints.Values = source.Select(s => s.ResultTimePerMeter).ToArray();
       this.SpeedDatePoints = new StatisticDoubleArray(datePoints, this.SpeedPoints);
 
-      // TODO: 実装
-      this.MenuItemsPrivate.AddValues(new[] {
-        (Key.Speed, "並み"),
-        (Key.RunningStyle, "並み"),
-      });
+      var raceTime = this._raceHorses.FirstOrDefault(rh => rh.ResultOrder == 1)?.ResultTime ?? TimeSpan.Zero;
+      var speedD = 100 - this.SpeedPoints.CalcDeviationValue((this._raceHorses.FirstOrDefault(rh => rh.ResultOrder == 1)?.ResultTime.TotalSeconds ?? 0.0) / this.Race.Distance);
 
       var parameters = new List<AnalysisParameter>();
-
       parameters.Add(new(Key.Speed, "平均", TimeSpan.FromSeconds(this.SpeedPoints.Average * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
       parameters.Add(new(Key.Speed, "中央値", TimeSpan.FromSeconds(this.SpeedPoints.Median * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
       parameters.Add(new(Key.Speed, "標準偏差", TimeSpan.FromSeconds(this.SpeedPoints.Deviation * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.Speed, "日付との相関係数", this.SpeedDatePoints.CorrelationCoefficient.ToString(".000"), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.Speed, "回帰直線の傾き", TimeSpan.FromSeconds(this.SpeedDatePoints.Regressionline * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
       parameters.Add(new(Key.Speed, "予想タイム", TimeSpan.FromSeconds(this.SpeedDatePoints.CalcRegressionValue((this.Race.StartTime.Date - startDate).TotalDays) * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
-
       this.Parameters.AddRangeOnScheduler(parameters);
+
+      this.MenuItemsPrivate.AddValues(new[] {
+        (Key.Speed, raceTime.ToString("mm\\:ss")),
+        (Key.RunningStyle, "並み"),
+      });
 
       this.IsAnalyzed.Value = true;
     }

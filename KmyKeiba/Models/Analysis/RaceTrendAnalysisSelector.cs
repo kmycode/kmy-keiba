@@ -35,6 +35,9 @@ namespace KmyKeiba.Models.Analysis
       [Label("条件")]
       SameSubject,
 
+      [Label("格")]
+      SameGrade,
+
       [Label("月")]
       SameMonth,
 
@@ -56,7 +59,8 @@ namespace KmyKeiba.Models.Analysis
 
     protected override async Task InitializeAnalyzerAsync(MyContext db, RaceTrendAnalyzer analyzer)
     {
-      var query = db.Races!.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Aborted);
+      var query = db.Races!
+        .Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Aborted && r.TrackType == this.Race.TrackType);
       var key = this.Keys;
 
       if (key.IsChecked(Key.SameCourse))
@@ -100,6 +104,10 @@ namespace KmyKeiba.Models.Analysis
                                  r.SubjectAge5 == this.Race.SubjectAge5 &&
                                  r.SubjectAgeYounger == this.Race.SubjectAgeYounger);
       }
+      if (key.IsChecked(Key.SameGrade))
+      {
+        query = query.Where(r => r.Grade == this.Race.Grade);
+      }
       if (key.IsChecked(Key.SameWeather))
       {
         query = query.Where(r => r.TrackWeather == this.Race.TrackWeather);
@@ -107,13 +115,13 @@ namespace KmyKeiba.Models.Analysis
 
       var races = await query
         .OrderByDescending(r => r.StartTime)
-        .Take(200)
+        .Take(300)
         .ToArrayAsync();
-      var raceKeys = races.Select(r => r.Key).ToArray();
+      var raceKeys = races.Select(r => r.Key).Append(this.Race.Key).ToArray();
       var raceHorses = await db.RaceHorses!
         .Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 5 && raceKeys.Contains(rh.RaceKey))
         .ToArrayAsync();
-      analyzer.SetRaces(races.Select(r => new RaceTrendAnalyzer.LightRaceInfo(r, raceHorses.Where(rh => rh.RaceKey == r.Key).ToArray())));
+      analyzer.SetRaces(races.Select(r => new RaceTrendAnalyzer.LightRaceInfo(r, raceHorses.Where(rh => rh.RaceKey == r.Key).ToArray())), raceHorses.Where(rh => rh.RaceKey == this.Race.Key));
     }
   }
 }

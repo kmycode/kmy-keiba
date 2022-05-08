@@ -83,6 +83,7 @@
                   <Setter Property="FontSize" Value="16"/>
                 </Style>
               </StackPanel.Resources>
+              <TextBlock Text="" Width="44"/>
               <TextBlock Text="レース名" Width="180"/>
               <TextBlock Text="1着タイム" Width="80"/>
               <TextBlock Text="タイム/m" Width="80"/>
@@ -96,6 +97,8 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                    <up:RaceSubjectIcon Subject="{Binding Subject.Subject}"
+                                        FontSize="14" Width="40" Padding="0,2" Margin="0,0,4,0"/>
                     <Label Content="{Binding Subject.DisplayName}" FontSize="16" FontWeight="Bold" Width="180"/>
                     <Label Content="{Binding TopHorse.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="80"/>
                     <Label Content="{Binding ResultTimePerMeter,Converter={StaticResource StringFormatConv},ConverterParameter=F4}" FontSize="16" Width="80"/>

@@ -65,7 +65,7 @@ namespace KmyKeiba.Views.Parts
         RaceClass.ClassC => Brushes.Green,
         RaceClass.ClassD => Brushes.Gray,
         RaceClass.Money => Brushes.DarkGoldenrod,
-        RaceClass.Age => Brushes.SkyBlue,
+        RaceClass.Age => Brushes.CadetBlue,
         RaceGrade.Grade1 => Brushes.DarkRed,
         RaceGrade.Grade2 => Brushes.DarkBlue,
         RaceGrade.Grade3 => Brushes.Green,
