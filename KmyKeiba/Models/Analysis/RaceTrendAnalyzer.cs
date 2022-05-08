@@ -68,7 +68,7 @@ namespace KmyKeiba.Models.Analysis
       };
 
       this.SpeedPoints.Values = source.Select(s => s.ResultTimePerMeter).ToArray();
-      this.SpeedDatePoints = new StatisticDoubleArray(this.SpeedPoints, datePoints);
+      this.SpeedDatePoints = new StatisticDoubleArray(datePoints, this.SpeedPoints);
 
       // TODO: 実装
       this.MenuItemsPrivate.AddValues(new[] {
@@ -78,11 +78,12 @@ namespace KmyKeiba.Models.Analysis
 
       var parameters = new List<AnalysisParameter>();
 
-      parameters.Add(new(Key.Speed, "平均", this.SpeedPoints.Average.ToString(".0000"), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.Speed, "中央値", this.SpeedPoints.Median.ToString(".0000"), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.Speed, "標準偏差", this.SpeedPoints.Deviation.ToString(".0000"), "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.Speed, "平均", TimeSpan.FromSeconds(this.SpeedPoints.Average * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.Speed, "中央値", TimeSpan.FromSeconds(this.SpeedPoints.Median * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.Speed, "標準偏差", TimeSpan.FromSeconds(this.SpeedPoints.Deviation * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
       parameters.Add(new(Key.Speed, "日付との相関係数", this.SpeedDatePoints.CorrelationCoefficient.ToString(".000"), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.Speed, "回帰直線の傾き", this.SpeedDatePoints.Regressionline.ToString(".00000"), "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.Speed, "回帰直線の傾き", TimeSpan.FromSeconds(this.SpeedDatePoints.Regressionline * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.Speed, "予想タイム", TimeSpan.FromSeconds(this.SpeedDatePoints.CalcRegressionValue((this.Race.StartTime.Date - startDate).TotalDays) * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
 
       this.Parameters.AddRangeOnScheduler(parameters);
 

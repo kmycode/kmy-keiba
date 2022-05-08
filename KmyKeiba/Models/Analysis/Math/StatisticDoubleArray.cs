@@ -62,7 +62,7 @@ namespace KmyKeiba.Models.Analysis.Math
       {
         if (this._regressionline == null)
         {
-          this._regressionline = this._valuesA.Variance / this.CorrelationCoefficient;
+          this._regressionline = this.CorrelationCoefficient / this._valuesA.Variance;
         }
         return this._regressionline.Value;
       }
@@ -89,6 +89,16 @@ namespace KmyKeiba.Models.Analysis.Math
     {
       this._valuesA = valuesA;
       this._valuesB = valuesB;
+    }
+
+    /// <summary>
+    /// 回帰直線上の値を計算する
+    /// </summary>
+    /// <param name="valueA">計算したい値</param>
+    /// <returns>計算された値</returns>
+    public double CalcRegressionValue(double valueA)
+    {
+      return this.Regressionline * valueA + this.RegressionlineIntercept;
     }
   }
 }

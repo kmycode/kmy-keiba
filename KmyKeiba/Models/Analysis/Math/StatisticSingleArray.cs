@@ -109,5 +109,15 @@ namespace KmyKeiba.Models.Analysis.Math
       }
     }
     private double? _deviation;
+
+    /// <summary>
+    /// 偏差値を計算する
+    /// </summary>
+    /// <param name="val">計算したい点数</param>
+    /// <returns>偏差値</returns>
+    public double CalcDeviationValue(double val)
+    {
+      return (val - this.Average) / this.Deviation * 10 + 50;
+    }
   }
 }

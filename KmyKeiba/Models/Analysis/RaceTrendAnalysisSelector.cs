@@ -26,17 +26,20 @@ namespace KmyKeiba.Models.Analysis
       [Label("馬場状態")]
       SameCondition,
 
+      [Label("天気")]
+      SameWeather,
+
       [Label("レース名")]
       SameRaceName,
 
       [Label("条件")]
       SameSubject,
 
-      [Label("時刻")]
-      SameTime,
-
       [Label("月")]
       SameMonth,
+
+      [Label("距離")]
+      NearDistance,
     }
 
     public RaceData Race { get; }
@@ -72,6 +75,10 @@ namespace KmyKeiba.Models.Analysis
         }
       }
 
+      if (key.IsChecked(Key.NearDistance))
+      {
+        query = query.Where(r => r.Distance >= this.Race.Distance - 100 && r.Distance <= this.Race.Distance + 100);
+      }
       if (key.IsChecked(Key.SameMonth))
       {
         query = query.Where(r => r.StartTime.Month == this.Race.StartTime.Month);
@@ -93,9 +100,9 @@ namespace KmyKeiba.Models.Analysis
                                  r.SubjectAge5 == this.Race.SubjectAge5 &&
                                  r.SubjectAgeYounger == this.Race.SubjectAgeYounger);
       }
-      if (key.IsChecked(Key.SameTime))
+      if (key.IsChecked(Key.SameWeather))
       {
-        query = query.Where(r => r.StartTime.Hour == this.Race.StartTime.Hour);
+        query = query.Where(r => r.TrackWeather == this.Race.TrackWeather);
       }
 
       var races = await query
