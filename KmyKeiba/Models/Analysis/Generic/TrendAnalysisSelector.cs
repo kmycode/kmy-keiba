@@ -51,15 +51,11 @@ namespace KmyKeiba.Models.Analysis.Generic
     {
       var db = this._db;
 
-      // なぜかTrendAnalysisFilterItemCollectionクラスのEqualsメソッドが呼び出されない。なぜ？
-      //this.Analyzers.TryGetValue(this.Keys, out var existsAnalyzer);
-      foreach (var pair in this.Analyzers)
+      this.Analyzers.TryGetValue(this.Keys, out var existsAnalyzer);
+      if (existsAnalyzer != null)
       {
-        if (pair.Key.Equals(this.Keys))
-        {
-          this.CurrentAnalyzer.Value = pair.Value;
-          return;
-        }
+        this.CurrentAnalyzer.Value = existsAnalyzer;
+        return;
       }
 
       // ここはUIスレッドでなければならない（ReactiveCollectionなどにスレッドが伝播しないので）
@@ -72,6 +68,12 @@ namespace KmyKeiba.Models.Analysis.Generic
         // 非同期で解析を開始
         await this.InitializeAnalyzerAsync(db, analyzer);
       });
+    }
+
+    public A? GetAnalyzerFromKeys(IEnumerable<KEY> keys)
+    {
+      this.Analyzers.TryGetValue(new TrendAnalysisFilterItemCollection<KEY>(keys), out var analyzer);
+      return analyzer;
     }
 
     protected abstract A GenerateAnalyzer();
@@ -122,15 +124,16 @@ namespace KmyKeiba.Models.Analysis.Generic
       return collection;
     }
 
+    public IEnumerable<KEY> GetActiveKeys()
+    {
+      return this.Where(i => i.IsChecked.Value).Select(i => i.Key).OrderBy(k => k);
+    }
+
     public override bool Equals(object? obj)
     {
       if (obj is TrendAnalysisFilterItemCollection<KEY> collection)
       {
-        var result = this.GroupJoin(collection,
-          self => self.Key,
-          col => col.Key,
-          (self, col) => col.Any() && col.First().IsChecked.Value == self.IsChecked.Value);
-        return result.All(r => r);
+        return this.GetActiveKeys().SequenceEqual(collection.GetActiveKeys());
       }
       return base.Equals(obj);
     }
@@ -141,7 +144,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       {
         return 0;
       }
-      return this.Sum(i => i.GetHashCode() % 789);
+      return this.GetActiveKeys().Sum(i => i.GetHashCode() % 789);
     }
 
     public bool Equals(TrendAnalysisFilterItemCollection<KEY>? other) => this.Equals((object?)other);

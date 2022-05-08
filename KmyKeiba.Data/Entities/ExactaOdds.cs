@@ -28,7 +28,7 @@ namespace KmyKeiba.JVLink.Entities
 
       public short HorseNumber2 { get; init; }
 
-      public float Odds { get; init; }
+      public short Odds { get; init; }
 
       public override int GetHashCode()
         => $"{this.RaceKey}{this.HorseNumber1} {this.HorseNumber2}".GetHashCode();
@@ -54,7 +54,7 @@ namespace KmyKeiba.JVLink.Entities
           continue;
         }
 
-        float.TryParse(data.Odds, out float oval);
+        short.TryParse(data.Odds, out short oval);
 
         od.Odds.Add(new OddsData
         {
@@ -63,7 +63,7 @@ namespace KmyKeiba.JVLink.Entities
           RaceKey = od.RaceKey,
           HorseNumber1 = num1,
           HorseNumber2 = num2,
-          Odds = oval / 10,
+          Odds = oval,
         });
       }
 

@@ -8,4 +8,5 @@
   <cv:MultiBooleanConverter x:Key="MultiBooleanConv"/>
   <cv:TrackConverter x:Key="TrackConv"/>
   <cv:LabelConverter x:Key="LabelConv"/>
+  <cv:StringFormatConverter x:Key="StringFormatConv"/>
 </ResourceDictionary>

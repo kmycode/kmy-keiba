@@ -28,9 +28,9 @@ namespace KmyKeiba.JVLink.Entities
 
       public short HorseNumber2 { get; init; }
 
-      public float PlaceOddsMin { get; init; }
+      public short PlaceOddsMin { get; init; }
 
-      public float PlaceOddsMax { get; init; }
+      public short PlaceOddsMax { get; init; }
 
       public override int GetHashCode()
         => $"{this.RaceKey}{this.HorseNumber1} {this.HorseNumber2}".GetHashCode();
@@ -56,8 +56,8 @@ namespace KmyKeiba.JVLink.Entities
           continue;
         }
 
-        float.TryParse(data.OddsHigh, out float oval2max);
-        float.TryParse(data.OddsLow, out float oval2min);
+        short.TryParse(data.OddsHigh, out short oval2max);
+        short.TryParse(data.OddsLow, out short oval2min);
 
         od.Odds.Add(new OddsData
         {
@@ -66,8 +66,8 @@ namespace KmyKeiba.JVLink.Entities
           RaceKey = od.RaceKey,
           HorseNumber1 = num1,
           HorseNumber2 = num2,
-          PlaceOddsMax = oval2max / 10,
-          PlaceOddsMin = oval2min / 10,
+          PlaceOddsMax = oval2max,
+          PlaceOddsMin = oval2min,
         });
       }
 

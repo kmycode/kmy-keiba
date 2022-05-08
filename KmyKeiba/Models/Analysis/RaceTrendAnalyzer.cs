@@ -1,6 +1,9 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Generic;
+using KmyKeiba.Models.Analysis.Math;
+using KmyKeiba.Models.Race;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -18,6 +21,8 @@ namespace KmyKeiba.Models.Analysis
   {
     public enum Key
     {
+      Unset,
+
       [Label("スピード")]
       Speed,
 
@@ -27,27 +32,21 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceData Race { get; }
 
-    public IReadOnlyList<RaceData> Source => this._source;
-    private readonly ReactiveCollection<RaceData> _source = new();
+    public IReadOnlyList<LightRaceInfo> Source => this._source;
+    private readonly ReactiveCollection<LightRaceInfo> _source = new();
 
     public ReactiveProperty<bool> IsLoaded { get; } = new();
 
-    public ReactiveCollection<RaceTrendSpeed> Speeds { get; } = new();
+    public StatisticSingleArray SpeedPoints { get; } = new();
 
-    public ReactiveCollection<RaceTrendRunningStyle> RunningStyles { get; } = new();
-
-    public RaceTrendAnalyzer(RaceData race, IEnumerable<RaceData> source)
-    {
-      this.Race = race;
-      this.SetRaces(source);
-    }
+    public StatisticSingleArray RunningStylePoints { get; } = new();
 
     public RaceTrendAnalyzer(RaceData race)
     {
       this.Race = race;
     }
 
-    public void SetRaces(IEnumerable<RaceData> source)
+    public void SetRaces(IEnumerable<LightRaceInfo> source)
     {
       if (this.IsLoaded.Value)
       {
@@ -55,30 +54,54 @@ namespace KmyKeiba.Models.Analysis
       }
       this.IsLoaded.Value = true;
 
-      foreach (var race in source)
-      {
-        this._source.Add(race);
-      }
+      this._source.AddRangeOnScheduler(source);
 
-      this.Analyze();
+      this.Analyze(source.ToArray());
     }
 
-    private void Analyze()
+    private void Analyze(IList<LightRaceInfo> source)
     {
+      this.SpeedPoints.Values = source.Select(s => s.ResultTimePerMeter).ToArray();
+
       // TODO: 実装
-      this.MenuItemsPrivate.SetValue(Key.Speed, "並み");
+      this.MenuItemsPrivate.AddValues(new[] {
+        (Key.Speed, "並み"),
+        (Key.RunningStyle, "並み"),
+      });
+
+      var parameters = new List<AnalysisParameter>();
+
+      parameters.Add(new(Key.Speed, "平均", this.SpeedPoints.Average.ToString(".0000"), "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.Speed, "中央値", this.SpeedPoints.Median.ToString(".0000"), "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.Speed, "標準偏差", this.SpeedPoints.Deviation.ToString(".0000"), "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.Speed, "日付との相関係数", "TODO", "", AnalysisParameterType.Standard));
+      parameters.Add(new(Key.Speed, "回帰直線の傾き", "TODO", "", AnalysisParameterType.Standard));
+
+      this.Parameters.AddRangeOnScheduler(parameters);
     }
-  }
 
-  public enum RaceTrendSpeed
-  {
-    [Label("分析前")]
-    Undefined,
-  }
+    public class LightRaceInfo
+    {
+      public RaceData Data { get; }
 
-  public enum RaceTrendRunningStyle
-  {
-    [Label("分析前")]
-    Undefined,
+      public RaceSubjectInfo Subject { get; }
+
+      public RaceHorseData? TopHorse => this.TopHorses.FirstOrDefault(rh => rh.ResultOrder == 1);
+
+      public IReadOnlyList<RaceHorseData> TopHorses { get; }
+
+      public double ResultTimePerMeter { get; }
+
+      public LightRaceInfo(RaceData race, IReadOnlyList<RaceHorseData> topHorses)
+      {
+        var topHorse = topHorses.OrderBy(h => h.ResultOrder).FirstOrDefault() ?? new();
+
+        this.Data = race;
+        this.TopHorses = topHorses;
+        this.Subject = new RaceSubjectInfo(race);
+
+        this.ResultTimePerMeter = (float)topHorse.ResultTime.TotalSeconds / race.Distance;
+      }
+    }
   }
 }

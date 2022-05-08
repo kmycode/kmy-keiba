@@ -10,6 +10,9 @@
   <Style TargetType="Grid">
     <Setter Property="Background" Value="{x:Null}"/>
   </Style>
+  <Style TargetType="Label">
+    <Setter Property="Padding" Value="0"/>
+  </Style>
   <Style TargetType="TextBlock">
     <Setter Property="Foreground" Value="{DynamicResource BaseForeground}"/>
   </Style>

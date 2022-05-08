@@ -160,6 +160,11 @@ namespace KmyKeiba.Data.Db
     public RunningStyle RunningStyle { get; set; }
 
     /// <summary>
+    /// 前回のレースは何日前か
+    /// </summary>
+    public short PreviousRaceDays { get; set; }
+
+    /// <summary>
     /// 勝負服の模様
     /// </summary>
     [StringLength(120)]

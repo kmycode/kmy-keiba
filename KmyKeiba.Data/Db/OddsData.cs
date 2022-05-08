@@ -1,47 +1,53 @@
 ﻿using KmyKeiba.JVLink.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
+  [Index(nameof(RaceKey))]
   public class SingleOddsTimeline : DataBase<SingleAndDoubleWinOdds>
   {
+    [StringLength(20)]
     public string RaceKey { get; set; } = string.Empty;
     public DateTime Time { get; set; }
-    public float Odds1 { get; set; }
-    public float Odds2 { get; set; }
-    public float Odds3 { get; set; }
-    public float Odds4 { get; set; }
-    public float Odds5 { get; set; }
-    public float Odds6 { get; set; }
-    public float Odds7 { get; set; }
-    public float Odds8 { get; set; }
-    public float Odds9 { get; set; }
-    public float Odds10 { get; set; }
-    public float Odds11 { get; set; }
-    public float Odds12 { get; set; }
-    public float Odds13 { get; set; }
-    public float Odds14 { get; set; }
-    public float Odds15 { get; set; }
-    public float Odds16 { get; set; }
-    public float Odds17 { get; set; }
-    public float Odds18 { get; set; }
-    public float Odds19 { get; set; }
-    public float Odds20 { get; set; }
-    public float Odds21 { get; set; }
-    public float Odds22 { get; set; }
-    public float Odds23 { get; set; }
-    public float Odds24 { get; set; }
-    public float Odds25 { get; set; }
-    public float Odds26 { get; set; }
-    public float Odds27 { get; set; }
-    public float Odds28 { get; set; }
+    public short Odds1 { get; set; }
+    public short Odds2 { get; set; }
+    public short Odds3 { get; set; }
+    public short Odds4 { get; set; }
+    public short Odds5 { get; set; }
+    public short Odds6 { get; set; }
+    public short Odds7 { get; set; }
+    public short Odds8 { get; set; }
+    public short Odds9 { get; set; }
+    public short Odds10 { get; set; }
+    public short Odds11 { get; set; }
+    public short Odds12 { get; set; }
+    public short Odds13 { get; set; }
+    public short Odds14 { get; set; }
+    public short Odds15 { get; set; }
+    public short Odds16 { get; set; }
+    public short Odds17 { get; set; }
+    public short Odds18 { get; set; }
+    public short Odds19 { get; set; }
+    public short Odds20 { get; set; }
+    public short Odds21 { get; set; }
+    public short Odds22 { get; set; }
+    public short Odds23 { get; set; }
+    public short Odds24 { get; set; }
+    public short Odds25 { get; set; }
+    public short Odds26 { get; set; }
+    public short Odds27 { get; set; }
+    public short Odds28 { get; set; }
 
     public override void SetEntity(SingleAndDoubleWinOdds race)
     {
+      this.LastModified = race.LastModified;
+      this.DataStatus = race.DataStatus;
       this.RaceKey = race.RaceKey;
       this.Time = race.Time;
       this.Odds1 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 1).Odds;
@@ -81,18 +87,22 @@ namespace KmyKeiba.Data.Db
     }
   }
 
+  [Index(nameof(RaceKey))]
   public class FrameNumberOddsData : DataBase<FrameNumberOdds.OddsData>
   {
+    [StringLength(20)]
     public string RaceKey { get; set; } = string.Empty;
 
     public short Frame1 { get; set; }
 
     public short Frame2 { get; set; }
 
-    public float Odds { get; set; }
+    public short Odds { get; set; }
 
     public override void SetEntity(FrameNumberOdds.OddsData odds)
     {
+      this.LastModified = odds.LastModified;
+      this.DataStatus = odds.DataStatus;
       this.RaceKey = odds.RaceKey;
       this.Frame1 = odds.Frame1;
       this.Frame2 = odds.Frame2;
@@ -111,20 +121,24 @@ namespace KmyKeiba.Data.Db
     }
   }
 
+  [Index(nameof(RaceKey))]
   public class QuinellaPlaceOddsData : DataBase<QuinellaPlaceOdds.OddsData>
   {
+    [StringLength(20)]
     public string RaceKey { get; set; } = string.Empty;
 
     public short HorseNumber1 { get; set; }
 
     public short HorseNumber2 { get; set; }
 
-    public float PlaceOddsMin { get; set; }
+    public short PlaceOddsMin { get; set; }
 
-    public float PlaceOddsMax { get; set; }
+    public short PlaceOddsMax { get; set; }
 
     public override void SetEntity(QuinellaPlaceOdds.OddsData odds)
     {
+      this.LastModified = odds.LastModified;
+      this.DataStatus = odds.DataStatus;
       this.RaceKey = odds.RaceKey;
       this.HorseNumber1 = odds.HorseNumber1;
       this.HorseNumber2 = odds.HorseNumber2;
@@ -144,18 +158,22 @@ namespace KmyKeiba.Data.Db
     }
   }
 
+  [Index(nameof(RaceKey))]
   public class QuinellaOddsData : DataBase<QuinellaOdds.OddsData>
   {
+    [StringLength(20)]
     public string RaceKey { get; set; } = string.Empty;
 
     public short HorseNumber1 { get; set; }
 
     public short HorseNumber2 { get; set; }
 
-    public float Odds { get; set; }
+    public short Odds { get; set; }
 
     public override void SetEntity(QuinellaOdds.OddsData odds)
     {
+      this.LastModified = odds.LastModified;
+      this.DataStatus = odds.DataStatus;
       this.RaceKey = odds.RaceKey;
       this.HorseNumber1 = odds.HorseNumber1;
       this.HorseNumber2 = odds.HorseNumber2;
@@ -174,18 +192,22 @@ namespace KmyKeiba.Data.Db
     }
   }
 
+  [Index(nameof(RaceKey))]
   public class ExactaOddsData : DataBase<ExactaOdds.OddsData>
   {
+    [StringLength(20)]
     public string RaceKey { get; set; } = string.Empty;
 
     public short HorseNumber1 { get; set; }
 
     public short HorseNumber2 { get; set; }
 
-    public float Odds { get; set; }
+    public short Odds { get; set; }
 
     public override void SetEntity(ExactaOdds.OddsData odds)
     {
+      this.LastModified = odds.LastModified;
+      this.DataStatus = odds.DataStatus;
       this.RaceKey = odds.RaceKey;
       this.HorseNumber1 = odds.HorseNumber1;
       this.HorseNumber2 = odds.HorseNumber2;
@@ -204,8 +226,10 @@ namespace KmyKeiba.Data.Db
     }
   }
 
+  [Index(nameof(RaceKey))]
   public class TrioOddsData : DataBase<TrioOdds.OddsData>
   {
+    [StringLength(20)]
     public string RaceKey { get; set; } = string.Empty;
 
     public short HorseNumber1 { get; set; }
@@ -214,10 +238,12 @@ namespace KmyKeiba.Data.Db
 
     public short HorseNumber3 { get; set; }
 
-    public float Odds { get; set; }
+    public short Odds { get; set; }
 
     public override void SetEntity(TrioOdds.OddsData odds)
     {
+      this.LastModified = odds.LastModified;
+      this.DataStatus = odds.DataStatus;
       this.RaceKey = odds.RaceKey;
       this.HorseNumber1 = odds.HorseNumber1;
       this.HorseNumber2 = odds.HorseNumber2;
@@ -237,8 +263,10 @@ namespace KmyKeiba.Data.Db
     }
   }
 
+  [Index(nameof(RaceKey))]
   public class TrifectaOddsData : DataBase<TrifectaOdds.OddsData>
   {
+    [StringLength(20)]
     public string RaceKey { get; set; } = string.Empty;
 
     public short HorseNumber1 { get; set; }
@@ -247,10 +275,12 @@ namespace KmyKeiba.Data.Db
 
     public short HorseNumber3 { get; set; }
 
-    public float Odds { get; set; }
+    public short Odds { get; set; }
 
     public override void SetEntity(TrifectaOdds.OddsData odds)
     {
+      this.LastModified = odds.LastModified;
+      this.DataStatus = odds.DataStatus;
       this.RaceKey = odds.RaceKey;
       this.HorseNumber1 = odds.HorseNumber1;
       this.HorseNumber2 = odds.HorseNumber2;

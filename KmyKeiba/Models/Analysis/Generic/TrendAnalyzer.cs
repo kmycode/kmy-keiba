@@ -1,23 +1,46 @@
 ﻿using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Analysis.Generic
 {
-  public class TrendAnalyzer<KEY> where KEY : Enum, IComparable
+  public class TrendAnalyzer<KEY> : IDisposable where KEY : Enum, IComparable
   {
+    private readonly CompositeDisposable _disposables = new();
+
     public IList MenuItems => this.MenuItemsPrivate;
 
     protected TrendAnalyzerMenuItemCollection MenuItemsPrivate { get; } = new();
 
+    public ReactiveCollection<AnalysisParameter> Parameters { get; } = new();
+
+    protected TrendAnalyzer()
+    {
+      // 選択されているメニューが変更された時の処理
+      this.MenuItemsPrivate.ActiveKey.Subscribe(k =>
+      {
+        foreach (var parameter in this.Parameters)
+        {
+          parameter.IsActive.Value = parameter.Key.Equals(k);
+        }
+      }).AddTo(this._disposables);
+    }
+
+    public void Dispose() => this._disposables.Dispose();
+
     protected class TrendAnalyzerMenuItem
     {
       public KEY Key { get; }
+
+      public ReactiveProperty<bool> IsChecked { get; } = new();
 
       public ReactiveProperty<string> Value { get; } = new();
 
@@ -27,36 +50,51 @@ namespace KmyKeiba.Models.Analysis.Generic
       }
     }
 
-    protected class TrendAnalyzerMenuItemCollection : ReactiveCollection<TrendAnalyzerMenuItem>
+    protected class TrendAnalyzerMenuItemCollection : ReactiveCollection<TrendAnalyzerMenuItem>, IDisposable
     {
-      public void SetValue(KEY key, string value)
-      {
-        var exists = this.FirstOrDefault(i => i.Key.Equals(key));
-        if (exists != null)
-        {
-          exists.Value.Value = value;
-        }
+      public ReactiveProperty<KEY> ActiveKey { get; } = new();
 
-        // 順序も考慮した位置に挿入する
-        var i = 0;
-        for (; i < this.Count; i++)
+      private readonly Dictionary<KEY, IDisposable> _itemEvents = new();
+
+      public void AddValues(IEnumerable<(KEY Key, string Value)> pairs)
+      {
+        var existKeys = new List<KEY>();
+
+        foreach (var item in pairs)
         {
-          if (this[i].Key.CompareTo(key) > 0)
+          var exists = this.FirstOrDefault(i => i.Key.Equals(item.Key));
+          if (exists != null)
           {
-            break;
+            exists.Value.Value = item.Value;
+            existKeys.Add(item.Key);
           }
         }
-        try
-        {
-          this.InsertOnScheduler(i, new TrendAnalyzerMenuItem(key)
-          {
-            Value = { Value = value, },
-          });
-        }
-        catch
-        {
 
+        var newItems = new List<TrendAnalyzerMenuItem>();
+        foreach (var item in pairs.Where(i => !existKeys.Any(ek => ek.Equals(i.Key))))
+        {
+          var newItem = new TrendAnalyzerMenuItem(item.Key)
+          {
+            Value = { Value = item.Value, },
+          };
+          newItems.Add(newItem);
+
+          // アイテムのチェック状態の変更をつなぐ
+          this._itemEvents[item.Key] = newItem.IsChecked
+            .Where(c => c).Subscribe(_ =>
+            {
+            // チェックは１つだけ
+            foreach (var oldItems in this.Where(i => !i.Key.Equals(item.Key)))
+              {
+                oldItems.IsChecked.Value = false;
+              }
+
+              this.ActiveKey.Value = item.Key;
+            });
         }
+
+        // Schedulerは非同期で実行されるので、要素の順番にこだわるのならInsertではなく一括追加する必要がある
+        this.AddRangeOnScheduler(newItems);
       }
 
       public void Remove(KEY key)
@@ -64,9 +102,36 @@ namespace KmyKeiba.Models.Analysis.Generic
         var exists = this.FirstOrDefault(i => i.Key.Equals(key));
         if (exists != null)
         {
-          this.Remove(exists);
+          this.RemoveOnScheduler(exists);
+          this._itemEvents.Remove(key);
         }
       }
+
+      public new void Dispose()
+      {
+        base.Dispose();
+
+        foreach (var item in this._itemEvents)
+        {
+          item.Value.Dispose();
+        }
+        this._itemEvents.Clear();
+      }
+    }
+
+    public record class AnalysisParameter(KEY Key, string Name, string Value, string Comment, AnalysisParameterType Type)
+    {
+      public ReactiveProperty<bool> IsActive { get; } = new();
+    }
+
+    public enum AnalysisParameterType
+    {
+      Unset,
+      VeryHigh,
+      High,
+      Standard,
+      Low,
+      VeryLow,
     }
   }
 }

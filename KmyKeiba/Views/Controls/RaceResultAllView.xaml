@@ -40,9 +40,72 @@
           <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
-        <!--左側のサイドメニュー-->
-        <uc:TrendAnalyzerView Selector="{Binding Race.TrendAnalyzers,ElementName=Root}">
-        </uc:TrendAnalyzerView>
+        <!--傾向分析コントロール-->
+        <uc:TrendAnalyzerView Selector="{Binding Race.TrendAnalyzers,ElementName=Root}"/>
+
+        <ScrollViewer Grid.Column="1">
+          <StackPanel Margin="8,0,0,0">
+            
+            <!--パラメータ-->
+            <ItemsControl ItemsSource="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.Parameters,ElementName=Root}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid Margin="0,0,0,8" Visibility="{Binding IsActive.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                    <Grid.RowDefinitions>
+                      <RowDefinition/>
+                      <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="180"/>
+                      <ColumnDefinition Width="180"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock FontSize="32" Text="{Binding Value}" FontWeight="Bold" TextAlignment="Center"
+                               Grid.RowSpan="2"/>
+                    <TextBlock FontSize="20" Text="{Binding Name}"
+                               Grid.Column="1"/>
+                    <TextBlock FontSize="14" Text="{Binding Comment}"
+                               Grid.Column="1" Grid.Row="1"/>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!--過去レースの一覧-->
+            <StackPanel Orientation="Horizontal" Margin="0,16,0,8">
+              <StackPanel.Resources>
+                <Style TargetType="TextBlock">
+                  <Setter Property="Foreground" Value="{DynamicResource SubForeground}"/>
+                  <Setter Property="FontSize" Value="16"/>
+                </Style>
+              </StackPanel.Resources>
+              <TextBlock Text="レース名" Width="180"/>
+              <TextBlock Text="1着タイム" Width="80"/>
+              <TextBlock Text="タイム/m" Width="80"/>
+            </StackPanel>
+            <ItemsControl ItemsSource="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.Source,ElementName=Root}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                    <Label Content="{Binding Subject.DisplayName}" FontSize="16" FontWeight="Bold" Width="180"/>
+                    <Label Content="{Binding TopHorse.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="80"/>
+                    <Label Content="{Binding ResultTimePerMeter,Converter={StaticResource StringFormatConv},ConverterParameter=F4}" FontSize="16" Width="80"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+
       </Grid>
 
       <!-- 展開 -->

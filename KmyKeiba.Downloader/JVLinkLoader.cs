@@ -415,7 +415,6 @@ namespace KmyKeiba.Downloader
           (d) => d.Key,
           (list) => e => list.Contains(e.Key));
 
-        /*
         await SaveAsync(data.FrameNumberOdds.SelectMany((o) => o.Odds),
           db.FrameNumberOdds!,
           (e) => e.RaceKey + e.Frame1 + " " + e.Frame2,
@@ -446,7 +445,7 @@ namespace KmyKeiba.Downloader
           (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3,
           (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2 + " " + d.HorseNumber3,
           (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3));
-        */
+        
         await SaveDicAsync(data.Refunds,
           db.Refunds!,
           (e) => e.RaceKey,

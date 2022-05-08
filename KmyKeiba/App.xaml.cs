@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -19,6 +20,8 @@ namespace KmyKeiba
       // Dependency Injections
       ViewMessages.TryGetResource = (key) => this.TryFindResource(key);
       ViewMessages.ChangeTheme = (theme) => this.ChangeTheme(theme);
+
+      Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     }
 
     protected override void OnStartup(StartupEventArgs e)

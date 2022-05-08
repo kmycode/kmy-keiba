@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
@@ -52,13 +53,25 @@ namespace KmyKeiba.Models.Analysis
 
     protected override async Task InitializeAnalyzerAsync(MyContext db, RaceTrendAnalyzer analyzer)
     {
-      var query = db.Races!.Where(r => r.StartTime < this.Race.StartTime);
+      var query = db.Races!.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Aborted);
       var key = this.Keys;
 
       if (key.IsChecked(Key.SameCourse))
       {
         query = query.Where(r => r.Course == this.Race.Course);
       }
+      else
+      {
+        if (this.Race.Course <= RaceCourse.CentralMaxValue)
+        {
+          query = query.Where(r => r.Course <= RaceCourse.CentralMaxValue);
+        }
+        else
+        {
+          query = query.Where(r => r.Course > RaceCourse.CentralMaxValue);
+        }
+      }
+
       if (key.IsChecked(Key.SameMonth))
       {
         query = query.Where(r => r.StartTime.Month == this.Race.StartTime.Month);
@@ -85,8 +98,15 @@ namespace KmyKeiba.Models.Analysis
         query = query.Where(r => r.StartTime.Hour == this.Race.StartTime.Hour);
       }
 
-      var races = await query.OrderByDescending(r => r.StartTime).Take(200).ToArrayAsync();
-      analyzer.SetRaces(races);
+      var races = await query
+        .OrderByDescending(r => r.StartTime)
+        .Take(200)
+        .ToArrayAsync();
+      var raceKeys = races.Select(r => r.Key).ToArray();
+      var raceHorses = await db.RaceHorses!
+        .Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 5 && raceKeys.Contains(rh.RaceKey))
+        .ToArrayAsync();
+      analyzer.SetRaces(races.Select(r => new RaceTrendAnalyzer.LightRaceInfo(r, raceHorses.Where(rh => rh.RaceKey == r.Key).ToArray())));
     }
   }
 }
