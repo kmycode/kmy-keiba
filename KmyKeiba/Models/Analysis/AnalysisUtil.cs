@@ -41,7 +41,7 @@ namespace KmyKeiba.Models.Analysis
       if (race.TrackCondition != RaceCourseCondition.Unknown)
       {
         item = query.FirstOrDefault(st => st.Condition == race.TrackCondition);
-        if (item == null || item.SampleCount < 50)
+        if (item == null || item.SampleCount < 10)
         {
           item = query.FirstOrDefault(st => st.Condition == RaceCourseCondition.Unknown);
         }

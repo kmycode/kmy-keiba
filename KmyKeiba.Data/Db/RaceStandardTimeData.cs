@@ -40,6 +40,12 @@ namespace KmyKeiba.Data.Db
     public double Median { get; set; }
 
     public double Deviation { get; set; }
+
+    public double A3FAverage { get; set; }
+
+    public double A3FMedian { get; set; }
+
+    public double A3FDeviation { get; set; }
   }
 
   /// <summary>
