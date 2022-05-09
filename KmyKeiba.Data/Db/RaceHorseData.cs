@@ -160,6 +160,11 @@ namespace KmyKeiba.Data.Db
     public RunningStyle RunningStyle { get; set; }
 
     /// <summary>
+    /// 脚質を手動で設定したか
+    /// </summary>
+    public bool IsRunningStyleSetManually { get; set; }
+
+    /// <summary>
     /// 前回のレースは何日前か
     /// </summary>
     public short PreviousRaceDays { get; set; }
@@ -212,7 +217,11 @@ namespace KmyKeiba.Data.Db
       this.Odds = entity.Odds;
       this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
       this.AbnormalResult = entity.AbnormalResult;
-      this.RunningStyle = entity.RunningStyle;
+
+      if (!this.IsRunningStyleSetManually)
+      {
+        this.RunningStyle = entity.RunningStyle;
+      }
 
       if (this.UniformFormat != entity.UniformFormat)
       {

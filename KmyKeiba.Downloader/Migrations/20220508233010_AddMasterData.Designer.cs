@@ -3,6 +3,7 @@ using System;
 using KmyKeiba.Downloader;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KmyKeiba.Downloader.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20220508233010_AddMasterData")]
+    partial class AddMasterData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -715,8 +717,8 @@ namespace KmyKeiba.Downloader.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int unsigned");
 
-                    b.Property<double>("Average")
-                        .HasColumnType("double");
+                    b.Property<TimeSpan>("Average")
+                        .HasColumnType("time(6)");
 
                     b.Property<short>("Condition")
                         .HasColumnType("smallint");
@@ -727,13 +729,10 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<short>("Course")
                         .HasColumnType("smallint");
 
-                    b.Property<double>("Deviation")
-                        .HasColumnType("double");
+                    b.Property<TimeSpan>("Deviation")
+                        .HasColumnType("time(6)");
 
                     b.Property<short>("Distance")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("DistanceMax")
                         .HasColumnType("smallint");
 
                     b.Property<short>("Ground")
@@ -742,8 +741,8 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<DateTime>("LastModified")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<double>("Median")
-                        .HasColumnType("double");
+                    b.Property<TimeSpan>("Median")
+                        .HasColumnType("time(6)");
 
                     b.Property<int>("SampleCount")
                         .HasColumnType("int");

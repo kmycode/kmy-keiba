@@ -302,10 +302,10 @@ namespace KmyKeiba.Downloader
       }
 
       var saved = 0;
-      this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + /*data.ExactaOdds.Sum((o) => o.Odds.Count)
-        + data.FrameNumberOdds.Sum((o) => o.Odds.Count) +
-        data.QuinellaOdds.Sum((o) => o.Odds.Count) + data.QuinellaPlaceOdds.Sum((o) => o.Odds.Count) +
-         data.TrifectaOdds.Sum((o) => o.Odds.Count) + data.TrioOdds.Sum((o) => o.Odds.Count) + */
+      this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Sum((o) => o.Value.Odds.Count)
+        + data.FrameNumberOdds.Sum((o) => o.Value.Odds.Count) +
+        data.QuinellaOdds.Sum((o) => o.Value.Odds.Count) + data.QuinellaPlaceOdds.Sum((o) => o.Value.Odds.Count) +
+         data.TrifectaOdds.Sum((o) => o.Value.Odds.Count) + data.TrioOdds.Sum((o) => o.Value.Odds.Count) + 
         data.Refunds.Count + data.Trainings.Count + data.WoodtipTrainings.Count + data.Horses.Count + data.HorseBloods.Count;
       logger.Info($"Save size: {this.SaveSize.Value}");
 
@@ -415,32 +415,32 @@ namespace KmyKeiba.Downloader
           (d) => d.Key,
           (list) => e => list.Contains(e.Key));
 
-        await SaveAsync(data.FrameNumberOdds.SelectMany((o) => o.Odds),
+        await SaveAsync(data.FrameNumberOdds.SelectMany((o) => o.Value.Odds),
           db.FrameNumberOdds!,
           (e) => e.RaceKey + e.Frame1 + " " + e.Frame2,
           (d) => d.RaceKey + d.Frame1 + " " + d.Frame2,
           (list) => e => list.Contains(e.RaceKey + e.Frame1 + " " + e.Frame2));
-        await SaveAsync(data.QuinellaPlaceOdds.SelectMany((o) => o.Odds),
+        await SaveAsync(data.QuinellaPlaceOdds.SelectMany((o) => o.Value.Odds),
           db.QuinellaPlaceOdds!,
           (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2,
           (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2,
           (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2));
-        await SaveAsync(data.QuinellaOdds.SelectMany((o) => o.Odds),
+        await SaveAsync(data.QuinellaOdds.SelectMany((o) => o.Value.Odds),
           db.QuinellaOdds!,
           (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2,
           (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2,
           (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2));
-        await SaveAsync(data.ExactaOdds.SelectMany((o) => o.Odds),
+        await SaveAsync(data.ExactaOdds.SelectMany((o) => o.Value.Odds),
           db.ExactaOdds!,
           (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2,
           (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2,
           (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2));
-        await SaveAsync(data.TrioOdds.SelectMany((o) => o.Odds),
+        await SaveAsync(data.TrioOdds.SelectMany((o) => o.Value.Odds),
           db.TrioOdds!,
           (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3,
           (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2 + " " + d.HorseNumber3,
           (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3));
-        await SaveAsync(data.TrifectaOdds.SelectMany((o) => o.Odds),
+        await SaveAsync(data.TrifectaOdds.SelectMany((o) => o.Value.Odds),
           db.TrifectaOdds!,
           (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3,
           (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2 + " " + d.HorseNumber3,
@@ -452,7 +452,7 @@ namespace KmyKeiba.Downloader
           (d) => d.RaceKey,
           (list) => e => list.Contains(e.RaceKey));
 
-        await SaveAsync(data.SingleAndDoubleWinOdds.Where((o) => o.Time != default),
+        await SaveAsync(data.SingleAndDoubleWinOdds.Where((o) => o.Value.Time != default).Select((o) => o.Value),
           db.SingleOddsTimelines!,
           (e) => e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute,
           (d) => d.RaceKey + d.Time.Month + "_" + d.Time.Day + "_" + d.Time.Hour + "_" + d.Time.Minute,
@@ -475,7 +475,7 @@ namespace KmyKeiba.Downloader
 
         // 単勝オッズを設定する
         {
-          var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.RaceKey).ToArray();
+          var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.Value.RaceKey).ToArray();
           var oddsRaceHorses = await db.RaceHorses!
             .Where((r) => oddsRaceKeys.Contains(r.RaceKey))
             .ToArrayAsync();
@@ -483,10 +483,10 @@ namespace KmyKeiba.Downloader
           foreach (var odds in data.SingleAndDoubleWinOdds)
           {
             var horses = oddsRaceHorses
-              .Where((h) => h.RaceKey == odds.RaceKey);
+              .Where((h) => h.RaceKey == odds.Value.RaceKey);
             foreach (var horse in horses)
             {
-              var o = odds.Odds.FirstOrDefault((oo) => oo.HorseNumber == horse.Number);
+              var o = odds.Value.Odds.FirstOrDefault((oo) => oo.HorseNumber == horse.Number);
               if (o.HorseNumber != default)
               {
                 horse.Odds = (short)o.Odds;

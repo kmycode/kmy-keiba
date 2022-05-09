@@ -306,8 +306,10 @@ namespace KmyKeiba.JVLink.Wrappers
                 var item = SingleAndDoubleWinOdds.FromJV(a);
                 var item2 = FrameNumberOdds.FromJV(a);
 
-                Read(item, data.SingleAndDoubleWinOdds, (a, b) => a.RaceKey == b.RaceKey && a.Time == b.Time, new ComparableComparer<SingleAndDoubleWinOdds>(x => x?.RaceKey + x?.Time));
-                Read(item2, data.FrameNumberOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<FrameNumberOdds>(x => x?.RaceKey));
+                // Read(item, data.SingleAndDoubleWinOdds, (a, b) => a.RaceKey == b.RaceKey && a.Time == b.Time, new ComparableComparer<SingleAndDoubleWinOdds>(x => x?.RaceKey + x?.Time));
+                // Read(item2, data.FrameNumberOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<FrameNumberOdds>(x => x?.RaceKey));
+                ReadDic(item, data.SingleAndDoubleWinOdds, item.RaceKey + item.Time);
+                ReadDic(item2, data.FrameNumberOdds, item2.RaceKey);
                 break;
               }
             case "O2":
@@ -316,7 +318,8 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = QuinellaOdds.FromJV(a);
 
-                Read(item, data.QuinellaOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<QuinellaOdds>(x => x?.RaceKey));
+                // Read(item, data.QuinellaOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<QuinellaOdds>(x => x?.RaceKey));
+                ReadDic(item, data.QuinellaOdds, item.RaceKey);
                 break;
               }
             case "O3":
@@ -325,7 +328,8 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = QuinellaPlaceOdds.FromJV(a);
 
-                Read(item, data.QuinellaPlaceOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<QuinellaPlaceOdds>(x => x?.RaceKey));
+                // Read(item, data.QuinellaPlaceOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<QuinellaPlaceOdds>(x => x?.RaceKey));
+                ReadDic(item, data.QuinellaPlaceOdds, item.RaceKey);
                 break;
               }
             case "O4":
@@ -334,7 +338,8 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = ExactaOdds.FromJV(a);
 
-                Read(item, data.ExactaOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<ExactaOdds>(x => x?.RaceKey));
+                // Read(item, data.ExactaOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<ExactaOdds>(x => x?.RaceKey));
+                ReadDic(item, data.ExactaOdds, item.RaceKey);
                 break;
               }
             case "O5":
@@ -343,7 +348,8 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = TrioOdds.FromJV(a);
 
-                Read(item, data.TrioOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<TrioOdds>(x => x?.RaceKey));
+                // Read(item, data.TrioOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<TrioOdds>(x => x?.RaceKey));
+                ReadDic(item, data.TrioOdds, item.RaceKey);
                 break;
               }
             case "O6":
@@ -352,7 +358,8 @@ namespace KmyKeiba.JVLink.Wrappers
                 a.SetDataB(ref d);
                 var item = TrifectaOdds.FromJV(a);
 
-                Read(item, data.TrifectaOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<TrifectaOdds>(x => x?.RaceKey));
+                // Read(item, data.TrifectaOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<TrifectaOdds>(x => x?.RaceKey));
+                ReadDic(item, data.TrifectaOdds, item.RaceKey);
                 break;
               }
             default:
@@ -404,19 +411,19 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public Dictionary<string, HorseBlood> HorseBloods { get; internal set; } = new();
 
-    public List<SingleAndDoubleWinOdds> SingleAndDoubleWinOdds { get; internal set; } = new();
+    public Dictionary<string, SingleAndDoubleWinOdds> SingleAndDoubleWinOdds { get; internal set; } = new();
 
-    public List<FrameNumberOdds> FrameNumberOdds { get; internal set; } = new();
+    public Dictionary<string, FrameNumberOdds> FrameNumberOdds { get; internal set; } = new();
 
-    public List<QuinellaOdds> QuinellaOdds { get; internal set; } = new();
+    public Dictionary<string, QuinellaOdds> QuinellaOdds { get; internal set; } = new();
 
-    public List<QuinellaPlaceOdds> QuinellaPlaceOdds { get; internal set; } = new();
+    public Dictionary<string, QuinellaPlaceOdds> QuinellaPlaceOdds { get; internal set; } = new();
 
-    public List<ExactaOdds> ExactaOdds { get; internal set; } = new();
+    public Dictionary<string, ExactaOdds> ExactaOdds { get; internal set; } = new();
 
-    public List<TrioOdds> TrioOdds { get; internal set; } = new();
+    public Dictionary<string, TrioOdds> TrioOdds { get; internal set; } = new();
 
-    public List<TrifectaOdds> TrifectaOdds { get; internal set; } = new();
+    public Dictionary<string, TrifectaOdds> TrifectaOdds { get; internal set; } = new();
 
     public Dictionary<string, Refund> Refunds { get; internal set; } = new();
 

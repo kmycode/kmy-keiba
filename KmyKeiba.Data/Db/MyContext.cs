@@ -45,9 +45,9 @@ namespace KmyKeiba.Data.Db
 
     #endregion
 
-    #region Analysis
+    #region Master
 
-    public DbSet<RaceHorseAnalysisData>? RaceHorseAnalysis { get; set; }
+    public DbSet<RaceStandardTimeMasterData>? RaceStandardTimes { get; set; }
 
     #endregion
 

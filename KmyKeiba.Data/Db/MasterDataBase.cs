@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  public class AnalysisDataBase
+  public abstract class MasterDataBase
   {
     public uint Id { get; set; }
 
     public DateTime LastModified { get; set; }
 
-    public ushort AnalysisVersion { get; set; }
+    public ushort Version { get; set; }
   }
 }
