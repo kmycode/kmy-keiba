@@ -117,7 +117,12 @@ namespace KmyKeiba.Models.Analysis.Math
     /// <returns>偏差値</returns>
     public double CalcDeviationValue(double val)
     {
-      return (val - this.Average) / this.Deviation * 10 + 50;
+      return CalcDeviationValue(val, this.Average, this.Deviation);
+    }
+
+    public static double CalcDeviationValue(double value, double average, double deviation)
+    {
+      return (value - average) / deviation * 10 + 50;
     }
   }
 }
