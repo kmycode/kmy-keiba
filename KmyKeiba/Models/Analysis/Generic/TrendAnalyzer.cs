@@ -17,12 +17,6 @@ namespace KmyKeiba.Models.Analysis.Generic
     private readonly CompositeDisposable _disposables = new();
     private readonly List<Action> _postAnalysis = new();
 
-    public IList MenuItems => this.MenuItemsPrivate;
-
-    protected TrendAnalyzerMenuItemCollection MenuItemsPrivate { get; } = new();
-
-    public ReactiveCollection<AnalysisParameter> Parameters { get; } = new();
-
     public ReactiveProperty<bool> IsLoaded { get; } = new();
 
     public ReactiveProperty<bool> IsAnalyzed { get; } = new();
@@ -30,6 +24,9 @@ namespace KmyKeiba.Models.Analysis.Generic
     protected TrendAnalyzer()
     {
       // 選択されているメニューが変更された時の処理
+      // NOTE: 今後の開発で、旧UIが不要と判断したら削除
+      // https://github.com/kmycode/kmy-keiba/issues/5
+      /*
       this.MenuItemsPrivate.ActiveKey.Subscribe(k =>
       {
         foreach (var parameter in this.Parameters)
@@ -37,6 +34,7 @@ namespace KmyKeiba.Models.Analysis.Generic
           parameter.IsActive.Value = parameter.Key.Equals(k);
         }
       }).AddTo(this._disposables);
+      */
 
       this.IsAnalyzed.Subscribe(a =>
       {
@@ -60,12 +58,32 @@ namespace KmyKeiba.Models.Analysis.Generic
       }
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
       this._disposables.Dispose();
+
+      // メモリリーク防止
       this._postAnalysis.Clear();
     }
 
+    // NOTE: 今後の開発で、旧UIが不要と判断したら削除
+    // https://github.com/kmycode/kmy-keiba/issues/5
+    // ただし TrendAnalyzerMenuItemCollection クラスは
+    // 「コレクションに入っている各アイテムのフラグがラジオボタンのチェック状態と連動する」
+    // 「どのアイテムがラジオボタンによって選択されているか把握する、チェック変更のイベントを取得する」
+    // という観点から再利用できる可能性がある
+    #region Obsoletes
+
+    [Obsolete]
+    public IList MenuItems => this.MenuItemsPrivate;
+
+    [Obsolete]
+    protected TrendAnalyzerMenuItemCollection MenuItemsPrivate { get; } = new();
+
+    [Obsolete]
+    public ReactiveCollection<AnalysisParameter> Parameters { get; } = new();
+
+    [Obsolete]
     protected class TrendAnalyzerMenuItem
     {
       public KEY Key { get; }
@@ -80,6 +98,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       }
     }
 
+    [Obsolete]
     protected class TrendAnalyzerMenuItemCollection : ReactiveCollection<TrendAnalyzerMenuItem>, IDisposable
     {
       public ReactiveProperty<KEY> ActiveKey { get; } = new();
@@ -149,11 +168,13 @@ namespace KmyKeiba.Models.Analysis.Generic
       }
     }
 
+    [Obsolete]
     public record class AnalysisParameter(KEY Key, string Name, string Value, string Comment, AnalysisParameterType Type)
     {
       public ReactiveProperty<bool> IsActive { get; } = new();
     }
 
+    [Obsolete]
     public enum AnalysisParameterType
     {
       Unset,
@@ -163,5 +184,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       Low,
       VeryLow,
     }
+
+    #endregion
   }
 }

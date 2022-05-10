@@ -5,10 +5,13 @@ using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Race;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,7 +20,7 @@ namespace KmyKeiba.Models.Analysis
   /// <summary>
   /// 過去レースと比較したレースの傾向を解析
   /// </summary>
-  public class RaceTrendAnalyzer : TrendAnalyzer<RaceTrendAnalyzer.Key>
+  public class RaceTrendAnalyzer : TrendAnalyzer<RaceTrendAnalyzer.Key>, IDisposable
   {
     public enum Key
     {
@@ -33,6 +36,8 @@ namespace KmyKeiba.Models.Analysis
       RoughRate,
     }
 
+    private readonly CompositeDisposable _disposables = new();
+
     public RaceData Race { get; }
 
     private IReadOnlyList<RaceHorseData> _raceHorses { get; set; } = Array.Empty<RaceHorseData>();
@@ -42,13 +47,31 @@ namespace KmyKeiba.Models.Analysis
     public IReadOnlyList<LightRaceInfo> Source => this._source;
     private readonly ReactiveCollection<LightRaceInfo> _source = new();
 
-    public StatisticSingleArray SpeedPoints { get; } = new();
+    public ReactiveProperty<StatisticSingleArray> SpeedPoints { get; } = new(new StatisticSingleArray());
 
-    public StatisticDoubleArray SpeedDatePoints { get; private set; } = StatisticDoubleArray.Empty;
+    public ReactiveProperty<StatisticDoubleArray> SpeedDatePoints { get; } = new(StatisticDoubleArray.Empty);
 
-    public StatisticSingleArray RoughPoints { get; } = new();
+    public ReactiveProperty<StatisticSingleArray> RoughPoints { get; } = new(new StatisticSingleArray());
 
-    public StatisticDoubleArray RoughDatePoints { get; private set; } = StatisticDoubleArray.Empty;
+    public ReactiveProperty<StatisticDoubleArray> RoughDatePoints { get; } = new(StatisticDoubleArray.Empty);
+
+    public ReactiveProperty<TimeSpan> SpeedAverage { get; } = new();
+
+    public ReactiveProperty<TimeSpan> SpeedMedian { get; } = new();
+
+    public ReactiveProperty<TimeSpan> SpeedDeviation { get; } = new();
+
+    public ReactiveProperty<int> FrontRunnersCount { get; } = new();
+
+    public ReactiveProperty<int> StalkersCount { get; } = new();
+
+    public ReactiveProperty<int> SotpsCount { get; } = new();
+
+    public ReactiveProperty<int> SaveRunnersCount { get; } = new();
+
+    public ReactiveProperty<double> RoughMedian { get; } = new();
+
+    public ReactiveProperty<double> RoughDeviation { get; } = new();
 
     public RaceTrendAnalyzer(RaceData race)
     {
@@ -81,39 +104,24 @@ namespace KmyKeiba.Models.Analysis
         Values = source.Select(s => (s.Data.StartTime.Date - startDate).TotalDays).ToArray(),
       };
 
-      this.SpeedPoints.Values = source.Select(s => s.ResultTimePerMeter).ToArray();
-      this.SpeedDatePoints = new StatisticDoubleArray(datePoints, this.SpeedPoints);
+      this.SpeedPoints.Value.Values = source.Select(s => s.ResultTimePerMeter).ToArray();
+      this.SpeedDatePoints.Value = new StatisticDoubleArray(datePoints, this.SpeedPoints.Value);
       var runningStyles = source.SelectMany(s => s.RunningStyles);
-      this.RoughPoints.Values = source.Select(s => s.RoughRate).ToArray();
-      this.RoughDatePoints = new StatisticDoubleArray(datePoints, this.RoughPoints);
+      this.RoughPoints.Value.Values = source.Select(s => s.RoughRate).ToArray();
+      this.RoughDatePoints.Value = new StatisticDoubleArray(datePoints, this.RoughPoints.Value);
 
-      var raceTime = this._raceHorses.FirstOrDefault(rh => rh.ResultOrder == 1)?.ResultTime ?? TimeSpan.Zero;
-      var speedD = 100 - this.SpeedPoints.CalcDeviationValue(topHorse.ResultTime.TotalSeconds) / this.Race.Distance;
-      
-      var parameters = new List<AnalysisParameter>();
-      parameters.Add(new(Key.Speed, "平均", TimeSpan.FromSeconds(this.SpeedPoints.Average * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.Speed, "中央値", TimeSpan.FromSeconds(this.SpeedPoints.Median * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.Speed, "標準偏差", TimeSpan.FromSeconds(this.SpeedPoints.Deviation * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.Speed, "傾向予想", TimeSpan.FromSeconds(this.SpeedDatePoints.CalcRegressionValue((this.Race.StartTime.Date - startDate).TotalDays) * this.Race.Distance).ToString("mm\\:ss"), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.RunningStyle, "逃げ", runningStyles.Count(rs => rs == RunningStyle.FrontRunner).ToString(), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.RunningStyle, "先行", runningStyles.Count(rs => rs == RunningStyle.Stalker).ToString(), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.RunningStyle, "差し", runningStyles.Count(rs => rs == RunningStyle.Sotp).ToString(), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.RunningStyle, "追込", runningStyles.Count(rs => rs == RunningStyle.SaveRunner).ToString(), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.RoughRate, "平均", this.RoughPoints.Average.ToString("0.00"), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.RoughRate, "中央値", this.RoughPoints.Median.ToString("0.00"), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.RoughRate, "標準偏差", this.RoughPoints.Deviation.ToString("0.00"), "", AnalysisParameterType.Standard));
-      parameters.Add(new(Key.RoughRate, "傾向予想", this.RoughDatePoints.CalcRegressionValue(myRace.RoughRate).ToString("0.00"), "", AnalysisParameterType.Standard));
+      // 分析
+      this.SpeedAverage.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Average * this.Race.Distance);
+      this.SpeedMedian.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Median * this.Race.Distance);
+      this.SpeedDeviation.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Deviation * this.Race.Distance);
 
-      var speedRoughPoint = new StatisticDoubleArray(this.SpeedPoints, this.RoughPoints);
-      parameters.Add(new(Key.RoughRate, "タイムとの相関係数", speedRoughPoint.CorrelationCoefficient.ToString("0.00"), "", AnalysisParameterType.Standard));
+      this.FrontRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.FrontRunner);
+      this.StalkersCount.Value = runningStyles.Count(s => s == RunningStyle.Stalker);
+      this.SotpsCount.Value = runningStyles.Count(s => s == RunningStyle.Sotp);
+      this.SaveRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.SaveRunner);
 
-      this.Parameters.AddRangeOnScheduler(parameters);
-
-      this.MenuItemsPrivate.AddValues(new[] {
-        (Key.Speed, raceTime.ToString("mm\\:ss")),
-        (Key.RunningStyle, topHorse.RunningStyle.ToLabelString()),
-        (Key.RoughRate, myRace.RoughRate.ToString("0.0")),
-      });
+      this.RoughMedian.Value = this.RoughPoints.Value.Median;
+      this.RoughDeviation.Value = this.RoughPoints.Value.Deviation;
 
       this.IsAnalyzed.Value = true;
     }

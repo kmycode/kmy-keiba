@@ -19,6 +19,8 @@ namespace KmyKeiba.Converters
         {
           case TimeSpan ts:
             return ts.ToString(format);
+          case DateTime dt:
+            return dt.ToString(format);
           case float fl:
             return fl.ToString(format);
           case double dl:

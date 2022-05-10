@@ -10,12 +10,18 @@
   <Style TargetType="Grid">
     <Setter Property="Background" Value="{x:Null}"/>
   </Style>
-  <Style TargetType="Label">
+  <Style TargetType="Label" x:Key="LabelDefault">
     <Setter Property="Padding" Value="0"/>
   </Style>
-  <Style TargetType="TextBlock">
+  <Style TargetType="Label" BasedOn="{StaticResource LabelDefault}"/>
+  <Style TargetType="TextBlock" x:Key="TextBlockDefault">
     <Setter Property="Foreground" Value="{DynamicResource BaseForeground}"/>
   </Style>
+  <Style TargetType="TextBlock" x:Key="SubTextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource SubForeground}"/>
+    <Setter Property="FontSize" Value="14"/>
+  </Style>
+  <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
   <Style TargetType="ScrollViewer">
     <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
   </Style>
