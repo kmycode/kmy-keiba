@@ -50,6 +50,11 @@ namespace KmyKeiba.Models.Analysis
     public RaceTrendAnalysisSelector(MyContext db, RaceData race) : base(db, typeof(Key))
     {
       this.Race = race;
+
+      if (race.Grade == RaceGrade.Others)
+      {
+        this.Keys.RemoveKey(Key.SameRaceName);
+      }
     }
 
     protected override RaceTrendAnalyzer GenerateAnalyzer()

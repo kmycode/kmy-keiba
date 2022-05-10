@@ -25,9 +25,9 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public IEnumerable Filters => this.Keys;
 
-    protected TrendAnalysisFilterItemCollection<KEY> Keys { get; }
+    public TrendAnalysisFilterItemCollection<KEY> Keys { get; }
 
-    protected Dictionary<TrendAnalysisFilterItemCollection<KEY>, A> Analyzers { get; } = new();
+    protected Dictionary<IEnumerable<KEY>, A> Analyzers { get; } = new(new TrendAnalysisFilterItemCollection<KEY>.Comparer());
 
     public ReactiveProperty<A?> CurrentAnalyzer { get; } = new();
 
@@ -51,7 +51,7 @@ namespace KmyKeiba.Models.Analysis.Generic
     {
       var db = this._db;
 
-      this.Analyzers.TryGetValue(this.Keys, out var existsAnalyzer);
+      this.Analyzers.TryGetValue(this.Keys.GetActiveKeys(), out var existsAnalyzer);
       if (existsAnalyzer != null)
       {
         this.CurrentAnalyzer.Value = existsAnalyzer;
@@ -60,7 +60,7 @@ namespace KmyKeiba.Models.Analysis.Generic
 
       // ここはUIスレッドでなければならない（ReactiveCollectionなどにスレッドが伝播しないので）
       var analyzer = this.GenerateAnalyzer();
-      this.Analyzers[this.Keys.Clone()] = analyzer;
+      this.Analyzers[this.Keys.GetActiveKeys()] = analyzer;
       this.CurrentAnalyzer.Value = analyzer;
 
       Task.Run(async () =>
@@ -72,8 +72,13 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public A? GetAnalyzerFromKeys(IEnumerable<KEY> keys)
     {
-      this.Analyzers.TryGetValue(new TrendAnalysisFilterItemCollection<KEY>(keys), out var analyzer);
+      this.Analyzers.TryGetValue(keys, out var analyzer);
       return analyzer;
+    }
+
+    public A? GetAnalyzerFromKeys(params KEY[] keys)
+    {
+      return this.GetAnalyzerFromKeys((IEnumerable<KEY>)keys);
     }
 
     protected abstract A GenerateAnalyzer();
@@ -108,20 +113,24 @@ namespace KmyKeiba.Models.Analysis.Generic
       return false;
     }
 
-    public TrendAnalysisFilterItemCollection<KEY> Clone()
+    public void RemoveKey(KEY key)
     {
-      var collection = new TrendAnalysisFilterItemCollection<KEY>();
-
+      var i = -1;
+      var isHit = false;
       foreach (var item in this)
       {
-        var newItem = new TrendAnalysisFilterItem<KEY>(item.Key)
+        i++;
+        if (item.Key!.Equals(key))
         {
-          IsChecked = { Value = item.IsChecked.Value, },
-        };
-        collection.Add(newItem);
+          isHit = true;
+          break;
+        }
       }
 
-      return collection;
+      if (isHit)
+      {
+        this.RemoveAt(i);
+      }
     }
 
     public IEnumerable<KEY> GetActiveKeys()
@@ -134,6 +143,10 @@ namespace KmyKeiba.Models.Analysis.Generic
       if (obj is TrendAnalysisFilterItemCollection<KEY> collection)
       {
         return this.GetActiveKeys().SequenceEqual(collection.GetActiveKeys());
+      }
+      if (obj is IEnumerable<KEY> keys)
+      {
+        return this.GetActiveKeys().SequenceEqual(keys);
       }
       return base.Equals(obj);
     }
@@ -148,6 +161,27 @@ namespace KmyKeiba.Models.Analysis.Generic
     }
 
     public bool Equals(TrendAnalysisFilterItemCollection<KEY>? other) => this.Equals((object?)other);
+
+    public class Comparer : IEqualityComparer<IEnumerable<KEY>>
+    {
+      public bool Equals(IEnumerable<KEY>? x, IEnumerable<KEY>? y)
+      {
+        if (x != null && y != null)
+        {
+          return x.OrderBy(a => a).SequenceEqual(y.OrderBy(b => b));
+        }
+        return false;
+      }
+
+      public int GetHashCode([DisallowNull] IEnumerable<KEY> obj)
+      {
+        if (!obj.Any())
+        {
+          return 0;
+        }
+        return obj.Sum(i => i!.GetHashCode() % 789);
+      }
+    }
   }
 
   public record struct TrendAnalysisFilterItem<KEY>(KEY Key)
