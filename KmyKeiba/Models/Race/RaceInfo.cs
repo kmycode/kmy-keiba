@@ -107,7 +107,6 @@ namespace KmyKeiba.Models.Race
 
           horseInfos.Add(new RaceHorseAnalysisData(race, horse, histories, standardTime));
         }
-
         info.SetHorses(horseInfos);
       });
 

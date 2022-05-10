@@ -27,11 +27,16 @@
       </Style>
     </Grid.Resources>
 
+    <!--枠色-->
     <Border Grid.RowSpan="2" Width="8" Background="{Binding Horse.Data.FrameNumber,ElementName=Root,Converter={StaticResource FrameNumberBrushConv}}"
             Margin="0,0,8,0"/>
 
+    <!--基本情報-->
     <Grid Grid.Column="1" Margin="0,2,0,4">
       <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="auto"/>
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition Width="auto"/>
@@ -67,8 +72,24 @@
           </up:RunningStyleTip.LayoutTransform>
         </up:RunningStyleTip>
       </StackPanel>
+      <TextBlock Grid.Column="4" Margin="24,0,0,0" TextAlignment="Center" Width="30" FontSize="16">
+        <Run Text="{Binding Horse.Data.Sex,ElementName=Root,Converter={StaticResource EnumsConv}}"
+             Foreground="{Binding Horse.Data.Sex,ElementName=Root,Converter={StaticResource EnumsConv}}"
+        /><Run Text="{Binding Horse.Data.Age,ElementName=Root}"/>
+      </TextBlock>
+      <TextBlock Grid.Column="5" Margin="8,0,0,0" TextAlignment="Center" Width="40" FontSize="16">
+        <Run Text="{Binding Horse.Data.Weight,ElementName=Root}"/><LineBreak/>
+        <Run Text="(" FontSize="14"/><Run Text="{Binding Horse.Data.WeightDiff,ElementName=Root}" FontSize="14"/><Run Text=")" FontSize="14"/>
+      </TextBlock>
+      <StackPanel Grid.Column="6" Margin="24,0,0,0" VerticalAlignment="Center">
+        <TextBlock Width="60" FontSize="14" TextAlignment="Left"
+                   Text="{Binding Horse.Data.RiderName,ElementName=Root}"/>
+        <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="Bold"
+                   Text="{Binding Horse.Data.RiderWeight,ElementName=Root}"/>
+      </StackPanel>
     </Grid>
 
+    <!--馬柱-->
     <Grid Grid.Column="1" Grid.Row="1">
       <ItemsControl ItemsSource="{Binding Horse.BeforeFiveRaces,ElementName=Root}">
         <ItemsControl.ItemsPanel>

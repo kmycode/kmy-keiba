@@ -37,4 +37,8 @@
   <SolidColorBrush x:Key="RaceNumberBackground" Color="#222266"/>
   <SolidColorBrush x:Key="RaceNumberForeground" Color="#c0c0ff"/>
 
+  <SolidColorBrush x:Key="MaleForeground" Color="#aaaaff"/>
+  <SolidColorBrush x:Key="FemaleForeground" Color="#ffaaaa"/>
+  <SolidColorBrush x:Key="CastratedForeground" Color="#aaffaa"/>
+
 </ResourceDictionary>
