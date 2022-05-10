@@ -20,6 +20,7 @@ namespace KmyKeiba
       // Dependency Injections
       ViewMessages.TryGetResource = (key) => this.TryFindResource(key);
       ViewMessages.ChangeTheme = (theme) => this.ChangeTheme(theme);
+      ViewMessages.InvokeUiThread = (action) => this.Dispatcher.Invoke(action);
 
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     }

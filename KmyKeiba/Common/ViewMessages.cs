@@ -14,5 +14,7 @@ namespace KmyKeiba.Common
     public static Func<string, object?>? TryGetResource { get; set; }
 
     public static Action<ApplicationTheme>? ChangeTheme { get; set; }
+
+    public static Action<Action>? InvokeUiThread { get; set; }
   }
 }

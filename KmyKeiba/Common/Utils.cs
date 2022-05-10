@@ -33,4 +33,12 @@ namespace KmyKeiba.Common
     Classic,
     Dark,
   }
+
+  internal static class ThreadUtil
+  {
+    public static void InvokeOnUiThread(Action action)
+    {
+      ViewMessages.InvokeUiThread?.Invoke(action);
+    }
+  }
 }
