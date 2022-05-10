@@ -40,12 +40,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceData Race { get; }
 
-    private IReadOnlyList<RaceHorseData> _raceHorses { get; set; } = Array.Empty<RaceHorseData>();
-
-    private RaceStandardTimeMasterData _standardTime { get; set; } = new();
-
-    public IReadOnlyList<LightRaceInfo> Source => this._source;
-    private readonly ReactiveCollection<LightRaceInfo> _source = new();
+    public IReadOnlyList<RaceAnalysisData> Source => this._source;
+    private readonly ReactiveCollection<RaceAnalysisData> _source = new();
 
     public ReactiveProperty<StatisticSingleArray> SpeedPoints { get; } = new(new StatisticSingleArray());
 
@@ -78,7 +74,7 @@ namespace KmyKeiba.Models.Analysis
       this.Race = race;
     }
 
-    public void SetRaces(IEnumerable<LightRaceInfo> source, IEnumerable<RaceHorseData> raceHorses, RaceStandardTimeMasterData standardTime)
+    public void SetRaces(IEnumerable<RaceAnalysisData> source)
     {
       if (this.IsLoaded.Value)
       {
@@ -87,24 +83,19 @@ namespace KmyKeiba.Models.Analysis
       this.IsLoaded.Value = true;
 
       this._source.AddRangeOnScheduler(source);
-      this._raceHorses = raceHorses.ToArray();
-      this._standardTime = standardTime;
 
       this.Analyze(source.ToArray());
     }
 
-    private void Analyze(IList<LightRaceInfo> source)
+    private void Analyze(IList<RaceAnalysisData> source)
     {
-      var topHorse = this._raceHorses.FirstOrDefault(rh => rh.ResultOrder == 1) ?? new RaceHorseData();
-      var myRace = new LightRaceInfo(this.Race, this._raceHorses.Where(rh => rh.ResultOrder > 0 && rh.ResultOrder <= 3).OrderBy(rh => rh.ResultOrder).ToArray(), this._standardTime);
-
       var startDate = new DateTime(1980, 1, 1);
       var datePoints = new StatisticSingleArray
       {
         Values = source.Select(s => (s.Data.StartTime.Date - startDate).TotalDays).ToArray(),
       };
 
-      this.SpeedPoints.Value.Values = source.Select(s => s.ResultTimePerMeter).ToArray();
+      this.SpeedPoints.Value.Values = source.Select(s => s.TopHorse.ResultTimePerMeter).ToArray();
       this.SpeedDatePoints.Value = new StatisticDoubleArray(datePoints, this.SpeedPoints.Value);
       var runningStyles = source.SelectMany(s => s.RunningStyles);
       this.RoughPoints.Value.Values = source.Select(s => s.RoughRate).ToArray();
@@ -124,56 +115,6 @@ namespace KmyKeiba.Models.Analysis
       this.RoughDeviation.Value = this.RoughPoints.Value.Deviation;
 
       this.IsAnalyzed.Value = true;
-    }
-
-    public class LightRaceInfo
-    {
-      public RaceData Data { get; }
-
-      public RaceSubjectInfo Subject { get; }
-
-      public RaceHorseData? TopHorse => this.TopHorses.FirstOrDefault(rh => rh.ResultOrder == 1);
-
-      public IReadOnlyList<RaceHorseData> TopHorses { get; }
-
-      public RunningStyle TopRunningStyle { get; }
-
-      public IReadOnlyList<RunningStyle> RunningStyles { get; }
-
-      public double ResultTimePerMeter { get; }
-
-      public double ResultTimeDeviationValue { get; }
-
-      /// <summary>
-      /// 荒れ度
-      /// </summary>
-      public double RoughRate { get; }
-
-      public LightRaceInfo(RaceData race, IReadOnlyList<RaceHorseData> topHorses, RaceStandardTimeMasterData raceStandardTime)
-      {
-        var topHorse = topHorses.OrderBy(h => h.ResultOrder).FirstOrDefault() ?? new();
-
-        this.Data = race;
-        this.TopHorses = topHorses;
-        this.Subject = new RaceSubjectInfo(race);
-        this.RunningStyles = topHorses.OrderBy(h => h.ResultOrder)
-          .Take(3)
-          .Select(rh => rh.RunningStyle)
-          .Where(rs => rs != RunningStyle.Unknown)
-          .ToArray();
-        this.TopRunningStyle = this.RunningStyles.FirstOrDefault();
-
-        this.ResultTimePerMeter = (double)topHorse.ResultTime.TotalSeconds / race.Distance;
-        this.RoughRate = topHorses.Where(rh => rh.ResultOrder <= 3)
-              .Select(rh => (double)rh.Popular * rh.Popular)
-              .Append(0)    // Sum時の例外防止
-              .Sum() / (1 * 1 + 2 * 2 + 3 * 3);
-
-        if (raceStandardTime.SampleCount > 0)
-        {
-          this.ResultTimeDeviationValue = 100 - StatisticSingleArray.CalcDeviationValue(this.ResultTimePerMeter, raceStandardTime.Average, raceStandardTime.Deviation);
-        }
-      }
     }
   }
 }

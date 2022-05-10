@@ -64,7 +64,7 @@ namespace KmyKeiba.Behaviors
     private void OnImageChanged()
     {
       // PaintSurfaceイベントに着火
-      this.AssociatedObject.InvalidateVisual();
+      this.AssociatedObject?.InvalidateVisual();
     }
 
     private void OnImageChanged(object? sender, EventArgs e)

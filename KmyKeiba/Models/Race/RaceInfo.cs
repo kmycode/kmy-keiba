@@ -4,6 +4,7 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
 using Microsoft.EntityFrameworkCore;
+using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,13 +18,15 @@ namespace KmyKeiba.Models.Race
   {
     public RaceData Data { get; }
 
-    public ObservableCollection<RaceCourseDetail> CourseDetails { get; } = new();
+    public ReactiveCollection<RaceCourseDetail> CourseDetails { get; } = new();
 
     public RaceTrendAnalysisSelector TrendAnalyzers { get; }
 
-    public ObservableCollection<RaceHorseInfo> Horses { get; } = new();
+    public ReactiveCollection<RaceHorseAnalysisData> Horses { get; } = new();
 
-    public ObservableCollection<RaceCorner> Corners { get; } = new();
+    public ReactiveCollection<RaceHorseAnalysisData> HorsesResultOrdered { get; } = new();
+
+    public ReactiveCollection<RaceCorner> Corners { get; } = new();
 
     public RaceHorsePassingOrderImage ResultMap { get; } = new();
 
@@ -33,7 +36,7 @@ namespace KmyKeiba.Models.Race
 
     public string Name => this.Subject.DisplayName;
 
-    private RaceInfo(MyContext db, RaceData race, IReadOnlyList<RaceHorseInfo> horses)
+    private RaceInfo(MyContext db, RaceData race, IReadOnlyList<RaceHorseAnalysisData> horses)
     {
       this.Data = race;
       this.Subject = new(race);
@@ -49,10 +52,10 @@ namespace KmyKeiba.Models.Race
       this.ResultMap.Groups = RaceCorner.GetGroupListFromResult(horses.Select(h => h.Data));
       this.CourseSummaryImage.Race = race;
 
-      foreach (var horse in horses.OrderBy(h => h.Data.Number))
-      {
-        this.Horses.Add(horse);
-      }
+      this.Horses.AddRangeOnScheduler(horses.OrderBy(h => h.Data.Number));
+      this.HorsesResultOrdered.AddRangeOnScheduler(
+        horses.Where(h => h.Data.ResultOrder > 0).OrderBy(h => h.Data.ResultOrder).Concat(
+          horses.Where(h => h.Data.ResultOrder == 0).OrderBy(h => h.Data.Number).OrderBy(h => h.Data.AbnormalResult)));
     }
 
     public static async Task<RaceInfo?> FromKeyAsync(MyContext db, string key)
@@ -69,11 +72,26 @@ namespace KmyKeiba.Models.Race
     public static async Task<RaceInfo> FromDataAsync(MyContext db, RaceData race)
     {
       var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == race.Key).ToArrayAsync();
+      var horseKeys = horses.Select(h => h.Key).ToArray();
+      var horseAllHistories = await db.RaceHorses!
+        .Where(rh => horseKeys.Contains(rh.Key))
+        .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, })
+        .Where(d => d.Race.StartTime < race.StartTime)
+        .OrderByDescending(d => d.Race.StartTime)
+        .ToArrayAsync();
+      var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race);
 
-      var horseInfos = new List<RaceHorseInfo>();
+      var horseInfos = new List<RaceHorseAnalysisData>();
       foreach (var horse in horses)
       {
-        horseInfos.Add(await RaceHorseInfo.FromDataAsync(db, horse));
+        var histories = new List<RaceHorseAnalysisData>();
+        foreach (var history in horseAllHistories.Where(h => h.RaceHorse.Key == horse.Key))
+        {
+          var historyStandardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, history.Race);
+          histories.Add(new RaceHorseAnalysisData(history.Race, history.RaceHorse, historyStandardTime));
+        }
+
+        horseInfos.Add(new RaceHorseAnalysisData(race, horse, histories, standardTime));
       }
 
       var info = new RaceInfo(db, race, horseInfos);

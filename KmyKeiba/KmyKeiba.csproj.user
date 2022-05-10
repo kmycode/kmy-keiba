@@ -22,6 +22,12 @@
     <Compile Update="Views\Controls\TrendAnalyzerView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\ListItems\RaceHorsePillar.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\RunningStyleTip.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Page Update="MainWindow.xaml">
@@ -52,6 +58,12 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Controls\TrendAnalyzerView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\ListItems\RaceHorsePillar.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\RunningStyleTip.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

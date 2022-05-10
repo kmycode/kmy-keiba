@@ -8,6 +8,7 @@
              xmlns:b="clr-namespace:KmyKeiba.Behaviors"
              xmlns:uc="clr-namespace:KmyKeiba.Views.Controls"
              xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
+             xmlns:ul="clr-namespace:KmyKeiba.Views.ListItems"
              xmlns:local="clr-namespace:KmyKeiba.Views.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
@@ -32,9 +33,35 @@
     </Grid>
 
     <Grid Grid.Row="1">
+      
+      <!--着順-->
+      <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_RaceResultOrderList,Converter={StaticResource BooleanVisibilityConv}}">
+        <ScrollViewer>
+          <StackPanel Margin="8,0,4,0">
+            <ItemsControl ItemsSource="{Binding Race.HorsesResultOrdered,ElementName=Root}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="auto"/>
+                      <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <ul:RaceHorsePillar Grid.Column="1" Horse="{Binding}" IsResult="True"/>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
 
       <!-- 傾向 -->
-      <Grid Margin="0,8,4,0" Visibility="{Binding IsChecked,ElementName=S_RaceResultTrend,Converter={StaticResource BooleanVisibilityConv}}">
+      <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_RaceResultTrend,Converter={StaticResource BooleanVisibilityConv}}">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition/>
@@ -44,7 +71,7 @@
         <uc:TrendAnalyzerView Selector="{Binding Race.TrendAnalyzers,ElementName=Root}"/>
 
         <ScrollViewer Grid.Column="1">
-          <StackPanel Margin="8,0,0,0">
+          <StackPanel Margin="8,0,4,0">
             
             <!--統計学的分析-->
             <Grid>
@@ -87,20 +114,16 @@
                          Text="標準偏差"/>
               <TextBlock Grid.Column="3" Margin="4,0,0,0" Grid.Row="1" FontSize="22"
                          Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SpeedDeviation.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}"/>
-              <TextBlock Grid.Column="4" Margin="48,0,0,0" Grid.Row="0" Style="{StaticResource Sub}"
-                         Text="逃げ"/>
+              <up:RunningStyleTip Grid.Column="4" Margin="48,0,0,0" Grid.Row="0" RunningStyle="FrontRunner"/>
               <TextBlock Grid.Column="5" Margin="4,0,0,0" Grid.Row="0" FontSize="22"
                          Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.FrontRunnersCount.Value,ElementName=Root}"/>
-              <TextBlock Grid.Column="4" Margin="48,0,0,0" Grid.Row="1" Style="{StaticResource Sub}"
-                         Text="先行"/>
+              <up:RunningStyleTip Grid.Column="4" Margin="48,0,0,0" Grid.Row="1" RunningStyle="Stalker"/>
               <TextBlock Grid.Column="5" Margin="4,0,0,0" Grid.Row="1" FontSize="22"
                          Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.StalkersCount.Value,ElementName=Root}"/>
-              <TextBlock Grid.Column="6" Margin="24,0,0,0" Grid.Row="0" Style="{StaticResource Sub}"
-                         Text="差し"/>
+              <up:RunningStyleTip Grid.Column="6" Margin="12,0,0,0" Grid.Row="0" RunningStyle="Sotp"/>
               <TextBlock Grid.Column="7" Margin="4,0,0,0" Grid.Row="0" FontSize="22"
                          Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SotpsCount.Value,ElementName=Root}"/>
-              <TextBlock Grid.Column="6" Margin="24,0,0,0" Grid.Row="1" Style="{StaticResource Sub}"
-                         Text="追込"/>
+              <up:RunningStyleTip Grid.Column="6" Margin="12,0,0,0" Grid.Row="1" RunningStyle="SaveRunner"/>
               <TextBlock Grid.Column="7" Margin="4,0,0,0" Grid.Row="1" FontSize="22"
                          Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SaveRunnersCount.Value,ElementName=Root}"/>
               <TextBlock Grid.Column="8" Margin="48,0,0,0" Grid.Row="0" Style="{StaticResource Sub}"
@@ -123,7 +146,7 @@
               <TextBlock Text="日付" Width="80"/>
               <TextBlock Text="1着T" Width="60"/>
               <TextBlock Text="1着T指数" Width="70"/>
-              <TextBlock Text="1脚" Width="40"/>
+              <TextBlock Text="1着脚質" Width="60"/>
               <TextBlock Text="荒れ度" Width="70"/>
             </StackPanel>
             <ItemsControl ItemsSource="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.Source,ElementName=Root}">
@@ -145,9 +168,11 @@
                     <Label Content="{Binding Subject.DisplayName}" HorizontalContentAlignment="Left"
                            FontSize="16" FontWeight="Bold" Width="180"/>
                     <Label Content="{Binding Data.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
-                    <Label Content="{Binding TopHorse.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="60"/>
-                    <Label Content="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
-                    <Label Content="{Binding TopRunningStyle,Converter={StaticResource RunningStyleConv}}" FontSize="16" Width="40"/>
+                    <Label Content="{Binding TopHorse.Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="60"/>
+                    <Label Content="{Binding TopHorse.ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
+                    <Border Width="60">
+                      <up:RunningStyleTip RunningStyle="{Binding TopRunningStyle}" HorizontalAlignment="Right"/>
+                    </Border>
                     <Label Content="{Binding RoughRate,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
                   </StackPanel>
                 </DataTemplate>

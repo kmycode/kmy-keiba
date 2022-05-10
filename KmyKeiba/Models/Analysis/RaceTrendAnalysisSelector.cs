@@ -117,24 +117,21 @@ namespace KmyKeiba.Models.Analysis
         .OrderByDescending(r => r.StartTime)
         .Take(300)
         .ToArrayAsync();
-      var raceKeys = races.Select(r => r.Key).Append(this.Race.Key).ToArray();
+      var raceKeys = races.Select(r => r.Key).ToArray();
       var raceHorses = await db.RaceHorses!
         .Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 5 && raceKeys.Contains(rh.RaceKey))
         .ToArrayAsync();
 
-      var list = new List<RaceTrendAnalyzer.LightRaceInfo>();
+      var list = new List<RaceAnalysisData>();
       foreach (var race in races)
       {
         list.Add(
-          new RaceTrendAnalyzer.LightRaceInfo(
+          new RaceAnalysisData(
             race,
             raceHorses.Where(rh => rh.RaceKey == race.Key).ToArray(),
             await AnalysisUtil.GetRaceStandardTimeAsync(db, race)));
       }
-      analyzer.SetRaces(
-        list,
-        raceHorses.Where(rh => rh.RaceKey == this.Race.Key),
-        await AnalysisUtil.GetRaceStandardTimeAsync(db, this.Race));
+      analyzer.SetRaces(list);
     }
   }
 }

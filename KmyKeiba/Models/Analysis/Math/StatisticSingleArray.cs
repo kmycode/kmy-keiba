@@ -110,6 +110,15 @@ namespace KmyKeiba.Models.Analysis.Math
     }
     private double? _deviation;
 
+    public StatisticSingleArray()
+    {
+    }
+
+    public StatisticSingleArray(double[] values)
+    {
+      this.Values = values;
+    }
+
     /// <summary>
     /// 偏差値を計算する
     /// </summary>

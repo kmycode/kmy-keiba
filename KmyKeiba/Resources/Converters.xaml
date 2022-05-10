@@ -10,4 +10,5 @@
   <cv:LabelConverter x:Key="LabelConv"/>
   <cv:StringFormatConverter x:Key="StringFormatConv"/>
   <cv:RunningStyleConverter x:Key="RunningStyleConv"/>
+  <cv:FrameNumberBrushConverter x:Key="FrameNumberBrushConv"/>
 </ResourceDictionary>
