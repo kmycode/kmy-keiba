@@ -110,6 +110,7 @@ namespace KmyKeiba.Converters
                 RaceCourseWeather.Fine => "晴",
                 RaceCourseWeather.Rainy => "雨",
                 RaceCourseWeather.Cloudy => "曇",
+                RaceCourseWeather.Drizzle => "小",
                 RaceCourseWeather.Snow => "雪",
                 RaceCourseWeather.LightSnow => "雪",
                 _ => string.Empty,
@@ -128,9 +129,9 @@ namespace KmyKeiba.Converters
               return cod switch
               {
                 RaceCourseCondition.Standard => "良",
-                RaceCourseCondition.Good => "稍重",
+                RaceCourseCondition.Good => "稍",
                 RaceCourseCondition.Yielding => "重",
-                RaceCourseCondition.Soft => "不良",
+                RaceCourseCondition.Soft => "不",
                 _ => string.Empty,
               };
             }

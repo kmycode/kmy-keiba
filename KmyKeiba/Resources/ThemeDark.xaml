@@ -22,6 +22,7 @@
   <SolidColorBrush x:Key="BaseForeground" Color="#f0f0f0"/>
   <SolidColorBrush x:Key="BaseBorderBrush" Color="#cccccc"/>
   <SolidColorBrush x:Key="SubForeground" Color="#b0b0b0"/>
+  <SolidColorBrush x:Key="ThinSubForeground" Color="#808080"/>
 
   <SolidColorBrush x:Key="ClickableBackground" Color="#202020"/>
   <SolidColorBrush x:Key="HoverBackground" Color="#444444"/>
@@ -40,5 +41,10 @@
   <SolidColorBrush x:Key="MaleForeground" Color="#aaaaff"/>
   <SolidColorBrush x:Key="FemaleForeground" Color="#ffaaaa"/>
   <SolidColorBrush x:Key="CastratedForeground" Color="#aaffaa"/>
+  <SolidColorBrush x:Key="GoodBackground" Color="#226622"/>
+  <SolidColorBrush x:Key="BadBackground" Color="#552222"/>
+  <SolidColorBrush x:Key="FirstOrderBackground" Color="#454511"/>
+  <SolidColorBrush x:Key="SecondOrderBackground" Color="#11245d"/>
+  <SolidColorBrush x:Key="ThirdOrderBackground" Color="#113d11"/>
 
 </ResourceDictionary>
