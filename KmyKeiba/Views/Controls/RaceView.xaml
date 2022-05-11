@@ -104,9 +104,9 @@
 
         <RadioButton FontSize="18" Content="全体" Margin="0,12,0,0" GroupName="{Binding UniqueId,ElementName=Root}"
                      Style="{StaticResource InnerToggleButtonDefault}" Name="S_All" IsChecked="True"
-                     Visibility="{Binding IsChecked,ElementName=S_Summary,Converter={StaticResource NegativeVisibilityConv}}"/>
+                     Visibility="{Binding IsChecked,ElementName=S_Predict,Converter={StaticResource BooleanVisibilityConv}}"/>
         <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}"
-                      Visibility="{Binding IsChecked,ElementName=S_Summary,Converter={StaticResource NegativeVisibilityConv}}">
+                      Visibility="{Binding IsChecked,ElementName=S_Predict,Converter={StaticResource BooleanVisibilityConv}}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <WrapPanel Orientation="Horizontal"/>
@@ -136,7 +136,6 @@
         <Control.Visibility>
           <MultiBinding Converter="{StaticResource MultiBooleanConv}">
             <Binding Path="IsChecked" ElementName="S_Result"/>
-            <Binding Path="IsChecked" ElementName="S_All"/>
           </MultiBinding>
         </Control.Visibility>
       </uc:RaceResultAllView>

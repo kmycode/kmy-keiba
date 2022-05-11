@@ -135,7 +135,7 @@
                     </Style>
                   </StackPanel.Resources>
                   <StackPanel Orientation="Horizontal" Height="20">
-                    <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Padding="4,0" Opacity="0.8"/>
+                    <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Padding="4,0" Opacity="0.8" Width="32"/>
                     <TextBlock Text="{Binding Subject.ShorterName}" FontSize="14" FontWeight="Bold" Margin="4,0,0,0"
                                Width="86"/>
                     <up:RunningStyleTip RunningStyle="{Binding Data.RunningStyle}">
