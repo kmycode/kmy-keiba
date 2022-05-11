@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Math;
+using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,10 @@ namespace KmyKeiba.Models.Analysis
     public RaceData Race { get; }
 
     public RaceHorseData Data { get; }
+
+    public ReactiveProperty<RiderAnalysisData?> Rider { get; } = new();
+
+    public ReactiveProperty<TrainerAnalysisData?> Trainer { get; } = new();
 
     public IReadOnlyList<RaceHorseAnalysisData> BeforeRaces { get; } = Array.Empty<RaceHorseAnalysisData>();
 
@@ -39,6 +44,12 @@ namespace KmyKeiba.Models.Analysis
     public double A3HTimeDeviationValue { get; }
 
     public RunningStyle RunningStyle { get; }
+
+    public ResultOrderGradeMap AllGrade { get; }
+
+    public ResultOrderGradeMap SameGroundGrade { get; }
+
+    public ResultOrderGradeMap SameDistanceGrade { get; }
 
     private RaceHorseAnalysisData(RaceData race, RaceHorseData horse)
     {
@@ -83,6 +94,13 @@ namespace KmyKeiba.Models.Analysis
           .OrderByDescending(g => g.Count())
           .Select(g => g.Key)
           .FirstOrDefault();
+
+        // 成績
+        this.AllGrade = new ResultOrderGradeMap(this.BeforeRaces.Select(r => r.Data).ToArray());
+        this.SameGroundGrade = new ResultOrderGradeMap(this.BeforeRaces
+          .Where(r => r.Race.TrackGround == race.TrackGround).Select(r => r.Data).ToArray());
+        this.SameDistanceGrade = new ResultOrderGradeMap(this.BeforeRaces
+          .Where(r => r.Race.Distance / 100 == race.Distance / 100).Select(r => r.Data).ToArray());
       }
     }
   }

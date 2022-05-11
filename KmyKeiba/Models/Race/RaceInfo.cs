@@ -50,7 +50,7 @@ namespace KmyKeiba.Models.Race
       this.CourseSummaryImage.Race = race;
     }
 
-    private void SetHorses(IReadOnlyList<RaceHorseAnalysisData> horses)
+    private void SetHorsesDelay(IReadOnlyList<RaceHorseAnalysisData> horses)
     {
       ThreadUtil.InvokeOnUiThread(() =>
       {
@@ -59,6 +59,14 @@ namespace KmyKeiba.Models.Race
           horses.Where(h => h.Data.ResultOrder > 0).OrderBy(h => h.Data.ResultOrder).Concat(
             horses.Where(h => h.Data.ResultOrder == 0).OrderBy(h => h.Data.Number).OrderBy(h => h.Data.AbnormalResult)));
       });
+    }
+
+    public async Task WaitAllSetupsAsync()
+    {
+      while (!this.Horses.Any() || !this.Horses.All(h => h.Rider.Value != null && h.Trainer.Value != null))
+      {
+        await Task.Delay(10);
+      }
     }
 
     public static async Task<RaceInfo?> FromKeyAsync(MyContext db, string key)
@@ -107,7 +115,44 @@ namespace KmyKeiba.Models.Race
 
           horseInfos.Add(new RaceHorseAnalysisData(race, horse, histories, standardTime));
         }
-        info.SetHorses(horseInfos);
+        info.SetHorsesDelay(horseInfos);
+
+        // 騎手
+        var historyStartDate = race.StartTime.AddYears(-1);
+        var riderKeys = horses.Select(h => h.RiderCode).Where(c => !string.IsNullOrWhiteSpace(c) && c.Any(cc => cc != '0')).ToArray();
+        var riderHorses = await db.RaceHorses!
+          .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, })
+          .Where(d => riderKeys.Contains(d.RaceHorse.RiderCode))
+          .Where(d => d.Race.StartTime < race.StartTime && d.Race.StartTime >= historyStartDate)
+          .ToArrayAsync();
+        foreach (var horse in horseInfos)
+        {
+          var history = new List<RaceHorseAnalysisData>();
+          foreach (var item in riderHorses.Where(d => d.RaceHorse.RiderCode == horse.Data.RiderCode))
+          {
+            var historyStandardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, item.Race);
+            history.Add(new RaceHorseAnalysisData(item.Race, item.RaceHorse, historyStandardTime));
+          }
+          horse.Rider.Value = new RiderAnalysisData(history, horse);
+        }
+
+        // 調教師
+        var trainerKeys = horses.Select(h => h.TrainerCode).Where(c => !string.IsNullOrWhiteSpace(c) && c.Any(cc => cc != '0')).ToArray();
+        var trainerHorses = await db.RaceHorses!
+          .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, })
+          .Where(d => trainerKeys.Contains(d.RaceHorse.TrainerCode))
+          .Where(d => d.Race.StartTime < race.StartTime && d.Race.StartTime >= historyStartDate)
+          .ToArrayAsync();
+        foreach (var horse in horseInfos)
+        {
+          var history = new List<RaceHorseAnalysisData>();
+          foreach (var item in riderHorses.Where(d => d.RaceHorse.TrainerCode == horse.Data.TrainerCode))
+          {
+            var historyStandardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, item.Race);
+            history.Add(new RaceHorseAnalysisData(item.Race, item.RaceHorse, historyStandardTime));
+          }
+          horse.Trainer.Value = new TrainerAnalysisData(history);
+        }
       });
 
       return Task.FromResult(info);

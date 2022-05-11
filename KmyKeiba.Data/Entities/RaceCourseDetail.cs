@@ -61,12 +61,19 @@ namespace KmyKeiba.JVLink.Entities
       list = list.Where(c => c.StartUsingDate == null || c.StartUsingDate <= race.StartTime);
       list = list.Where(c => c.EndUsingDate == null || c.EndUsingDate > race.StartTime);
 
+      var option = race.TrackOption;
       list = list.Where(c => c.Option == TrackOption.Unknown ||
-        ((race.TrackOption == TrackOption.OutsideToInside || race.TrackOption == TrackOption.InsideToOutside) ? (c.Option == TrackOption.Inside || c.Option == TrackOption.Outside) :
-         (race.TrackOption == TrackOption.Outside2) ? c.Option == TrackOption.Outside :
-         (race.TrackOption == TrackOption.Inside2) ? c.Option == TrackOption.Inside :
+        ((option == TrackOption.OutsideToInside || option == TrackOption.InsideToOutside) ? (c.Option == TrackOption.Inside || c.Option == TrackOption.Outside) :
+         (option == TrackOption.Outside2) ? c.Option == TrackOption.Outside :
+         (option == TrackOption.Inside2) ? c.Option == TrackOption.Inside :
         race.TrackOption == c.Option));
-      list = list.Where(c => race.TrackGround == TrackGround.TurfToDirt ? true : c.Ground == race.TrackGround);
+
+      // 地方競馬対応（一部競馬場で設定されていないことがある）
+      if (race.TrackGround != TrackGround.Unknown)
+      {
+        list = list.Where(c => c.Ground == TrackGround.Unknown ? true :
+          (race.TrackGround == TrackGround.TurfToDirt ? true : c.Ground == race.TrackGround));
+      }
 
       return list.ToArray();
     }
