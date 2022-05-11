@@ -48,6 +48,11 @@ namespace KmyKeiba.Models.Analysis
     /// </summary>
     public double A3HTimeDeviationValue { get; }
 
+    /// <summary>
+    /// 斤量の相対評価
+    /// </summary>
+    public ValueComparation RiderWeightComparation { get; }
+
     public RunningStyle RunningStyle { get; }
 
     public ResultOrderGradeMap AllGrade { get; }
@@ -125,11 +130,16 @@ namespace KmyKeiba.Models.Analysis
       }
     }
 
-    public RaceHorseAnalysisData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseAnalysisData> raceHistory, RaceStandardTimeMasterData? raceStandardTime)
+    public RaceHorseAnalysisData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalysisData> raceHistory, RaceStandardTimeMasterData? raceStandardTime)
       : this(race, horse, raceStandardTime)
     {
       this.BeforeRaces = raceHistory.OrderByDescending(h => h.Race.StartTime).ToArray();
       this.BeforeFiveRaces = this.BeforeRaces.Take(5).ToArray();
+
+      var weightPoint = new StatisticSingleArray(sameRaceHorses.Select(h => (double)h.RiderWeight).ToArray());
+      var median = (short)weightPoint.Median;  // 小数点以下切り捨て。中央値が常に整数とは限らない（全体の数が偶数の時））
+      this.RiderWeightComparation = horse.RiderWeight > median ? ValueComparation.Bad :
+        horse.RiderWeight < median ? ValueComparation.Good : ValueComparation.Standard;
 
       if (this.BeforeRaces.Any())
       {
@@ -176,6 +186,14 @@ namespace KmyKeiba.Models.Analysis
   }
 
   public enum CornerGradeType
+  {
+    Standard,
+    Good,
+    Bad,
+  }
+
+  // 数字が少ないほどよい、という場合もあるのでHigh、Lowにはしない
+  public enum ValueComparation
   {
     Standard,
     Good,

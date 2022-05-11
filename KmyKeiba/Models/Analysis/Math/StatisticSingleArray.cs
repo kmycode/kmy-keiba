@@ -57,14 +57,15 @@ namespace KmyKeiba.Models.Analysis.Math
         if (this._median == null)
         {
           var half = this._values.Length / 2;
+          var ordered = this._values.OrderBy(v => v).ToArray();
 
           if (this._values.Length % 2 == 0)
           {
-            this._median = (this._values[half] + this._values[half - 1]) / 2;
+            this._median = (ordered[half] + ordered[half - 1]) / 2;
           }
           else
           {
-            this._median = this._values[half];
+            this._median = ordered[half];
           }
         }
         return this._median.Value;

@@ -13,6 +13,7 @@
   <cv:FrameNumberBrushConverter x:Key="FrameNumberBrushConv"/>
   <cv:EnumsConverter x:Key="EnumsConv"/>
   <cv:OrderBackgroundConverter x:Key="OrderBackgroundConv"/>
+  <cv:ValueComparationBackgroundConverter x:Key="ValueComparationBackgroundConv"/>
 
   <cv:BooleanBrushConverter x:Key="BooleanForegroundSubOrBaseConv" TrueBrush="{DynamicResource SubForeground}" FalseBrush="{DynamicResource BaseForeground}"/>
 </ResourceDictionary>
