@@ -39,6 +39,10 @@ namespace KmyKeiba.Models.Analysis
 
     public int LoseCount { get; }
 
+    public int AllCount => this.FirstCount + this.SecondCount + this.ThirdCount + this.LoseCount;
+
+    public bool IsZero => this.AllCount == 0;
+
     /// <summary>
     /// 複勝勝率
     /// </summary>

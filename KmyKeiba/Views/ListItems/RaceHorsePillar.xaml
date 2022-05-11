@@ -87,41 +87,11 @@
         <TextBlock HorizontalAlignment="Center" FontSize="16" FontWeight="Bold"
                    Text="{Binding Horse.Data.RiderWeight,ElementName=Root}"/>
       </StackPanel>
-      <Grid Grid.Column="7" Margin="24,0,0,0" VerticalAlignment="Center" Width="120">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="1.6*"/>
-          <ColumnDefinition/>
-          <ColumnDefinition/>
-          <ColumnDefinition/>
-          <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-          <RowDefinition/>
-          <RowDefinition/>
-          <RowDefinition/>
-        </Grid.RowDefinitions>
-        <Grid.Resources>
-          <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="TextAlignment" Value="Center"/>
-          </Style>
-        </Grid.Resources>
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="全て" Foreground="{DynamicResource SubForeground}"/>
-        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Horse.AllGrade.FirstCount,ElementName=Root}"/>
-        <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Horse.AllGrade.SecondCount,ElementName=Root}"/>
-        <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding Horse.AllGrade.ThirdCount,ElementName=Root}"/>
-        <TextBlock Grid.Row="0" Grid.Column="4" Text="{Binding Horse.AllGrade.LoseCount,ElementName=Root}"/>
-        <TextBlock Grid.Row="1" Grid.Column="0" Text="地面" Foreground="{DynamicResource SubForeground}"/>
-        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Horse.SameGroundGrade.FirstCount,ElementName=Root}"/>
-        <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Horse.SameGroundGrade.SecondCount,ElementName=Root}"/>
-        <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding Horse.SameGroundGrade.ThirdCount,ElementName=Root}"/>
-        <TextBlock Grid.Row="1" Grid.Column="4" Text="{Binding Horse.SameGroundGrade.LoseCount,ElementName=Root}"/>
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="距離" Foreground="{DynamicResource SubForeground}"/>
-        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Horse.SameDistanceGrade.FirstCount,ElementName=Root}"/>
-        <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Horse.SameDistanceGrade.SecondCount,ElementName=Root}"/>
-        <TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding Horse.SameDistanceGrade.ThirdCount,ElementName=Root}"/>
-        <TextBlock Grid.Row="2" Grid.Column="4" Text="{Binding Horse.SameDistanceGrade.LoseCount,ElementName=Root}"/>
-      </Grid>
+      <StackPanel Grid.Column="7" Margin="24,0,0,0" VerticalAlignment="Center" Width="120">
+        <up:RaceResultOrderGradeRow Header="全て" FontSize="12" Grade="{Binding Horse.AllGrade,ElementName=Root}"/>
+        <up:RaceResultOrderGradeRow Header="地面" FontSize="12" Grade="{Binding Horse.SameGroundGrade,ElementName=Root}"/>
+        <up:RaceResultOrderGradeRow Header="距離" FontSize="12" Grade="{Binding Horse.SameDistanceGrade,ElementName=Root}"/>
+      </StackPanel>
     </Grid>
 
     <!--馬柱-->
