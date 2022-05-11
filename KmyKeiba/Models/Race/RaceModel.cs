@@ -13,8 +13,8 @@ namespace KmyKeiba.Models.Race
 {
   internal class RaceModel : IDisposable
   {
-    //private const string defaultRaceKey = "2020072844070111";    // 地方
-    private const string defaultRaceKey = "2020032807010710";    // 中央
+    private const string defaultRaceKey = "2020072844070111";    // 地方
+    //private const string defaultRaceKey = "2020032807010710";    // 中央
     private readonly MyContext _db = new();
     private readonly CompositeDisposable _disposables = new();
 

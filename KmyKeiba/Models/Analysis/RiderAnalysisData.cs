@@ -48,6 +48,8 @@ namespace KmyKeiba.Models.Analysis
     /// </summary>
     public float PlacingBetsRate { get; }
 
+    public ValueComparation PlacingBetsRateComparation => this.PlacingBetsRate >= 0.75 ? ValueComparation.Good : this.PlacingBetsRate <= 0.2 ? ValueComparation.Bad : ValueComparation.Standard;
+
     public ResultOrderGradeMap(IReadOnlyList<RaceHorseData> source)
     {
       this.FirstCount = source.Count(f => f.ResultOrder == 1);

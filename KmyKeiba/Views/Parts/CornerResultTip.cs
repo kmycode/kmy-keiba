@@ -16,6 +16,7 @@ namespace KmyKeiba.Views.Parts
     private static readonly Brush _arrowBrush = Application.Current.TryFindResource("ThinSubForeground") as Brush ?? Brushes.Gray;
     private static readonly Brush _goodBrush = Application.Current.TryFindResource("GoodBackground") as Brush ?? Brushes.Gray;
     private static readonly Brush _badBrush = Application.Current.TryFindResource("BadBackground") as Brush ?? Brushes.Gray;
+    private static readonly Brush _baseBrush = Application.Current.TryFindResource("BaseBackground") as Brush ?? Brushes.Gray;
 
     public static readonly DependencyProperty CornerGradesProperty
   = DependencyProperty.Register(
@@ -165,7 +166,7 @@ namespace KmyKeiba.Views.Parts
             TextAlignment = TextAlignment.Center,
             FontSize = this.FontSize,
           },
-          Background = grade.Type == CornerGradeType.Bad ? _badBrush : grade.Type == CornerGradeType.Good ? _goodBrush : Brushes.Transparent,
+          Background = grade.Type == CornerGradeType.Bad ? _badBrush : grade.Type == CornerGradeType.Good ? _goodBrush : _baseBrush,
         };
         this.Children.Add(text);
       }

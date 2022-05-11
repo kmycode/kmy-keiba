@@ -53,6 +53,8 @@ namespace KmyKeiba.Models.Analysis
     /// </summary>
     public ValueComparation RiderWeightComparation { get; }
 
+    public ValueComparation AgeComparation { get; }
+
     public RunningStyle RunningStyle { get; }
 
     public ResultOrderGradeMap AllGrade { get; }
@@ -140,6 +142,11 @@ namespace KmyKeiba.Models.Analysis
       var median = (short)weightPoint.Median;  // 小数点以下切り捨て。中央値が常に整数とは限らない（全体の数が偶数の時））
       this.RiderWeightComparation = horse.RiderWeight > median ? ValueComparation.Bad :
         horse.RiderWeight < median ? ValueComparation.Good : ValueComparation.Standard;
+
+      var agePoint = new StatisticSingleArray(sameRaceHorses.Select(h => (double)h.Age).ToArray());
+      var ageMedian = (short)agePoint.Median;
+      this.AgeComparation = horse.Age > ageMedian ? ValueComparation.Bad :
+        horse.Age < ageMedian ? ValueComparation.Good : ValueComparation.Standard;
 
       if (this.BeforeRaces.Any())
       {

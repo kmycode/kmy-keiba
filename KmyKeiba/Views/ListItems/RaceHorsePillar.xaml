@@ -44,15 +44,16 @@
                     Text="{Binding Horse.Data.Number,ElementName=Root}"/>
         <TextBlock Grid.Column="1" Margin="16,0,0,0" FontSize="24" FontWeight="Bold" Width="180" TextAlignment="Left"
                     Text="{Binding Horse.Data.Name,ElementName=Root}"/>
-        <Grid Grid.Column="2" Margin="8,0,0,0" Width="60">
+        <Grid Grid.Column="2" Margin="8,0,0,0" Width="90">
           <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition/>
           </Grid.RowDefinitions>
           <TextBlock Grid.Row="0" Margin="8,0,0,0" FontSize="16"
                     Text="{Binding Horse.TimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
-          <TextBlock Grid.Row="1" Margin="8,0,0,0" FontSize="14"
-                    Text="{Binding Horse.A3HTimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+          <TextBlock Grid.Row="1" Margin="8,0,0,0" FontSize="14">
+            <Run Text="{Binding Horse.Data.Odds,ElementName=Root,Converter={StaticResource DigitMinusConv}}"/> (<Run Text="{Binding Horse.Data.Popular,ElementName=Root}"/>人)
+          </TextBlock>
         </Grid>
         <StackPanel Grid.Column="3" Margin="12,0,0,0" VerticalAlignment="Center">
           <up:RunningStyleTip RunningStyle="{Binding Horse.RunningStyle,ElementName=Root}"
@@ -66,12 +67,15 @@
             </up:RunningStyleTip.LayoutTransform>
           </up:RunningStyleTip>
         </StackPanel>
-        <TextBlock Grid.Column="4" Margin="24,0,0,0" TextAlignment="Center" Width="30" FontSize="16">
-          <Run Text="{Binding Horse.Data.Sex,ElementName=Root,Converter={StaticResource EnumsConv}}"
-                Foreground="{Binding Horse.Data.Sex,ElementName=Root,Converter={StaticResource EnumsConv}}"
-          /><Run Text="{Binding Horse.Data.Age,ElementName=Root}"/>
-        </TextBlock>
-        <TextBlock Grid.Column="5" Margin="8,0,0,0" TextAlignment="Center" Width="40" FontSize="16">
+        <Border Width="30" Grid.Column="4" Margin="12,0,0,0">
+          <StackPanel Orientation="Horizontal" Height="30" HorizontalAlignment="Center"
+                      Background="{Binding Horse.AgeComparation,ElementName=Root,Converter={StaticResource ValueComparationBackgroundConv}}">
+            <TextBlock FontSize="16" Text="{Binding Horse.Data.Sex,ElementName=Root,Converter={StaticResource EnumsConv}}"
+                       Foreground="{Binding Horse.Data.Sex,ElementName=Root,Converter={StaticResource EnumsConv}}" Margin="2,0,0,0"/>
+            <TextBlock FontSize="16" Text="{Binding Horse.Data.Age,ElementName=Root}" Margin="0,0,2,0"/>
+          </StackPanel>
+        </Border>
+        <TextBlock Grid.Column="5" Margin="4,0,0,0" TextAlignment="Center" Width="40" FontSize="16">
           <Run Text="{Binding Horse.Data.Weight,ElementName=Root}"/><LineBreak/>
           <Run Text="(" FontSize="14"/><Run Text="{Binding Horse.Data.WeightDiff,ElementName=Root}" FontSize="14"/><Run Text=")" FontSize="14"/>
         </TextBlock>
@@ -100,13 +104,13 @@
           <up:RaceResultOrderGradeRow Header="方向" FontSize="12" Grade="{Binding Horse.SameDirectionGrade,ElementName=Root}"/>
           <up:RaceResultOrderGradeRow Header="馬場" FontSize="12" Grade="{Binding Horse.SameConditionGrade,ElementName=Root}"/>
         </StackPanel>
-        <up:CornerResultTip Grid.Column="9" Margin="24,0,0,0" VerticalAlignment="Center"
+        <up:CornerResultTip Grid.Column="9" Margin="12,0,0,0" VerticalAlignment="Center"
                             PartWidth="24" PartHeight="36" PartPadding="4"
                             CornerGrades="{Binding Horse.CornerGrades,ElementName=Root}"/>
       </Grid>
 
       <!--馬柱-->
-      <Grid Background="#282828">
+      <Grid Background="{DynamicResource ThinBaseBackground}">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition Width="auto"/>

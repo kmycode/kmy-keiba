@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Parts"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
-  <Grid>
+  <Grid Background="{Binding Grade.PlacingBetsRateComparation,ElementName=Root,Converter={StaticResource ValueComparationBackgroundConv}}">
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="1.6*"/>
       <ColumnDefinition/>
