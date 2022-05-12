@@ -125,6 +125,7 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <RadioButton FontSize="18" Content="{Binding Data.Number}"
+                           Command="{Binding DataContext.ChangeActiveHorseCommand,ElementName=Root}" CommandParameter="{Binding Data.Number}"
                            Style="{StaticResource HalfToggleButtonDefault}"
                            GroupName="{Binding UniqueId,ElementName=Root}"/>
             </DataTemplate>
@@ -150,6 +151,16 @@
           </MultiBinding>
         </Control.Visibility>
       </uc:RaceExpectAllView>
+
+      <!--予想・各馬-->
+      <uc:RaceExpectHorseView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding Race.ActiveHorse.Value,ElementName=Root}" Grid.Column="1">
+        <Control.Visibility>
+          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+            <Binding Path="IsChecked" ElementName="S_Predict"/>
+            <Binding Path="IsChecked" ElementName="S_All" Converter="{StaticResource NegativeConv}"/>
+          </MultiBinding>
+        </Control.Visibility>
+      </uc:RaceExpectHorseView>
 
       <!-- 結果・全体 -->
       <uc:RaceResultAllView Race="{Binding Race,ElementName=Root}" Grid.Column="1">

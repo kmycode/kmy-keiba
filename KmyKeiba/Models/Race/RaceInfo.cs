@@ -27,6 +27,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveCollection<RaceHorseAnalysisData> HorsesResultOrdered { get; } = new();
 
+    public ReactiveProperty<RaceHorseAnalysisData?> ActiveHorse { get; } = new();
+
     public ReactiveCollection<RaceCorner> Corners { get; } = new();
 
     public RaceCourseSummaryImage CourseSummaryImage { get; } = new();
@@ -67,6 +69,11 @@ namespace KmyKeiba.Models.Race
       {
         await Task.Delay(10);
       }
+    }
+
+    public void SetActiveHorse(int num)
+    {
+      this.ActiveHorse.Value = this.Horses.FirstOrDefault(h => h.Data.Number == num);
     }
 
     public static async Task<RaceInfo?> FromKeyAsync(MyContext db, string key)
