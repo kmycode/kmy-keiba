@@ -25,7 +25,7 @@
         <ColumnDefinition/>
       </Grid.ColumnDefinitions>
       <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                       Content="着順" Name="S_RaceResultOrderList"/>
+                       Content="着順" Name="S_RaceResultOrderList" IsChecked="True"/>
       <RadioButton Grid.Column="1" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                        Content="レース傾向" Name="S_RaceResultTrend"/>
       <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
