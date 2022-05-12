@@ -16,8 +16,9 @@ namespace KmyKeiba.Views.Parts
   public class CourseSimpleImageView : Border
   {
     private static readonly int size = 18;
-    private static readonly PointCollection left = new PointCollection(new[] { new Point(size, 0), new Point(size, size), new Point(0, size / 2), });
-    private static readonly PointCollection right = new PointCollection(new[] { new Point(0, 0), new Point(0, size), new Point(size, size / 2), });
+    private static readonly PointCollection _left = new PointCollection(new[] { new Point(size, 0), new Point(size, size), new Point(0, size / 2), });
+    private static readonly PointCollection _right = new PointCollection(new[] { new Point(0, 0), new Point(0, size), new Point(size, size / 2), });
+    private static readonly PointCollection _straight = new PointCollection(new[] { new Point(0, size / 4), new Point(size, size / 4), new Point(size, size * 3 / 4), new Point(0, size * 3 / 4), });
     private static readonly Brush turf = (Application.Current.TryFindResource("TurfColor") as RHColor ?? new RHColor()).ToBrush();
     private static readonly Brush dirt = (Application.Current.TryFindResource("DirtColor") as RHColor ?? new RHColor()).ToBrush();
 
@@ -44,7 +45,12 @@ namespace KmyKeiba.Views.Parts
     {
       this.Child = new Polygon
       {
-        Points = new PointCollection(this.Race?.TrackCornerDirection == TrackCornerDirection.Left ? left : right),
+        Points = new PointCollection(this.Race?.TrackCornerDirection switch {
+          TrackCornerDirection.Left => _left,
+          TrackCornerDirection.Right => _right,
+          TrackCornerDirection.Straight => _straight,
+          _ => _straight,
+        }),
         Fill = this.Race?.TrackGround == TrackGround.Turf ? turf : dirt,
       };
     }

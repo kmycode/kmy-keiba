@@ -18,7 +18,7 @@
       <RowDefinition/>
     </Grid.RowDefinitions>
 
-    <Grid Grid.Row="0">
+    <Grid Grid.Row="0" Height="56">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition Width="auto"/>
@@ -27,7 +27,7 @@
         <ColumnDefinition Width="auto"/>
       </Grid.ColumnDefinitions>
       <up:RaceSubjectIcon Subject="{Binding Race.Subject.Subject,ElementName=Root}"
-                            FontSize="32" Width="120"/>
+                          FontSize="32" Width="120" Padding="0"/>
       <Border Grid.Column="1" Width="80" Background="{DynamicResource RaceNumberBackground}">
         <TextBlock FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
                    LineHeight="20" LineStackingStrategy="BlockLineHeight"
@@ -39,13 +39,13 @@
       <TextBlock Grid.Column="2" Text="{Binding Race.Name,ElementName=Root}" FontSize="26" FontWeight="Bold"
                  VerticalAlignment="Center" Margin="8,0,0,0"/>
       <StackPanel Grid.Column="3" VerticalAlignment="Center">
-        <up:CourseSimpleImageView Race="{Binding Race.Data,ElementName=Root}" HorizontalAlignment="Center">
+        <up:CourseSimpleImageView Race="{Binding Race.Data,ElementName=Root}" HorizontalAlignment="Center" Height="18">
           <FrameworkElement.LayoutTransform>
             <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
           </FrameworkElement.LayoutTransform>
         </up:CourseSimpleImageView>
         <TextBlock Text="{Binding Race.Data.Distance,ElementName=Root}" HorizontalAlignment="Center"
-                   FontSize="14"/>
+                   FontSize="14" Height="18"/>
       </StackPanel>
       <TextBlock Grid.Column="4" FontSize="16" TextAlignment="Center" Margin="16,0,8,0" VerticalAlignment="Center">
         <Run Text="{Binding Race.Data.TrackWeather,ElementName=Root,Converter={StaticResource TrackConv}}"/><LineBreak/>
