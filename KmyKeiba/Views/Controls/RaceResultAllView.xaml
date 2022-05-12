@@ -206,7 +206,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <uc:RaceCornerView RaceCorner="{Binding}"/>
+                <uc:RaceCornerView RaceCorner="{Binding}" Margin="0,0,0,8"/>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
