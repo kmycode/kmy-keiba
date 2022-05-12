@@ -109,4 +109,27 @@
       </Trigger>
     </Style.Triggers>
   </Style>
+  <Style TargetType="TextBlock" x:Key="TableListHeaderItem">
+    <Setter Property="Foreground" Value="{DynamicResource SubForeground}"/>
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="TextAlignment" Value="Right"/>
+  </Style>
+  <Style TargetType="ItemsControl" x:Key="TableList">
+    <Setter Property="ItemsPanel">
+      <Setter.Value>
+        <ItemsPanelTemplate>
+          <VirtualizingStackPanel/>
+        </ItemsPanelTemplate>
+      </Setter.Value>
+    </Setter>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate>
+          <ScrollViewer Padding="{TemplateBinding Control.Padding}" Focusable="False">
+            <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
+          </ScrollViewer>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
 </ResourceDictionary>

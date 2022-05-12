@@ -140,11 +140,7 @@
           <!--過去レースの一覧-->
           <StackPanel Orientation="Horizontal" Margin="0,16,0,8" Grid.Row="1">
             <StackPanel.Resources>
-              <Style TargetType="TextBlock">
-                <Setter Property="Foreground" Value="{DynamicResource SubForeground}"/>
-                <Setter Property="FontSize" Value="14"/>
-                <Setter Property="TextAlignment" Value="Right"/>
-              </Style>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TableListHeaderItem}"/>
             </StackPanel.Resources>
             <TextBlock Text="" Width="44"/>
             <TextBlock Text="レース名" Width="180" TextAlignment="Left"/>
@@ -154,19 +150,8 @@
             <TextBlock Text="1着脚質" Width="60"/>
             <TextBlock Text="荒れ度" Width="70"/>
           </StackPanel>
-          <ItemsControl Grid.Row="2" ItemsSource="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.Source,ElementName=Root}">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <VirtualizingStackPanel/>
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.Template>
-              <ControlTemplate>
-                <ScrollViewer Padding="{TemplateBinding Control.Padding}" Focusable="False">
-                  <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
-                </ScrollViewer>
-              </ControlTemplate>
-            </ItemsControl.Template>
+          <ItemsControl Grid.Row="2" ItemsSource="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.Source,ElementName=Root}"
+                        Style="{StaticResource TableList}">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">

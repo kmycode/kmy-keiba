@@ -25,6 +25,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<TrainerAnalysisData?> Trainer { get; } = new();
 
+    public ReactiveProperty<TrainingAnalysisData?> Training { get; } = new();
+
     public IReadOnlyList<RaceHorseAnalysisData> BeforeRaces { get; } = Array.Empty<RaceHorseAnalysisData>();
 
     public IReadOnlyList<RaceHorseAnalysisData> BeforeFiveRaces { get; } = Array.Empty<RaceHorseAnalysisData>();

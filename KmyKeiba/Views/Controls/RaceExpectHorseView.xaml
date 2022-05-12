@@ -38,8 +38,78 @@
                    Content="調教" Name="S_Training"/>
     </Grid>
 
-    <Grid Grid.Row="1">
-      <TextBlock Text="{Binding RaceHorse.Data.Name,ElementName=Root}" FontSize="24" FontWeight="Bold"/>
+    <!--調教-->
+    <Grid Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_Training,Converter={StaticResource BooleanVisibilityConv}}">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="auto"/>
+        <RowDefinition/>
+      </Grid.RowDefinitions>
+
+      <!--過去調教の一覧-->
+      <StackPanel Orientation="Horizontal" Margin="0,16,0,8">
+        <StackPanel.Resources>
+          <Style TargetType="TextBlock" BasedOn="{StaticResource TableListHeaderItem}"/>
+        </StackPanel.Resources>
+        <TextBlock Text="日付" Width="110"/>
+        <TextBlock Text="場所" Width="50"/>
+        <TextBlock Text="Wコース" Width="60"/>
+        <TextBlock Text="LAP1" Width="60"/>
+        <TextBlock Text="LAP2" Width="60"/>
+        <TextBlock Text="LAP3" Width="60"/>
+        <TextBlock Text="LAP4" Width="60"/>
+        <TextBlock Text="LAP5" Width="60"/>
+        <TextBlock Text="LAP6" Width="60"/>
+        <TextBlock Text="LAP7" Width="60"/>
+        <TextBlock Text="LAP8" Width="60"/>
+        <TextBlock Text="LAP9" Width="60"/>
+        <TextBlock Text="LAP10" Width="60"/>
+      </StackPanel>
+      <ItemsControl Grid.Row="2" ItemsSource="{Binding RaceHorse.Training.Value.Trainings,ElementName=Root}"
+                    Style="{StaticResource TableList}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+              <StackPanel.Resources>
+                <Style TargetType="Label" BasedOn="{StaticResource LabelDefault}">
+                  <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                </Style>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                  <Setter Property="TextAlignment" Value="Right"/>
+                </Style>
+              </StackPanel.Resources>
+              <Label Content="{Binding StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd HH:mm}" FontSize="16" Width="110"
+                     HorizontalContentAlignment="Left"/>
+              <TextBlock Text="{Binding Center,Converter={StaticResource EnumsConv}}" Foreground="{Binding Center,Converter={StaticResource EnumsConv}}" FontSize="16" Width="50"
+                         TextAlignment="Right"/>
+              <Border Width="30">
+                <TextBlock Text="{Binding WoodtipCourse}" TextAlignment="Right"
+                           VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                           Visibility="{Binding IsWoodtip,Converter={StaticResource BooleanVisibilityConv}}"/>
+              </Border>
+              <Border Width="30">
+                <up:WoodtipTrainingDirectionIcon Direction="{Binding WoodtipDirection}"
+                                                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                 Visibility="{Binding IsWoodtip,Converter={StaticResource BooleanVisibilityConv}}"/>
+              </Border>
+              <ItemsControl ItemsSource="{Binding LapTimes}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding LapTime,Converter={StaticResource DigitMinusConv}}" FontSize="16" Width="60"
+                               Foreground="{Binding LapTimeComparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                               TextAlignment="Right"/>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
     </Grid>
   </Grid>
 </UserControl>

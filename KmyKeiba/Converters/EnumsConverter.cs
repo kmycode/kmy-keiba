@@ -16,6 +16,8 @@ namespace KmyKeiba.Converters
     private static readonly Brush _maleBrush = Application.Current.TryFindResource("MaleForeground") as Brush ?? Brushes.Blue;
     private static readonly Brush _femaleBrush = Application.Current.TryFindResource("FemaleForeground") as Brush ?? Brushes.Red;
     private static readonly Brush _castratedBrush = Application.Current.TryFindResource("CastratedForeground") as Brush ?? Brushes.Green;
+    private static readonly Brush _miuraBrush = Application.Current.TryFindResource("TCMiuraForeground") as Brush ?? Brushes.Blue;
+    private static readonly Brush _rittoBrush = Application.Current.TryFindResource("TCRittoForeground") as Brush ?? Brushes.Blue;
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
@@ -39,6 +41,27 @@ namespace KmyKeiba.Converters
             HorseSex.Female => _femaleBrush,
             HorseSex.Castrated => _castratedBrush,
             _ => "？",
+          };
+        }
+      }
+      if (value is TrainingCenter trc)
+      {
+        if (targetType == typeof(string) || targetType == typeof(object))
+        {
+          return trc switch
+          {
+            TrainingCenter.Miura => "美浦",
+            TrainingCenter.Ritto => "栗東",
+            _ => string.Empty,
+          };
+        }
+        if (targetType == typeof(Brush))
+        {
+          return trc switch
+          {
+            TrainingCenter.Miura => _miuraBrush,
+            TrainingCenter.Ritto => _rittoBrush,
+            _ => Brushes.Transparent,
           };
         }
       }

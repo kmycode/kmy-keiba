@@ -16,15 +16,29 @@ namespace KmyKeiba.Models.Analysis.Math
       {
         if (value.Length == 0)
         {
-          this._values = Array.Empty<double>();
+          this._values = this._ordered = Array.Empty<double>();
         }
         else
         {
           this._values = value;
+          this._ordered = null;
         }
       }
     }
     private double[] _values = Array.Empty<double>();
+
+    private double[] Ordered
+    {
+      get
+      {
+        if (this._ordered == null)
+        {
+          this._ordered = this._values.OrderBy(v => v).ToArray();
+        }
+        return this._ordered;
+      }
+    }
+    private double[]? _ordered;
 
     /// <summary>
     /// 平均
@@ -57,15 +71,21 @@ namespace KmyKeiba.Models.Analysis.Math
         if (this._median == null)
         {
           var half = this._values.Length / 2;
-          var ordered = this._values.OrderBy(v => v).ToArray();
+
+          var wasOrderedNull = this._ordered == null;
 
           if (this._values.Length % 2 == 0)
           {
-            this._median = (ordered[half] + ordered[half - 1]) / 2;
+            this._median = (this.Ordered[half] + this.Ordered[half - 1]) / 2;
           }
           else
           {
-            this._median = ordered[half];
+            this._median = this.Ordered[half];
+          }
+
+          if (wasOrderedNull)
+          {
+            this._ordered = null;
           }
         }
         return this._median.Value;
@@ -128,6 +148,17 @@ namespace KmyKeiba.Models.Analysis.Math
     public double CalcDeviationValue(double val)
     {
       return CalcDeviationValue(val, this.Average, this.Deviation);
+    }
+
+    /// <summary>
+    /// 配列のインデックスを「０から１」の割合で指定して、値を取得する。値が大きいほど、大きな値となる
+    /// </summary>
+    /// <param name="pos0to1"></param>
+    /// <returns></returns>
+    public double GetPositionValue(double pos0to1)
+    {
+      var index = (int)((this.Ordered.Length - 1) * pos0to1);
+      return this.Ordered[index];
     }
 
     public static double CalcDeviationValue(double value, double average, double deviation)

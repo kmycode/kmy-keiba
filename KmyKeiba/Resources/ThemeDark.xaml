@@ -13,6 +13,7 @@
   <u:RHColor x:Key="HorseNumberPlateItemBackgroundThird" Red="255" Green="220" Blue="220"/>
   <u:RHColor x:Key="TurfColor" Red="0" Green="128" Blue="0"/>
   <u:RHColor x:Key="DirtColor" Red="142" Green="142" Blue="0"/>
+  <u:RHColor x:Key="WoodtipColor" Red="200" Green="112" Blue="112"/>
   <u:RHColor x:Key="UphillColor" Red="240" Green="96" Blue="96"/>
   <u:RHColor x:Key="DownhillColor" Red="120" Green="180" Blue="240"/>
   <u:RHColor x:Key="RunningStyleDisabledColor" Red="96" Green="96" Blue="96"/>
@@ -45,8 +46,12 @@
   <SolidColorBrush x:Key="MaleForeground" Color="#aaaaff"/>
   <SolidColorBrush x:Key="FemaleForeground" Color="#ffaaaa"/>
   <SolidColorBrush x:Key="CastratedForeground" Color="#aaffaa"/>
+  <SolidColorBrush x:Key="TCMiuraForeground" Color="#ffccff"/>
+  <SolidColorBrush x:Key="TCRittoForeground" Color="#bbffcc"/>
   <SolidColorBrush x:Key="GoodBackground" Color="#224f22"/>
   <SolidColorBrush x:Key="BadBackground" Color="#5f2222"/>
+  <SolidColorBrush x:Key="GoodForeground" Color="#99ff99"/>
+  <SolidColorBrush x:Key="BadForeground" Color="#ff99cc"/>
   <SolidColorBrush x:Key="FirstOrderBackground" Color="#454511"/>
   <SolidColorBrush x:Key="SecondOrderBackground" Color="#11245d"/>
   <SolidColorBrush x:Key="ThirdOrderBackground" Color="#451111"/>
