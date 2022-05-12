@@ -102,6 +102,18 @@ namespace KmyKeiba.Models.Race
           .ToArrayAsync();
         var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race);
 
+        // コーナー順位の色分け
+        var firstHorse = horses.FirstOrDefault(h => h.ResultOrder == 1);
+        var secondHorse = horses.FirstOrDefault(h => h.ResultOrder == 2);
+        var thirdHorse = horses.FirstOrDefault(h => h.ResultOrder == 3);
+        ThreadUtil.InvokeOnUiThread(() =>
+        {
+          foreach (var corner in info.Corners)
+          {
+            corner.Image.SetOrders(firstHorse?.Number ?? 0, secondHorse?.Number ?? 0, thirdHorse?.Number ?? 0);
+          }
+        });
+
         // 各馬の情報
         var horseInfos = new List<RaceHorseAnalysisData>();
         foreach (var horse in horses)

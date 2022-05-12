@@ -8,6 +8,9 @@
   <u:RHColor x:Key="HorseNumberPlateItemBackground" Red="200" Green="200" Blue="200"/>
   <u:RHColor x:Key="HorseNumberPlateItemBorder" Red="0" Green="0" Blue="0"/>
   <u:RHColor x:Key="HorseNumberPlateItemForeground" Red="0" Green="0" Blue="0"/>
+  <u:RHColor x:Key="HorseNumberPlateItemBackgroundFirst" Red="245" Green="245" Blue="220"/>
+  <u:RHColor x:Key="HorseNumberPlateItemBackgroundSecond" Red="220" Green="220" Blue="255"/>
+  <u:RHColor x:Key="HorseNumberPlateItemBackgroundThird" Red="255" Green="220" Blue="220"/>
   <u:RHColor x:Key="TurfColor" Red="0" Green="128" Blue="0"/>
   <u:RHColor x:Key="DirtColor" Red="142" Green="142" Blue="0"/>
   <u:RHColor x:Key="UphillColor" Red="240" Green="96" Blue="96"/>
