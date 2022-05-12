@@ -176,18 +176,18 @@ namespace KmyKeiba.Models.Race
         // 調教
         historyStartDate = race.StartTime.AddMonths(-4);
         var trainings = await db.Trainings!
-          .Where(t => horseKeys.Contains(t.HorseKey) && t.StartTime > historyStartDate)
+          .Where(t => horseKeys.Contains(t.HorseKey) && t.StartTime <= race.StartTime && t.StartTime > historyStartDate)
           .OrderByDescending(t => t.StartTime)
           .ToArrayAsync();
         var woodTrainings = await db.WoodtipTrainings!
-          .Where(t => horseKeys.Contains(t.HorseKey) && t.StartTime > historyStartDate)
+          .Where(t => horseKeys.Contains(t.HorseKey) && t.StartTime <= race.StartTime && t.StartTime > historyStartDate)
           .OrderByDescending(t => t.StartTime)
           .ToArrayAsync();
         foreach (var horse in horseInfos)
         {
           horse.Training.Value = new TrainingAnalysisData(
-            trainings.Where(t => t.HorseKey == horse.Data.Key).Take(100).ToArray(),
-            woodTrainings.Where(t => t.HorseKey == horse.Data.Key).Take(100).ToArray()
+            trainings.Where(t => t.HorseKey == horse.Data.Key).Take(50).ToArray(),
+            woodTrainings.Where(t => t.HorseKey == horse.Data.Key).Take(50).ToArray()
             );
         }
       });

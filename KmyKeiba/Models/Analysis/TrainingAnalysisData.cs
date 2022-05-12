@@ -13,8 +13,6 @@ namespace KmyKeiba.Models.Analysis
   {
     public IReadOnlyList<TrainingRow> Trainings { get; }
 
-    public IReadOnlyList<WoodtipTrainingData> WoodtipTrainings { get; }
-
     public TrainingAnalysisData(IReadOnlyList<TrainingData> trainings, IReadOnlyList<WoodtipTrainingData> woodtipTrainings)
     {
       var trainingStatistics = new[]
@@ -43,7 +41,7 @@ namespace KmyKeiba.Models.Analysis
       this.Trainings = trainingRows
         .Concat(woodtipTrainingRows)
         .OrderByDescending(t => t.StartTime)
-        .Take(100)
+        .Take(50)
         .ToArray();
     }
 
