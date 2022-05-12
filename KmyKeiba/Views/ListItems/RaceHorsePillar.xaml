@@ -106,11 +106,13 @@
         </StackPanel>
         <up:CornerResultTip Grid.Column="9" Margin="12,0,0,0" VerticalAlignment="Center"
                             PartWidth="24" PartHeight="36" PartPadding="4"
-                            CornerGrades="{Binding Horse.CornerGrades,ElementName=Root}"/>
+                            CornerGrades="{Binding Horse.CornerGrades,ElementName=Root}"
+                            Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
       </Grid>
 
       <!--馬柱-->
-      <Grid Background="{DynamicResource ThinBaseBackground}">
+      <Grid Background="{DynamicResource ThinBaseBackground}"
+            Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition Width="auto"/>

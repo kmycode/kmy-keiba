@@ -140,6 +140,16 @@
           </MultiBinding>
         </Control.Visibility>
       </uc:RaceSummaryView>
+      
+      <!--予想・全体-->
+      <uc:RaceExpectAllView Race="{Binding Race,ElementName=Root}" Grid.Column="1">
+        <Control.Visibility>
+          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+            <Binding Path="IsChecked" ElementName="S_Predict"/>
+            <Binding Path="IsChecked" ElementName="S_All"/>
+          </MultiBinding>
+        </Control.Visibility>
+      </uc:RaceExpectAllView>
 
       <!-- 結果・全体 -->
       <uc:RaceResultAllView Race="{Binding Race,ElementName=Root}" Grid.Column="1">

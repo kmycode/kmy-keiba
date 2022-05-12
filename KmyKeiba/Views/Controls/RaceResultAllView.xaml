@@ -12,7 +12,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
-  <Grid Grid.Column="1" Margin="8,0,0,0">
+  <Grid Margin="8,0,0,0">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition/>
@@ -22,14 +22,11 @@
       <Grid.ColumnDefinitions>
         <ColumnDefinition/>
         <ColumnDefinition/>
-        <ColumnDefinition/>
       </Grid.ColumnDefinitions>
       <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                       Content="着順" Name="S_RaceResultOrderList" IsChecked="True"/>
+                   Content="着順" Name="S_RaceResultOrderList" IsChecked="True"/>
       <RadioButton Grid.Column="1" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                       Content="レース傾向" Name="S_RaceResultTrend"/>
-      <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                       Content="展開" Name="S_RaceResultSituation"/>
+                   Content="展開" Name="S_RaceResultSituation"/>
     </Grid>
 
     <Grid Grid.Row="1">
@@ -58,140 +55,6 @@
             </ItemsControl>
           </StackPanel>
         </ScrollViewer>
-      </Grid>
-
-      <!-- 傾向 -->
-      <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_RaceResultTrend,Converter={StaticResource BooleanVisibilityConv}}">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="auto"/>
-          <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-
-        <!--傾向分析コントロール-->
-        <uc:TrendAnalyzerView Selector="{Binding Race.TrendAnalyzers,ElementName=Root}"/>
-
-        <!--レース一覧表-->
-        <Grid Margin="8,0,4,0" Grid.Column="1">
-          <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition/>
-          </Grid.RowDefinitions>
-            
-          <!--統計学的分析-->
-          <Grid>
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="auto"/>
-              <ColumnDefinition Width="auto"/>
-              <ColumnDefinition Width="auto"/>
-              <ColumnDefinition Width="auto"/>
-              <ColumnDefinition Width="auto"/>
-              <ColumnDefinition Width="auto"/>
-              <ColumnDefinition Width="auto"/>
-              <ColumnDefinition Width="auto"/>
-              <ColumnDefinition Width="auto"/>
-              <ColumnDefinition Width="auto"/>
-              <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-              <RowDefinition/>
-              <RowDefinition/>
-            </Grid.RowDefinitions>
-            <Grid.Resources>
-              <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
-                <Setter Property="VerticalAlignment" Value="Center"/>
-              </Style>
-              <Style TargetType="TextBlock" x:Key="Sub" BasedOn="{StaticResource SubTextBlock}">
-                <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="HorizontalAlignment" Value="Right"/>
-                <Setter Property="TextAlignment" Value="Right"/>
-              </Style>
-            </Grid.Resources>
-            <TextBlock Grid.RowSpan="2" Style="{StaticResource Sub}"
-                        Text="平均タイム"/>
-            <TextBlock Grid.Column="1" Grid.RowSpan="2" Margin="4,0,0,0" FontSize="28" FontWeight="Bold"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SpeedAverage.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}"/>
-            <TextBlock Grid.Column="2" Margin="24,0,0,0" Style="{StaticResource Sub}"
-                        Text="中央値"/>
-            <TextBlock Grid.Column="3" Margin="4,0,0,0" FontSize="22"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SpeedMedian.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}"/>
-            <TextBlock Grid.Column="2" Margin="24,0,0,0" Grid.Row="1" Style="{StaticResource Sub}"
-                        Text="標準偏差"/>
-            <TextBlock Grid.Column="3" Margin="4,0,0,0" Grid.Row="1" FontSize="22"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SpeedDeviation.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}"/>
-            <up:RunningStyleTip Grid.Column="4" Margin="48,0,0,0" Grid.Row="0" RunningStyle="FrontRunner"/>
-            <TextBlock Grid.Column="5" Margin="4,0,0,0" Grid.Row="0" FontSize="22"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.FrontRunnersCount.Value,ElementName=Root}"/>
-            <up:RunningStyleTip Grid.Column="4" Margin="48,0,0,0" Grid.Row="1" RunningStyle="Stalker"/>
-            <TextBlock Grid.Column="5" Margin="4,0,0,0" Grid.Row="1" FontSize="22"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.StalkersCount.Value,ElementName=Root}"/>
-            <up:RunningStyleTip Grid.Column="6" Margin="12,0,0,0" Grid.Row="0" RunningStyle="Sotp"/>
-            <TextBlock Grid.Column="7" Margin="4,0,0,0" Grid.Row="0" FontSize="22"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SotpsCount.Value,ElementName=Root}"/>
-            <up:RunningStyleTip Grid.Column="6" Margin="12,0,0,0" Grid.Row="1" RunningStyle="SaveRunner"/>
-            <TextBlock Grid.Column="7" Margin="4,0,0,0" Grid.Row="1" FontSize="22"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SaveRunnersCount.Value,ElementName=Root}"/>
-            <TextBlock Grid.Column="8" Margin="48,0,0,0" Grid.Row="0" Style="{StaticResource Sub}"
-                        Text="荒れ中央値"/>
-            <TextBlock Grid.Column="9" Margin="4,0,0,0" Grid.Row="0" FontSize="22"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.RoughMedian.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
-          </Grid>
-
-          <!--過去レースの一覧-->
-          <StackPanel Orientation="Horizontal" Margin="0,16,0,8" Grid.Row="1">
-            <StackPanel.Resources>
-              <Style TargetType="TextBlock">
-                <Setter Property="Foreground" Value="{DynamicResource SubForeground}"/>
-                <Setter Property="FontSize" Value="14"/>
-                <Setter Property="TextAlignment" Value="Right"/>
-              </Style>
-            </StackPanel.Resources>
-            <TextBlock Text="" Width="44"/>
-            <TextBlock Text="レース名" Width="180" TextAlignment="Left"/>
-            <TextBlock Text="日付" Width="80"/>
-            <TextBlock Text="1着T" Width="60"/>
-            <TextBlock Text="1着T指数" Width="70"/>
-            <TextBlock Text="1着脚質" Width="60"/>
-            <TextBlock Text="荒れ度" Width="70"/>
-          </StackPanel>
-          <ItemsControl Grid.Row="2" ItemsSource="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.Source,ElementName=Root}">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <VirtualizingStackPanel/>
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.Template>
-              <ControlTemplate>
-                <ScrollViewer Padding="{TemplateBinding Control.Padding}" Focusable="False">
-                  <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
-                </ScrollViewer>
-              </ControlTemplate>
-            </ItemsControl.Template>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                  <StackPanel.Resources>
-                    <Style TargetType="Label" BasedOn="{StaticResource LabelDefault}">
-                      <Setter Property="HorizontalContentAlignment" Value="Right"/>
-                    </Style>
-                  </StackPanel.Resources>
-                  <up:RaceSubjectIcon Subject="{Binding Subject.Subject}"
-                                      FontSize="14" Width="40" Margin="0,0,4,0"/>
-                  <Label Content="{Binding Subject.DisplayName}" HorizontalContentAlignment="Left"
-                          FontSize="16" FontWeight="Bold" Width="180"/>
-                  <Label Content="{Binding Data.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
-                  <Label Content="{Binding TopHorse.Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="60"/>
-                  <Label Content="{Binding TopHorse.ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
-                  <Border Width="60">
-                    <up:RunningStyleTip RunningStyle="{Binding TopRunningStyle}" HorizontalAlignment="Right"/>
-                  </Border>
-                  <Label Content="{Binding RoughRate,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
-                </StackPanel>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </Grid>
-
       </Grid>
 
       <!-- 展開 -->
