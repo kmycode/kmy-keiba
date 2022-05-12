@@ -21,6 +21,7 @@ namespace KmyKeiba.Models.Race
     {
       this.Subject = RaceSubject.Parse(race.SubjectName);
 
+      this.Subject.IsLocal = race.Course >= RaceCourse.LocalMinValue;
       this.Subject.Grade = race.Grade;
       if (race.SubjectAge2 != RaceSubjectType.Unknown)
       {

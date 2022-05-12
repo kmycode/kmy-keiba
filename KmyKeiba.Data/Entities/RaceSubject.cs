@@ -25,6 +25,8 @@ namespace KmyKeiba.JVLink.Entities
 
     public int Age { get; private set; }
 
+    public bool IsLocal { get; set; }
+
     public RaceGrade Grade { get; set; }
 
     public List<SubjectTypeItem> AgeSubjects { get; } = new();
@@ -47,24 +49,75 @@ namespace KmyKeiba.JVLink.Entities
       this.AgeSubjects.Any() ? RaceClass.Age :
       this.MaxClass;
 
+    public object? SecondaryClass
+    {
+      get
+      {
+        if (!this.IsLocal)
+        {
+          // 中央で表示する必要はない
+          return null;
+        }
+
+        var maxClass = this.MaxClass;
+        if (maxClass == RaceClass.Age || maxClass == RaceClass.Money)
+        {
+          return null;
+        }
+
+        return this.DisplayClass switch
+        {
+          // DisplayClassの１つ下のクラス
+          RaceGrade => /* /* 年齢制限はほとんどのレースにある this.AgeSubjects.Any() ? RaceClass.Age : */
+            this.MaxClass != RaceClass.Unknown ? this.MaxClass : null,
+          RaceClass.Age => this.MaxClass != RaceClass.Unknown ? this.MaxClass : null,
+          _ => null,
+        };
+      }
+    }
+
     public string ClassName
     {
       get
       {
+        if (this.DisplayClass is RaceGrade grade)
+        {
+          return grade.GetLabel();
+        }
+
+        if (this.DisplayClass is RaceClass cls)
+        {
+          if (cls == RaceClass.Age && this.AgeSubjects.Any())
+          {
+            var age = this.AgeSubjects.Min((s) => s.Age);
+            if (age <= 5)
+            {
+              return age + "歳";
+            }
+            return "最若";
+          }
+
+          if (cls != RaceClass.Age)
+          {
+            var maxClass = cls;
+            var max = this.Items.First((i) => i.Class == maxClass);
+            var className = max.Class.GetAttribute();
+
+            if (className != null)
+            {
+              if (max.Level > 0)
+              {
+                return className.Name + max.Level;
+              }
+              return className.Name;
+            }
+          }
+        }
+
         if (this.Grade != RaceGrade.Unknown && this.Grade != RaceGrade.Others &&
           (string.IsNullOrEmpty(this.Name) || this.Grade != RaceGrade.NonGradeSpecial))
         {
           return this.Grade.GetLabel();
-        }
-
-        if (this.AgeSubjects.Any())
-        {
-          var age = this.AgeSubjects.Min((s) => s.Age);
-          if (age <= 5)
-          {
-            return age + "歳";
-          }
-          return "最若";
         }
 
         if (!this.Items.Any())
@@ -78,19 +131,6 @@ namespace KmyKeiba.JVLink.Entities
             return this.Age + "歳";
           }
           return string.Empty;
-        }
-
-        var maxClass = this.MaxClass;
-        var max = this.Items.First((i) => i.Class == maxClass);
-        var className = max.Class.GetAttribute();
-
-        if (className != null)
-        {
-          if (max.Level > 0)
-          {
-            return className.Name + max.Level;
-          }
-          return className.Name;
         }
 
         return string.Empty;

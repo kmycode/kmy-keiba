@@ -27,7 +27,7 @@
         <ColumnDefinition Width="auto"/>
       </Grid.ColumnDefinitions>
       <up:RaceSubjectIcon Subject="{Binding Race.Subject.Subject,ElementName=Root}"
-                          FontSize="32" Width="120" Padding="0"/>
+                          FontSize="32" Width="120"/>
       <Border Grid.Column="1" Width="80" Background="{DynamicResource RaceNumberBackground}">
         <TextBlock FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
                    LineHeight="20" LineStackingStrategy="BlockLineHeight"

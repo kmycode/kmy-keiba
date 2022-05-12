@@ -13,7 +13,7 @@ namespace KmyKeiba.Views.Parts
   /// <summary>
   /// レース条件の色付きアイコン
   /// </summary>
-  public class RaceSubjectIcon : Label
+  public class RaceSubjectIcon : Grid
   {
     public static readonly DependencyProperty SubjectProperty
       = DependencyProperty.Register(
@@ -34,12 +34,43 @@ namespace KmyKeiba.Views.Parts
       set { SetValue(SubjectProperty, value); }
     }
 
+    public static readonly DependencyProperty FontSizeProperty
+      = DependencyProperty.Register(
+          nameof(FontSize),
+          typeof(double),
+          typeof(RaceSubjectIcon),
+          new PropertyMetadata(12.0, (sender, e) =>
+          {
+            if (sender is RaceSubjectIcon view)
+            {
+              view.textBlock.FontSize = (double)e.NewValue;
+            }
+          }));
+
+    public double FontSize
+    {
+      get { return (double)GetValue(FontSizeProperty); }
+      set { SetValue(FontSizeProperty, value); }
+    }
+
+    private readonly Border border = new();
+    private readonly TextBlock textBlock = new TextBlock
+    {
+      Foreground = Brushes.White,
+      FontWeight = FontWeights.Bold,
+      VerticalAlignment = VerticalAlignment.Center,
+      HorizontalAlignment = HorizontalAlignment.Center,
+    };
+    private readonly Border subBorder = new Border
+    {
+      VerticalAlignment = VerticalAlignment.Bottom,
+    };
+
     public RaceSubjectIcon()
     {
-      this.Foreground = Brushes.White;
-      this.HorizontalContentAlignment = HorizontalAlignment.Center;
-      this.VerticalContentAlignment = VerticalAlignment.Center;
-      this.FontWeight = FontWeights.Bold;
+      this.Children.Add(this.border);
+      this.Children.Add(this.subBorder);
+      this.Children.Add(this.textBlock);
       this.Update();
     }
 
@@ -47,13 +78,26 @@ namespace KmyKeiba.Views.Parts
     {
       if (this.Subject == null)
       {
-        this.Content = string.Empty;
-        this.Background = this.GetBrush(string.Empty);    // 引数は何でもいい
+        this.textBlock.Text = string.Empty;
+        this.border.Background = this.subBorder.Background = this.GetBrush(string.Empty);    // 引数は何でもいい
         return;
       }
 
-      this.Content = this.Subject.ClassName;
-      this.Background = this.GetBrush(this.Subject.DisplayClass);
+      this.textBlock.Text = this.Subject.ClassName;
+      this.border.Background = this.GetBrush(this.Subject.DisplayClass);
+
+      if (this.Subject.SecondaryClass != null)
+      {
+        this.subBorder.Background = this.GetBrush(this.Subject.SecondaryClass);
+        var height = !double.IsNaN(this.Height) ? this.Height : 0;
+        var actualHeight = !double.IsNaN(this.ActualHeight) ? this.ActualHeight : 0;
+        var size = Math.Max(Math.Max(height, actualHeight) / 2, 3);
+        this.subBorder.Height = size;
+      }
+      else
+      {
+        this.subBorder.Background = this.GetBrush(string.Empty);
+      }
     }
 
     private Brush GetBrush(object cls)
