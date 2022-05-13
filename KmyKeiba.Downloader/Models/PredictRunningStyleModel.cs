@@ -96,7 +96,7 @@ namespace KmyKeiba.Downloader.Models
       }
     }
 
-    public int Predict(int count)
+    public async Task<int> PredictAsync(int count)
     {
       this.IsError.Value = false;
       var done = 0;
@@ -106,6 +106,8 @@ namespace KmyKeiba.Downloader.Models
         this.IsProcessing.Value = true;
         using (var db = new MyContext())
         {
+          await db.BeginTransactionAsync();
+
           var targets = db.RaceHorses!.Where((h) => h.Course >= RaceCourse.CentralMaxValue &&
             !h.IsRunningStyleSetManually && h.RunningStyle == RunningStyle.Unknown &&
             h.ResultOrder > 0)
@@ -131,7 +133,8 @@ namespace KmyKeiba.Downloader.Models
             this.Processed.Value++;
             done++;
           }
-          db.SaveChanges();
+          await db.SaveChangesAsync();
+          await db.CommitAsync();
         }
         this.CanPredict.Value = this.ml.CanSave;
       }

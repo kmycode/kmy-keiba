@@ -21,12 +21,11 @@ namespace KmyKeiba.Downloader
         await db.Database.MigrateAsync();
       }).Wait();
 
-      //StartSetPreviousRaceDays();
       //StartLoad();
 
-      //StartRunningStyleTraining();
-      //StartRunningStylePredicting();
-
+      StartSetPreviousRaceDays();
+      StartRunningStyleTraining();
+      StartRunningStylePredicting();
       StartMakingStandardTimeMasterData();
     }
 
@@ -55,7 +54,7 @@ namespace KmyKeiba.Downloader
       var startYear = 2017;
       var startMonth = 1;
 
-      for (var year = startYear; year <= 2022; year++)
+      for (var year = startYear; year <= DateTime.Now.Year; year++)
       {
         for (var month = 1; month <= 12; month++)
         {
@@ -74,21 +73,16 @@ namespace KmyKeiba.Downloader
           };
           for (var i = 0; i < dates.Length / 2; i++)
           {
-            //if (year < 2021) continue;
-            //if (year == 2021 && month < 10) continue;
-            //if (year == 2021 && month == 10 && i < 1) continue;
-            // if (year == 2017 && month <= 3) continue;
-
             Console.WriteLine($"{year} 年 {month} 月 {dates[i * 2].Day} 日");
             await loader.LoadAsync(JVLinkObject.Local,
-              // JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
-              JVLinkDataspec.Race,
+              JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
+              // JVLinkDataspec.Race,
               JVLinkOpenOption.Setup,
               raceKey: null,
               startTime: dates[i * 2],
               endTime: dates[i * 2 + 1],
-              loadSpecs: new string[] { /* "O1", "O2", "O3", "O4", "O5", */ "O6", });
-              // loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "JC", "HC", "HR", });
+              //loadSpecs: new string[] { "WC", });
+              loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "JC", "HC", "WC", "HR", });
             Console.WriteLine();
             Console.WriteLine();
           }
@@ -112,11 +106,13 @@ namespace KmyKeiba.Downloader
     private static async Task SetPreviousRaceDays()
     {
       var count = 0;
+      var prevCommitCount = 0;
 
       using (var db = new MyContext())
       {
         // 通常のクエリは３分まで
         db.Database.SetCommandTimeout(180);
+        await db.BeginTransactionAsync();
 
         var allTargets = db.RaceHorses!
           .Where(rh => rh.PreviousRaceDays == 0)
@@ -148,7 +144,7 @@ namespace KmyKeiba.Downloader
 
               if (!isFirst)
               {
-                race.PreviousRaceDays = (short)(dh - beforeRaceDh).TotalDays;
+                race.PreviousRaceDays = System.Math.Max((short)(dh - beforeRaceDh).TotalDays, (short)1);
               }
               else
               {
@@ -162,6 +158,11 @@ namespace KmyKeiba.Downloader
           }
 
           await db.SaveChangesAsync();
+          if (count >= prevCommitCount + 10000)
+          {
+            await db.CommitAsync();
+            prevCommitCount = count;
+          }
           Console.Write($"\r完了: {count}");
 
           targets = await allTargets.Take(96).ToArrayAsync();
@@ -192,7 +193,7 @@ namespace KmyKeiba.Downloader
       var sum = 0;
       while (done != 0)
       {
-        done = rs.Predict(10_0000);
+        done = rs.PredictAsync(10_0000).Result;
         sum += done;
         Console.WriteLine($"{sum} 完了");
       }
@@ -206,6 +207,7 @@ namespace KmyKeiba.Downloader
         try
         {
           using var db = new MyContext();
+          await db.BeginTransactionAsync();
 
           var grounds = new[] { TrackGround.Turf, TrackGround.Dirt, TrackGround.TurfToDirt, };
           var types = new[] { TrackType.Flat, TrackType.Steeplechase, };
@@ -350,8 +352,12 @@ namespace KmyKeiba.Downloader
                 }
               }
 
+              // 毎年
               await db.SaveChangesAsync();
             }
+
+            // コースごと
+            await db.CommitAsync();
           }
         }
         catch

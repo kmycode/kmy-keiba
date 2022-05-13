@@ -298,7 +298,7 @@ namespace KmyKeiba.Downloader
       if (isDisposeReader)
       {
         // EntityFrameworkメソッドの呼び出しでスレッドが変わることがあるので、ここで破棄する
-        reader.Dispose();
+        //reader.Dispose();
       }
 
       var saved = 0;
@@ -394,16 +394,20 @@ namespace KmyKeiba.Downloader
           // saved += items.Count();
         }
 
-        await SaveDicAsync(data.Races,
-          db.Races!,
-          (e) => e.Key,
-          (d) => d.Key,
-          (list) => e => list.Contains(e.Key));
+        await db.BeginTransactionAsync();
+
         await SaveDicAsync(data.RaceHorses,
           db.RaceHorses!,
           (e) => e.Name + e.RaceKey,
           (d) => d.Name + d.RaceKey,
           (list) => e => list.Contains(e.Name + e.RaceKey));
+        await db.CommitAsync();
+
+        await SaveDicAsync(data.Races,
+          db.Races!,
+          (e) => e.Key,
+          (d) => d.Key,
+          (list) => e => list.Contains(e.Key));
         await SaveDicAsync(data.Horses,
           db.Horses!,
           (e) => e.Code,
@@ -414,6 +418,7 @@ namespace KmyKeiba.Downloader
           (e) => e.Key,
           (d) => d.Key,
           (list) => e => list.Contains(e.Key));
+        await db.CommitAsync();
 
         await SaveAsync(data.FrameNumberOdds.SelectMany((o) => o.Value.Odds),
           db.FrameNumberOdds!,
@@ -445,7 +450,8 @@ namespace KmyKeiba.Downloader
           (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3,
           (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2 + " " + d.HorseNumber3,
           (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3));
-        
+        await db.CommitAsync();
+
         await SaveDicAsync(data.Refunds,
           db.Refunds!,
           (e) => e.RaceKey,
@@ -467,6 +473,7 @@ namespace KmyKeiba.Downloader
           (e) => e.HorseKey + e.StartTime,
           (d) => d.HorseKey + d.StartTime,
           (list) => e => list.Contains(e.HorseKey + e.StartTime));
+        await db.CommitAsync();
 
         // 保存後のデータに他のデータを追加する
         this.ProcessSize.Value = 0;

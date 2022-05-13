@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
@@ -51,10 +53,56 @@ namespace KmyKeiba.Data.Db
 
     #endregion
 
+    private IDbContextTransaction? _transaction;
+
     protected string ConnectionString { get; set; } = string.Empty;
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        // => optionsBuilder.UseMySql($@"server=localhost;database=kmykeiba;uid=root;pwd=takaki;", ServerVersion.AutoDetect(@"server=localhost;database=kmykeiba;uid=root;pwd=takaki;"));
-        => optionsBuilder.UseMySql(this.ConnectionString, ServerVersion.AutoDetect(this.ConnectionString));
+    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    // => optionsBuilder.UseMySql($@"server=localhost;database=kmykeiba;uid=root;pwd=takaki;", ServerVersion.AutoDetect(@"server=localhost;database=kmykeiba;uid=root;pwd=takaki;"));
+    // => optionsBuilder.UseMySql(this.ConnectionString, ServerVersion.AutoDetect(this.ConnectionString));
+
+    public async Task CommitAsync()
+    {
+      if (this._transaction != null)
+      {
+        await this._transaction.CommitAsync();
+        await this._transaction.DisposeAsync();
+        this._transaction = await this.Database.BeginTransactionAsync();
+      }
+    }
+
+    public async Task BeginTransactionAsync()
+    {
+      this._transaction = await this.Database.BeginTransactionAsync();
+    }
+
+    public override void Dispose()
+    {
+      this._transaction?.Commit();
+
+      base.Dispose();
+      this._transaction?.Dispose();
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+      await base.DisposeAsync();
+      this._transaction?.DisposeAsync();
+    }
+
+    public void Rollback()
+    {
+      this._transaction?.Rollback();
+      this._transaction = null;
+    }
+
+    public async Task RollbackAsync()
+    {
+      if (this._transaction != null)
+      {
+        await this._transaction.RollbackAsync();
+        this._transaction = null;
+      }
+    }
   }
 }
