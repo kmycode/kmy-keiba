@@ -33,28 +33,25 @@
       
       <!--着順-->
       <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_RaceResultOrderList,Converter={StaticResource BooleanVisibilityConv}}">
-        <ScrollViewer>
-          <StackPanel Margin="8,0,4,0">
-            <ItemsControl ItemsSource="{Binding Race.HorsesResultOrdered,ElementName=Root}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <StackPanel/>
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Grid>
-                    <Grid.ColumnDefinitions>
-                      <ColumnDefinition Width="auto"/>
-                      <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <ul:RaceHorsePillar Grid.Column="1" Horse="{Binding}" IsResult="True"/>
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
-        </ScrollViewer>
+        <ItemsControl ItemsSource="{Binding Race.HorsesResultOrdered,ElementName=Root}"
+                      Margin="0,0,4,0" Style="{StaticResource TableList}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="auto"/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <ul:RaceHorsePillar Grid.Column="1" Horse="{Binding}" IsResult="True"/>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </Grid>
 
       <!-- 展開 -->

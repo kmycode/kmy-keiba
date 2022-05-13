@@ -118,14 +118,15 @@
     <Setter Property="ItemsPanel">
       <Setter.Value>
         <ItemsPanelTemplate>
-          <VirtualizingStackPanel/>
+          <VirtualizingStackPanel IsVirtualizing="True" VirtualizationMode="Recycling"/>
         </ItemsPanelTemplate>
       </Setter.Value>
     </Setter>
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate>
-          <ScrollViewer Padding="{TemplateBinding Control.Padding}" Focusable="False">
+          <ScrollViewer Padding="{TemplateBinding Control.Padding}" Focusable="False"
+                        CanContentScroll="True">
             <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
           </ScrollViewer>
         </ControlTemplate>

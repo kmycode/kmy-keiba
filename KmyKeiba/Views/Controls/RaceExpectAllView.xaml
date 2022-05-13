@@ -36,28 +36,20 @@
 
       <!--出馬表-->
       <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseList,Converter={StaticResource BooleanVisibilityConv}}">
-        <ScrollViewer>
-          <StackPanel Margin="8,0,4,0">
-            <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <StackPanel/>
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Grid>
-                    <Grid.ColumnDefinitions>
-                      <ColumnDefinition Width="auto"/>
-                      <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <ul:RaceHorsePillar Grid.Column="1" Horse="{Binding}"/>
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
-        </ScrollViewer>
+        <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}"
+                      Style="{StaticResource TableList}" Margin="0,0,4,0">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="auto"/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <ul:RaceHorsePillar Grid.Column="1" Horse="{Binding}"/>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </Grid>
 
       <!-- 傾向 -->
