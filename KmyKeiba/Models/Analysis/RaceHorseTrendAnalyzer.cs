@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Analysis
 {
-  public class RaceHorseTrendAnalyzer : TrendAnalyzer
+  public abstract class RaceHorseTrendAnalyzerBase : TrendAnalyzer
   {
     public RaceData Race { get; }
 
@@ -37,7 +37,7 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<int> SaveRunnersCount { get; } = new();
 
-    public RaceHorseTrendAnalyzer(RaceData race, RaceHorseData horse)
+    public RaceHorseTrendAnalyzerBase(RaceData race, RaceHorseData horse)
     {
       this.Race = race;
       this.RaceHorse = horse;
@@ -72,6 +72,13 @@ namespace KmyKeiba.Models.Analysis
       this.SaveRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.SaveRunner);
 
       this.IsAnalyzed.Value = true;
+    }
+  }
+
+  public class RaceHorseTrendAnalyzer : RaceHorseTrendAnalyzerBase
+  {
+    public RaceHorseTrendAnalyzer(RaceData race, RaceHorseData horse) : base(race, horse)
+    {
     }
   }
 }

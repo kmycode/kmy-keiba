@@ -23,6 +23,10 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceHorseTrendAnalysisSelector? TrendAnalyzers { get; init; }
 
+    public RaceRiderTrendAnalysisSelector? RiderTrendAnalyzers { get; init; }
+
+    public RaceTrainerTrendAnalysisSelector? TrainerTrendAnalyzers { get; init; }
+
     public ReactiveProperty<RiderAnalysisData?> Rider { get; } = new();
 
     public ReactiveProperty<TrainerAnalysisData?> Trainer { get; } = new();
@@ -125,6 +129,10 @@ namespace KmyKeiba.Models.Analysis
 
       public ValueComparation AgeComparation { get; }
 
+      public RaceHorseData? TopHorse { get; }
+
+      public double RoughRate { get; }
+
       public CurrentRaceData(RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses)
       {
         var weightPoint = new StatisticSingleArray(sameRaceHorses.Select(h => (double)h.RiderWeight).ToArray());
@@ -136,6 +144,9 @@ namespace KmyKeiba.Models.Analysis
         var ageMedian = (short)agePoint.Median;
         this.AgeComparation = horse.Age > ageMedian ? ValueComparation.Bad :
           horse.Age < ageMedian ? ValueComparation.Good : ValueComparation.Standard;
+
+        this.TopHorse = sameRaceHorses.FirstOrDefault(h => h.ResultOrder == 1);
+        this.RoughRate = AnalysisUtil.CalcRoughRate(sameRaceHorses.ToArray());
       }
     }
 
@@ -204,10 +215,15 @@ namespace KmyKeiba.Models.Analysis
       }
     }
 
-    public RaceHorseAnalysisData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalysisData> raceHistory, RaceStandardTimeMasterData? raceStandardTime)
+    public RaceHorseAnalysisData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, RaceStandardTimeMasterData? raceStandardTime)
       : this(race, horse, raceStandardTime)
     {
       this.CurrentRace = new CurrentRaceData(horse, sameRaceHorses);
+    }
+
+    public RaceHorseAnalysisData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalysisData> raceHistory, RaceStandardTimeMasterData? raceStandardTime)
+      : this(race, horse, sameRaceHorses, raceStandardTime)
+    {
       this.History = new HistoryData(race, raceHistory);
     }
   }

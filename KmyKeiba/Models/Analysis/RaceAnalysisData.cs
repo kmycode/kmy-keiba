@@ -45,10 +45,7 @@ namespace KmyKeiba.Models.Analysis
         .ToArray();
       this.TopRunningStyle = this.RunningStyles.FirstOrDefault();
 
-      this.RoughRate = topHorses.Where(rh => rh.ResultOrder <= 3)
-            .Select(rh => (double)rh.Popular * rh.Popular)
-            .Append(0)    // Sum時の例外防止
-            .Sum() / (1 * 1 + 2 * 2 + 3 * 3);
+      this.RoughRate = AnalysisUtil.CalcRoughRate(topHorses);
 
       if (this.TopHorseData != null)
       {

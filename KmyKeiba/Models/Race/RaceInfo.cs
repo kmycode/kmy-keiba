@@ -135,6 +135,8 @@ namespace KmyKeiba.Models.Race
           horseInfos.Add(new RaceHorseAnalysisData(race, horse, horses, histories, standardTime)
           {
             TrendAnalyzers = new RaceHorseTrendAnalysisSelector(db, race, horse),
+            RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(db, race, horse),
+            TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(db, race, horse),
           });
         }
         info.SetHorsesDelay(horseInfos);
