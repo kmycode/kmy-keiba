@@ -51,7 +51,8 @@ namespace KmyKeiba.Models.Analysis.Generic
     {
       var db = this._db;
 
-      this.Analyzers.TryGetValue(this.Keys.GetActiveKeys(), out var existsAnalyzer);
+      var currentKeys = this.Keys.GetActiveKeys();
+      var existsAnalyzer = this.Analyzers.FirstOrDefault(a => a.Key.SequenceEqual(currentKeys)).Value;
       if (existsAnalyzer != null)
       {
         this.CurrentAnalyzer.Value = existsAnalyzer;
@@ -135,7 +136,7 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public IEnumerable<KEY> GetActiveKeys()
     {
-      return this.Where(i => i.IsChecked.Value).Select(i => i.Key).OrderBy(k => k);
+      return this.Where(i => i.IsChecked.Value).Select(i => i.Key).OrderBy(k => k).ToArray();
     }
 
     public override bool Equals(object? obj)
