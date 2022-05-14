@@ -15,12 +15,6 @@ namespace KmyKeiba.JVLink.Wrappers
     public static JVLinkObject Central => _central ??= new JVLinkObject(JVLinkObjectType.Central);
     public static JVLinkObject Local => _local ??= new JVLinkObject(JVLinkObjectType.Local);
 
-    private enum JVLinkObjectType
-    {
-      Central,
-      Local,
-    }
-
     private readonly IJVLinkObject link;
     private bool hasInitialized = false;
 
@@ -176,6 +170,13 @@ namespace KmyKeiba.JVLink.Wrappers
     }
 
     public void Dispose() => this.link.Dispose();
+  }
+
+  public enum JVLinkObjectType
+  {
+    Unknown,
+    Central,
+    Local,
   }
 
   [Flags]

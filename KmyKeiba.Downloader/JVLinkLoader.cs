@@ -186,7 +186,7 @@ namespace KmyKeiba.Downloader
                option,
                this.StartTime.Value,
                this.IsSetEndTime.Value ? this.EndTime.Value : null);
-            await this.LoadAsync(reader, loadSpecs, true, false, isDisposeReader: true);
+            await this.LoadAsync(reader, loadSpecs, true, false);
           }
           else
           {
@@ -194,13 +194,13 @@ namespace KmyKeiba.Downloader
             {
               var reader = link.StartRead(dataspec,
                  JVLinkOpenOption.RealTime, DateTime.Today);
-              await this.LoadAsync(reader, loadSpecs, false, true, isDisposeReader: true);
+              await this.LoadAsync(reader, loadSpecs, false, true);
             }
             else
             {
               var reader = link.StartRead(dataspec,
                   JVLinkOpenOption.RealTime, raceKey);
-              await this.LoadAsync(reader, loadSpecs, false, true, isDisposeReader: true);
+              await this.LoadAsync(reader, loadSpecs, false, true);
             }
           }
 
@@ -222,17 +222,31 @@ namespace KmyKeiba.Downloader
           }
 
           logger.Error("error", ex);
+
+          // TODO: ネット接続切れた時は再起動しないなどの処理が必要（ダウンローダとアプリを連携してからやる）
+          if (ex.Code != JVLinkLoadResult.SetupCanceled)
+          {
+            _ = Program.RestartProgramAsync(false);
+          }
+          else
+          {
+            Program.Exit();
+          }
         }
         catch (JVLinkException<JVLinkReadResult> ex)
         {
           this.ReadErrorCode.Value = ex.Code;
           logger.Error($"error {ex.Code}");
           logger.Error("error", ex);
+
+          _ = Program.RestartProgramAsync(false);
         }
         catch (Exception ex)
         {
           this.IsDatabaseError.Value = true;
           logger.Error("error", ex);
+
+          _ = Program.RestartProgramAsync(false);
         }
         finally
         {
@@ -253,7 +267,7 @@ namespace KmyKeiba.Downloader
       this.Processed.Value = 0;
     }
 
-    private async Task LoadAsync(IJVLinkReader reader, IEnumerable<string> loadSpecs, bool isProcessing, bool isRealtime, bool isDisposeReader = false)
+    private async Task LoadAsync(IJVLinkReader reader, IEnumerable<string>? loadSpecs, bool isProcessing, bool isRealtime)
     {
       this.ResetProgresses();
 
@@ -295,17 +309,50 @@ namespace KmyKeiba.Downloader
       }
       isLoaded = true;
 
-      if (isDisposeReader)
+      // readerのDisposeが完了しない場合がある
+      var isDisposed = false;
+      var isDone = false;
+      _ = Task.Run(async () =>
       {
-        // EntityFrameworkメソッドの呼び出しでスレッドが変わることがあるので、ここで破棄する
-        //reader.Dispose();
-      }
+        var loadStartTime = DateTime.Now;
 
+        await LoadAfterAsync(reader.Type, data, isProcessing, isRealtime);
+        isDone = true;
+
+        if (!isDisposed)
+        {
+          var d = (DateTime.Now - loadStartTime).TotalSeconds;
+          if (d < 0) d = 0;
+          await Task.Delay(TimeSpan.FromSeconds(System.Math.Max(30.0 - d, 0.1)));
+
+          if (!isDisposed)
+          {
+            await Program.RestartProgramAsync(true);
+          }
+        }
+      });
+
+      // EntityFrameworkメソッドの呼び出しでスレッドが変わることがあるので、ここで破棄する
+      if (reader.Type == JVLinkObjectType.Local)
+      {
+        GC.Collect();
+      }
+      reader.Dispose();
+      isDisposed = true;
+
+      // ロード処理を待機。終わるまで制御を戻さない
+      while (!isDone)
+      {
+        await Task.Delay(100);
+      }
+    }
+
+    private async Task LoadAfterAsync(JVLinkObjectType type, JVLinkReaderData data, bool isProcessing, bool isRealtime)
+    {
       var saved = 0;
-      this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Sum((o) => o.Value.Odds.Count)
-        + data.FrameNumberOdds.Sum((o) => o.Value.Odds.Count) +
-        data.QuinellaOdds.Sum((o) => o.Value.Odds.Count) + data.QuinellaPlaceOdds.Sum((o) => o.Value.Odds.Count) +
-         data.TrifectaOdds.Sum((o) => o.Value.Odds.Count) + data.TrioOdds.Sum((o) => o.Value.Odds.Count) + 
+      this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count
+        + data.FrameNumberOdds.Count + data.QuinellaOdds.Count + data.QuinellaPlaceOdds.Count +
+         data.TrifectaOdds.Count + data.TrioOdds.Count + 
         data.Refunds.Count + data.Trainings.Count + data.WoodtipTrainings.Count + data.Horses.Count + data.HorseBloods.Count;
       logger.Info($"Save size: {this.SaveSize.Value}");
 
@@ -420,36 +467,36 @@ namespace KmyKeiba.Downloader
           (list) => e => list.Contains(e.Key));
         await db.CommitAsync();
 
-        await SaveAsync(data.FrameNumberOdds.SelectMany((o) => o.Value.Odds),
+        await SaveDicAsync(data.FrameNumberOdds,
           db.FrameNumberOdds!,
-          (e) => e.RaceKey + e.Frame1 + " " + e.Frame2,
-          (d) => d.RaceKey + d.Frame1 + " " + d.Frame2,
-          (list) => e => list.Contains(e.RaceKey + e.Frame1 + " " + e.Frame2));
-        await SaveAsync(data.QuinellaPlaceOdds.SelectMany((o) => o.Value.Odds),
+          (e) => e.RaceKey,
+          (d) => d.RaceKey,
+          (list) => e => list.Contains(e.RaceKey));
+        await SaveDicAsync(data.QuinellaPlaceOdds,
           db.QuinellaPlaceOdds!,
-          (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2,
-          (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2,
-          (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2));
-        await SaveAsync(data.QuinellaOdds.SelectMany((o) => o.Value.Odds),
+          (e) => e.RaceKey,
+          (d) => d.RaceKey,
+          (list) => e => list.Contains(e.RaceKey));
+        await SaveDicAsync(data.QuinellaOdds,
           db.QuinellaOdds!,
-          (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2,
-          (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2,
-          (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2));
-        await SaveAsync(data.ExactaOdds.SelectMany((o) => o.Value.Odds),
+          (e) => e.RaceKey,
+          (d) => d.RaceKey,
+          (list) => e => list.Contains(e.RaceKey));
+        await SaveDicAsync(data.ExactaOdds,
           db.ExactaOdds!,
-          (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2,
-          (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2,
-          (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2));
-        await SaveAsync(data.TrioOdds.SelectMany((o) => o.Value.Odds),
+          (e) => e.RaceKey,
+          (d) => d.RaceKey,
+          (list) => e => list.Contains(e.RaceKey));
+        await SaveDicAsync(data.TrioOdds,
           db.TrioOdds!,
-          (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3,
-          (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2 + " " + d.HorseNumber3,
-          (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3));
-        await SaveAsync(data.TrifectaOdds.SelectMany((o) => o.Value.Odds),
+          (e) => e.RaceKey,
+          (d) => d.RaceKey,
+          (list) => e => list.Contains(e.RaceKey));
+        await SaveDicAsync(data.TrifectaOdds,
           db.TrifectaOdds!,
-          (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3,
-          (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2 + " " + d.HorseNumber3,
-          (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3));
+          (e) => e.RaceKey,
+          (d) => d.RaceKey,
+          (list) => e => list.Contains(e.RaceKey));
         await db.CommitAsync();
 
         await SaveDicAsync(data.Refunds,

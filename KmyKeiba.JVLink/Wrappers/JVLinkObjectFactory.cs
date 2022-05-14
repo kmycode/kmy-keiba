@@ -10,6 +10,8 @@ namespace KmyKeiba.JVLink.Wrappers
   {
     internal bool IsOpen { get; set; }
 
+    JVLinkObjectType Type { get; }
+
     int Init();
 
     int SetUIProperties();
@@ -52,6 +54,8 @@ namespace KmyKeiba.JVLink.Wrappers
     private class DefaultJVLink : IJVLinkObject
     {
       bool IJVLinkObject.IsOpen { get; set; }
+
+      public JVLinkObjectType Type => JVLinkObjectType.Unknown;
 
       public void Cancel()
       {
@@ -116,6 +120,8 @@ namespace KmyKeiba.JVLink.Wrappers
     {
       private readonly JVDTLabLib.JVLink link = new();
 
+      public JVLinkObjectType Type => JVLinkObjectType.Central;
+
       bool IJVLinkObject.IsOpen { get; set; }
 
       public int Init() => this.link.JVInit("SA000000");
@@ -167,6 +173,8 @@ namespace KmyKeiba.JVLink.Wrappers
     private class NVLinkObjectImpl : IJVLinkObject
     {
       private readonly NVDTLabLib.NVLink link = new();
+
+      public JVLinkObjectType Type => JVLinkObjectType.Local;
 
       bool IJVLinkObject.IsOpen { get; set; }
 

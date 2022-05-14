@@ -22,12 +22,16 @@ namespace KmyKeiba.JVLink.Wrappers
 
     int ReadedEntityCount => 0;
 
+    JVLinkObjectType Type { get; }
+
     JVLinkReaderData Load(IEnumerable<string>? targetSpecs = null);
   }
 
   class EmptyJVLinkReader : IJVLinkReader
   {
     private readonly IJVLinkObject link;
+
+    public JVLinkObjectType Type => JVLinkObjectType.Unknown;
 
     public EmptyJVLinkReader(IJVLinkObject link)
     {
@@ -49,6 +53,8 @@ namespace KmyKeiba.JVLink.Wrappers
   class JVLinkReader : IJVLinkReader
   {
     private readonly IJVLinkObject link;
+
+    public JVLinkObjectType Type => this.link.Type;
 
     public int DownloadedCount => this.link.Status();
 
@@ -86,13 +92,13 @@ namespace KmyKeiba.JVLink.Wrappers
     {
       var data = new JVLinkReaderData();
       var buffSize = 110000;
-      var buff = new byte[buffSize];
 
       var lastFileName = string.Empty;
       this.ReadedEntityCount = 0;
 
       while (true)
       {
+        var buff = new byte[buffSize];
         var result = this.link.Gets(ref buff, buffSize, out string fileName);
         if (result < -1)
         {
@@ -119,35 +125,27 @@ namespace KmyKeiba.JVLink.Wrappers
           break;
         }
 
-        var d = Encoding.GetEncoding(932).GetString(buff);
-        var spec = d.Substring(0, 2);
+        var managedBuff = new byte[buff.Length];
+        Array.Copy(buff, managedBuff, managedBuff.Length);
+
+        // JV、NV-Linkの仕様でメモリ解放が必要（Array.Resizeで解放になるらしい）
+        Array.Resize(ref buff, 0);
+
+        var d = Encoding.GetEncoding(932).GetString(managedBuff);
+        var  spec = d.Substring(0, 2);
 
         void Read<T>(T item, List<T> list, Func<T, T, bool> isEquals, IComparer<T> comparer)
           where T : EntityBase
         {
-          /*
-          var oldItemIndex = list.BinarySearch(item, comparer);
-          if (oldItemIndex >= 0)
+          if (this.link.Type == JVLinkObjectType.Local && this.EndDate != default)
           {
-            var oldItem = list[oldItemIndex];
-            if (oldItem.LastModified < item.LastModified)
+            // 地方競馬UmaConnでは終端時刻を指定しても最新まですべて読み込んでしまう
+            if (item.LastModified != default && (item.LastModified < this.StartDate || item.LastModified > this.EndDate))
             {
-              list[oldItemIndex] = item;
+              this.ReadedEntityCount--;
+              return;
             }
           }
-          else
-          {
-            list.Add(item);
-            list.Sort(comparer);
-          }
-          */
-          /*
-          if (item.LastModified != default && (item.LastModified < this.StartDate || item.LastModified > this.EndDate))
-          {
-            this.ReadedEntityCount--;
-            return;
-          }
-          */
 
           var oldItem = list.FirstOrDefault((r) => isEquals(r, item));
           if (oldItem != null)
@@ -168,13 +166,19 @@ namespace KmyKeiba.JVLink.Wrappers
         void ReadDic<KEY, T>(T item, Dictionary<KEY, T> list, KEY key)
           where T : EntityBase where KEY : IComparable
         {
+          if (this.link.Type == JVLinkObjectType.Local && this.EndDate != default)
+          {
+            // 地方競馬UmaConnでは終端時刻を指定しても最新まですべて読み込んでしまう
+            if (item.LastModified != default && (item.LastModified < this.StartDate || item.LastModified > this.EndDate))
+            {
+              this.ReadedEntityCount--;
+              return;
+            }
+          }
+
           list.TryGetValue(key, out var oldItem);
           if (oldItem != null)
           {
-            // if (oldItem.LastModified < item.LastModified)
-            // {
-            //   list.Remove(key);
-            // }
             if (oldItem.LastModified >= item.LastModified)
             {
               return;

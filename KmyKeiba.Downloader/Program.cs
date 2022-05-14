@@ -5,14 +5,34 @@ using KmyKeiba.Downloader.Models;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace KmyKeiba.Downloader
 {
   internal class Program
   {
+    private static string selfPath = string.Empty;
+    private static int loadStartYear;
+    private static int loadStartMonth;
+    private static int loadingYear;
+    private static int loadingMonth;
+
     [STAThread]
     public static void Main(string[] args)
     {
+      selfPath = Assembly.GetEntryAssembly()?.Location.Replace("Downloader.dll", "Downloader.exe") ?? string.Empty;
+      var startIndex = args.ElementAtOrDefault(0)?.Contains("Downloader.") == true ? 1 : 0;
+      if (args.Length >= 1 + startIndex)
+      {
+        _ = int.TryParse(args[0 + startIndex], out loadStartYear);
+      }
+      if (args.Length >= 2 + startIndex)
+      {
+        _ = int.TryParse(args[1 + startIndex], out loadStartMonth);
+      }
+
       // マイグレーション
       Task.Run(async () =>
       {
@@ -21,12 +41,12 @@ namespace KmyKeiba.Downloader
         await db.Database.MigrateAsync();
       }).Wait();
 
-      //StartLoad();
+      StartLoad();
 
-      StartSetPreviousRaceDays();
-      StartRunningStyleTraining();
-      StartRunningStylePredicting();
-      StartMakingStandardTimeMasterData();
+      //StartSetPreviousRaceDays();
+      //StartRunningStyleTraining();
+      //StartRunningStylePredicting();
+      //StartMakingStandardTimeMasterData();
     }
 
     private static void StartLoad()
@@ -51,8 +71,18 @@ namespace KmyKeiba.Downloader
 
     private static async Task LoadAsync(JVLinkLoader loader)
     {
-      var startYear = 2017;
-      var startMonth = 1;
+      var startYear = 2019;
+      var startMonth = 10;
+
+      if (loadStartYear > 0) startYear = loadStartYear;
+      if (loadStartMonth > 0) startMonth = loadStartMonth;
+      if (loadStartYear > 0 || loadStartMonth > 0)
+      {
+        Console.WriteLine($"{loadStartYear} 年 {loadStartMonth} 月 開始");
+
+        // 前のアプリが終わるのを待つ
+        await Task.Delay(5000);
+      }
 
       for (var year = startYear; year <= DateTime.Now.Year; year++)
       {
@@ -63,29 +93,23 @@ namespace KmyKeiba.Downloader
             continue;
           }
 
+          loadingYear = year;
+          loadingMonth = month;
           var start = new DateTime(year, month, 1);
 
-          var dates = new DateTime[]
-          {
-            // start, start.AddDays(15),
-            // start.AddDays(15), start.AddMonths(1),
-            start, start.AddMonths(1),
-          };
-          for (var i = 0; i < dates.Length / 2; i++)
-          {
-            Console.WriteLine($"{year} 年 {month} 月 {dates[i * 2].Day} 日");
-            await loader.LoadAsync(JVLinkObject.Local,
-              JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
-              // JVLinkDataspec.Race,
-              JVLinkOpenOption.Setup,
-              raceKey: null,
-              startTime: dates[i * 2],
-              endTime: dates[i * 2 + 1],
-              //loadSpecs: new string[] { "WC", });
-              loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "JC", "HC", "WC", "HR", });
-            Console.WriteLine();
-            Console.WriteLine();
-          }
+          Console.WriteLine($"{year} 年 {month} 月");
+          await loader.LoadAsync(JVLinkObject.Local,
+            //JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
+            JVLinkDataspec.Race,
+            JVLinkOpenOption.Setup,
+            raceKey: null,
+            startTime: start,
+            endTime: start.AddMonths(1),
+            loadSpecs: new string[] { "O1", "O2", "O3", "O4", "O5", "O6", });
+            //loadSpecs: new string[] { "WC", });
+            //loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "JC", "HC", "WC", "HR", });
+          Console.WriteLine();
+          Console.WriteLine();
         }
       }
       /*
@@ -97,6 +121,50 @@ namespace KmyKeiba.Downloader
         endTime: null);
       */
     }
+
+    public static Task RestartProgramAsync(bool isIncrement)
+    {
+      // TODO: ここにDBに復帰情報を保存するコードを追加する
+      var month = loadingMonth;
+      var year = loadingYear;
+      if (isIncrement)
+      {
+        month++;
+      }
+      if (month > 12)
+      {
+        month = 1;
+        year++;
+      }
+
+      try
+      {
+        Process.Start(new ProcessStartInfo
+        {
+          FileName = "cmd",
+          ArgumentList =
+        {
+          "/c",
+          selfPath,
+          year.ToString(),
+          month.ToString(),
+        },
+          Verb = "RunAs",    // 管理者権限
+        });
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine(ex.Message);
+        Console.WriteLine(ex.StackTrace);
+        return Task.CompletedTask;
+      }
+
+      Environment.Exit(0);
+
+      return Task.CompletedTask;
+    }
+
+    public static void Exit() => Environment.Exit(-1);
 
     private static void StartSetPreviousRaceDays()
     {
