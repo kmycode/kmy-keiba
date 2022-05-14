@@ -50,17 +50,17 @@
             <RowDefinition/>
           </Grid.RowDefinitions>
           <TextBlock Grid.Row="0" Margin="8,0,0,0" FontSize="16"
-                    Text="{Binding Horse.TimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+                    Text="{Binding Horse.History.TimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
           <TextBlock Grid.Row="1" Margin="8,0,0,0" FontSize="14">
             <Run Text="{Binding Horse.Data.Odds,ElementName=Root,Converter={StaticResource DigitMinusConv}}"/> (<Run Text="{Binding Horse.Data.Popular,ElementName=Root}"/>人)
           </TextBlock>
         </Grid>
         <StackPanel Grid.Column="3" Margin="12,0,0,0" VerticalAlignment="Center">
-          <up:RunningStyleTip RunningStyle="{Binding Horse.RunningStyle,ElementName=Root}"
+          <up:RunningStyleTip RunningStyle="{Binding Horse.History.RunningStyle,ElementName=Root}"
                               Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
           <up:RunningStyleTip RunningStyle="{Binding Horse.Data.RunningStyle,ElementName=Root}"
                               Margin="0,0,0,4" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
-          <up:RunningStyleTip RunningStyle="{Binding Horse.RunningStyle,ElementName=Root}" HorizontalAlignment="Center" Opacity="0.8"
+          <up:RunningStyleTip RunningStyle="{Binding Horse.History.RunningStyle,ElementName=Root}" HorizontalAlignment="Center" Opacity="0.8"
                               Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
             <up:RunningStyleTip.LayoutTransform>
               <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
@@ -69,7 +69,7 @@
         </StackPanel>
         <Border Width="30" Grid.Column="4" Margin="12,0,0,0">
           <StackPanel Orientation="Horizontal" Height="30" HorizontalAlignment="Center"
-                      Background="{Binding Horse.AgeComparation,ElementName=Root,Converter={StaticResource ValueComparationBackgroundConv}}">
+                      Background="{Binding Horse.CurrentRace.AgeComparation,ElementName=Root,Converter={StaticResource ValueComparationBackgroundConv}}">
             <TextBlock FontSize="16" Text="{Binding Horse.Data.Sex,ElementName=Root,Converter={StaticResource EnumsConv}}"
                        Foreground="{Binding Horse.Data.Sex,ElementName=Root,Converter={StaticResource EnumsConv}}" Margin="2,0,0,0"/>
             <TextBlock FontSize="16" Text="{Binding Horse.Data.Age,ElementName=Root}" Margin="0,0,2,0"/>
@@ -92,17 +92,17 @@
                      Text="{Binding Horse.Data.RiderName,ElementName=Root}"/>
           <TextBlock Grid.Column="1" TextAlignment="Center" FontSize="16" FontWeight="Bold"
                      Text="{Binding Horse.Data.RiderWeight,ElementName=Root}"
-                     Foreground="{Binding Horse.RiderWeightComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                     Foreground="{Binding Horse.CurrentRace.RiderWeightComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
           <up:RaceResultOrderGradeRow Grid.Row="1" Grid.ColumnSpan="2" Header="同馬" FontSize="12" Grade="{Binding Horse.Rider.Value.SameHorse,ElementName=Root}"/>
         </Grid>
         <StackPanel Grid.Column="7" Margin="24,0,0,0" VerticalAlignment="Center" Width="120">
-          <up:RaceResultOrderGradeRow Header="全て" FontSize="12" Grade="{Binding Horse.AllGrade,ElementName=Root}"/>
-          <up:RaceResultOrderGradeRow Header="地面" FontSize="12" Grade="{Binding Horse.SameGroundGrade,ElementName=Root}"/>
-          <up:RaceResultOrderGradeRow Header="距離" FontSize="12" Grade="{Binding Horse.SameDistanceGrade,ElementName=Root}"/>
+          <up:RaceResultOrderGradeRow Header="全て" FontSize="12" Grade="{Binding Horse.History.AllGrade,ElementName=Root}"/>
+          <up:RaceResultOrderGradeRow Header="地面" FontSize="12" Grade="{Binding Horse.History.SameGroundGrade,ElementName=Root}"/>
+          <up:RaceResultOrderGradeRow Header="距離" FontSize="12" Grade="{Binding Horse.History.SameDistanceGrade,ElementName=Root}"/>
         </StackPanel>
         <StackPanel Grid.Column="8" Margin="12,0,0,0" VerticalAlignment="Center" Width="120">
-          <up:RaceResultOrderGradeRow Header="方向" FontSize="12" Grade="{Binding Horse.SameDirectionGrade,ElementName=Root}"/>
-          <up:RaceResultOrderGradeRow Header="馬場" FontSize="12" Grade="{Binding Horse.SameConditionGrade,ElementName=Root}"/>
+          <up:RaceResultOrderGradeRow Header="方向" FontSize="12" Grade="{Binding Horse.History.SameDirectionGrade,ElementName=Root}"/>
+          <up:RaceResultOrderGradeRow Header="馬場" FontSize="12" Grade="{Binding Horse.History.SameConditionGrade,ElementName=Root}"/>
         </StackPanel>
         <up:CornerResultTip Grid.Column="9" Margin="12,0,0,0" VerticalAlignment="Center"
                             PartWidth="24" PartHeight="36" PartPadding="4"
@@ -124,7 +124,7 @@
           <TextBlock Text="{Binding Horse.Data.PreviousRaceDays,ElementName=Root}" FontSize="14" TextAlignment="Center"/>
         </StackPanel>
 
-        <ItemsControl Grid.Column="1" ItemsSource="{Binding Horse.BeforeFiveRaces,ElementName=Root}">
+        <ItemsControl Grid.Column="1" ItemsSource="{Binding Horse.History.BeforeFiveRaces,ElementName=Root}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <StackPanel Orientation="Horizontal"/>

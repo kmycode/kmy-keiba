@@ -56,9 +56,9 @@ namespace KmyKeiba.Models.Analysis
       this.Analyze(source.ToArray());
     }
 
-    private void Analyze(IReadOnlyList<RaceHorseAnalysisData> source)
+    protected virtual void Analyze(IReadOnlyList<RaceHorseAnalysisData> source)
     {
-      this.SpeedPoints.Value.Values = source.Select(s => s.Data.ResultTime.TotalSeconds / s.Race.Distance).ToArray();
+      this.SpeedPoints.Value.Values = source.Select(s => s.ResultTimePerMeter).ToArray();
       var runningStyles = source.Select(s => s.Data.RunningStyle);
 
       // 分析
