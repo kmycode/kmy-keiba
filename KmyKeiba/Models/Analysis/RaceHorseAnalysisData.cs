@@ -27,10 +27,6 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceTrainerTrendAnalysisSelector? TrainerTrendAnalyzers { get; init; }
 
-    public ReactiveProperty<RiderAnalysisData?> Rider { get; } = new();
-
-    public ReactiveProperty<TrainerAnalysisData?> Trainer { get; } = new();
-
     public ReactiveProperty<TrainingAnalysisData?> Training { get; } = new();
 
     public IReadOnlyList<RaceHorseCornerGrade> CornerGrades { get; } = Array.Empty<RaceHorseCornerGrade>();
@@ -69,6 +65,8 @@ namespace KmyKeiba.Models.Analysis
 
       public ResultOrderGradeMap SameConditionGrade { get; }
 
+      public ResultOrderGradeMap SameRiderGrade { get; }
+
       /// <summary>
       /// 後３ハロンタイム指数
       /// </summary>
@@ -79,7 +77,7 @@ namespace KmyKeiba.Models.Analysis
       /// </summary>
       public double TimeDeviationValue { get; }
 
-      public HistoryData(RaceData race, IEnumerable<RaceHorseAnalysisData> raceHistory)
+      public HistoryData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseAnalysisData> raceHistory)
       {
         this.BeforeRaces = raceHistory.OrderByDescending(h => h.Race.StartTime).ToArray();
         this.BeforeFiveRaces = this.BeforeRaces.Take(5).ToArray();
@@ -115,6 +113,8 @@ namespace KmyKeiba.Models.Analysis
             .Where(r => r.Race.TrackCornerDirection == race.TrackCornerDirection).Select(r => r.Data).ToArray());
           this.SameConditionGrade = new ResultOrderGradeMap(this.BeforeRaces
             .Where(r => r.Race.TrackCondition == race.TrackCondition).Select(r => r.Data).ToArray());
+          this.SameRiderGrade = new ResultOrderGradeMap(this.BeforeRaces
+            .Where(r => r.Data.RiderCode == horse.RiderCode).Select(r => r.Data).ToArray());
         }
       }
     }
@@ -224,7 +224,7 @@ namespace KmyKeiba.Models.Analysis
     public RaceHorseAnalysisData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalysisData> raceHistory, RaceStandardTimeMasterData? raceStandardTime)
       : this(race, horse, sameRaceHorses, raceStandardTime)
     {
-      this.History = new HistoryData(race, raceHistory);
+      this.History = new HistoryData(race, horse, raceHistory);
     }
   }
 
@@ -250,5 +250,36 @@ namespace KmyKeiba.Models.Analysis
     Standard,
     Good,
     Bad,
+  }
+  public struct ResultOrderGradeMap
+  {
+    public int FirstCount { get; }
+
+    public int SecondCount { get; }
+
+    public int ThirdCount { get; }
+
+    public int LoseCount { get; }
+
+    public int AllCount => this.FirstCount + this.SecondCount + this.ThirdCount + this.LoseCount;
+
+    public bool IsZero => this.AllCount == 0;
+
+    /// <summary>
+    /// 複勝勝率
+    /// </summary>
+    public float PlacingBetsRate { get; }
+
+    public ValueComparation PlacingBetsRateComparation => this.PlacingBetsRate >= 0.75 ? ValueComparation.Good : this.PlacingBetsRate <= 0.2 ? ValueComparation.Bad : ValueComparation.Standard;
+
+    public ResultOrderGradeMap(IReadOnlyList<RaceHorseData> source)
+    {
+      this.FirstCount = source.Count(f => f.ResultOrder == 1);
+      this.SecondCount = source.Count(f => f.ResultOrder == 2);
+      this.ThirdCount = source.Count(f => f.ResultOrder == 3);
+      this.LoseCount = source.Count(f => f.ResultOrder > 3);
+
+      this.PlacingBetsRate = (this.FirstCount + this.SecondCount + this.ThirdCount) / (float)source.Count;
+    }
   }
 }

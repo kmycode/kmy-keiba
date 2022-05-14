@@ -93,7 +93,7 @@
           <TextBlock Grid.Column="1" TextAlignment="Center" FontSize="16" FontWeight="Bold"
                      Text="{Binding Horse.Data.RiderWeight,ElementName=Root}"
                      Foreground="{Binding Horse.CurrentRace.RiderWeightComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
-          <up:RaceResultOrderGradeRow Grid.Row="1" Grid.ColumnSpan="2" Header="同馬" FontSize="12" Grade="{Binding Horse.Rider.Value.SameHorse,ElementName=Root}"/>
+          <up:RaceResultOrderGradeRow Grid.Row="1" Grid.ColumnSpan="2" Header="同馬" FontSize="12" Grade="{Binding Horse.History.SameRiderGrade,ElementName=Root}"/>
         </Grid>
         <StackPanel Grid.Column="7" Margin="24,0,0,0" VerticalAlignment="Center" Width="120">
           <up:RaceResultOrderGradeRow Header="全て" FontSize="12" Grade="{Binding Horse.History.AllGrade,ElementName=Root}"/>
