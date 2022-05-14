@@ -132,7 +132,10 @@ namespace KmyKeiba.Models.Race
             histories.Add(new RaceHorseAnalysisData(history.Race, history.RaceHorse, historyStandardTime));
           }
 
-          horseInfos.Add(new RaceHorseAnalysisData(race, horse, horses, histories, standardTime));
+          horseInfos.Add(new RaceHorseAnalysisData(race, horse, horses, histories, standardTime)
+          {
+            TrendAnalyzers = new RaceHorseTrendAnalysisSelector(db, race, horse),
+          });
         }
         info.SetHorsesDelay(horseInfos);
 

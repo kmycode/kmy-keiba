@@ -21,6 +21,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceSubjectInfo Subject { get; }
 
+    public RaceHorseTrendAnalysisSelector? TrendAnalyzers { get; init; }
+
     public ReactiveProperty<RiderAnalysisData?> Rider { get; } = new();
 
     public ReactiveProperty<TrainerAnalysisData?> Trainer { get; } = new();

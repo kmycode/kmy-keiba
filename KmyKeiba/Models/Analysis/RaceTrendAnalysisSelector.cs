@@ -16,7 +16,7 @@ namespace KmyKeiba.Models.Analysis
   /// <summary>
   /// 条件にあったレース傾向解析を選択
   /// </summary>
-  public class RaceTrendAnalysisSelector : TrendAnalysisSelector<RaceTrendAnalysisSelector.Key, RaceTrendAnalyzer.Key, RaceTrendAnalyzer>
+  public class RaceTrendAnalysisSelector : TrendAnalysisSelector<RaceTrendAnalysisSelector.Key, RaceTrendAnalyzer>
   {
     public enum Key
     {
@@ -136,7 +136,7 @@ namespace KmyKeiba.Models.Analysis
             raceHorses.Where(rh => rh.RaceKey == race.Key).ToArray(),
             await AnalysisUtil.GetRaceStandardTimeAsync(db, race)));
       }
-      analyzer.SetRaces(list);
+      analyzer.SetSource(list);
     }
   }
 }

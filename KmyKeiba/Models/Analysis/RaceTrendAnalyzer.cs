@@ -20,22 +20,8 @@ namespace KmyKeiba.Models.Analysis
   /// <summary>
   /// 過去レースと比較したレースの傾向を解析
   /// </summary>
-  public class RaceTrendAnalyzer : TrendAnalyzer<RaceTrendAnalyzer.Key>, IDisposable
+  public class RaceTrendAnalyzer : TrendAnalyzer, IDisposable
   {
-    public enum Key
-    {
-      Unset,
-
-      [Label("タイム")]
-      Speed,
-
-      [Label("脚質")]
-      RunningStyle,
-
-      [Label("荒れ度")]
-      RoughRate,
-    }
-
     private readonly CompositeDisposable _disposables = new();
 
     public RaceData Race { get; }
@@ -74,7 +60,7 @@ namespace KmyKeiba.Models.Analysis
       this.Race = race;
     }
 
-    public void SetRaces(IEnumerable<RaceAnalysisData> source)
+    public void SetSource(IEnumerable<RaceAnalysisData> source)
     {
       if (this.IsLoaded.Value)
       {

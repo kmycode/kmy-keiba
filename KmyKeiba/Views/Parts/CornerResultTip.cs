@@ -37,6 +37,24 @@ namespace KmyKeiba.Views.Parts
       set { SetValue(CornerGradesProperty, value); }
     }
 
+    public static readonly DependencyProperty WithResultProperty
+  = DependencyProperty.Register(
+      nameof(WithResult),
+      typeof(bool),
+      typeof(CornerResultTip),
+      new PropertyMetadata(true, (sender, e) =>
+      {
+        if (sender is CornerResultTip view)
+        {
+          view.Update();
+        }
+      }));
+
+    public bool WithResult
+    {
+      get { return (bool)GetValue(WithResultProperty); }
+      set { SetValue(WithResultProperty, value); }
+    }
     public static readonly DependencyProperty FontSizeProperty
       = DependencyProperty.Register(
         nameof(FontSize),
@@ -154,6 +172,16 @@ namespace KmyKeiba.Views.Parts
         else
         {
           isFirst = false;
+        }
+
+        if (!this.WithResult && grade.IsResult)
+        {
+          if (this.Children.Count > 0)
+          {
+            // 最後の矢印を消す
+            this.Children.RemoveAt(this.Children.Count - 1);
+          }
+          continue;
         }
 
         var text = new Border

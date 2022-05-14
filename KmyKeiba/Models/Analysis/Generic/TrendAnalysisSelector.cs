@@ -18,8 +18,8 @@ namespace KmyKeiba.Models.Analysis.Generic
     void BeginLoad();
   }
 
-  public abstract class TrendAnalysisSelector<KEY, KEY2, A> : ITrendAnalysisSelector
-    where A : TrendAnalyzer<KEY2> where KEY : Enum, IComparable where KEY2 : Enum, IComparable
+  public abstract class TrendAnalysisSelector<KEY, A> : ITrendAnalysisSelector
+    where A : TrendAnalyzer where KEY : Enum, IComparable
   {
     private readonly MyContext _db;
 

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Analysis.Generic
 {
-  public class TrendAnalyzer<KEY> : IDisposable where KEY : Enum, IComparable
+  public class TrendAnalyzer : IDisposable
   {
     private readonly CompositeDisposable _disposables = new();
     private readonly List<Action> _postAnalysis = new();
@@ -74,6 +74,7 @@ namespace KmyKeiba.Models.Analysis.Generic
     // という観点から再利用できる可能性がある
     #region Obsoletes
 
+    /*
     [Obsolete]
     public IList MenuItems => this.MenuItemsPrivate;
 
@@ -185,6 +186,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       VeryLow,
     }
 
+    */
     #endregion
   }
 }
