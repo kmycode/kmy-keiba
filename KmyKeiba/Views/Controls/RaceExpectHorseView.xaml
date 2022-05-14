@@ -29,11 +29,11 @@
       <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="概要" Name="S_Summary" IsChecked="True"/>
       <RadioButton Grid.Column="1" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="騎手" Name="S_Rider"/>
-      <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="調教師" Name="S_Trainer"/>
-      <RadioButton Grid.Column="3" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="傾向" Name="S_HorseTrend"/>
+      <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="騎手" Name="S_Rider"/>
+      <RadioButton Grid.Column="3" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="調教師" Name="S_Trainer"/>
       <RadioButton Grid.Column="4" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="調教" Name="S_Training"/>
     </Grid>

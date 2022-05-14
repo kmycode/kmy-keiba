@@ -37,6 +37,10 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<int> SaveRunnersCount { get; } = new();
 
+    public ReactiveProperty<double> WinRate { get; } = new();
+
+    public ReactiveProperty<double> PlaceBitsRate { get; } = new();
+
     public RaceHorseTrendAnalyzerBase(RaceData race, RaceHorseData horse)
     {
       this.Race = race;
@@ -60,6 +64,7 @@ namespace KmyKeiba.Models.Analysis
     {
       this.SpeedPoints.Value.Values = source.Select(s => s.ResultTimePerMeter).ToArray();
       var runningStyles = source.Select(s => s.Data.RunningStyle);
+      var count = source.Count;
 
       // 分析
       this.SpeedAverage.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Average * this.Race.Distance);
@@ -70,6 +75,13 @@ namespace KmyKeiba.Models.Analysis
       this.StalkersCount.Value = runningStyles.Count(s => s == RunningStyle.Stalker);
       this.SotpsCount.Value = runningStyles.Count(s => s == RunningStyle.Sotp);
       this.SaveRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.SaveRunner);
+
+      if (count > 0)
+      {
+        var validRaces = source.Where(r => r.Data.ResultOrder != 0);
+        this.WinRate.Value = (double)validRaces.Count(s => s.Data.ResultOrder == 1) / count;
+        this.PlaceBitsRate.Value = (double)validRaces.Count(s => s.Data.ResultOrder <= 3) / count;
+      }
 
       this.IsAnalyzed.Value = true;
     }
