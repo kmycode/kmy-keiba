@@ -116,11 +116,11 @@ namespace KmyKeiba.Models.Analysis
         .Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 5 && raceKeys.Contains(rh.RaceKey))
         .ToArrayAsync();
 
-      var list = new List<RaceHorseAnalysisData>();
+      var list = new List<RaceHorseAnalyzer>();
       foreach (var race in races)
       {
         list.Add(
-          new RaceHorseAnalysisData(
+          new RaceHorseAnalyzer(
             race.Race,
             race.RaceHorse,
             raceHorses.Where(rh => rh.RaceKey == race.Race.Key).ToArray(),

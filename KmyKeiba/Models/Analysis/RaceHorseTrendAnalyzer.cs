@@ -18,8 +18,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceHorseData RaceHorse { get; }
 
-    public IReadOnlyList<RaceHorseAnalysisData> Source => this._source;
-    private readonly ReactiveCollection<RaceHorseAnalysisData> _source = new();
+    public IReadOnlyList<RaceHorseAnalyzer> Source => this._source;
+    private readonly ReactiveCollection<RaceHorseAnalyzer> _source = new();
 
     public ReactiveProperty<StatisticSingleArray> SpeedPoints { get; } = new(new StatisticSingleArray());
 
@@ -47,7 +47,7 @@ namespace KmyKeiba.Models.Analysis
       this.RaceHorse = horse;
     }
 
-    public void SetSource(IEnumerable<RaceHorseAnalysisData> source)
+    public void SetSource(IEnumerable<RaceHorseAnalyzer> source)
     {
       if (this.IsLoaded.Value)
       {
@@ -60,7 +60,7 @@ namespace KmyKeiba.Models.Analysis
       this.Analyze(source.ToArray());
     }
 
-    protected virtual void Analyze(IReadOnlyList<RaceHorseAnalysisData> source)
+    protected virtual void Analyze(IReadOnlyList<RaceHorseAnalyzer> source)
     {
       this.SpeedPoints.Value.Values = source.Select(s => s.ResultTimePerMeter).ToArray();
       var runningStyles = source.Select(s => s.Data.RunningStyle);

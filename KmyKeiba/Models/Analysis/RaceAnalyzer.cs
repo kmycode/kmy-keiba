@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Analysis
 {
-  public class RaceAnalysisData
+  public class RaceAnalyzer
   {
     public RaceData Data { get; }
 
@@ -18,7 +18,7 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceHorseData? TopHorseData => this.TopHorses.FirstOrDefault(rh => rh.ResultOrder == 1);
 
-    public RaceHorseAnalysisData TopHorse { get; } = RaceHorseAnalysisData.Empty;
+    public RaceHorseAnalyzer TopHorse { get; } = RaceHorseAnalyzer.Empty;
 
     public IReadOnlyList<RaceHorseData> TopHorses { get; }
 
@@ -31,7 +31,7 @@ namespace KmyKeiba.Models.Analysis
     /// </summary>
     public double RoughRate { get; }
 
-    public RaceAnalysisData(RaceData race, IReadOnlyList<RaceHorseData> topHorses, RaceStandardTimeMasterData raceStandardTime)
+    public RaceAnalyzer(RaceData race, IReadOnlyList<RaceHorseData> topHorses, RaceStandardTimeMasterData raceStandardTime)
     {
       var topHorse = topHorses.OrderBy(h => h.ResultOrder).FirstOrDefault() ?? new();
 
@@ -49,7 +49,7 @@ namespace KmyKeiba.Models.Analysis
 
       if (this.TopHorseData != null)
       {
-        this.TopHorse = new RaceHorseAnalysisData(race, this.TopHorseData, raceStandardTime);
+        this.TopHorse = new RaceHorseAnalyzer(race, this.TopHorseData, raceStandardTime);
       }
     }
   }

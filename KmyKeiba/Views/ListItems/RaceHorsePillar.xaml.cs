@@ -24,13 +24,13 @@ namespace KmyKeiba.Views.ListItems
     public static readonly DependencyProperty HorseProperty
     = DependencyProperty.Register(
         nameof(Horse),
-        typeof(RaceHorseAnalysisData),
+        typeof(RaceHorseAnalyzer),
         typeof(RaceHorsePillar),
         new PropertyMetadata(null));
 
-    public RaceHorseAnalysisData? Horse
+    public RaceHorseAnalyzer? Horse
     {
-      get { return (RaceHorseAnalysisData)GetValue(HorseProperty); }
+      get { return (RaceHorseAnalyzer)GetValue(HorseProperty); }
       set { SetValue(HorseProperty, value); }
     }
 

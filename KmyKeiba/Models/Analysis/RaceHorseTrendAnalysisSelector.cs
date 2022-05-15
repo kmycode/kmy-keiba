@@ -37,7 +37,7 @@ namespace KmyKeiba.Models.Analysis
       NearDistance,
     }
 
-    private IReadOnlyList<RaceHorseAnalysisData>? _allRaces;
+    private IReadOnlyList<RaceHorseAnalyzer>? _allRaces;
 
     public RaceData Race { get; }
 
@@ -66,11 +66,11 @@ namespace KmyKeiba.Models.Analysis
           .Where(d => d.Race.StartTime < this.Race.StartTime)
           .OrderByDescending(d => d.Race.StartTime)
           .ToArrayAsync();
-        var list = new List<RaceHorseAnalysisData>();
+        var list = new List<RaceHorseAnalyzer>();
         foreach (var race in allRaces)
         {
           var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race.Race);
-          list.Add(new RaceHorseAnalysisData(race.Race, race.RaceHorse, standardTime));
+          list.Add(new RaceHorseAnalyzer(race.Race, race.RaceHorse, standardTime));
         }
         this._allRaces = list;
       }

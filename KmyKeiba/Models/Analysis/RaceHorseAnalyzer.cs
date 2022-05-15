@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Analysis
 {
-  public class RaceHorseAnalysisData
+  public class RaceHorseAnalyzer
   {
-    public static RaceHorseAnalysisData Empty { get; } = new(new RaceData(), new RaceHorseData());
+    public static RaceHorseAnalyzer Empty { get; } = new(new RaceData(), new RaceHorseData());
 
     public RaceData Race { get; }
 
@@ -27,7 +27,7 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceTrainerTrendAnalysisSelector? TrainerTrendAnalyzers { get; init; }
 
-    public ReactiveProperty<TrainingAnalysisData?> Training { get; } = new();
+    public ReactiveProperty<TrainingAnalyzer?> Training { get; } = new();
 
     public IReadOnlyList<RaceHorseCornerGrade> CornerGrades { get; } = Array.Empty<RaceHorseCornerGrade>();
 
@@ -49,9 +49,9 @@ namespace KmyKeiba.Models.Analysis
 
     public class HistoryData
     {
-      public IReadOnlyList<RaceHorseAnalysisData> BeforeRaces { get; } = Array.Empty<RaceHorseAnalysisData>();
+      public IReadOnlyList<RaceHorseAnalyzer> BeforeRaces { get; } = Array.Empty<RaceHorseAnalyzer>();
 
-      public IReadOnlyList<RaceHorseAnalysisData> BeforeFiveRaces { get; } = Array.Empty<RaceHorseAnalysisData>();
+      public IReadOnlyList<RaceHorseAnalyzer> BeforeFiveRaces { get; } = Array.Empty<RaceHorseAnalyzer>();
 
       public RunningStyle RunningStyle { get; }
 
@@ -77,7 +77,7 @@ namespace KmyKeiba.Models.Analysis
       /// </summary>
       public double TimeDeviationValue { get; }
 
-      public HistoryData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseAnalysisData> raceHistory)
+      public HistoryData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseAnalyzer> raceHistory)
       {
         this.BeforeRaces = raceHistory.OrderByDescending(h => h.Race.StartTime).ToArray();
         this.BeforeFiveRaces = this.BeforeRaces.Take(5).ToArray();
@@ -150,7 +150,7 @@ namespace KmyKeiba.Models.Analysis
       }
     }
 
-    private RaceHorseAnalysisData(RaceData race, RaceHorseData horse)
+    private RaceHorseAnalyzer(RaceData race, RaceHorseData horse)
     {
       this.Race = race;
       this.Data = horse;
@@ -205,7 +205,7 @@ namespace KmyKeiba.Models.Analysis
       this.CornerGrades = corners;
     }
 
-    public RaceHorseAnalysisData(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData? raceStandardTime)
+    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData? raceStandardTime)
       : this(race, horse)
     {
       if (raceStandardTime != null && raceStandardTime.SampleCount > 0)
@@ -215,13 +215,13 @@ namespace KmyKeiba.Models.Analysis
       }
     }
 
-    public RaceHorseAnalysisData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, RaceStandardTimeMasterData? raceStandardTime)
+    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, RaceStandardTimeMasterData? raceStandardTime)
       : this(race, horse, raceStandardTime)
     {
       this.CurrentRace = new CurrentRaceData(horse, sameRaceHorses);
     }
 
-    public RaceHorseAnalysisData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalysisData> raceHistory, RaceStandardTimeMasterData? raceStandardTime)
+    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalyzer> raceHistory, RaceStandardTimeMasterData? raceStandardTime)
       : this(race, horse, sameRaceHorses, raceStandardTime)
     {
       this.History = new HistoryData(race, horse, raceHistory);

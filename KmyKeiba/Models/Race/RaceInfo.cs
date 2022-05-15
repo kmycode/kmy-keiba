@@ -23,11 +23,11 @@ namespace KmyKeiba.Models.Race
 
     public RaceTrendAnalysisSelector TrendAnalyzers { get; }
 
-    public ReactiveCollection<RaceHorseAnalysisData> Horses { get; } = new();
+    public ReactiveCollection<RaceHorseAnalyzer> Horses { get; } = new();
 
-    public ReactiveCollection<RaceHorseAnalysisData> HorsesResultOrdered { get; } = new();
+    public ReactiveCollection<RaceHorseAnalyzer> HorsesResultOrdered { get; } = new();
 
-    public ReactiveProperty<RaceHorseAnalysisData?> ActiveHorse { get; } = new();
+    public ReactiveProperty<RaceHorseAnalyzer?> ActiveHorse { get; } = new();
 
     public ReactiveCollection<RaceCorner> Corners { get; } = new();
 
@@ -52,7 +52,7 @@ namespace KmyKeiba.Models.Race
       this.CourseSummaryImage.Race = race;
     }
 
-    private void SetHorsesDelay(IReadOnlyList<RaceHorseAnalysisData> horses)
+    private void SetHorsesDelay(IReadOnlyList<RaceHorseAnalyzer> horses)
     {
       ThreadUtil.InvokeOnUiThread(() =>
       {
@@ -122,17 +122,17 @@ namespace KmyKeiba.Models.Race
         });
 
         // 各馬の情報
-        var horseInfos = new List<RaceHorseAnalysisData>();
+        var horseInfos = new List<RaceHorseAnalyzer>();
         foreach (var horse in horses)
         {
-          var histories = new List<RaceHorseAnalysisData>();
+          var histories = new List<RaceHorseAnalyzer>();
           foreach (var history in horseAllHistories.Where(h => h.RaceHorse.Key == horse.Key))
           {
             var historyStandardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, history.Race);
-            histories.Add(new RaceHorseAnalysisData(history.Race, history.RaceHorse, historyStandardTime));
+            histories.Add(new RaceHorseAnalyzer(history.Race, history.RaceHorse, historyStandardTime));
           }
 
-          horseInfos.Add(new RaceHorseAnalysisData(race, horse, horses, histories, standardTime)
+          horseInfos.Add(new RaceHorseAnalyzer(race, horse, horses, histories, standardTime)
           {
             TrendAnalyzers = new RaceHorseTrendAnalysisSelector(db, race, horse),
             RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(db, race, horse),
@@ -153,7 +153,7 @@ namespace KmyKeiba.Models.Race
           .ToArrayAsync();
         foreach (var horse in horseInfos)
         {
-          horse.Training.Value = new TrainingAnalysisData(
+          horse.Training.Value = new TrainingAnalyzer(
             trainings.Where(t => t.HorseKey == horse.Data.Key).Take(50).ToArray(),
             woodTrainings.Where(t => t.HorseKey == horse.Data.Key).Take(50).ToArray()
             );

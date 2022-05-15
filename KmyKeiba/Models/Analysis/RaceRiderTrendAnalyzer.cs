@@ -17,7 +17,7 @@ namespace KmyKeiba.Models.Analysis
     {
     }
 
-    protected override void Analyze(IReadOnlyList<RaceHorseAnalysisData> source)
+    protected override void Analyze(IReadOnlyList<RaceHorseAnalyzer> source)
     {
       base.Analyze(source);
     }

@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Analysis
 {
-  public class TrainingAnalysisData
+  public class TrainingAnalyzer
   {
     public IReadOnlyList<TrainingRow> Trainings { get; }
 
-    public TrainingAnalysisData(IReadOnlyList<TrainingData> trainings, IReadOnlyList<WoodtipTrainingData> woodtipTrainings)
+    public TrainingAnalyzer(IReadOnlyList<TrainingData> trainings, IReadOnlyList<WoodtipTrainingData> woodtipTrainings)
     {
       var trainingStatistics = new[]
       {
