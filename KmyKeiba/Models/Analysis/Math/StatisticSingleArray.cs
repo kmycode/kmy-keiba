@@ -49,6 +49,12 @@ namespace KmyKeiba.Models.Analysis.Math
       {
         if (this._average == null)
         {
+          if (this.Values.Length == 0)
+          {
+            this._average = 0.0;
+            return this._average.Value;
+          }
+
           var sum = 0.0;
           foreach (var val in this._values)
           {
@@ -70,6 +76,12 @@ namespace KmyKeiba.Models.Analysis.Math
       {
         if (this._median == null)
         {
+          if (this.Values.Length == 0)
+          {
+            this._median = 0.0;
+            return this._median.Value;
+          }
+
           var half = this._values.Length / 2;
 
           var wasOrderedNull = this._ordered == null;
@@ -102,6 +114,12 @@ namespace KmyKeiba.Models.Analysis.Math
       {
         if (this._variance == null)
         {
+          if (this.Values.Length == 0)
+          {
+            this._variance = 0.0;
+            return this._variance.Value;
+          }
+
           var sum = 0.0;
           var ave = this.Average;
           foreach (var val in this._values)
@@ -124,6 +142,12 @@ namespace KmyKeiba.Models.Analysis.Math
       {
         if (this._deviation == null)
         {
+          if (this.Values.Length == 0)
+          {
+            this._deviation = 0.0;
+            return this._deviation.Value;
+          }
+
           this._deviation = SMath.Sqrt(this.Variance);
         }
         return this._deviation.Value;
@@ -147,6 +171,11 @@ namespace KmyKeiba.Models.Analysis.Math
     /// <returns>偏差値</returns>
     public double CalcDeviationValue(double val)
     {
+      if (this.Values.Length == 0)
+      {
+        return 50.0;
+      }
+
       return CalcDeviationValue(val, this.Average, this.Deviation);
     }
 
@@ -157,6 +186,11 @@ namespace KmyKeiba.Models.Analysis.Math
     /// <returns></returns>
     public double GetPositionValue(double pos0to1)
     {
+      if (this.Values.Length == 0)
+      {
+        return 0.0;
+      }
+
       var index = (int)((this.Ordered.Length - 1) * pos0to1);
       return this.Ordered[index];
     }
