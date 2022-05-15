@@ -21,8 +21,6 @@ namespace KmyKeiba.Models.Analysis.Generic
   public abstract class TrendAnalysisSelector<KEY, A> : ITrendAnalysisSelector
     where A : TrendAnalyzer where KEY : Enum, IComparable
   {
-    private readonly MyContext _db;
-
     public IEnumerable Filters => this.Keys;
 
     public TrendAnalysisFilterItemCollection<KEY> Keys { get; }
@@ -31,19 +29,17 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public ReactiveProperty<A?> CurrentAnalyzer { get; } = new();
 
-    public TrendAnalysisSelector(MyContext db)
+    public TrendAnalysisSelector()
     {
-      this._db = db;
       this.Keys = new TrendAnalysisFilterItemCollection<KEY>();
     }
 
-    public TrendAnalysisSelector(MyContext db, IEnumerable<KEY> keys)
+    public TrendAnalysisSelector(IEnumerable<KEY> keys)
     {
-      this._db = db;
       this.Keys = new TrendAnalysisFilterItemCollection<KEY>(keys);
     }
 
-    public TrendAnalysisSelector(MyContext db, Type enumType) : this(db, (IEnumerable<KEY>)enumType.GetEnumValues())
+    public TrendAnalysisSelector(Type enumType) : this((IEnumerable<KEY>)enumType.GetEnumValues())
     {
     }
 
@@ -56,7 +52,6 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public A BeginLoad(IReadOnlyList<KEY> keys)
     {
-      var db = this._db;
       var existsAnalyzer = this.Analyzers.FirstOrDefault(a => a.Key.SequenceEqual(keys)).Value;
       if (existsAnalyzer != null)
       {
@@ -70,7 +65,15 @@ namespace KmyKeiba.Models.Analysis.Generic
       _ = Task.Run(async () =>
       {
         // 非同期で解析を開始
-        await this.InitializeAnalyzerAsync(db, keys, analyzer);
+        try
+        {
+          using var db = new MyContext();
+          await this.InitializeAnalyzerAsync(db, keys, analyzer);
+        }
+        catch
+        {
+
+        }
       });
 
       return analyzer;

@@ -47,7 +47,7 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceData Race { get; }
 
-    public RaceTrendAnalysisSelector(MyContext db, RaceData race) : base(db, typeof(Key))
+    public RaceTrendAnalysisSelector(RaceData race) : base(typeof(Key))
     {
       this.Race = race;
 

@@ -45,7 +45,7 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceHorseData RaceHorse { get; }
 
-    public RaceTrainerTrendAnalysisSelector(MyContext db, RaceData race, RaceHorseData horse) : base(db, typeof(Key))
+    public RaceTrainerTrendAnalysisSelector(RaceData race, RaceHorseData horse) : base(typeof(Key))
     {
       this.Race = race;
       this.RaceHorse = horse;

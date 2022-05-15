@@ -48,7 +48,7 @@ namespace KmyKeiba.Models.Race
         this.CourseDetails.Add(detail);
       }
 
-      this.TrendAnalyzers = new RaceTrendAnalysisSelector(db, race);
+      this.TrendAnalyzers = new RaceTrendAnalysisSelector(race);
       this.CourseSummaryImage.Race = race;
     }
 
@@ -134,9 +134,9 @@ namespace KmyKeiba.Models.Race
 
           horseInfos.Add(new RaceHorseAnalyzer(race, horse, horses, histories, standardTime)
           {
-            TrendAnalyzers = new RaceHorseTrendAnalysisSelector(db, race, horse),
-            RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(db, race, horse),
-            TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(db, race, horse),
+            TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse),
+            RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(race, horse),
+            TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
           });
         }
         info.SetHorsesDelay(horseInfos);
