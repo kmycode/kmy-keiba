@@ -49,42 +49,41 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public void BeginLoad()
     {
-      var db = this._db;
-
       var currentKeys = this.Keys.GetActiveKeys();
-      var existsAnalyzer = this.Analyzers.FirstOrDefault(a => a.Key.SequenceEqual(currentKeys)).Value;
+
+      this.CurrentAnalyzer.Value = this.BeginLoad(currentKeys);
+    }
+
+    public A BeginLoad(IReadOnlyList<KEY> keys)
+    {
+      var db = this._db;
+      var existsAnalyzer = this.Analyzers.FirstOrDefault(a => a.Key.SequenceEqual(keys)).Value;
       if (existsAnalyzer != null)
       {
-        this.CurrentAnalyzer.Value = existsAnalyzer;
-        return;
+        return existsAnalyzer;
       }
 
       // ここはUIスレッドでなければならない（ReactiveCollectionなどにスレッドが伝播しないので）
       var analyzer = this.GenerateAnalyzer();
-      this.Analyzers[this.Keys.GetActiveKeys()] = analyzer;
-      this.CurrentAnalyzer.Value = analyzer;
+      this.Analyzers[keys] = analyzer;
 
-      Task.Run(async () =>
+      _ = Task.Run(async () =>
       {
         // 非同期で解析を開始
-        await this.InitializeAnalyzerAsync(db, analyzer);
+        await this.InitializeAnalyzerAsync(db, keys, analyzer);
       });
-    }
 
-    public A? GetAnalyzerFromKeys(IEnumerable<KEY> keys)
-    {
-      this.Analyzers.TryGetValue(keys, out var analyzer);
       return analyzer;
     }
 
-    public A? GetAnalyzerFromKeys(params KEY[] keys)
+    public A BeginLoad(params KEY[] keys)
     {
-      return this.GetAnalyzerFromKeys((IEnumerable<KEY>)keys);
+      return this.BeginLoad((IReadOnlyList<KEY>)keys);
     }
 
     protected abstract A GenerateAnalyzer();
 
-    protected virtual Task InitializeAnalyzerAsync(MyContext db, A analyzer)
+    protected virtual Task InitializeAnalyzerAsync(MyContext db, IEnumerable<KEY> keys, A analyzer)
     {
       return Task.CompletedTask;
     }
@@ -134,7 +133,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       }
     }
 
-    public IEnumerable<KEY> GetActiveKeys()
+    public IReadOnlyList<KEY> GetActiveKeys()
     {
       return this.Where(i => i.IsChecked.Value).Select(i => i.Key).OrderBy(k => k).ToArray();
     }

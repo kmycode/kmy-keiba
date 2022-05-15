@@ -62,13 +62,12 @@ namespace KmyKeiba.Models.Analysis
       return new RaceTrendAnalyzer(this.Race);
     }
 
-    protected override async Task InitializeAnalyzerAsync(MyContext db, RaceTrendAnalyzer analyzer)
+    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceTrendAnalyzer analyzer)
     {
       var query = db.Races!
         .Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Aborted && r.TrackType == this.Race.TrackType);
-      var key = this.Keys;
 
-      if (key.IsChecked(Key.SameCourse))
+      if (keys.Contains(Key.SameCourse))
       {
         query = query.Where(r => r.Course == this.Race.Course);
       }
@@ -84,23 +83,23 @@ namespace KmyKeiba.Models.Analysis
         }
       }
 
-      if (key.IsChecked(Key.NearDistance))
+      if (keys.Contains(Key.NearDistance))
       {
         query = query.Where(r => r.Distance >= this.Race.Distance - 100 && r.Distance <= this.Race.Distance + 100);
       }
-      if (key.IsChecked(Key.SameMonth))
+      if (keys.Contains(Key.SameMonth))
       {
         query = query.Where(r => r.StartTime.Month == this.Race.StartTime.Month);
       }
-      if (key.IsChecked(Key.SameCondition))
+      if (keys.Contains(Key.SameCondition))
       {
         query = query.Where(r => r.TrackCondition == this.Race.TrackCondition);
       }
-      if (key.IsChecked(Key.SameRaceName) && !string.IsNullOrWhiteSpace(this.Race.Name))
+      if (keys.Contains(Key.SameRaceName) && !string.IsNullOrWhiteSpace(this.Race.Name))
       {
         query = query.Where(r => r.Name == this.Race.Name);
       }
-      if (key.IsChecked(Key.SameSubject))
+      if (keys.Contains(Key.SameSubject))
       {
         query = query.Where(r => r.SubjectName == this.Race.SubjectName &&
                                  r.SubjectAge2 == this.Race.SubjectAge2 &&
@@ -109,11 +108,11 @@ namespace KmyKeiba.Models.Analysis
                                  r.SubjectAge5 == this.Race.SubjectAge5 &&
                                  r.SubjectAgeYounger == this.Race.SubjectAgeYounger);
       }
-      if (key.IsChecked(Key.SameGrade))
+      if (keys.Contains(Key.SameGrade))
       {
         query = query.Where(r => r.Grade == this.Race.Grade);
       }
-      if (key.IsChecked(Key.SameWeather))
+      if (keys.Contains(Key.SameWeather))
       {
         query = query.Where(r => r.TrackWeather == this.Race.TrackWeather);
       }

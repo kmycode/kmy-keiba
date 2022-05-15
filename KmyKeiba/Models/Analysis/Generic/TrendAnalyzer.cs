@@ -58,6 +58,14 @@ namespace KmyKeiba.Models.Analysis.Generic
       }
     }
 
+    public async Task WaitAnalysisAsync()
+    {
+      while (!this.IsAnalyzed.Value)
+      {
+        await Task.Delay(10);
+      }
+    }
+
     public virtual void Dispose()
     {
       this._disposables.Dispose();

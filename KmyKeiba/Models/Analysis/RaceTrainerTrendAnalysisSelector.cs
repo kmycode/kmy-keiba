@@ -61,36 +61,35 @@ namespace KmyKeiba.Models.Analysis
       return new RaceTrainerTrendAnalyzer(this.Race, this.RaceHorse);
     }
 
-    protected override async Task InitializeAnalyzerAsync(MyContext db, RaceTrainerTrendAnalyzer analyzer)
+    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceTrainerTrendAnalyzer analyzer)
     {
       var query = db.Races!
         .Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Aborted && r.TrackType == this.Race.TrackType)
         .Join(db.RaceHorses!, r => r.Key, rh => rh.RaceKey, (r, rh) => new { Race = r, RaceHorse = rh, })
         .Where(d => d.RaceHorse.TrainerCode == this.RaceHorse.TrainerCode);
-      var key = this.Keys;
 
-      if (key.IsChecked(Key.SameCourse))
+      if (keys.Contains(Key.SameCourse))
       {
         query = query.Where(r => r.Race.Course == this.Race.Course);
       }
 
-      if (key.IsChecked(Key.NearDistance))
+      if (keys.Contains(Key.NearDistance))
       {
         query = query.Where(r => r.Race.Distance >= this.Race.Distance - 100 && r.Race.Distance <= this.Race.Distance + 100);
       }
-      if (key.IsChecked(Key.SameMonth))
+      if (keys.Contains(Key.SameMonth))
       {
         query = query.Where(r => r.Race.StartTime.Month == this.Race.StartTime.Month);
       }
-      if (key.IsChecked(Key.SameCondition))
+      if (keys.Contains(Key.SameCondition))
       {
         query = query.Where(r => r.Race.TrackCondition == this.Race.TrackCondition);
       }
-      if (key.IsChecked(Key.SameRaceName) && !string.IsNullOrWhiteSpace(this.Race.Name))
+      if (keys.Contains(Key.SameRaceName) && !string.IsNullOrWhiteSpace(this.Race.Name))
       {
         query = query.Where(r => r.Race.Name == this.Race.Name);
       }
-      if (key.IsChecked(Key.SameSubject))
+      if (keys.Contains(Key.SameSubject))
       {
         query = query.Where(r => r.Race.SubjectName == this.Race.SubjectName &&
                                  r.Race.SubjectAge2 == this.Race.SubjectAge2 &&
@@ -99,11 +98,11 @@ namespace KmyKeiba.Models.Analysis
                                  r.Race.SubjectAge5 == this.Race.SubjectAge5 &&
                                  r.Race.SubjectAgeYounger == this.Race.SubjectAgeYounger);
       }
-      if (key.IsChecked(Key.SameGrade))
+      if (keys.Contains(Key.SameGrade))
       {
         query = query.Where(r => r.Race.Grade == this.Race.Grade);
       }
-      if (key.IsChecked(Key.SameWeather))
+      if (keys.Contains(Key.SameWeather))
       {
         query = query.Where(r => r.Race.TrackWeather == this.Race.TrackWeather);
       }

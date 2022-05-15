@@ -54,7 +54,7 @@ namespace KmyKeiba.Models.Analysis
       return new RaceHorseTrendAnalyzer(this.Race, this.RaceHorse);
     }
 
-    protected override async Task InitializeAnalyzerAsync(MyContext db, RaceHorseTrendAnalyzer analyzer)
+    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseTrendAnalyzer analyzer)
     {
       // WARNING: 全体の総数が多くないと予想されるのでここでDBからすべて取得し、配分している
       //          間違ってもこれをこのまま他のSelectorクラスにコピペしないように
@@ -76,25 +76,24 @@ namespace KmyKeiba.Models.Analysis
       }
 
       var query = this._allRaces.Where(r => r.Data.Key == this.RaceHorse.Key);
-      var key = this.Keys;
 
-      if (key.IsChecked(Key.SameCourse))
+      if (keys.Contains(Key.SameCourse))
       {
         query = query.Where(r => r.Race.Course == this.Race.Course);
       }
-      if (key.IsChecked(Key.NearDistance))
+      if (keys.Contains(Key.NearDistance))
       {
         query = query.Where(r => r.Race.Distance / 200 == this.Race.Distance / 200);
       }
-      if (key.IsChecked(Key.SameSeason))
+      if (keys.Contains(Key.SameSeason))
       {
         query = query.Where(r => r.Race.StartTime.Month % 12 / 3 == this.Race.StartTime.Month % 12 / 3);
       }
-      if (key.IsChecked(Key.SameCondition))
+      if (keys.Contains(Key.SameCondition))
       {
         query = query.Where(r => r.Race.TrackCondition == this.Race.TrackCondition);
       }
-      if (key.IsChecked(Key.SameSubject))
+      if (keys.Contains(Key.SameSubject))
       {
         query = query.Where(r => r.Race.SubjectName == this.Race.SubjectName &&
                                  r.Race.SubjectAge2 == this.Race.SubjectAge2 &&
@@ -103,11 +102,11 @@ namespace KmyKeiba.Models.Analysis
                                  r.Race.SubjectAge5 == this.Race.SubjectAge5 &&
                                  r.Race.SubjectAgeYounger == this.Race.SubjectAgeYounger);
       }
-      if (key.IsChecked(Key.SameGrade))
+      if (keys.Contains(Key.SameGrade))
       {
         query = query.Where(r => r.Race.Grade == this.Race.Grade);
       }
-      if (key.IsChecked(Key.SameWeather))
+      if (keys.Contains(Key.SameWeather))
       {
         query = query.Where(r => r.Race.TrackWeather == this.Race.TrackWeather);
       }
