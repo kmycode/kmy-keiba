@@ -15,12 +15,16 @@ namespace KmyKeiba.Models.Analysis.Generic
   {
     public IEnumerable Filters { get; }
 
+    public string Name { get; }
+
     void BeginLoad();
   }
 
   public abstract class TrendAnalysisSelector<KEY, A> : ITrendAnalysisSelector
     where A : TrendAnalyzer where KEY : Enum, IComparable
   {
+    public abstract string Name { get; }
+
     public IEnumerable Filters => this.Keys;
 
     public TrendAnalysisFilterItemCollection<KEY> Keys { get; }

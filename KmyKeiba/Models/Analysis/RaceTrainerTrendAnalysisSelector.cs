@@ -41,6 +41,8 @@ namespace KmyKeiba.Models.Analysis
       NearDistance,
     }
 
+    public override string Name => this.RaceHorse.TrainerName;
+
     public RaceData Race { get; }
 
     public RaceHorseData RaceHorse { get; }

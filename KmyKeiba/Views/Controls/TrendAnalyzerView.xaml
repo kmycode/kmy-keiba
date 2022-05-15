@@ -12,10 +12,16 @@
       <Grid.RowDefinitions>
         <RowDefinition Height="auto"/>
         <RowDefinition Height="auto"/>
+        <RowDefinition Height="auto"/>
         <RowDefinition/>
       </Grid.RowDefinitions>
 
-      <ItemsControl Width="180" ItemsSource="{Binding Selector.Filters,ElementName=Root}">
+      <Border Background="{DynamicResource MoreThinBaseBackground}" Margin="0,0,0,8">
+        <TextBlock Text="{Binding Selector.Name,ElementName=Root}" FontSize="20" FontWeight="Bold"
+                   Margin="8,8,8,16"/>
+      </Border>
+
+      <ItemsControl Grid.Row="1" Width="180" ItemsSource="{Binding Selector.Filters,ElementName=Root}">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <WrapPanel Orientation="Horizontal" Width="180">
@@ -38,7 +44,7 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
-      <Button Grid.Row="1" Height="40" FontSize="18" Content="分析する" Margin="0,8,0,0"
+      <Button Grid.Row="2" Height="40" FontSize="18" Content="分析する" Margin="0,8,0,0"
               Click="AnalysisButton_Click"/>
 
       <!--

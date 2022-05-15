@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
+using KmyKeiba.Models.Race;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using System;
@@ -45,11 +46,16 @@ namespace KmyKeiba.Models.Analysis
       NearDistance,
     }
 
+    public override string Name => this._subject.DisplayName;
+
     public RaceData Race { get; }
+
+    private readonly RaceSubjectInfo _subject;
 
     public RaceTrendAnalysisSelector(RaceData race) : base(typeof(Key))
     {
       this.Race = race;
+      this._subject = new RaceSubjectInfo(race);
 
       if (race.Grade == RaceGrade.Others)
       {

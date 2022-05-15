@@ -39,6 +39,8 @@ namespace KmyKeiba.Models.Analysis
 
     private IReadOnlyList<RaceHorseAnalyzer>? _allRaces;
 
+    public override string Name => this.RaceHorse.Name;
+
     public RaceData Race { get; }
 
     public RaceHorseData RaceHorse { get; }
