@@ -37,7 +37,7 @@ namespace KmyKeiba.Models.Race
 
     public string Name => this.Subject.DisplayName;
 
-    private RaceInfo(MyContext db, RaceData race)
+    private RaceInfo(RaceData race)
     {
       this.Data = race;
       this.Subject = new(race);
@@ -89,7 +89,7 @@ namespace KmyKeiba.Models.Race
 
     public static Task<RaceInfo> FromDataAsync(MyContext db, RaceData race)
     {
-      var info = new RaceInfo(db, race);
+      var info = new RaceInfo(race);
 
       AddCorner(info.Corners, race.Corner1Result, race.Corner1Number, race.Corner1Position, race.Corner1LapTime);
       AddCorner(info.Corners, race.Corner2Result, race.Corner2Number, race.Corner2Position, race.Corner2LapTime);
