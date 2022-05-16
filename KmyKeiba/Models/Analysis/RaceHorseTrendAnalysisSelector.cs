@@ -37,9 +37,11 @@ namespace KmyKeiba.Models.Analysis
       NearDistance,
 
       [Label("複勝")]
+      [GroupName("ResultOrder")]
       PlaceBets,
 
       [Label("着外")]
+      [GroupName("ResultOrder")]
       Losed,
     }
 

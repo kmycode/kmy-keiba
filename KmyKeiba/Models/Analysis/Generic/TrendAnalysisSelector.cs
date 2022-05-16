@@ -133,7 +133,8 @@ namespace KmyKeiba.Models.Analysis.Generic
     {
       foreach (var key in keys)
       {
-        this.Add(new TrendAnalysisFilterItem<KEY>(key));
+        var groupName = key!.GetType().GetField(key.ToString()!)!.GetCustomAttributes(true).OfType<GroupNameAttribute>().FirstOrDefault();
+        this.Add(new TrendAnalysisFilterItem<KEY>(key, groupName?.GroupName));
       }
     }
 
@@ -191,7 +192,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       {
         return 0;
       }
-      return this.GetActiveKeys().Sum(i => i.GetHashCode() % 789);
+      return this.GetActiveKeys().Sum(i => i!.GetHashCode() % 789);
     }
 
     public bool Equals(TrendAnalysisFilterItemCollection<KEY>? other) => this.Equals((object?)other);
@@ -218,7 +219,17 @@ namespace KmyKeiba.Models.Analysis.Generic
     }
   }
 
-  public record class TrendAnalysisFilterItem<KEY>(KEY Key) : ICheckableItem
+  internal class GroupNameAttribute : Attribute
+  {
+    public string GroupName { get; }
+
+    public GroupNameAttribute(string name)
+    {
+      this.GroupName = name;
+    }
+  }
+
+  public record class TrendAnalysisFilterItem<KEY>(KEY Key, string? GroupName) : IMultipleCheckableItem
   {
     public ReactiveProperty<bool> IsChecked { get; } = new();
   }

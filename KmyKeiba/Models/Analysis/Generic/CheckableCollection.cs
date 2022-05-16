@@ -15,13 +15,16 @@ namespace KmyKeiba.Models.Analysis.Generic
     ReactiveProperty<bool> IsChecked { get; }
   }
 
+  public interface IMultipleCheckableItem : ICheckableItem
+  {
+    string? GroupName { get; }
+  }
+
   public class CheckableCollection<T> : ReactiveCollection<T>, IDisposable where T : class, ICheckableItem
   {
     public ReactiveProperty<T?> ActiveItem { get; } = new();
 
     public Subject<T> ChangedItemObservable { get; } = new();
-
-    protected bool IsMultiple { get; set; }
 
     private readonly Dictionary<T, IDisposable> _itemEvents = new();
 
@@ -45,13 +48,7 @@ namespace KmyKeiba.Models.Analysis.Generic
 
                   if (isChecked)
                   {
-                    if (!this.IsMultiple)
-                    {
-                      foreach (var it in this.Where(t => t != item))
-                      {
-                        it.IsChecked.Value = false;
-                      }
-                    }
+                    this.OnChecked(item);
                     this.ActiveItem.Value = item;
                   }
                 }));
@@ -96,13 +93,24 @@ namespace KmyKeiba.Models.Analysis.Generic
       }
       this._itemEvents.Clear();
     }
+
+    protected virtual void OnChecked(T item)
+    {
+      foreach (var it in this.Where(t => t != item))
+      {
+        it.IsChecked.Value = false;
+      }
+    }
   }
 
-  public class MultipleCheckableCollection<T> : CheckableCollection<T> where T : class, ICheckableItem
+  public class MultipleCheckableCollection<T> : CheckableCollection<T> where T : class, IMultipleCheckableItem
   {
-    public MultipleCheckableCollection()
+    protected override void OnChecked(T item)
     {
-      this.IsMultiple = true;
+      foreach (var it in this.Where(t => t != item && t.GroupName == item.GroupName && item.GroupName != null))
+      {
+        it.IsChecked.Value = false;
+      }
     }
   }
 }
