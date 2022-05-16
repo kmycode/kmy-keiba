@@ -57,8 +57,7 @@
     </Grid>
 
     <!-- 血統 -->
-    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseBlood,Converter={StaticResource BooleanVisibilityConv}}"
-          Name="Parent">
+    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseBlood,Converter={StaticResource BooleanVisibilityConv}}">
       <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value,ElementName=Root}">
         <uc:TrendAnalyzerAnalysisView.MenuContent>
           <Grid DataContext="{Binding RelativeSource={RelativeSource FindAncestor,AncestorType=uc:RaceExpectHorseView}}">
@@ -66,13 +65,17 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <RadioButton IsChecked="{Binding IsChecked.Value,Mode=TwoWay}" GroupName="{Binding UniqueId2,RelativeSource={RelativeSource FindAncestor,AncestorType=uc:RaceExpectHorseView}}"
-                               Style="{StaticResource ToggleButtonDefault}">
-                    <StackPanel Width="150">
+                               Style="{StaticResource ToggleButtonDefault}" IsEnabled="{Binding IsEnabled}">
+                    <Grid Width="145">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="0.5*"/>
+                        <ColumnDefinition/>
+                      </Grid.ColumnDefinitions>
                       <TextBlock Text="{Binding Selector.Type,Converter={StaticResource LabelConv}}"
-                                 FontSize="16"/>
-                      <TextBlock Text="{Binding Selector.Name}" HorizontalAlignment="Right"
-                                 FontSize="20" FontWeight="Bold"/>
-                    </StackPanel>
+                                 FontSize="14" Foreground="{DynamicResource SubForeground}"/>
+                      <TextBlock Grid.Column="1" Text="{Binding Selector.Name}"
+                                 FontSize="14" FontWeight="Bold"/>
+                    </Grid>
                   </RadioButton>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>

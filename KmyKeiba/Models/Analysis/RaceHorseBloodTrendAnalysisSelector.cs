@@ -38,7 +38,16 @@ namespace KmyKeiba.Models.Analysis
       this.CurrentSelector = this.MenuItems.ActiveItem.Select(i => i?.Selector).ToReactiveProperty().AddTo(this._disposables);
     }
 
-    public void Dispose() => this._disposables.Dispose();
+    public void Dispose()
+    {
+      this._disposables.Dispose();
+      GC.SuppressFinalize(this);
+    }
+
+    public bool IsExistsHorseName(string name)
+    {
+      return this.MenuItems.Any(i => i.Selector.Name == name);
+    }
 
     public async Task InitializeBloodListAsync(MyContext db)
     {
@@ -79,6 +88,14 @@ namespace KmyKeiba.Models.Analysis
           this._bloodCode[BloodType.FatherMother] = horse.FMBreedingCode;
           this._bloodCode[BloodType.MotherFather] = horse.MFBreedingCode;
           this._bloodCode[BloodType.MotherMother] = horse.MMBreedingCode;
+          this._bloodCode[BloodType.FatherFatherFather] = horse.FFFBreedingCode;
+          this._bloodCode[BloodType.FatherFatherMother] = horse.FFMBreedingCode;
+          this._bloodCode[BloodType.FatherMotherFather] = horse.FMFBreedingCode;
+          this._bloodCode[BloodType.FatherMotherMother] = horse.FMMBreedingCode;
+          this._bloodCode[BloodType.MotherFatherFather] = horse.MFFBreedingCode;
+          this._bloodCode[BloodType.MotherFatherMother] = horse.MFMBreedingCode;
+          this._bloodCode[BloodType.MotherMotherFather] = horse.MMFBreedingCode;
+          this._bloodCode[BloodType.MotherMotherMother] = horse.MMMBreedingCode;
         }
         else
         {
@@ -91,6 +108,14 @@ namespace KmyKeiba.Models.Analysis
             this._bloodCode[BloodType.FatherMother] = born.FMBreedingCode;
             this._bloodCode[BloodType.MotherFather] = born.MFBreedingCode;
             this._bloodCode[BloodType.MotherMother] = born.MMBreedingCode;
+            this._bloodCode[BloodType.FatherFatherFather] = born.FFFBreedingCode;
+            this._bloodCode[BloodType.FatherFatherMother] = born.FFMBreedingCode;
+            this._bloodCode[BloodType.FatherMotherFather] = born.FMFBreedingCode;
+            this._bloodCode[BloodType.FatherMotherMother] = born.FMMBreedingCode;
+            this._bloodCode[BloodType.MotherFatherFather] = born.MFFBreedingCode;
+            this._bloodCode[BloodType.MotherFatherMother] = born.MFMBreedingCode;
+            this._bloodCode[BloodType.MotherMotherFather] = born.MMFBreedingCode;
+            this._bloodCode[BloodType.MotherMotherMother] = born.MMMBreedingCode;
           }
           else
           {
@@ -104,12 +129,36 @@ namespace KmyKeiba.Models.Analysis
                 var (ff, fm) = await GetParentsAsync(blood.FatherKey);
                 if (ff != null) this._bloodCode[BloodType.FatherFather] = ff;
                 if (fm != null) this._bloodCode[BloodType.FatherMother] = fm;
+                if (ff != null)
+                {
+                  var (fff, ffm) = await GetParentsAsync(ff);
+                  if (fff != null) this._bloodCode[BloodType.FatherFatherFather] = fff;
+                  if (ffm != null) this._bloodCode[BloodType.FatherFatherMother] = ffm;
+                }
+                if (fm != null)
+                {
+                  var (fmf, fmm) = await GetParentsAsync(fm);
+                  if (fmf != null) this._bloodCode[BloodType.FatherMotherFather] = fmf;
+                  if (fmm != null) this._bloodCode[BloodType.FatherMotherMother] = fmm;
+                }
               }
               if (blood.MotherKey != null)
               {
                 var (mf, mm) = await GetParentsAsync(blood.MotherKey);
                 if (mf != null) this._bloodCode[BloodType.MotherFather] = mf;
                 if (mm != null) this._bloodCode[BloodType.MotherMother] = mm;
+                if (mf != null)
+                {
+                  var (mff, mfm) = await GetParentsAsync(mf);
+                  if (mff != null) this._bloodCode[BloodType.MotherFatherFather] = mff;
+                  if (mfm != null) this._bloodCode[BloodType.MotherFatherMother] = mfm;
+                }
+                if (mm != null)
+                {
+                  var (mmf, mmm) = await GetParentsAsync(mm);
+                  if (mmf != null) this._bloodCode[BloodType.MotherMotherFather] = mmf;
+                  if (mmm != null) this._bloodCode[BloodType.MotherMotherMother] = mmm;
+                }
               }
             }
           }
@@ -122,19 +171,29 @@ namespace KmyKeiba.Models.Analysis
         var items = new List<MenuItem>();
         foreach (var d in this._bloodCode
           .Join(horses, b => b.Value, h => h.Key, (b, h) => new { Type = b.Key, Key = h.Code, h.Name, })
-          .Where(h => !string.IsNullOrEmpty(h.Name) && !h.Key.All(c => c == '0')))
+          .Where(h => !string.IsNullOrEmpty(h.Name)))
         {
           this._horseKey.Add(d.Type, d.Key);
-          items.Add(new MenuItem(new RaceHorseBloodTrendAnalysisSelector(this, this.Race, this.RaceHorse, d.Key, d.Name, d.Type))
+          if (!d.Key.All(k => k == '0'))
           {
-            Type = d.Type,
-          });
+            items.Add(new MenuItem(new RaceHorseBloodTrendAnalysisSelector(this, this.Race, this.RaceHorse, d.Key, d.Name, d.Type))
+            {
+              Type = d.Type,
+            });
+          }
+          else
+          {
+            items.Add(new MenuItem(new EmptyRaceHorseBloodTrendAnalysisSelector(this, d.Name, d.Type))
+            {
+              Type = d.Type,
+            });
+          }
         }
 
         ThreadUtil.InvokeOnUiThread(() =>
         {
-          this.MenuItems.AddRangeOnScheduler(items);
-          var firstItem = items.FirstOrDefault();
+          this.MenuItems.AddRangeOnScheduler(items.OrderBy(i => i.Type));
+          var firstItem = items.FirstOrDefault(i => i.IsEnabled);
           if (firstItem != null)
           {
             firstItem.IsChecked.Value = true;
@@ -154,12 +213,31 @@ namespace KmyKeiba.Models.Analysis
 
       public BloodType Type { get; init; }
 
+      public bool IsEnabled => this.Selector is not EmptyRaceHorseBloodTrendAnalysisSelector;
+
       public RaceHorseBloodTrendAnalysisSelector Selector { get; }
 
       public MenuItem(RaceHorseBloodTrendAnalysisSelector selector)
       {
         this.Selector = selector;
       }
+    }
+  }
+
+  public class EmptyRaceHorseBloodTrendAnalysisSelector : RaceHorseBloodTrendAnalysisSelector
+  {
+    public EmptyRaceHorseBloodTrendAnalysisSelector(RaceHorseBloodTrendAnalysisSelectorMenu menu, string relativeName, BloodType type) : base(menu, new RaceData(), new RaceHorseData(), string.Empty, relativeName, type)
+    {
+    }
+
+    protected override RaceHorseBloodTrendAnalyzer GenerateAnalyzer()
+    {
+      return new RaceHorseBloodTrendAnalyzer(new RaceData(), new RaceHorseData());
+    }
+
+    protected override Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseBloodTrendAnalyzer analyzer)
+    {
+      return Task.CompletedTask;
     }
   }
 
@@ -197,7 +275,6 @@ namespace KmyKeiba.Models.Analysis
       Losed,
     }
 
-    private Dictionary<string, IReadOnlyList<RaceHorseAnalyzer>>? _horses;
     private readonly string _key;
     private IReadOnlyList<RaceHorseAnalyzer>? _allRaces;
 
@@ -302,19 +379,43 @@ namespace KmyKeiba.Models.Analysis
     [Label("父")]
     Father,
 
-    [Label("母")]
-    Mother,
-
     [Label("父父")]
     FatherFather,
+
+    [Label("父父父")]
+    FatherFatherFather,
+
+    [Label("父父母")]
+    FatherFatherMother,
 
     [Label("父母")]
     FatherMother,
 
+    [Label("父母父")]
+    FatherMotherFather,
+
+    [Label("父母母")]
+    FatherMotherMother,
+
+    [Label("母")]
+    Mother,
+
     [Label("母父")]
     MotherFather,
 
+    [Label("母父父")]
+    MotherFatherFather,
+
+    [Label("母父母")]
+    MotherFatherMother,
+
     [Label("母母")]
     MotherMother,
+
+    [Label("母母父")]
+    MotherMotherFather,
+
+    [Label("母母母")]
+    MotherMotherMother,
   }
 }

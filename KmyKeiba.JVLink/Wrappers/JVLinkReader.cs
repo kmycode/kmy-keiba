@@ -99,7 +99,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
       while (true)
       {
-        var buff = new byte[0];
+        var buff = Array.Empty<byte>();
         var result = this.link.Gets(ref buff, buffSize, out string fileName);
         if (result < -1)
         {
@@ -143,7 +143,7 @@ namespace KmyKeiba.JVLink.Wrappers
         */
 
         var d = Encoding.GetEncoding(932).GetString(managedBuff);
-        var  spec = d.Substring(0, 2);
+        var spec = d[..2];
 
         void Read<T>(T item, List<T> list, Func<T, T, bool> isEquals, IComparer<T> comparer)
           where T : EntityBase

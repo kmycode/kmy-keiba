@@ -11,7 +11,7 @@ namespace KmyKeiba.Models.Race
 {
   public class RaceHorseInfo
   {
-    public RaceHorseData Data { get; private init; }
+    public RaceHorseData Data { get; private init; } = new();
 
     private RaceHorseInfo()
     {
@@ -28,12 +28,12 @@ namespace KmyKeiba.Models.Race
       return await FromDataAsync(db, horse);
     }
 
-    public static async Task<RaceHorseInfo> FromDataAsync(MyContext db, RaceHorseData horse)
+    public static Task<RaceHorseInfo> FromDataAsync(MyContext db, RaceHorseData horse)
     {
-      return new RaceHorseInfo
+      return Task.FromResult(new RaceHorseInfo
       {
         Data = horse,
-      };
+      });
     }
   }
 }

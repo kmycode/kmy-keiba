@@ -10,7 +10,7 @@
         xmlns:local="clr-namespace:KmyKeiba"
         xmlns:uc="clr-namespace:KmyKeiba.Views.Controls"
         mc:Ignorable="d"
-        Title="KMY競馬" MinHeight="700" MinWidth="1300" Height="700" Width="1300">
+        Title="KMY競馬" MinHeight="740" MinWidth="1300" Height="720" Width="1300">
   <Grid Style="{DynamicResource WindowTopPanel}">
     <uc:RaceView Race="{Binding Race.Value}"/>
   </Grid>

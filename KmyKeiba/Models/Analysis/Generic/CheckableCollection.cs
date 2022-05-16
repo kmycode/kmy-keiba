@@ -56,8 +56,7 @@ namespace KmyKeiba.Models.Analysis.Generic
             }
             break;
           case NotifyCollectionChangedAction.Remove:
-            var items2 = e.OldItems as IEnumerable<T>;
-            if (items2 != null)
+            if (e.OldItems is IEnumerable<T> items2)
             {
               foreach (var item in items2)
               {
@@ -92,6 +91,8 @@ namespace KmyKeiba.Models.Analysis.Generic
         item.Value.Dispose();
       }
       this._itemEvents.Clear();
+
+      GC.SuppressFinalize(this);
     }
 
     protected virtual void OnChecked(T item)

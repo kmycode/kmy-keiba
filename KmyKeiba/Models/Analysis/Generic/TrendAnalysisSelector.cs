@@ -65,7 +65,8 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     private A GetExistingAnalyzer(IReadOnlyList<KEY> keys)
     {
-      var existsAnalyzer = this.Analyzers.FirstOrDefault(a => a.Key.SequenceEqual(keys)).Value;
+      //var existsAnalyzer = this.Analyzers.FirstOrDefault(a => a.Key.SequenceEqual(keys)).Value;
+      this.Analyzers.TryGetValue(keys, out var existsAnalyzer);
       if (existsAnalyzer != null)
       {
         return existsAnalyzer;
@@ -219,6 +220,7 @@ namespace KmyKeiba.Models.Analysis.Generic
     }
   }
 
+  [AttributeUsage(AttributeTargets.Field)]
   internal class GroupNameAttribute : Attribute
   {
     public string GroupName { get; }

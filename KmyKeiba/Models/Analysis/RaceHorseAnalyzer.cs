@@ -164,7 +164,7 @@ namespace KmyKeiba.Models.Analysis
         horse.ResultOrder >= 8 || horse.ResultOrder >= race.HorsesCount * 0.7f ? ValueComparation.Bad : ValueComparation.Standard;
 
       // コーナーの成績
-      CornerGradeType GetCornerGradeType(short order, short beforeOrder)
+      static CornerGradeType GetCornerGradeType(short order, short beforeOrder)
         => order > beforeOrder ? CornerGradeType.Bad : order < beforeOrder ? CornerGradeType.Good : CornerGradeType.Standard;
       var corners = new List<RaceHorseCornerGrade>();
       if (horse.FirstCornerOrder > 0)

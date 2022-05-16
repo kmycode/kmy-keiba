@@ -168,7 +168,7 @@ namespace KmyKeiba.Downloader
       await this.LoadAsync(link, dataspec, option, raceKey, loadSpecs: loadSpecs);
     }
 
-    private async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey = null, int nest = 0, IEnumerable<string>? loadSpecs = null)
+    private async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey = null, IEnumerable<string>? loadSpecs = null)
     {
       this.ResetProgresses();
       this.IsLoading.Value = true;
@@ -316,7 +316,7 @@ namespace KmyKeiba.Downloader
       {
         var loadStartTime = DateTime.Now;
 
-        await LoadAfterAsync(reader.Type, data, isProcessing, isRealtime);
+        await LoadAfterAsync(data, isProcessing, isRealtime);
         isDone = true;
 
         if (!isDisposed)
@@ -347,7 +347,7 @@ namespace KmyKeiba.Downloader
       }
     }
 
-    private async Task LoadAfterAsync(JVLinkObjectType type, JVLinkReaderData data, bool isProcessing, bool isRealtime)
+    private async Task LoadAfterAsync(JVLinkReaderData data, bool isProcessing, bool isRealtime)
     {
       var saved = 0;
       this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count
@@ -367,192 +367,248 @@ namespace KmyKeiba.Downloader
       });
       timer.Start();
 
-      using (var db = new MyContext())
+      using var db = new MyContext();
+
+      async Task SaveDicAsync<E, D, I, KEY>(Dictionary<KEY, E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
+        where E : EntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I> where KEY : IComparable
       {
-        async Task SaveDicAsync<E, D, I, KEY>(Dictionary<KEY, E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
-          where E : EntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I> where KEY : IComparable
+        await SaveAsync(entities.Select(e => e.Value).ToList(), dataSet, entityId, dataId, dataIdSelector);
+      }
+
+      async Task SaveAsync<E, D, I>(IEnumerable<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
+        where E : IEntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
+      {
+        var position = entities;
+
+        while (position.Any())
         {
-          await SaveAsync(entities.Select(e => e.Value).ToList(), dataSet, entityId, dataId, dataIdSelector);
+          var chunk = position.Take(10000);
+          await SaveAsyncPrivate(chunk, dataSet, entityId, dataId, dataIdSelector);
+
+          position = position.Skip(10000);
         }
+      }
 
-        async Task SaveAsync<E, D, I>(IEnumerable<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
-          where E : IEntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
+      async Task SaveAsyncPrivate<E, D, I>(IEnumerable<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
+        where E : IEntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
+      {
+        var copyed = entities.ToList();
+
+        var changed = 0;
+
+        var ids = entities.Select(entityId).Distinct().ToList();
+        var dataItems = await dataSet!
+          .Where(dataIdSelector(ids))
+          .ToArrayAsync();
+        foreach (var item in dataItems
+          .Join(entities, (d) => dataId(d), (e) => entityId(e), (d, e) => new { Data = d, Entity = e, })
+          .OrderBy((i) => (short)i.Entity.DataStatus))
         {
-          var position = entities;
+          item.Data.SetEntity(item.Entity);
+          copyed.Remove(item.Entity);
+          changed++;
 
-          while (position.Any())
+          if (changed == 1000)
           {
-            var chunk = position.Take(10000);
-            await SaveAsyncPrivate(chunk, dataSet, entityId, dataId, dataIdSelector);
-
-            position = position.Skip(10000);
+            await db.SaveChangesAsync();
+            saved += changed;
+            changed = 0;
           }
         }
+        await db.SaveChangesAsync();
+        saved += changed;
 
-        async Task SaveAsyncPrivate<E, D, I>(IEnumerable<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
-          where E : IEntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
-        {
-          var copyed = entities.ToList();
-
-          var changed = 0;
-
-          var ids = entities.Select(entityId).Distinct().ToList();
-          var dataItems = await dataSet!
-            .Where(dataIdSelector(ids))
-            .ToArrayAsync();
-          foreach (var item in dataItems
-            .Join(entities, (d) => dataId(d), (e) => entityId(e), (d, e) => new { Data = d, Entity = e, })
-            .OrderBy((i) => (short)i.Entity.DataStatus))
+        var newItems = copyed
+          .Where((e) => !dataItems.Any((d) => dataId(d)!.Equals(entityId(e))))
+          .Select((item) =>
           {
-            item.Data.SetEntity(item.Entity);
-            copyed.Remove(item.Entity);
-            changed++;
+            var obj = new D();
+            obj.SetEntity(item);
+            return obj;
+          });
 
-            if (changed == 1000)
+        // 大量のデータを分割して保存する
+        var position = newItems;
+        while (position.Any())
+        {
+          var chunk = position.Take(1000);
+          await dataSet.AddRangeAsync(chunk);
+          await db.SaveChangesAsync();
+          saved += chunk.Count();
+
+          position = position.Skip(1000);
+        }
+        // saved += items.Count();
+      }
+
+      await db.BeginTransactionAsync();
+
+      await SaveDicAsync(data.RaceHorses,
+        db.RaceHorses!,
+        (e) => e.Name + e.RaceKey,
+        (d) => d.Name + d.RaceKey,
+        (list) => e => list.Contains(e.Name + e.RaceKey));
+      await db.CommitAsync();
+
+      await SaveDicAsync(data.Races,
+        db.Races!,
+        (e) => e.Key,
+        (d) => d.Key,
+        (list) => e => list.Contains(e.Key));
+      await SaveDicAsync(data.Horses,
+        db.Horses!,
+        (e) => e.Code,
+        (d) => d.Code,
+        (list) => e => list.Contains(e.Code));
+      await SaveDicAsync(data.HorseBloods,
+        db.HorseBloods!,
+        (e) => e.Key,
+        (d) => d.Key,
+        (list) => e => list.Contains(e.Key));
+      await db.CommitAsync();
+      await SaveDicAsync(data.BornHorses,
+        db.BornHorses!,
+        (e) => e.Code,
+        (d) => d.Code,
+        (list) => e => list.Contains(e.Code));
+      await db.CommitAsync();
+
+      await SaveDicAsync(data.FrameNumberOdds,
+        db.FrameNumberOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+      await SaveDicAsync(data.QuinellaPlaceOdds,
+        db.QuinellaPlaceOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+      await SaveDicAsync(data.QuinellaOdds,
+        db.QuinellaOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+      await SaveDicAsync(data.ExactaOdds,
+        db.ExactaOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+      await SaveDicAsync(data.TrioOdds,
+        db.TrioOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+      await SaveDicAsync(data.TrifectaOdds,
+        db.TrifectaOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+      await db.CommitAsync();
+
+      await SaveDicAsync(data.Refunds,
+        db.Refunds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+
+      await SaveAsync(data.SingleAndDoubleWinOdds.Where((o) => o.Value.Time != default).Select((o) => o.Value),
+        db.SingleOddsTimelines!,
+        (e) => e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute,
+        (d) => d.RaceKey + d.Time.Month + "_" + d.Time.Day + "_" + d.Time.Hour + "_" + d.Time.Minute,
+        (list) => e => list.Contains(e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute));
+      await SaveDicAsync(data.Trainings,
+        db.Trainings!,
+        (e) => e.HorseKey + e.StartTime,
+        (d) => d.HorseKey + d.StartTime,
+        (list) => e => list.Contains(e.HorseKey + e.StartTime));
+      await SaveDicAsync(data.WoodtipTrainings,
+        db.WoodtipTrainings!,
+        (e) => e.HorseKey + e.StartTime,
+        (d) => d.HorseKey + d.StartTime,
+        (list) => e => list.Contains(e.HorseKey + e.StartTime));
+      await db.CommitAsync();
+
+      // 保存後のデータに他のデータを追加する
+      this.ProcessSize.Value = 0;
+      this.Processed.Value = 0;
+      this.ProcessSize.Value += data.SingleAndDoubleWinOdds.Count;
+
+      // 単勝オッズを設定する
+      {
+        var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.Value.RaceKey).ToArray();
+        var oddsRaceHorses = await db.RaceHorses!
+          .Where((r) => oddsRaceKeys.Contains(r.RaceKey))
+          .ToArrayAsync();
+
+        foreach (var odds in data.SingleAndDoubleWinOdds)
+        {
+          var horses = oddsRaceHorses
+            .Where((h) => h.RaceKey == odds.Value.RaceKey);
+          foreach (var horse in horses)
+          {
+            var o = odds.Value.Odds.FirstOrDefault((oo) => oo.HorseNumber == horse.Number);
+            if (o.HorseNumber != default)
             {
-              await db.SaveChangesAsync();
-              saved += changed;
-              changed = 0;
+              horse.Odds = (short)o.Odds;
+              horse.Popular = o.Popular;
+              horse.PlaceOddsMax = (short)o.PlaceOddsMax;
+              horse.PlaceOddsMin = (short)o.PlaceOddsMin;
             }
           }
-          await db.SaveChangesAsync();
-          saved += changed;
 
-          var newItems = copyed
-            .Where((e) => !dataItems.Any((d) => dataId(d)!.Equals(entityId(e))))
-            .Select((item) =>
-            {
-              var obj = new D();
-              obj.SetEntity(item);
-              return obj;
-            });
-
-          // 大量のデータを分割して保存する
-          var position = newItems;
-          while (position.Any())
-          {
-            var chunk = position.Take(1000);
-            await dataSet.AddRangeAsync(chunk);
-            await db.SaveChangesAsync();
-            saved += chunk.Count();
-
-            position = position.Skip(1000);
-          }
-          // saved += items.Count();
+          this.Processed.Value++;
         }
 
-        await db.BeginTransactionAsync();
+        await db.SaveChangesAsync();
+      }
 
-        await SaveDicAsync(data.RaceHorses,
-          db.RaceHorses!,
-          (e) => e.Name + e.RaceKey,
-          (d) => d.Name + d.RaceKey,
-          (list) => e => list.Contains(e.Name + e.RaceKey));
-        await db.CommitAsync();
+      if (isRealtime)
+      {
+        this.ProcessSize.Value += data.HorseWeights.Count;
+        this.ProcessSize.Value += data.CourseWeatherConditions.Count;
+        this.ProcessSize.Value += data.HorseAbnormalities.Count;
+        this.ProcessSize.Value += data.HorseRiderChanges.Count;
 
-        await SaveDicAsync(data.Races,
-          db.Races!,
-          (e) => e.Key,
-          (d) => d.Key,
-          (list) => e => list.Contains(e.Key));
-        await SaveDicAsync(data.Horses,
-          db.Horses!,
-          (e) => e.Code,
-          (d) => d.Code,
-          (list) => e => list.Contains(e.Code));
-        await SaveDicAsync(data.HorseBloods,
-          db.HorseBloods!,
-          (e) => e.Key,
-          (d) => d.Key,
-          (list) => e => list.Contains(e.Key));
-        await db.CommitAsync();
-        await SaveDicAsync(data.BornHorses,
-          db.BornHorses!,
-          (e) => e.Code,
-          (d) => d.Code,
-          (list) => e => list.Contains(e.Code));
-        await db.CommitAsync();
-
-        await SaveDicAsync(data.FrameNumberOdds,
-          db.FrameNumberOdds!,
-          (e) => e.RaceKey,
-          (d) => d.RaceKey,
-          (list) => e => list.Contains(e.RaceKey));
-        await SaveDicAsync(data.QuinellaPlaceOdds,
-          db.QuinellaPlaceOdds!,
-          (e) => e.RaceKey,
-          (d) => d.RaceKey,
-          (list) => e => list.Contains(e.RaceKey));
-        await SaveDicAsync(data.QuinellaOdds,
-          db.QuinellaOdds!,
-          (e) => e.RaceKey,
-          (d) => d.RaceKey,
-          (list) => e => list.Contains(e.RaceKey));
-        await SaveDicAsync(data.ExactaOdds,
-          db.ExactaOdds!,
-          (e) => e.RaceKey,
-          (d) => d.RaceKey,
-          (list) => e => list.Contains(e.RaceKey));
-        await SaveDicAsync(data.TrioOdds,
-          db.TrioOdds!,
-          (e) => e.RaceKey,
-          (d) => d.RaceKey,
-          (list) => e => list.Contains(e.RaceKey));
-        await SaveDicAsync(data.TrifectaOdds,
-          db.TrifectaOdds!,
-          (e) => e.RaceKey,
-          (d) => d.RaceKey,
-          (list) => e => list.Contains(e.RaceKey));
-        await db.CommitAsync();
-
-        await SaveDicAsync(data.Refunds,
-          db.Refunds!,
-          (e) => e.RaceKey,
-          (d) => d.RaceKey,
-          (list) => e => list.Contains(e.RaceKey));
-
-        await SaveAsync(data.SingleAndDoubleWinOdds.Where((o) => o.Value.Time != default).Select((o) => o.Value),
-          db.SingleOddsTimelines!,
-          (e) => e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute,
-          (d) => d.RaceKey + d.Time.Month + "_" + d.Time.Day + "_" + d.Time.Hour + "_" + d.Time.Minute,
-          (list) => e => list.Contains(e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute));
-        await SaveDicAsync(data.Trainings,
-          db.Trainings!,
-          (e) => e.HorseKey + e.StartTime,
-          (d) => d.HorseKey + d.StartTime,
-          (list) => e => list.Contains(e.HorseKey + e.StartTime));
-        await SaveDicAsync(data.WoodtipTrainings,
-          db.WoodtipTrainings!,
-          (e) => e.HorseKey + e.StartTime,
-          (d) => d.HorseKey + d.StartTime,
-          (list) => e => list.Contains(e.HorseKey + e.StartTime));
-        await db.CommitAsync();
-
-        // 保存後のデータに他のデータを追加する
-        this.ProcessSize.Value = 0;
-        this.Processed.Value = 0;
-        this.ProcessSize.Value += data.SingleAndDoubleWinOdds.Count;
-
-        // 単勝オッズを設定する
+        // 馬の体重を設定する
         {
-          var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.Value.RaceKey).ToArray();
-          var oddsRaceHorses = await db.RaceHorses!
-            .Where((r) => oddsRaceKeys.Contains(r.RaceKey))
-            .ToArrayAsync();
-
-          foreach (var odds in data.SingleAndDoubleWinOdds)
+          foreach (var weight in data.HorseWeights)
           {
-            var horses = oddsRaceHorses
-              .Where((h) => h.RaceKey == odds.Value.RaceKey);
-            foreach (var horse in horses)
+            var horses = await db.RaceHorses!
+              .Where((h) => h.RaceKey == weight.RaceKey)
+              .ToArrayAsync();
+            foreach (var info in weight.Infos.Join(horses, (i) => i.HorseNumber, (h) => h.Number, (i, h) => new { Info = i, Horse = h, }))
             {
-              var o = odds.Value.Odds.FirstOrDefault((oo) => oo.HorseNumber == horse.Number);
-              if (o.HorseNumber != default)
+              info.Horse.Weight = info.Info.Weight;
+              info.Horse.WeightDiff = info.Info.WeightDiff;
+            }
+
+            this.Processed.Value++;
+          }
+
+          await db.SaveChangesAsync();
+        }
+
+        // 天候、馬場
+        {
+          foreach (var weather in data.CourseWeatherConditions)
+          {
+            var races = await db.Races!
+              .Where((r) => r.Key.StartsWith(weather.RaceKeyWithoutRaceNum))
+              .ToArrayAsync();
+            foreach (var race in races)
+            {
+              if (weather.Weather != RaceCourseWeather.Unknown)
               {
-                horse.Odds = (short)o.Odds;
-                horse.Popular = o.Popular;
-                horse.PlaceOddsMax = (short)o.PlaceOddsMax;
-                horse.PlaceOddsMin = (short)o.PlaceOddsMin;
+                race.TrackWeather = weather.Weather;
+              }
+              if (race.TrackGround == TrackGround.Turf && weather.TurfCondition != RaceCourseCondition.Unknown)
+              {
+                race.TrackCondition = weather.TurfCondition;
+              }
+              else if ((race.TrackGround == TrackGround.Dirt || race.TrackGround == TrackGround.TurfToDirt || race.TrackGround == TrackGround.Sand) &&
+                weather.DirtCondition != RaceCourseCondition.Unknown)
+              {
+                race.TrackCondition = weather.DirtCondition;
               }
             }
 
@@ -562,124 +618,67 @@ namespace KmyKeiba.Downloader
           await db.SaveChangesAsync();
         }
 
-        if (isRealtime)
+        // 馬の状態
         {
-          this.ProcessSize.Value += data.HorseWeights.Count;
-          this.ProcessSize.Value += data.CourseWeatherConditions.Count;
-          this.ProcessSize.Value += data.HorseAbnormalities.Count;
-          this.ProcessSize.Value += data.HorseRiderChanges.Count;
-
-          // 馬の体重を設定する
+          foreach (var ab in data.HorseAbnormalities)
           {
-            foreach (var weight in data.HorseWeights)
+            var horse = await db.RaceHorses!
+              .FirstOrDefaultAsync((h) => h.RaceKey == ab.RaceKey && h.Number == ab.HorseNumber);
+            if (horse != null)
             {
-              var horses = await db.RaceHorses!
-                .Where((h) => h.RaceKey == weight.RaceKey)
-                .ToArrayAsync();
-              foreach (var info in weight.Infos.Join(horses, (i) => i.HorseNumber, (h) => h.Number, (i, h) => new { Info = i, Horse = h, }))
-              {
-                info.Horse.Weight = info.Info.Weight;
-                info.Horse.WeightDiff = info.Info.WeightDiff;
-              }
-
-              this.Processed.Value++;
+              horse.AbnormalResult = ab.AbnormalResult;
             }
 
-            await db.SaveChangesAsync();
+            this.Processed.Value++;
           }
 
-          // 天候、馬場
-          {
-            foreach (var weather in data.CourseWeatherConditions)
-            {
-              var races = await db.Races!
-                .Where((r) => r.Key.StartsWith(weather.RaceKeyWithoutRaceNum))
-                .ToArrayAsync();
-              foreach (var race in races)
-              {
-                if (weather.Weather != RaceCourseWeather.Unknown)
-                {
-                  race.TrackWeather = weather.Weather;
-                }
-                if (race.TrackGround == TrackGround.Turf && weather.TurfCondition != RaceCourseCondition.Unknown)
-                {
-                  race.TrackCondition = weather.TurfCondition;
-                }
-                else if ((race.TrackGround == TrackGround.Dirt || race.TrackGround == TrackGround.TurfToDirt || race.TrackGround == TrackGround.Sand) &&
-                  weather.DirtCondition != RaceCourseCondition.Unknown)
-                {
-                  race.TrackCondition = weather.DirtCondition;
-                }
-              }
-
-              this.Processed.Value++;
-            }
-
-            await db.SaveChangesAsync();
-          }
-
-          // 馬の状態
-          {
-            foreach (var ab in data.HorseAbnormalities)
-            {
-              var horse = await db.RaceHorses!
-                .FirstOrDefaultAsync((h) => h.RaceKey == ab.RaceKey && h.Number == ab.HorseNumber);
-              if (horse != null)
-              {
-                horse.AbnormalResult = ab.AbnormalResult;
-              }
-
-              this.Processed.Value++;
-            }
-
-            await db.SaveChangesAsync();
-          }
-
-          // 騎手
-          {
-            foreach (var ab in data.HorseRiderChanges)
-            {
-              var horse = await db.RaceHorses!
-                .FirstOrDefaultAsync((h) => h.RaceKey == ab.RaceKey && h.Number == ab.HorseNumber);
-              if (horse != null)
-              {
-                horse.RiderCode = ab.RiderCode;
-                horse.RiderName = ab.RiderName;
-                horse.RiderWeight = ab.RiderWeight;
-              }
-
-              this.Processed.Value++;
-            }
-
-            await db.SaveChangesAsync();
-          }
+          await db.SaveChangesAsync();
         }
 
-        // 後処理　元データにはないデータを追加する
-
-        if (isProcessing)
+        // 騎手
         {
-          /*
-          // それぞれの馬に、第３ハロンタイムの順位をつける（LINQでやると時間がかかる）
-          IEnumerable<string> ids = db.RaceHorses!
-            .Where((h) => h.AfterThirdHalongTimeOrder == 0 && h.AfterThirdHalongTime > TimeSpan.Zero)
-            .Select((r) => r.RaceKey)
-            .Distinct();
-          this.ProcessSize.Value += (int)Math.Ceiling(ids.Count() / 64.0f);
-          while (ids.Any())
+          foreach (var ab in data.HorseRiderChanges)
           {
-            var arr = string.Join("','", ids.Take(64));
-            await db.Database.ExecuteSqlRawAsync($@"
+            var horse = await db.RaceHorses!
+              .FirstOrDefaultAsync((h) => h.RaceKey == ab.RaceKey && h.Number == ab.HorseNumber);
+            if (horse != null)
+            {
+              horse.RiderCode = ab.RiderCode;
+              horse.RiderName = ab.RiderName;
+              horse.RiderWeight = ab.RiderWeight;
+            }
+
+            this.Processed.Value++;
+          }
+
+          await db.SaveChangesAsync();
+        }
+      }
+
+      // 後処理　元データにはないデータを追加する
+
+      if (isProcessing)
+      {
+        /*
+        // それぞれの馬に、第３ハロンタイムの順位をつける（LINQでやると時間がかかる）
+        IEnumerable<string> ids = db.RaceHorses!
+          .Where((h) => h.AfterThirdHalongTimeOrder == 0 && h.AfterThirdHalongTime > TimeSpan.Zero)
+          .Select((r) => r.RaceKey)
+          .Distinct();
+        this.ProcessSize.Value += (int)Math.Ceiling(ids.Count() / 64.0f);
+        while (ids.Any())
+        {
+          var arr = string.Join("','", ids.Take(64));
+          await db.Database.ExecuteSqlRawAsync($@"
 UPDATE racehorses, (SELECT racekey,`name`,afterthirdhalongtime,ROW_NUMBER() OVER(PARTITION BY racekey ORDER BY afterthirdhalongtime ASC) halongOrder
 FROM racehorses WHERE racekey IN ('{arr}') AND afterthirdhalongtime <> '00:00:00') AS buf
 SET racehorses.afterthirdhalongtimeorder=buf.halongOrder
 WHERE racehorses.racekey IN ('{arr}') AND racehorses.RaceKey=buf.racekey AND racehorses.`Name`=buf.`name`");
 
-            ids = ids.Skip(64);
-            this.Processed.Value++;
-          }
-          */
+          ids = ids.Skip(64);
+          this.Processed.Value++;
         }
+        */
       }
     }
 

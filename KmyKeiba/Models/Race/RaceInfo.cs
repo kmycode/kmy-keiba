@@ -79,16 +79,9 @@ namespace KmyKeiba.Models.Race
       if (this.ActiveHorse.Value?.BloodSelectors?.IsRequestedInitialization == true)
       {
         Task.Run(async () => {
-          try
-          {
-            using var db = new MyContext();
-            await this.ActiveHorse.Value.BloodSelectors.InitializeBloodListAsync(db);
-          }
-          catch (Exception ex)
-          {
-
-          }
-          });
+          using var db = new MyContext();
+          await this.ActiveHorse.Value.BloodSelectors.InitializeBloodListAsync(db);
+        });
       }
     }
 

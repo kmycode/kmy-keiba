@@ -176,65 +176,64 @@ namespace KmyKeiba.Downloader
       var count = 0;
       var prevCommitCount = 0;
 
-      using (var db = new MyContext())
+      using var db = new MyContext();
+
+      // 通常のクエリは３分まで
+      db.Database.SetCommandTimeout(180);
+      await db.BeginTransactionAsync();
+
+      var allTargets = db.RaceHorses!
+        .Where(rh => rh.PreviousRaceDays == 0)
+        .Where(rh => rh.Key != "0000000000")
+        .GroupBy(rh => rh.Key)
+        .Select(g => g.Key);
+
+      var targets = await allTargets.Take(96).ToArrayAsync();
+
+      while (targets.Any())
       {
-        // 通常のクエリは３分まで
-        db.Database.SetCommandTimeout(180);
-        await db.BeginTransactionAsync();
+        var targetHorses = await db.RaceHorses!.Where(rh => targets.Contains(rh.Key)).ToArrayAsync();
 
-        var allTargets = db.RaceHorses!
-          .Where(rh => rh.PreviousRaceDays == 0)
-          .Where(rh => rh.Key != "0000000000")
-          .GroupBy(rh => rh.Key)
-          .Select(g => g.Key);
-
-        var targets = await allTargets.Take(96).ToArrayAsync();
-
-        while (targets.Any())
+        foreach (var horse in targets)
         {
-          var targetHorses = await db.RaceHorses!.Where(rh => targets.Contains(rh.Key)).ToArrayAsync();
+          var races = targetHorses.Where(rh => rh.Key == horse).OrderBy(rh => rh.RaceKey);
+          var beforeRaceDh = DateTime.MinValue;
+          var isFirst = true;
 
-          foreach (var horse in targets)
+          foreach (var race in races)
           {
-            var races = targetHorses.Where(rh => rh.Key == horse).OrderBy(rh => rh.RaceKey);
-            var beforeRaceDh = DateTime.MinValue;
-            var isFirst = true;
+            var y = race.RaceKey.Substring(0, 4);
+            var m = race.RaceKey.Substring(4, 2);
+            var d = race.RaceKey.Substring(6, 2);
+            _ = int.TryParse(y, out var year);
+            _ = int.TryParse(m, out var month);
+            _ = int.TryParse(d, out var day);
+            var dh = new DateTime(year, month, day);
 
-            foreach (var race in races)
+            if (!isFirst)
             {
-              var y = race.RaceKey.Substring(0, 4);
-              var m = race.RaceKey.Substring(4, 2);
-              var d = race.RaceKey.Substring(6, 2);
-              int.TryParse(y, out var year);
-              int.TryParse(m, out var month);
-              int.TryParse(d, out var day);
-              var dh = new DateTime(year, month, day);
-
-              if (!isFirst)
-              {
-                race.PreviousRaceDays = System.Math.Max((short)(dh - beforeRaceDh).TotalDays, (short)1);
-              }
-              else
-              {
-                race.PreviousRaceDays = -1;
-                isFirst = false;
-              }
-
-              beforeRaceDh = dh;
-              count++;
+              race.PreviousRaceDays = System.Math.Max((short)(dh - beforeRaceDh).TotalDays, (short)1);
             }
-          }
+            else
+            {
+              race.PreviousRaceDays = -1;
+              isFirst = false;
+            }
 
-          await db.SaveChangesAsync();
-          if (count >= prevCommitCount + 10000)
-          {
-            await db.CommitAsync();
-            prevCommitCount = count;
+            beforeRaceDh = dh;
+            count++;
           }
-          Console.Write($"\r完了: {count}");
-
-          targets = await allTargets.Take(96).ToArrayAsync();
         }
+
+        await db.SaveChangesAsync();
+        if (count >= prevCommitCount + 10000)
+        {
+          await db.CommitAsync();
+          prevCommitCount = count;
+        }
+        Console.Write($"\r完了: {count}");
+
+        targets = await allTargets.Take(96).ToArrayAsync();
       }
     }
 
