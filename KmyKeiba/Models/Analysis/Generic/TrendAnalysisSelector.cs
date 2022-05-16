@@ -36,15 +36,44 @@ namespace KmyKeiba.Models.Analysis.Generic
     public TrendAnalysisSelector()
     {
       this.Keys = new TrendAnalysisFilterItemCollection<KEY>();
+      this.Initialize();
     }
 
     public TrendAnalysisSelector(IEnumerable<KEY> keys)
     {
       this.Keys = new TrendAnalysisFilterItemCollection<KEY>(keys);
+      this.Initialize();
     }
 
     public TrendAnalysisSelector(Type enumType) : this((IEnumerable<KEY>)enumType.GetEnumValues())
     {
+    }
+
+    private void Initialize()
+    {
+      this.Keys.ChangedItemObservable.Subscribe(i =>
+      {
+        this.TryUpdateExistingAnalyzer();
+      });
+    }
+
+    private void TryUpdateExistingAnalyzer()
+    {
+      var keys = this.Keys.GetActiveKeys();
+      this.CurrentAnalyzer.Value = this.GetExistingAnalyzer(keys);
+    }
+
+    private A GetExistingAnalyzer(IReadOnlyList<KEY> keys)
+    {
+      var existsAnalyzer = this.Analyzers.FirstOrDefault(a => a.Key.SequenceEqual(keys)).Value;
+      if (existsAnalyzer != null)
+      {
+        return existsAnalyzer;
+      }
+
+      var analyzer = this.GenerateAnalyzer();
+      this.Analyzers[keys] = analyzer;
+      return analyzer;
     }
 
     public void BeginLoad()
@@ -56,15 +85,13 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public A BeginLoad(IReadOnlyList<KEY> keys)
     {
-      var existsAnalyzer = this.Analyzers.FirstOrDefault(a => a.Key.SequenceEqual(keys)).Value;
-      if (existsAnalyzer != null)
-      {
-        return existsAnalyzer;
-      }
-
       // ここはUIスレッドでなければならない（ReactiveCollectionなどにスレッドが伝播しないので）
-      var analyzer = this.GenerateAnalyzer();
-      this.Analyzers[keys] = analyzer;
+      var analyzer = this.GetExistingAnalyzer(keys);
+
+      if (analyzer.IsLoaded.Value)
+      {
+        return analyzer;
+      }
 
       _ = Task.Run(async () =>
       {
@@ -96,7 +123,7 @@ namespace KmyKeiba.Models.Analysis.Generic
     }
   }
 
-  public class TrendAnalysisFilterItemCollection<KEY> : ObservableCollection<TrendAnalysisFilterItem<KEY>>, IEquatable<TrendAnalysisFilterItemCollection<KEY>>
+  public class TrendAnalysisFilterItemCollection<KEY> : MultipleCheckableCollection<TrendAnalysisFilterItem<KEY>>, IEquatable<TrendAnalysisFilterItemCollection<KEY>>
   {
     public TrendAnalysisFilterItemCollection() : base()
     {
@@ -191,7 +218,7 @@ namespace KmyKeiba.Models.Analysis.Generic
     }
   }
 
-  public record struct TrendAnalysisFilterItem<KEY>(KEY Key)
+  public record class TrendAnalysisFilterItem<KEY>(KEY Key) : ICheckableItem
   {
     public ReactiveProperty<bool> IsChecked { get; } = new();
   }

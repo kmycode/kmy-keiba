@@ -44,8 +44,10 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
-      <Button Grid.Row="2" Height="40" FontSize="18" Content="分析する" Margin="0,8,0,0"
-              Click="AnalysisButton_Click"/>
+      <Border Grid.Row="2" Height="40" Margin="0,8,0,0">
+        <Button Height="40" FontSize="18" Content="分析する"
+                Click="AnalysisButton_Click" Visibility="{Binding Selector.CurrentAnalyzer.Value.IsLoaded.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+      </Border>
 
       <ScrollViewer Grid.Row="3">
         <ContentControl Content="{Binding MenuContent,ElementName=Root}"/>

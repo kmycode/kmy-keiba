@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,6 +18,10 @@ namespace KmyKeiba.Models.Analysis.Generic
   public class CheckableCollection<T> : ReactiveCollection<T>, IDisposable where T : class, ICheckableItem
   {
     public ReactiveProperty<T?> ActiveItem { get; } = new();
+
+    public Subject<T> ChangedItemObservable { get; } = new();
+
+    protected bool IsMultiple { get; set; }
 
     private readonly Dictionary<T, IDisposable> _itemEvents = new();
 
@@ -34,13 +39,21 @@ namespace KmyKeiba.Models.Analysis.Generic
               {
                 if (item == null) continue;
 
-                this._itemEvents.Add(item, item.IsChecked.Where(i => i).Subscribe(_ =>
+                this._itemEvents.Add(item, item.IsChecked.Subscribe(isChecked =>
                 {
-                  foreach (var it in this.Where(t => t != item))
+                  this.ChangedItemObservable.OnNext(item);
+
+                  if (isChecked)
                   {
-                    it.IsChecked.Value = false;
+                    if (!this.IsMultiple)
+                    {
+                      foreach (var it in this.Where(t => t != item))
+                      {
+                        it.IsChecked.Value = false;
+                      }
+                    }
+                    this.ActiveItem.Value = item;
                   }
-                  this.ActiveItem.Value = item;
                 }));
               }
             }
@@ -82,6 +95,14 @@ namespace KmyKeiba.Models.Analysis.Generic
         item.Value.Dispose();
       }
       this._itemEvents.Clear();
+    }
+  }
+
+  public class MultipleCheckableCollection<T> : CheckableCollection<T> where T : class, ICheckableItem
+  {
+    public MultipleCheckableCollection()
+    {
+      this.IsMultiple = true;
     }
   }
 }
