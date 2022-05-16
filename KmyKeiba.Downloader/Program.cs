@@ -71,7 +71,7 @@ namespace KmyKeiba.Downloader
 
     private static async Task LoadAsync(JVLinkLoader loader)
     {
-      var startYear = 1990;
+      var startYear = 2017;
       var startMonth = 1;
 
       if (loadStartYear > 0) startYear = loadStartYear;
@@ -98,7 +98,7 @@ namespace KmyKeiba.Downloader
           var start = new DateTime(year, month, 1);
 
           Console.WriteLine($"{year} 年 {month} 月");
-          await loader.LoadAsync(JVLinkObject.Central,
+          await loader.LoadAsync(JVLinkObject.Local,
             //JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
             JVLinkDataspec.Blod,
             JVLinkOpenOption.Setup,

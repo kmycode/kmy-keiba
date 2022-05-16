@@ -261,6 +261,7 @@ namespace KmyKeiba.Models.Analysis
       SameGrade,
 
       [Label("季節")]
+      [IgnoreKey]
       SameSeason,
 
       [Label("距離")]
@@ -273,6 +274,9 @@ namespace KmyKeiba.Models.Analysis
       [Label("着外")]
       [GroupName("ResultOrder")]
       Losed,
+
+      [Label("間隔")]
+      NearInterval,
     }
 
     private readonly string _key;
@@ -366,6 +370,11 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.Losed))
       {
         query = query.Where(r => r.Data.ResultOrder > 5);
+      }
+      if (keys.Contains(Key.NearInterval))
+      {
+        var (min, max) = AnalysisUtil.GetIntervalRange(this.RaceHorse.PreviousRaceDays);
+        query = query.Where(r => r.Data.PreviousRaceDays >= min && r.Data.PreviousRaceDays <= max);
       }
 
       analyzer.SetSource(query);

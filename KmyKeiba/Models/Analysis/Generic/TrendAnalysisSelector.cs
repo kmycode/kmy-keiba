@@ -41,7 +41,8 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public TrendAnalysisSelector(IEnumerable<KEY> keys)
     {
-      this.Keys = new TrendAnalysisFilterItemCollection<KEY>(keys);
+      var type = typeof(KEY);
+      this.Keys = new TrendAnalysisFilterItemCollection<KEY>(keys.Where(k => !type.GetField(k.ToString())!.GetCustomAttributes(true).OfType<IgnoreKeyAttribute>().Any()));
       this.Initialize();
     }
 
@@ -229,6 +230,11 @@ namespace KmyKeiba.Models.Analysis.Generic
     {
       this.GroupName = name;
     }
+  }
+
+  [AttributeUsage(AttributeTargets.Field)]
+  internal class IgnoreKeyAttribute : Attribute
+  {
   }
 
   public record class TrendAnalysisFilterItem<KEY>(KEY Key, string? GroupName) : IMultipleCheckableItem

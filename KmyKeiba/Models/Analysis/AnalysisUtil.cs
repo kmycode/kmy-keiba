@@ -61,5 +61,26 @@ namespace KmyKeiba.Models.Analysis
             .Append(0)    // Sum時の例外防止
             .Sum() / (1 * 1 + 2 * 2 + 3 * 3);
     }
+
+    public static (int min, int max) GetIntervalRange(int interval)
+    {
+      if (interval <= 0)
+      {
+        return default;
+      }
+
+      int min, max;
+      if (interval <= 59)
+      {
+        min = interval / 7 * 7;
+        max = min + 7;
+      }
+      else
+      {
+        min = interval / 30 * 30;
+        max = min + 30;
+      }
+      return (min, max);
+    }
   }
 }
