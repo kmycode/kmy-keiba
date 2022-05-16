@@ -50,6 +50,8 @@ namespace KmyKeiba.Views.Controls
 
     public Guid UniqueId { get; } = Guid.NewGuid();
 
+    public Guid UniqueId2 { get; } = Guid.NewGuid();
+
     public RaceExpectHorseView()
     {
       InitializeComponent();

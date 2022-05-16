@@ -65,14 +65,15 @@
             <ItemsControl ItemsSource="{Binding RaceHorse.BloodSelectors.MenuItems}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <ToggleButton IsChecked="{Binding IsChecked.Value,Mode=TwoWay}">
+                  <RadioButton IsChecked="{Binding IsChecked.Value,Mode=TwoWay}" GroupName="{Binding UniqueId2,RelativeSource={RelativeSource FindAncestor,AncestorType=uc:RaceExpectHorseView}}"
+                               Style="{StaticResource ToggleButtonDefault}">
                     <StackPanel Width="150">
                       <TextBlock Text="{Binding Selector.Type,Converter={StaticResource LabelConv}}"
                                  FontSize="16"/>
                       <TextBlock Text="{Binding Selector.Name}" HorizontalAlignment="Right"
                                  FontSize="20" FontWeight="Bold"/>
                     </StackPanel>
-                  </ToggleButton>
+                  </RadioButton>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>

@@ -35,6 +35,12 @@ namespace KmyKeiba.Models.Analysis
 
       [Label("距離")]
       NearDistance,
+
+      [Label("複勝")]
+      PlaceBets,
+
+      [Label("着外")]
+      Losed,
     }
 
     private IReadOnlyList<RaceHorseAnalyzer>? _allRaces;
@@ -111,6 +117,14 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.SameWeather))
       {
         query = query.Where(r => r.Race.TrackWeather == this.Race.TrackWeather);
+      }
+      if (keys.Contains(Key.PlaceBets))
+      {
+        query = query.Where(r => r.Data.ResultOrder >= 1 && r.Data.ResultOrder <= 3);
+      }
+      if (keys.Contains(Key.Losed))
+      {
+        query = query.Where(r => r.Data.ResultOrder > 5);
       }
 
       analyzer.SetSource(query);

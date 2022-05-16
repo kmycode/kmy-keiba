@@ -39,6 +39,12 @@ namespace KmyKeiba.Models.Analysis
 
       [Label("距離")]
       NearDistance,
+
+      [Label("複勝")]
+      PlaceBets,
+
+      [Label("着外")]
+      Losed,
     }
 
     public override string Name => this.RaceHorse.TrainerName;
@@ -107,6 +113,14 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.SameWeather))
       {
         query = query.Where(r => r.Race.TrackWeather == this.Race.TrackWeather);
+      }
+      if (keys.Contains(Key.PlaceBets))
+      {
+        query = query.Where(r => r.RaceHorse.ResultOrder >= 1 && r.RaceHorse.ResultOrder <= 3);
+      }
+      if (keys.Contains(Key.Losed))
+      {
+        query = query.Where(r => r.RaceHorse.ResultOrder > 5);
       }
 
       var races = await query
