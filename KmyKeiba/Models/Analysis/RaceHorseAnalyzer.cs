@@ -33,6 +33,8 @@ namespace KmyKeiba.Models.Analysis
 
     public IReadOnlyList<RaceHorseCornerGrade> CornerGrades { get; } = Array.Empty<RaceHorseCornerGrade>();
 
+    public ValueComparation ResultOrderComparation { get; }
+
     public double ResultTimePerMeter { get; }
 
     /// <summary>
@@ -158,6 +160,8 @@ namespace KmyKeiba.Models.Analysis
       this.Data = horse;
       this.Subject = new RaceSubjectInfo(race);
       this.ResultTimePerMeter = (double)horse.ResultTime.TotalSeconds / race.Distance;
+      this.ResultOrderComparation = horse.ResultOrder >= 1 && horse.ResultOrder <= 3 ? ValueComparation.Good :
+        horse.ResultOrder >= 8 || horse.ResultOrder >= race.HorsesCount * 0.7f ? ValueComparation.Bad : ValueComparation.Standard;
 
       // コーナーの成績
       CornerGradeType GetCornerGradeType(short order, short beforeOrder)

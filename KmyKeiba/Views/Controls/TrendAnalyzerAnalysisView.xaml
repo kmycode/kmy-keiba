@@ -127,7 +127,7 @@
                           FontSize="16" FontWeight="Bold" Width="180"/>
               <Label Content="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
               <TextBlock Text="{Binding Data.Course,Converter={StaticResource CourseNameConv}}" FontSize="16" Width="70"/>
-              <TextBlock Text="{Binding Data.ResultOrder}" FontSize="16" Width="40"/>
+              <TextBlock Text="{Binding Data.ResultOrder}" Foreground="{Binding ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}" FontSize="16" Width="40"/>
               <Label Content="{Binding Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="60"/>
               <Label Content="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
               <Border Width="60">
