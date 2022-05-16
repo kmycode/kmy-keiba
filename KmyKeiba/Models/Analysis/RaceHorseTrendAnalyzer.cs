@@ -37,9 +37,11 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<int> SaveRunnersCount { get; } = new();
 
-    public ReactiveProperty<double> WinRate { get; } = new();
+    public ReactiveProperty<ResultOrderGradeMap> AllGrade { get; } = new();
 
-    public ReactiveProperty<double> PlaceBitsRate { get; } = new();
+    public ReactiveProperty<ResultOrderGradeMap> InsideFrameGrade { get; } = new();
+
+    public ReactiveProperty<ResultOrderGradeMap> OutsideFrameGrade { get; } = new();
 
     public RaceHorseTrendAnalyzerBase(RaceData race, RaceHorseData horse)
     {
@@ -63,24 +65,28 @@ namespace KmyKeiba.Models.Analysis
     protected virtual void Analyze(IReadOnlyList<RaceHorseAnalyzer> source)
     {
       this.SpeedPoints.Value.Values = source.Select(s => s.ResultTimePerMeter).ToArray();
-      var runningStyles = source.Select(s => s.Data.RunningStyle);
       var count = source.Count;
-
-      // 分析
-      this.SpeedAverage.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Average * this.Race.Distance);
-      this.SpeedMedian.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Median * this.Race.Distance);
-      this.SpeedDeviation.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Deviation * this.Race.Distance);
-
-      this.FrontRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.FrontRunner);
-      this.StalkersCount.Value = runningStyles.Count(s => s == RunningStyle.Stalker);
-      this.SotpsCount.Value = runningStyles.Count(s => s == RunningStyle.Sotp);
-      this.SaveRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.SaveRunner);
 
       if (count > 0)
       {
+        // 分析
+        this.SpeedAverage.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Average * this.Race.Distance);
+        this.SpeedMedian.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Median * this.Race.Distance);
+        this.SpeedDeviation.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Deviation * this.Race.Distance);
+
+        var runningStyles = source.Select(s => s.Data.RunningStyle);
+        this.FrontRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.FrontRunner);
+        this.StalkersCount.Value = runningStyles.Count(s => s == RunningStyle.Stalker);
+        this.SotpsCount.Value = runningStyles.Count(s => s == RunningStyle.Sotp);
+        this.SaveRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.SaveRunner);
+
         var validRaces = source.Where(r => r.Data.ResultOrder != 0);
-        this.WinRate.Value = (double)validRaces.Count(s => s.Data.ResultOrder == 1) / count;
-        this.PlaceBitsRate.Value = (double)validRaces.Count(s => s.Data.ResultOrder <= 3) / count;
+        var sourceArr = source.Select(s => s.Data).ToArray();
+        this.AllGrade.Value = new ResultOrderGradeMap(sourceArr);
+        this.InsideFrameGrade.Value = new ResultOrderGradeMap(source
+          .Where(s => s.Data.Number / (float)s.Race.HorsesCount <= 1 / 3f).Select(s => s.Data).ToArray());
+        this.OutsideFrameGrade.Value = new ResultOrderGradeMap(source
+          .Where(s => s.Data.Number / (float)s.Race.HorsesCount >= 2 / 3f).Select(s => s.Data).ToArray());
       }
 
       this.IsAnalyzed.Value = true;

@@ -259,13 +259,13 @@ namespace KmyKeiba.Models.Analysis
   }
   public struct ResultOrderGradeMap
   {
-    public int FirstCount { get; }
+    public int FirstCount { get; } = 0;
 
-    public int SecondCount { get; }
+    public int SecondCount { get; } = 0;
 
-    public int ThirdCount { get; }
+    public int ThirdCount { get; } = 0;
 
-    public int LoseCount { get; }
+    public int LoseCount { get; } = 0;
 
     public int AllCount => this.FirstCount + this.SecondCount + this.ThirdCount + this.LoseCount;
 
@@ -274,18 +274,24 @@ namespace KmyKeiba.Models.Analysis
     /// <summary>
     /// 複勝勝率
     /// </summary>
-    public float PlacingBetsRate { get; }
+    public float PlacingBetsRate { get; } = 0;
+
+    public float WinRate { get; } = 0;
 
     public ValueComparation PlacingBetsRateComparation => this.PlacingBetsRate >= 0.75 ? ValueComparation.Good : this.PlacingBetsRate <= 0.2 ? ValueComparation.Bad : ValueComparation.Standard;
 
     public ResultOrderGradeMap(IReadOnlyList<RaceHorseData> source)
     {
-      this.FirstCount = source.Count(f => f.ResultOrder == 1);
-      this.SecondCount = source.Count(f => f.ResultOrder == 2);
-      this.ThirdCount = source.Count(f => f.ResultOrder == 3);
-      this.LoseCount = source.Count(f => f.ResultOrder > 3);
+      if (source.Any())
+      {
+        this.FirstCount = source.Count(f => f.ResultOrder == 1);
+        this.SecondCount = source.Count(f => f.ResultOrder == 2);
+        this.ThirdCount = source.Count(f => f.ResultOrder == 3);
+        this.LoseCount = source.Count(f => f.ResultOrder > 3);
 
-      this.PlacingBetsRate = (this.FirstCount + this.SecondCount + this.ThirdCount) / (float)source.Count;
+        this.PlacingBetsRate = (this.FirstCount + this.SecondCount + this.ThirdCount) / (float)source.Count;
+        this.WinRate = this.FirstCount / (float)source.Count;
+      }
     }
   }
 }

@@ -42,6 +42,8 @@
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition Width="auto"/>
+          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition Width="auto"/>
           <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -85,11 +87,19 @@
         <TextBlock Grid.Column="8" Margin="24,0,0,0" Style="{StaticResource Sub}"
                    Text="勝率"/>
         <TextBlock Grid.Column="9" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.WinRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
+                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.AllGrade.Value.WinRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
         <TextBlock Grid.Column="8" Grid.Row="1" Margin="24,0,0,0" Style="{StaticResource Sub}"
                    Text="複勝率"/>
         <TextBlock Grid.Column="9" Grid.Row="1" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.PlaceBitsRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
+                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.AllGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
+        <TextBlock Grid.Column="10" Margin="24,0,0,0" Style="{StaticResource Sub}"
+                   Text="内枠複勝"/>
+        <TextBlock Grid.Column="11" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
+                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.InsideFrameGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
+        <TextBlock Grid.Column="10" Grid.Row="1" Margin="24,0,0,0" Style="{StaticResource Sub}"
+                   Text="外枠複勝"/>
+        <TextBlock Grid.Column="11" Grid.Row="1" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
+                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.OutsideFrameGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
       </Grid>
 
       <!--過去レースの一覧-->
