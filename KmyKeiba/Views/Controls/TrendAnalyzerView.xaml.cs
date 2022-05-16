@@ -35,17 +35,17 @@ namespace KmyKeiba.Views.Controls
       set { SetValue(SelectorProperty, value); }
     }
 
-    public static readonly DependencyProperty MainContentProperty
+    public static readonly DependencyProperty MenuContentProperty
     = DependencyProperty.Register(
-        nameof(MainContent),
+        nameof(MenuContent),
         typeof(object),
         typeof(TrendAnalyzerView),
         new PropertyMetadata(null));
 
-    public object? MainContent
+    public object? MenuContent
     {
-      get { return GetValue(MainContentProperty); }
-      set { SetValue(MainContentProperty, value); }
+      get { return GetValue(MenuContentProperty); }
+      set { SetValue(MenuContentProperty, value); }
     }
 
     public Guid UniqueId { get; } = Guid.NewGuid();

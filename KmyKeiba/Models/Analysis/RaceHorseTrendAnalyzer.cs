@@ -93,4 +93,11 @@ namespace KmyKeiba.Models.Analysis
     {
     }
   }
+
+  public class RaceHorseBloodTrendAnalyzer : RaceHorseTrendAnalyzerBase
+  {
+    public RaceHorseBloodTrendAnalyzer(RaceData race, RaceHorseData horse) : base(race, horse)
+    {
+    }
+  }
 }

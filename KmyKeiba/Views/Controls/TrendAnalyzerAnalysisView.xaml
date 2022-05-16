@@ -19,7 +19,7 @@
     </Grid.ColumnDefinitions>
 
     <!--傾向分析コントロール-->
-    <uc:TrendAnalyzerView Selector="{Binding TrendAnalyzers,ElementName=Root}"/>
+    <uc:TrendAnalyzerView Selector="{Binding TrendAnalyzers,ElementName=Root}" MenuContent="{Binding MenuContent,ElementName=Root}"/>
 
     <!--レース一覧表-->
     <Grid Margin="8,0,4,0" Grid.Column="1">

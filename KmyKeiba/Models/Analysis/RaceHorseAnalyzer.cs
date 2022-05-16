@@ -21,6 +21,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceSubjectInfo Subject { get; }
 
+    public RaceHorseBloodTrendAnalysisSelectorMenu? BloodSelectors { get; init; }
+
     public RaceHorseTrendAnalysisSelector? TrendAnalyzers { get; init; }
 
     public RaceRiderTrendAnalysisSelector? RiderTrendAnalyzers { get; init; }

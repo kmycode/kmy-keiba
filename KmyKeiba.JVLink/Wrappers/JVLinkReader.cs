@@ -92,13 +92,14 @@ namespace KmyKeiba.JVLink.Wrappers
     {
       var data = new JVLinkReaderData();
       var buffSize = 110000;
+      var managedBuff = new byte[buffSize];
 
       var lastFileName = string.Empty;
       this.ReadedEntityCount = 0;
 
       while (true)
       {
-        var buff = new byte[buffSize];
+        var buff = new byte[0];
         var result = this.link.Gets(ref buff, buffSize, out string fileName);
         if (result < -1)
         {
@@ -125,11 +126,21 @@ namespace KmyKeiba.JVLink.Wrappers
           break;
         }
 
-        var managedBuff = new byte[buff.Length];
-        Array.Copy(buff, managedBuff, managedBuff.Length);
+        // var managedBuff = new byte[buff.Length];
+        Array.Copy(buff, managedBuff, buff.Length);
 
         // JV、NV-Linkの仕様でメモリ解放が必要（Array.Resizeで解放になるらしい）
         Array.Resize(ref buff, 0);
+        /*
+        unsafe
+        {
+          fixed (byte* p = buff)
+          {
+            Marshal.FreeCoTaskMem((IntPtr)p);
+            // CoTaskMemFree((IntPtr)p);
+          }
+        }
+        */
 
         var d = Encoding.GetEncoding(932).GetString(managedBuff);
         var  spec = d.Substring(0, 2);
@@ -262,6 +273,16 @@ namespace KmyKeiba.JVLink.Wrappers
 
                 // Read(item, data.HorseBloods, (a, b) => a.Key == b.Key, new ComparableComparer<HorseBlood>(x => x?.Key));
                 ReadDic(item, data.HorseBloods, item.Key);
+                break;
+              }
+            case "SK":
+              {
+                var a = new JVData_Struct.JV_SK_SANKU();
+                a.SetDataB(ref d);
+                var item = BornHorse.FromJV(a);
+
+                // Read(item, data.HorseBloods, (a, b) => a.Key == b.Key, new ComparableComparer<HorseBlood>(x => x?.Key));
+                ReadDic(item, data.BornHorses, item.Code);
                 break;
               }
             case "JC":
@@ -414,6 +435,8 @@ namespace KmyKeiba.JVLink.Wrappers
     public Dictionary<string, Horse> Horses { get; internal set; } = new();
 
     public Dictionary<string, HorseBlood> HorseBloods { get; internal set; } = new();
+
+    public Dictionary<string, BornHorse> BornHorses { get; internal set; } = new();
 
     public Dictionary<string, SingleAndDoubleWinOdds> SingleAndDoubleWinOdds { get; internal set; } = new();
 

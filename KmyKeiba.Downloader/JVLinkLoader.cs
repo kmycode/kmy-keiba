@@ -352,7 +352,7 @@ namespace KmyKeiba.Downloader
       var saved = 0;
       this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count
         + data.FrameNumberOdds.Count + data.QuinellaOdds.Count + data.QuinellaPlaceOdds.Count +
-         data.TrifectaOdds.Count + data.TrioOdds.Count + 
+         data.TrifectaOdds.Count + data.TrioOdds.Count + data.BornHorses.Count +
         data.Refunds.Count + data.Trainings.Count + data.WoodtipTrainings.Count + data.Horses.Count + data.HorseBloods.Count;
       logger.Info($"Save size: {this.SaveSize.Value}");
 
@@ -465,6 +465,12 @@ namespace KmyKeiba.Downloader
           (e) => e.Key,
           (d) => d.Key,
           (list) => e => list.Contains(e.Key));
+        await db.CommitAsync();
+        await SaveDicAsync(data.BornHorses,
+          db.BornHorses!,
+          (e) => e.Code,
+          (d) => d.Code,
+          (list) => e => list.Contains(e.Code));
         await db.CommitAsync();
 
         await SaveDicAsync(data.FrameNumberOdds,

@@ -25,6 +25,7 @@
         <ColumnDefinition/>
         <ColumnDefinition/>
         <ColumnDefinition/>
+        <ColumnDefinition/>
       </Grid.ColumnDefinitions>
       <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="概要" Name="S_Summary" IsChecked="True"/>
@@ -35,6 +36,8 @@
       <RadioButton Grid.Column="3" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="調教師" Name="S_Trainer"/>
       <RadioButton Grid.Column="4" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="血統" Name="S_HorseBlood"/>
+      <RadioButton Grid.Column="5" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="調教" Name="S_Training"/>
     </Grid>
 
@@ -51,6 +54,31 @@
     <!-- 傾向 -->
     <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseTrend,Converter={StaticResource BooleanVisibilityConv}}">
       <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.TrendAnalyzers,ElementName=Root}"/>
+    </Grid>
+
+    <!-- 血統 -->
+    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseBlood,Converter={StaticResource BooleanVisibilityConv}}"
+          Name="Parent">
+      <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value,ElementName=Root}">
+        <uc:TrendAnalyzerAnalysisView.MenuContent>
+          <Grid DataContext="{Binding RelativeSource={RelativeSource FindAncestor,AncestorType=uc:RaceExpectHorseView}}">
+            <ItemsControl ItemsSource="{Binding RaceHorse.BloodSelectors.MenuItems}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <ToggleButton IsChecked="{Binding IsChecked.Value,Mode=TwoWay}">
+                    <StackPanel Width="150">
+                      <TextBlock Text="{Binding Selector.Type,Converter={StaticResource LabelConv}}"
+                                 FontSize="16"/>
+                      <TextBlock Text="{Binding Selector.Name}" HorizontalAlignment="Right"
+                                 FontSize="20" FontWeight="Bold"/>
+                    </StackPanel>
+                  </ToggleButton>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Grid>
+        </uc:TrendAnalyzerAnalysisView.MenuContent>
+      </uc:TrendAnalyzerAnalysisView>
     </Grid>
 
     <!--調教-->

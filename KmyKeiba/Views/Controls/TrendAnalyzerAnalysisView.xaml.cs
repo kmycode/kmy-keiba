@@ -62,6 +62,19 @@ namespace KmyKeiba.Views.Controls
       set { SetValue(TrendAnalyzersProperty, value); }
     }
 
+    public static readonly DependencyProperty MenuContentProperty
+    = DependencyProperty.Register(
+        nameof(MenuContent),
+        typeof(object),
+        typeof(TrendAnalyzerAnalysisView),
+        new PropertyMetadata(null));
+
+    public object? MenuContent
+    {
+      get { return GetValue(MenuContentProperty); }
+      set { SetValue(MenuContentProperty, value); }
+    }
+
     public TrendAnalyzerAnalysisView()
     {
       InitializeComponent();

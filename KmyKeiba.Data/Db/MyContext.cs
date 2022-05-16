@@ -23,6 +23,8 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<HorseBloodData>? HorseBloods { get; set; }
 
+    public DbSet<BornHorseData>? BornHorses { get; set; }
+
     public DbSet<SingleOddsTimeline>? SingleOddsTimelines { get; set; }
 
     public DbSet<FrameNumberOddsData>? FrameNumberOdds { get; set; }

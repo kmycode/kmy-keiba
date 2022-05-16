@@ -74,6 +74,22 @@ namespace KmyKeiba.Models.Race
     public void SetActiveHorse(int num)
     {
       this.ActiveHorse.Value = this.Horses.FirstOrDefault(h => h.Data.Number == num);
+
+      // 遅延でデータ読み込み
+      if (this.ActiveHorse.Value?.BloodSelectors?.IsRequestedInitialization == true)
+      {
+        Task.Run(async () => {
+          try
+          {
+            using var db = new MyContext();
+            await this.ActiveHorse.Value.BloodSelectors.InitializeBloodListAsync(db);
+          }
+          catch (Exception ex)
+          {
+
+          }
+          });
+      }
     }
 
     public static async Task<RaceInfo?> FromKeyAsync(MyContext db, string key)
@@ -137,6 +153,7 @@ namespace KmyKeiba.Models.Race
             TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse),
             RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(race, horse),
             TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
+            BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
           });
         }
         info.SetHorsesDelay(horseInfos);

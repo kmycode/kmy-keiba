@@ -71,8 +71,8 @@ namespace KmyKeiba.Downloader
 
     private static async Task LoadAsync(JVLinkLoader loader)
     {
-      var startYear = 2019;
-      var startMonth = 10;
+      var startYear = 1990;
+      var startMonth = 1;
 
       if (loadStartYear > 0) startYear = loadStartYear;
       if (loadStartMonth > 0) startMonth = loadStartMonth;
@@ -98,16 +98,16 @@ namespace KmyKeiba.Downloader
           var start = new DateTime(year, month, 1);
 
           Console.WriteLine($"{year} 年 {month} 月");
-          await loader.LoadAsync(JVLinkObject.Local,
+          await loader.LoadAsync(JVLinkObject.Central,
             //JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
-            JVLinkDataspec.Race,
+            JVLinkDataspec.Blod,
             JVLinkOpenOption.Setup,
             raceKey: null,
             startTime: start,
             endTime: start.AddMonths(1),
-            loadSpecs: new string[] { "O1", "O2", "O3", "O4", "O5", "O6", });
-            //loadSpecs: new string[] { "WC", });
-            //loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "JC", "HC", "WC", "HR", });
+            //loadSpecs: new string[] { "O1", "O2", "O3", "O4", "O5", "O6", });
+            loadSpecs: new string[] { "SK", "UM", "HN", });
+            //loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "JC", "HC", "WC", "HR", });
           Console.WriteLine();
           Console.WriteLine();
         }

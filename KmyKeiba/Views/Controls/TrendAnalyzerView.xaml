@@ -47,37 +47,9 @@
       <Button Grid.Row="2" Height="40" FontSize="18" Content="分析する" Margin="0,8,0,0"
               Click="AnalysisButton_Click"/>
 
-      <!--
-      <ScrollViewer Grid.Row="2">
-        <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding Selector.CurrentAnalyzer.Value.MenuItems,ElementName=Root}">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <StackPanel Margin="0,8,0,0">
-                <StackPanel.Resources>
-                  <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
-                    <Setter Property="Width" Value="180"/>
-                    <Setter Property="Height" Value="60"/>
-                    <Setter Property="Padding" Value="0"/>
-                    <Setter Property="GroupName" Value="{Binding UniqueId,ElementName=Root}"/>
-                  </Style>
-                </StackPanel.Resources>
-              </StackPanel>
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <RadioButton IsChecked="{Binding IsChecked.Value,Mode=TwoWay}">
-                <StackPanel Width="160">
-                  <TextBlock FontSize="16" Text="{Binding Key,Converter={StaticResource LabelConv}}"/>
-                  <TextBlock FontSize="22" FontWeight="Bold" Text="{Binding Value.Value}"
-                             HorizontalAlignment="Right"/>
-                </StackPanel>
-              </RadioButton>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+      <ScrollViewer Grid.Row="3">
+        <ContentControl Content="{Binding MenuContent,ElementName=Root}"/>
       </ScrollViewer>
-      -->
     </Grid>
   </Grid>
 </UserControl>
