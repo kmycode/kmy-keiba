@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Data.Db;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Race;
@@ -71,6 +72,14 @@ namespace KmyKeiba.Models.Analysis
 
       public ResultOrderGradeMap SameRiderGrade { get; }
 
+      public ResultOrderGradeMap SprinterGrade { get; }
+
+      public ResultOrderGradeMap MylarGrade { get; }
+
+      public ResultOrderGradeMap ClassicDistanceGrade { get; }
+
+      public ResultOrderGradeMap SteyerGrade { get; }
+
       /// <summary>
       /// 後３ハロンタイム指数
       /// </summary>
@@ -80,6 +89,16 @@ namespace KmyKeiba.Models.Analysis
       /// タイム指数
       /// </summary>
       public double TimeDeviationValue { get; }
+
+      /// <summary>
+      /// 距離適性
+      /// </summary>
+      public DistanceAptitude BestDistance { get; }
+
+      /// <summary>
+      /// ２番目の距離適性
+      /// </summary>
+      public DistanceAptitude SecondDistance { get; }
 
       public HistoryData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseAnalyzer> raceHistory)
       {
@@ -119,6 +138,28 @@ namespace KmyKeiba.Models.Analysis
             .Where(r => r.Race.TrackCondition == race.TrackCondition).Select(r => r.Data).ToArray());
           this.SameRiderGrade = new ResultOrderGradeMap(this.BeforeRaces
             .Where(r => r.Data.RiderCode == horse.RiderCode).Select(r => r.Data).ToArray());
+
+          // 距離適性
+          this.SprinterGrade = new ResultOrderGradeMap(this.BeforeRaces
+            .Where(r => r.Race.Distance < 1400).Select(r => r.Data).ToArray());
+          this.MylarGrade = new ResultOrderGradeMap(this.BeforeRaces
+            .Where(r => r.Race.Distance >= 1400 && r.Race.Distance < 1800).Select(r => r.Data).ToArray());
+          this.ClassicDistanceGrade = new ResultOrderGradeMap(this.BeforeRaces
+            .Where(r => r.Race.Distance >= 1800 && r.Race.Distance < 2400).Select(r => r.Data).ToArray());
+          this.SteyerGrade = new ResultOrderGradeMap(this.BeforeRaces
+            .Where(r => r.Race.Distance >= 2400).Select(r => r.Data).ToArray());
+          var distances = new Dictionary<DistanceAptitude, ResultOrderGradeMap>
+          {
+            { DistanceAptitude.Sprinter, this.SprinterGrade },
+            { DistanceAptitude.Mylar, this.MylarGrade },
+            { DistanceAptitude.ClassicDistance, this.ClassicDistanceGrade },
+            { DistanceAptitude.Steyer, this.SteyerGrade },
+          };
+          var ranking = distances.OrderByDescending(d => d.Value.PlacingBetsRate).ToArray();
+          this.BestDistance = distances.All(d => d.Value.LoseCount == d.Value.AllCount) ? DistanceAptitude.Unknown :
+            ranking.ElementAt(0).Key;
+          this.SecondDistance = distances.Count(d => d.Value.LoseCount == d.Value.AllCount) >= 3 ? DistanceAptitude.Unknown :
+            ranking.ElementAt(1).Key;
         }
       }
     }
@@ -257,6 +298,25 @@ namespace KmyKeiba.Models.Analysis
     Good,
     Bad,
   }
+
+  public enum DistanceAptitude
+  {
+    [Label("不明")]
+    Unknown,
+
+    [Label("短距離")]
+    Sprinter,
+
+    [Label("マイル")]
+    Mylar,
+
+    [Label("中距離")]
+    ClassicDistance,
+
+    [Label("長距離")]
+    Steyer,
+  }
+
   public struct ResultOrderGradeMap
   {
     public int FirstCount { get; } = 0;

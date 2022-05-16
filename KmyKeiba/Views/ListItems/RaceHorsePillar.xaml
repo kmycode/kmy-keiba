@@ -11,13 +11,17 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.ListItems"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
-  <StackPanel Orientation="Horizontal">
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="auto"/>
+      <ColumnDefinition/>
+    </Grid.ColumnDefinitions>
     
     <!--枠色-->
     <Border Width="8" Background="{Binding Horse.Data.FrameNumber,ElementName=Root,Converter={StaticResource FrameNumberBrushConv}}"
             Margin="0,0,8,0"/>
 
-    <StackPanel Margin="0,8">
+    <StackPanel Margin="0,8" Grid.Column="1">
 
       <!--基本情報-->
       <Grid Margin="0,2,0,4">
@@ -115,19 +119,21 @@
             Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="auto"/>
-          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
-        <StackPanel Width="40" VerticalAlignment="Center">
-          <Polygon Points="8,0 8,20 0,10" Fill="{DynamicResource ThinSubForeground}" StrokeThickness="0"
-                   HorizontalAlignment="Center"/>
-          <TextBlock Text="{Binding Horse.Data.PreviousRaceDays,ElementName=Root}" FontSize="14" TextAlignment="Center"/>
-        </StackPanel>
+        <Border Width="40" Height="64" VerticalAlignment="Top">
+          <StackPanel VerticalAlignment="Center">
+            <Polygon Points="8,0 8,20 0,10" Fill="{DynamicResource ThinSubForeground}" StrokeThickness="0"
+                     HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding Horse.Data.PreviousRaceDays,ElementName=Root}" FontSize="14" TextAlignment="Center"/>
+          </StackPanel>
+        </Border>
 
-        <ItemsControl Grid.Column="1" ItemsSource="{Binding Horse.History.BeforeFiveRaces,ElementName=Root}">
+        <ItemsControl Grid.Column="1" x:Name="History" ItemsSource="{Binding Horse.History.BeforeFiveRaces,ElementName=Root}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <StackPanel Orientation="Horizontal"/>
+              <WrapPanel Orientation="Horizontal"/>
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
@@ -177,5 +183,5 @@
         </ItemsControl>
       </Grid>
     </StackPanel>
-  </StackPanel>
+  </Grid>
 </UserControl>

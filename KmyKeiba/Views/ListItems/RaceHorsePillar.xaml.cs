@@ -47,6 +47,29 @@ namespace KmyKeiba.Views.ListItems
       set { SetValue(IsResultProperty, value); }
     }
 
+    public static readonly DependencyProperty IsAllRacesProperty
+    = DependencyProperty.Register(
+        nameof(IsAllRaces),
+        typeof(bool),
+        typeof(RaceHorsePillar),
+        new PropertyMetadata(false, (sender, e) =>
+        {
+          if (sender is RaceHorsePillar view)
+          {
+            var binding = new Binding(view.IsAllRaces ? "Horse.History.BeforeRaces" : "Horse.History.BeforeFiveRaces")
+            {
+              Source = view,
+            };
+            view.History.SetBinding(ItemsControl.ItemsSourceProperty, binding);
+          }
+        }));
+
+    public bool IsAllRaces
+    {
+      get { return (bool)GetValue(IsAllRacesProperty); }
+      set { SetValue(IsAllRacesProperty, value); }
+    }
+
     public RaceHorsePillar()
     {
       InitializeComponent();
