@@ -114,7 +114,8 @@ namespace KmyKeiba.Data.Db
           {
             if (f1 == f2)
             {
-              continue;
+              // 枠連は同じ数字同士で買えることがある
+              //continue;
             }
             var data = odds.Odds.FirstOrDefault(o => (o.Frame1 == f1 && o.Frame2 == f2) || (o.Frame1 == f2 && o.Frame2 == f1));
             values.Add((ushort)data.Odds);
@@ -130,13 +131,19 @@ namespace KmyKeiba.Data.Db
       var list = new List<FrameNumberOdds.OddsData>();
 
       var i = 0;
+      var len = this.Odds.Length;
       for (var f1 = 1; f1 <= this.FramesCount; f1++)
       {
         for (var f2 = f1; f2 <= this.FramesCount; f2++)
         {
           if (f1 == f2)
           {
-            continue;
+            // 枠連は番号が同じになることがある
+            // continue;
+          }
+          if (i + 1 >= len)
+          {
+            break;
           }
           var value = (this.Odds[i] << 8) + this.Odds[i + 1];
           i += 2;
@@ -213,6 +220,7 @@ namespace KmyKeiba.Data.Db
       var list = new List<QuinellaPlaceOdds.OddsData>();
 
       var i = 0;
+      var len = this.OddsMax.Length;
       for (var f1 = 1; f1 <= this.HorsesCount; f1++)
       {
         for (var f2 = f1; f2 <= this.HorsesCount; f2++)
@@ -220,6 +228,10 @@ namespace KmyKeiba.Data.Db
           if (f1 == f2)
           {
             continue;
+          }
+          if (i + 1 >= len)
+          {
+            break;
           }
           var valueMax = (this.OddsMax[i] << 8) + this.OddsMax[i + 1];
           var valueMin = (this.OddsMin[i] << 8) + this.OddsMin[i + 1];
@@ -292,6 +304,7 @@ namespace KmyKeiba.Data.Db
       var list = new List<QuinellaOdds.OddsData>();
 
       var i = 0;
+      var len = this.Odds.Length;
       for (var f1 = 1; f1 <= this.HorsesCount; f1++)
       {
         for (var f2 = f1; f2 <= this.HorsesCount; f2++)
@@ -299,6 +312,10 @@ namespace KmyKeiba.Data.Db
           if (f1 == f2)
           {
             continue;
+          }
+          if (i + 2 >= len)
+          {
+            break;
           }
           var value = (this.Odds[i] << 16) + (this.Odds[i + 1] << 8) + this.Odds[i + 2];
           i += 3;
@@ -369,6 +386,7 @@ namespace KmyKeiba.Data.Db
       var list = new List<ExactaOdds.OddsData>();
 
       var i = 0;
+      var len = this.Odds.Length;
       for (var f1 = 1; f1 <= this.HorsesCount; f1++)
       {
         for (var f2 = 1; f2 <= this.HorsesCount; f2++)
@@ -376,6 +394,10 @@ namespace KmyKeiba.Data.Db
           if (f1 == f2)
           {
             continue;
+          }
+          if (i + 2 >= len)
+          {
+            break;
           }
           var value = (this.Odds[i] << 16) + (this.Odds[i + 1] << 8) + this.Odds[i + 2];
           i += 3;

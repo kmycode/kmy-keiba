@@ -100,13 +100,13 @@ namespace KmyKeiba.Downloader
           Console.WriteLine($"{year} 年 {month} 月");
           await loader.LoadAsync(JVLinkObject.Local,
             //JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
-            JVLinkDataspec.Blod,
+            JVLinkDataspec.Race,
             JVLinkOpenOption.Setup,
             raceKey: null,
             startTime: start,
             endTime: start.AddMonths(1),
             //loadSpecs: new string[] { "O1", "O2", "O3", "O4", "O5", "O6", });
-            loadSpecs: new string[] { "SK", "UM", "HN", });
+            loadSpecs: new string[] { "O1", });
             //loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "JC", "HC", "WC", "HR", });
           Console.WriteLine();
           Console.WriteLine();
