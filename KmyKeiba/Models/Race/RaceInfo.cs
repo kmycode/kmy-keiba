@@ -37,6 +37,8 @@ namespace KmyKeiba.Models.Race
 
     public PayoffInfo? Payoff { get; }
 
+    public ReactiveProperty<OddsInfo?> Odds { get; } = new();
+
     public string Name => this.Subject.DisplayName;
 
     private RaceInfo(RaceData race)
@@ -164,6 +166,13 @@ namespace KmyKeiba.Models.Race
           });
         }
         info.SetHorsesDelay(horseInfos);
+
+        // オッズ
+        var frameOdds = await db.FrameNumberOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+        var quinellaPlaceOdds = await db.QuinellaPlaceOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+        var quinellaOdds = await db.QuinellaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+        var exactaOdds = await db.ExactaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+        info.Odds.Value = new OddsInfo(horses, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds);
 
         // 調教
         var historyStartDate = race.StartTime.AddMonths(-4);

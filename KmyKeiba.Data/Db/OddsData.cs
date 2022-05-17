@@ -125,6 +125,33 @@ namespace KmyKeiba.Data.Db
       }
     }
 
+    public IReadOnlyList<FrameNumberOdds.OddsData> RestoreOdds()
+    {
+      var list = new List<FrameNumberOdds.OddsData>();
+
+      var i = 0;
+      for (var f1 = 1; f1 <= this.FramesCount; f1++)
+      {
+        for (var f2 = f1; f2 <= this.FramesCount; f2++)
+        {
+          if (f1 == f2)
+          {
+            continue;
+          }
+          var value = (this.Odds[i] << 8) + this.Odds[i + 1];
+          i += 2;
+          list.Add(new FrameNumberOdds.OddsData
+          {
+            Frame1 = (short)f1,
+            Frame2 = (short)f2,
+            Odds = (short)value,
+          });
+        }
+      }
+
+      return list;
+    }
+
     public override bool IsEquals(DataBase<FrameNumberOdds> b)
     {
       var c = (FrameNumberOddsData)b;
@@ -181,6 +208,35 @@ namespace KmyKeiba.Data.Db
       }
     }
 
+    public IReadOnlyList<QuinellaPlaceOdds.OddsData> RestoreOdds()
+    {
+      var list = new List<QuinellaPlaceOdds.OddsData>();
+
+      var i = 0;
+      for (var f1 = 1; f1 <= this.HorsesCount; f1++)
+      {
+        for (var f2 = f1; f2 <= this.HorsesCount; f2++)
+        {
+          if (f1 == f2)
+          {
+            continue;
+          }
+          var valueMax = (this.OddsMax[i] << 8) + this.OddsMax[i + 1];
+          var valueMin = (this.OddsMin[i] << 8) + this.OddsMin[i + 1];
+          i += 2;
+          list.Add(new QuinellaPlaceOdds.OddsData
+          {
+            HorseNumber1 = (short)f1,
+            HorseNumber2 = (short)f2,
+            PlaceOddsMax = (short)valueMax,
+            PlaceOddsMin = (short)valueMin,
+          });
+        }
+      }
+
+      return list;
+    }
+
     public override bool IsEquals(DataBase<QuinellaPlaceOdds> b)
     {
       var c = (QuinellaPlaceOddsData)b;
@@ -231,6 +287,33 @@ namespace KmyKeiba.Data.Db
       }
     }
 
+    public IReadOnlyList<QuinellaOdds.OddsData> RestoreOdds()
+    {
+      var list = new List<QuinellaOdds.OddsData>();
+
+      var i = 0;
+      for (var f1 = 1; f1 <= this.HorsesCount; f1++)
+      {
+        for (var f2 = f1; f2 <= this.HorsesCount; f2++)
+        {
+          if (f1 == f2)
+          {
+            continue;
+          }
+          var value = (this.Odds[i] << 16) + (this.Odds[i + 1] << 8) + this.Odds[i + 2];
+          i += 3;
+          list.Add(new QuinellaOdds.OddsData
+          {
+            HorseNumber1 = (short)f1,
+            HorseNumber2 = (short)f2,
+            Odds = (short)value,
+          });
+        }
+      }
+
+      return list;
+    }
+
     public override bool IsEquals(DataBase<QuinellaOdds> b)
     {
       var c = (QuinellaOddsData)b;
@@ -279,6 +362,33 @@ namespace KmyKeiba.Data.Db
         var binary = values.SelectMany(v => new byte[] { (byte)(v >> 16 & 255), (byte)(v >> 8 & 255), (byte)(v & 255), }).ToArray();
         this.Odds = binary;
       }
+    }
+
+    public IReadOnlyList<ExactaOdds.OddsData> RestoreOdds()
+    {
+      var list = new List<ExactaOdds.OddsData>();
+
+      var i = 0;
+      for (var f1 = 1; f1 <= this.HorsesCount; f1++)
+      {
+        for (var f2 = 1; f2 <= this.HorsesCount; f2++)
+        {
+          if (f1 == f2)
+          {
+            continue;
+          }
+          var value = (this.Odds[i] << 16) + (this.Odds[i + 1] << 8) + this.Odds[i + 2];
+          i += 3;
+          list.Add(new ExactaOdds.OddsData
+          {
+            HorseNumber1 = (short)f1,
+            HorseNumber2 = (short)f2,
+            Odds = (short)value,
+          });
+        }
+      }
+
+      return list;
     }
 
     public override bool IsEquals(DataBase<ExactaOdds> b)
