@@ -90,6 +90,7 @@ namespace KmyKeiba.Data.DataObjects
       }
     }
 
+    /*
     public async Task RequestUniformBitmapAsync(MyContextBase db)
     {
       if (this.Data.UniformFormatData == null || this.Data.UniformFormatData.Length <= 0)
@@ -120,12 +121,12 @@ namespace KmyKeiba.Data.DataObjects
         catch (Exception ex)
         {
         }
-        */
         throw new NotSupportedException();
       }
 
       this.Uniform.Value = this.Data.UniformFormatData!;
     }
+  */
 
     public void Analytics(
       IEnumerable<HorseRaceAnalyticsData> cache,

@@ -122,7 +122,7 @@ namespace KmyKeiba.Downloader
             startTime: start,
             endTime: start.AddMonths(1),
             //loadSpecs: new string[] { "O1", "O2", "O3", "O4", "O5", "O6", });
-            loadSpecs: new string[] { "O1", });
+            loadSpecs: new string[] { "O5", "O6", });
             //loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "JC", "HC", "WC", "HR", });
           Console.WriteLine();
           Console.WriteLine();

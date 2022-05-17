@@ -27,7 +27,13 @@ namespace KmyKeiba.Models.Race
     private ReactiveProperty<OddsBlock<ExactaOdds.OddsData>> _exactas { get; } = new();
     public ReactiveProperty<OddsBlock<ExactaOdds.OddsData>> Exactas { get; } = new();
 
-    public OddsInfo(IReadOnlyList<RaceHorseData> horses, FrameNumberOddsData? frame, QuinellaPlaceOddsData? quinellaPlace, QuinellaOddsData? quinella, ExactaOddsData? exacta)
+    private ReactiveProperty<OddsBlockGroup<TrioOdds.OddsData>> _trios { get; } = new();
+    public ReactiveProperty<OddsBlockGroup<TrioOdds.OddsData>> Trios { get; } = new();
+
+    private ReactiveProperty<OddsBlockGroup<TrifectaOdds.OddsData>> _trifectas { get; } = new();
+    public ReactiveProperty<OddsBlockGroup<TrifectaOdds.OddsData>> Trifectas { get; } = new();
+
+    public OddsInfo(IReadOnlyList<RaceHorseData> horses, FrameNumberOddsData? frame, QuinellaPlaceOddsData? quinellaPlace, QuinellaOddsData? quinella, ExactaOddsData? exacta, TrioOddsData? trio, TrifectaOddsData? trifecta)
     {
       var singles = horses.OrderBy(h => h.Number).Select(h => new SingleTicket
       {
@@ -58,6 +64,16 @@ namespace KmyKeiba.Models.Race
       {
         var block = OddsBlock.Create(exacta);
         this._exactas.Value = this.Exactas.Value = block;
+      }
+      if (trio != null)
+      {
+        var block = OddsBlock.Create(trio);
+        this._trios.Value = this.Trios.Value = block;
+      }
+      if (trifecta != null)
+      {
+        var block = OddsBlock.Create(trifecta);
+        this._trifectas.Value = this.Trifectas.Value = block;
       }
     }
 
@@ -100,17 +116,31 @@ namespace KmyKeiba.Models.Race
   {
     public IReadOnlyList<short> Numbers { get; }
 
+    public short NumberInGroup { get; init; }
+
     public IReadOnlyList<OddsBlockColumn<T>> Columns { get; init; } = Array.Empty<OddsBlockColumn<T>>();
 
     public OddsBlock(int numbers)
     {
       this.Numbers = Enumerable.Range(1, numbers).Select(n => (short)n).ToArray();
     }
+
+    public OddsBlock(int numbers, int startNumber)
+    {
+      if (numbers - startNumber + 1 > 0)
+      {
+        this.Numbers = Enumerable.Range(startNumber, numbers - startNumber + 1).Select(n => (short)n).ToArray();
+      }
+      else
+      {
+        this.Numbers = Array.Empty<short>();
+      }
+    }
   }
 
   public static class OddsBlock
   {
-    private static ValueComparation OddsRange(short odds, short badMax, short goodMin)
+    private static ValueComparation OddsRange(uint odds, short badMax, short goodMin)
     {
       return odds >= goodMin ? ValueComparation.Good :
         odds <= badMax ? ValueComparation.Bad : ValueComparation.Standard;
@@ -126,7 +156,7 @@ namespace KmyKeiba.Models.Race
         for (var f2 = 1; f2 <= data.FramesCount; f2++)
         {
           var d = odds.FirstOrDefault(o => o.Frame1 == f1 && o.Frame2 == f2);
-          rows.Add(new OddsItem<FrameNumberOdds.OddsData>(d, OddsRange(d.Odds, 20, 500)));
+          rows.Add(new OddsItem<FrameNumberOdds.OddsData>(d, OddsRange((uint)d.Odds, 20, 500)));
         }
         var column = new OddsBlockColumn<FrameNumberOdds.OddsData>
         {
@@ -204,7 +234,7 @@ namespace KmyKeiba.Models.Race
         for (var f2 = 1; f2 <= data.HorsesCount; f2++)
         {
           var d = odds.FirstOrDefault(o => o.HorseNumber1 == f1 && o.HorseNumber2 == f2);
-          rows.Add(new OddsItem<ExactaOdds.OddsData>(d, OddsRange(d.Odds, 20, 500)));
+          rows.Add(new OddsItem<ExactaOdds.OddsData>(d, OddsRange((uint)d.Odds, 20, 500)));
         }
         var column = new OddsBlockColumn<ExactaOdds.OddsData>
         {
@@ -219,6 +249,78 @@ namespace KmyKeiba.Models.Race
         Columns = columns,
       };
     }
+
+    public static OddsBlockGroup<TrioOdds.OddsData> Create(TrioOddsData data)
+    {
+      var odds = data.RestoreOdds();
+      var blocks = new List<OddsBlock<TrioOdds.OddsData>>();
+      for (var f1 = 1; f1 <= data.HorsesCount - 2; f1++)
+      {
+        var columns = new List<OddsBlockColumn<TrioOdds.OddsData>>();
+        for (var f2 = f1 + 1; f2 <= data.HorsesCount - 1; f2++)
+        {
+          var rows = new List<OddsItem<TrioOdds.OddsData>>();
+          for (var f3 = f1 + 2; f3 <= data.HorsesCount; f3++)
+          {
+            var d = odds.FirstOrDefault(o => o.HorseNumber1 == f1 && o.HorseNumber2 == f2 && o.HorseNumber3 == f3);
+            rows.Add(new OddsItem<TrioOdds.OddsData>(d, OddsRange((uint)d.Odds, 20, 500)));
+          }
+          var column = new OddsBlockColumn<TrioOdds.OddsData>
+          {
+            Number = (short)f2,
+            Odds = rows,
+          };
+          columns.Add(column);
+        }
+        var block = new OddsBlock<TrioOdds.OddsData>(data.HorsesCount, f1 + 2)
+        {
+          NumberInGroup = (short)f1,
+          Columns = columns,
+        };
+        blocks.Add(block);
+      }
+
+      return new OddsBlockGroup<TrioOdds.OddsData>()
+      {
+        Blocks = blocks,
+      };
+    }
+
+    public static OddsBlockGroup<TrifectaOdds.OddsData> Create(TrifectaOddsData data)
+    {
+      var odds = data.RestoreOdds();
+      var blocks = new List<OddsBlock<TrifectaOdds.OddsData>>();
+      for (var f1 = 1; f1 <= data.HorsesCount; f1++)
+      {
+        var columns = new List<OddsBlockColumn<TrifectaOdds.OddsData>>();
+        for (var f2 = 1; f2 <= data.HorsesCount; f2++)
+        {
+          var rows = new List<OddsItem<TrifectaOdds.OddsData>>();
+          for (var f3 = 1; f3 <= data.HorsesCount; f3++)
+          {
+            var d = odds.FirstOrDefault(o => o.HorseNumber1 == f1 && o.HorseNumber2 == f2 && o.HorseNumber3 == f3);
+            rows.Add(new OddsItem<TrifectaOdds.OddsData>(d, OddsRange((uint)d.Odds, 20, 500)));
+          }
+          var column = new OddsBlockColumn<TrifectaOdds.OddsData>
+          {
+            Number = (short)f2,
+            Odds = rows,
+          };
+          columns.Add(column);
+        }
+        var block = new OddsBlock<TrifectaOdds.OddsData>(data.HorsesCount)
+        {
+          NumberInGroup = (short)f1,
+          Columns = columns,
+        };
+        blocks.Add(block);
+      }
+
+      return new OddsBlockGroup<TrifectaOdds.OddsData>()
+      {
+        Blocks = blocks,
+      };
+    }
   }
 
   public class OddsBlockColumn<T>
@@ -226,5 +328,10 @@ namespace KmyKeiba.Models.Race
     public short Number { get; init; }
 
     public IReadOnlyList<OddsItem<T>> Odds { get; init; } = Array.Empty<OddsItem<T>>();
+  }
+
+  public class OddsBlockGroup<T>
+  {
+    public IReadOnlyList<OddsBlock<T>> Blocks { get; init; } = Array.Empty<OddsBlock<T>>();
   }
 }

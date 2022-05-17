@@ -17,9 +17,17 @@ namespace KmyKeiba.Converters
       {
         return sv == default ? Visibility.Collapsed : Visibility.Visible;
       }
+      if (value is ushort usv)
+      {
+        return usv == default ? Visibility.Collapsed : Visibility.Visible;
+      }
       if (value is int iv)
       {
         return iv == default ? Visibility.Collapsed : Visibility.Visible;
+      }
+      if (value is uint uiv)
+      {
+        return uiv == default ? Visibility.Collapsed : Visibility.Visible;
       }
       throw new NotImplementedException();
     }

@@ -240,8 +240,8 @@ namespace KmyKeiba.Data.Db
           {
             HorseNumber1 = (short)f1,
             HorseNumber2 = (short)f2,
-            PlaceOddsMax = (short)valueMax,
-            PlaceOddsMin = (short)valueMin,
+            PlaceOddsMax = (ushort)valueMax,
+            PlaceOddsMin = (ushort)valueMin,
           });
         }
       }
@@ -323,7 +323,7 @@ namespace KmyKeiba.Data.Db
           {
             HorseNumber1 = (short)f1,
             HorseNumber2 = (short)f2,
-            Odds = (short)value,
+            Odds = (uint)value,
           });
         }
       }
@@ -405,7 +405,7 @@ namespace KmyKeiba.Data.Db
           {
             HorseNumber1 = (short)f1,
             HorseNumber2 = (short)f2,
-            Odds = (short)value,
+            Odds = (uint)value,
           });
         }
       }
@@ -443,7 +443,7 @@ namespace KmyKeiba.Data.Db
 
       if (odds.Odds.Any())
       {
-        this.HorsesCount = odds.Odds.Max(o => Math.Max(o.HorseNumber1, o.HorseNumber2));
+        this.HorsesCount = odds.Odds.Max(o => Math.Max(Math.Max(o.HorseNumber1, o.HorseNumber2), o.HorseNumber3));
 
         var values = new List<uint>();
         for (var h1 = 1; h1 <= this.HorsesCount; h1++)
@@ -476,6 +476,46 @@ namespace KmyKeiba.Data.Db
       }
     }
 
+    public IReadOnlyList<TrioOdds.OddsData> RestoreOdds()
+    {
+      var list = new List<TrioOdds.OddsData>();
+
+      var i = 0;
+      var len = this.Odds.Length;
+      for (var f1 = 1; f1 <= this.HorsesCount; f1++)
+      {
+        for (var f2 = f1; f2 <= this.HorsesCount; f2++)
+        {
+          if (f1 == f2)
+          {
+            continue;
+          }
+          for (var f3 = f2; f3 <= this.HorsesCount; f3++)
+          {
+            if (f1 == f3 || f2 == f3)
+            {
+              continue;
+            }
+            if (i + 2 >= len)
+            {
+              break;
+            }
+            var value = (this.Odds[i] << 16) + (this.Odds[i + 1] << 8) + this.Odds[i + 2];
+            i += 3;
+            list.Add(new TrioOdds.OddsData
+            {
+              HorseNumber1 = (short)f1,
+              HorseNumber2 = (short)f2,
+              HorseNumber3 = (short)f3,
+              Odds = (uint)value,
+            });
+          }
+        }
+      }
+
+      return list;
+    }
+
     public override bool IsEquals(DataBase<TrioOdds> b)
     {
       var c = (TrioOddsData)b;
@@ -506,7 +546,7 @@ namespace KmyKeiba.Data.Db
 
       if (odds.Odds.Any())
       {
-        this.HorsesCount = odds.Odds.Max(o => Math.Max(o.HorseNumber1, o.HorseNumber2));
+        this.HorsesCount = odds.Odds.Max(o => Math.Max(Math.Max(o.HorseNumber1, o.HorseNumber2), o.HorseNumber3));
 
         var values = new List<uint>();
         for (var h1 = 1; h1 <= this.HorsesCount; h1++)
@@ -531,6 +571,46 @@ namespace KmyKeiba.Data.Db
         var binary = values.SelectMany(v => new byte[] { (byte)(v >> 24 & 255), (byte)(v >> 16 & 255), (byte)(v >> 8 & 255), (byte)(v & 255), }).ToArray();
         this.Odds = binary;
       }
+    }
+
+    public IReadOnlyList<TrifectaOdds.OddsData> RestoreOdds()
+    {
+      var list = new List<TrifectaOdds.OddsData>();
+
+      var i = 0;
+      var len = this.Odds.Length;
+      for (var f1 = 1; f1 <= this.HorsesCount; f1++)
+      {
+        for (var f2 = 1; f2 <= this.HorsesCount; f2++)
+        {
+          if (f1 == f2)
+          {
+            continue;
+          }
+          for (var f3 = 1; f3 <= this.HorsesCount; f3++)
+          {
+            if (f1 == f3 || f2 == f3)
+            {
+              continue;
+            }
+            if (i + 3 >= len)
+            {
+              break;
+            }
+            var value = (this.Odds[i] << 24) + (this.Odds[i + 1] << 16) + (this.Odds[i + 2] << 8) + this.Odds[i + 3];
+            i += 4;
+            list.Add(new TrifectaOdds.OddsData
+            {
+              HorseNumber1 = (short)f1,
+              HorseNumber2 = (short)f2,
+              HorseNumber3 = (short)f3,
+              Odds = (uint)value,
+            });
+          }
+        }
+      }
+
+      return list;
     }
 
     public override bool IsEquals(DataBase<TrifectaOdds> b)

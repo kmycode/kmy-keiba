@@ -15,14 +15,22 @@ namespace KmyKeiba.Converters
   {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-      var order = 0;
+      var order = 0L;
       if (value is short os)
       {
         order = os;
       }
+      else if (value is ushort us)
+      {
+        order = us;
+      }
       else if (value is int oi)
       {
         order = oi;
+      }
+      else if (value is uint ui)
+      {
+        order = ui;
       }
       else
       {

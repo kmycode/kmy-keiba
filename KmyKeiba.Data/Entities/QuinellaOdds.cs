@@ -22,7 +22,7 @@ namespace KmyKeiba.JVLink.Entities
 
       public short HorseNumber2 { get; init; }
 
-      public short Odds { get; init; }
+      public uint Odds { get; init; }
     }
 
     public static QuinellaOdds FromJV(JVData_Struct.JV_O2_ODDS_UMAREN odds)
@@ -45,7 +45,7 @@ namespace KmyKeiba.JVLink.Entities
           continue;
         }
 
-        short.TryParse(data.Odds, out short oval);
+        uint.TryParse(data.Odds, out uint oval);
 
         od.Odds.Add(new OddsData
         {

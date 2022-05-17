@@ -22,9 +22,9 @@ namespace KmyKeiba.JVLink.Entities
 
       public short HorseNumber2 { get; init; }
 
-      public short PlaceOddsMin { get; init; }
+      public ushort PlaceOddsMin { get; init; }
 
-      public short PlaceOddsMax { get; init; }
+      public ushort PlaceOddsMax { get; init; }
     }
 
     public static QuinellaPlaceOdds FromJV(JVData_Struct.JV_O3_ODDS_WIDE odds)
@@ -47,8 +47,8 @@ namespace KmyKeiba.JVLink.Entities
           continue;
         }
 
-        short.TryParse(data.OddsHigh, out short oval2max);
-        short.TryParse(data.OddsLow, out short oval2min);
+        ushort.TryParse(data.OddsHigh, out ushort oval2max);
+        ushort.TryParse(data.OddsLow, out ushort oval2min);
 
         od.Odds.Add(new OddsData
         {
