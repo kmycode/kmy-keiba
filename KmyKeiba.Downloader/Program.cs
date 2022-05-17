@@ -18,6 +18,7 @@ namespace KmyKeiba.Downloader
     private static int loadStartMonth;
     private static int loadingYear;
     private static int loadingMonth;
+    private static int beforeProcessNumber;
 
     [STAThread]
     public static void Main(string[] args)
@@ -31,6 +32,21 @@ namespace KmyKeiba.Downloader
       if (args.Length >= 2 + startIndex)
       {
         _ = int.TryParse(args[1 + startIndex], out loadStartMonth);
+      }
+      if (args.Length >= 3 + startIndex)
+      {
+        _ = int.TryParse(args[2 + startIndex], out beforeProcessNumber);
+        try
+        {
+          if (beforeProcessNumber != 0)
+          {
+            Process.GetProcessById(beforeProcessNumber)?.Kill();
+          }
+        }
+        catch
+        {
+          // 切り捨てる
+        }
       }
 
       // マイグレーション
@@ -124,7 +140,9 @@ namespace KmyKeiba.Downloader
 
     public static Task RestartProgramAsync(bool isIncrement)
     {
-      // TODO: ここにDBに復帰情報を保存するコードを追加する
+      var myProcess = Process.GetCurrentProcess();
+      var myProcessNumber = myProcess?.Id ?? 0;
+
       var month = loadingMonth;
       var year = loadingYear;
       if (isIncrement)
@@ -148,6 +166,7 @@ namespace KmyKeiba.Downloader
           selfPath,
           year.ToString(),
           month.ToString(),
+          myProcessNumber.ToString(),
         },
           Verb = "RunAs",    // 管理者権限
         });
