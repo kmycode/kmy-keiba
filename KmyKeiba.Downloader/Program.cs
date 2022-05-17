@@ -211,7 +211,10 @@ namespace KmyKeiba.Downloader
 
       while (targets.Any())
       {
-        var targetHorses = await db.RaceHorses!.Where(rh => targets.Contains(rh.Key)).ToArrayAsync();
+        var targetHorses = await db.RaceHorses!
+          .Where(rh => targets.Contains(rh.Key))
+          .Select(rh => new { rh.Id, rh.Key, rh.RaceKey, })
+          .ToArrayAsync();
 
         foreach (var horse in targets)
         {
@@ -229,13 +232,15 @@ namespace KmyKeiba.Downloader
             _ = int.TryParse(d, out var day);
             var dh = new DateTime(year, month, day);
 
+            var attach = new RaceHorseData { Id = race.Id, };
+            db.RaceHorses!.Attach(attach);
             if (!isFirst)
             {
-              race.PreviousRaceDays = System.Math.Max((short)(dh - beforeRaceDh).TotalDays, (short)1);
+              attach.PreviousRaceDays = System.Math.Max((short)(dh - beforeRaceDh).TotalDays, (short)1);
             }
             else
             {
-              race.PreviousRaceDays = -1;
+              attach.PreviousRaceDays = -1;
               isFirst = false;
             }
 
