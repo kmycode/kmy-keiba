@@ -87,8 +87,8 @@ namespace KmyKeiba.Downloader
 
     private static async Task LoadAsync(JVLinkLoader loader)
     {
-      var startYear = 2017;
-      var startMonth = 1;
+      var startYear = 2020;
+      var startMonth = 11;
 
       if (loadStartYear > 0) startYear = loadStartYear;
       if (loadStartMonth > 0) startMonth = loadStartMonth;

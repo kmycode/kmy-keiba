@@ -179,6 +179,10 @@
           <RowDefinition Height="auto"/>
           <RowDefinition/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
         <FrameworkElement.Resources>
           <Style TargetType="TextBlock" x:Key="HorseNumber" BasedOn="{StaticResource SubTextBlock}">
             <Setter Property="FontSize" Value="20"/>
@@ -193,7 +197,7 @@
           </Style>
         </FrameworkElement.Resources>
 
-        <Grid>
+        <Grid Grid.ColumnSpan="2">
           <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition/>
@@ -219,7 +223,24 @@
                        Content="三連単" Name="SO_Trifecta"/>
         </Grid>
 
-        <ScrollViewer Grid.Row="1" Visibility="{Binding IsChecked,ElementName=SO_Single,Converter={StaticResource BooleanVisibilityConv}}">
+        <!--フィルター（バグあり）-->
+        <!--
+        <ScrollViewer Grid.Row="1">
+          <ItemsControl ItemsSource="{Binding Race.Odds.Value.Filters,ElementName=Root}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <ToggleButton IsChecked="{Binding IsChecked.Value,Mode=TwoWay}">
+                  <Border>
+                    <TextBlock Text="{Binding Number}" FontSize="24"/>
+                  </Border>
+                </ToggleButton>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+        -->
+        
+        <ScrollViewer Grid.Row="1" Grid.Column="1" Visibility="{Binding IsChecked,ElementName=SO_Single,Converter={StaticResource BooleanVisibilityConv}}">
           <StackPanel>
             <StackPanel Orientation="Horizontal">
               <Border BorderBrush="{DynamicResource SingleTicketBackground}" BorderThickness="0,0,0,4" Width="80" Margin="60,0,0,0">
@@ -235,7 +256,7 @@
                 <TextBlock Text="複勝" FontSize="16" Margin="8" HorizontalAlignment="Center"/>
               </Border>
             </StackPanel>
-            <ItemsControl ItemsSource="{Binding Race.Odds.Value.Singles,ElementName=Root}">
+            <ItemsControl ItemsSource="{Binding Race.Odds.Value.Singles.Value,ElementName=Root}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <WrapPanel Orientation="Vertical"/>
@@ -262,7 +283,7 @@
           </StackPanel>
         </ScrollViewer>
 
-        <ScrollViewer Grid.Row="1" Visibility="{Binding IsChecked,ElementName=SO_Frame,Converter={StaticResource BooleanVisibilityConv}}">
+        <ScrollViewer Grid.Row="1" Grid.Column="1" Visibility="{Binding IsChecked,ElementName=SO_Frame,Converter={StaticResource BooleanVisibilityConv}}">
           <StackPanel Orientation="Horizontal">
             <ItemsControl ItemsSource="{Binding Race.Odds.Value.Frames.Value.Numbers,ElementName=Root}" Margin="0,70,0,0">
               <ItemsControl.ItemTemplate>
@@ -304,7 +325,7 @@
           </StackPanel>
         </ScrollViewer>
 
-        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" Visibility="{Binding IsChecked,ElementName=SO_QuinellaPlace,Converter={StaticResource BooleanVisibilityConv}}">
+        <ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Auto" Visibility="{Binding IsChecked,ElementName=SO_QuinellaPlace,Converter={StaticResource BooleanVisibilityConv}}">
           <StackPanel Orientation="Horizontal">
             <ItemsControl ItemsSource="{Binding Race.Odds.Value.QuinellaPlaces.Value.Numbers,ElementName=Root}" Margin="0,70,0,0">
               <ItemsControl.ItemTemplate>
@@ -347,7 +368,7 @@
           </StackPanel>
         </ScrollViewer>
 
-        <ScrollViewer Grid.Row="1" Visibility="{Binding IsChecked,ElementName=SO_Quinella,Converter={StaticResource BooleanVisibilityConv}}">
+        <ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Auto" Visibility="{Binding IsChecked,ElementName=SO_Quinella,Converter={StaticResource BooleanVisibilityConv}}">
           <StackPanel Orientation="Horizontal">
             <ItemsControl ItemsSource="{Binding Race.Odds.Value.Quinellas.Value.Numbers,ElementName=Root}" Margin="0,70,0,0">
               <ItemsControl.ItemTemplate>
@@ -389,7 +410,7 @@
           </StackPanel>
         </ScrollViewer>
 
-        <ScrollViewer Grid.Row="1" Visibility="{Binding IsChecked,ElementName=SO_Exacta,Converter={StaticResource BooleanVisibilityConv}}">
+        <ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Auto" Visibility="{Binding IsChecked,ElementName=SO_Exacta,Converter={StaticResource BooleanVisibilityConv}}">
           <StackPanel Orientation="Horizontal">
             <ItemsControl ItemsSource="{Binding Race.Odds.Value.Exactas.Value.Numbers,ElementName=Root}" Margin="0,70,0,0">
               <ItemsControl.ItemTemplate>
@@ -431,7 +452,7 @@
           </StackPanel>
         </ScrollViewer>
 
-        <ScrollViewer Grid.Row="1" Visibility="{Binding IsChecked,ElementName=SO_Trio,Converter={StaticResource BooleanVisibilityConv}}">
+        <ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Auto" Visibility="{Binding IsChecked,ElementName=SO_Trio,Converter={StaticResource BooleanVisibilityConv}}">
           <StackPanel Orientation="Horizontal">
             <ItemsControl ItemsSource="{Binding Race.Odds.Value.Trios.Value.Blocks,ElementName=Root}">
               <ItemsControl.ItemTemplate>
@@ -486,7 +507,7 @@
           </StackPanel>
         </ScrollViewer>
 
-        <ScrollViewer Grid.Row="1" Visibility="{Binding IsChecked,ElementName=SO_Trifecta,Converter={StaticResource BooleanVisibilityConv}}">
+        <ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Auto" Visibility="{Binding IsChecked,ElementName=SO_Trifecta,Converter={StaticResource BooleanVisibilityConv}}">
           <StackPanel Orientation="Horizontal">
             <ItemsControl ItemsSource="{Binding Race.Odds.Value.Trifectas.Value.Blocks,ElementName=Root}">
               <ItemsControl.ItemTemplate>

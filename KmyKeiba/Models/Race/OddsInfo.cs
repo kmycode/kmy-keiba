@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Analysis.Generic;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -12,26 +13,28 @@ namespace KmyKeiba.Models.Race
 {
   public class OddsInfo
   {
-    private ReactiveCollection<SingleTicket> _singles { get; } = new();
-    public ReactiveCollection<SingleTicket> Singles { get; } = new();
+    private OddsList<SingleTicket> _singles { get; } = new();
+    public ReactiveProperty<OddsList<SingleTicket>?> Singles { get; } = new();
 
-    private ReactiveProperty<OddsBlock<FrameNumberOdds.OddsData>> _frames { get; } = new();
-    public ReactiveProperty<OddsBlock<FrameNumberOdds.OddsData>> Frames { get; } = new();
+    private OddsBlock<FrameNumberOdds.OddsData>? _frames { get; }
+    public ReactiveProperty<OddsBlock<FrameNumberOdds.OddsData>?> Frames { get; } = new();
 
-    private ReactiveProperty<OddsBlock<QuinellaPlaceOdds.OddsData>> _quinellaPlaces { get; } = new();
-    public ReactiveProperty<OddsBlock<QuinellaPlaceOdds.OddsData>> QuinellaPlaces { get; } = new();
+    private OddsBlock<QuinellaPlaceOdds.OddsData>? _quinellaPlaces { get; }
+    public ReactiveProperty<OddsBlock<QuinellaPlaceOdds.OddsData>?> QuinellaPlaces { get; } = new();
 
-    private ReactiveProperty<OddsBlock<QuinellaOdds.OddsData>> _quinellas { get; } = new();
-    public ReactiveProperty<OddsBlock<QuinellaOdds.OddsData>> Quinellas { get; } = new();
+    private OddsBlock<QuinellaOdds.OddsData>? _quinellas { get; }
+    public ReactiveProperty<OddsBlock<QuinellaOdds.OddsData>?> Quinellas { get; } = new();
 
-    private ReactiveProperty<OddsBlock<ExactaOdds.OddsData>> _exactas { get; } = new();
-    public ReactiveProperty<OddsBlock<ExactaOdds.OddsData>> Exactas { get; } = new();
+    private OddsBlock<ExactaOdds.OddsData>? _exactas { get; }
+    public ReactiveProperty<OddsBlock<ExactaOdds.OddsData>?> Exactas { get; } = new();
 
-    private ReactiveProperty<OddsBlockGroup<TrioOdds.OddsData>> _trios { get; } = new();
-    public ReactiveProperty<OddsBlockGroup<TrioOdds.OddsData>> Trios { get; } = new();
+    private OddsBlockGroup<TrioOdds.OddsData>? _trios { get; } = new();
+    public ReactiveProperty<OddsBlockGroup<TrioOdds.OddsData>?> Trios { get; } = new();
 
-    private ReactiveProperty<OddsBlockGroup<TrifectaOdds.OddsData>> _trifectas { get; } = new();
-    public ReactiveProperty<OddsBlockGroup<TrifectaOdds.OddsData>> Trifectas { get; } = new();
+    private OddsBlockGroup<TrifectaOdds.OddsData>? _trifectas { get; } = new();
+    public ReactiveProperty<OddsBlockGroup<TrifectaOdds.OddsData>?> Trifectas { get; } = new();
+
+    public CheckableCollection<OddsFilterItem> Filters { get; } = new();
 
     public OddsInfo(IReadOnlyList<RaceHorseData> horses, FrameNumberOddsData? frame, QuinellaPlaceOddsData? quinellaPlace, QuinellaOddsData? quinella, ExactaOddsData? exacta, TrioOddsData? trio, TrifectaOddsData? trifecta)
     {
@@ -43,38 +46,62 @@ namespace KmyKeiba.Models.Race
         PlaceOddsMin = h.PlaceOddsMin,
       }).ToArray();
       AddRange(this._singles, singles);
-      AddRange(this.Singles, singles);
+      this.Singles.Value = this._singles;
 
       if (frame != null)
       {
         var block = OddsBlock.Create(frame);
-        this._frames.Value = this.Frames.Value = block;
+        this._frames = this.Frames.Value = block;
       }
       if (quinellaPlace != null)
       {
         var block = OddsBlock.Create(quinellaPlace);
-        this._quinellaPlaces.Value = this.QuinellaPlaces.Value = block;
+        this._quinellaPlaces = this.QuinellaPlaces.Value = block;
       }
       if (quinella != null)
       {
         var block = OddsBlock.Create(quinella);
-        this._quinellas.Value = this.Quinellas.Value = block;
+        this._quinellas = this.Quinellas.Value = block;
       }
       if (exacta != null)
       {
         var block = OddsBlock.Create(exacta);
-        this._exactas.Value = this.Exactas.Value = block;
+        this._exactas = this.Exactas.Value = block;
       }
       if (trio != null)
       {
         var block = OddsBlock.Create(trio);
-        this._trios.Value = this.Trios.Value = block;
+        this._trios = this.Trios.Value = block;
       }
       if (trifecta != null)
       {
         var block = OddsBlock.Create(trifecta);
-        this._trifectas.Value = this.Trifectas.Value = block;
+        this._trifectas = this.Trifectas.Value = block;
       }
+
+      // フィルター
+      var horseFrames = horses.Select(h => new { h.Number, h.FrameNumber, }).ToArray();
+      this.Filters = new MultipleCheckableCollection<OddsFilterItem>();
+      AddRange(this.Filters, horses.OrderBy(h => h.Number).Select(h => new OddsFilterItem
+      {
+        Number = h.Number,
+        IsChecked = { Value = true, },
+      }));
+      this.Filters.ChangedItemObservable.Subscribe(h =>
+      {
+        this.Singles.Value = this._singles.Filtering(this.Filters, t => t.Number1);
+        this.Frames.Value = this._frames?.Filtering(this.Filters, o =>
+        {
+          return horseFrames
+            .Where(hf => hf.FrameNumber == o.Frame1 || hf.FrameNumber == o.Frame2)
+            .Select(hf => hf.FrameNumber);
+        });
+        this.QuinellaPlaces.Value = this._quinellaPlaces?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, });
+        this.Quinellas.Value = this._quinellas?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, });
+        this.Exactas.Value = this._exactas?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, });
+        this.Trios.Value = this._trios?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, o.HorseNumber3, });
+        this.Trifectas.Value = this._trifectas?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, o.HorseNumber3, });
+      });
     }
 
     private static void AddRange<T>(ReactiveCollection<T> collection, IEnumerable<T> items)
@@ -112,13 +139,31 @@ namespace KmyKeiba.Models.Race
     }
   }
 
+  public class OddsList<T> : ReactiveCollection<T>
+  {
+    public OddsList<T> Filtering(IReadOnlyList<OddsFilterItem> filters, Func<T, short> horseNumber)
+    {
+      var items = this.Where(i => filters.Where(f => f.IsChecked.Value).Any(f => f.Number != horseNumber(i)));
+      var list = new OddsList<T>();
+      foreach (var item in items)
+      {
+        list.Add(item);
+      }
+      return list;
+    }
+  }
+
   public class OddsBlock<T>
   {
-    public IReadOnlyList<short> Numbers { get; }
+    public IReadOnlyList<short> Numbers { get; private init; } = Array.Empty<short>();
 
     public short NumberInGroup { get; init; }
 
     public IReadOnlyList<OddsBlockColumn<T>> Columns { get; init; } = Array.Empty<OddsBlockColumn<T>>();
+
+    private OddsBlock()
+    {
+    }
 
     public OddsBlock(int numbers)
     {
@@ -136,6 +181,21 @@ namespace KmyKeiba.Models.Race
         this.Numbers = Array.Empty<short>();
       }
     }
+
+    public OddsBlock<T> Filtering(IReadOnlyList<OddsFilterItem> filters, Func<T, IEnumerable<short>> itemNumbers)
+    {
+      var items = this.Columns
+        .Where(c => filters.Where(f => f.IsChecked.Value).Any(f => f.Number == c.Number))
+        .Select(c => c.Filtering(filters, itemNumbers))
+        .ToArray();
+      var numbers = filters.OrderBy(f => f.Number).Where(f => f.IsChecked.Value).Select(f => f.Number).ToArray();
+      return new OddsBlock<T>()
+      {
+        Numbers = Numbers,
+        NumberInGroup = this.NumberInGroup,
+        Columns = items,
+      };
+    }
   }
 
   public static class OddsBlock
@@ -145,6 +205,8 @@ namespace KmyKeiba.Models.Race
       return odds >= goodMin ? ValueComparation.Good :
         odds <= badMax ? ValueComparation.Bad : ValueComparation.Standard;
     }
+
+    #region Creations
 
     public static OddsBlock<FrameNumberOdds.OddsData> Create(FrameNumberOddsData data)
     {
@@ -321,6 +383,8 @@ namespace KmyKeiba.Models.Race
         Blocks = blocks,
       };
     }
+
+    #endregion
   }
 
   public class OddsBlockColumn<T>
@@ -328,10 +392,43 @@ namespace KmyKeiba.Models.Race
     public short Number { get; init; }
 
     public IReadOnlyList<OddsItem<T>> Odds { get; init; } = Array.Empty<OddsItem<T>>();
+
+    public OddsBlockColumn<T> Filtering(IReadOnlyList<OddsFilterItem> filters, Func<T, IEnumerable<short>> itemNumbers)
+    {
+      var items = this.Odds
+        .Where(o => !filters.Where(f => !f.IsChecked.Value).Any(f => itemNumbers(o.Data).Contains(f.Number)))
+        .ToArray();
+      return new OddsBlockColumn<T>
+      {
+        Number = this.Number,
+        Odds = items,
+      };
+    }
   }
 
   public class OddsBlockGroup<T>
   {
     public IReadOnlyList<OddsBlock<T>> Blocks { get; init; } = Array.Empty<OddsBlock<T>>();
+
+    public OddsBlockGroup<T> Filtering(IReadOnlyList<OddsFilterItem> filters, Func<T, IEnumerable<short>> itemNumbers)
+    {
+      var items = this.Blocks
+        .Where(b => filters.Where(f => f.IsChecked.Value).Any(f => f.Number == b.NumberInGroup))
+        .Select(b => b.Filtering(filters, itemNumbers))
+        .ToArray();
+      return new OddsBlockGroup<T>
+      {
+        Blocks = items,
+      };
+    }
+  }
+
+  public class OddsFilterItem : IMultipleCheckableItem
+  {
+    public short Number { get; init; }
+
+    public ReactiveProperty<bool> IsChecked { get; } = new();
+
+    public string? GroupName { get; }
   }
 }
