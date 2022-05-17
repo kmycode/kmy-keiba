@@ -218,7 +218,7 @@ namespace KmyKeiba.Models.Race
         for (var f2 = 1; f2 <= data.FramesCount; f2++)
         {
           var d = odds.FirstOrDefault(o => o.Frame1 == f1 && o.Frame2 == f2);
-          rows.Add(new OddsItem<FrameNumberOdds.OddsData>(d, OddsRange((uint)d.Odds, 20, 500)));
+          rows.Add(new OddsItem<FrameNumberOdds.OddsData>(d, OddsRange((uint)d.Odds, 20, 300)));
         }
         var column = new OddsBlockColumn<FrameNumberOdds.OddsData>
         {
@@ -244,7 +244,7 @@ namespace KmyKeiba.Models.Race
         for (var f2 = 1; f2 <= data.HorsesCount; f2++)
         {
           var d = odds.FirstOrDefault(o => o.HorseNumber1 == f1 && o.HorseNumber2 == f2);
-          rows.Add(new OddsItem<QuinellaPlaceOdds.OddsData>(d, OddsRange(d.PlaceOddsMax, 20, 500)));
+          rows.Add(new OddsItem<QuinellaPlaceOdds.OddsData>(d, OddsRange(d.PlaceOddsMax, 100, 300)));
         }
         var column = new OddsBlockColumn<QuinellaPlaceOdds.OddsData>
         {
@@ -270,7 +270,7 @@ namespace KmyKeiba.Models.Race
         for (var f2 = 1; f2 <= data.HorsesCount; f2++)
         {
           var d = odds.FirstOrDefault(o => o.HorseNumber1 == f1 && o.HorseNumber2 == f2);
-          rows.Add(new OddsItem<QuinellaOdds.OddsData>(d, OddsRange(d.Odds, 20, 500)));
+          rows.Add(new OddsItem<QuinellaOdds.OddsData>(d, OddsRange(d.Odds, 200, 1000)));
         }
         var column = new OddsBlockColumn<QuinellaOdds.OddsData>
         {
@@ -296,7 +296,7 @@ namespace KmyKeiba.Models.Race
         for (var f2 = 1; f2 <= data.HorsesCount; f2++)
         {
           var d = odds.FirstOrDefault(o => o.HorseNumber1 == f1 && o.HorseNumber2 == f2);
-          rows.Add(new OddsItem<ExactaOdds.OddsData>(d, OddsRange((uint)d.Odds, 20, 500)));
+          rows.Add(new OddsItem<ExactaOdds.OddsData>(d, OddsRange((uint)d.Odds, 400, 1500)));
         }
         var column = new OddsBlockColumn<ExactaOdds.OddsData>
         {
@@ -325,7 +325,7 @@ namespace KmyKeiba.Models.Race
           for (var f3 = f1 + 2; f3 <= data.HorsesCount; f3++)
           {
             var d = odds.FirstOrDefault(o => o.HorseNumber1 == f1 && o.HorseNumber2 == f2 && o.HorseNumber3 == f3);
-            rows.Add(new OddsItem<TrioOdds.OddsData>(d, OddsRange((uint)d.Odds, 20, 500)));
+            rows.Add(new OddsItem<TrioOdds.OddsData>(d, OddsRange((uint)d.Odds, 500, 5000)));
           }
           var column = new OddsBlockColumn<TrioOdds.OddsData>
           {
@@ -361,7 +361,7 @@ namespace KmyKeiba.Models.Race
           for (var f3 = 1; f3 <= data.HorsesCount; f3++)
           {
             var d = odds.FirstOrDefault(o => o.HorseNumber1 == f1 && o.HorseNumber2 == f2 && o.HorseNumber3 == f3);
-            rows.Add(new OddsItem<TrifectaOdds.OddsData>(d, OddsRange((uint)d.Odds, 20, 500)));
+            rows.Add(new OddsItem<TrifectaOdds.OddsData>(d, OddsRange((uint)d.Odds, 1000, 10000)));
           }
           var column = new OddsBlockColumn<TrifectaOdds.OddsData>
           {
