@@ -57,4 +57,13 @@
   <SolidColorBrush x:Key="SecondOrderBackground" Color="#11245d"/>
   <SolidColorBrush x:Key="ThirdOrderBackground" Color="#451111"/>
 
+  <SolidColorBrush x:Key="SingleTicketBackground" Color="#00596b"/>
+  <SolidColorBrush x:Key="PlaceTicketBackground" Color="#840027"/>
+  <SolidColorBrush x:Key="FrameNumberTicketBackground" Color="#6b8c00"/>
+  <SolidColorBrush x:Key="QuinellaPlaceTicketBackground" Color="#0091aa"/>
+  <SolidColorBrush x:Key="QuinellaTicketBackground" Color="#47005b"/>
+  <SolidColorBrush x:Key="ExactaTicketBackground" Color="#91008c"/>
+  <SolidColorBrush x:Key="TrioTicketBackground" Color="#007515"/>
+  <SolidColorBrush x:Key="TrifectaTicketBackground" Color="#a57400"/>
+
 </ResourceDictionary>

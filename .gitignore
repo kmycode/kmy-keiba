@@ -14,3 +14,4 @@ KmyKeiba.Downloader/bin/
 KmyKeiba.Downloader/obj/
 KmyKeiba.Old/bin/
 KmyKeiba.Old/obj/
+*.DS_Store

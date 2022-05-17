@@ -35,6 +35,8 @@ namespace KmyKeiba.Models.Race
 
     public RaceSubjectInfo Subject { get; }
 
+    public PayoffInfo? Payoff { get; }
+
     public string Name => this.Subject.DisplayName;
 
     private RaceInfo(RaceData race)
@@ -50,6 +52,11 @@ namespace KmyKeiba.Models.Race
 
       this.TrendAnalyzers = new RaceTrendAnalysisSelector(race);
       this.CourseSummaryImage.Race = race;
+    }
+
+    private RaceInfo(RaceData race, PayoffInfo? payoff) : this(race)
+    {
+      this.Payoff = payoff;
     }
 
     private void SetHorsesDelay(IReadOnlyList<RaceHorseAnalyzer> horses)
@@ -93,12 +100,19 @@ namespace KmyKeiba.Models.Race
         return null;
       }
 
-      return await FromDataAsync(db, race);
+      var payoff = await db.Refunds!.FirstOrDefaultAsync(r => r.RaceKey == key);
+      PayoffInfo? payoffInfo = null;
+      if (payoff != null)
+      {
+        payoffInfo = new PayoffInfo(payoff);
+      }
+
+      return await FromDataAsync(db, race, payoffInfo);
     }
 
-    public static Task<RaceInfo> FromDataAsync(MyContext db, RaceData race)
+    public static Task<RaceInfo> FromDataAsync(MyContext db, RaceData race, PayoffInfo? payoff)
     {
-      var info = new RaceInfo(race);
+      var info = new RaceInfo(race, payoff);
 
       AddCorner(info.Corners, race.Corner1Result, race.Corner1Number, race.Corner1Position, race.Corner1LapTime);
       AddCorner(info.Corners, race.Corner2Result, race.Corner2Number, race.Corner2Position, race.Corner2LapTime);

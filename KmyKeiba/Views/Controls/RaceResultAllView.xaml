@@ -22,11 +22,14 @@
       <Grid.ColumnDefinitions>
         <ColumnDefinition/>
         <ColumnDefinition/>
+        <ColumnDefinition/>
       </Grid.ColumnDefinitions>
       <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                    Content="着順" Name="S_RaceResultOrderList" IsChecked="True"/>
       <RadioButton Grid.Column="1" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                    Content="展開" Name="S_RaceResultSituation"/>
+      <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                   Content="払い戻し" Name="S_Payoff"/>
     </Grid>
 
     <Grid Grid.Row="1">
@@ -72,6 +75,221 @@
           </ItemsControl>
         </StackPanel>
       </ScrollViewer>
+      
+      <!-- 払い戻し -->
+      <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Payoff,Converter={StaticResource BooleanVisibilityConv}}">
+        <ScrollViewer>
+          <StackPanel>
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+              </Grid.RowDefinitions>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.2*"/>
+                <ColumnDefinition Width="0.4*"/>
+                <ColumnDefinition Width="0.4*"/>
+              </Grid.ColumnDefinitions>
+              <Grid.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                  <Setter Property="VerticalAlignment" Value="Center"/>
+                  <Setter Property="HorizontalAlignment" Value="Center"/>
+                  <Setter Property="FontSize" Value="16"/>
+                </Style>
+                <Style TargetType="TextBlock" x:Key="TicketTitle" BasedOn="{StaticResource TextBlockDefault}">
+                  <Setter Property="FontSize" Value="16"/>
+                  <Setter Property="VerticalAlignment" Value="Center"/>
+                  <Setter Property="HorizontalAlignment" Value="Center"/>
+                  <Setter Property="Margin" Value="8"/>
+                </Style>
+                <Style TargetType="TextBlock" x:Key="PayoffNumber" BasedOn="{StaticResource TextBlockDefault}">
+                  <Setter Property="FontSize" Value="22"/>
+                  <Setter Property="FontWeight" Value="Bold"/>
+                  <Setter Property="VerticalAlignment" Value="Center"/>
+                  <Setter Property="HorizontalAlignment" Value="Center"/>
+                  <Setter Property="Margin" Value="4"/>
+                </Style>
+                <Style TargetType="TextBlock" x:Key="MoneyNumber" BasedOn="{StaticResource TextBlockDefault}">
+                  <Setter Property="FontSize" Value="16"/>
+                  <Setter Property="VerticalAlignment" Value="Center"/>
+                  <Setter Property="HorizontalAlignment" Value="Center"/>
+                  <Setter Property="Margin" Value="8"/>
+                </Style>
+              </Grid.Resources>
+              <Border Background="{DynamicResource SingleTicketBackground}">
+                <TextBlock Text="単勝" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Column="1" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Singles,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}" Text="{Binding Number1}"/>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="1" Background="{DynamicResource PlaceTicketBackground}">
+                <TextBlock Text="複勝" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource MoreThinBaseBackground}" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Places,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}" Text="{Binding Number1}"/>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="2" Background="{DynamicResource FrameNumberTicketBackground}">
+                <TextBlock Text="枠連" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Row="2" Grid.Column="1" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Frames,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}">
+                          <Run Text="{Binding Frame1}"/>　<Run Text="{Binding Frame2}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="3" Background="{DynamicResource QuinellaPlaceTicketBackground}">
+                <TextBlock Text="ワイド" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Row="3" Grid.Column="1" Background="{DynamicResource MoreThinBaseBackground}" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.QuinellaPlaces,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}">
+                          <Run Text="{Binding Number1}"/>　<Run Text="{Binding Number2}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="4" Background="{DynamicResource QuinellaTicketBackground}">
+                <TextBlock Text="馬連" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Row="4" Grid.Column="1" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Quinellas,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}">
+                          <Run Text="{Binding Number1}"/>　<Run Text="{Binding Number2}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="5" Background="{DynamicResource ExactaTicketBackground}">
+                <TextBlock Text="馬単" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Row="5" Grid.Column="1" Background="{DynamicResource MoreThinBaseBackground}" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Exactas,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}">
+                          <Run Text="{Binding Number1}"/> - <Run Text="{Binding Number2}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="6" Background="{DynamicResource TrioTicketBackground}">
+                <TextBlock Text="三連複" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Row="6" Grid.Column="1" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Trios,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}">
+                          <Run Text="{Binding Number1}"/>　<Run Text="{Binding Number2}"/>　<Run Text="{Binding Number3}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="7" Background="{DynamicResource TrifectaTicketBackground}">
+                <TextBlock Text="三連単" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Row="7" Grid.Column="1" Background="{DynamicResource MoreThinBaseBackground}" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Trifectas,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}">
+                          <Run Text="{Binding Number1}"/> - <Run Text="{Binding Number2}"/> - <Run Text="{Binding Number3}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+            </Grid>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
     </Grid>
   </Grid>
 </UserControl>
