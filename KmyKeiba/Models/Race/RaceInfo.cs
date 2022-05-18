@@ -4,6 +4,7 @@ using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
+using KmyKeiba.Models.Script;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using System;
@@ -39,12 +40,17 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<OddsInfo?> Odds { get; } = new();
 
+    public ScriptManager Script { get; }
+
     public string Name => this.Subject.DisplayName;
 
     private RaceInfo(RaceData race)
     {
       this.Data = race;
       this.Subject = new(race);
+      this.Script = new(this);
+
+      this.Script.Execute();
 
       var details = RaceCourses.TryGetCourses(race);
       foreach (var detail in details)

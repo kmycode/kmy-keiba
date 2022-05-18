@@ -35,6 +35,11 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand<short>().WithSubscribe((num) => this.model.Info.Value?.SetActiveHorse(num));
     private ReactiveCommand<short>? _changeHorseNumberCommand;
 
+    public ICommand UpdateScriptCommand =>
+      this._updateScriptCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.model.Info.Value?.Script.Update());
+    private ReactiveCommand? _updateScriptCommand;
+
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore CS0067

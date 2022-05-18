@@ -29,5 +29,10 @@ namespace KmyKeiba.Common
     {
       return new SKColor(this.Red, this.Green, this.Blue, this.Alpha);
     }
+
+    public string ToHTMLColor()
+    {
+      return "#" + this.Red.ToString("X2") + this.Green.ToString("X2") + this.Blue.ToString("X2");
+    }
   }
 }

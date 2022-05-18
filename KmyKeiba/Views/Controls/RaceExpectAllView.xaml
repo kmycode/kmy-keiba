@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:cef="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
              xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:b="clr-namespace:KmyKeiba.Behaviors"
@@ -32,7 +33,7 @@
       <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="オッズ一覧" Name="S_Odds"/>
       <RadioButton Grid.Column="3" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="展開予想" Name="S_Simulation"/>
+                   Content="展開予想" Name="S_Script"/>
     </Grid>
 
     <Grid Grid.Row="1">
@@ -174,6 +175,7 @@
 
       </Grid>
 
+      <!-- オッズ -->
       <Grid Margin="0,16,0,0" Visibility="{Binding IsChecked,ElementName=S_Odds,Converter={StaticResource BooleanVisibilityConv}}">
         <Grid.RowDefinitions>
           <RowDefinition Height="auto"/>
@@ -239,7 +241,7 @@
           </ItemsControl>
         </ScrollViewer>
         -->
-        
+
         <ScrollViewer Grid.Row="1" Grid.Column="1" Visibility="{Binding IsChecked,ElementName=SO_Single,Converter={StaticResource BooleanVisibilityConv}}">
           <StackPanel>
             <StackPanel Orientation="Horizontal">
@@ -562,7 +564,20 @@
           </StackPanel>
         </ScrollViewer>
       </Grid>
-      
+
+      <!-- スクリプト -->
+      <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Script,Converter={StaticResource BooleanVisibilityConv}}">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="auto"/>
+          <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Button Content="更新" Command="{Binding UpdateScriptCommand}"/>
+        <cef:ChromiumWebBrowser Grid.Row="1">
+          <i:Interaction.Behaviors>
+            <b:BrowserControllerBehavior Controller="{Binding Race.Script.Controller,ElementName=Root}"/>
+          </i:Interaction.Behaviors>
+        </cef:ChromiumWebBrowser>
+      </Grid>
     </Grid>
   </Grid>
 </UserControl>

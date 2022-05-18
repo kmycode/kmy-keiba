@@ -21,6 +21,8 @@
   <u:RHColor x:Key="StalkerRunnerColor" Red="160" Green="180" Blue="255"/>
   <u:RHColor x:Key="SotpRunnerColor" Red="180" Green="255" Blue="180"/>
   <u:RHColor x:Key="SaveRunnerColor" Red="255" Green="180" Blue="255"/>
+  <u:RHColor x:Key="BrowserBackgroundColor" Red="3" Green="3" Blue="3"/>
+  <u:RHColor x:Key="BrowserForegroundColor" Red="240" Green="240" Blue="240"/>
 
   <SolidColorBrush x:Key="BaseBackground" Color="#030303"/>
   <SolidColorBrush x:Key="ThinBaseBackground" Color="#202020"/>

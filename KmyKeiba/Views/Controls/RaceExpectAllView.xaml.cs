@@ -1,4 +1,7 @@
-﻿using KmyKeiba.Models.Race;
+﻿using CefSharp;
+using CefSharp.SchemeHandler;
+using CefSharp.Wpf;
+using KmyKeiba.Models.Race;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,6 +43,18 @@ namespace KmyKeiba.Views.Controls
 
     public RaceExpectAllView()
     {
+      var settings = new CefSettings();
+      settings.RegisterScheme(new CefCustomScheme
+      {
+        SchemeName = "localfolder",
+        DomainName = "cefsharp",
+        SchemeHandlerFactory = new FolderSchemeHandlerFactory(
+          rootFolder: System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "script"),
+          hostName: "cefsharp"
+        ),
+      });
+      Cef.Initialize(settings);
+
       InitializeComponent();
     }
   }

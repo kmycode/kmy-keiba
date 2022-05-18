@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="CefSharp.Wpf.NetCore" Version="100.0.230" />
+    <PackageReference Include="Microsoft.ClearScript" Version="7.2.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.6">
@@ -25,6 +26,15 @@
 
   <ItemGroup>
     <ProjectReference Include="..\KmyKeiba.Data\KmyKeiba.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="script\index.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="script\official\kmykeiba.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
