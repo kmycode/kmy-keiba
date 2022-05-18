@@ -75,6 +75,9 @@ namespace KmyKeiba.JVLink.Entities
         };
       }
     }
+    public RaceClass[] AllClasses => this.Items.Any() ? this.Items.Select(i => i.Class).ToArray() :
+      this.Money > 0 ? new[] { RaceClass.Money, } :
+      this.Age > 0 ? new[] { RaceClass.Age, } : Array.Empty<RaceClass>();
 
     public string ClassName
     {

@@ -37,8 +37,8 @@ namespace KmyKeiba.ViewModels
 
     public ICommand UpdateScriptCommand =>
       this._updateScriptCommand ??=
-        new ReactiveCommand().WithSubscribe(() => this.model.Info.Value?.Script.Update());
-    private ReactiveCommand? _updateScriptCommand;
+        new AsyncReactiveCommand().WithSubscribe(() => this.model.Info.Value != null ? this.model.Info.Value.Script.UpdateAsync() : Task.CompletedTask);
+    private AsyncReactiveCommand? _updateScriptCommand;
 
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;

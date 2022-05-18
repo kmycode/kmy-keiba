@@ -572,11 +572,14 @@
           <RowDefinition/>
         </Grid.RowDefinitions>
         <Button Content="更新" Command="{Binding UpdateScriptCommand}"/>
-        <cef:ChromiumWebBrowser Grid.Row="1">
+        <cef:ChromiumWebBrowser Grid.Row="1" Visibility="{Binding Race.Script.IsError.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
           <i:Interaction.Behaviors>
             <b:BrowserControllerBehavior Controller="{Binding Race.Script.Controller,ElementName=Root}"/>
           </i:Interaction.Behaviors>
         </cef:ChromiumWebBrowser>
+        <Border Grid.Row="1" Visibility="{Binding Race.Script.IsError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+          <TextBlock FontSize="16" Text="{Binding Race.Script.ErrorMessage.Value,ElementName=Root}" Foreground="{DynamicResource ErrorForeground}"/>
+        </Border>
       </Grid>
     </Grid>
   </Grid>

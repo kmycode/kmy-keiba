@@ -50,8 +50,6 @@ namespace KmyKeiba.Models.Race
       this.Subject = new(race);
       this.Script = new(this);
 
-      this.Script.Execute();
-
       var details = RaceCourses.TryGetCourses(race);
       foreach (var detail in details)
       {
@@ -199,6 +197,12 @@ namespace KmyKeiba.Models.Race
             woodTrainings.Where(t => t.HorseKey == horse.Data.Key).Take(50).ToArray()
             );
         }
+
+        // スクリプト
+        ThreadUtil.InvokeOnUiThread(async () =>
+        {
+          await info.Script.UpdateAsync();
+        });
       });
 
       return Task.FromResult(info);
