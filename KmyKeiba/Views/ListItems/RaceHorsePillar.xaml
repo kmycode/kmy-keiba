@@ -173,7 +173,10 @@
                   </StackPanel>
                   <StackPanel Orientation="Horizontal">
                     <up:CornerResultTip CornerGrades="{Binding CornerGrades}" FontSize="13"
-                                        PartWidth="20" PartHeight="20"/>
+                                        PartWidth="20" PartHeight="20" Visibility="{Binding IsAbnormalResult,Converter={StaticResource NegativeVisibilityConv}}"/>
+                    <TextBlock FontSize="16" Foreground="{DynamicResource BadForeground}" FontWeight="Bold"
+                               Text="{Binding Data.AbnormalResult,Converter={StaticResource EnumsConv}}"
+                               Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </StackPanel>
                   <StackPanel Orientation="Horizontal">
                     <up:CourseSimpleImageView Race="{Binding Race}"/>
