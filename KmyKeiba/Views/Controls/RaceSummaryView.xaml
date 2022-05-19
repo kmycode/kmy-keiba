@@ -28,7 +28,7 @@
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
         
         <!-- イメージ（概略図） -->
-        <skia:SKElement>
+        <skia:SKElement VerticalAlignment="Top">
           <i:Interaction.Behaviors>
             <b:DisplayImageBehavior Image="{Binding Race.CourseSummaryImage,ElementName=Root}"/>
           </i:Interaction.Behaviors>
@@ -65,9 +65,34 @@
           </ItemsControl>
           <TextBlock FontSize="20" Margin="0,12,0,0">
             <Run Text="{Binding Race.Data.StartTime,ElementName=Root,StringFormat=MM月dd日 HH時mm分}"/>発走
-            <Run Text="{Binding Race.Data.TrackWeather,ElementName=Root,Converter={StaticResource TrackConv}}"/>
-            <Run Text="{Binding Race.Data.TrackCondition,ElementName=Root,Converter={StaticResource TrackConv}}"/>
+            <Run Text="{Binding Race.Weather.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
+            <Run Text="{Binding Race.Condition.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
           </TextBlock>
+          <StackPanel Visibility="{Binding Race.CanChangeWeathers,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+            <StackPanel.Resources>
+              <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="Width" Value="60"/>
+                <Setter Property="Margin" Value="0,0,8,0"/>
+              </Style>
+            </StackPanel.Resources>
+            <TextBlock FontSize="24" Margin="0,48,0,0" Text="天気・馬場を変更" FontWeight="Bold"/>
+            <TextBlock FontSize="16" Margin="0,8,0,8" Text="天気データが届いておりません。実際の発表を確認して設定してください" Style="{StaticResource SubTextBlock}"/>
+            <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+              <RadioButton GroupName="{Binding UniqueId,ElementName=Root}" Command="{Binding SetWeatherCommand}" CommandParameter="1" IsChecked="{Binding Race.Weather.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Fine}" Content="晴れ"/>
+              <RadioButton GroupName="{Binding UniqueId,ElementName=Root}" Command="{Binding SetWeatherCommand}" CommandParameter="2" IsChecked="{Binding Race.Weather.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Cloudy}" Content="曇り"/>
+              <RadioButton GroupName="{Binding UniqueId,ElementName=Root}" Command="{Binding SetWeatherCommand}" CommandParameter="3" IsChecked="{Binding Race.Weather.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Rainy}" Content="雨"/>
+              <RadioButton GroupName="{Binding UniqueId,ElementName=Root}" Command="{Binding SetWeatherCommand}" CommandParameter="4" IsChecked="{Binding Race.Weather.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Drizzle}" Content="小雨"/>
+              <RadioButton GroupName="{Binding UniqueId,ElementName=Root}" Command="{Binding SetWeatherCommand}" CommandParameter="5" IsChecked="{Binding Race.Weather.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Snow}" Content="雪"/>
+              <RadioButton GroupName="{Binding UniqueId,ElementName=Root}" Command="{Binding SetWeatherCommand}" CommandParameter="6" IsChecked="{Binding Race.Weather.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=LightSnow}" Content="小雪"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+              <RadioButton GroupName="{Binding UniqueId2,ElementName=Root}" Command="{Binding SetConditionCommand}" CommandParameter="1" IsChecked="{Binding Race.Condition.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Standard}" Content="良"/>
+              <RadioButton GroupName="{Binding UniqueId2,ElementName=Root}" Command="{Binding SetConditionCommand}" CommandParameter="2" IsChecked="{Binding Race.Condition.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Good}" Content="稍重"/>
+              <RadioButton GroupName="{Binding UniqueId2,ElementName=Root}" Command="{Binding SetConditionCommand}" CommandParameter="3" IsChecked="{Binding Race.Condition.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Yielding}" Content="重"/>
+              <RadioButton GroupName="{Binding UniqueId2,ElementName=Root}" Command="{Binding SetConditionCommand}" CommandParameter="4" IsChecked="{Binding Race.Condition.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Soft}" Content="不良"/>
+            </StackPanel>
+          </StackPanel>
         </StackPanel>
       </StackPanel>
     </Grid>

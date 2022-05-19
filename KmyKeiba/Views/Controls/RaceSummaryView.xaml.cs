@@ -34,6 +34,10 @@ namespace KmyKeiba.Views.Controls
       set { SetValue(RaceProperty, value); }
     }
 
+    public Guid UniqueId { get; } = Guid.NewGuid();
+
+    public Guid UniqueId2 { get; } = Guid.NewGuid();
+
     public RaceSummaryView()
     {
       InitializeComponent();

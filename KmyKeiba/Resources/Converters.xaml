@@ -17,6 +17,7 @@
   <cv:ValueComparationForegroundConverter x:Key="ValueComparationForegroundConv"/>
   <cv:DigitMinusConverter x:Key="DigitMinusConv"/>
   <cv:NonZeroVisibilityConverter x:Key="NonZeroVisibilityConv"/>
+  <cv:EqualConverter x:Key="EqualConv"/>
 
   <cv:BooleanBrushConverter x:Key="BooleanForegroundSubOrBaseConv" TrueBrush="{DynamicResource SubForeground}" FalseBrush="{DynamicResource BaseForeground}"/>
 </ResourceDictionary>

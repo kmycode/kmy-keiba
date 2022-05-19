@@ -40,6 +40,16 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand().WithSubscribe(() => this.model.Info.Value != null ? this.model.Info.Value.Script.UpdateAsync() : Task.CompletedTask);
     private AsyncReactiveCommand? _updateScriptCommand;
 
+    public ICommand SetWeatherCommand =>
+      this._setWeatherCommand ??=
+        new AsyncReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value != null ? this.model.Info.Value.SetWeatherAsync(p) : Task.CompletedTask);
+    private AsyncReactiveCommand<string>? _setWeatherCommand;
+
+    public ICommand SetConditionCommand =>
+      this._setConditionCommand ??=
+        new AsyncReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value != null ? this.model.Info.Value.SetConditionAsync(p) : Task.CompletedTask);
+    private AsyncReactiveCommand<string>? _setConditionCommand;
+
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore CS0067

@@ -39,7 +39,11 @@ namespace KmyKeiba.Data.Db
 
     public RaceCourseWeather TrackWeather { get; set; }
 
+    public bool IsWeatherSetManually { get; set; }
+
     public RaceCourseCondition TrackCondition { get; set; }
+
+    public bool IsConditionSetManually { get; set; }
 
     public short Distance { get; set; }
 
@@ -139,10 +143,12 @@ namespace KmyKeiba.Data.Db
       if (race.TrackWeather != RaceCourseWeather.Unknown)
       {
         this.TrackWeather = race.TrackWeather;
+        this.IsWeatherSetManually = false;
       }
       if (race.TrackCondition != RaceCourseCondition.Unknown)
       {
         this.TrackCondition = race.TrackCondition;
+        this.IsConditionSetManually = false;
       }
 
       this.Grade = race.Subject.Grade;

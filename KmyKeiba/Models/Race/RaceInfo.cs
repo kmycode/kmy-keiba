@@ -20,6 +20,12 @@ namespace KmyKeiba.Models.Race
   {
     public RaceData Data { get; }
 
+    public bool CanChangeWeathers { get; }
+
+    public ReactiveProperty<RaceCourseWeather> Weather { get; } = new();
+
+    public ReactiveProperty<RaceCourseCondition> Condition { get; } = new();
+
     public ReactiveCollection<RaceCourseDetail> CourseDetails { get; } = new();
 
     public RaceTrendAnalysisSelector TrendAnalyzers { get; }
@@ -49,6 +55,10 @@ namespace KmyKeiba.Models.Race
       this.Data = race;
       this.Subject = new(race);
       this.Script = new(this);
+
+      this.Weather.Value = race.TrackWeather;
+      this.Condition.Value = race.TrackCondition;
+      this.CanChangeWeathers = race.TrackWeather == RaceCourseWeather.Unknown || race.IsWeatherSetManually;
 
       var details = RaceCourses.TryGetCourses(race);
       foreach (var detail in details)
@@ -96,6 +106,36 @@ namespace KmyKeiba.Models.Race
           await this.ActiveHorse.Value.BloodSelectors.InitializeBloodListAsync(db);
         });
       }
+    }
+
+    public async Task SetWeatherAsync(string key)
+    {
+      await this.WaitAllSetupsAsync();
+
+      short.TryParse(key, out var value);
+
+      using var db = new MyContext();
+      db.Races!.Attach(this.Data);
+
+      this.Weather.Value = this.Data.TrackWeather = (RaceCourseWeather)value;
+      this.Data.IsWeatherSetManually = true;
+
+      await db.SaveChangesAsync();
+    }
+
+    public async Task SetConditionAsync(string key)
+    {
+      await this.WaitAllSetupsAsync();
+
+      short.TryParse(key, out var value);
+
+      using var db = new MyContext();
+      db.Races!.Attach(this.Data);
+
+      this.Condition.Value = this.Data.TrackCondition = (RaceCourseCondition)value;
+      this.Data.IsConditionSetManually = true;
+
+      await db.SaveChangesAsync();
     }
 
     public static async Task<RaceInfo?> FromKeyAsync(MyContext db, string key)
