@@ -51,6 +51,9 @@
     <Page Update="Resources\Converters.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Resources\HorseMarks.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Resources\ThemeClassic.xaml">
       <SubType>Designer</SubType>
     </Page>

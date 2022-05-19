@@ -1,4 +1,6 @@
-﻿using KmyKeiba.Models.Data;
+﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Data;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -38,6 +40,16 @@ namespace KmyKeiba.Models.Race
         var race = await RaceInfo.FromKeyAsync(this._db, this.RaceKey.Value);
         this.Info.Value = race;
       });
+    }
+
+    public async Task ChangeHorseMarkAsync(RaceHorseMark mark, RaceHorseAnalyzer horse)
+    {
+      using var db = new MyContext();
+      db.RaceHorses!.Attach(horse.Data);
+
+      horse.Mark.Value = horse.Data.Mark = mark;
+
+      await db.SaveChangesAsync();
     }
 
     public void Dispose()

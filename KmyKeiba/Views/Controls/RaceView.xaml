@@ -128,10 +128,23 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <RadioButton FontSize="18" Content="{Binding Data.Number}"
-                             Command="{Binding DataContext.ChangeActiveHorseCommand,ElementName=Root}" CommandParameter="{Binding Data.Number}"
+                <RadioButton Command="{Binding DataContext.ChangeActiveHorseCommand,ElementName=Root}" CommandParameter="{Binding Data.Number}"
                              Style="{StaticResource HalfToggleButtonDefault}"
-                             GroupName="{Binding UniqueId,ElementName=Root}"/>
+                             GroupName="{Binding UniqueId,ElementName=Root}">
+                  <Border>
+                    <StackPanel Orientation="Horizontal">
+                      <TextBlock FontSize="20" Text="{Binding Data.Number}"/>
+                      <ContentControl Template="{Binding Mark.Value,Converter={StaticResource HorseMarkConv}}">
+                        <ContentControl.RenderTransform>
+                          <TransformGroup>
+                            <ScaleTransform ScaleX="0.55" ScaleY="0.55"/>
+                            <TranslateTransform X="8" Y="6"/>
+                          </TransformGroup>
+                        </ContentControl.RenderTransform>
+                      </ContentControl>
+                    </StackPanel>
+                  </Border>
+                </RadioButton>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>

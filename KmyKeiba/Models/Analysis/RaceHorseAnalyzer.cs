@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace KmyKeiba.Models.Analysis
 {
@@ -31,6 +32,8 @@ namespace KmyKeiba.Models.Analysis
     public RaceTrainerTrendAnalysisSelector? TrainerTrendAnalyzers { get; init; }
 
     public ReactiveProperty<TrainingAnalyzer?> Training { get; } = new();
+
+    public ReactiveProperty<RaceHorseMark> Mark { get; } = new();
 
     public IReadOnlyList<RaceHorseCornerGrade> CornerGrades { get; } = Array.Empty<RaceHorseCornerGrade>();
 
@@ -205,6 +208,7 @@ namespace KmyKeiba.Models.Analysis
       this.Race = race;
       this.Data = horse;
       this.Subject = new RaceSubjectInfo(race);
+      this.Mark.Value = horse.Mark;
       this.ResultTimePerMeter = (double)horse.ResultTime.TotalSeconds / race.Distance;
       this.ResultOrderComparation = horse.ResultOrder >= 1 && horse.ResultOrder <= 3 ? ValueComparation.Good :
         horse.ResultOrder >= 8 || horse.ResultOrder >= race.HorsesCount * 0.7f ? ValueComparation.Bad : ValueComparation.Standard;
@@ -277,6 +281,24 @@ namespace KmyKeiba.Models.Analysis
       : this(race, horse, sameRaceHorses, raceStandardTime)
     {
       this.History = new HistoryData(race, horse, raceHistory);
+    }
+
+    public ICommand SetMarkCommand =>
+      this._setDoubleCircleMarkCommand ??=
+        new AsyncReactiveCommand<string>().WithSubscribe(p => this.ChangeHorseMarkAsync(p));
+    private AsyncReactiveCommand<string>? _setDoubleCircleMarkCommand;
+
+    private async Task ChangeHorseMarkAsync(string marks)
+    {
+      short.TryParse(marks, out var markss);
+      var mark = (RaceHorseMark)markss;
+
+      using var db = new Data.MyContext();
+      db.RaceHorses!.Attach(this.Data);
+
+      this.Mark.Value = this.Data.Mark = mark;
+
+      await db.SaveChangesAsync();
     }
   }
 

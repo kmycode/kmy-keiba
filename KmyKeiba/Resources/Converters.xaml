@@ -19,6 +19,15 @@
   <cv:NonZeroVisibilityConverter x:Key="NonZeroVisibilityConv"/>
   <cv:EqualConverter x:Key="EqualConv"/>
   <cv:AbnormalResultOpacityConv x:Key="AbnormalResultOpacityConv"/>
+  <cv:ResultLengthConverter x:Key="ResultLengthConv"/>
+  <cv:HorseMarkConverter x:Key="HorseMarkConv"
+                         MarkDefault="{StaticResource MarkDefault}"
+                         MarkDoubleCircle="{StaticResource MarkDoubleCircle}"
+                         MarkCircle="{StaticResource MarkCircle}"
+                         MarkTriangle="{StaticResource MarkTriangle}"
+                         MarkFilledTriangle="{StaticResource MarkFilledTriangle}"
+                         MarkStar="{StaticResource MarkStar}"
+                         MarkDeleted="{StaticResource MarkDeleted}"/>
 
   <cv:BooleanBrushConverter x:Key="BooleanForegroundSubOrBaseConv" TrueBrush="{DynamicResource SubForeground}" FalseBrush="{DynamicResource BaseForeground}"/>
 </ResourceDictionary>

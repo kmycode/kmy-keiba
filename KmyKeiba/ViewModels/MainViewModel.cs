@@ -1,4 +1,6 @@
 ﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
+using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Race;
 using Reactive.Bindings;
 using System;
@@ -51,6 +53,41 @@ namespace KmyKeiba.ViewModels
       this._setConditionCommand ??=
         new AsyncReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value != null ? this.model.Info.Value.SetConditionAsync(p) : Task.CompletedTask);
     private AsyncReactiveCommand<string>? _setConditionCommand;
+
+    public ICommand SetDoubleCircleMarkCommand =>
+      this._setDoubleCircleMarkCommand ??=
+        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.DoubleCircle, p));
+    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setDoubleCircleMarkCommand;
+
+    public ICommand SetCircleMarkCommand =>
+      this._setCircleMarkCommand ??=
+        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.Circle, p));
+    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setCircleMarkCommand;
+
+    public ICommand SetTriangleMarkCommand =>
+      this._setTriangleMarkCommand ??=
+        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.Triangle, p));
+    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setTriangleMarkCommand;
+
+    public ICommand SetFilledTriangleMarkCommand =>
+      this._setFilledTriangleMarkCommand ??=
+        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.FilledTriangle, p));
+    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setFilledTriangleMarkCommand;
+
+    public ICommand SetStarMarkCommand =>
+      this._setStarMarkCommand ??=
+        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.Star, p));
+    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setStarMarkCommand;
+
+    public ICommand SetDeletedMarkCommand =>
+      this._setDeletedMarkCommand ??=
+        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.Deleted, p));
+    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setDeletedMarkCommand;
+
+    public ICommand SetDefaultMarkCommand =>
+      this._setDefaultMarkCommand ??=
+        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.Default, p));
+    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setDefaultMarkCommand;
 
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;
