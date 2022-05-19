@@ -449,3 +449,19 @@ RaceHorse.prototype.getBloodNamesAsync = async function() {
   const data = JSON.parse(json);
   return data;
 }
+
+// 最近の調教結果を取得する
+// 結果は以下のオブジェクトの配列になる
+//
+// {
+//    center:    0:美浦、1:栗東
+//    startTime: 開始日時。new Date(startTime)とすることで利用可能
+//    course:    ウッドチップ調教の場合に設定
+//    direction: ウッドチップ調教の場合に設定。0:右、1:左
+//    lapTimes:  ラップタイム（秒）の配列。数字は実際の10倍
+// }
+RaceHorse.prototype.getTrainings = function() {
+  const json = this._getObj().getTrainings();
+  const data = JSON.parse(json);
+  return data;
+}

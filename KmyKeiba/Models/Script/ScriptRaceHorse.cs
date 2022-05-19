@@ -200,6 +200,17 @@ namespace KmyKeiba.Models.Script
       return "[]";
     }
 
+    [ScriptMember("getTrainings")]
+    public string GetTrainings()
+    {
+      var trainings = this._analyzer?.Training.Value?.Trainings.Select(t => new ScriptTraining(t)).ToArray();
+      if (trainings != null)
+      {
+        return JsonSerializer.Serialize(trainings, ScriptManager.JsonOptions);
+      }
+      return "[]";
+    }
+
     [ScriptMember("getJson")]
     public string ToJson()
     {
