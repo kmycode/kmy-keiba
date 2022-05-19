@@ -119,6 +119,60 @@ namespace KmyKeiba.Models.Script
       return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRace(s.Data, s.TopHorses)).ToArray(), ScriptManager.JsonOptions);
     }
 
+    [ScriptMember("getFrameNumberOdds")]
+    public string GetFrameNumberOdds()
+    {
+      var odds = this._race.Odds.Value?.Frame?.RestoreOdds()
+        .Where(o => o.Odds != default)
+        .Select(o => new JsonObject { { "frame1", o.Frame1 }, { "frame2", o.Frame2 }, { "odds", o.Odds }, });
+      return JsonSerializer.Serialize(odds);
+    }
+
+    [ScriptMember("getQuinellaPlaceOdds")]
+    public string GetQuinellaPlaceOdds()
+    {
+      var odds = this._race.Odds.Value?.QuinellaPlace?.RestoreOdds()
+        .Where(o => o.PlaceOddsMax != default)
+        .Select(o => new JsonObject { { "number1", o.HorseNumber1 }, { "number2", o.HorseNumber2 }, { "oddsMax", o.PlaceOddsMax }, { "oddsMin", o.PlaceOddsMin }, });
+      return JsonSerializer.Serialize(odds);
+    }
+
+    [ScriptMember("getQuinellaOdds")]
+    public string GetQuinellaOdds()
+    {
+      var odds = this._race.Odds.Value?.Quinella?.RestoreOdds()
+        .Where(o => o.Odds != default)
+        .Select(o => new JsonObject { { "number1", o.HorseNumber1 }, { "number2", o.HorseNumber2 }, { "odds", o.Odds }, });
+      return JsonSerializer.Serialize(odds);
+    }
+
+    [ScriptMember("getExactaOdds")]
+    public string GetExactaOdds()
+    {
+      var odds = this._race.Odds.Value?.Exacta?.RestoreOdds()
+        .Where(o => o.Odds != default)
+        .Select(o => new JsonObject { { "number1", o.HorseNumber1 }, { "number2", o.HorseNumber2 }, { "odds", o.Odds }, });
+      return JsonSerializer.Serialize(odds);
+    }
+
+    [ScriptMember("getTrioOdds")]
+    public string GetTrioOdds()
+    {
+      var odds = this._race.Odds.Value?.Trio?.RestoreOdds()
+        .Where(o => o.Odds != default)
+        .Select(o => new JsonObject { { "number1", o.HorseNumber1 }, { "number2", o.HorseNumber2 }, { "number3", o.HorseNumber3 }, { "odds", o.Odds }, });
+      return JsonSerializer.Serialize(odds);
+    }
+
+    [ScriptMember("getTrifectaOdds")]
+    public string GetTrifectaOdds()
+    {
+      var odds = this._race.Odds.Value?.Trifecta?.RestoreOdds()
+        .Where(o => o.Odds != default)
+        .Select(o => new JsonObject { { "number1", o.HorseNumber1 }, { "number2", o.HorseNumber2 }, { "number3", o.HorseNumber3 }, { "odds", o.Odds }, });
+      return JsonSerializer.Serialize(odds);
+    }
+
     [ScriptMember("getJson")]
     public string ToJson()
     {

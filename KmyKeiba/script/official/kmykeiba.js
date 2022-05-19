@@ -159,6 +159,90 @@ Race.prototype.getSimilarRacesAsync = async function(keys, count, offset) {
   return data.map(d => new Race(d, this._obj));
 }
 
+// 以下はオッズ取得関数が並んでいるが、
+// 単勝／複勝オッズは各馬（RaceHorse型）のデータの中に入っているのでそれを参照する
+
+// 枠連のオッズ情報を取得
+// 結果は以下のオブジェクトの配列として返される
+//  {
+//    frame1: 枠番1
+//    frame2: 枠番2
+//    odds:   オッズ（実際の10倍の数値）
+//  }
+Race.prototype.getFrameNumberOdds = function() {
+  const json = this._obj.getFrameNumberOdds();
+  const data = JSON.parse(json);
+  return data;
+}
+
+// ワイドのオッズ情報を取得
+// 結果は以下のオブジェクトの配列として返される
+//  {
+//    number1: 馬番1
+//    number2: 馬番2
+//    oddsMin: オッズ下限（実際の10倍の数値）
+//    oddsMax: オッズ上限（実際の10倍の数値）
+//  }
+Race.prototype.getQuinellaPlaceOdds = function() {
+  const json = this._obj.getQuinellaPlaceOdds();
+  const data = JSON.parse(json);
+  return data;
+}
+
+// 馬連のオッズ情報を取得
+// 結果は以下のオブジェクトの配列として返される
+//  {
+//    number1: 馬番1
+//    number2: 馬番2
+//    odds   : オッズ（実際の10倍の数値）
+//  }
+Race.prototype.getQuinellaOdds = function() {
+  const json = this._obj.getQuinellaOdds();
+  const data = JSON.parse(json);
+  return data;
+}
+
+// 馬単のオッズ情報を取得
+// 結果は以下のオブジェクトの配列として返される
+//  {
+//    number1: 馬番1
+//    number2: 馬番2
+//    odds   : オッズ（実際の10倍の数値）
+//  }
+Race.prototype.getExactaOdds = function() {
+  const json = this._obj.getExactaOdds();
+  const data = JSON.parse(json);
+  return data;
+}
+
+// 三連複のオッズ情報を取得
+// 結果は以下のオブジェクトの配列として返される
+//  {
+//    number1: 馬番1
+//    number2: 馬番2
+//    number3: 馬番3
+//    odds   : オッズ（実際の10倍の数値）
+//  }
+Race.prototype.getTrioOdds = function() {
+  const json = this._obj.getTrioOdds();
+  const data = JSON.parse(json);
+  return data;
+}
+
+// 三連単のオッズ情報を取得
+// 結果は以下のオブジェクトの配列として返される
+//  {
+//    number1: 馬番1
+//    number2: 馬番2
+//    number3: 馬番3
+//    odds   : オッズ（実際の10倍の数値）
+//  }
+Race.prototype.getTrifectaOdds = function() {
+  const json = this._obj.getTrifectaOdds();
+  const data = JSON.parse(json);
+  return data;
+}
+
 
 //============================================================
 // レース出場馬情報
@@ -239,10 +323,12 @@ export function RaceHorse(data, csraceobj) {
 
   // 過去2年の同じ競馬場でのレースと比較したタイムの偏差値（平均が50、標準偏差が10になるようにした値）
   // ※予想対象レースでは、予想時点で過去レースであっても設定されない
+  // ※過去レースの上位5頭（RaceオブジェクトのtopHorses）からたどってきた場合、この値は設定されない
   this.timeDeviationValue = data.timeDeviationValue;
 
   // 過去2年の同じ競馬場でのレースと比較した後3ハロンタイムの偏差値（平均が50、標準偏差が10になるようにした値）
   // ※予想対象レースでは、予想時点で過去レースであっても設定されない
+  // ※過去レースの上位5頭（RaceオブジェクトのtopHorses）からたどってきた場合、この値は設定されない
   this.a3hTimeDeviationValue = data.a3hTimeDeviationValue;
 
   // この馬のレース情報。Race型のオブジェクトが返される

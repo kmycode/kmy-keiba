@@ -2,11 +2,13 @@
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Generic;
+using Microsoft.ClearScript;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race
@@ -35,6 +37,14 @@ namespace KmyKeiba.Models.Race
     public ReactiveProperty<OddsBlockGroup<TrifectaOdds.OddsData>?> Trifectas { get; } = new();
 
     public CheckableCollection<OddsFilterItem> Filters { get; } = new();
+
+    public FrameNumberOddsData? Frame { get; }
+    public QuinellaPlaceOddsData? QuinellaPlace { get; }
+    public QuinellaOddsData? Quinella { get; }
+    public ExactaOddsData? Exacta { get; }
+    public TrioOddsData? Trio { get; }
+
+    public TrifectaOddsData? Trifecta { get; }
 
     public OddsInfo(IReadOnlyList<RaceHorseData> horses, FrameNumberOddsData? frame, QuinellaPlaceOddsData? quinellaPlace, QuinellaOddsData? quinella, ExactaOddsData? exacta, TrioOddsData? trio, TrifectaOddsData? trifecta)
     {
@@ -102,6 +112,13 @@ namespace KmyKeiba.Models.Race
         this.Trios.Value = this._trios?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, o.HorseNumber3, });
         this.Trifectas.Value = this._trifectas?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, o.HorseNumber3, });
       });
+
+      this.Frame = frame;
+      this.Quinella = quinella;
+      this.QuinellaPlace = quinellaPlace;
+      this.Exacta = exacta;
+      this.Trio = trio;
+      this.Trifecta = trifecta;
     }
 
     private static void AddRange<T>(ReactiveCollection<T> collection, IEnumerable<T> items)

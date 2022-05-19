@@ -22,5 +22,5 @@ import * as fs from 'official/njcompat_fs.js';
   */
 
   // 馬の名前を返す
-  return `${horses[1].number} 番 ${horses[1].name} 号がいいです（）${similarRaces[10].name}`;
+  return `${horses[1].number} 番 ${horses[1].name} 号がいいです（）${JSON.stringify(race.getTrioOdds())}`;
 });
