@@ -17,6 +17,8 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<RaceInfo?> Race => this.model.Info;
 
+    public ReactiveProperty<bool> IsLoaded => this.model.IsLoaded;
+
     public MainViewModel()
     {
       // TODO: いずれModelにうつす

@@ -12,164 +12,173 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
   <Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition Height="auto"/>
-      <RowDefinition Height="auto"/>
-      <RowDefinition/>
-    </Grid.RowDefinitions>
+    <Grid Visibility="{Binding IsLoaded.Value,Converter={StaticResource BooleanVisibilityConv}}">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="auto"/>
+        <RowDefinition Height="auto"/>
+        <RowDefinition/>
+      </Grid.RowDefinitions>
 
-    <Grid Grid.Row="0" Height="56">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="auto"/>
-        <ColumnDefinition Width="auto"/>
-        <ColumnDefinition/>
-        <ColumnDefinition Width="auto"/>
-        <ColumnDefinition Width="auto"/>
-      </Grid.ColumnDefinitions>
-      <up:RaceSubjectIcon Subject="{Binding Race.Subject.Subject,ElementName=Root}"
-                          FontSize="32" Width="120"/>
-      <Border Grid.Column="1" Width="80" Background="{DynamicResource RaceNumberBackground}">
-        <TextBlock FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
-                   LineHeight="20" LineStackingStrategy="BlockLineHeight"
-                   Foreground="{DynamicResource RaceNumberForeground}">
-          <Run Text="{Binding Race.Data.Course,ElementName=Root,Converter={StaticResource CourseNameConv}}"/><LineBreak/>
-          <Run Text="{Binding Race.Data.CourseRaceNumber,ElementName=Root}"/>R
+      <Grid Grid.Row="0" Height="56">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition/>
+          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+        <up:RaceSubjectIcon Subject="{Binding Race.Subject.Subject,ElementName=Root}"
+                            FontSize="32" Width="120"/>
+        <Border Grid.Column="1" Width="80" Background="{DynamicResource RaceNumberBackground}">
+          <TextBlock FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
+                     LineHeight="20" LineStackingStrategy="BlockLineHeight"
+                     Foreground="{DynamicResource RaceNumberForeground}">
+            <Run Text="{Binding Race.Data.Course,ElementName=Root,Converter={StaticResource CourseNameConv}}"/><LineBreak/>
+            <Run Text="{Binding Race.Data.CourseRaceNumber,ElementName=Root}"/>R
+          </TextBlock>
+        </Border>
+        <TextBlock Grid.Column="2" Text="{Binding Race.Name,ElementName=Root}" FontSize="26" FontWeight="Bold"
+                   VerticalAlignment="Center" Margin="8,0,0,0"/>
+        <StackPanel Grid.Column="3" VerticalAlignment="Center">
+          <up:CourseSimpleImageView Race="{Binding Race.Data,ElementName=Root}" HorizontalAlignment="Center" Height="18">
+            <FrameworkElement.LayoutTransform>
+              <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
+            </FrameworkElement.LayoutTransform>
+          </up:CourseSimpleImageView>
+          <TextBlock Text="{Binding Race.Data.Distance,ElementName=Root}" HorizontalAlignment="Center"
+                     FontSize="14" Height="18"/>
+        </StackPanel>
+        <TextBlock Grid.Column="4" FontSize="16" TextAlignment="Center" Margin="16,0,8,0" VerticalAlignment="Center">
+          <Run Text="{Binding Race.Weather.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/><LineBreak/>
+          <Run Text="{Binding Race.Condition.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
         </TextBlock>
-      </Border>
-      <TextBlock Grid.Column="2" Text="{Binding Race.Name,ElementName=Root}" FontSize="26" FontWeight="Bold"
-                 VerticalAlignment="Center" Margin="8,0,0,0"/>
-      <StackPanel Grid.Column="3" VerticalAlignment="Center">
-        <up:CourseSimpleImageView Race="{Binding Race.Data,ElementName=Root}" HorizontalAlignment="Center" Height="18">
-          <FrameworkElement.LayoutTransform>
-            <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
-          </FrameworkElement.LayoutTransform>
-        </up:CourseSimpleImageView>
-        <TextBlock Text="{Binding Race.Data.Distance,ElementName=Root}" HorizontalAlignment="Center"
-                   FontSize="14" Height="18"/>
-      </StackPanel>
-      <TextBlock Grid.Column="4" FontSize="16" TextAlignment="Center" Margin="16,0,8,0" VerticalAlignment="Center">
-        <Run Text="{Binding Race.Data.TrackWeather,ElementName=Root,Converter={StaticResource TrackConv}}"/><LineBreak/>
-        <Run Text="{Binding Race.Data.TrackCondition,ElementName=Root,Converter={StaticResource TrackConv}}"/>
-      </TextBlock>
+      </Grid>
+
+      <!-- ここまでヘッダ -->
+      <!-- ここからコンテンツ -->
+
+      <Grid Grid.Row="2">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.Resources>
+          <Style TargetType="ToggleButton" x:Key="InnerToggleButtonDefault" BasedOn="{StaticResource ToggleButtonDefault}">
+            <Setter Property="Width" Value="200"/>
+          </Style>
+          <Style TargetType="ToggleButton" x:Key="HalfToggleButtonDefault" BasedOn="{StaticResource InnerToggleButtonDefault}">
+            <Setter Property="Width" Value="100"/>
+          </Style>
+          <Style TargetType="ToggleButton" x:Key="LargeToggleButtonDefault" BasedOn="{StaticResource InnerToggleButtonDefault}">
+            <Setter Property="Height" Value="50"/>
+          </Style>
+        </Grid.Resources>
+
+        <StackPanel Grid.Column="0" Width="200" Orientation="Vertical">
+          <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Summary" IsChecked="True">
+            概要
+            <ToggleButton.Style>
+              <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource LargeToggleButtonDefault}">
+                <Style.Triggers>
+                  <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background" Value="#271"/>
+                  </Trigger>
+                </Style.Triggers>
+              </Style>
+            </ToggleButton.Style>
+          </RadioButton>
+          <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Predict">
+            予想
+            <ToggleButton.Style>
+              <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource LargeToggleButtonDefault}">
+                <Style.Triggers>
+                  <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background" Value="#903"/>
+                  </Trigger>
+                </Style.Triggers>
+              </Style>
+            </ToggleButton.Style>
+          </RadioButton>
+          <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Result">
+            結果
+            <ToggleButton.Style>
+              <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource LargeToggleButtonDefault}">
+                <Style.Triggers>
+                  <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background" Value="#53e"/>
+                  </Trigger>
+                </Style.Triggers>
+              </Style>
+            </ToggleButton.Style>
+          </RadioButton>
+
+          <RadioButton FontSize="18" Content="全体" Margin="0,12,0,0" GroupName="{Binding UniqueId,ElementName=Root}"
+                       Style="{StaticResource InnerToggleButtonDefault}" Name="S_All" IsChecked="True"
+                       Visibility="{Binding IsChecked,ElementName=S_Predict,Converter={StaticResource BooleanVisibilityConv}}"/>
+          <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}"
+                        Visibility="{Binding IsChecked,ElementName=S_Predict,Converter={StaticResource BooleanVisibilityConv}}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <RadioButton FontSize="18" Content="{Binding Data.Number}"
+                             Command="{Binding DataContext.ChangeActiveHorseCommand,ElementName=Root}" CommandParameter="{Binding Data.Number}"
+                             Style="{StaticResource HalfToggleButtonDefault}"
+                             GroupName="{Binding UniqueId,ElementName=Root}"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- レース概要 -->
+        <uc:RaceSummaryView Race="{Binding Race,ElementName=Root}" Grid.Column="1">
+          <Control.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsChecked" ElementName="S_Summary"/>
+            </MultiBinding>
+          </Control.Visibility>
+        </uc:RaceSummaryView>
+
+        <!--予想・全体-->
+        <uc:RaceExpectAllView Race="{Binding Race,ElementName=Root}" Grid.Column="1">
+          <Control.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsChecked" ElementName="S_Predict"/>
+              <Binding Path="IsChecked" ElementName="S_All"/>
+            </MultiBinding>
+          </Control.Visibility>
+        </uc:RaceExpectAllView>
+
+        <!--予想・各馬-->
+        <uc:RaceExpectHorseView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding Race.ActiveHorse.Value,ElementName=Root}" Grid.Column="1">
+          <Control.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsChecked" ElementName="S_Predict"/>
+              <Binding Path="IsChecked" ElementName="S_All" Converter="{StaticResource NegativeConv}"/>
+            </MultiBinding>
+          </Control.Visibility>
+        </uc:RaceExpectHorseView>
+
+        <!-- 結果・全体 -->
+        <uc:RaceResultAllView Race="{Binding Race,ElementName=Root}" Grid.Column="1">
+          <Control.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsChecked" ElementName="S_Result"/>
+            </MultiBinding>
+          </Control.Visibility>
+        </uc:RaceResultAllView>
+      </Grid>
     </Grid>
-    
-    <!-- ここまでヘッダ -->
-    <!-- ここからコンテンツ -->
 
-    <Grid Grid.Row="2">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="auto"/>
-        <ColumnDefinition/>
-      </Grid.ColumnDefinitions>
-
-      <Grid.Resources>
-        <Style TargetType="ToggleButton" x:Key="InnerToggleButtonDefault" BasedOn="{StaticResource ToggleButtonDefault}">
-          <Setter Property="Width" Value="200"/>
-        </Style>
-        <Style TargetType="ToggleButton" x:Key="HalfToggleButtonDefault" BasedOn="{StaticResource InnerToggleButtonDefault}">
-          <Setter Property="Width" Value="100"/>
-        </Style>
-        <Style TargetType="ToggleButton" x:Key="LargeToggleButtonDefault" BasedOn="{StaticResource InnerToggleButtonDefault}">
-          <Setter Property="Height" Value="50"/>
-        </Style>
-      </Grid.Resources>
-
-      <StackPanel Grid.Column="0" Width="200" Orientation="Vertical">
-        <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Summary" IsChecked="True">
-          概要
-          <ToggleButton.Style>
-            <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource LargeToggleButtonDefault}">
-              <Style.Triggers>
-                <Trigger Property="IsChecked" Value="True">
-                  <Setter Property="Background" Value="#271"/>
-                </Trigger>
-              </Style.Triggers>
-            </Style>
-          </ToggleButton.Style>
-        </RadioButton>
-        <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Predict">
-          予想
-          <ToggleButton.Style>
-            <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource LargeToggleButtonDefault}">
-              <Style.Triggers>
-                <Trigger Property="IsChecked" Value="True">
-                  <Setter Property="Background" Value="#903"/>
-                </Trigger>
-              </Style.Triggers>
-            </Style>
-          </ToggleButton.Style>
-        </RadioButton>
-        <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Result">
-          結果
-          <ToggleButton.Style>
-            <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource LargeToggleButtonDefault}">
-              <Style.Triggers>
-                <Trigger Property="IsChecked" Value="True">
-                  <Setter Property="Background" Value="#53e"/>
-                </Trigger>
-              </Style.Triggers>
-            </Style>
-          </ToggleButton.Style>
-        </RadioButton>
-
-        <RadioButton FontSize="18" Content="全体" Margin="0,12,0,0" GroupName="{Binding UniqueId,ElementName=Root}"
-                     Style="{StaticResource InnerToggleButtonDefault}" Name="S_All" IsChecked="True"
-                     Visibility="{Binding IsChecked,ElementName=S_Predict,Converter={StaticResource BooleanVisibilityConv}}"/>
-        <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}"
-                      Visibility="{Binding IsChecked,ElementName=S_Predict,Converter={StaticResource BooleanVisibilityConv}}">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <WrapPanel Orientation="Horizontal"/>
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <RadioButton FontSize="18" Content="{Binding Data.Number}"
-                           Command="{Binding DataContext.ChangeActiveHorseCommand,ElementName=Root}" CommandParameter="{Binding Data.Number}"
-                           Style="{StaticResource HalfToggleButtonDefault}"
-                           GroupName="{Binding UniqueId,ElementName=Root}"/>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </StackPanel>
-
-      <!-- レース概要 -->
-      <uc:RaceSummaryView Race="{Binding Race,ElementName=Root}" Grid.Column="1">
-        <Control.Visibility>
-          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
-            <Binding Path="IsChecked" ElementName="S_Summary"/>
-          </MultiBinding>
-        </Control.Visibility>
-      </uc:RaceSummaryView>
-      
-      <!--予想・全体-->
-      <uc:RaceExpectAllView Race="{Binding Race,ElementName=Root}" Grid.Column="1">
-        <Control.Visibility>
-          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
-            <Binding Path="IsChecked" ElementName="S_Predict"/>
-            <Binding Path="IsChecked" ElementName="S_All"/>
-          </MultiBinding>
-        </Control.Visibility>
-      </uc:RaceExpectAllView>
-
-      <!--予想・各馬-->
-      <uc:RaceExpectHorseView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding Race.ActiveHorse.Value,ElementName=Root}" Grid.Column="1">
-        <Control.Visibility>
-          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
-            <Binding Path="IsChecked" ElementName="S_Predict"/>
-            <Binding Path="IsChecked" ElementName="S_All" Converter="{StaticResource NegativeConv}"/>
-          </MultiBinding>
-        </Control.Visibility>
-      </uc:RaceExpectHorseView>
-
-      <!-- 結果・全体 -->
-      <uc:RaceResultAllView Race="{Binding Race,ElementName=Root}" Grid.Column="1">
-        <Control.Visibility>
-          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
-            <Binding Path="IsChecked" ElementName="S_Result"/>
-          </MultiBinding>
-        </Control.Visibility>
-      </uc:RaceResultAllView>
+    <Grid Visibility="{Binding IsLoaded.Value,Converter={StaticResource NegativeVisibilityConv}}">
+      <Border>
+        <TextBlock FontSize="32" Style="{StaticResource SubTextBlock}" Text="ロード中です。しばらくお待ちください..."
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      </Border>
     </Grid>
   </Grid>
 </UserControl>
