@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Race;
 using Reactive.Bindings;
@@ -54,40 +55,27 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value != null ? this.model.Info.Value.SetConditionAsync(p) : Task.CompletedTask);
     private AsyncReactiveCommand<string>? _setConditionCommand;
 
-    public ICommand SetDoubleCircleMarkCommand =>
-      this._setDoubleCircleMarkCommand ??=
-        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.DoubleCircle, p));
-    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setDoubleCircleMarkCommand;
+    public ICommand SetTrioBlockCommand =>
+      this._setTrioBlockCommand ??=
+        new ReactiveCommand<OddsBlock<TrioOdds.OddsData>>().WithSubscribe(p =>
+        {
+          if (this.model.Info.Value?.Odds.Value != null)
+          {
+            this.model.Info.Value.Odds.Value!.CurrentTrios.Value = p;
+          }
+        });
+    private ReactiveCommand<OddsBlock<TrioOdds.OddsData>> _setTrioBlockCommand;
 
-    public ICommand SetCircleMarkCommand =>
-      this._setCircleMarkCommand ??=
-        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.Circle, p));
-    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setCircleMarkCommand;
-
-    public ICommand SetTriangleMarkCommand =>
-      this._setTriangleMarkCommand ??=
-        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.Triangle, p));
-    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setTriangleMarkCommand;
-
-    public ICommand SetFilledTriangleMarkCommand =>
-      this._setFilledTriangleMarkCommand ??=
-        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.FilledTriangle, p));
-    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setFilledTriangleMarkCommand;
-
-    public ICommand SetStarMarkCommand =>
-      this._setStarMarkCommand ??=
-        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.Star, p));
-    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setStarMarkCommand;
-
-    public ICommand SetDeletedMarkCommand =>
-      this._setDeletedMarkCommand ??=
-        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.Deleted, p));
-    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setDeletedMarkCommand;
-
-    public ICommand SetDefaultMarkCommand =>
-      this._setDefaultMarkCommand ??=
-        new AsyncReactiveCommand<RaceHorseAnalyzer>().WithSubscribe(p => this.model.ChangeHorseMarkAsync(RaceHorseMark.Default, p));
-    private AsyncReactiveCommand<RaceHorseAnalyzer>? _setDefaultMarkCommand;
+    public ICommand SetTrifectaBlockCommand =>
+      this._setTrifectaBlockCommand ??=
+        new ReactiveCommand<OddsBlock<TrifectaOdds.OddsData>>().WithSubscribe(p =>
+        {
+          if (this.model.Info.Value?.Odds.Value != null)
+          {
+            this.model.Info.Value.Odds.Value!.CurrentTrifectas.Value = p;
+          }
+        });
+    private ReactiveCommand<OddsBlock<TrifectaOdds.OddsData>> _setTrifectaBlockCommand;
 
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;

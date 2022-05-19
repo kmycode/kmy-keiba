@@ -103,8 +103,8 @@ namespace KmyKeiba.JVLink.Entities
           if (cls != RaceClass.Age)
           {
             var maxClass = cls;
-            var max = this.Items.First((i) => i.Class == maxClass);
-            var className = max.Class.GetAttribute();
+            var max = this.Items.FirstOrDefault((i) => i.Class == maxClass);
+            var className = max?.Class.GetAttribute();
 
             if (className != null)
             {

@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using System.Threading.Tasks;
 
@@ -27,6 +28,7 @@ namespace KmyKeiba.Models.Script
     public static JsonSerializerOptions JsonOptions { get; } = new JsonSerializerOptions
     {
       Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+      NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
     };
 
     public RaceInfo Race { get; }

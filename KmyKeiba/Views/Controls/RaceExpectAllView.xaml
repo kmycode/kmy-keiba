@@ -28,6 +28,7 @@
         <ColumnDefinition/>
         <ColumnDefinition/>
         <ColumnDefinition/>
+        <ColumnDefinition/>
       </Grid.ColumnDefinitions>
       <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="出走馬" Name="S_HorseList" IsChecked="True"/>
@@ -36,7 +37,9 @@
       <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="オッズ一覧" Name="S_Odds"/>
       <RadioButton Grid.Column="3" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="展開予想" Name="S_Script"/>
+                   Content="予想スクリプト" Name="S_Script"/>
+      <RadioButton Grid.Column="4" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="馬券" Name="S_Tickets"/>
     </Grid>
 
     <Grid Grid.Row="1">
@@ -202,6 +205,26 @@
           </Style>
         </FrameworkElement.Resources>
 
+        <Grid Grid.Column="0" Grid.Row="1" Visibility="{Binding IsChecked,ElementName=SO_Trio,Converter={StaticResource BooleanVisibilityConv}}">
+          <ItemsControl ItemsSource="{Binding Race.Odds.Value.Trios.Value.Blocks,ElementName=Root}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Button Width="80" Content="{Binding NumberInGroup}" FontSize="16" Command="{Binding DataContext.SetTrioBlockCommand,ElementName=Root}" CommandParameter="{Binding}"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Grid>
+
+        <Grid Grid.Column="0" Grid.Row="1" Visibility="{Binding IsChecked,ElementName=SO_Trifecta,Converter={StaticResource BooleanVisibilityConv}}">
+          <ItemsControl ItemsSource="{Binding Race.Odds.Value.Trifectas.Value.Blocks,ElementName=Root}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Button Width="80" Content="{Binding NumberInGroup}" FontSize="16" Command="{Binding DataContext.SetTrifectaBlockCommand,ElementName=Root}" CommandParameter="{Binding}"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Grid>
+        
         <Grid Grid.ColumnSpan="2">
           <Grid.ColumnDefinitions>
             <ColumnDefinition/>
@@ -458,112 +481,96 @@
         </ScrollViewer>
 
         <ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Auto" Visibility="{Binding IsChecked,ElementName=SO_Trio,Converter={StaticResource BooleanVisibilityConv}}">
-          <StackPanel Orientation="Horizontal">
-            <ItemsControl ItemsSource="{Binding Race.Odds.Value.Trios.Value.Blocks,ElementName=Root}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <StackPanel Margin="0,0,0,24">
-                    <Border Background="{DynamicResource TrioTicketBackground}" Padding="8">
-                      <TextBlock Text="{Binding NumberInGroup}" FontSize="28" Style="{StaticResource TextBlockDefault}"/>
+          <StackPanel Orientation="Vertical">
+            <Border Background="{DynamicResource TrioTicketBackground}" Padding="8">
+              <TextBlock Text="{Binding Race.Odds.Value.CurrentTrios.Value.NumberInGroup,ElementName=Root}" FontSize="28" Style="{StaticResource TextBlockDefault}"/>
+            </Border>
+            <StackPanel Orientation="Horizontal">
+              <ItemsControl ItemsSource="{Binding Race.Odds.Value.CurrentTrios.Value.Numbers,ElementName=Root}" Margin="0,35,0,0">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border BorderBrush="{DynamicResource TrioTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
+                      <TextBlock Text="{Binding}" Style="{StaticResource HorseNumber}"/>
                     </Border>
-                    <StackPanel Orientation="Horizontal">
-                      <ItemsControl ItemsSource="{Binding Numbers}" Margin="0,35,0,0">
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <ItemsControl ItemsSource="{Binding Race.Odds.Value.CurrentTrios.Value.Columns,ElementName=Root}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel>
+                      <Border BorderBrush="{DynamicResource TrioTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
+                        <TextBlock Text="{Binding Number}" Style="{StaticResource HorseNumber}"/>
+                      </Border>
+                      <ItemsControl ItemsSource="{Binding Odds}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate>
-                            <Border BorderBrush="{DynamicResource TrioTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
-                              <TextBlock Text="{Binding}" Style="{StaticResource HorseNumber}"/>
+                            <Border Width="60" Height="35">
+                              <TextBlock Text="{Binding Data.Odds,Converter={StaticResource DigitMinusConv}}"
+                                          Visibility="{Binding Data.Odds,Converter={StaticResource NonZeroVisibilityConv}}"
+                                          Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                                          Style="{StaticResource OddsNumber}"/>
                             </Border>
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
-                      <ItemsControl ItemsSource="{Binding Columns}">
-                        <ItemsControl.ItemsPanel>
-                          <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal"/>
-                          </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate>
-                            <StackPanel>
-                              <Border BorderBrush="{DynamicResource TrioTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
-                                <TextBlock Text="{Binding Number}" Style="{StaticResource HorseNumber}"/>
-                              </Border>
-                              <ItemsControl ItemsSource="{Binding Odds}">
-                                <ItemsControl.ItemTemplate>
-                                  <DataTemplate>
-                                    <Border Width="60" Height="35">
-                                      <TextBlock Text="{Binding Data.Odds,Converter={StaticResource DigitMinusConv}}"
-                                                 Visibility="{Binding Data.Odds,Converter={StaticResource NonZeroVisibilityConv}}"
-                                                 Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv}}"
-                                                 Style="{StaticResource OddsNumber}"/>
-                                    </Border>
-                                  </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                              </ItemsControl>
-                            </StackPanel>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
                     </StackPanel>
-                  </StackPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
           </StackPanel>
         </ScrollViewer>
 
         <ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Auto" Visibility="{Binding IsChecked,ElementName=SO_Trifecta,Converter={StaticResource BooleanVisibilityConv}}">
-          <StackPanel Orientation="Horizontal">
-            <ItemsControl ItemsSource="{Binding Race.Odds.Value.Trifectas.Value.Blocks,ElementName=Root}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <StackPanel Margin="0,0,0,24">
-                    <Border Background="{DynamicResource TrifectaTicketBackground}" Padding="8">
-                      <TextBlock Text="{Binding NumberInGroup}" FontSize="28" Style="{StaticResource TextBlockDefault}"/>
+          <StackPanel Orientation="Vertical">
+            <Border Background="{DynamicResource TrifectaTicketBackground}" Padding="8">
+              <TextBlock Text="{Binding Race.Odds.Value.CurrentTrifectas.Value.NumberInGroup,ElementName=Root}" FontSize="28" Style="{StaticResource TextBlockDefault}"/>
+            </Border>
+            <StackPanel Orientation="Horizontal">
+              <ItemsControl ItemsSource="{Binding Race.Odds.Value.CurrentTrifectas.Value.Numbers,ElementName=Root}" Margin="0,35,0,0">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border BorderBrush="{DynamicResource TrifectaTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
+                      <TextBlock Text="{Binding}" Style="{StaticResource HorseNumber}"/>
                     </Border>
-                    <StackPanel Orientation="Horizontal">
-                      <ItemsControl ItemsSource="{Binding Numbers}" Margin="0,35,0,0">
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <ItemsControl ItemsSource="{Binding Race.Odds.Value.CurrentTrifectas.Value.Columns,ElementName=Root}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel>
+                      <Border BorderBrush="{DynamicResource TrifectaTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
+                        <TextBlock Text="{Binding Number}" Style="{StaticResource HorseNumber}"/>
+                      </Border>
+                      <ItemsControl ItemsSource="{Binding Odds}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate>
-                            <Border BorderBrush="{DynamicResource TrifectaTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
-                              <TextBlock Text="{Binding}" Style="{StaticResource HorseNumber}"/>
+                            <Border Width="60" Height="35">
+                              <TextBlock Text="{Binding Data.Odds,Converter={StaticResource DigitMinusConv}}"
+                                          Visibility="{Binding Data.Odds,Converter={StaticResource NonZeroVisibilityConv}}"
+                                          Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                                          Style="{StaticResource OddsNumber}"/>
                             </Border>
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
-                      <ItemsControl ItemsSource="{Binding Columns}">
-                        <ItemsControl.ItemsPanel>
-                          <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal"/>
-                          </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate>
-                            <StackPanel>
-                              <Border BorderBrush="{DynamicResource TrifectaTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
-                                <TextBlock Text="{Binding Number}" Style="{StaticResource HorseNumber}"/>
-                              </Border>
-                              <ItemsControl ItemsSource="{Binding Odds}">
-                                <ItemsControl.ItemTemplate>
-                                  <DataTemplate>
-                                    <Border Width="60" Height="35">
-                                      <TextBlock Text="{Binding Data.Odds,Converter={StaticResource DigitMinusConv}}"
-                                                 Visibility="{Binding Data.Odds,Converter={StaticResource NonZeroVisibilityConv}}"
-                                                 Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv}}"
-                                                 Style="{StaticResource OddsNumber}"/>
-                                    </Border>
-                                  </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                              </ItemsControl>
-                            </StackPanel>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
                     </StackPanel>
-                  </StackPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
           </StackPanel>
         </ScrollViewer>
       </Grid>

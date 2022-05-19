@@ -22,6 +22,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<RaceAnalyzer> RaceAnalyzer { get; } = new();
 
+    public ReactiveProperty<bool> HasResults { get; } = new();
+
     public bool CanChangeWeathers { get; }
 
     public ReactiveProperty<RaceCourseWeather> Weather { get; } = new();
@@ -90,6 +92,7 @@ namespace KmyKeiba.Models.Race
           horses.Where(h => h.Data.ResultOrder > 0).OrderBy(h => h.Data.ResultOrder).Concat(
             horses.Where(h => h.Data.ResultOrder == 0).OrderBy(h => h.Data.Number).OrderBy(h => h.Data.AbnormalResult)));
         this.RaceAnalyzer.Value = new RaceAnalyzer(this.Data, horses.Select(h => h.Data).ToArray(), standardTime);
+        this.HasResults.Value = this.Horses.Any(h => h.Data.ResultOrder > 0);
       });
     }
 

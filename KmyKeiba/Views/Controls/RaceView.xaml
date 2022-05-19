@@ -103,7 +103,8 @@
               </Style>
             </ToggleButton.Style>
           </RadioButton>
-          <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Result">
+          <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Result"
+                       Visibility="{Binding Race.HasResults.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
             結果
             <ToggleButton.Style>
               <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource LargeToggleButtonDefault}">

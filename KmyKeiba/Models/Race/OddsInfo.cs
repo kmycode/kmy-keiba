@@ -32,9 +32,11 @@ namespace KmyKeiba.Models.Race
 
     private OddsBlockGroup<TrioOdds.OddsData>? _trios { get; } = new();
     public ReactiveProperty<OddsBlockGroup<TrioOdds.OddsData>?> Trios { get; } = new();
+    public ReactiveProperty<OddsBlock<TrioOdds.OddsData>?> CurrentTrios { get; } = new();
 
     private OddsBlockGroup<TrifectaOdds.OddsData>? _trifectas { get; } = new();
     public ReactiveProperty<OddsBlockGroup<TrifectaOdds.OddsData>?> Trifectas { get; } = new();
+    public ReactiveProperty<OddsBlock<TrifectaOdds.OddsData>?> CurrentTrifectas { get; } = new();
 
     public CheckableCollection<OddsFilterItem> Filters { get; } = new();
 
@@ -43,7 +45,6 @@ namespace KmyKeiba.Models.Race
     public QuinellaOddsData? Quinella { get; }
     public ExactaOddsData? Exacta { get; }
     public TrioOddsData? Trio { get; }
-
     public TrifectaOddsData? Trifecta { get; }
 
     public OddsInfo(IReadOnlyList<RaceHorseData> horses, FrameNumberOddsData? frame, QuinellaPlaceOddsData? quinellaPlace, QuinellaOddsData? quinella, ExactaOddsData? exacta, TrioOddsData? trio, TrifectaOddsData? trifecta)
@@ -82,11 +83,13 @@ namespace KmyKeiba.Models.Race
       {
         var block = OddsBlock.Create(trio);
         this._trios = this.Trios.Value = block;
+        this.CurrentTrios.Value = block.Blocks.FirstOrDefault();
       }
       if (trifecta != null)
       {
         var block = OddsBlock.Create(trifecta);
         this._trifectas = this.Trifectas.Value = block;
+        this.CurrentTrifectas.Value = block.Blocks.FirstOrDefault();
       }
 
       // フィルター
