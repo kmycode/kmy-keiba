@@ -17,34 +17,44 @@ namespace KmyKeiba.Models.Analysis
     public enum Key
     {
       [Label("コース")]
+      [ScriptParameterKey("course")]
       SameCourse,
 
       [Label("馬場状態")]
+      [ScriptParameterKey("condition")]
       SameCondition,
 
       [Label("天気")]
+      [ScriptParameterKey("weather")]
       SameWeather,
 
       [Label("レース名")]
+      [ScriptParameterKey("name")]
       SameRaceName,
 
       [Label("条件")]
+      [ScriptParameterKey("subject")]
       SameSubject,
 
       [Label("格")]
+      [ScriptParameterKey("grade")]
       SameGrade,
 
       [Label("月")]
+      [ScriptParameterKey("month")]
       SameMonth,
 
       [Label("距離")]
+      [ScriptParameterKey("distance")]
       NearDistance,
 
       [Label("複勝")]
+      [ScriptParameterKey("placebits")]
       [GroupName("ResultOrder")]
       PlaceBets,
 
       [Label("着外")]
+      [ScriptParameterKey("losed")]
       [GroupName("ResultOrder")]
       Losed,
     }
@@ -71,7 +81,7 @@ namespace KmyKeiba.Models.Analysis
       return new RaceRiderTrendAnalyzer(this.Race, this.RaceHorse);
     }
 
-    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceRiderTrendAnalyzer analyzer)
+    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceRiderTrendAnalyzer analyzer, int count)
     {
       var query = db.Races!
         .Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Aborted && r.TrackType == this.Race.TrackType)
@@ -127,7 +137,7 @@ namespace KmyKeiba.Models.Analysis
 
       var races = await query
         .OrderByDescending(r => r.Race.StartTime)
-        .Take(300)
+        .Take(count)
         .ToArrayAsync();
       var raceKeys = races.Select(r => r.Race.Key).ToArray();
       var raceHorses = await db.RaceHorses!

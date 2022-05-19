@@ -25,7 +25,7 @@ export function Race(data, csobj) {
   // 条件戦（３歳新馬、未勝利など）では、協賛レースでない限り設定されない
   this.name = data.name;
 
-  // レース名。上記に加えて、条件戦など特別な名前の設定されていないレースでも「３歳新馬」などの情報を返す
+  // レース名。上記に加えて、条件戦など特別な名前の設定されていないレースでも「３歳新馬」などの文字列を返す
   this.displayName = data.displayName;
 
   // レースの格（参照：JRA-VAN Data Lab. コード表 2003.グレードコード）（取得可能な情報例：G1、G3、地方G1、特別、リステッド）
@@ -97,9 +97,13 @@ export function Race(data, csobj) {
   // 発走時刻（Dateオブジェクト）
   this.startTime = KmyKeiba.__csDateTimeToDate(data.startTime);
 
+  // このレースの上位5頭の馬データ。RaceHorse型
+  // ※getSimilarRacesAsync やその他の getSimilar 系メソッドで取得したレースにのみ設定される。それ以外はnull
+  this.topHorses = data.topHorses;
+
   // 本アプリで独自に解析したレース条件。地方競馬の時のみ設定される。subjectNameをパースすることで求めている。
   // 名古屋競馬場などパースのうまくいかない競馬場もあり、精度は保証できない。
-  // 中央競馬の場合はundefinedにはならないが、このデータは使わず、上述の値を組み合わせて判別すること
+  // 中央競馬の場合はnullになるので、このデータは使わず、上述の値を組み合わせて判別すること
   //
   // 【データ構造】※地方競馬の場合のみ　構造内にあるクラスについては後述
   // {
@@ -130,6 +134,12 @@ Race.prototype.getHorses = function() {
   const json = this._obj.horses;
   const data = JSON.parse(json);
   return data.map(d => new RaceHorse(d, this._obj));
+}
+
+Race.prototype.getSimilarRacesAsync = async function(keys, count) {
+  const json = await this._obj.getSimilarRacesAsync(keys, count || 300);
+  const data = JSON.parse(json);
+  return data.map(d => new Race(d, this._obj));
 }
 
 
@@ -220,6 +230,8 @@ export function RaceHorse(data, csraceobj) {
 
   // この馬のレース情報。Race型のオブジェクトが返される
   // ※予想対象レースの場合は設定されない（データが冗長になるため）
+  // ※getSimilarRacesAsync で取得したレースでは設定されない（循環参照になるため）
+  //   getRiderSimilarRacesAsync / getTrainerSimilarRacesAsync / getBloodHorseRacesAsync では設定される
   this.race = data.race;
 
   // 過去レースの情報の入ったオブジェクト。予想対象レースの場合にのみ設定され、それ以外の場合はnullまたはundefinedになる
@@ -234,9 +246,92 @@ export function RaceHorse(data, csraceobj) {
   this.history = data.history;
 }
 
-RaceHorse.prototype.__getObj = function() {
+RaceHorse.prototype._getObj = function() {
   if (typeof(this._obj) === 'undefined') {
     this._obj = this._raceObj.getHorse(this.number);
   }
   return this._obj;
+}
+
+// 同じ騎手の過去レースデータを取得する
+//
+//   keys:  以下の組み合わせを「|」で区切って指定する
+//          例えば「同じ競馬場＆距離」のレースを取得したい場合、「course|distance」を指定する
+//             course     同じ競馬場
+//             condition  同じ馬場状態
+//             weather    同じ天気
+//             name       同じレース名（地方競馬の協賛レースなどでは誤動作の場合あり。条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）
+//             subject    同じ条件（地方競馬では誤動作の場合あり）
+//             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
+//             month      同じ月
+//             distance   前後100メートルの距離
+//             placebits  上位3着以内
+//             losed      着外
+//   count: 取得最大数
+//
+// 結果は RaceHorse 型の配列
+// ※isTargetRace が false であれば、このメソッドは実行できない
+RaceHorse.prototype.getRiderSimilarRacesAsync = async function(keys, count) {
+  const json = await this._getObj().getRiderSimilarRacesAsync(keys, count || 300);
+  const data = JSON.parse(json);
+  return data.map(d => new RaceHorse(d));
+}
+
+// 同じ調教師の過去レースデータを取得する
+//
+//   keys:  以下の組み合わせを「|」で区切って指定する
+//          例えば「同じ競馬場＆距離」のレースを取得したい場合、「course|distance」を指定する
+//             course     同じ競馬場
+//             condition  同じ馬場状態
+//             weather    同じ天気
+//             name       同じレース名（地方競馬の協賛レースなどでは誤動作の場合あり。条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）
+//             subject    同じ条件（地方競馬では誤動作の場合あり）
+//             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
+//             month      同じ月
+//             distance   前後100メートルの距離
+//             placebits  上位3着以内
+//             losed      着外
+//   count: 取得最大数
+//
+// 結果は RaceHorse 型の配列
+// ※isTargetRace が false であれば、このメソッドは実行できない
+RaceHorse.prototype.getTrainerSimilarRacesAsync = async function(keys, count) {
+  const json = await this._getObj().getTrainerSimilarRacesAsync(keys, count || 300);
+  const data = JSON.parse(json);
+  return data.map(d => new RaceHorse(d));
+}
+
+// 指定した血統馬の全レースを取得する
+//
+//   key: 以下のいずれかから指定する
+//          f     父
+//          ff    父父
+//          fff   父父父
+//          ffm   父父母
+//          fm    父母
+//          fmf   父母父
+//          fmm   父母母
+//          m     母
+//          mf    母父
+//          mff   母父父
+//          mfm   母父母
+//          mm    母母
+//          mmf   母母父
+//          mmm   母母母
+//
+// 結果は RaceHorse 型の配列
+// ※isTargetRace が false であれば、このメソッドは実行できない
+RaceHorse.prototype.getBloodHorseRacesAsync = async function(key) {
+  const json = await this._getObj().getBloodHorseRacesAsync(key);
+  const data = JSON.parse(json);
+  return data.map(d => new RaceHorse(d));
+}
+
+// 血統馬の名前を文字列の配列で取得する
+// 結果は「getBloodHorseRacesAsync」で示したのと同じ順番で返される
+// 例えば結果の[2]は父父父になる
+RaceHorse.prototype.getBloodNamesAsync = async function() {
+  const json = await this._getObj().getBloodNamesAsync();
+  const data = JSON.parse(json);
+  return data;
 }

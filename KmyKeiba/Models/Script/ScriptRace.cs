@@ -29,7 +29,7 @@ namespace KmyKeiba.Models.Script
     public string SubjectName => this._race.Data.SubjectName;
 
     [JsonPropertyName("subject")]
-    public ScriptRaceSubject Subject => new(this._race.Subject);
+    public ScriptRaceSubject? Subject => this._race.Subject.Subject.IsLocal ? new(this._race.Subject) : null;
 
     [JsonPropertyName("grade")]
     public short Grade => (short)this._race.Data.Grade;
@@ -111,6 +111,14 @@ namespace KmyKeiba.Models.Script
       return this._race.Horses.Select(h => new ScriptRaceHorse(this._race.Data.Key, h)).ToArray();
     }
 
+    [ScriptMember("getSimilarRacesAsync")]
+    public async Task<string> LoadTrendRacesAsync(string keys, int count = 300)
+    {
+      var analyzer = this._race.TrendAnalyzers.BeginLoad(keys, count);
+      await analyzer.WaitAnalysisAsync();
+      return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRace(s.Data, s.TopHorses)).ToArray(), ScriptManager.JsonOptions);
+    }
+
     [ScriptMember("getJson")]
     public string ToJson()
     {
@@ -123,6 +131,8 @@ namespace KmyKeiba.Models.Script
   {
     private readonly RaceData _race;
     private readonly RaceSubjectInfo _subject;
+    private readonly IReadOnlyList<RaceHorseAnalyzer>? _topHorses;
+    private readonly IReadOnlyList<RaceHorseData>? _topHorses2;
 
     [JsonPropertyName("name")]
     public string Name => this._race.Name;
@@ -190,10 +200,23 @@ namespace KmyKeiba.Models.Script
     [JsonPropertyName("startTime")]
     public string StartTime => this._race.StartTime.ToString();
 
-    public ScriptRace(RaceData race)
+    [JsonPropertyName("topHorses")]
+    public ScriptRaceHorse[]? TopHorses =>
+      this._topHorses != null ? this._topHorses.Select(h => new ScriptRaceHorse(string.Empty, h, false)).ToArray() :
+      this._topHorses2 != null ? this._topHorses2.Select(h => new ScriptRaceHorse(string.Empty, h)).ToArray() : null;
+
+    public ScriptRace(RaceData race, IReadOnlyList<RaceHorseAnalyzer>? topHorses = null)
     {
       this._race = race;
       this._subject = new RaceSubjectInfo(race);
+      this._topHorses = topHorses;
+    }
+
+    public ScriptRace(RaceData race, IReadOnlyList<RaceHorseData>? topHorses)
+    {
+      this._race = race;
+      this._subject = new RaceSubjectInfo(race);
+      this._topHorses2 = topHorses;
     }
 
     [ScriptMember("getJson")]

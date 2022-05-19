@@ -16,11 +16,11 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceSubjectInfo Subject { get; }
 
-    public RaceHorseData? TopHorseData => this.TopHorses.FirstOrDefault(rh => rh.ResultOrder == 1);
+    public RaceHorseData? TopHorseData => this.TopHorse.Data;
 
     public RaceHorseAnalyzer TopHorse { get; } = RaceHorseAnalyzer.Empty;
 
-    public IReadOnlyList<RaceHorseData> TopHorses { get; }
+    public IReadOnlyList<RaceHorseAnalyzer> TopHorses { get; }
 
     public RunningStyle TopRunningStyle { get; }
 
@@ -36,7 +36,7 @@ namespace KmyKeiba.Models.Analysis
       var topHorse = topHorses.OrderBy(h => h.ResultOrder).FirstOrDefault() ?? new();
 
       this.Data = race;
-      this.TopHorses = topHorses;
+      this.TopHorses = topHorses.Select(h => new RaceHorseAnalyzer(race, h, raceStandardTime)).ToArray();
       this.Subject = new RaceSubjectInfo(race);
       this.RunningStyles = topHorses.OrderBy(h => h.ResultOrder)
         .Take(3)

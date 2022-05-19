@@ -16,35 +16,45 @@ namespace KmyKeiba.Models.Analysis
     public enum Key
     {
       [Label("コース")]
+      [ScriptParameterKey("course")]
       SameCourse,
 
       [Label("馬場状態")]
+      [ScriptParameterKey("condition")]
       SameCondition,
 
       [Label("天気")]
+      [ScriptParameterKey("weather")]
       SameWeather,
 
       [Label("条件")]
+      [ScriptParameterKey("subject")]
       SameSubject,
 
       [Label("格")]
+      [ScriptParameterKey("grade")]
       SameGrade,
 
       [Label("季節")]
+      [ScriptParameterKey("season")]
       SameSeason,
 
       [Label("距離")]
+      [ScriptParameterKey("distance")]
       NearDistance,
 
       [Label("複勝")]
+      [ScriptParameterKey("placebits")]
       [GroupName("ResultOrder")]
       PlaceBets,
 
       [Label("着外")]
+      [ScriptParameterKey("losed")]
       [GroupName("ResultOrder")]
       Losed,
 
       [Label("間隔")]
+      [ScriptParameterKey("interval")]
       NearInterval,
     }
 
@@ -67,7 +77,7 @@ namespace KmyKeiba.Models.Analysis
       return new RaceHorseTrendAnalyzer(this.Race, this.RaceHorse);
     }
 
-    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseTrendAnalyzer analyzer)
+    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseTrendAnalyzer analyzer, int count)
     {
       // WARNING: 全体の総数が多くないと予想されるのでここでDBからすべて取得し、配分している
       //          間違ってもこれをこのまま他のSelectorクラスにコピペしないように

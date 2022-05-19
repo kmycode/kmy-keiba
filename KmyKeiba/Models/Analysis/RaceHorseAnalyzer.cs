@@ -176,6 +176,8 @@ namespace KmyKeiba.Models.Analysis
 
       public RaceHorseData? TopHorse { get; }
 
+      public IReadOnlyList<RaceHorseData> TopHorses { get; }
+
       public double RoughRate { get; }
 
       public CurrentRaceData(RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses)
@@ -191,6 +193,7 @@ namespace KmyKeiba.Models.Analysis
           horse.Age < ageMedian ? ValueComparation.Good : ValueComparation.Standard;
 
         this.TopHorse = sameRaceHorses.FirstOrDefault(h => h.ResultOrder == 1);
+        this.TopHorses = sameRaceHorses.OrderBy(h => h.ResultOrder).ToArray();
         this.RoughRate = AnalysisUtil.CalcRoughRate(sameRaceHorses.ToArray());
       }
     }

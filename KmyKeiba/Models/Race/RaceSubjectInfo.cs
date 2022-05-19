@@ -13,7 +13,12 @@ namespace KmyKeiba.Models.Race
   {
     public RaceSubject Subject { get; }
 
-    public string DisplayName { get; }
+    public string DisplayName
+    {
+      get => this._displayName;
+      set => this._displayName = value.Trim();
+    }
+    private string _displayName = string.Empty;
 
     public string ShorterName { get; }
 
