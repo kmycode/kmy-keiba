@@ -29,10 +29,10 @@ namespace KmyKeiba.Models.Script
     [JsonPropertyName("moneySubjectType")]
     public short MoneySubjectType => (short)this._subject.Subject.MoneySubject;
 
-    [JsonPropertyName("isNewHorses")]
+    [JsonPropertyName("isDebut")]
     public bool IsNewHorses => this._subject.Subject.IsNewHorses;
 
-    [JsonPropertyName("isNotWon")]
+    [JsonPropertyName("isMaiden")]
     public bool IsNotWon => this._subject.Subject.IsNotWon;
 
     [JsonPropertyName("isLocal")]

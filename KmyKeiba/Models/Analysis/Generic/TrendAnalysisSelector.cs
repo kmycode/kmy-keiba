@@ -117,6 +117,25 @@ namespace KmyKeiba.Models.Analysis.Generic
       return this.BeginLoad((IReadOnlyList<KEY>)keys);
     }
 
+    public A BeginLoad(string scriptParams)
+    {
+      var pairs = Enum.GetValues(typeof(KEY)).OfType<KEY>().Select(k =>
+        new { Key = k, ScriptParameter = typeof(KEY).GetField(k.ToString())!.GetCustomAttributes(true).OfType<ScriptParameterKeyAttribute>().FirstOrDefault()?.Key ?? string.Empty, })
+        .Where(d => !string.IsNullOrEmpty(d.ScriptParameter));
+
+      var keys = new List<KEY>();
+      foreach (var param in scriptParams.Split('|'))
+      {
+        var key = pairs.FirstOrDefault(p => p.ScriptParameter == param);
+        if (key != null)
+        {
+          keys.Add(key.Key);
+        }
+      }
+
+      return this.BeginLoad(keys);
+    }
+
     protected abstract A GenerateAnalyzer();
 
     protected virtual Task InitializeAnalyzerAsync(MyContext db, IEnumerable<KEY> keys, A analyzer)
@@ -235,6 +254,17 @@ namespace KmyKeiba.Models.Analysis.Generic
   [AttributeUsage(AttributeTargets.Field)]
   internal class IgnoreKeyAttribute : Attribute
   {
+  }
+
+  [AttributeUsage(AttributeTargets.Field)]
+  internal class ScriptParameterKeyAttribute : Attribute
+  {
+    public string Key { get; }
+
+    public ScriptParameterKeyAttribute(string key)
+    {
+      this.Key = key;
+    }
   }
 
   public record class TrendAnalysisFilterItem<KEY>(KEY Key, string? GroupName) : IMultipleCheckableItem

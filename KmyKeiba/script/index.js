@@ -10,6 +10,6 @@
   // 馬の一覧を取得
   const horses = race.getHorses();
 
-  // レースの名前を返す
+  // 馬の名前を返す
   return `${horses[1].number} 番 ${horses[1].name} 号がいいです（）`;
 });

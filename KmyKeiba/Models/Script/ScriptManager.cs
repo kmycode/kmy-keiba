@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Script.NodeJSCompat;
 using Microsoft.ClearScript;
 using Microsoft.ClearScript.JavaScript;
 using Microsoft.ClearScript.V8;
@@ -58,6 +59,7 @@ namespace KmyKeiba.Models.Script
         engine.DocumentSettings.SearchPath = Path.Combine(Directory.GetCurrentDirectory(), "script");
 
         engine.AddHostObject("__currentRace", new ScriptCurrentRace(this.Race));
+        engine.AddHostObject("__fs", new NodeJSFileSystem());
 
         var script = File.ReadAllText("script/index.js");
         engine.Script.OnInit = engine.Evaluate(new DocumentInfo { Category = ModuleCategory.Standard, }, script);

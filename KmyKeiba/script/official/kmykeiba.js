@@ -8,7 +8,7 @@ KmyKeiba.getTargetRace = function() {
   return new Race(data, __currentRace);
 }
 
-KmyKeiba.csDateTimeToDate = function(dateTime) {
+KmyKeiba.__csDateTimeToDate = function(dateTime) {
   return new Date(dateTime);
 }
 
@@ -95,7 +95,7 @@ export function Race(data, csobj) {
   this.horsesCount = data.horsesCount;
 
   // 発走時刻（Dateオブジェクト）
-  this.startTime = KmyKeiba.csDateTimeToDate(data.startTime);
+  this.startTime = KmyKeiba.__csDateTimeToDate(data.startTime);
 
   // 本アプリで独自に解析したレース条件。地方競馬の時のみ設定される。subjectNameをパースすることで求めている。
   // 名古屋競馬場などパースのうまくいかない競馬場もあり、精度は保証できない。
@@ -105,15 +105,15 @@ export function Race(data, csobj) {
   // {
   //    allClasses:       このレースに出場する全てのクラスの配列
   //    maxClass:         このレースに出場する最も高いクラス
-  //    money:            条件として指定された金額。moneySubjectTypeと組み合わせて判別する
-  //    moneySubjectType: 0: 不明、1: 以上、2: 以下、3: 未満（未満は本来は以下で指定された数値を含まないが、競馬場によって定義が異なる可能性あり）
-  //    isNewHorses:      新馬戦（true/false）
-  //    isNotWon:         未勝利戦（true/false）
+  //    money:            条件として指定された金額。円単位で、100万の場合「1000000」が入る（72.5万など小数になる場合の対策）。moneySubjectTypeと組み合わせて判別する
+  //    moneySubjectType: 0: 不明、1: 以上、2: 以下、3: 未満（未満は本来は以下と異なり指定された数値を含まないが、競馬場によって定義が異なる可能性あり）
+  //    isDebut:          新馬戦（true/false）
+  //    isMaiden:         未勝利戦（true/false）
   //    isLocal:          地方競馬であるか（true/false）
   //    items:            クラス・年齢ごとの条件の配列。下記のオブジェクトが格納されている
   //    [{
   //        cls:          クラス
-  //        classSubject: 0: 不明、1: 以上、2: 以下、3: 未満（「B2」クラスで値が 1 の場合は、「B2以上」となる）
+  //        classSubject: 0: 不明、1: 以上、2: 以下、3: 未満（例：「B2」クラスで値が 1 の場合は「B2以上」となる）
   //        level:        レベル（「B3」「C1」の数字部分）
   //        group:        グループ（「C1五」の「五」の部分を数字に変換したもの）
   //        age:          年齢。「3歳」表記にのみ対応。「3上」や「2-3歳」表記には未対応。それぞれ 0 と 3 が設定される可能性がある
@@ -143,6 +143,7 @@ export function RaceHorse(data, csraceobj) {
 
   // 予想対象のレースに関する情報であるか（true/false）
   // この結果によって、馬のデータでどこが欠損しているかがわかる。詳細は各項目参照
+  // falseであるときに呼び出せないメソッドがある（メソッドそのものが存在しない）ので注意すること
   this.isTargetRace = data.isTargetRace;
 
   // 馬の名前
@@ -157,6 +158,8 @@ export function RaceHorse(data, csraceobj) {
 
   // 馬の持ち込み区分。フラグ（ビット加算）形式
   // 1:（抽）　2:「抽」　4:（父）　8:（市）　16:（地）　32:「地」　64:（外）　128:「外」　256:（招）　512:（持）
+  // 例：20 の場合、20を２進数に直すと10100となり、100 (4) + 10000 (16) と等しいので「（父）（地）」になる
+  //     ビット演算をすれば簡単に計算できます。ビット演算のやり方は各自調べてください
   this.type = data.type;
 
   // 馬の色（参照：JRA-VAN Data Lab. コード表 2203.毛色コード）（取得可能な情報例：栗毛、鹿毛、青毛、芦毛）
@@ -223,10 +226,10 @@ export function RaceHorse(data, csraceobj) {
   //
   // 【データ構造】
   // {
-  //   runningStyle:          過去10レースで最も多く使われた脚質
-  //   timeDeviationValue:    過去10レース結果のタイム偏差値の中央値
-  //   a3hTimeDeviationValue: 過去10レース結果の後3ハロンタイム偏差値の中央値
-  //   beforeRaces:           過去全レースデータのオブジェクトの配列（RaceHorse型）
+  //    runningStyle:          過去10レースで最も多く使われた脚質
+  //    timeDeviationValue:    過去10レース結果のタイム偏差値の中央値
+  //    a3hTimeDeviationValue: 過去10レース結果の後3ハロンタイム偏差値の中央値
+  //    beforeRaces:           過去全レースデータのオブジェクトの配列（RaceHorse型）
   // }
   this.history = data.history;
 }
