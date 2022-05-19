@@ -65,6 +65,20 @@ namespace KmyKeiba.Converters
           };
         }
       }
+      if (value is RaceAbnormality ab)
+      {
+        return ab switch
+        {
+          RaceAbnormality.Scratched => "出走取消",
+          RaceAbnormality.ExcludedByStarters => "発走除外",
+          RaceAbnormality.ExcludedByStewards => "競走除外",
+          RaceAbnormality.FailToFinish => "競走中止",
+          RaceAbnormality.Disqualified => "失格",
+          RaceAbnormality.Remount => "再騎乗",
+          RaceAbnormality.DisqualifiedAndPlaced => "降着",
+          _ => string.Empty,
+        };
+      }
       throw new NotImplementedException();
     }
 

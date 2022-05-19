@@ -36,6 +36,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ValueComparation ResultOrderComparation { get; }
 
+    public bool IsAbnormalResult => this.Data.AbnormalResult != RaceAbnormality.Unknown;
+
     public double ResultTimePerMeter { get; }
 
     /// <summary>

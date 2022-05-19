@@ -21,7 +21,11 @@
     <Border Width="8" Background="{Binding Horse.Data.FrameNumber,ElementName=Root,Converter={StaticResource FrameNumberBrushConv}}"
             Margin="0,0,8,0"/>
 
-    <StackPanel Margin="0,8" Grid.Column="1">
+    <!--競走中止時の背景-->
+    <Border Grid.Column="1" Background="{DynamicResource BadBackground}"
+            Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+
+    <StackPanel Margin="0,8" Grid.Column="1" Opacity="{Binding Horse.Data.AbnormalResult,ElementName=Root,Converter={StaticResource AbnormalResultOpacityConv}}">
 
       <!--基本情報-->
       <Grid Margin="0,2,0,4">
@@ -46,8 +50,18 @@
 
         <TextBlock Grid.Column="0" FontSize="20" TextAlignment="Center" Width="24"
                     Text="{Binding Horse.Data.Number,ElementName=Root}"/>
-        <TextBlock Grid.Column="1" Margin="16,0,0,0" FontSize="24" FontWeight="Bold" Width="180" TextAlignment="Left"
-                    Text="{Binding Horse.Data.Name,ElementName=Root}"/>
+        <Grid Grid.Column="1" Margin="16,0,0,0" Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
+          <TextBlock FontSize="24" FontWeight="Bold" Width="180" TextAlignment="Left"
+                     Text="{Binding Horse.Data.Name,ElementName=Root}"/>
+        </Grid>
+        <Grid Grid.Column="1" Margin="16,0,0,0" Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock FontSize="24" FontWeight="Bold" Width="180" TextAlignment="Left"
+                       Text="{Binding Horse.Data.Name,ElementName=Root}" Foreground="{DynamicResource SubForeground}"/>
+            <TextBlock FontSize="16" Text="{Binding Horse.Data.AbnormalResult,ElementName=Root,Converter={StaticResource EnumsConv}}"
+                       Foreground="{DynamicResource BadForeground}"/>
+          </StackPanel>
+        </Grid>
         <Grid Grid.Column="2" Margin="8,0,0,0" Width="90">
           <Grid.RowDefinitions>
             <RowDefinition/>
