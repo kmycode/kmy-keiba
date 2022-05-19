@@ -18,6 +18,9 @@
       <RowDefinition Height="auto"/>
       <RowDefinition/>
     </Grid.RowDefinitions>
+    <Grid.Resources>
+      <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
+    </Grid.Resources>
 
     <Grid>
       <Grid.ColumnDefinitions>
@@ -152,21 +155,21 @@
               <DataTemplate>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                   <StackPanel.Resources>
-                    <Style TargetType="Label" BasedOn="{StaticResource LabelDefault}">
-                      <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                      <Setter Property="TextAlignment" Value="Right"/>
                     </Style>
                   </StackPanel.Resources>
                   <up:RaceSubjectIcon Subject="{Binding Subject.Subject}"
                                       FontSize="14" Width="40" Margin="0,0,4,0"/>
-                  <Label Content="{Binding Subject.DisplayName}" HorizontalContentAlignment="Left"
+                  <TextBlock Text="{Binding Subject.DisplayName}" TextAlignment="Left"
                           FontSize="16" FontWeight="Bold" Width="180"/>
-                  <Label Content="{Binding Data.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
-                  <Label Content="{Binding TopHorse.Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="60"/>
-                  <Label Content="{Binding TopHorse.ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
+                  <TextBlock Text="{Binding Data.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
+                  <TextBlock Text="{Binding TopHorse.Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="60"/>
+                  <TextBlock Text="{Binding TopHorse.ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
                   <Border Width="60">
                     <up:RunningStyleTip RunningStyle="{Binding TopRunningStyle}" HorizontalAlignment="Right"/>
                   </Border>
-                  <Label Content="{Binding RoughRate,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
+                  <TextBlock Text="{Binding RoughRate,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
                 </StackPanel>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -461,7 +464,7 @@
                 <DataTemplate>
                   <StackPanel Margin="0,0,0,24">
                     <Border Background="{DynamicResource TrioTicketBackground}" Padding="8">
-                      <TextBlock Text="{Binding NumberInGroup}" FontSize="28"/>
+                      <TextBlock Text="{Binding NumberInGroup}" FontSize="28" Style="{StaticResource TextBlockDefault}"/>
                     </Border>
                     <StackPanel Orientation="Horizontal">
                       <ItemsControl ItemsSource="{Binding Numbers}" Margin="0,35,0,0">
@@ -516,7 +519,7 @@
                 <DataTemplate>
                   <StackPanel Margin="0,0,0,24">
                     <Border Background="{DynamicResource TrifectaTicketBackground}" Padding="8">
-                      <TextBlock Text="{Binding NumberInGroup}" FontSize="28"/>
+                      <TextBlock Text="{Binding NumberInGroup}" FontSize="28" Style="{StaticResource TextBlockDefault}"/>
                     </Border>
                     <StackPanel Orientation="Horizontal">
                       <ItemsControl ItemsSource="{Binding Numbers}" Margin="0,35,0,0">

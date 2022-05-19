@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Data.Db;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Race;
@@ -31,9 +32,17 @@ namespace KmyKeiba.Models.Analysis
     /// </summary>
     public double RoughRate { get; }
 
+    public double ResultTimeDeviationValue { get; }
+
+    public double A3HResultTimeDeviationValue { get; }
+
+    public RacePace Pace { get; }
+
+    public RacePace A3HPace { get; }
+
     public RaceAnalyzer(RaceData race, IReadOnlyList<RaceHorseData> topHorses, RaceStandardTimeMasterData raceStandardTime)
     {
-      var topHorse = topHorses.OrderBy(h => h.ResultOrder).FirstOrDefault() ?? new();
+      var topHorse = topHorses.OrderBy(h => h.ResultOrder).FirstOrDefault(h => h.ResultOrder == 1) ?? new();
 
       this.Data = race;
       this.TopHorses = topHorses.Select(h => new RaceHorseAnalyzer(race, h, raceStandardTime)).ToArray();
@@ -47,10 +56,39 @@ namespace KmyKeiba.Models.Analysis
 
       this.RoughRate = AnalysisUtil.CalcRoughRate(topHorses);
 
-      if (this.TopHorseData != null)
+      if (topHorse != null)
       {
-        this.TopHorse = new RaceHorseAnalyzer(race, this.TopHorseData, raceStandardTime);
+        this.TopHorse = new RaceHorseAnalyzer(race, topHorse, raceStandardTime);
+
+        this.Pace = this.TopHorse.ResultTimeDeviationValue < 38 ? RacePace.VeryLow :
+          this.TopHorse.ResultTimeDeviationValue < 45 ? RacePace.Low :
+          this.TopHorse.ResultTimeDeviationValue < 55 ? RacePace.Standard :
+          this.TopHorse.ResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
+        this.A3HPace = this.TopHorse.A3HResultTimeDeviationValue < 38 ? RacePace.VeryLow :
+          this.TopHorse.A3HResultTimeDeviationValue < 45 ? RacePace.Low :
+          this.TopHorse.A3HResultTimeDeviationValue < 55 ? RacePace.Standard :
+          this.TopHorse.A3HResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
+        this.ResultTimeDeviationValue = this.TopHorse.ResultTimeDeviationValue;
+        this.A3HResultTimeDeviationValue = this.TopHorse.A3HResultTimeDeviationValue;
       }
     }
+  }
+
+  public enum RacePace
+  {
+    [Label("とても速い")]
+    VeryHigh,
+
+    [Label("速い")]
+    High,
+
+    [Label("標準")]
+    Standard,
+
+    [Label("遅い")]
+    Low,
+
+    [Label("とても遅い")]
+    VeryLow,
   }
 }

@@ -20,6 +20,8 @@ namespace KmyKeiba.Models.Race
   {
     public RaceData Data { get; }
 
+    public ReactiveProperty<RaceAnalyzer> RaceAnalyzer { get; } = new();
+
     public bool CanChangeWeathers { get; }
 
     public ReactiveProperty<RaceCourseWeather> Weather { get; } = new();
@@ -48,6 +50,10 @@ namespace KmyKeiba.Models.Race
 
     public ScriptManager Script { get; }
 
+    public double TimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.ResultTimeDeviationValue ?? 0;
+
+    public double A3HTimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.A3HResultTimeDeviationValue ?? 0;
+
     public string Name => this.Subject.DisplayName;
 
     private RaceInfo(RaceData race)
@@ -75,7 +81,7 @@ namespace KmyKeiba.Models.Race
       this.Payoff = payoff;
     }
 
-    private void SetHorsesDelay(IReadOnlyList<RaceHorseAnalyzer> horses)
+    private void SetHorsesDelay(IReadOnlyList<RaceHorseAnalyzer> horses, RaceStandardTimeMasterData standardTime)
     {
       ThreadUtil.InvokeOnUiThread(() =>
       {
@@ -83,6 +89,7 @@ namespace KmyKeiba.Models.Race
         this.HorsesResultOrdered.AddRangeOnScheduler(
           horses.Where(h => h.Data.ResultOrder > 0).OrderBy(h => h.Data.ResultOrder).Concat(
             horses.Where(h => h.Data.ResultOrder == 0).OrderBy(h => h.Data.Number).OrderBy(h => h.Data.AbnormalResult)));
+        this.RaceAnalyzer.Value = new RaceAnalyzer(this.Data, horses.Select(h => h.Data).ToArray(), standardTime);
       });
     }
 
@@ -215,7 +222,7 @@ namespace KmyKeiba.Models.Race
             BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
           });
         }
-        info.SetHorsesDelay(horseInfos);
+        info.SetHorsesDelay(horseInfos, standardTime);
 
         // オッズ
         var frameOdds = await db.FrameNumberOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);

@@ -18,6 +18,9 @@
         <RowDefinition Height="auto"/>
         <RowDefinition/>
       </Grid.RowDefinitions>
+      <Grid.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
+      </Grid.Resources>
 
       <Grid Grid.Row="0" Height="56">
         <Grid.ColumnDefinitions>

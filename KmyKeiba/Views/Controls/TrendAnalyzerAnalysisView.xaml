@@ -124,22 +124,19 @@
           <DataTemplate>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
               <StackPanel.Resources>
-                <Style TargetType="Label" BasedOn="{StaticResource LabelDefault}">
-                  <Setter Property="HorizontalContentAlignment" Value="Right"/>
-                </Style>
                 <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
                   <Setter Property="TextAlignment" Value="Right"/>
                 </Style>
               </StackPanel.Resources>
               <up:RaceSubjectIcon Subject="{Binding Subject.Subject}"
                                       FontSize="14" Width="40" Margin="0,0,4,0"/>
-              <Label Content="{Binding Subject.DisplayName}" HorizontalContentAlignment="Left"
+              <TextBlock Text="{Binding Subject.DisplayName}" TextAlignment="Left"
                           FontSize="16" FontWeight="Bold" Width="180"/>
-              <Label Content="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
+              <TextBlock Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
               <TextBlock Text="{Binding Data.Course,Converter={StaticResource CourseNameConv}}" FontSize="16" Width="70"/>
               <TextBlock Text="{Binding Data.ResultOrder}" Foreground="{Binding ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}" FontSize="16" Width="40"/>
-              <Label Content="{Binding Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="60"/>
-              <Label Content="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
+              <TextBlock Text="{Binding Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="60"/>
+              <TextBlock Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
               <Border Width="60">
                 <up:RunningStyleTip RunningStyle="{Binding Data.RunningStyle}" HorizontalAlignment="Right"/>
               </Border>

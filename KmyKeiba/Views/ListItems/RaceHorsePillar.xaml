@@ -59,7 +59,7 @@
             <TextBlock FontSize="24" FontWeight="Bold" Width="180" TextAlignment="Left"
                        Text="{Binding Horse.Data.Name,ElementName=Root}" Foreground="{DynamicResource SubForeground}"/>
             <TextBlock FontSize="16" Text="{Binding Horse.Data.AbnormalResult,ElementName=Root,Converter={StaticResource EnumsConv}}"
-                       Foreground="{DynamicResource BadForeground}"/>
+                       Foreground="{DynamicResource BadForeground}" FontWeight="Bold"/>
           </StackPanel>
         </Grid>
         <Grid Grid.Column="2" Margin="8,0,0,0" Width="90">

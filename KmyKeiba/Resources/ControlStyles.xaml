@@ -21,20 +21,23 @@
     <Setter Property="Foreground" Value="{DynamicResource SubForeground}"/>
     <Setter Property="FontSize" Value="14"/>
   </Style>
+  <!--
   <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
+  -->
   <Style TargetType="ScrollViewer">
     <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
   </Style>
   <Style TargetType="Button" x:Key="ButtonDefault">
     <Setter Property="Background" Value="{DynamicResource ClickableBackground}"/>
     <Setter Property="Padding" Value="12,4"/>
+    <Setter Property="Foreground" Value="{DynamicResource BaseForeground}"/>
     <Setter Property="BorderBrush" Value="{DynamicResource BaseBorderBrush}"/>
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type Button}">
           <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                   CornerRadius="4" Padding="{TemplateBinding Padding}">
-            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextBlock.Foreground="{TemplateBinding Foreground}"/>
           </Border>
         </ControlTemplate>
       </Setter.Value>
@@ -51,6 +54,7 @@
   <Style TargetType="Button" BasedOn="{StaticResource ButtonDefault}"/>
   <Style TargetType="ToggleButton" x:Key="ToggleButtonDefault">
     <Setter Property="Background" Value="{DynamicResource ClickableBackground}"/>
+    <Setter Property="Foreground" Value="{DynamicResource BaseForeground}"/>
     <Setter Property="Padding" Value="12,4"/>
     <Setter Property="BorderBrush" Value="{DynamicResource BaseBorderBrush}"/>
     <Setter Property="Template">
