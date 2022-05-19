@@ -64,7 +64,7 @@ namespace KmyKeiba.ViewModels
             this.model.Info.Value.Odds.Value!.CurrentTrios.Value = p;
           }
         });
-    private ReactiveCommand<OddsBlock<TrioOdds.OddsData>> _setTrioBlockCommand;
+    private ReactiveCommand<OddsBlock<TrioOdds.OddsData>>? _setTrioBlockCommand;
 
     public ICommand SetTrifectaBlockCommand =>
       this._setTrifectaBlockCommand ??=
@@ -75,7 +75,7 @@ namespace KmyKeiba.ViewModels
             this.model.Info.Value.Odds.Value!.CurrentTrifectas.Value = p;
           }
         });
-    private ReactiveCommand<OddsBlock<TrifectaOdds.OddsData>> _setTrifectaBlockCommand;
+    private ReactiveCommand<OddsBlock<TrifectaOdds.OddsData>>? _setTrifectaBlockCommand;
 
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;

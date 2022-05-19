@@ -11,18 +11,23 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race
 {
-  public class RaceInfo
+  public class RaceInfo : IDisposable
   {
+    private readonly CompositeDisposable _disposables = new();
+
     public RaceData Data { get; }
 
     public ReactiveProperty<RaceAnalyzer> RaceAnalyzer { get; } = new();
 
     public ReactiveProperty<bool> HasResults { get; } = new();
+
+    public ReactiveProperty<bool> HasHorses { get; } = new();
 
     public bool CanChangeWeathers { get; }
 
@@ -92,7 +97,9 @@ namespace KmyKeiba.Models.Race
           horses.Where(h => h.Data.ResultOrder > 0).OrderBy(h => h.Data.ResultOrder).Concat(
             horses.Where(h => h.Data.ResultOrder == 0).OrderBy(h => h.Data.Number).OrderBy(h => h.Data.AbnormalResult)));
         this.RaceAnalyzer.Value = new RaceAnalyzer(this.Data, horses.Select(h => h.Data).ToArray(), standardTime);
+
         this.HasResults.Value = this.Horses.Any(h => h.Data.ResultOrder > 0);
+        this.HasHorses.Value = true;
       });
     }
 
@@ -147,6 +154,8 @@ namespace KmyKeiba.Models.Race
 
       await db.SaveChangesAsync();
     }
+
+    public void Dispose() => this._disposables.Dispose();
 
     public static async Task<RaceInfo?> FromKeyAsync(MyContext db, string key)
     {

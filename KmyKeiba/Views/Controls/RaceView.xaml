@@ -91,7 +91,8 @@
               </Style>
             </ToggleButton.Style>
           </RadioButton>
-          <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Predict">
+          <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Predict"
+                       Visibility="{Binding Race.HasHorses.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
             予想
             <ToggleButton.Style>
               <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource LargeToggleButtonDefault}">
