@@ -198,7 +198,7 @@ namespace KmyKeiba.Models.Script
     public string SubjectName => this._race.SubjectName;
 
     [JsonPropertyName("subject")]
-    public ScriptRaceSubject Subject => new(this._subject);
+    public ScriptRaceSubject? Subject => this._subject.Subject.IsLocal ? new(this._subject) : null;
 
     [JsonPropertyName("grade")]
     public short Grade => (short)this._race.Grade;

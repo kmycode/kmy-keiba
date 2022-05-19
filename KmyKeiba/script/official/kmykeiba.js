@@ -2,6 +2,7 @@
 export function KmyKeiba() {
 }
 
+// 予想対象レースを取得する
 KmyKeiba.getTargetRace = function() {
   const json = __currentRace.getJson();
   const data = JSON.parse(json);
@@ -98,7 +99,9 @@ export function Race(data, csobj) {
   this.startTime = KmyKeiba.__csDateTimeToDate(data.startTime);
 
   // このレースの上位5頭の馬データ。RaceHorse型
-  // ※getSimilarRacesAsync やその他の getSimilar 系メソッドで取得したレースにのみ設定される。それ以外はnull
+  // ※以下の場合にのみ設定される。それ以外はnull
+  //       getSimilarRacesAsync やその他の getSimilar 系メソッドで取得したレース
+  //       予想対象レースの出場馬の過去レース (getHorses()[0].history.beforeRaces[0].race.topHorses)
   this.topHorses = data.topHorses;
 
   // 本アプリで独自に解析したレース条件。地方競馬の時のみ設定される。subjectNameをパースすることで求めている。
@@ -169,6 +172,7 @@ Race.prototype.getSimilarRacesAsync = async function(keys, count, offset) {
 //    frame2: 枠番2
 //    odds:   オッズ（実際の10倍の数値）
 //  }
+// ※isTargetRace が false であれば、このメソッドは実行できない
 Race.prototype.getFrameNumberOdds = function() {
   const json = this._obj.getFrameNumberOdds();
   const data = JSON.parse(json);
@@ -183,6 +187,7 @@ Race.prototype.getFrameNumberOdds = function() {
 //    oddsMin: オッズ下限（実際の10倍の数値）
 //    oddsMax: オッズ上限（実際の10倍の数値）
 //  }
+// ※isTargetRace が false であれば、このメソッドは実行できない
 Race.prototype.getQuinellaPlaceOdds = function() {
   const json = this._obj.getQuinellaPlaceOdds();
   const data = JSON.parse(json);
@@ -196,6 +201,7 @@ Race.prototype.getQuinellaPlaceOdds = function() {
 //    number2: 馬番2
 //    odds   : オッズ（実際の10倍の数値）
 //  }
+// ※isTargetRace が false であれば、このメソッドは実行できない
 Race.prototype.getQuinellaOdds = function() {
   const json = this._obj.getQuinellaOdds();
   const data = JSON.parse(json);
@@ -209,6 +215,7 @@ Race.prototype.getQuinellaOdds = function() {
 //    number2: 馬番2
 //    odds   : オッズ（実際の10倍の数値）
 //  }
+// ※isTargetRace が false であれば、このメソッドは実行できない
 Race.prototype.getExactaOdds = function() {
   const json = this._obj.getExactaOdds();
   const data = JSON.parse(json);
@@ -223,6 +230,7 @@ Race.prototype.getExactaOdds = function() {
 //    number3: 馬番3
 //    odds   : オッズ（実際の10倍の数値）
 //  }
+// ※isTargetRace が false であれば、このメソッドは実行できない
 Race.prototype.getTrioOdds = function() {
   const json = this._obj.getTrioOdds();
   const data = JSON.parse(json);
@@ -237,6 +245,7 @@ Race.prototype.getTrioOdds = function() {
 //    number3: 馬番3
 //    odds   : オッズ（実際の10倍の数値）
 //  }
+// ※isTargetRace が false であれば、このメソッドは実行できない
 Race.prototype.getTrifectaOdds = function() {
   const json = this._obj.getTrifectaOdds();
   const data = JSON.parse(json);
