@@ -113,7 +113,7 @@ export function Race(data, csobj) {
   //    moneySubjectType: 0: 不明、1: 以上、2: 以下、3: 未満（未満は本来は以下と異なり指定された数値を含まないが、競馬場によって定義が異なる可能性あり）
   //    isDebut:          新馬戦（true/false）
   //    isMaiden:         未勝利戦（true/false）
-  //    isLocal:          地方競馬であるか（true/false）
+  //    isLocal:          地方競馬であるか（true/false）なおこのオブジェクトは中央競馬の時はnullになるので、スクリプトから見えるisLocalは常にtrueになる
   //    items:            クラス・年齢ごとの条件の配列。下記のオブジェクトが格納されている
   //    [{
   //        cls:          クラス
@@ -136,8 +136,25 @@ Race.prototype.getHorses = function() {
   return data.map(d => new RaceHorse(d, this._obj));
 }
 
-Race.prototype.getSimilarRacesAsync = async function(keys, count) {
-  const json = await this._obj.getSimilarRacesAsync(keys, count || 300);
+// 同じ騎手の過去レースデータを取得する
+//
+//   keys:  以下の組み合わせを「|」で区切って指定する
+//          例えば「同じ競馬場＆距離」のレースを取得したい場合、「course|distance」を指定する
+//             course     同じ競馬場
+//             condition  同じ馬場状態
+//             weather    同じ天気
+//             name       同じレース名（地方競馬の協賛レースなどでは誤動作の場合あり。条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）
+//             subject    同じ条件（地方競馬では誤動作の場合あり）
+//             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
+//             month      同じ月
+//             distance   前後100メートルの距離
+//   count:  取得最大数
+//   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
+//
+// 結果は RaceHorse 型の配列
+// ※isTargetRace が false であれば、このメソッドは実行できない
+Race.prototype.getSimilarRacesAsync = async function(keys, count, offset) {
+  const json = await this._obj.getSimilarRacesAsync(keys, count || 300, offset || 0);
   const data = JSON.parse(json);
   return data.map(d => new Race(d, this._obj));
 }
@@ -267,12 +284,13 @@ RaceHorse.prototype._getObj = function() {
 //             distance   前後100メートルの距離
 //             placebits  上位3着以内
 //             losed      着外
-//   count: 取得最大数
+//   count:  取得最大数
+//   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
 //
 // 結果は RaceHorse 型の配列
 // ※isTargetRace が false であれば、このメソッドは実行できない
-RaceHorse.prototype.getRiderSimilarRacesAsync = async function(keys, count) {
-  const json = await this._getObj().getRiderSimilarRacesAsync(keys, count || 300);
+RaceHorse.prototype.getRiderSimilarRaceHorsesAsync = async function(keys, count, offset) {
+  const json = await this._getObj().getRiderSimilarRacesAsync(keys, count || 300, offset || 0);
   const data = JSON.parse(json);
   return data.map(d => new RaceHorse(d));
 }
@@ -291,12 +309,13 @@ RaceHorse.prototype.getRiderSimilarRacesAsync = async function(keys, count) {
 //             distance   前後100メートルの距離
 //             placebits  上位3着以内
 //             losed      着外
-//   count: 取得最大数
+//   count:  取得最大数
+//   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
 //
 // 結果は RaceHorse 型の配列
 // ※isTargetRace が false であれば、このメソッドは実行できない
-RaceHorse.prototype.getTrainerSimilarRacesAsync = async function(keys, count) {
-  const json = await this._getObj().getTrainerSimilarRacesAsync(keys, count || 300);
+RaceHorse.prototype.getTrainerSimilarRaceHorsesAsync = async function(keys, count, offset) {
+  const json = await this._getObj().getTrainerSimilarRacesAsync(keys, count || 300, offset || 0);
   const data = JSON.parse(json);
   return data.map(d => new RaceHorse(d));
 }
@@ -321,7 +340,7 @@ RaceHorse.prototype.getTrainerSimilarRacesAsync = async function(keys, count) {
 //
 // 結果は RaceHorse 型の配列
 // ※isTargetRace が false であれば、このメソッドは実行できない
-RaceHorse.prototype.getBloodHorseRacesAsync = async function(key) {
+RaceHorse.prototype.getBloodHorseRaceHorsesAsync = async function(key) {
   const json = await this._getObj().getBloodHorseRacesAsync(key);
   const data = JSON.parse(json);
   return data.map(d => new RaceHorse(d));

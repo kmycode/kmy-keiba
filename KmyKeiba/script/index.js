@@ -12,7 +12,7 @@ import * as fs from 'official/njcompat_fs.js';
   const horses = race.getHorses();
 
   // 類似レース一覧を取得
-  const similarRaces = await horses[1].getRiderSimilarRacesAsync('distance');
+  const similarRaces = await horses[1].getRiderSimilarRaceHorsesAsync('distance', 300, 0);
 
   /*
   // ファイルへ書き込み
@@ -22,5 +22,5 @@ import * as fs from 'official/njcompat_fs.js';
   */
 
   // 馬の名前を返す
-  return `${horses[1].number} 番 ${horses[1].name} 号がいいです（）`;
+  return `${horses[1].number} 番 ${horses[1].name} 号がいいです（）${similarRaces[10].name}`;
 });

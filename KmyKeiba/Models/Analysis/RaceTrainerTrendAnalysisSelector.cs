@@ -81,7 +81,7 @@ namespace KmyKeiba.Models.Analysis
       return new RaceTrainerTrendAnalyzer(this.Race, this.RaceHorse);
     }
 
-    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceTrainerTrendAnalyzer analyzer, int count)
+    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceTrainerTrendAnalyzer analyzer, int count, int offset)
     {
       var query = db.Races!
         .Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Aborted && r.TrackType == this.Race.TrackType)
@@ -137,6 +137,7 @@ namespace KmyKeiba.Models.Analysis
 
       var races = await query
         .OrderByDescending(r => r.Race.StartTime)
+        .Skip(offset)
         .Take(count)
         .ToArrayAsync();
       var raceKeys = races.Select(r => r.Race.Key).ToArray();

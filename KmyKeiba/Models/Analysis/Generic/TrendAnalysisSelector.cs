@@ -82,10 +82,10 @@ namespace KmyKeiba.Models.Analysis.Generic
     {
       var currentKeys = this.Keys.GetActiveKeys();
 
-      this.CurrentAnalyzer.Value = this.BeginLoad(currentKeys, 300);
+      this.CurrentAnalyzer.Value = this.BeginLoad(currentKeys, 300, 0);
     }
 
-    public A BeginLoad(IReadOnlyList<KEY> keys, int count)
+    public A BeginLoad(IReadOnlyList<KEY> keys, int count, int offset)
     {
       // ここはUIスレッドでなければならない（ReactiveCollectionなどにスレッドが伝播しないので）
       var analyzer = this.GetExistingAnalyzer(keys);
@@ -101,7 +101,7 @@ namespace KmyKeiba.Models.Analysis.Generic
         try
         {
           using var db = new MyContext();
-          await this.InitializeAnalyzerAsync(db, keys, analyzer, count);
+          await this.InitializeAnalyzerAsync(db, keys, analyzer, count, offset);
         }
         catch
         {
@@ -114,10 +114,10 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public A BeginLoad(params KEY[] keys)
     {
-      return this.BeginLoad(keys, 300);
+      return this.BeginLoad(keys, 300, 0);
     }
 
-    public A BeginLoad(string scriptParams, int count)
+    public A BeginLoad(string scriptParams, int count, int offset)
     {
       var pairs = Enum.GetValues(typeof(KEY)).OfType<KEY>().Select(k =>
         new { Key = k, ScriptParameter = typeof(KEY).GetField(k.ToString())!.GetCustomAttributes(true).OfType<ScriptParameterKeyAttribute>().FirstOrDefault()?.Key ?? string.Empty, })
@@ -133,12 +133,12 @@ namespace KmyKeiba.Models.Analysis.Generic
         }
       }
 
-      return this.BeginLoad(keys, count);
+      return this.BeginLoad(keys, count, offset);
     }
 
     protected abstract A GenerateAnalyzer();
 
-    protected virtual Task InitializeAnalyzerAsync(MyContext db, IEnumerable<KEY> keys, A analyzer, int count)
+    protected virtual Task InitializeAnalyzerAsync(MyContext db, IEnumerable<KEY> keys, A analyzer, int count, int offset)
     {
       return Task.CompletedTask;
     }
