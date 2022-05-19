@@ -22,5 +22,5 @@ import * as fs from 'official/njcompat_fs.js';
   */
 
   // 馬の名前を返す
-  return `${horses[1].number} 番 ${horses[1].name} 号がいいです（）${JSON.stringify(horses[1].history.beforeRaces[0])}`;
+  return `${horses[1].number} 番 ${horses[1].name} 号がいいです（）${race.weather}`;
 });

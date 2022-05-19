@@ -6,6 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x86;x64</Platforms>
+    <BaseOutputPath>..\dist</BaseOutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,5 +26,9 @@
     <ProjectReference Include="..\KmyKeiba.Data\KmyKeiba.Data.csproj" />
     <ProjectReference Include="..\KmyKeiba.JVLink\KmyKeiba.JVLink.csproj" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="cd $(ProjectDir)..\&#xD;&#xA;xcopy &quot;dist\x86\$(Configuration)&quot; &quot;dist\x64\$(Configuration)\downloader&quot; /e /i /y" />
+  </Target>
 
 </Project>
