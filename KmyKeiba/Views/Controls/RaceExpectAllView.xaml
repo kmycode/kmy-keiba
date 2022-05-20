@@ -734,16 +734,6 @@
               </MultiBinding>
             </RadioButton.Visibility>
           </RadioButton>
-          <RadioButton GroupName="{Binding UniqueId4,ElementName=Root}" Name="STK_Nagashi" Content="流し"
-                       Command="{Binding SetTicketFormTypeCommand}" CommandParameter="4"
-                       Style="{StaticResource TicketKind}">
-            <RadioButton.Visibility>
-              <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
-                <Binding Path="IsChecked" ElementName="ST_Trio"/>
-                <Binding Path="IsChecked" ElementName="ST_Trifecta"/>
-              </MultiBinding>
-            </RadioButton.Visibility>
-          </RadioButton>
         </StackPanel>
 
         <Grid Grid.Row="2" Margin="8,16,0,0">
@@ -770,29 +760,36 @@
           </ItemsControl>
           <Border Grid.Column="1" Width="156"
                   Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource NegativeVisibilityConv}}">
-            <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers2,ElementName=Root}" Margin="16,0,0,0">
-              <ItemsControl.Visibility>
+            <Border>
+              <Border.Visibility>
                 <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
-                  <Binding Path="IsChecked" ElementName="ST_Frame"/>
-                  <Binding Path="IsChecked" ElementName="ST_QuinellaPlace"/>
-                  <Binding Path="IsChecked" ElementName="ST_Quinella"/>
-                  <Binding Path="IsChecked" ElementName="ST_Exacta"/>
-                  <Binding Path="IsChecked" ElementName="ST_Trio"/>
-                  <Binding Path="IsChecked" ElementName="ST_Trifecta"/>
+                  <Binding Path="IsChecked" ElementName="STK_Formation"/>
                 </MultiBinding>
-              </ItemsControl.Visibility>
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel Orientation="Horizontal" Width="140"/>
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding HorseNumber}" FontSize="16"
-                                IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+              </Border.Visibility>
+              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers2,ElementName=Root}" Margin="16,0,0,0">
+                <ItemsControl.Visibility>
+                  <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+                    <Binding Path="IsChecked" ElementName="ST_Frame"/>
+                    <Binding Path="IsChecked" ElementName="ST_QuinellaPlace"/>
+                    <Binding Path="IsChecked" ElementName="ST_Quinella"/>
+                    <Binding Path="IsChecked" ElementName="ST_Exacta"/>
+                    <Binding Path="IsChecked" ElementName="ST_Trio"/>
+                    <Binding Path="IsChecked" ElementName="ST_Trifecta"/>
+                  </MultiBinding>
+                </ItemsControl.Visibility>
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal" Width="140"/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding HorseNumber}" FontSize="16"
+                                  IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Border>
           </Border>
           <Border Grid.Column="2" Width="156">
             <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers3,ElementName=Root}" Margin="16,0,0,0">
@@ -832,19 +829,26 @@
           </ItemsControl>
           <Border Grid.Column="1" Width="156"
                   Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource BooleanVisibilityConv}}">
-            <ItemsControl ItemsSource="{Binding Race.Tickets.Value.FrameNumbers2,ElementName=Root}" Margin="16,0,0,0">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel Orientation="Horizontal" Width="140"/>
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding FrameNumber}" FontSize="16"
-                                IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <Border>
+              <Border.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+                  <Binding Path="IsChecked" ElementName="STK_Formation"/>
+                </MultiBinding>
+              </Border.Visibility>
+              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.FrameNumbers2,ElementName=Root}" Margin="16,0,0,0">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal" Width="140"/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding FrameNumber}" FontSize="16"
+                                  IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Border>
           </Border>
 
           <Border Grid.Column="3">
@@ -888,7 +892,8 @@
                         </TextBlock>
                       </Border>
                     </Border>
-                    <ToggleButton Content="選択" IsChecked="{Binding IsChecked.Value}" Margin="16,0,0,0"/>
+                    <ToggleButton Content="選択" IsChecked="{Binding IsChecked.Value}" Margin="16,0,0,0"
+                                  Visibility="{Binding IsAllRowsChecked.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
                   </StackPanel>
                 </DataTemplate>
               </ItemsControl.Resources>
@@ -902,15 +907,17 @@
                             <TextBlock Text="{Binding Data.Type,Converter={StaticResource EnumsConv}}" FontSize="16" Foreground="{DynamicResource BaseForeground}"
                                      Margin="4,2"/>
                           </Border>
-                          <TextBlock Text="{Binding}" Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="24,2"
+                          <ToggleButton Width="20" Margin="24,2,0,2" Padding="0" IsChecked="{Binding IsOpen.Value}"/>
+                          <TextBlock Text="{Binding}" Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="4,2"
                                      Width="264" FontWeight="Bold"/>
-                          <Border Width="40">
-                            <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16">
+                          <Border Width="16">
+                            <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" FontWeight="Bold">
                               x<Run Text="{Binding Count.Value}"/>
                             </TextBlock>
                           </Border>
+                          <ToggleButton Content="選択" IsChecked="{Binding IsAllRowsChecked.Value}" Margin="16,0,0,0"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="24,0,0,0">
+                        <StackPanel Orientation="Horizontal" Margin="24,0,0,0" Visibility="{Binding IsOpen.Value,Converter={StaticResource BooleanVisibilityConv}}">
                           <ItemsControl ItemsSource="{Binding Rows}" ItemTemplate="{StaticResource TicketRow}"/>
                         </StackPanel>
                       </StackPanel>
