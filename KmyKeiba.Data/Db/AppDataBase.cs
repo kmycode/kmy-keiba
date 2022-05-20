@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  public abstract class MasterDataBase
+  public abstract class AppDataBase
   {
     [Key]
     public uint Id { get; set; }

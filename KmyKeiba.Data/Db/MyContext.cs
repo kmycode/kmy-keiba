@@ -49,9 +49,11 @@ namespace KmyKeiba.Data.Db
 
     #endregion
 
-    #region Master
+    #region App
 
     public DbSet<RaceStandardTimeMasterData>? RaceStandardTimes { get; set; }
+
+    public DbSet<TicketData>? Tickets { get; set; }
 
     #endregion
 

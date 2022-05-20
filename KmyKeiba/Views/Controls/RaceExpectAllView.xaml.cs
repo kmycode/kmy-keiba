@@ -41,6 +41,10 @@ namespace KmyKeiba.Views.Controls
 
     public Guid UniqueId2 { get; } = Guid.NewGuid();
 
+    public Guid UniqueId3 { get; } = Guid.NewGuid();
+
+    public Guid UniqueId4 { get; } = Guid.NewGuid();
+
     public RaceExpectAllView()
     {
       var settings = new CefSettings();

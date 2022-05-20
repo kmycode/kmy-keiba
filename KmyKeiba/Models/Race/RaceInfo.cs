@@ -55,6 +55,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<OddsInfo?> Odds { get; } = new();
 
+    public ReactiveProperty<BettingTicketInfo?> Tickets { get; } = new();
+
     public ScriptManager Script { get; }
 
     public double TimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.ResultTimeDeviationValue ?? 0;
@@ -244,6 +246,10 @@ namespace KmyKeiba.Models.Race
         var trioOdds = await db.TrioOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
         var trifectaOdds = await db.TrifectaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
         info.Odds.Value = new OddsInfo(horses, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
+
+        // 購入済馬券
+        var tickets = await db.Tickets!.Where(t => t.RaceKey == race.Key).ToArrayAsync();
+        info.Tickets.Value = new BettingTicketInfo(horseInfos, info.Odds.Value, tickets);
 
         // 調教
         var historyStartDate = race.StartTime.AddMonths(-4);

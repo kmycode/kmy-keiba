@@ -77,6 +77,21 @@ namespace KmyKeiba.ViewModels
         });
     private ReactiveCommand<OddsBlock<TrifectaOdds.OddsData>>? _setTrifectaBlockCommand;
 
+    public ICommand SetTicketTypeCommand =>
+      this._setTicketTypeCommand ??=
+        new ReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.SetType(p));
+    private ReactiveCommand<string>? _setTicketTypeCommand;
+
+    public ICommand SetTicketFormTypeCommand =>
+      this._setTicketFormTypeCommand ??=
+        new ReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.SetFormType(p));
+    private ReactiveCommand<string>? _setTicketFormTypeCommand;
+
+    public ICommand BuyTicketCommand =>
+      this._buyTicketCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value != null ? this.model.Info.Value.Tickets.Value!.BuyAsync() : Task.CompletedTask);
+    private AsyncReactiveCommand<object>? _buyTicketCommand;
+
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore CS0067

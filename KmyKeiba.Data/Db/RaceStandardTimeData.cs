@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace KmyKeiba.Data.Db
 {
   [Index(nameof(Course))]
-  public class RaceStandardTimeMasterData : MasterDataBase
+  public class RaceStandardTimeMasterData : AppDataBase
   {
     public RaceCourse Course { get; set; }
 
