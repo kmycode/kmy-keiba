@@ -28,6 +28,7 @@
                          MarkFilledTriangle="{StaticResource MarkFilledTriangle}"
                          MarkStar="{StaticResource MarkStar}"
                          MarkDeleted="{StaticResource MarkDeleted}"/>
+  <cv:TicketTypeBackgroundConverter x:Key="TicketTypeBackgroundConv"/>
 
   <cv:BooleanBrushConverter x:Key="BooleanForegroundSubOrBaseConv" TrueBrush="{DynamicResource SubForeground}" FalseBrush="{DynamicResource BaseForeground}"/>
 </ResourceDictionary>

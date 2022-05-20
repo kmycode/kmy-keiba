@@ -1,4 +1,5 @@
-﻿using KmyKeiba.JVLink.Entities;
+﻿using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -76,6 +77,21 @@ namespace KmyKeiba.Converters
           RaceAbnormality.Disqualified => "失格",
           RaceAbnormality.Remount => "再騎乗",
           RaceAbnormality.DisqualifiedAndPlaced => "降着",
+          _ => string.Empty,
+        };
+      }
+      if (value is TicketType type)
+      {
+        return type switch
+        {
+          TicketType.Single => "単勝",
+          TicketType.Place => "複勝",
+          TicketType.FrameNumber => "枠連",
+          TicketType.QuinellaPlace => "ワイド",
+          TicketType.Quinella => "馬連",
+          TicketType.Exacta => "馬単",
+          TicketType.Trio => "三連複",
+          TicketType.Trifecta => "三連単",
           _ => string.Empty,
         };
       }

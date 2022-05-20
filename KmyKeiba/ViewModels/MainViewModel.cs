@@ -92,6 +92,11 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value != null ? this.model.Info.Value.Tickets.Value!.BuyAsync() : Task.CompletedTask);
     private AsyncReactiveCommand<object>? _buyTicketCommand;
 
+    public ICommand RemoveTicketCommand =>
+      this._removeTicketCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value != null ? this.model.Info.Value.Tickets.Value!.RemoveTicketAsync() : Task.CompletedTask);
+    private AsyncReactiveCommand<object>? _removeTicketCommand;
+
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore CS0067

@@ -34,6 +34,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveCollection<TicketItem> Tickets { get; } = new();
 
+    public ReactiveProperty<string> Count { get; } = new("1");
+
     public ReactiveProperty<TicketType> Type { get; } = new(TicketType.Single);
 
     public ReactiveProperty<TicketFormType> FormType { get; } = new(TicketFormType.Formation);
@@ -83,6 +85,18 @@ namespace KmyKeiba.Models.Race
           this.Tickets.Add(new FrameNumberTicketItem(ticket, odds, this._horses));
         }
       }
+
+      this.SortTickets();
+    }
+
+    private void SortTickets()
+    {
+      var oldItems = this.Tickets.ToArray();
+      this.Tickets.Clear();
+      foreach (var item in oldItems.OrderBy(i => i))
+      {
+        this.Tickets.Add(item);
+      }
     }
 
     public void Dispose() => this._disposables.Dispose();
@@ -101,49 +115,98 @@ namespace KmyKeiba.Models.Race
 
     public async Task BuyAsync()
     {
-      TicketItem? ticket = null;
+      short.TryParse(this.Count.Value, out var count);
+      if (count <= 0)
+      {
+        return;
+      }
+      
+      using var db = new MyContext();
+      IReadOnlyList<TicketItem>? tickets = null;
       if (this.Type.Value == TicketType.Single)
       {
-        ticket = this.GenerateSingleTicket();
+        tickets = await this.GenerateSingleTicketsAsync(db, count);
+      }
+      else if (this.Type.Value == TicketType.Place)
+      {
+        tickets = await this.GeneratePlaceTicketsAsync(db, count);
       }
 
-      if (ticket == null)
+      if (tickets == null)
       {
         return;
       }
 
-      this.Tickets.Add(ticket);
+      foreach (var t in tickets)
+      {
+        t.Data.Count = count;
+        this.Tickets.Add(t);
+      }
+      this.SortTickets();
 
-      using var db = new MyContext();
-      await db.Tickets!.AddAsync(ticket.Data);
+      await db.Tickets!.AddRangeAsync(tickets.Select(t => t.Data));
       await db.SaveChangesAsync();
     }
 
-    public TicketItem? GenerateSingleTicket()
-    {
-      var data = new TicketData
-      {
-        RaceKey = this._raceKey,
-        Type = TicketType.Single,
-        FormType = TicketFormType.Formation,
-        Numbers1 = this.Numbers1.Where(n => n.IsChecked.Value = true).Select(n => (byte)n.HorseNumber).ToArray(),
-      };
-      var item = new SingleTicketItem(data, this.Odds);
+    private async Task<IReadOnlyList<TicketItem>?> GenerateSingleTicketsAsync(MyContext db, int count)
+      => await this.GenerateSingleNumberTicketsAsync(db, count, TicketType.Single, data => new SingleTicketItem(data, this.Odds));
 
-      if (item.Rows.Any())
+    private async Task<IReadOnlyList<TicketItem>?> GeneratePlaceTicketsAsync(MyContext db, int count)
+      => await this.GenerateSingleNumberTicketsAsync(db, count, TicketType.Place, data => new PlaceTicketItem(data, this.Odds));
+
+    private async Task<IReadOnlyList<TicketItem>?> GenerateSingleNumberTicketsAsync(MyContext db, int count, TicketType type, Func<TicketData, TicketItem> itemGenerator)
+    {
+      var list = new List<TicketItem>();
+      var isChanged = false;
+      foreach (var num in this.Numbers1.Where(n => n.IsChecked.Value == true).Select(n => (byte)n.HorseNumber))
       {
-        return item;
+        var hit = false;
+
+        foreach (var ticket in this.Tickets.Where(t => t.Type == type))
+        {
+          if (ticket.Number1 == num)
+          {
+            db.Tickets!.Attach(ticket.Data);
+            ticket.Data.Count = (short)(ticket.Data.Count + count);
+            ticket.Count.Value = ticket.Data.Count;
+            hit = true;
+            isChanged = true;
+          }
+        }
+
+        if (!hit)
+        {
+          var data = new TicketData
+          {
+            RaceKey = this._raceKey,
+            Type = type,
+            FormType = TicketFormType.Single,
+            Numbers1 = new byte[] { num, },
+            Count = (short)count,
+          };
+          var item = itemGenerator(data);
+          list.Add(item);
+        }
       }
+
+      if (isChanged) await db.SaveChangesAsync();
+
+      if (list.Any()) return list;
       return null;
     }
 
     public async Task RemoveTicketAsync()
     {
-      using var db = new MyContext();
-
       var targetTickets = this.Tickets
         .Where(t => t.Rows.Any(r => r.IsChecked.Value))
         .ToArray();
+      if (!targetTickets.Any())
+      {
+        return;
+      }
+
+      using var db = new MyContext();
+
       var removeTickets = new List<TicketItem>();
       foreach (var ticket in targetTickets)
       {
@@ -161,15 +224,18 @@ namespace KmyKeiba.Models.Race
         }
       }
 
+      this.SortTickets();
       await db.SaveChangesAsync();
     }
   }
 
-  public abstract class TicketItem
+  public abstract class TicketItem : IComparable<TicketItem>
   {
     public TicketData Data { get; }
 
     public ReactiveCollection<TicketItemRow> Rows { get; private set; } = new();
+
+    public ReactiveProperty<int> Count { get; } = new();
 
     public bool IsSingleRow => this.Rows.Count == 1;
 
@@ -183,15 +249,22 @@ namespace KmyKeiba.Models.Race
 
     public int MoneyMax => this.Rows[0].MoneyMax;
 
+    public TicketType Type => this.Rows[0].Type;
+
+    public ReactiveProperty<bool> IsChecked => this.Rows[0].IsChecked;
+
     public TicketItem(TicketData data)
     {
       this.Data = data;
+      this.Count.Value = data.Count;
     }
 
     protected void SetRows(IReadOnlyList<TicketItemRow> rows)
     {
       foreach (var row in rows)
       {
+        row.Type = this.Data.Type;
+        row.IsSingleRow = rows.Count == 1;
         this.Rows.Add(row);
       }
     }
@@ -211,12 +284,13 @@ namespace KmyKeiba.Models.Race
           RaceKey = this.Data.RaceKey,
           FormType = TicketFormType.Single,
           Numbers1 = new[] { (byte)row.Number1, },
+          Count = (short)this.Count.Value,
         };
         if (row.Number2 != default) data.Numbers2 = new byte[] { (byte)row.Number2, };
         if (row.Number3 != default) data.Numbers3 = new byte[] { (byte)row.Number3, };
 
         var item = this.GenerateNewItem(data, row.Money, row.MoneyMax);
-        item.Rows.Add(row);
+        item.Rows[0].IsChecked.Value = row.IsChecked.Value;
         rows.Add(item);
       }
 
@@ -281,6 +355,13 @@ namespace KmyKeiba.Models.Race
 
       return list;
     }
+
+    private int GetCompareValue() => (short)this.Type * 1000000 + this.Rows[0].Number1 * 10000 + this.Rows[0].Number2 * 100 + this.Rows[0].Number3;
+
+    public int CompareTo(TicketItem? other)
+    {
+      return this.GetCompareValue() - (other?.GetCompareValue() ?? 0);
+    }
   }
 
   public class SingleTicketItem : TicketItem
@@ -322,6 +403,15 @@ namespace KmyKeiba.Models.Race
     {
       data.Type = TicketType.Single;
       return new SingleTicketItem(data, money);
+    }
+
+    public override string ToString()
+    {
+      if (this.IsSingleRow)
+      {
+        return this.Data.Numbers1[0].ToString();
+      }
+      return string.Join(',', this.Data.Numbers1);
     }
   }
 
@@ -451,6 +541,10 @@ namespace KmyKeiba.Models.Race
 
   public class TicketItemRow
   {
+    public TicketType Type { get; set; }
+
+    public bool IsSingleRow { get; set; }
+
     public short Number1 { get; init; }
 
     public short Number2 { get; init; }
@@ -460,6 +554,8 @@ namespace KmyKeiba.Models.Race
     public int Money { get; init; }
 
     public int MoneyMax { get; init; }
+
+    public ReactiveProperty<int>? Count => null;  // xamlバインディング用
 
     public ReactiveProperty<bool> IsChecked { get; } = new();
   }

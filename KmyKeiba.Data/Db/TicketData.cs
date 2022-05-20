@@ -23,6 +23,8 @@ namespace KmyKeiba.Data.Db
     public byte[] Numbers2 { get; set; } = Array.Empty<byte>();
 
     public byte[] Numbers3 { get; set; } = Array.Empty<byte>();
+
+    public short Count { get; set; }
   }
 
   public enum TicketType : short
