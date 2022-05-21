@@ -604,12 +604,13 @@
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="Width" Value="100"/>
           </Style>
-          <Style TargetType="RadioButton" x:Key="TicketKind" BasedOn="{StaticResource ToggleButtonDefault}">
+          <Style TargetType="ToggleButton" x:Key="TicketKind" BasedOn="{StaticResource ToggleButtonDefault}">
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="Width" Value="120"/>
           </Style>
         </Grid.Resources>
 
+        <!--馬券の種類選択-->
         <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
           <RadioButton GroupName="{Binding UniqueId3,ElementName=Root}" Name="ST_Single" IsChecked="True"
                        Command="{Binding SetTicketTypeCommand}" CommandParameter="1">
@@ -716,12 +717,38 @@
             </RadioButton.Style>
           </RadioButton>
         </StackPanel>
+        <!--買い方の種類選択-->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,16,0,0">
-          <RadioButton GroupName="{Binding UniqueId4,ElementName=Root}" Name="STK_Formation" Content="複数選択"
+          <RadioButton GroupName="{Binding UniqueId4,ElementName=Root}" Name="STK_Formation"
+                       IsChecked="{Binding Race.Tickets.Value.FormType.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Formation}"
                        Command="{Binding SetTicketFormTypeCommand}" CommandParameter="3"
-                       Style="{StaticResource TicketKind}" IsChecked="True"/>
+                       Style="{StaticResource TicketKind}">
+            <Grid>
+              <TextBlock Text="複数選択">
+                <TextBlock.Visibility>
+                  <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+                    <Binding Path="IsChecked" ElementName="ST_Single"/>
+                    <Binding Path="IsChecked" ElementName="ST_Place"/>
+                  </MultiBinding>
+                </TextBlock.Visibility>
+              </TextBlock>
+              <TextBlock Text="フォーメーション">
+                <TextBlock.Visibility>
+                  <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+                    <Binding Path="IsChecked" ElementName="ST_Frame"/>
+                    <Binding Path="IsChecked" ElementName="ST_QuinellaPlace"/>
+                    <Binding Path="IsChecked" ElementName="ST_Quinella"/>
+                    <Binding Path="IsChecked" ElementName="ST_Exacta"/>
+                    <Binding Path="IsChecked" ElementName="ST_Trio"/>
+                    <Binding Path="IsChecked" ElementName="ST_Trifecta"/>
+                  </MultiBinding>
+                </TextBlock.Visibility>
+              </TextBlock>
+            </Grid>
+          </RadioButton>
           <RadioButton GroupName="{Binding UniqueId4,ElementName=Root}" Name="STK_Box" Content="ボックス"
                        Command="{Binding SetTicketFormTypeCommand}" CommandParameter="2"
+                       IsChecked="{Binding Race.Tickets.Value.FormType.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Box}"
                        Style="{StaticResource TicketKind}">
             <RadioButton.Visibility>
               <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
@@ -734,6 +761,27 @@
               </MultiBinding>
             </RadioButton.Visibility>
           </RadioButton>
+          <Border Width="120">
+            <RadioButton GroupName="{Binding UniqueId4,ElementName=Root}" Name="STK_Nagashi" Content="流し"
+                         Command="{Binding SetTicketFormTypeCommand}" CommandParameter="4"
+                         Style="{StaticResource TicketKind}">
+              <RadioButton.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+                  <Binding Path="IsChecked" ElementName="ST_Trio"/>
+                  <Binding Path="IsChecked" ElementName="ST_Trifecta"/>
+                </MultiBinding>
+              </RadioButton.Visibility>
+            </RadioButton>
+          </Border>
+          <ToggleButton IsChecked="{Binding Race.Tickets.Value.IsMulti.Value,ElementName=Root}" Name="STK_Multi" Content="マルチ"
+                        Style="{StaticResource TicketKind}" Margin="16,0,0,0">
+            <ToggleButton.Visibility>
+              <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+                <Binding Path="IsChecked" ElementName="ST_Exacta"/>
+                <Binding Path="IsChecked" ElementName="ST_Trifecta"/>
+              </MultiBinding>
+            </ToggleButton.Visibility>
+          </ToggleButton>
         </StackPanel>
 
         <Grid Grid.Row="2" Margin="8,16,0,0">
@@ -744,6 +792,8 @@
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition/>
           </Grid.ColumnDefinitions>
+          
+          <!--馬の番号選択１-->
           <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers1,ElementName=Root}"
                         Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource NegativeVisibilityConv}}">
             <ItemsControl.ItemsPanel>
@@ -758,11 +808,13 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
+          <!--馬の番号選択２-->
           <Border Grid.Column="1" Width="156"
                   Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource NegativeVisibilityConv}}">
             <Border>
               <Border.Visibility>
                 <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+                  <Binding Path="IsChecked" ElementName="STK_Nagashi"/>
                   <Binding Path="IsChecked" ElementName="STK_Formation"/>
                 </MultiBinding>
               </Border.Visibility>
@@ -791,26 +843,34 @@
               </ItemsControl>
             </Border>
           </Border>
+          <!--馬の番号選択３-->
           <Border Grid.Column="2" Width="156">
-            <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers3,ElementName=Root}" Margin="16,0,0,0">
-              <ItemsControl.Visibility>
+            <Border>
+              <Border.Visibility>
                 <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
-                  <Binding Path="IsChecked" ElementName="ST_Trio"/>
-                  <Binding Path="IsChecked" ElementName="ST_Trifecta"/>
+                  <Binding Path="IsChecked" ElementName="STK_Formation"/>
                 </MultiBinding>
-              </ItemsControl.Visibility>
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel Orientation="Horizontal" Width="140"/>
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding HorseNumber}" FontSize="16"
-                                IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+              </Border.Visibility>
+              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers3,ElementName=Root}" Margin="16,0,0,0">
+                <ItemsControl.Visibility>
+                  <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+                    <Binding Path="IsChecked" ElementName="ST_Trio"/>
+                    <Binding Path="IsChecked" ElementName="ST_Trifecta"/>
+                  </MultiBinding>
+                </ItemsControl.Visibility>
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal" Width="140"/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding HorseNumber}" FontSize="16"
+                                  IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Border>
           </Border>
 
           <ItemsControl ItemsSource="{Binding Race.Tickets.Value.FrameNumbers1,ElementName=Root}"
@@ -853,19 +913,29 @@
 
           <Border Grid.Column="3">
             <StackPanel VerticalAlignment="Top" Margin="24,48">
+              <StackPanel.Resources>
+                <Style TargetType="Button" BasedOn="{StaticResource ButtonDefault}">
+                  <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                      <Setter Property="Background" Value="{DynamicResource DisabledBackground}"/>
+                    </Trigger>
+                  </Style.Triggers>
+                </Style>
+              </StackPanel.Resources>
               <TextBlock Text="購入数" FontSize="16" HorizontalAlignment="Center"/>
-              <TextBox Width="80" FontSize="32" TextAlignment="Center" Margin="0,8,0,24" Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
+              <TextBox Width="80" FontSize="32" TextAlignment="Center" Margin="0,4,0,24" Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
                        Text="{Binding Race.Tickets.Value.Count.Value,ElementName=Root,Mode=TwoWay}" InputScope="Number"/>
               <Button Content="購入" Width="80" Height="60" FontSize="24" VerticalAlignment="Top"
-                      Command="{Binding BuyTicketCommand}"/>
+                      Command="{Binding BuyTicketCommand}" IsEnabled="{Binding Race.Tickets.Value.CanBuy.Value,ElementName=Root}"/>
               <Button Content="削除" Width="80" FontSize="16" Margin="0,180,0,0"
-                      Command="{Binding RemoveTicketCommand}"/>
+                      Command="{Binding RemoveTicketCommand}" IsEnabled="{Binding Race.Tickets.Value.IsSelectedItems.Value,ElementName=Root}"/>
             </StackPanel>
           </Border>
           <ScrollViewer Grid.Column="4">
             <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Tickets,ElementName=Root}">
               <ItemsControl.Resources>
                 <DataTemplate x:Key="TicketRow">
+                  <!--馬券１行分（複数Row・単一Row共通）-->
                   <StackPanel Orientation="Horizontal">
                     <FrameworkElement.Resources>
                       <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
@@ -884,15 +954,19 @@
                       <TextBlock Text="{Binding Number3}" Visibility="{Binding Number3,Converter={StaticResource NonZeroVisibilityConv}}"/>
                     </Border>
                     <Border Width="24" Visibility="{Binding IsSingleRow,Converter={StaticResource BooleanVisibilityConv}}"/>
-                    <TextBlock Text="{Binding Money}" Width="100" Margin="48,0,0,0"/>
-                    <Border Width="40">
+                    <Border Margin="10,0,0,0" Width="60">
+                      <TextBlock Text="{Binding MoneyMax}" Foreground="{DynamicResource SubForeground}" Visibility="{Binding MoneyMax,Converter={StaticResource NonZeroVisibilityConv}}"/>
+                    </Border>
+                    <TextBlock Text="{Binding Money}" Width="60" Margin="16,0,0,0"/>
+                    <Border Width="35">
                       <Border Visibility="{Binding IsSingleRow,Converter={StaticResource BooleanVisibilityConv}}">
                         <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16">
                           x<Run Text="{Binding Count.Value}"/>
                         </TextBlock>
                       </Border>
                     </Border>
-                    <ToggleButton Content="選択" IsChecked="{Binding IsChecked.Value}" Margin="16,0,0,0"
+                    <ToggleButton Content="選択" IsChecked="{Binding IsChecked.Value}" Margin="12,0,0,0"
+                                  Command="{Binding DataContext.UpdateSelectedTicketsCommand,ElementName=Root}"
                                   Visibility="{Binding IsAllRowsChecked.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
                   </StackPanel>
                 </DataTemplate>
@@ -901,6 +975,7 @@
                 <local:TicketSingleRowTemplateSelector SingleRow="{StaticResource TicketRow}">
                   <local:TicketSingleRowTemplateSelector.MultipleRow>
                     <DataTemplate>
+                      <!--馬券表示（複数Rowのみ）-->
                       <StackPanel>
                         <StackPanel Orientation="Horizontal">
                           <Border Background="{Binding Data.Type,Converter={StaticResource TicketTypeBackgroundConv}}" Width="80">
@@ -909,13 +984,14 @@
                           </Border>
                           <ToggleButton Width="20" Margin="24,2,0,2" Padding="0" IsChecked="{Binding IsOpen.Value}"/>
                           <TextBlock Text="{Binding}" Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="4,2"
-                                     Width="264" FontWeight="Bold"/>
+                                     Width="252" FontWeight="Bold"/>
                           <Border Width="16">
                             <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" FontWeight="Bold">
                               x<Run Text="{Binding Count.Value}"/>
                             </TextBlock>
                           </Border>
-                          <ToggleButton Content="選択" IsChecked="{Binding IsAllRowsChecked.Value}" Margin="16,0,0,0"/>
+                          <ToggleButton Content="選択" IsChecked="{Binding IsAllRowsChecked.Value}" Margin="16,0,0,0"
+                                        Command="{Binding DataContext.UpdateSelectedTicketsCommand,ElementName=Root}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="24,0,0,0" Visibility="{Binding IsOpen.Value,Converter={StaticResource BooleanVisibilityConv}}">
                           <ItemsControl ItemsSource="{Binding Rows}" ItemTemplate="{StaticResource TicketRow}"/>

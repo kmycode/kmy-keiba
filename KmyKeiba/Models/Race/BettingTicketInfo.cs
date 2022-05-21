@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -22,15 +23,15 @@ namespace KmyKeiba.Models.Race
 
     public OddsInfo Odds { get; }
 
-    public IReadOnlyList<BettingHorseItem> Numbers1 { get; }
+    public MultipleCheckableCollection<BettingHorseItem> Numbers1 { get; }
 
-    public IReadOnlyList<BettingHorseItem> Numbers2 { get; }
+    public MultipleCheckableCollection<BettingHorseItem> Numbers2 { get; }
 
-    public IReadOnlyList<BettingHorseItem> Numbers3 { get; }
+    public MultipleCheckableCollection<BettingHorseItem> Numbers3 { get; }
 
-    public IReadOnlyList<BettingFrameItem> FrameNumbers1 { get; }
+    public MultipleCheckableCollection<BettingFrameItem> FrameNumbers1 { get; }
 
-    public IReadOnlyList<BettingFrameItem> FrameNumbers2 { get; }
+    public MultipleCheckableCollection<BettingFrameItem> FrameNumbers2 { get; }
 
     public ReactiveCollection<TicketItem> Tickets { get; } = new();
 
@@ -39,6 +40,12 @@ namespace KmyKeiba.Models.Race
     public ReactiveProperty<TicketType> Type { get; } = new(TicketType.Single);
 
     public ReactiveProperty<TicketFormType> FormType { get; } = new(TicketFormType.Formation);
+
+    public ReactiveProperty<bool> IsMulti { get; } = new();
+
+    public ReactiveProperty<bool> CanBuy { get; } = new();
+
+    public ReactiveProperty<bool> IsSelectedItems { get; } = new();
 
     public BettingTicketInfo(IEnumerable<RaceHorseAnalyzer> horses, OddsInfo odds, IReadOnlyList<TicketData> existTickets)
     {
@@ -62,11 +69,20 @@ namespace KmyKeiba.Models.Race
           FrameNumber = h.Key,
         }.AddTo(this._disposables));
       // Linqの遅延評価を利用して、全く同じ内容で異なるインスタンスを持った配列を作成・格納する
-      this.Numbers1 = items.ToArray();
-      this.Numbers2 = items.ToArray();
-      this.Numbers3 = items.ToArray();
-      this.FrameNumbers1 = frames.ToArray();
-      this.FrameNumbers2 = frames.ToArray();
+      this.Numbers1 = new MultipleCheckableCollection<BettingHorseItem>(items.ToArray()).AddTo(this._disposables);
+      this.Numbers2 = new MultipleCheckableCollection<BettingHorseItem>(items.ToArray()).AddTo(this._disposables);
+      this.Numbers3 = new MultipleCheckableCollection<BettingHorseItem>(items.ToArray()).AddTo(this._disposables);
+      this.FrameNumbers1 = new MultipleCheckableCollection<BettingFrameItem>(frames.ToArray()).AddTo(this._disposables);
+      this.FrameNumbers2 = new MultipleCheckableCollection<BettingFrameItem>(frames.ToArray()).AddTo(this._disposables);
+
+      // 購入可能か示す値を更新する
+      this.Numbers1.ChangedItemObservable.Subscribe(_ => this.UpdateCanBuy()).AddTo(this._disposables);
+      this.Numbers2.ChangedItemObservable.Subscribe(_ => this.UpdateCanBuy()).AddTo(this._disposables);
+      this.Numbers3.ChangedItemObservable.Subscribe(_ => this.UpdateCanBuy()).AddTo(this._disposables);
+      this.FrameNumbers1.ChangedItemObservable.Subscribe(_ => this.UpdateCanBuy()).AddTo(this._disposables);
+      this.FrameNumbers2.ChangedItemObservable.Subscribe(_ => this.UpdateCanBuy()).AddTo(this._disposables);
+      this.Type.Subscribe(_ => this.UpdateCanBuy()).AddTo(this._disposables);
+      this.FormType.Subscribe(_ => this.UpdateCanBuy()).AddTo(this._disposables);
 
       this._horses = horses.Select(h => h.Data).OrderBy(h => h.Number).ToArray();
 
@@ -96,6 +112,14 @@ namespace KmyKeiba.Models.Race
         {
           this.Tickets.Add(new ExactaTicketItem(ticket, odds));
         }
+        else if (ticket.Type == TicketType.Trio)
+        {
+          this.Tickets.Add(new TrioTicketItem(ticket, odds));
+        }
+        else if (ticket.Type == TicketType.Trifecta)
+        {
+          this.Tickets.Add(new TrifectaTicketItem(ticket, odds));
+        }
       }
 
       this.SortTickets();
@@ -111,12 +135,82 @@ namespace KmyKeiba.Models.Race
       }
     }
 
+    private void UpdateCanBuy()
+    {
+      if (this.Type.Value == TicketType.FrameNumber)
+      {
+        var nums1 = this.FrameNumbers1.Where(f => f.IsChecked.Value).Select(f => f.FrameNumber).ToArray();
+        var nums2 = this.FrameNumbers2.Where(f => f.IsChecked.Value).Select(f => f.FrameNumber).ToArray();
+        this.CanBuy.Value = nums1.Any() && (this.FormType.Value != TicketFormType.Box || nums2.Any());
+      }
+      else
+      {
+        var nums1 = this.Numbers1.Where(f => f.IsChecked.Value).Select(f => f.HorseNumber).ToArray();
+        var nums2 = this.Numbers2.Where(f => f.IsChecked.Value).Select(f => f.HorseNumber).ToArray();
+        var nums3 = this.Numbers3.Where(f => f.IsChecked.Value).Select(f => f.HorseNumber).ToArray();
+        if (this.Type.Value == TicketType.Single || this.Type.Value == TicketType.Place)
+        {
+          this.CanBuy.Value = nums1.Any();
+        }
+        else if (this.Type.Value == TicketType.QuinellaPlace || this.Type.Value == TicketType.Quinella || this.Type.Value == TicketType.Exacta)
+        {
+          this.CanBuy.Value = nums1.Any() && (this.FormType.Value == TicketFormType.Box || nums2.Any());
+
+          // 同じ数字を選んでるか
+          if (this.CanBuy.Value && this.FormType.Value == TicketFormType.Formation)
+          {
+            this.CanBuy.Value &= !(nums1.Length == 1 && nums2.Length == 1) || nums1[0] != nums2[0];
+          }
+          if (this.CanBuy.Value && this.FormType.Value == TicketFormType.Box)
+          {
+            this.CanBuy.Value &= nums1.Count() >= 2;
+          }
+        }
+        else if (this.Type.Value == TicketType.Trio || this.Type.Value == TicketType.Trifecta)
+        {
+          this.CanBuy.Value = nums1.Any() && (this.FormType.Value == TicketFormType.Box || (nums2.Any() && (this.FormType.Value == TicketFormType.Nagashi || nums3.Any())));
+
+          // 同じ数字を選んでるか
+          if (this.CanBuy.Value && this.FormType.Value == TicketFormType.Formation)
+          {
+            this.CanBuy.Value &= !(nums1.Length == 1 && nums2.Length == 1) || nums1[0] != nums2[0];
+            this.CanBuy.Value &= !(nums2.Length == 1 && nums3.Length == 1) || nums2[0] != nums3[0];
+            this.CanBuy.Value &= !(nums1.Length == 1 && nums3.Length == 1) || nums1[0] != nums3[0];
+          }
+          if (this.CanBuy.Value && this.FormType.Value == TicketFormType.Box)
+          {
+            this.CanBuy.Value &= nums1.Count() >= 3;
+          }
+        }
+      }
+    }
+
+    public void UpdateIsSelected()
+    {
+      this.IsSelectedItems.Value = this.Tickets.Any(t => t.IsAllRowsChecked.Value || t.Rows.Any(r => r.IsChecked.Value));
+    }
+
     public void Dispose() => this._disposables.Dispose();
 
     public void SetType(string str)
     {
       short.TryParse(str, out var num);
       this.Type.Value = (TicketType)num;
+
+      if (this.FormType.Value == TicketFormType.Nagashi)
+      {
+        if (this.Type.Value != TicketType.Trio && this.Type.Value != TicketType.Trifecta)
+        {
+          this.FormType.Value = TicketFormType.Box;
+        }
+      }
+      if (this.FormType.Value == TicketFormType.Box)
+      {
+        if (this.Type.Value == TicketType.Single || this.Type.Value == TicketType.Place)
+        {
+          this.FormType.Value = TicketFormType.Formation;
+        }
+      }
     }
 
     public void SetFormType(string str)
@@ -159,6 +253,14 @@ namespace KmyKeiba.Models.Race
       {
         tickets = await this.GenerateExactaTicketsAsync(db, count);
       }
+      else if (this.Type.Value == TicketType.Trio)
+      {
+        tickets = await this.GenerateTrioTicketsAsync(db, count);
+      }
+      else if (this.Type.Value == TicketType.Trifecta)
+      {
+        tickets = await this.GenerateTrifectaTicketsAsync(db, count);
+      }
 
       if (tickets == null)
       {
@@ -193,6 +295,12 @@ namespace KmyKeiba.Models.Race
 
     private async Task<IReadOnlyList<TicketItem>?> GenerateExactaTicketsAsync(MyContext db, int count)
       => await this.GenerateDoubleNumberTicketsAsync(db, count, TicketType.Exacta, data => new ExactaTicketItem(data, this.Odds));
+
+    private async Task<IReadOnlyList<TicketItem>?> GenerateTrioTicketsAsync(MyContext db, int count)
+      => await this.GenerateDribbleNumberTicketsAsync(db, count, TicketType.Trio, data => new TrioTicketItem(data, this.Odds));
+
+    private async Task<IReadOnlyList<TicketItem>?> GenerateTrifectaTicketsAsync(MyContext db, int count)
+      => await this.GenerateDribbleNumberTicketsAsync(db, count, TicketType.Trifecta, data => new TrifectaTicketItem(data, this.Odds));
 
     private async Task<IReadOnlyList<TicketItem>?> GenerateSingleNumberTicketsAsync(MyContext db, int count, TicketType type, Func<TicketData, TicketItem> itemGenerator)
     {
@@ -253,7 +361,7 @@ namespace KmyKeiba.Models.Race
       }
 
       var formType = this.FormType.Value;
-      if (nums1.Length == 1 && nums2.Length == 1 && !isOrder)
+      if (nums1.Length == 1 && nums2.Length == 1 && (!this.IsMulti.Value || !isOrder))
       {
         formType = TicketFormType.Single;
       }
@@ -261,10 +369,14 @@ namespace KmyKeiba.Models.Race
       {
         nums2 = nums1;
       }
+      if (!nums2.Any())
+      {
+        return null;
+      }
 
       foreach (var ticket in this.Tickets.Where(t => t.Type == type))
       {
-        if (ticket.Data.FormType == formType)
+        if (ticket.Data.FormType == formType && (!isOrder || ticket.Data.IsMulti == this.IsMulti.Value))
         {
           if ((ticket.Data.Numbers1.SequenceEqual(nums1) && ticket.Data.Numbers2.SequenceEqual(nums2)) ||
             (!isOrder && (ticket.Data.Numbers1.SequenceEqual(nums2) && ticket.Data.Numbers2.SequenceEqual(nums1))))
@@ -280,14 +392,6 @@ namespace KmyKeiba.Models.Race
       }
       if (!hit)
       {
-        if (formType == TicketFormType.Formation || formType == TicketFormType.Box)
-        {
-          if (!nums2.Any())
-          {
-            return null;
-          }
-        }
-
         var data = new TicketData
         {
           RaceKey = this._raceKey,
@@ -296,6 +400,90 @@ namespace KmyKeiba.Models.Race
           Numbers1 = nums1,
           Numbers2 = nums2,
           Count = (short)count,
+          IsMulti = this.IsMulti.Value,
+        };
+        var item = itemGenerator(data);
+        if (item.Rows.Any())
+        {
+          list.Add(item);
+        }
+      }
+
+      if (isChanged) await db.SaveChangesAsync();
+
+      if (list.Any()) return list;
+      return null;
+    }
+
+    private async Task<IReadOnlyList<TicketItem>?> GenerateDribbleNumberTicketsAsync(MyContext db, int count, TicketType type, Func<TicketData, TicketItem> itemGenerator)
+    {
+      var list = new List<TicketItem>();
+      var isChanged = false;
+      var hit = false;
+      var isOrder = type == TicketType.Trifecta;
+
+      var nums1 = this.Numbers1.Where(n => n.IsChecked.Value).Select(n => (byte)n.HorseNumber).ToArray();
+      var nums2 = this.Numbers2.Where(n => n.IsChecked.Value).Select(n => (byte)n.HorseNumber).ToArray();
+      var nums3 = this.Numbers3.Where(n => n.IsChecked.Value).Select(n => (byte)n.HorseNumber).ToArray();
+
+      if (!nums1.Any())
+      {
+        return null;
+      }
+
+      var formType = this.FormType.Value;
+      if (nums1.Length == 1 && nums2.Length == 1 && nums3.Length == 1 && (!this.IsMulti.Value || !isOrder))
+      {
+        formType = TicketFormType.Single;
+      }
+      if (formType == TicketFormType.Box)
+      {
+        nums2 = nums1;
+        nums3 = nums1;
+      }
+      else if (formType == TicketFormType.Nagashi)
+      {
+        nums3 = nums2;
+      }
+      if (!nums2.Any() || !nums3.Any())
+      {
+        return null;
+      }
+
+      foreach (var ticket in this.Tickets.Where(t => t.Type == type))
+      {
+        if (ticket.Data.FormType == formType)
+        {
+          if ((ticket.Data.Numbers1.SequenceEqual(nums1) && ticket.Data.Numbers2.SequenceEqual(nums2) && ticket.Data.Numbers3.SequenceEqual(nums3)) ||
+            (!isOrder && (
+              (ticket.Data.Numbers1.SequenceEqual(nums1) && ticket.Data.Numbers2.SequenceEqual(nums3) && ticket.Data.Numbers3.SequenceEqual(nums2)) ||
+              (ticket.Data.Numbers1.SequenceEqual(nums2) && ticket.Data.Numbers2.SequenceEqual(nums1) && ticket.Data.Numbers3.SequenceEqual(nums3)) ||
+              (ticket.Data.Numbers1.SequenceEqual(nums2) && ticket.Data.Numbers2.SequenceEqual(nums3) && ticket.Data.Numbers3.SequenceEqual(nums2)) ||
+              (ticket.Data.Numbers1.SequenceEqual(nums3) && ticket.Data.Numbers2.SequenceEqual(nums1) && ticket.Data.Numbers3.SequenceEqual(nums2)) ||
+              (ticket.Data.Numbers1.SequenceEqual(nums3) && ticket.Data.Numbers2.SequenceEqual(nums2) && ticket.Data.Numbers3.SequenceEqual(nums1))
+            )))
+          {
+            db.Tickets!.Attach(ticket.Data);
+            ticket.Data.Count = (short)(ticket.Data.Count + count);
+            ticket.Count.Value = ticket.Data.Count;
+            hit = true;
+            isChanged = true;
+            break;
+          }
+        }
+      }
+      if (!hit)
+      {
+        var data = new TicketData
+        {
+          RaceKey = this._raceKey,
+          Type = type,
+          FormType = formType,
+          Numbers1 = nums1,
+          Numbers2 = nums2,
+          Numbers3 = nums3,
+          Count = (short)count,
+          IsMulti = this.IsMulti.Value,
         };
         var item = itemGenerator(data);
         if (item.Rows.Any())
@@ -360,11 +548,11 @@ namespace KmyKeiba.Models.Race
     }
   }
 
-  public abstract class TicketItem : IComparable<TicketItem>
+  public abstract class TicketItem : IComparable<TicketItem>, IDisposable
   {
     public TicketData Data { get; }
 
-    public ReactiveCollection<TicketItemRow> Rows { get; private set; } = new();
+    public MultipleCheckableCollection<TicketItemRow> Rows { get; private set; } = new();
 
     public ReactiveProperty<int> Count { get; } = new();
 
@@ -452,9 +640,26 @@ namespace KmyKeiba.Models.Race
       return rows.ToArray();
     }
 
-    protected static IReadOnlyList<(byte, byte, byte)> GetFormationNumbers(byte[] num1, byte[]? num2, byte[]? num3, bool isOrder, bool canSameNumber)
+    protected static IReadOnlyList<(byte, byte, byte)> GetFormationNumbers(byte[] num1, byte[]? num2, byte[]? num3, bool isOrder, bool canSameNumber, bool isMulti)
     {
+      if (isOrder && isMulti)
+      {
+        isOrder = false;
+      }
+
       var list = new List<(byte, byte, byte)>();
+      void AddMultiItem(byte a, byte b, byte c)
+      {
+        if (a == default || (c != default && b == default))
+        {
+          return;
+        }
+        if (!list!.Any(i => i.Item1 == a && i.Item2 == b && i.Item3 == c))
+        {
+          list.Add((a, b, c));
+        }
+      }
+
       foreach (var n1 in num1.OrderBy(n => n))
       {
         if (num2 != null)
@@ -475,7 +680,7 @@ namespace KmyKeiba.Models.Race
               {
                 if (!canSameNumber)
                 {
-                  if (n2 == n3) continue;
+                  if (n2 == n3 || n1 == n3) continue;
                 }
                 if (!isOrder)
                 {
@@ -492,6 +697,15 @@ namespace KmyKeiba.Models.Race
                   var n = new[] { n1, n2, n3, };
                   n = n.OrderBy(nn => nn).ToArray();
                   list.Add((n[0], n[1], n[2]));
+
+                  if (isMulti)
+                  {
+                    AddMultiItem(n[0], n[2], n[1]);
+                    AddMultiItem(n[1], n[0], n[2]);
+                    AddMultiItem(n[1], n[2], n[0]);
+                    AddMultiItem(n[2], n[0], n[1]);
+                    AddMultiItem(n[2], n[1], n[0]);
+                  }
                 }
                 else
                 {
@@ -504,10 +718,18 @@ namespace KmyKeiba.Models.Race
               if (!isOrder && n1 > n2)
               {
                 list.Add((n2, n1, default));
+                if (isMulti)
+                {
+                  AddMultiItem(n1, n2, default);
+                }
               }
               else
               {
                 list.Add((n1, n2, default));
+                if (isMulti)
+                {
+                  AddMultiItem(n2, n1, default);
+                }
               }
             }
           }
@@ -526,6 +748,54 @@ namespace KmyKeiba.Models.Race
     public int CompareTo(TicketItem? other)
     {
       return this.GetCompareValue() - (other?.GetCompareValue() ?? 0);
+    }
+
+    public override string ToString()
+    {
+      if (!this.Data.Numbers2.Any())
+      {
+        if (this.IsSingleRow)
+        {
+          return this.Data.Numbers1[0].ToString();
+        }
+        return string.Join(',', this.Data.Numbers1);
+      }
+      else if (!this.Data.Numbers3.Any())
+      {
+        if (this.Data.FormType == TicketFormType.Formation)
+        {
+          var label = this.Data.IsMulti ? "フォメマルチ" : "フォメ";
+          return label + " " + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2);
+        }
+        else if (this.Data.FormType == TicketFormType.Box)
+        {
+          return "BOX " + string.Join(',', this.Data.Numbers1);
+        }
+      }
+      else
+      {
+        if (this.Data.FormType == TicketFormType.Formation)
+        {
+          var label = this.Data.IsMulti ? "フォメマルチ" : "フォメ";
+          return label + " " + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2) + " - " + string.Join(',', this.Data.Numbers3);
+        }
+        else if (this.Data.FormType == TicketFormType.Box)
+        {
+          return "BOX " + string.Join(',', this.Data.Numbers1);
+        }
+        else if (this.Data.FormType == TicketFormType.Nagashi)
+        {
+          var label = this.Data.IsMulti ? "流しマルチ" : "流し";
+          return label + " 軸:" + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2);
+        }
+      }
+
+      return base.ToString()!;
+    }
+
+    public void Dispose()
+    {
+      this.Rows.Dispose();
     }
   }
 
@@ -568,15 +838,6 @@ namespace KmyKeiba.Models.Race
     {
       data.Type = TicketType.Single;
       return new SingleTicketItem(data, money);
-    }
-
-    public override string ToString()
-    {
-      if (this.IsSingleRow)
-      {
-        return this.Data.Numbers1[0].ToString();
-      }
-      return string.Join(',', this.Data.Numbers1);
     }
   }
 
@@ -634,7 +895,7 @@ namespace KmyKeiba.Models.Race
   {
     public FrameNumberTicketItem(TicketData data, OddsInfo odds, IEnumerable<RaceHorseData> horses) : base(data)
     {
-      var nums = GetFormationNumbers(data.Numbers1, data.Numbers2, null, false, true);
+      var nums = GetFormationNumbers(data.Numbers1, data.Numbers2, null, isOrder: false, canSameNumber: true, isMulti: false);
       var rows = new List<TicketItemRow>();
 
       if (odds.Frames.Value != null)
@@ -708,19 +969,6 @@ namespace KmyKeiba.Models.Race
       var rows = this.Rows.Where(r => r.Number1 == frame1 && (frame2 == default || r.Number2 == frame2) && (frame3 == default || r.Number3 == frame3));
       return rows.ToArray();
     }
-
-    public override string ToString()
-    {
-      if (this.Data.FormType == TicketFormType.Formation)
-      {
-        return "フォメ " + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2);
-      }
-      else if (this.Data.FormType == TicketFormType.Box)
-      {
-        return "BOX " + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2);
-      }
-      return base.ToString()!;
-    }
   }
 
   public class QuinellaPlaceTicketItem : TicketItem
@@ -731,7 +979,7 @@ namespace KmyKeiba.Models.Race
     {
       this._isUnder7 = horsesCount <= 7;
 
-      var nums = GetFormationNumbers(data.Numbers1, data.Numbers2, null, false, false);
+      var nums = GetFormationNumbers(data.Numbers1, data.Numbers2, null, isOrder: false, canSameNumber: false, isMulti: false);
       var rows = new List<TicketItemRow>();
 
       if (odds.QuinellaPlaces.Value != null)
@@ -800,26 +1048,13 @@ namespace KmyKeiba.Models.Race
         return rows.ToArray();
       }
     }
-
-    public override string ToString()
-    {
-      if (this.Data.FormType == TicketFormType.Formation)
-      {
-        return "フォメ " + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2);
-      }
-      else if (this.Data.FormType == TicketFormType.Box)
-      {
-        return "BOX " + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2);
-      }
-      return base.ToString()!;
-    }
   }
 
   public class QuinellaTicketItem : TicketItem
   {
     public QuinellaTicketItem(TicketData data, OddsInfo odds) : base(data)
     {
-      var nums = GetFormationNumbers(data.Numbers1, data.Numbers2, null, false, false);
+      var nums = GetFormationNumbers(data.Numbers1, data.Numbers2, null, isOrder: false, canSameNumber: false, isMulti: false);
       var rows = new List<TicketItemRow>();
 
       if (odds.Quinellas.Value != null)
@@ -872,26 +1107,13 @@ namespace KmyKeiba.Models.Race
                                       (r.Number1 == num2 && r.Number2 == num1));
       return rows.ToArray();
     }
-
-    public override string ToString()
-    {
-      if (this.Data.FormType == TicketFormType.Formation)
-      {
-        return "フォメ " + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2);
-      }
-      else if (this.Data.FormType == TicketFormType.Box)
-      {
-        return "BOX " + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2);
-      }
-      return base.ToString()!;
-    }
   }
 
   public class ExactaTicketItem : TicketItem
   {
     public ExactaTicketItem(TicketData data, OddsInfo odds) : base(data)
     {
-      var nums = GetFormationNumbers(data.Numbers1, data.Numbers2, null, true, false);
+      var nums = GetFormationNumbers(data.Numbers1, data.Numbers2, null, isOrder: true, canSameNumber: false, isMulti: data.IsMulti);
       var rows = new List<TicketItemRow>();
 
       if (odds.Exactas.Value != null)
@@ -934,27 +1156,155 @@ namespace KmyKeiba.Models.Race
 
     protected override TicketItem GenerateNewItem(TicketData data, int money, int moneyMax)
     {
-      data.Type = TicketType.Quinella;
+      data.Type = TicketType.Exacta;
       return new ExactaTicketItem(data, money);
-    }
-
-    public override string ToString()
-    {
-      if (this.Data.FormType == TicketFormType.Formation)
-      {
-        return "フォメ " + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2);
-      }
-      else if (this.Data.FormType == TicketFormType.Box)
-      {
-        return "BOX " + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2);
-      }
-      return base.ToString()!;
     }
   }
 
-  public class TicketItemRow
+  public class TrioTicketItem : TicketItem
+  {
+    public TrioTicketItem(TicketData data, OddsInfo odds) : base(data)
+    {
+      var nums = GetFormationNumbers(data.Numbers1, data.Numbers2, data.Numbers3, isOrder: false, canSameNumber: false, isMulti: false);
+      var rows = new List<TicketItemRow>();
+
+      if (odds.Trios.Value != null)
+      {
+        foreach (var n in nums)
+        {
+          var od = odds.Trios.Value
+            .Blocks
+            .Where(b => b.NumberInGroup == n.Item1)
+            .SelectMany(b => b.Columns)
+            .Where(c => c.Number == n.Item2)
+            .SelectMany(c => c.Odds)
+            .FirstOrDefault(o => o.Data.HorseNumber1 == n.Item1 && o.Data.HorseNumber2 == n.Item2 && o.Data.HorseNumber3 == n.Item3);
+          rows.Add(new TicketItemRow
+          {
+            Money = (int)(od.Data.Odds * 10),
+            Number1 = n.Item1,
+            Number2 = n.Item2,
+            Number3 = n.Item3,
+          });
+        }
+      }
+      else
+      {
+        foreach (var n in nums)
+        {
+          rows.Add(new TicketItemRow
+          {
+            Number1 = n.Item1,
+            Number2 = n.Item2,
+            Number3 = n.Item3,
+          });
+        }
+      }
+
+      this.SetRows(rows);
+    }
+
+    private TrioTicketItem(TicketData data, int money) : base(data)
+    {
+      this.SetRows(new[] { new TicketItemRow
+      {
+        Money = money,
+        Number1 = data.Numbers1[0],
+        Number2 = data.Numbers2[0],
+        Number3 = data.Numbers3[0],
+      }, });
+    }
+
+    protected override TicketItem GenerateNewItem(TicketData data, int money, int moneyMax)
+    {
+      data.Type = TicketType.Trio;
+      return new TrioTicketItem(data, money);
+    }
+
+    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2, short frame3)
+    {
+      var rows = this.Rows.Where(r => (r.Number1 == num1 && r.Number2 == num2 && r.Number3 == num3) ||
+                                      (r.Number1 == num1 && r.Number2 == num3 && r.Number3 == num2) ||
+                                      (r.Number1 == num2 && r.Number2 == num1 && r.Number3 == num3) ||
+                                      (r.Number1 == num2 && r.Number2 == num3 && r.Number3 == num1) ||
+                                      (r.Number1 == num3 && r.Number2 == num1 && r.Number3 == num2) ||
+                                      (r.Number1 == num3 && r.Number2 == num2 && r.Number3 == num1));
+      return rows.ToArray();
+    }
+  }
+
+  public class TrifectaTicketItem : TicketItem
+  {
+    public TrifectaTicketItem(TicketData data, OddsInfo odds) : base(data)
+    {
+      var nums = GetFormationNumbers(data.Numbers1, data.Numbers2, data.Numbers3, isOrder: true, canSameNumber: false, isMulti: data.IsMulti);
+      var rows = new List<TicketItemRow>();
+
+      if (odds.Trifectas.Value != null)
+      {
+        foreach (var n in nums)
+        {
+          var od = odds.Trifectas.Value
+            .Blocks
+            .Where(b => b.NumberInGroup == n.Item1)
+            .SelectMany(b => b.Columns)
+            .Where(c => c.Number == n.Item2)
+            .SelectMany(c => c.Odds)
+            .FirstOrDefault(o => o.Data.HorseNumber1 == n.Item1 && o.Data.HorseNumber2 == n.Item2 && o.Data.HorseNumber3 == n.Item3);
+          rows.Add(new TicketItemRow
+          {
+            Money = (int)(od.Data.Odds * 10),
+            Number1 = n.Item1,
+            Number2 = n.Item2,
+            Number3 = n.Item3,
+          });
+        }
+      }
+      else
+      {
+        foreach (var n in nums)
+        {
+          rows.Add(new TicketItemRow
+          {
+            Number1 = n.Item1,
+            Number2 = n.Item2,
+            Number3 = n.Item3,
+          });
+        }
+      }
+
+      this.SetRows(rows);
+    }
+
+    private TrifectaTicketItem(TicketData data, int money) : base(data)
+    {
+      this.SetRows(new[] { new TicketItemRow
+      {
+        Money = money,
+        Number1 = data.Numbers1[0],
+        Number2 = data.Numbers2[0],
+        Number3 = data.Numbers3[0],
+      }, });
+    }
+
+    protected override TicketItem GenerateNewItem(TicketData data, int money, int moneyMax)
+    {
+      data.Type = TicketType.Trifecta;
+      return new TrifectaTicketItem(data, money);
+    }
+
+    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2, short frame3)
+    {
+      var rows = this.Rows.Where(r => (r.Number1 == num1 && r.Number2 == num2 && r.Number3 == num3));
+      return rows.ToArray();
+    }
+  }
+
+  public class TicketItemRow : IMultipleCheckableItem
   {
     public TicketType Type { get; set; }
+
+    string IMultipleCheckableItem.GroupName => string.Empty;
 
     public bool IsSingleRow { get; set; }
 
@@ -975,11 +1325,13 @@ namespace KmyKeiba.Models.Race
     public ReactiveProperty<bool>? IsAllRowsChecked { get; set; }
   }
 
-  public class BettingHorseItem : IDisposable
+  public class BettingHorseItem : IDisposable, IMultipleCheckableItem
   {
     public short HorseNumber { get; init; }
 
     public string Name { get; init; } = string.Empty;
+
+    string IMultipleCheckableItem.GroupName => string.Empty;
 
     public ReactiveProperty<bool> IsChecked { get; } = new();
 
@@ -998,11 +1350,13 @@ namespace KmyKeiba.Models.Race
     }
   }
 
-  public class BettingFrameItem : IDisposable
+  public class BettingFrameItem : IDisposable, IMultipleCheckableItem
   {
     private readonly CompositeDisposable _disposables = new();
 
     public short FrameNumber { get; init; }
+
+    string IMultipleCheckableItem.GroupName => string.Empty;
 
     public ReactiveProperty<bool> IsChecked { get; } = new();
 
@@ -1016,6 +1370,10 @@ namespace KmyKeiba.Models.Race
         {
           var isDeleted = horses.All(h => h.Mark.Value == RaceHorseMark.Deleted || h.Data.AbnormalResult == RaceAbnormality.Scratched || h.Data.AbnormalResult == RaceAbnormality.ExcludedByStarters);
           this.IsEnabled.Value = !isDeleted;
+          if (!this.IsEnabled.Value && this.IsChecked.Value)
+          {
+            this.IsChecked.Value = false;
+          }
         }
 
         var marks = (IObservable<RaceHorseMark>)horses.First().Mark;

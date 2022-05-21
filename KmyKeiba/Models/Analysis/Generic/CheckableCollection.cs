@@ -82,7 +82,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       };
     }
 
-    public new void Dispose()
+    public virtual new void Dispose()
     {
       base.Dispose();
 
@@ -104,13 +104,35 @@ namespace KmyKeiba.Models.Analysis.Generic
     }
   }
 
-  public class MultipleCheckableCollection<T> : CheckableCollection<T> where T : class, IMultipleCheckableItem
+  public class MultipleCheckableCollection<T> : CheckableCollection<T>, IDisposable where T : class, IMultipleCheckableItem
   {
+    public MultipleCheckableCollection()
+    {
+    }
+
+    public MultipleCheckableCollection(IEnumerable<T> items)
+    {
+      foreach (var item in items)
+      {
+        this.Add(item);
+      }
+    }
+
     protected override void OnChecked(T item)
     {
-      foreach (var it in this.Where(t => t != item && t.GroupName == item.GroupName && item.GroupName != null))
+      foreach (var it in this.Where(t => t != item && t.GroupName == item.GroupName && !string.IsNullOrEmpty(item.GroupName)))
       {
         it.IsChecked.Value = false;
+      }
+    }
+
+    public override void Dispose()
+    {
+      base.Dispose();
+
+      foreach (var item in this.OfType<IDisposable>())
+      {
+        item.Dispose();
       }
     }
   }
