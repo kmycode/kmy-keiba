@@ -68,7 +68,6 @@
             <Run Text="{Binding Race.Weather.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
             <Run Text="{Binding Race.Condition.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
           </TextBlock>
-          <up:MyProgressBar/>
           <StackPanel Visibility="{Binding Race.CanChangeWeathers,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
             <StackPanel.Resources>
               <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">

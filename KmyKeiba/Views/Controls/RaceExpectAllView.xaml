@@ -925,13 +925,17 @@
               </StackPanel.Resources>
               <TextBlock Text="購入数" FontSize="16" HorizontalAlignment="Center"/>
               <TextBox Width="80" FontSize="32" TextAlignment="Center" Margin="0,4,0,24" Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
-                       Text="{Binding Race.Tickets.Value.Count.Value,ElementName=Root,Mode=TwoWay}" InputScope="Number"/>
+                       Text="{Binding Race.Tickets.Value.Count.Value,ElementName=Root,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" InputScope="Number"/>
               <Button Content="購入" Width="80" Height="60" FontSize="24" VerticalAlignment="Top"
                       Command="{Binding BuyTicketCommand}" IsEnabled="{Binding Race.Tickets.Value.CanBuy.Value,ElementName=Root}"/>
-              <Button Content="削除" Width="80" FontSize="16" Margin="0,180,0,0"
+              <Button Content="数変更" Width="80" FontSize="16" Margin="0,160,0,0"
+                      Command="{Binding UpdateSelectedTicketCountsCommand}" IsEnabled="{Binding Race.Tickets.Value.IsSelectedItems.Value,ElementName=Root}"/>
+              <Button Content="削除" Width="80" FontSize="16" Margin="0,20,0,0"
                       Command="{Binding RemoveTicketCommand}" IsEnabled="{Binding Race.Tickets.Value.IsSelectedItems.Value,ElementName=Root}"/>
             </StackPanel>
           </Border>
+          
+          <!--購入する馬券のリスト-->
           <ScrollViewer Grid.Column="4">
             <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Tickets,ElementName=Root}">
               <ItemsControl.Resources>
@@ -985,9 +989,9 @@
                           </Border>
                           <ToggleButton Width="20" Margin="24,2,0,2" Padding="0" IsChecked="{Binding IsOpen.Value}"/>
                           <TextBlock Text="{Binding}" Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="4,2"
-                                     Width="252" FontWeight="Bold"/>
-                          <Border Width="16">
-                            <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" FontWeight="Bold">
+                                     Width="232" FontWeight="Bold"/>
+                          <Border Width="36">
+                            <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right">
                               x<Run Text="{Binding Count.Value}"/>
                             </TextBlock>
                           </Border>

@@ -83,6 +83,7 @@ namespace KmyKeiba.Models.Race
       this.FrameNumbers2.ChangedItemObservable.Subscribe(_ => this.UpdateCanBuy()).AddTo(this._disposables);
       this.Type.Subscribe(_ => this.UpdateCanBuy()).AddTo(this._disposables);
       this.FormType.Subscribe(_ => this.UpdateCanBuy()).AddTo(this._disposables);
+      this.Count.Subscribe(_ => this.UpdateCanBuy()).AddTo(this._disposables);
 
       this._horses = horses.Select(h => h.Data).OrderBy(h => h.Number).ToArray();
 
@@ -137,6 +138,20 @@ namespace KmyKeiba.Models.Race
 
     private void UpdateCanBuy()
     {
+      if (short.TryParse(this.Count.Value, out short count))
+      {
+        this.CanBuy.Value = count > 0;
+        if (!this.CanBuy.Value)
+        {
+          return;
+        }
+      }
+      else
+      {
+        this.CanBuy.Value = false;
+        return;
+      }
+
       if (this.Type.Value == TicketType.FrameNumber)
       {
         var nums1 = this.FrameNumbers1.Where(f => f.IsChecked.Value).Select(f => f.FrameNumber).ToArray();
@@ -544,6 +559,39 @@ namespace KmyKeiba.Models.Race
       }
 
       this.SortTickets();
+      await db.SaveChangesAsync();
+    }
+
+    public async Task UpdateTicketCountAsync()
+    {
+      var canParse = short.TryParse(this.Count.Value, out var count);
+      if (!canParse)
+      {
+        return;
+      }
+      if (count <= 0)
+      {
+        // await this.RemoveTicketAsync();
+        return;
+      }
+
+      var targetTickets = this.Tickets
+        .Where(t => t.IsAllRowsChecked.Value || t.Rows.Any(r => r.IsChecked.Value))
+        .ToArray();
+      if (!targetTickets.Any())
+      {
+        return;
+      }
+
+      using var db = new MyContext();
+
+      foreach (var ticket in targetTickets)
+      {
+        db.Tickets!.Attach(ticket.Data);
+        ticket.Data.Count = count;
+        ticket.Count.Value = count;
+      }
+
       await db.SaveChangesAsync();
     }
   }

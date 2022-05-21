@@ -102,6 +102,11 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.UpdateIsSelected());
     private ReactiveCommand<object>? _updateSelectedTicketsCommand;
 
+    public ICommand UpdateSelectedTicketCountsCommand =>
+      this._updateSelectedTicketCountsCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.UpdateTicketCountAsync() ?? Task.CompletedTask);
+    private AsyncReactiveCommand<object>? _updateSelectedTicketCountsCommand;
+
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore CS0067
