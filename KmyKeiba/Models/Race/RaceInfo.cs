@@ -189,91 +189,98 @@ namespace KmyKeiba.Models.Race
       // 以降の情報は遅延読み込み
       _ = Task.Run(async () =>
       {
-        var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == race.Key).ToArrayAsync();
-        var horseKeys = horses.Select(h => h.Key).ToArray();
-        var horseAllHistories = await db.RaceHorses!
-          .Where(rh => horseKeys.Contains(rh.Key))
-          .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, })
-          .Where(d => d.Race.StartTime < race.StartTime)
-          .OrderByDescending(d => d.Race.StartTime)
-          .ToArrayAsync();
-        var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race);
-
-        // コーナー順位の色分け
-        var firstHorse = horses.FirstOrDefault(h => h.ResultOrder == 1);
-        var secondHorse = horses.FirstOrDefault(h => h.ResultOrder == 2);
-        var thirdHorse = horses.FirstOrDefault(h => h.ResultOrder == 3);
-        ThreadUtil.InvokeOnUiThread(() =>
+        try
         {
-          foreach (var corner in info.Corners)
-          {
-            corner.Image.SetOrders(firstHorse?.Number ?? 0, secondHorse?.Number ?? 0, thirdHorse?.Number ?? 0);
-          }
-        });
+          var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == race.Key).ToArrayAsync();
+          var horseKeys = horses.Select(h => h.Key).ToArray();
+          var horseAllHistories = await db.RaceHorses!
+            .Where(rh => horseKeys.Contains(rh.Key))
+            .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, })
+            .Where(d => d.Race.StartTime < race.StartTime)
+            .OrderByDescending(d => d.Race.StartTime)
+            .ToArrayAsync();
+          var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race);
 
-        // 各馬の情報
-        var horseInfos = new List<RaceHorseAnalyzer>();
-        var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
-        var horseHistorySameHorses = await db.RaceHorses!
-          .Where(h => h.ResultOrder >= 1 && h.ResultOrder <= 5)
-          .Where(h => horseHistoryKeys.Contains(h.RaceKey))
-          .ToArrayAsync();
-        foreach (var horse in horses)
-        {
-          var histories = new List<RaceHorseAnalyzer>();
-          foreach (var history in horseAllHistories.Where(h => h.RaceHorse.Key == horse.Key))
+          // コーナー順位の色分け
+          var firstHorse = horses.FirstOrDefault(h => h.ResultOrder == 1);
+          var secondHorse = horses.FirstOrDefault(h => h.ResultOrder == 2);
+          var thirdHorse = horses.FirstOrDefault(h => h.ResultOrder == 3);
+          ThreadUtil.InvokeOnUiThread(() =>
           {
-            var historyStandardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, history.Race);
-            var sameHorses = horseHistorySameHorses.Where(h => h.RaceKey == history.RaceHorse.RaceKey);
-            histories.Add(new RaceHorseAnalyzer(history.Race, history.RaceHorse, sameHorses.ToArray(), historyStandardTime));
+            foreach (var corner in info.Corners)
+            {
+              corner.Image.SetOrders(firstHorse?.Number ?? 0, secondHorse?.Number ?? 0, thirdHorse?.Number ?? 0);
+            }
+          });
+
+          // 各馬の情報
+          var horseInfos = new List<RaceHorseAnalyzer>();
+          var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
+          var horseHistorySameHorses = await db.RaceHorses!
+            .Where(h => h.ResultOrder >= 1 && h.ResultOrder <= 5)
+            .Where(h => horseHistoryKeys.Contains(h.RaceKey))
+            .ToArrayAsync();
+          foreach (var horse in horses)
+          {
+            var histories = new List<RaceHorseAnalyzer>();
+            foreach (var history in horseAllHistories.Where(h => h.RaceHorse.Key == horse.Key))
+            {
+              var historyStandardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, history.Race);
+              var sameHorses = horseHistorySameHorses.Where(h => h.RaceKey == history.RaceHorse.RaceKey);
+              histories.Add(new RaceHorseAnalyzer(history.Race, history.RaceHorse, sameHorses.ToArray(), historyStandardTime));
+            }
+
+            horseInfos.Add(new RaceHorseAnalyzer(race, horse, horses, histories, standardTime)
+            {
+              TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse),
+              RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(race, horse),
+              TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
+              BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
+            });
+          }
+          info.SetHorsesDelay(horseInfos, standardTime);
+
+          // オッズ
+          var frameOdds = await db.FrameNumberOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+          var quinellaPlaceOdds = await db.QuinellaPlaceOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+          var quinellaOdds = await db.QuinellaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+          var exactaOdds = await db.ExactaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+          var trioOdds = await db.TrioOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+          var trifectaOdds = await db.TrifectaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+          info.Odds.Value = new OddsInfo(horses, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
+
+          // 購入済馬券
+          var tickets = await db.Tickets!.Where(t => t.RaceKey == race.Key).ToArrayAsync();
+          info.Tickets.Value = new BettingTicketInfo(horseInfos, info.Odds.Value, tickets);
+
+          // 調教
+          var historyStartDate = race.StartTime.AddMonths(-4);
+          var trainings = await db.Trainings!
+            .Where(t => horseKeys.Contains(t.HorseKey) && t.StartTime <= race.StartTime && t.StartTime > historyStartDate)
+            .OrderByDescending(t => t.StartTime)
+            .ToArrayAsync();
+          var woodTrainings = await db.WoodtipTrainings!
+            .Where(t => horseKeys.Contains(t.HorseKey) && t.StartTime <= race.StartTime && t.StartTime > historyStartDate)
+            .OrderByDescending(t => t.StartTime)
+            .ToArrayAsync();
+          foreach (var horse in horseInfos)
+          {
+            horse.Training.Value = new TrainingAnalyzer(
+              trainings.Where(t => t.HorseKey == horse.Data.Key).Take(50).ToArray(),
+              woodTrainings.Where(t => t.HorseKey == horse.Data.Key).Take(50).ToArray()
+              );
           }
 
-          horseInfos.Add(new RaceHorseAnalyzer(race, horse, horses, histories, standardTime)
+          // スクリプト
+          ThreadUtil.InvokeOnUiThread(async () =>
           {
-            TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse),
-            RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(race, horse),
-            TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
-            BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
+            await info.Script.UpdateAsync();
           });
         }
-        info.SetHorsesDelay(horseInfos, standardTime);
-
-        // オッズ
-        var frameOdds = await db.FrameNumberOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
-        var quinellaPlaceOdds = await db.QuinellaPlaceOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
-        var quinellaOdds = await db.QuinellaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
-        var exactaOdds = await db.ExactaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
-        var trioOdds = await db.TrioOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
-        var trifectaOdds = await db.TrifectaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
-        info.Odds.Value = new OddsInfo(horses, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
-
-        // 購入済馬券
-        var tickets = await db.Tickets!.Where(t => t.RaceKey == race.Key).ToArrayAsync();
-        info.Tickets.Value = new BettingTicketInfo(horseInfos, info.Odds.Value, tickets);
-
-        // 調教
-        var historyStartDate = race.StartTime.AddMonths(-4);
-        var trainings = await db.Trainings!
-          .Where(t => horseKeys.Contains(t.HorseKey) && t.StartTime <= race.StartTime && t.StartTime > historyStartDate)
-          .OrderByDescending(t => t.StartTime)
-          .ToArrayAsync();
-        var woodTrainings = await db.WoodtipTrainings!
-          .Where(t => horseKeys.Contains(t.HorseKey) && t.StartTime <= race.StartTime && t.StartTime > historyStartDate)
-          .OrderByDescending(t => t.StartTime)
-          .ToArrayAsync();
-        foreach (var horse in horseInfos)
+        catch
         {
-          horse.Training.Value = new TrainingAnalyzer(
-            trainings.Where(t => t.HorseKey == horse.Data.Key).Take(50).ToArray(),
-            woodTrainings.Where(t => t.HorseKey == horse.Data.Key).Take(50).ToArray()
-            );
+
         }
-
-        // スクリプト
-        ThreadUtil.InvokeOnUiThread(async () =>
-        {
-          await info.Script.UpdateAsync();
-        });
       });
 
       return Task.FromResult(info);

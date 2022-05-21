@@ -389,6 +389,23 @@ namespace KmyKeiba.Models.Race
         return null;
       }
 
+      // 馬券に実際に必要なデータを確定させるため、先にデータを作ってしまう
+      // 指定したデータと実際に必要なデータが異なると、既存とは別のデータとして扱われることがある（Issue #102）
+      var data = new TicketData
+      {
+        RaceKey = this._raceKey,
+        Type = type,
+        FormType = formType,
+        Numbers1 = nums1,
+        Numbers2 = nums2,
+        Count = (short)count,
+        IsMulti = this.IsMulti.Value,
+      };
+      var item = itemGenerator(data);
+      nums1 = item.Data.Numbers1;
+      nums2 = item.Data.Numbers2;
+      formType = item.Data.FormType;
+
       foreach (var ticket in this.Tickets.Where(t => t.Type == type))
       {
         if (ticket.Data.FormType == formType && (!isOrder || ticket.Data.IsMulti == this.IsMulti.Value))
@@ -407,17 +424,6 @@ namespace KmyKeiba.Models.Race
       }
       if (!hit)
       {
-        var data = new TicketData
-        {
-          RaceKey = this._raceKey,
-          Type = type,
-          FormType = formType,
-          Numbers1 = nums1,
-          Numbers2 = nums2,
-          Count = (short)count,
-          IsMulti = this.IsMulti.Value,
-        };
-        var item = itemGenerator(data);
         if (item.Rows.Any())
         {
           list.Add(item);
@@ -465,6 +471,25 @@ namespace KmyKeiba.Models.Race
         return null;
       }
 
+      // 馬券に実際に必要なデータを確定させるため、先にデータを作ってしまう
+      // 指定したデータと実際に必要なデータが異なると、既存とは別のデータとして扱われることがある（Issue #102）
+      var data = new TicketData
+      {
+        RaceKey = this._raceKey,
+        Type = type,
+        FormType = formType,
+        Numbers1 = nums1,
+        Numbers2 = nums2,
+        Numbers3 = nums3,
+        Count = (short)count,
+        IsMulti = this.IsMulti.Value,
+      };
+      var item = itemGenerator(data);
+      nums1 = item.Data.Numbers1;
+      nums2 = item.Data.Numbers2;
+      nums3 = item.Data.Numbers3;
+      formType = item.Data.FormType;
+
       foreach (var ticket in this.Tickets.Where(t => t.Type == type))
       {
         if (ticket.Data.FormType == formType)
@@ -489,18 +514,6 @@ namespace KmyKeiba.Models.Race
       }
       if (!hit)
       {
-        var data = new TicketData
-        {
-          RaceKey = this._raceKey,
-          Type = type,
-          FormType = formType,
-          Numbers1 = nums1,
-          Numbers2 = nums2,
-          Numbers3 = nums3,
-          Count = (short)count,
-          IsMulti = this.IsMulti.Value,
-        };
-        var item = itemGenerator(data);
         if (item.Rows.Any())
         {
           list.Add(item);
@@ -638,6 +651,16 @@ namespace KmyKeiba.Models.Race
         row.IsSingleRow = rows.Count == 1;
         row.IsAllRowsChecked = this.IsAllRowsChecked;
         this.Rows.Add(row);
+      }
+
+      // フォーメーションで「２個ー１個」と「１個ー２個」などが違う馬券としてカウントされるのを修正する
+      if (rows.Count == 1)
+      {
+        var row = rows[0];
+        this.Data.Numbers1 = new[] { (byte)row.Number1, };
+        if (row.Number2 != default) this.Data.Numbers2 = new[] { (byte)row.Number2, };
+        if (row.Number3 != default) this.Data.Numbers3 = new[] { (byte)row.Number3, };
+        this.Data.FormType = TicketFormType.Single;
       }
     }
 
