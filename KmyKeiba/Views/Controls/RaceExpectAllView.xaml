@@ -959,11 +959,11 @@
                       <TextBlock Text="{Binding Number3}" Visibility="{Binding Number3,Converter={StaticResource NonZeroVisibilityConv}}"/>
                     </Border>
                     <Border Width="24" Visibility="{Binding IsSingleRow,Converter={StaticResource BooleanVisibilityConv}}"/>
-                    <Border Margin="10,0,0,0" Width="60">
+                    <Border Margin="10,0,0,0" Width="55">
                       <TextBlock Text="{Binding MoneyMax}" Foreground="{DynamicResource SubForeground}" Visibility="{Binding MoneyMax,Converter={StaticResource NonZeroVisibilityConv}}"/>
                     </Border>
                     <TextBlock Text="{Binding Money}" Width="60" Margin="16,0,0,0"/>
-                    <Border Width="35">
+                    <Border Width="40">
                       <Border Visibility="{Binding IsSingleRow,Converter={StaticResource BooleanVisibilityConv}}">
                         <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16">
                           x<Run Text="{Binding Count.Value}"/>

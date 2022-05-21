@@ -419,7 +419,7 @@ namespace KmyKeiba.Models.Race
 
       foreach (var ticket in this.Tickets.Where(t => t.Type == type))
       {
-        if (ticket.Data.FormType == formType && (!isOrder || ticket.Data.IsMulti == this.IsMulti.Value))
+        if (ticket.Data.FormType == formType && (!isOrder || ticket.Data.IsMulti == data.IsMulti))
         {
           if ((ticket.Data.Numbers1.SequenceEqual(nums1) && ticket.Data.Numbers2.SequenceEqual(nums2)) ||
             (!isOrder && (ticket.Data.Numbers1.SequenceEqual(nums2) && ticket.Data.Numbers2.SequenceEqual(nums1))))
@@ -503,7 +503,7 @@ namespace KmyKeiba.Models.Race
 
       foreach (var ticket in this.Tickets.Where(t => t.Type == type))
       {
-        if (ticket.Data.FormType == formType)
+        if (ticket.Data.FormType == formType && ticket.Data.IsMulti == data.IsMulti)
         {
           if ((ticket.Data.Numbers1.SequenceEqual(nums1) && ticket.Data.Numbers2.SequenceEqual(nums2) && ticket.Data.Numbers3.SequenceEqual(nums3)) ||
             (!isOrder && (
