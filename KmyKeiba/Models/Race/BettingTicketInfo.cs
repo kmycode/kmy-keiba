@@ -163,13 +163,15 @@ namespace KmyKeiba.Models.Race
         var nums1 = this.Numbers1.Where(f => f.IsChecked.Value).Select(f => f.HorseNumber).ToArray();
         var nums2 = this.Numbers2.Where(f => f.IsChecked.Value).Select(f => f.HorseNumber).ToArray();
         var nums3 = this.Numbers3.Where(f => f.IsChecked.Value).Select(f => f.HorseNumber).ToArray();
-        if (this.Type.Value == TicketType.Single || this.Type.Value == TicketType.Place)
+        this.CanBuy.Value = nums1.Any();
+        if (!this.CanBuy.Value)
         {
-          this.CanBuy.Value = nums1.Any();
+          return;
         }
-        else if (this.Type.Value == TicketType.QuinellaPlace || this.Type.Value == TicketType.Quinella || this.Type.Value == TicketType.Exacta)
+
+        if (this.Type.Value == TicketType.QuinellaPlace || this.Type.Value == TicketType.Quinella || this.Type.Value == TicketType.Exacta)
         {
-          this.CanBuy.Value = nums1.Any() && (this.FormType.Value == TicketFormType.Box || nums2.Any());
+          this.CanBuy.Value &= this.FormType.Value == TicketFormType.Box || nums2.Any();
 
           // 同じ数字を選んでるか
           if (this.CanBuy.Value && this.FormType.Value == TicketFormType.Formation)
@@ -178,12 +180,12 @@ namespace KmyKeiba.Models.Race
           }
           if (this.CanBuy.Value && this.FormType.Value == TicketFormType.Box)
           {
-            this.CanBuy.Value &= nums1.Count() >= 2;
+            this.CanBuy.Value &= nums1.Length >= 2;
           }
         }
         else if (this.Type.Value == TicketType.Trio || this.Type.Value == TicketType.Trifecta)
         {
-          this.CanBuy.Value = nums1.Any() && (this.FormType.Value == TicketFormType.Box || (nums2.Any() && (this.FormType.Value == TicketFormType.Nagashi || nums3.Any())));
+          this.CanBuy.Value = this.FormType.Value == TicketFormType.Box || (nums2.Any() && (this.FormType.Value == TicketFormType.Nagashi || nums3.Any()));
 
           // 同じ数字を選んでるか
           if (this.CanBuy.Value && this.FormType.Value == TicketFormType.Formation)
@@ -194,7 +196,16 @@ namespace KmyKeiba.Models.Race
           }
           if (this.CanBuy.Value && this.FormType.Value == TicketFormType.Box)
           {
-            this.CanBuy.Value &= nums1.Count() >= 3;
+            this.CanBuy.Value &= nums1.Length >= 3;
+          }
+          if (this.CanBuy.Value && this.FormType.Value == TicketFormType.Nagashi)
+          {
+            this.CanBuy.Value &= nums2.Length > 2 ||
+              (nums2.Length == 2 && (
+                  nums1.Length == 1 && !nums2.Contains(nums1[0]) ||
+                  (nums1.Length == 2 && (!nums2.Contains(nums1[0]) || !nums2.Contains(nums1[1])))
+                )
+              );
           }
         }
       }
