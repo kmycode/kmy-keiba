@@ -1,11 +1,13 @@
 ﻿using KmyKeiba.Models.Data;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,9 +22,11 @@ namespace KmyKeiba.Models.Analysis.Generic
     void BeginLoad();
   }
 
-  public abstract class TrendAnalysisSelector<KEY, A> : ITrendAnalysisSelector
+  public abstract class TrendAnalysisSelector<KEY, A> : ITrendAnalysisSelector, IDisposable
     where A : TrendAnalyzer where KEY : Enum, IComparable
   {
+    private readonly CompositeDisposable _disposables = new();
+
     public abstract string Name { get; }
 
     public IEnumerable Filters => this.Keys;
@@ -35,14 +39,20 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public TrendAnalysisSelector()
     {
-      this.Keys = new TrendAnalysisFilterItemCollection<KEY>();
+      this.Keys = new TrendAnalysisFilterItemCollection<KEY>().AddTo(this._disposables);
       this.Initialize();
     }
 
     public TrendAnalysisSelector(IEnumerable<KEY> keys)
     {
       var type = typeof(KEY);
-      this.Keys = new TrendAnalysisFilterItemCollection<KEY>(keys.Where(k => !type.GetField(k.ToString())!.GetCustomAttributes(true).OfType<IgnoreKeyAttribute>().Any()));
+      this.Keys = new TrendAnalysisFilterItemCollection<KEY>(keys
+        .Where(k => !type.GetField(k.ToString())!
+                       .GetCustomAttributes(true)
+                       .OfType<IgnoreKeyAttribute>()
+                       .Any()
+              ))
+        .AddTo(this._disposables);
       this.Initialize();
     }
 
@@ -55,7 +65,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       this.Keys.ChangedItemObservable.Subscribe(i =>
       {
         this.TryUpdateExistingAnalyzer();
-      });
+      }).AddTo(this._disposables);
     }
 
     private void TryUpdateExistingAnalyzer()
@@ -73,7 +83,7 @@ namespace KmyKeiba.Models.Analysis.Generic
         return existsAnalyzer;
       }
 
-      var analyzer = this.GenerateAnalyzer();
+      var analyzer = this.GenerateAnalyzer().AddTo(this._disposables);
       this.Analyzers[keys] = analyzer;
       return analyzer;
     }
@@ -105,7 +115,7 @@ namespace KmyKeiba.Models.Analysis.Generic
         }
         catch
         {
-
+          // TODO Log
         }
       });
 
@@ -142,6 +152,8 @@ namespace KmyKeiba.Models.Analysis.Generic
     {
       return Task.CompletedTask;
     }
+
+    public virtual void Dispose() => this._disposables.Dispose();
   }
 
   public class TrendAnalysisFilterItemCollection<KEY> : MultipleCheckableCollection<TrendAnalysisFilterItem<KEY>>, IEquatable<TrendAnalysisFilterItemCollection<KEY>>

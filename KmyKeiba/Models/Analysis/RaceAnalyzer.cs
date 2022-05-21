@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Analysis
 {
-  public class RaceAnalyzer
+  public class RaceAnalyzer : IDisposable
   {
     public RaceData Data { get; }
 
@@ -70,6 +70,15 @@ namespace KmyKeiba.Models.Analysis
           this.TopHorse.A3HResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
         this.ResultTimeDeviationValue = this.TopHorse.ResultTimeDeviationValue;
         this.A3HResultTimeDeviationValue = this.TopHorse.A3HResultTimeDeviationValue;
+      }
+    }
+
+    public void Dispose()
+    {
+      this.TopHorse.Dispose();
+      foreach (var h in this.TopHorses)
+      {
+        h.Dispose();
       }
     }
   }

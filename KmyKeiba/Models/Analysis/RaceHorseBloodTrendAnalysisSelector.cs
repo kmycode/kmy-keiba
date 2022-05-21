@@ -41,6 +41,7 @@ namespace KmyKeiba.Models.Analysis
     public void Dispose()
     {
       this._disposables.Dispose();
+      this.MenuItems.Dispose();
       GC.SuppressFinalize(this);
     }
 

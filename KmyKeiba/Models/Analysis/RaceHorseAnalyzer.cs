@@ -13,7 +13,7 @@ using System.Windows.Input;
 
 namespace KmyKeiba.Models.Analysis
 {
-  public class RaceHorseAnalyzer
+  public class RaceHorseAnalyzer : IDisposable
   {
     public static RaceHorseAnalyzer Empty { get; } = new(new RaceData(), new RaceHorseData());
 
@@ -299,6 +299,14 @@ namespace KmyKeiba.Models.Analysis
       this.Mark.Value = this.Data.Mark = mark;
 
       await db.SaveChangesAsync();
+    }
+
+    public void Dispose()
+    {
+      this.BloodSelectors?.Dispose();
+      this.RiderTrendAnalyzers?.Dispose();
+      this.TrainerTrendAnalyzers?.Dispose();
+      this.TrendAnalyzers?.Dispose();
     }
   }
 

@@ -216,7 +216,10 @@ namespace KmyKeiba.Models.Race
       this.IsSelectedItems.Value = this.Tickets.Any(t => t.IsAllRowsChecked.Value || t.Rows.Any(r => r.IsChecked.Value));
     }
 
-    public void Dispose() => this._disposables.Dispose();
+    public void Dispose()
+    {
+      this._disposables.Dispose();
+    }
 
     public void SetType(string str)
     {

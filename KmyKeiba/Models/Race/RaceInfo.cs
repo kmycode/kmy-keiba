@@ -23,7 +23,7 @@ namespace KmyKeiba.Models.Race
 
     public RaceData Data { get; }
 
-    public ReactiveProperty<RaceAnalyzer> RaceAnalyzer { get; } = new();
+    public ReactiveProperty<RaceAnalyzer?> RaceAnalyzer { get; } = new();
 
     public ReactiveProperty<bool> HasResults { get; } = new();
 
@@ -157,7 +157,18 @@ namespace KmyKeiba.Models.Race
       await db.SaveChangesAsync();
     }
 
-    public void Dispose() => this._disposables.Dispose();
+    public void Dispose()
+    {
+      this._disposables.Dispose();
+      this.RaceAnalyzer.Value?.Dispose();
+      this.TrendAnalyzers.Dispose();
+      foreach (var h in this.Horses)
+      {
+        h.Dispose();
+      }
+      this.Odds.Value?.Dispose();
+      this.Tickets.Value?.Dispose();
+    }
 
     public static async Task<RaceInfo?> FromKeyAsync(MyContext db, string key)
     {
@@ -279,7 +290,7 @@ namespace KmyKeiba.Models.Race
         }
         catch
         {
-
+          // TODO log
         }
       });
 

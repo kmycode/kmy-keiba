@@ -2,19 +2,22 @@
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Generic;
-using Microsoft.ClearScript;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race
 {
-  public class OddsInfo
+  public class OddsInfo : IDisposable
   {
+    private readonly CompositeDisposable _disposables = new();
+
     private OddsList<SingleTicket> _singles { get; } = new();
     public ReactiveProperty<OddsList<SingleTicket>?> Singles { get; } = new();
 
@@ -94,7 +97,6 @@ namespace KmyKeiba.Models.Race
 
       // フィルター
       var horseFrames = horses.Select(h => new { h.Number, h.FrameNumber, }).ToArray();
-      this.Filters = new MultipleCheckableCollection<OddsFilterItem>();
       AddRange(this.Filters, horses.OrderBy(h => h.Number).Select(h => new OddsFilterItem
       {
         Number = h.Number,
@@ -114,7 +116,7 @@ namespace KmyKeiba.Models.Race
         this.Exactas.Value = this._exactas?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, });
         this.Trios.Value = this._trios?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, o.HorseNumber3, });
         this.Trifectas.Value = this._trifectas?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, o.HorseNumber3, });
-      });
+      }).AddTo(this._disposables);
 
       this.Frame = frame;
       this.Quinella = quinella;
@@ -130,6 +132,12 @@ namespace KmyKeiba.Models.Race
       {
         collection.Add(item);
       }
+    }
+
+    public void Dispose()
+    {
+      this._disposables.Dispose();
+      this.Filters.Dispose();
     }
   }
 
