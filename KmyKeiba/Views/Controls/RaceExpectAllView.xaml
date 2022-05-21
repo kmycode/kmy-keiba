@@ -592,6 +592,7 @@
         </Border>
       </Grid>
 
+      <!--馬券-->
       <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Tickets,Converter={StaticResource BooleanVisibilityConv}}">
         <Grid.RowDefinitions>
           <RowDefinition Height="auto"/>

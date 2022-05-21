@@ -34,6 +34,9 @@
     <Compile Update="Views\ListItems\RaceHorsePillar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Parts\MyProgressBar.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Parts\RaceResultOrderGradeRow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -85,6 +88,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\ListItems\RaceHorsePillar.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\MyProgressBar.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Parts\RaceResultOrderGradeRow.xaml">

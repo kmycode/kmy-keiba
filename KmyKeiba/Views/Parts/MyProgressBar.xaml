@@ -1,0 +1,150 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Parts.MyProgressBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KmyKeiba.Views.Parts"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+  <Grid>
+    <StackPanel Orientation="Horizontal" Name="TestParent">
+      <StackPanel.Resources>
+        <CubicEase x:Key="StartEasingFunction" EasingMode="EaseOut"/>
+        <CubicEase x:Key="ExitEasingFunction" EasingMode="EaseIn"/>
+      </StackPanel.Resources>
+      <StackPanel.RenderTransform>
+        <TranslateTransform/>
+      </StackPanel.RenderTransform>
+      <StackPanel.Triggers>
+        <EventTrigger RoutedEvent="Window.Loaded">
+          <BeginStoryboard>
+            <Storyboard>
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetName="TestParent"
+                                                     Storyboard.TargetProperty="RenderTransform.X"
+                                                     Duration="0:0:4" RepeatBehavior="Forever">
+                <LinearDoubleKeyFrame Value="0" KeyTime="0:0:0"/>
+                <LinearDoubleKeyFrame Value="70" KeyTime="0:0:4"/>
+              </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+          </BeginStoryboard>
+        </EventTrigger>
+      </StackPanel.Triggers>
+      <Ellipse Width="15" Height="15" Fill="Red" Name="Test">
+        <Ellipse.RenderTransform>
+          <TranslateTransform x:Name="TestTranslate"/>
+        </Ellipse.RenderTransform>
+        <Ellipse.Triggers>
+          <EventTrigger RoutedEvent="Window.Loaded">
+            <BeginStoryboard>
+              <Storyboard>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Test"
+                                                     Storyboard.TargetProperty="RenderTransform.X"
+                                                     Duration="0:0:4" RepeatBehavior="Forever">
+                  <EasingDoubleKeyFrame Value="0" KeyTime="0:0:0"/>
+                  <EasingDoubleKeyFrame Value="100" KeyTime="0:0:0.8" EasingFunction="{StaticResource StartEasingFunction}"/>
+                  <LinearDoubleKeyFrame Value="100" KeyTime="0:0:1.2"/>
+                  <EasingDoubleKeyFrame Value="200" KeyTime="0:0:2.0" EasingFunction="{StaticResource ExitEasingFunction}"/>
+                </DoubleAnimationUsingKeyFrames>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Test"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     Duration="0:0:4" RepeatBehavior="Forever">
+                  <EasingDoubleKeyFrame Value="0" KeyTime="0:0:0"/>
+                  <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.8" EasingFunction="{StaticResource StartEasingFunction}"/>
+                  <LinearDoubleKeyFrame Value="1" KeyTime="0:0:1.2"/>
+                  <EasingDoubleKeyFrame Value="0" KeyTime="0:0:2.0" EasingFunction="{StaticResource ExitEasingFunction}"/>
+                </DoubleAnimationUsingKeyFrames>
+              </Storyboard>
+            </BeginStoryboard>
+          </EventTrigger>
+        </Ellipse.Triggers>
+      </Ellipse>
+      <Ellipse Width="15" Height="15" Fill="Red" Name="Test2">
+        <Ellipse.RenderTransform>
+          <TranslateTransform/>
+        </Ellipse.RenderTransform>
+        <Ellipse.Triggers>
+          <EventTrigger RoutedEvent="Window.Loaded">
+            <BeginStoryboard>
+              <Storyboard>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Test2"
+                                                     Storyboard.TargetProperty="RenderTransform.X"
+                                                     Duration="0:0:4" BeginTime="0:0:0.4" RepeatBehavior="Forever">
+                  <EasingDoubleKeyFrame Value="-45" KeyTime="0:0:0"/>
+                  <EasingDoubleKeyFrame Value="55" KeyTime="0:0:0.8" EasingFunction="{StaticResource StartEasingFunction}"/>
+                  <LinearDoubleKeyFrame Value="55" KeyTime="0:0:1.2"/>
+                  <EasingDoubleKeyFrame Value="155" KeyTime="0:0:2.0" EasingFunction="{StaticResource ExitEasingFunction}"/>
+                </DoubleAnimationUsingKeyFrames>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Test2"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     Duration="0:0:4" BeginTime="0:0:0.4" RepeatBehavior="Forever">
+                  <EasingDoubleKeyFrame Value="0" KeyTime="0:0:0"/>
+                  <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.8" EasingFunction="{StaticResource StartEasingFunction}"/>
+                  <LinearDoubleKeyFrame Value="1" KeyTime="0:0:1.2"/>
+                  <EasingDoubleKeyFrame Value="0" KeyTime="0:0:2.0" EasingFunction="{StaticResource ExitEasingFunction}"/>
+                </DoubleAnimationUsingKeyFrames>
+              </Storyboard>
+            </BeginStoryboard>
+          </EventTrigger>
+        </Ellipse.Triggers>
+      </Ellipse>
+      <Ellipse Width="15" Height="15" Fill="Red" Name="Test3">
+        <Ellipse.RenderTransform>
+          <TranslateTransform/>
+        </Ellipse.RenderTransform>
+        <Ellipse.Triggers>
+          <EventTrigger RoutedEvent="Window.Loaded">
+            <BeginStoryboard>
+              <Storyboard>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Test3"
+                                                     Storyboard.TargetProperty="RenderTransform.X"
+                                                     Duration="0:0:4" BeginTime="0:0:0.8" RepeatBehavior="Forever">
+                  <EasingDoubleKeyFrame Value="-90" KeyTime="0:0:0"/>
+                  <EasingDoubleKeyFrame Value="10" KeyTime="0:0:0.8" EasingFunction="{StaticResource StartEasingFunction}"/>
+                  <LinearDoubleKeyFrame Value="10" KeyTime="0:0:1.2"/>
+                  <EasingDoubleKeyFrame Value="110" KeyTime="0:0:2.0" EasingFunction="{StaticResource ExitEasingFunction}"/>
+                </DoubleAnimationUsingKeyFrames>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Test3"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     Duration="0:0:4" BeginTime="0:0:0.8" RepeatBehavior="Forever">
+                  <EasingDoubleKeyFrame Value="0" KeyTime="0:0:0"/>
+                  <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.8" EasingFunction="{StaticResource StartEasingFunction}"/>
+                  <LinearDoubleKeyFrame Value="1" KeyTime="0:0:1.2"/>
+                  <EasingDoubleKeyFrame Value="0" KeyTime="0:0:2.0" EasingFunction="{StaticResource ExitEasingFunction}"/>
+                </DoubleAnimationUsingKeyFrames>
+              </Storyboard>
+            </BeginStoryboard>
+          </EventTrigger>
+        </Ellipse.Triggers>
+      </Ellipse>
+      <Ellipse Width="15" Height="15" Fill="Red" Name="Test4">
+        <Ellipse.RenderTransform>
+          <TranslateTransform/>
+        </Ellipse.RenderTransform>
+        <Ellipse.Triggers>
+          <EventTrigger RoutedEvent="Window.Loaded">
+            <BeginStoryboard>
+              <Storyboard>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Test4"
+                                                     Storyboard.TargetProperty="RenderTransform.X"
+                                                     Duration="0:0:4" BeginTime="0:0:1.2" RepeatBehavior="Forever">
+                  <EasingDoubleKeyFrame Value="-135" KeyTime="0:0:0"/>
+                  <EasingDoubleKeyFrame Value="-35" KeyTime="0:0:0.8" EasingFunction="{StaticResource StartEasingFunction}"/>
+                  <LinearDoubleKeyFrame Value="-35" KeyTime="0:0:1.2"/>
+                  <EasingDoubleKeyFrame Value="65" KeyTime="0:0:2.0" EasingFunction="{StaticResource ExitEasingFunction}"/>
+                </DoubleAnimationUsingKeyFrames>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Test4"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     Duration="0:0:4" BeginTime="0:0:1.2" RepeatBehavior="Forever">
+                  <EasingDoubleKeyFrame Value="0" KeyTime="0:0:0"/>
+                  <EasingDoubleKeyFrame Value="1" KeyTime="0:0:0.8" EasingFunction="{StaticResource StartEasingFunction}"/>
+                  <LinearDoubleKeyFrame Value="1" KeyTime="0:0:1.2"/>
+                  <EasingDoubleKeyFrame Value="0" KeyTime="0:0:2.0" EasingFunction="{StaticResource ExitEasingFunction}"/>
+                </DoubleAnimationUsingKeyFrames>
+              </Storyboard>
+            </BeginStoryboard>
+          </EventTrigger>
+        </Ellipse.Triggers>
+      </Ellipse>
+    </StackPanel>
+  </Grid>
+</UserControl>
