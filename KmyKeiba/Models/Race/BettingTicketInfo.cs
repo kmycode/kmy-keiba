@@ -156,7 +156,14 @@ namespace KmyKeiba.Models.Race
       {
         var nums1 = this.FrameNumbers1.Where(f => f.IsChecked.Value).Select(f => f.FrameNumber).ToArray();
         var nums2 = this.FrameNumbers2.Where(f => f.IsChecked.Value).Select(f => f.FrameNumber).ToArray();
-        this.CanBuy.Value = nums1.Any() && (this.FormType.Value != TicketFormType.Box || nums2.Any());
+        this.CanBuy.Value = nums1.Any() && (this.FormType.Value == TicketFormType.Box || nums2.Any());
+
+        if ((this.FormType.Value == TicketFormType.Formation && nums1.Length == 1 && nums2.Length == 1 && nums1[0] == nums2[0]) ||
+          (this.FormType.Value == TicketFormType.Box && nums1.Length == 1))
+        {
+          var availableHorses = this._horses.Where(h => h.AbnormalResult != RaceAbnormality.Scratched && h.AbnormalResult != RaceAbnormality.ExcludedByStarters);
+          this.CanBuy.Value &= availableHorses.Count(h => h.FrameNumber == nums1[0]) >= 2;
+        }
       }
       else
       {
@@ -328,6 +335,10 @@ namespace KmyKeiba.Models.Race
       var nums3 = this.Numbers3.Where(n => n.IsChecked.Value).Select(n => (byte)n.HorseNumber).ToArray();
       var frames1 = this.FrameNumbers1.Where(n => n.IsChecked.Value).Select(n => (byte)n.FrameNumber).ToArray();
       var frames2 = this.FrameNumbers2.Where(n => n.IsChecked.Value).Select(n => (byte)n.FrameNumber).ToArray();
+      var type = this.Type.Value;
+      var formType = this.FormType.Value;
+      var count = this.Count.Value;
+      var isMulti = this.IsMulti.Value;
 
       void SetNumbers(IEnumerable<BettingHorseItem> horses, byte[]? nums)
       {
@@ -360,6 +371,8 @@ namespace KmyKeiba.Models.Race
           SetFrames(this.FrameNumbers1, ticket.Numbers1);
           SetFrames(this.FrameNumbers2, ticket.Numbers2);
         }
+        this.Type.Value = ticket.Type;
+        this.FormType.Value = ticket.FormType;
         this.Count.Value = ticket.Count.ToString();
         this.IsMulti.Value = ticket.IsMulti;
 
@@ -374,6 +387,10 @@ namespace KmyKeiba.Models.Race
       SetNumbers(this.Numbers3, nums3);
       SetFrames(this.FrameNumbers1, frames1);
       SetFrames(this.FrameNumbers2, frames2);
+      this.Type.Value = type;
+      this.FormType.Value = formType;
+      this.Count.Value = count;
+      this.IsMulti.Value = isMulti;
     }
 
     private async Task<IReadOnlyList<TicketItem>?> GenerateSingleTicketsAsync(MyContext db, int count)
@@ -459,7 +476,7 @@ namespace KmyKeiba.Models.Race
       }
 
       var formType = this.FormType.Value;
-      if (nums1.Length == 1 && nums2.Length == 1 && (!this.IsMulti.Value || !isOrder))
+      if (formType == TicketFormType.Formation && nums1.Length == 1 && nums2.Length == 1 && (!this.IsMulti.Value || !isOrder))
       {
         formType = TicketFormType.Single;
       }
@@ -536,7 +553,7 @@ namespace KmyKeiba.Models.Race
       }
 
       var formType = this.FormType.Value;
-      if (nums1.Length == 1 && nums2.Length == 1 && nums3.Length == 1 && (!this.IsMulti.Value || !isOrder))
+      if (formType == TicketFormType.Formation && nums1.Length == 1 && nums2.Length == 1 && nums3.Length == 1 && (!this.IsMulti.Value || !isOrder))
       {
         formType = TicketFormType.Single;
       }

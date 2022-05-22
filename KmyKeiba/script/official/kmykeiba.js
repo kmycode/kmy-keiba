@@ -285,11 +285,12 @@ Race.prototype.getHorses = function() {
   return data.map(d => new RaceHorse(d, this._obj));
 }
 
-// 同じ騎手の過去レースデータを取得する
+// 今回のレースと類似点のある過去レースデータを取得する
 //
 //   keys:  以下の組み合わせを「|」で区切って指定する
 //          例えば「同じ競馬場＆距離」のレースを取得したい場合、「course|distance」を指定する
 //             course     同じ競馬場
+//             ground     同じ地面（芝、ダート）
 //             condition  同じ馬場状態
 //             weather    同じ天気
 //             name       同じレース名（地方競馬の協賛レースなどでは誤動作の場合あり。条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）
@@ -519,6 +520,7 @@ RaceHorse.prototype._getObj = function() {
 //   keys:  以下の組み合わせを「|」で区切って指定する
 //          例えば「同じ競馬場＆距離」のレースを取得したい場合、「course|distance」を指定する
 //             course     同じ競馬場
+//             ground     同じ地面（芝、ダート）
 //             condition  同じ馬場状態
 //             weather    同じ天気
 //             name       同じレース名（地方競馬の協賛レースなどでは誤動作の場合あり。条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）
@@ -544,6 +546,7 @@ RaceHorse.prototype.getRiderSimilarRaceHorsesAsync = async function(keys, count,
 //   keys:  以下の組み合わせを「|」で区切って指定する
 //          例えば「同じ競馬場＆距離」のレースを取得したい場合、「course|distance」を指定する
 //             course     同じ競馬場
+//             ground     同じ地面（芝、ダート）
 //             condition  同じ馬場状態
 //             weather    同じ天気
 //             name       同じレース名（地方競馬の協賛レースなどでは誤動作の場合あり。条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）

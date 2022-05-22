@@ -51,6 +51,10 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<ResultOrderGradeMap> SaveRunnersGrade { get; } = new();
 
+    public ReactiveProperty<double> InsideFramePlaceBitsRate { get; } = new();
+
+    public ReactiveProperty<double> OutsideFramePlaceBitsRate { get; } = new();
+
     public ReactiveProperty<double> RoughMedian { get; } = new();
 
     public ReactiveProperty<double> RoughDeviation { get; } = new();
@@ -100,6 +104,10 @@ namespace KmyKeiba.Models.Analysis
 
       this.RoughMedian.Value = this.RoughPoints.Value.Median;
       this.RoughDeviation.Value = this.RoughPoints.Value.Deviation;
+
+      var placeBitsAllCount = source.SelectMany(s => s.TopHorses).Count(h => h.Data.ResultOrder <= 3);
+      this.InsideFramePlaceBitsRate.Value = source.SelectMany(s => s.TopHorses.Where(h => h.Data.ResultOrder <= 3 && h.Data.Number / (float)s.Data.HorsesCount <= 1 / 3f)).Count() / (double)placeBitsAllCount;
+      this.OutsideFramePlaceBitsRate.Value = source.SelectMany(s => s.TopHorses.Where(h => h.Data.ResultOrder <= 3 && h.Data.Number / (float)s.Data.HorsesCount >= 2 / 3f)).Count() / (double)placeBitsAllCount;
 
       this.IsAnalyzed.Value = true;
     }

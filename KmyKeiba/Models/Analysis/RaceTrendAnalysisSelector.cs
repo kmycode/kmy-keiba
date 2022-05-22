@@ -25,6 +25,10 @@ namespace KmyKeiba.Models.Analysis
       [ScriptParameterKey("course")]
       SameCourse,
 
+      [Label("地面")]
+      [ScriptParameterKey("ground")]
+      SameGround,
+
       [Label("馬場状態")]
       [ScriptParameterKey("condition")]
       SameCondition,
@@ -97,6 +101,10 @@ namespace KmyKeiba.Models.Analysis
         }
       }
 
+      if (keys.Contains(Key.SameGround))
+      {
+        query = query.Where(r => r.TrackGround == this.Race.TrackGround);
+      }
       if (keys.Contains(Key.NearDistance))
       {
         query = query.Where(r => r.Distance >= this.Race.Distance - 100 && r.Distance <= this.Race.Distance + 100);
