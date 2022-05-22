@@ -54,6 +54,18 @@ namespace KmyKeiba.Models.Script
     [JsonPropertyName("abnormal")]
     public short Abnormal => this.IsTargetRace ? default : (short)this._horse.AbnormalResult;
 
+    [JsonPropertyName("placeCorner1")]
+    public short PlaceCorner1 => this.IsTargetRace ? default : this._horse.FirstCornerOrder;
+
+    [JsonPropertyName("placeCorner2")]
+    public short PlaceCorner2 => this.IsTargetRace ? default : this._horse.SecondCornerOrder;
+
+    [JsonPropertyName("placeCorner3")]
+    public short PlaceCorner3 => this.IsTargetRace ? default : this._horse.ThirdCornerOrder;
+
+    [JsonPropertyName("placeCorner4")]
+    public short PlaceCorner4 => this.IsTargetRace ? default : this._horse.FourthCornerOrder;
+
     [JsonPropertyName("popular")]
     public short Popular => this._horse.Popular;
 

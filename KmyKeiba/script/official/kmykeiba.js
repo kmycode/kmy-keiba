@@ -244,6 +244,22 @@ export function Race(data, csobj) {
   // 発走時刻（Dateオブジェクト）
   this.startTime = KmyKeiba.__csDateTimeToDate(data.startTime);
 
+  // 各コーナーの順位。文字列。例：(*1,6)-(2,7)=(4,8)3,5
+  // 変数名に1,2,3,4の数字がついているが、ゴールに近いほど数字が大きい。距離の短いレースでは1～3が設定されていないこともある
+  // ※予想対象レースでは常にundefined
+  this.cornerRanking1 = data.cornerRanking1;
+  this.cornerRanking2 = data.cornerRanking2;
+  this.cornerRanking3 = data.cornerRanking3;
+  this.cornerRanking4 = data.cornerRanking4;
+
+  // 各コーナーのラップタイム。秒数に10をかけた値が入れられる
+  // 変数名に1,2,3,4の数字がついているが、ゴールに近いほど数字が大きい。距離の短いレースでは1～3が設定されていないこともある
+  // ※予想対象レースでは常にundefined
+  this.cornerLapTime1 = data.cornerLapTime1;
+  this.cornerLapTime2 = data.cornerLapTime2;
+  this.cornerLapTime3 = data.cornerLapTime3;
+  this.cornerLapTime4 = data.cornerLapTime4;
+
   // このレースの上位5頭の馬データ。RaceHorse型
   // ※以下の場合にのみ設定される。それ以外はnull
   //       getSimilarRacesAsync やその他の getSimilar 系メソッドで取得したレース
@@ -452,6 +468,13 @@ export function RaceHorse(data, csraceobj) {
   // 異常結果（参照：JRA-VAN Data Lab. コード表 2101.異常区分コード）（取得可能な情報例：発走除外、競走中止、失格、降着）
   // ※予想対象レースでは、予想時点で過去レースであっても設定されない
   this.abnormal = data.abnormal;
+
+  // コーナー別の順位。位置の近い馬は同じ順位にされるため、複数の馬が同じ数字になっていることも多い。
+  // 変数名に1,2,3,4の数字がついているが、ゴールに近いほど数字が大きい。距離の短いレースでは1～3が設定されていないこともある
+  this.placeCorner1 = data.placeCorner1;
+  this.placeCorner2 = data.placeCorner2;
+  this.placeCorner3 = data.placeCorner3;
+  this.placeCorner4 = data.placeCorner4;
 
   // 人気
   this.popular = data.popular;
