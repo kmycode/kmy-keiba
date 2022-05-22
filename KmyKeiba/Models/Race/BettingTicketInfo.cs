@@ -658,6 +658,20 @@ namespace KmyKeiba.Models.Race
       await db.SaveChangesAsync();
     }
 
+    public async Task ClearTicketsAsync()
+    {
+      if (!this.Tickets.Any())
+      {
+        return;
+      }
+
+      using var db = new MyContext();
+      db.Tickets!.RemoveRange(this.Tickets.Select(t => t.Data));
+      await db.SaveChangesAsync();
+
+      this.Tickets.Clear();
+    }
+
     public async Task UpdateTicketCountAsync()
     {
       var canParse = short.TryParse(this.Count.Value, out var count);

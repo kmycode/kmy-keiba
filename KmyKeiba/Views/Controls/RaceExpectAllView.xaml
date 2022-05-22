@@ -632,6 +632,7 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
             <Button Content="提案を承認（既存の馬券に追加）" Command="{Binding ApproveScriptTicketsCommand}" FontSize="16" Margin="0,8,0,0"/>
+            <Button Content="提案を承認（既存の馬券を置き換え）" Command="{Binding ApproveReplacingScriptTicketsCommand}" FontSize="16" Margin="0,8,0,0"/>
           </StackPanel>
         </StackPanel>
       </Grid>

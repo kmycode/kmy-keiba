@@ -117,6 +117,11 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Script.ApproveTicketsAsync() ?? Task.CompletedTask);
     private AsyncReactiveCommand<object>? _approveScriptTicketsCommand;
 
+    public ICommand ApproveReplacingScriptTicketsCommand =>
+      this._approveReplacingScriptTicketsCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Script.ApproveReplacingTicketsAsync() ?? Task.CompletedTask);
+    private AsyncReactiveCommand<object>? _approveReplacingScriptTicketsCommand;
+
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore CS0067

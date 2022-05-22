@@ -157,11 +157,25 @@ namespace KmyKeiba.Models.Script
 
     public async Task ApproveTicketsAsync()
     {
+      await this.ApproveTicketsAsync(false);
+    }
+
+    public async Task ApproveReplacingTicketsAsync()
+    {
+      await this.ApproveTicketsAsync(true);
+    }
+
+    private async Task ApproveTicketsAsync(bool isReplace)
+    {
       if (this.Suggestion.Value == null || !this.Suggestion.Value.HasTickets.Value || this.Race.Tickets.Value == null)
       {
         return;
       }
 
+      if (isReplace)
+      {
+        await this.Race.Tickets.Value.ClearTicketsAsync();
+      }
       await this.Race.Tickets.Value.BuyAsync(this.Suggestion.Value.Tickets);
 
       this.Suggestion.Value.Tickets.Clear();
