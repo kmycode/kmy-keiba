@@ -29,13 +29,13 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<TimeSpan> SpeedDeviation { get; } = new();
 
-    public ReactiveProperty<int> FrontRunnersCount { get; } = new();
+    public ReactiveProperty<ResultOrderGradeMap> FrontRunnersGrade { get; } = new();
 
-    public ReactiveProperty<int> StalkersCount { get; } = new();
+    public ReactiveProperty<ResultOrderGradeMap> StalkersGrade { get; } = new();
 
-    public ReactiveProperty<int> SotpsCount { get; } = new();
+    public ReactiveProperty<ResultOrderGradeMap> SotpsGrade { get; } = new();
 
-    public ReactiveProperty<int> SaveRunnersCount { get; } = new();
+    public ReactiveProperty<ResultOrderGradeMap> SaveRunnersGrade { get; } = new();
 
     public ReactiveProperty<ResultOrderGradeMap> AllGrade { get; } = new();
 
@@ -74,11 +74,11 @@ namespace KmyKeiba.Models.Analysis
         this.SpeedMedian.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Median * this.Race.Distance);
         this.SpeedDeviation.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Deviation * this.Race.Distance);
 
-        var runningStyles = source.Select(s => s.Data.RunningStyle);
-        this.FrontRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.FrontRunner);
-        this.StalkersCount.Value = runningStyles.Count(s => s == RunningStyle.Stalker);
-        this.SotpsCount.Value = runningStyles.Count(s => s == RunningStyle.Sotp);
-        this.SaveRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.SaveRunner);
+        var horses = source.Select(s => s.Data);
+        this.FrontRunnersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.FrontRunner).ToArray());
+        this.StalkersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.Stalker).ToArray());
+        this.SotpsGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.Sotp).ToArray());
+        this.SaveRunnersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.SaveRunner).ToArray());
 
         var validRaces = source.Where(r => r.Data.ResultOrder != 0);
         var sourceArr = source.Select(s => s.Data).ToArray();

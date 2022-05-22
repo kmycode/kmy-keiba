@@ -43,13 +43,13 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<TimeSpan> SpeedDeviation { get; } = new();
 
-    public ReactiveProperty<int> FrontRunnersCount { get; } = new();
+    public ReactiveProperty<ResultOrderGradeMap> FrontRunnersGrade { get; } = new();
 
-    public ReactiveProperty<int> StalkersCount { get; } = new();
+    public ReactiveProperty<ResultOrderGradeMap> StalkersGrade { get; } = new();
 
-    public ReactiveProperty<int> SotpsCount { get; } = new();
+    public ReactiveProperty<ResultOrderGradeMap> SotpsGrade { get; } = new();
 
-    public ReactiveProperty<int> SaveRunnersCount { get; } = new();
+    public ReactiveProperty<ResultOrderGradeMap> SaveRunnersGrade { get; } = new();
 
     public ReactiveProperty<double> RoughMedian { get; } = new();
 
@@ -92,10 +92,11 @@ namespace KmyKeiba.Models.Analysis
       this.SpeedMedian.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Median * this.Race.Distance);
       this.SpeedDeviation.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Deviation * this.Race.Distance);
 
-      this.FrontRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.FrontRunner);
-      this.StalkersCount.Value = runningStyles.Count(s => s == RunningStyle.Stalker);
-      this.SotpsCount.Value = runningStyles.Count(s => s == RunningStyle.Sotp);
-      this.SaveRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.SaveRunner);
+      var horses = source.SelectMany(s => s.TopHorses).Select(h => h.Data);
+      this.FrontRunnersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.FrontRunner).ToArray());
+      this.StalkersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.Stalker).ToArray());
+      this.SotpsGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.Sotp).ToArray());
+      this.SaveRunnersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.SaveRunner).ToArray());
 
       this.RoughMedian.Value = this.RoughPoints.Value.Median;
       this.RoughDeviation.Value = this.RoughPoints.Value.Deviation;
