@@ -1,32 +1,48 @@
 ﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Models.Analysis;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race
 {
-  public class PayoffInfo
+  public class PayoffInfo : IDisposable
   {
+    private CompositeDisposable? _ticketsDisposables;
+    private BettingTicketInfo? _tickets;
+
     public RefundData Payoff { get; }
 
-    public ReactiveCollection<SinglePayoffItem> Singles { get; } = new();
+    public PayoffItemCollection<SinglePayoffItem> Singles { get; } = new();
 
-    public ReactiveCollection<PlacePayoffItem> Places { get; } = new();
+    public PayoffItemCollection<PlacePayoffItem> Places { get; } = new();
 
-    public ReactiveCollection<FrameNumberPayoffItem> Frames { get; } = new();
+    public PayoffItemCollection<FrameNumberPayoffItem> Frames { get; } = new();
 
-    public ReactiveCollection<QuinellaPlacePayoffItem> QuinellaPlaces { get; } = new();
+    public PayoffItemCollection<QuinellaPlacePayoffItem> QuinellaPlaces { get; } = new();
 
-    public ReactiveCollection<QuinellaPayoffItem> Quinellas { get; } = new();
+    public PayoffItemCollection<QuinellaPayoffItem> Quinellas { get; } = new();
 
-    public ReactiveCollection<ExactaPayoffItem> Exactas { get; } = new();
+    public PayoffItemCollection<ExactaPayoffItem> Exactas { get; } = new();
 
-    public ReactiveCollection<TrioPayoffItem> Trios { get; } = new();
+    public PayoffItemCollection<TrioPayoffItem> Trios { get; } = new();
 
-    public ReactiveCollection<TrifectaPayoffItem> Trifectas { get; } = new();
+    public PayoffItemCollection<TrifectaPayoffItem> Trifectas { get; } = new();
+
+    public ReactiveProperty<int> HitMoneySum { get; } = new();
+
+    public ReactiveProperty<int> PayMoneySum { get; } = new();
+
+    public ReactiveProperty<int> Income { get; } = new();
+
+    public ReactiveProperty<ValueComparation> IncomeComparation { get; } = new();
 
     public PayoffInfo(RefundData payoff)
     {
@@ -93,77 +109,195 @@ namespace KmyKeiba.Models.Race
       if (payoff.Trifecta1Number6 != default)
         this.Trifectas.Add(new TrifectaPayoffItem { Number1 = payoff.Trifecta1Number6, Number2 = payoff.Trifecta2Number6, Number3 = payoff.Trifecta3Number6, Money = payoff.TrifectaNumber6Money, });
     }
+
+    public void SetTickets(BettingTicketInfo tickets)
+    {
+      if (this._ticketsDisposables != null)
+      {
+        this._ticketsDisposables.Dispose();
+      }
+
+      this._ticketsDisposables = new();
+      this._tickets = tickets;
+
+      Observable.FromEvent<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>(
+        h => (s, e) => h(e),
+        dele => tickets.Tickets.CollectionChanged += dele,
+        dele => tickets.Tickets.CollectionChanged -= dele)
+      .Subscribe(_ =>
+      {
+        this.UpdateTicketsData();
+      }).AddTo(this._ticketsDisposables);
+
+      this.UpdateTicketsData();
+    }
+
+    private void UpdateTicketsData()
+    {
+      if (this._tickets == null)
+      {
+        return;
+      }
+
+      var hits = this._tickets.Tickets.SelectMany(t => t
+        .GetHitRows(this.Payoff.Trifecta1Number1, this.Payoff.Trifecta2Number1, this.Payoff.Trifecta3Number1, this.Payoff.Frame1Number1, this.Payoff.Frame2Number1)
+        .Concat(t.GetHitRows(this.Payoff.Trifecta1Number2, this.Payoff.Trifecta2Number2, this.Payoff.Trifecta3Number2, this.Payoff.Frame1Number2, this.Payoff.Frame2Number2))
+        .Concat(t.GetHitRows(this.Payoff.Trifecta1Number3, this.Payoff.Trifecta2Number3, this.Payoff.Trifecta3Number3, this.Payoff.Frame1Number3, this.Payoff.Frame2Number3))
+        .Concat(t.GetHitRows(this.Payoff.Trifecta1Number4, this.Payoff.Trifecta2Number4, this.Payoff.Trifecta3Number4, this.Payoff.Frame1Number3, this.Payoff.Frame2Number3))
+        .Concat(t.GetHitRows(this.Payoff.Trifecta1Number5, this.Payoff.Trifecta2Number5, this.Payoff.Trifecta3Number5, this.Payoff.Frame1Number3, this.Payoff.Frame2Number3))
+        .Concat(t.GetHitRows(this.Payoff.Trifecta1Number6, this.Payoff.Trifecta2Number6, this.Payoff.Trifecta3Number6, this.Payoff.Frame1Number3, this.Payoff.Frame2Number3))
+        ).ToArray();
+      foreach (var item in this.Singles)
+      {
+        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Type == TicketType.Single);
+      }
+      foreach (var item in this.Places)
+      {
+        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Type == TicketType.Place);
+      }
+      foreach (var item in this.Frames)
+      {
+        item.IsHit.Value = hits.Any(h => h.Number1 == item.Frame1 && h.Number2 == item.Frame2 && h.Type == TicketType.FrameNumber);
+      }
+      foreach (var item in this.QuinellaPlaces)
+      {
+        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Type == TicketType.QuinellaPlace);
+      }
+      foreach (var item in this.Quinellas)
+      {
+        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Type == TicketType.Quinella);
+      }
+      foreach (var item in this.Exactas)
+      {
+        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Type == TicketType.Exacta);
+      }
+      foreach (var item in this.Trios)
+      {
+        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Number3 == item.Number3 && h.Type == TicketType.Trio);
+      }
+      foreach (var item in this.Trifectas)
+      {
+        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Number3 == item.Number3 && h.Type == TicketType.Trifecta);
+      }
+      this.Singles.UpdateMoneySum();
+      this.Places.UpdateMoneySum();
+      this.Frames.UpdateMoneySum();
+      this.QuinellaPlaces.UpdateMoneySum();
+      this.Quinellas.UpdateMoneySum();
+      this.Exactas.UpdateMoneySum();
+      this.Trios.UpdateMoneySum();
+      this.Trifectas.UpdateMoneySum();
+      var itemCollections = Enumerable.Empty<PayoffItem>().Concat(this.Singles)
+        .Concat(this.Places).Concat(this.Frames).Concat(this.QuinellaPlaces).Concat(this.Quinellas)
+        .Concat(this.Exactas).Concat(this.Trios).Concat(this.Trifectas);
+
+      var paySum = 0;
+      var hitSum = 0;
+      if (this._tickets.Tickets.Any())
+      {
+        paySum = this._tickets.Tickets.Sum(t => t.Count.Value * 100);
+      }
+      if (itemCollections.Any(i => i.IsHit.Value))
+      {
+        hitSum = itemCollections.Where(i => i.IsHit.Value).Sum(i => i.Money);
+      }
+      this.PayMoneySum.Value = paySum;
+      this.HitMoneySum.Value = hitSum;
+      this.Income.Value = hitSum - paySum;
+      this.IncomeComparation.Value = this.Income.Value > 0 ? ValueComparation.Good : this.Income.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
+    }
+
+    public void Dispose()
+    {
+      this._ticketsDisposables?.Dispose();
+    }
   }
 
-  public class SinglePayoffItem
+  public abstract class PayoffItem
+  {
+    public int Money { get; init; }
+
+    public ReactiveProperty<bool> IsHit { get; } = new();
+
+    public ReactiveProperty<ValueComparation> Comparation { get; } = new();
+  }
+
+  public class SinglePayoffItem : PayoffItem
   {
     public short Number1 { get; init; }
-
-    public int Money { get; init; }
   }
 
-  public class PlacePayoffItem
+  public class PlacePayoffItem : PayoffItem
   {
     public short Number1 { get; init; }
-
-    public int Money { get; init; }
   }
 
-  public class FrameNumberPayoffItem
+  public class FrameNumberPayoffItem : PayoffItem
   {
     public short Frame1 { get; init; }
 
     public short Frame2 { get; init; }
-
-    public int Money { get; init; }
   }
 
-  public class QuinellaPlacePayoffItem
+  public class QuinellaPlacePayoffItem : PayoffItem
   {
     public short Number1 { get; init; }
 
     public short Number2 { get; init; }
-
-    public int Money { get; init; }
   }
 
-  public class QuinellaPayoffItem
+  public class QuinellaPayoffItem : PayoffItem
   {
     public short Number1 { get; init; }
 
     public short Number2 { get; init; }
-
-    public int Money { get; init; }
   }
 
-  public class ExactaPayoffItem
+  public class ExactaPayoffItem : PayoffItem
   {
     public short Number1 { get; init; }
 
     public short Number2 { get; init; }
-
-    public int Money { get; init; }
   }
 
-  public class TrioPayoffItem
+  public class TrioPayoffItem : PayoffItem
   {
     public short Number1 { get; init; }
 
     public short Number2 { get; init; }
 
     public short Number3 { get; init; }
-
-    public int Money { get; init; }
   }
 
-  public class TrifectaPayoffItem
+  public class TrifectaPayoffItem : PayoffItem
   {
     public short Number1 { get; init; }
 
     public short Number2 { get; init; }
 
     public short Number3 { get; init; }
+  }
 
-    public int Money { get; init; }
+  public class PayoffItemCollection<T> : ReactiveCollection<T> where T : PayoffItem
+  {
+    public ReactiveProperty<int> HitMoneySum { get; } = new();
+
+    public void UpdateMoneySum()
+    {
+      var hits = this.Where(i => i.IsHit.Value);
+      if (hits.Any())
+      {
+        this.HitMoneySum.Value = hits.Sum(i => i.Money);
+      }
+      else
+      {
+        this.HitMoneySum.Value = 0;
+      }
+
+      foreach (var item in this)
+      {
+        item.Comparation.Value = item.IsHit.Value ? ValueComparation.Good : ValueComparation.Standard;
+      }
+    }
   }
 }

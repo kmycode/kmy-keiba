@@ -170,6 +170,7 @@ namespace KmyKeiba.Models.Race
       }
       this.Odds.Value?.Dispose();
       this.Tickets.Value?.Dispose();
+      this.Payoff?.Dispose();
     }
 
     public static async Task<RaceInfo?> FromKeyAsync(MyContext db, string key)
@@ -265,6 +266,9 @@ namespace KmyKeiba.Models.Race
           // 購入済馬券
           var tickets = await db.Tickets!.Where(t => t.RaceKey == race.Key).ToArrayAsync();
           info.Tickets.Value = new BettingTicketInfo(horseInfos, info.Odds.Value, tickets);
+
+          // 払い戻し情報を更新
+          info.Payoff?.SetTickets(info.Tickets.Value);
 
           // 調教
           var historyStartDate = race.StartTime.AddMonths(-4);

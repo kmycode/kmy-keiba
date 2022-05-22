@@ -819,7 +819,7 @@ namespace KmyKeiba.Models.Race
 
     protected abstract TicketItem GenerateNewItem(TicketData data, int money, int moneyMax);
 
-    public virtual IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2, short frame3)
+    public virtual IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2, short frame3 = default)
     {
       var rows = this.Rows.Where(r => r.Number1 == num1 && (num2 == default || r.Number2 == num2) && (num3 == default || r.Number3 == num3));
       return rows.ToArray();
