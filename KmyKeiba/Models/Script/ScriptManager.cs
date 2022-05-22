@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.Common;
+using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Models.Script.NodeJSCompat;
 using Microsoft.ClearScript;
@@ -39,6 +40,8 @@ namespace KmyKeiba.Models.Script
 
     public ReactiveProperty<string> ErrorMessage { get; } = new();
 
+    public ReactiveProperty<ScriptSuggestion?> Suggestion { get; } = new();
+
     public ScriptManager(RaceInfo race)
     {
       this.Race = race;
@@ -48,6 +51,9 @@ namespace KmyKeiba.Models.Script
 
     public async Task ExecuteAsync()
     {
+      var suggestion = new ScriptSuggestion(this.Race.Data.Key);
+      this.Suggestion.Value = null;
+
       using var engine = new V8ScriptEngine(V8ScriptEngineFlags.EnableDynamicModuleImports |
         V8ScriptEngineFlags.EnableTaskPromiseConversion |
         V8ScriptEngineFlags.EnableValueTaskPromiseConversion |
@@ -61,7 +67,9 @@ namespace KmyKeiba.Models.Script
         engine.DocumentSettings.SearchPath = Path.Combine(Directory.GetCurrentDirectory(), "script");
 
         engine.AddHostObject("__currentRace", new ScriptCurrentRace(this.Race));
+        engine.AddHostObject("__suggestion", suggestion);
         engine.AddHostObject("__fs", new NodeJSFileSystem());
+        engine.AddHostObject("__hostFuncs", new HostFunctions());
 
         var script = File.ReadAllText("script/index.js");
         engine.Script.OnInit = engine.Evaluate(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
@@ -121,6 +129,43 @@ namespace KmyKeiba.Models.Script
           this.ErrorMessage.Value = ex.Message;
         }
       }
+
+      // 提案
+      this.Suggestion.Value = suggestion;
+    }
+
+    public async Task ApproveMarksAsync()
+    {
+      if (this.Suggestion.Value == null || !this.Suggestion.Value.HasMarks.Value)
+      {
+        return;
+      }
+
+      using var db = new MyContext();
+
+      foreach (var horse in this.Race.Horses)
+      {
+        var mark = this.Suggestion.Value.Marks.FirstOrDefault(m => m.HorseNumber == horse.Data.Number);
+        horse.ChangeHorseMark(db, mark.Mark);
+      }
+
+      await db.SaveChangesAsync();
+
+      this.Suggestion.Value.Marks.Clear();
+      this.Suggestion.Value.HasMarks.Value = false;
+    }
+
+    public async Task ApproveTicketsAsync()
+    {
+      if (this.Suggestion.Value == null || !this.Suggestion.Value.HasTickets.Value || this.Race.Tickets.Value == null)
+      {
+        return;
+      }
+
+      await this.Race.Tickets.Value.BuyAsync(this.Suggestion.Value.Tickets);
+
+      this.Suggestion.Value.Tickets.Clear();
+      this.Suggestion.Value.HasTickets.Value = false;
     }
   }
 }

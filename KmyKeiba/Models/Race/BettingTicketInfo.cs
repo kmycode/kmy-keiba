@@ -257,6 +257,18 @@ namespace KmyKeiba.Models.Race
       }
       
       using var db = new MyContext();
+      await this.BuyAsync(db);
+      await db.SaveChangesAsync();
+    }
+
+    private async Task BuyAsync(MyContext db)
+    {
+      short.TryParse(this.Count.Value, out var count);
+      if (count <= 0)
+      {
+        return;
+      }
+
       IReadOnlyList<TicketItem>? tickets = null;
       if (this.Type.Value == TicketType.Single)
       {
@@ -304,7 +316,64 @@ namespace KmyKeiba.Models.Race
       this.SortTickets();
 
       await db.Tickets!.AddRangeAsync(tickets.Select(t => t.Data));
+    }
+
+    public async Task BuyAsync(IEnumerable<TicketData> tickets)
+    {
+      // 力技になるが。。
+      // モデルの情報を変更してから購入ボタンを押すのを繰り返す
+
+      var nums1 = this.Numbers1.Where(n => n.IsChecked.Value).Select(n => (byte)n.HorseNumber).ToArray();
+      var nums2 = this.Numbers2.Where(n => n.IsChecked.Value).Select(n => (byte)n.HorseNumber).ToArray();
+      var nums3 = this.Numbers3.Where(n => n.IsChecked.Value).Select(n => (byte)n.HorseNumber).ToArray();
+      var frames1 = this.FrameNumbers1.Where(n => n.IsChecked.Value).Select(n => (byte)n.FrameNumber).ToArray();
+      var frames2 = this.FrameNumbers2.Where(n => n.IsChecked.Value).Select(n => (byte)n.FrameNumber).ToArray();
+
+      void SetNumbers(IEnumerable<BettingHorseItem> horses, byte[]? nums)
+      {
+        nums ??= Array.Empty<byte>();
+        foreach (var h in horses)
+        {
+          h.IsChecked.Value = nums.Contains((byte)h.HorseNumber);
+        }
+      }
+      void SetFrames(IEnumerable<BettingFrameItem> frames, byte[]? nums)
+      {
+        nums ??= Array.Empty<byte>();
+        foreach (var h in frames)
+        {
+          h.IsChecked.Value = nums.Contains((byte)h.FrameNumber);
+        }
+      }
+
+      using var db = new MyContext();
+      foreach (var ticket in tickets)
+      {
+        if (ticket.Type != TicketType.FrameNumber)
+        {
+          SetNumbers(this.Numbers1, ticket.Numbers1);
+          SetNumbers(this.Numbers2, ticket.Numbers2);
+          SetNumbers(this.Numbers3, ticket.Numbers3);
+        }
+        else
+        {
+          SetFrames(this.FrameNumbers1, ticket.Numbers1);
+          SetFrames(this.FrameNumbers2, ticket.Numbers2);
+        }
+        this.Count.Value = ticket.Count.ToString();
+        this.IsMulti.Value = ticket.IsMulti;
+
+        await this.BuyAsync(db);
+      }
+
       await db.SaveChangesAsync();
+
+      // 情報を復元する
+      SetNumbers(this.Numbers1, nums1);
+      SetNumbers(this.Numbers2, nums2);
+      SetNumbers(this.Numbers3, nums3);
+      SetFrames(this.FrameNumbers1, frames1);
+      SetFrames(this.FrameNumbers2, frames2);
     }
 
     private async Task<IReadOnlyList<TicketItem>?> GenerateSingleTicketsAsync(MyContext db, int count)
@@ -837,45 +906,7 @@ namespace KmyKeiba.Models.Race
 
     public override string ToString()
     {
-      if (!this.Data.Numbers2.Any())
-      {
-        if (this.IsSingleRow)
-        {
-          return this.Data.Numbers1[0].ToString();
-        }
-        return string.Join(',', this.Data.Numbers1);
-      }
-      else if (!this.Data.Numbers3.Any())
-      {
-        if (this.Data.FormType == TicketFormType.Formation)
-        {
-          var label = this.Data.IsMulti ? "フォメマルチ" : "フォメ";
-          return label + " " + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2);
-        }
-        else if (this.Data.FormType == TicketFormType.Box)
-        {
-          return "BOX " + string.Join(',', this.Data.Numbers1);
-        }
-      }
-      else
-      {
-        if (this.Data.FormType == TicketFormType.Formation)
-        {
-          var label = this.Data.IsMulti ? "フォメマルチ" : "フォメ";
-          return label + " " + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2) + " - " + string.Join(',', this.Data.Numbers3);
-        }
-        else if (this.Data.FormType == TicketFormType.Box)
-        {
-          return "BOX " + string.Join(',', this.Data.Numbers1);
-        }
-        else if (this.Data.FormType == TicketFormType.Nagashi)
-        {
-          var label = this.Data.IsMulti ? "流しマルチ" : "流し";
-          return label + " 軸:" + string.Join(',', this.Data.Numbers1) + " - " + string.Join(',', this.Data.Numbers2);
-        }
-      }
-
-      return base.ToString()!;
+      return this.Data.ToSummaryString();
     }
 
     public void Dispose()
@@ -1478,6 +1509,48 @@ namespace KmyKeiba.Models.Race
     public void Dispose()
     {
       this._disposables.Dispose();
+    }
+  }
+
+  public static class TicketExtensions
+  {
+    public static string ToSummaryString(this TicketData ticket)
+    {
+      if (!ticket.Numbers2.Any())
+      {
+        return string.Join(',', ticket.Numbers1);
+      }
+      else if (!ticket.Numbers3.Any())
+      {
+        if (ticket.FormType == TicketFormType.Formation)
+        {
+          var label = ticket.IsMulti ? "フォメマルチ" : "フォメ";
+          return label + " " + string.Join(',', ticket.Numbers1) + " - " + string.Join(',', ticket.Numbers2);
+        }
+        else if (ticket.FormType == TicketFormType.Box)
+        {
+          return "BOX " + string.Join(',', ticket.Numbers1);
+        }
+      }
+      else
+      {
+        if (ticket.FormType == TicketFormType.Formation)
+        {
+          var label = ticket.IsMulti ? "フォメマルチ" : "フォメ";
+          return label + " " + string.Join(',', ticket.Numbers1) + " - " + string.Join(',', ticket.Numbers2) + " - " + string.Join(',', ticket.Numbers3);
+        }
+        else if (ticket.FormType == TicketFormType.Box)
+        {
+          return "BOX " + string.Join(',', ticket.Numbers1);
+        }
+        else if (ticket.FormType == TicketFormType.Nagashi)
+        {
+          var label = ticket.IsMulti ? "流しマルチ" : "流し";
+          return label + " 軸:" + string.Join(',', ticket.Numbers1) + " - " + string.Join(',', ticket.Numbers2);
+        }
+      }
+
+      return ticket.ToString() ?? string.Empty;
     }
   }
 }

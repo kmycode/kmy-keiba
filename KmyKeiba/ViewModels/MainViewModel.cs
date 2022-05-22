@@ -107,6 +107,16 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.UpdateTicketCountAsync() ?? Task.CompletedTask);
     private AsyncReactiveCommand<object>? _updateSelectedTicketCountsCommand;
 
+    public ICommand ApproveScriptMarksCommand =>
+      this._approveScriptMarksCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Script.ApproveMarksAsync() ?? Task.CompletedTask);
+    private AsyncReactiveCommand<object>? _approveScriptMarksCommand;
+
+    public ICommand ApproveScriptTicketsCommand =>
+      this._approveScriptTicketsCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Script.ApproveTicketsAsync() ?? Task.CompletedTask);
+    private AsyncReactiveCommand<object>? _approveScriptTicketsCommand;
+
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore CS0067

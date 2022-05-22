@@ -21,6 +21,10 @@ import * as fs from 'official/njcompat_fs.js';
   file.writeFileSync(bloodHorses[0]);
   */
 
+  const suggestion = KmyKeiba.getSuggestion();
+  suggestion.single(1, [3]);
+  suggestion.mark(4, 1);
+
   // 馬の名前を返す
   return `${horses[1].number} 番 ${horses[1].name} 号がいいです（）${race.weather}`;
 });

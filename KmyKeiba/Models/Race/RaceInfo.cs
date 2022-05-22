@@ -59,6 +59,8 @@ namespace KmyKeiba.Models.Race
 
     public ScriptManager Script { get; }
 
+    public ReactiveProperty<bool> CanExecuteScript { get; } = new();
+
     public double TimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.ResultTimeDeviationValue ?? 0;
 
     public double A3HTimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.A3HResultTimeDeviationValue ?? 0;
@@ -283,6 +285,7 @@ namespace KmyKeiba.Models.Race
           }
 
           // スクリプト
+          info.CanExecuteScript.Value = true;
           ThreadUtil.InvokeOnUiThread(async () =>
           {
             await info.Script.UpdateAsync();

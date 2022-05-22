@@ -1,4 +1,18 @@
 ﻿
+const toClrArray = function (arr) {
+  if (typeof(arr) === 'number') {
+    arr = [arr];
+  }
+
+  var clrArray = __hostFuncs.newArr(arr.length);
+  for (var i = 0; i < arr.length; ++i) {
+    clrArray[i] = arr[i];
+  }
+  return clrArray;
+};
+
+
+
 export function KmyKeiba() {
 }
 
@@ -9,8 +23,102 @@ KmyKeiba.getTargetRace = function() {
   return new Race(data, __currentRace);
 }
 
+KmyKeiba.getSuggestion = function() {
+  return Suggestion;
+}
+
 KmyKeiba.__csDateTimeToDate = function(dateTime) {
   return new Date(dateTime);
+}
+
+
+function Suggestion() {
+}
+
+// 馬にしるしをつける
+Suggestion.mark = function(num, mark) {
+  __suggestion.mark(num, mark);
+}
+
+// 単勝馬券を提案する
+Suggestion.single = function(count, nums) {
+  __suggestion.single(1, count, toClrArray(nums));
+}
+
+// 複勝馬券を提案する
+Suggestion.place = function(count, nums) {
+  __suggestion.single(2, count, toClrArray(nums));
+}
+
+// 枠連馬券を提案する
+Suggestion.frame = function(count, nums1, nums2) {
+  __suggestion.frame(3, count, toClrArray(nums1), toClrArray(nums2));
+}
+
+// 枠連BOX馬券を提案する
+Suggestion.frameBox = function(count, nums1) {
+  __suggestion.frame(2, count, toClrArray(nums1), toClrArray(0));
+}
+
+// ワイド馬券を提案する
+Suggestion.quinellaPlace = function(count, nums1, nums2) {
+  __suggestion.quinellaPlace(3, count, toClrArray(nums1), toClrArray(nums2));
+}
+
+// ワイドBOX馬券を提案する
+Suggestion.quinellaPlaceBox = function(count, nums1) {
+  __suggestion.quinellaPlace(2, count, toClrArray(nums1), toClrArray(0));
+}
+
+// 馬連馬券を提案する
+Suggestion.quinella = function(count, nums1, nums2) {
+  __suggestion.quinella(3, count, toClrArray(nums1), toClrArray(nums2));
+}
+
+// 馬連BOX馬券を提案する
+Suggestion.quinellaBox = function(count, nums1) {
+  __suggestion.quinella(2, count, toClrArray(nums1), toClrArray(0));
+}
+
+// 馬単馬券を提案する
+Suggestion.exacta = function(count, nums1, nums2, isMulti) {
+  // isMulti ? true : falseは、isMultiがundefinedだった場合を想定
+  __suggestion.exacta(3, count, isMulti ? true : false, toClrArray(nums1), toClrArray(nums2));
+}
+
+// 馬単BOX馬券を提案する
+Suggestion.exactaBox = function(count, nums1, isMulti) {
+  __suggestion.exacta(2, count, isMulti ? true : false, toClrArray(nums1), toClrArray(0));
+}
+
+// 三連複馬券を提案する
+Suggestion.trio = function(count, nums1, nums2, nums3) {
+  __suggestion.trio(3, count, toClrArray(nums1), toClrArray(nums2), toClrArray(nums3));
+}
+
+// 三連複BOX馬券を提案する
+Suggestion.trioBox = function(count, nums1) {
+  __suggestion.trio(2, count, toClrArray(nums1), toClrArray(0), toClrArray(0));
+}
+
+// 三連複流し馬券を提案する
+Suggestion.trioNagashi = function(count, nums1, nums2) {
+  __suggestion.trio(4, count, toClrArray(nums1), toClrArray(nums2), toClrArray(0));
+}
+
+// 三連単馬券を提案する
+Suggestion.trifecta = function(count, nums1, nums2, nums3, isMulti) {
+  __suggestion.trifecta(3, count, isMulti, toClrArray(nums1), toClrArray(nums2), toClrArray(nums3));
+}
+
+// 三連単BOX馬券を提案する
+Suggestion.trifectaBox = function(count, nums1, isMulti) {
+  __suggestion.trifecta(2, count, isMulti ? true : false, toClrArray(nums1), toClrArray(0), toClrArray(0));
+}
+
+// 三連単流し馬券を提案する
+Suggestion.trifectaNagashi = function(count, nums1, nums2, isMulti) {
+  __suggestion.trifecta(4, count, isMulti ? true : false, toClrArray(nums1), toClrArray(nums2), toClrArray(0));
 }
 
 

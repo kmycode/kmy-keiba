@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Math;
+using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
 using Reactive.Bindings;
 using System;
@@ -293,12 +294,15 @@ namespace KmyKeiba.Models.Analysis
       short.TryParse(marks, out var markss);
       var mark = (RaceHorseMark)markss;
 
-      using var db = new Data.MyContext();
-      db.RaceHorses!.Attach(this.Data);
-
-      this.Mark.Value = this.Data.Mark = mark;
-
+      using var db = new MyContext();
+      this.ChangeHorseMark(db, mark);
       await db.SaveChangesAsync();
+    }
+
+    public void ChangeHorseMark(MyContext db, RaceHorseMark mark)
+    {
+      db.RaceHorses!.Attach(this.Data);
+      this.Mark.Value = this.Data.Mark = mark;
     }
 
     public void Dispose()
