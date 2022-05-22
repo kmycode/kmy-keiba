@@ -66,6 +66,9 @@ namespace KmyKeiba.Models.Script
     [JsonPropertyName("placeOddsMin")]
     public short PlaceOddsMin => this._horse.PlaceOddsMin;
 
+    [JsonPropertyName("memo")]
+    public string Memo => this._horse.Memo ?? string.Empty;
+
     [JsonPropertyName("runningStyle")]
     public short RunningStyle => this.IsTargetRace ? default : (short)this._horse.RunningStyle;
 

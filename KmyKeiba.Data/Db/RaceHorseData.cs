@@ -181,6 +181,11 @@ namespace KmyKeiba.Data.Db
     [MaxLength(8000), Column(TypeName = "VARBINARY(8000)")]
     public byte[] UniformFormatData { get; set; } = Array.Empty<byte>();
 
+    /// <summary>
+    /// メモ
+    /// </summary>
+    public string? Memo { get; set; }
+
     public override void SetEntity(RaceHorse entity)
     {
       this.LastModified = entity.LastModified;

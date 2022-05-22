@@ -463,6 +463,9 @@ export function RaceHorse(data, csraceobj) {
   // 複勝オッズ（最小）　実際の10倍の数字
   this.placeOddsMin = data.placeOddsMin;
 
+  // メモ
+  this.memo = data.memo;
+
   // 今回のレースで使用された脚質。地方競馬では機械学習で判断
   // 0:不明　1:逃げ　2:先行　3:差し　4:追込
   // ※予想対象レースでは、予想時点で過去レースであっても設定されない

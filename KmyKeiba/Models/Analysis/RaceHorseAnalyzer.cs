@@ -5,9 +5,11 @@ using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -35,6 +37,10 @@ namespace KmyKeiba.Models.Analysis
     public ReactiveProperty<TrainingAnalyzer?> Training { get; } = new();
 
     public ReactiveProperty<RaceHorseMark> Mark { get; } = new();
+
+    public ReactiveProperty<string> Memo { get; } = new();
+
+    public ReactiveProperty<bool> IsMemoSaving { get; } = new();
 
     public IReadOnlyList<RaceHorseCornerGrade> CornerGrades { get; } = Array.Empty<RaceHorseCornerGrade>();
 
@@ -210,9 +216,27 @@ namespace KmyKeiba.Models.Analysis
       this.Data = horse;
       this.Subject = new RaceSubjectInfo(race);
       this.Mark.Value = horse.Mark;
+      this.Memo.Value = horse.Memo ?? string.Empty;
       this.ResultTimePerMeter = (double)horse.ResultTime.TotalSeconds / race.Distance;
       this.ResultOrderComparation = horse.ResultOrder >= 1 && horse.ResultOrder <= 3 ? ValueComparation.Good :
         horse.ResultOrder >= 8 || horse.ResultOrder >= race.HorsesCount * 0.7f ? ValueComparation.Bad : ValueComparation.Standard;
+
+      this.Memo.Subscribe(async m =>
+      {
+        if (this.IsMemoSaving.Value)
+        {
+          return;
+        }
+
+        this.IsMemoSaving.Value = true;
+
+        using var db = new MyContext();
+        db.RaceHorses!.Attach(this.Data);
+        this.Data.Memo = m;
+        await db.SaveChangesAsync();
+
+        this.IsMemoSaving.Value = false;
+      }).AddTo(this._disposables);
 
       // コーナーの成績
       static CornerGradeType GetCornerGradeType(short order, short beforeOrder)
@@ -289,6 +313,8 @@ namespace KmyKeiba.Models.Analysis
         new AsyncReactiveCommand<string>().WithSubscribe(p => this.ChangeHorseMarkAsync(p));
     private AsyncReactiveCommand<string>? _setDoubleCircleMarkCommand;
 
+    private readonly CompositeDisposable _disposables = new();
+
     private async Task ChangeHorseMarkAsync(string marks)
     {
       short.TryParse(marks, out var markss);
@@ -307,6 +333,7 @@ namespace KmyKeiba.Models.Analysis
 
     public void Dispose()
     {
+      this._disposables.Dispose();
       this.BloodSelectors?.Dispose();
       this.RiderTrendAnalyzers?.Dispose();
       this.TrainerTrendAnalyzers?.Dispose();
