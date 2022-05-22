@@ -27,6 +27,10 @@ KmyKeiba.getSuggestion = function() {
   return Suggestion;
 }
 
+KmyKeiba.setHead = function(text) {
+  __html.head = text;
+}
+
 KmyKeiba.__csDateTimeToDate = function(dateTime) {
   return new Date(dateTime);
 }

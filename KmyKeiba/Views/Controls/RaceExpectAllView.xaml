@@ -597,44 +597,46 @@
         </Border>
         
         <!--馬券提案-->
-        <StackPanel Grid.Column="1" Grid.Row="1">
-          <StackPanel Width="300" Visibility="{Binding Race.Script.Suggestion.Value.HasMarks.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}" Margin="0,8,0,48">
-            <TextBlock Text="印の提案" FontSize="24" FontWeight="Bold" Margin="0,8,0,0"/>
-            <ItemsControl ItemsSource="{Binding Race.Script.Suggestion.Value.Marks,ElementName=Root}" Margin="0,8,0,0">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <StackPanel Orientation="Horizontal">
-                    <ContentControl Template="{Binding Mark,Converter={StaticResource HorseMarkConv}}">
-                      <ContentControl.LayoutTransform>
-                        <ScaleTransform ScaleX="0.7" ScaleY="0.7"/>
-                      </ContentControl.LayoutTransform>
-                    </ContentControl>
-                    <TextBlock Text="{Binding HorseNumber}" Foreground="{DynamicResource BaseForeground}" FontSize="18" Margin="8,2,4,2"/>
-                  </StackPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <Button Content="提案を承認（既存の印を置き換え）" Command="{Binding ApproveScriptMarksCommand}" FontSize="16" Margin="0,8,0,0"/>
+        <ScrollViewer Grid.Column="1" Grid.Row="1">
+          <StackPanel>
+            <StackPanel Width="300" Visibility="{Binding Race.Script.Suggestion.Value.HasMarks.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}" Margin="0,8,0,48">
+              <TextBlock Text="印の提案" FontSize="24" FontWeight="Bold" Margin="0,8,0,0"/>
+              <ItemsControl ItemsSource="{Binding Race.Script.Suggestion.Value.Marks,ElementName=Root}" Margin="0,8,0,0">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                      <ContentControl Template="{Binding Mark,Converter={StaticResource HorseMarkConv}}">
+                        <ContentControl.LayoutTransform>
+                          <ScaleTransform ScaleX="0.7" ScaleY="0.7"/>
+                        </ContentControl.LayoutTransform>
+                      </ContentControl>
+                      <TextBlock Text="{Binding HorseNumber}" Foreground="{DynamicResource BaseForeground}" FontSize="18" Margin="8,2,4,2"/>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <Button Content="提案を承認（既存の印を置き換え）" Command="{Binding ApproveScriptMarksCommand}" FontSize="16" Margin="0,8,0,0"/>
+            </StackPanel>
+            <StackPanel Width="300" Visibility="{Binding Race.Script.Suggestion.Value.HasTickets.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}" Margin="0,8,0,0">
+              <TextBlock Text="馬券の提案" FontSize="24" FontWeight="Bold"/>
+              <ItemsControl ItemsSource="{Binding Race.Script.Suggestion.Value.Tickets,ElementName=Root}" Margin="0,8,0,0">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                      <Border Width="80" Background="{Binding Type,Converter={StaticResource TicketTypeBackgroundConv}}">
+                        <TextBlock Text="{Binding Type,Converter={StaticResource EnumsConv}}"
+                                   Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="4,2"/>
+                      </Border>
+                      <TextBlock Text="{Binding Converter={StaticResource TicketSummaryConv}}" Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="8,2,4,2"/>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <Button Content="提案を承認（既存の馬券に追加）" Command="{Binding ApproveScriptTicketsCommand}" FontSize="16" Margin="0,8,0,0"/>
+              <Button Content="提案を承認（既存の馬券を置き換え）" Command="{Binding ApproveReplacingScriptTicketsCommand}" FontSize="16" Margin="0,8,0,0"/>
+            </StackPanel>
           </StackPanel>
-          <StackPanel Width="300" Visibility="{Binding Race.Script.Suggestion.Value.HasTickets.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}" Margin="0,8,0,0">
-            <TextBlock Text="馬券の提案" FontSize="24" FontWeight="Bold"/>
-            <ItemsControl ItemsSource="{Binding Race.Script.Suggestion.Value.Tickets,ElementName=Root}" Margin="0,8,0,0">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <StackPanel Orientation="Horizontal">
-                    <Border Width="80" Background="{Binding Type,Converter={StaticResource TicketTypeBackgroundConv}}">
-                      <TextBlock Text="{Binding Type,Converter={StaticResource EnumsConv}}"
-                                 Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="4,2"/>
-                    </Border>
-                    <TextBlock Text="{Binding Converter={StaticResource TicketSummaryConv}}" Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="8,2,4,2"/>
-                  </StackPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <Button Content="提案を承認（既存の馬券に追加）" Command="{Binding ApproveScriptTicketsCommand}" FontSize="16" Margin="0,8,0,0"/>
-            <Button Content="提案を承認（既存の馬券を置き換え）" Command="{Binding ApproveReplacingScriptTicketsCommand}" FontSize="16" Margin="0,8,0,0"/>
-          </StackPanel>
-        </StackPanel>
+        </ScrollViewer>
       </Grid>
 
       <!--馬券-->

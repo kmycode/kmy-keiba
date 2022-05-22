@@ -52,6 +52,7 @@ namespace KmyKeiba.Models.Script
     public async Task ExecuteAsync()
     {
       var suggestion = new ScriptSuggestion(this.Race.Data.Key);
+      var htmlObj = new ScriptHtml();
       this.Suggestion.Value = null;
 
       using var engine = new V8ScriptEngine(V8ScriptEngineFlags.EnableDynamicModuleImports |
@@ -68,6 +69,7 @@ namespace KmyKeiba.Models.Script
 
         engine.AddHostObject("__currentRace", new ScriptCurrentRace(this.Race));
         engine.AddHostObject("__suggestion", suggestion);
+        engine.AddHostObject("__html", htmlObj);
         engine.AddHostObject("__fs", new NodeJSFileSystem());
         engine.AddHostObject("__hostFuncs", new HostFunctions());
 
@@ -95,17 +97,13 @@ namespace KmyKeiba.Models.Script
 
         // HTML出力
         this._outputNum++;
-        var html = $@"<html lang=""ja"">
-  <head>
+        htmlObj.Body = text;
+        htmlObj.DefaultHead = $@"
     <style>
       body {{ background-color: {_backgroundColor}; color: {_foregroundColor}; font-size: 16px; }}
     </style>
-    <meta charset=""utf8""/>
-  </head>
-  <body>
-{text}
-  </body>
-</html>";
+    <meta charset=""utf8""/>";
+        var html = htmlObj.ToString();
 
         if (this._outputNum == 1)
         {
@@ -180,6 +178,30 @@ namespace KmyKeiba.Models.Script
 
       this.Suggestion.Value.Tickets.Clear();
       this.Suggestion.Value.HasTickets.Value = false;
+    }
+  }
+
+  [NoDefaultScriptAccess]
+  public class ScriptHtml
+  {
+    [ScriptMember("head")]
+    public string Head { get; set; } = string.Empty;
+
+    public string DefaultHead { get; set; } = string.Empty;
+
+    public string Body { get; set; } = string.Empty;
+
+    public override string ToString()
+    {
+      return $@"<html lang=""ja"">
+  <head>
+{this.DefaultHead}
+{this.Head}
+  </head>
+  <body>
+{this.Body}
+  </body>
+</html>";
     }
   }
 }
