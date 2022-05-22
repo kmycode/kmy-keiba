@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,14 +15,26 @@ namespace KmyKeiba.Models.Script.NodeJSCompat
     [ScriptMember("open")]
     public Task<NodeJSFileHandle> Open(string path)
     {
+      this.CheckPath(path);
       return Task.FromResult(new NodeJSFileHandle(path));
     }
 
     [ScriptMember("mkdir")]
     public Task Mkdir(string path)
     {
+      this.CheckPath(path);
       Directory.CreateDirectory(path);
       return Task.CompletedTask;
+    }
+
+    private void CheckPath(string path)
+    {
+      var dirName = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location ?? Directory.GetCurrentDirectory()) ?? string.Empty;
+      var dirName2 = Path.GetFullPath(path, Directory.GetCurrentDirectory());
+      if (!dirName2.StartsWith(dirName))
+      {
+        throw new ArgumentException($"スクリプトからは、KMY競馬のexe直下のディレクトリにしかアクセスできません。 KMY競馬exeのあるディレクトリ: {dirName}、要求したディレクトリ: {dirName2}");
+      }
     }
   }
 

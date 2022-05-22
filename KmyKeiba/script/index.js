@@ -14,12 +14,10 @@ import * as fs from 'official/njcompat_fs.js';
   // 類似レース一覧を取得
   const similarRaces = await horses[1].getRiderSimilarRaceHorsesAsync('distance', 300, 0);
 
-  /*
   // ファイルへ書き込み
   const bloodHorses = await horses[1].getBloodNamesAsync();
   const file = await fs.open('test.txt');
   file.writeFileSync(bloodHorses[0]);
-  */
 
   const suggestion = KmyKeiba.getSuggestion();
   suggestion.single(1, [3]);
