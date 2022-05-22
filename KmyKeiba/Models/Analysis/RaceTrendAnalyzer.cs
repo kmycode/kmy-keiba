@@ -43,13 +43,21 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<TimeSpan> SpeedDeviation { get; } = new();
 
-    public ReactiveProperty<ResultOrderGradeMap> FrontRunnersGrade { get; } = new();
+    public ReactiveProperty<double> FrontRunnersPlaceBitsRate { get; } = new();
 
-    public ReactiveProperty<ResultOrderGradeMap> StalkersGrade { get; } = new();
+    public ReactiveProperty<double> StalkersPlaceBitsRate { get; } = new();
 
-    public ReactiveProperty<ResultOrderGradeMap> SotpsGrade { get; } = new();
+    public ReactiveProperty<double> SotpsPlaceBitsRate { get; } = new();
 
-    public ReactiveProperty<ResultOrderGradeMap> SaveRunnersGrade { get; } = new();
+    public ReactiveProperty<double> SaveRunnersPlaceBitsRate { get; } = new();
+
+    public ReactiveProperty<int> FrontRunnersCount { get; } = new();
+
+    public ReactiveProperty<int> StalkersCount { get; } = new();
+
+    public ReactiveProperty<int> SotpsCount { get; } = new();
+
+    public ReactiveProperty<int> SaveRunnersCount { get; } = new();
 
     public ReactiveProperty<double> InsideFramePlaceBitsRate { get; } = new();
 
@@ -97,17 +105,20 @@ namespace KmyKeiba.Models.Analysis
       this.SpeedDeviation.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Deviation * this.Race.Distance);
 
       var horses = source.SelectMany(s => s.TopHorses).Select(h => h.Data);
-      this.FrontRunnersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.FrontRunner).ToArray());
-      this.StalkersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.Stalker).ToArray());
-      this.SotpsGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.Sotp).ToArray());
-      this.SaveRunnersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.SaveRunner).ToArray());
+      this.FrontRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.FrontRunner);
+      this.StalkersCount.Value = runningStyles.Count(s => s == RunningStyle.Stalker);
+      this.SotpsCount.Value = runningStyles.Count(s => s == RunningStyle.Sotp);
+      this.SaveRunnersCount.Value = runningStyles.Count(s => s == RunningStyle.SaveRunner);
+      this.FrontRunnersPlaceBitsRate.Value = source.Count(s => s.TopHorses.Any(h => h.Data.ResultOrder <= 3 && h.Data.RunningStyle == RunningStyle.FrontRunner)) / (double)source.Count;
+      this.StalkersPlaceBitsRate.Value = source.Count(s => s.TopHorses.Any(h => h.Data.ResultOrder <= 3 && h.Data.RunningStyle == RunningStyle.Stalker)) / (double)source.Count;
+      this.SotpsPlaceBitsRate.Value = source.Count(s => s.TopHorses.Any(h => h.Data.ResultOrder <= 3 && h.Data.RunningStyle == RunningStyle.Sotp)) / (double)source.Count;
+      this.SaveRunnersPlaceBitsRate.Value = source.Count(s => s.TopHorses.Any(h => h.Data.ResultOrder <= 3 && h.Data.RunningStyle == RunningStyle.SaveRunner)) / (double)source.Count;
 
       this.RoughMedian.Value = this.RoughPoints.Value.Median;
       this.RoughDeviation.Value = this.RoughPoints.Value.Deviation;
 
-      var placeBitsAllCount = source.SelectMany(s => s.TopHorses).Count(h => h.Data.ResultOrder <= 3);
-      this.InsideFramePlaceBitsRate.Value = source.SelectMany(s => s.TopHorses.Where(h => h.Data.ResultOrder <= 3 && h.Data.Number / (float)s.Data.HorsesCount <= 1 / 3f)).Count() / (double)placeBitsAllCount;
-      this.OutsideFramePlaceBitsRate.Value = source.SelectMany(s => s.TopHorses.Where(h => h.Data.ResultOrder <= 3 && h.Data.Number / (float)s.Data.HorsesCount >= 2 / 3f)).Count() / (double)placeBitsAllCount;
+      this.InsideFramePlaceBitsRate.Value = source.Count(s => s.TopHorses.Any(h => h.Data.ResultOrder <= 3 && h.Data.Number / (float)s.Data.HorsesCount <= 1 / 3f)) / (double)source.Count;
+      this.OutsideFramePlaceBitsRate.Value = source.Count(s => s.TopHorses.Any(h => h.Data.ResultOrder <= 3 && h.Data.Number / (float)s.Data.HorsesCount >= 2 / 3f)) / (double)source.Count;
 
       this.IsAnalyzed.Value = true;
     }

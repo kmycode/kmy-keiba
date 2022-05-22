@@ -250,7 +250,6 @@ namespace KmyKeiba.Models.Analysis
       SameCourse,
 
       [Label("地面")]
-      [ScriptParameterKey("ground")]
       SameGround,
 
       [Label("馬場状態")]
@@ -271,6 +270,9 @@ namespace KmyKeiba.Models.Analysis
 
       [Label("距離")]
       NearDistance,
+
+      [Label("向き")]
+      SameDirection,
 
       [Label("複勝")]
       [GroupName("ResultOrder")]
@@ -346,6 +348,10 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.NearDistance))
       {
         query = query.Where(r => r.Race.Distance / 200 == this.Race.Distance / 200);
+      }
+      if (keys.Contains(Key.SameDirection))
+      {
+        query = query.Where(r => r.Race.TrackCornerDirection == this.Race.TrackCornerDirection);
       }
       if (keys.Contains(Key.SameSeason))
       {

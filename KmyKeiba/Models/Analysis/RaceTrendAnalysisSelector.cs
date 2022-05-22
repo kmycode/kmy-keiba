@@ -56,6 +56,10 @@ namespace KmyKeiba.Models.Analysis
       [Label("距離")]
       [ScriptParameterKey("distance")]
       NearDistance,
+
+      [Label("向き")]
+      [ScriptParameterKey("direction")]
+      SameDirection,
     }
 
     public override string Name => this._subject.DisplayName;
@@ -108,6 +112,10 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.NearDistance))
       {
         query = query.Where(r => r.Distance >= this.Race.Distance - 100 && r.Distance <= this.Race.Distance + 100);
+      }
+      if (keys.Contains(Key.SameDirection))
+      {
+        query = query.Where(r => r.TrackCornerDirection == this.Race.TrackCornerDirection);
       }
       if (keys.Contains(Key.SameMonth))
       {

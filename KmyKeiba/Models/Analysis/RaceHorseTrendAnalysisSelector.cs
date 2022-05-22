@@ -47,6 +47,10 @@ namespace KmyKeiba.Models.Analysis
       [ScriptParameterKey("distance")]
       NearDistance,
 
+      [Label("向き")]
+      [ScriptParameterKey("direction")]
+      SameDirection,
+
       [Label("複勝")]
       [ScriptParameterKey("placebits")]
       [GroupName("ResultOrder")]
@@ -115,6 +119,10 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.NearDistance))
       {
         query = query.Where(r => r.Race.Distance / 200 == this.Race.Distance / 200);
+      }
+      if (keys.Contains(Key.SameDirection))
+      {
+        query = query.Where(r => r.Race.TrackCornerDirection == this.Race.TrackCornerDirection);
       }
       if (keys.Contains(Key.SameSeason))
       {

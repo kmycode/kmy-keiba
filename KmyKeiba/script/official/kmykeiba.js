@@ -298,6 +298,7 @@ Race.prototype.getHorses = function() {
 //             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
 //             month      同じ月
 //             distance   前後100メートルの距離
+//             direction  同じ向き（右、左、直線）
 //   count:  取得最大数
 //   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
 //
@@ -528,6 +529,7 @@ RaceHorse.prototype._getObj = function() {
 //             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
 //             month      同じ月
 //             distance   前後100メートルの距離
+//             direction  同じ向き（右、左、直線）
 //             placebits  上位3着以内
 //             losed      着外
 //   count:  取得最大数
@@ -554,6 +556,7 @@ RaceHorse.prototype.getRiderSimilarRaceHorsesAsync = async function(keys, count,
 //             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
 //             month      同じ月
 //             distance   前後100メートルの距離
+//             direction  同じ向き（右、左、直線）
 //             placebits  上位3着以内
 //             losed      着外
 //   count:  取得最大数
