@@ -79,20 +79,8 @@ namespace KmyKeiba.Models.RList
           if (refund != null)
           {
             var myHorses = horses.Where(h => h.RaceKey == items[i].Key).ToArray();
-            var myTickets = tickets.Where(t => t.RaceKey == items[i].Key).Select(t => TicketItem.FromData(t, myHorses, null));
-            var payoff = new PayoffInfo(refund);
-            payoff.UpdateTicketsData(myTickets.Where(t => t != null).OfType<TicketItem>().ToArray());
-
-            var money = payoff.Income.Value;
-            item.Money.Value = money;
-            if (items[i].StartTime > DateTime.Now)
-            {
-              item.MoneyComparation.Value = ValueComparation.Standard;
-            }
-            else
-            {
-              item.MoneyComparation.Value = money < 0 ? ValueComparation.Bad : money > 0 ? ValueComparation.Good : ValueComparation.Standard;
-            }
+            var myTickets = tickets.Where(t => t.RaceKey == items[i].Key);
+            this.UpdatePayoff(item, myHorses, myTickets, refund);
           }
 
           newItems.Add(item);
@@ -105,11 +93,61 @@ namespace KmyKeiba.Models.RList
       }
     }
 
+    public void UpdatePayoff(string raceKey, int income)
+    {
+      var item = this.Courses.SelectMany(c => c.Races).FirstOrDefault(r => r.Key == raceKey);
+      if (item != null)
+      {
+        item.SetIncome(income);
+      }
+    }
+
+    public async Task UpdatePayoffAsync(string raceKey)
+    {
+      var item = this.Courses.SelectMany(c => c.Races).FirstOrDefault(r => r.Key == raceKey);
+      if (item == null)
+      {
+        return;
+      }
+
+      using var db = new MyContext();
+
+      var horses = await db.RaceHorses!.Where(h => h.RaceKey == raceKey).ToArrayAsync();
+      var tickets = await db.Tickets!.Where(t => t.RaceKey == raceKey).ToArrayAsync();
+      var refund = await db.Refunds!.FirstOrDefaultAsync(r => r.RaceKey == raceKey);
+
+      if (refund != null)
+      {
+        this.UpdatePayoff(item, horses, tickets, refund);
+      }
+    }
+
+    private void UpdatePayoff(RaceListItem item, IReadOnlyList<RaceHorseData> horses, IEnumerable<TicketData> tickets, RefundData refund)
+    {
+      this.UpdatePayoff(item, tickets.Select(t => TicketItem.FromData(t, horses, null)).Where(t => t != null).Select(t => t!), refund);
+    }
+
+    private void UpdatePayoff(RaceListItem item, IEnumerable<TicketItem> tickets, RefundData refund)
+    {
+      var payoff = new PayoffInfo(refund);
+      payoff.UpdateTicketsData(tickets.Where(t => t != null).OfType<TicketItem>().ToArray());
+
+      var money = payoff.Income.Value;
+      item.SetIncome(money);
+      item.UpdateStatus();
+    }
+
     private void Item_Selected(object? sender, EventArgs e)
     {
+      foreach (var selected in this.Courses.SelectMany(c => c.Races).Where(r => r.Status.Value == RaceListItemStatus.Selected))
+      {
+        selected.UpdateStatus();
+      }
+
       if (sender is RaceListItem item)
       {
         this.SelectedRaceKey.Value = item.Key;
+        item.Status.Value = RaceListItemStatus.Selected;
       }
     }
 
@@ -140,6 +178,8 @@ namespace KmyKeiba.Models.RList
     private readonly RaceData _race;
     private readonly RaceSubjectInfo _subject;
 
+    public ReactiveProperty<RaceListItemStatus> Status { get; } = new();
+
     public RaceSubject Subject => this._subject.Subject;
 
     public string Key => this._race.Key;
@@ -169,6 +209,33 @@ namespace KmyKeiba.Models.RList
       this.Selected?.Invoke(this, EventArgs.Empty);
     }
 
+    public void UpdateStatus()
+    {
+      this.Status.Value = this.StartTime > DateTime.Now ? RaceListItemStatus.NotStart : RaceListItemStatus.Finished;
+    }
+
+    public void SetIncome(int money)
+    {
+      this.Money.Value = money;
+
+      if (this.StartTime < DateTime.Now)
+      {
+        this.MoneyComparation.Value = money < 0 ? ValueComparation.Bad : money > 0 ? ValueComparation.Good : ValueComparation.Standard;
+      }
+      else
+      {
+        this.MoneyComparation.Value = ValueComparation.Standard;
+      }
+    }
+
     public event EventHandler? Selected;
+  }
+
+  public enum RaceListItemStatus
+  {
+    Unknown,
+    Selected,
+    NotStart,
+    Finished,
   }
 }

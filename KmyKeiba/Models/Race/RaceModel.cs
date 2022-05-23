@@ -6,6 +6,7 @@ using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -17,6 +18,7 @@ namespace KmyKeiba.Models.Race
   internal class RaceModel : IDisposable
   {
     private readonly CompositeDisposable _disposables = new();
+    private IDisposable? ticketUpdated;
 
     public ReactiveProperty<string> RaceKey { get; } = new(string.Empty);
 
@@ -43,9 +45,18 @@ namespace KmyKeiba.Models.Race
             {
               this.RaceKey.Value = key;
               this.Info.Value?.Dispose();
+              this.ticketUpdated?.Dispose();
 
               var race = await RaceInfo.FromKeyAsync(this.RaceKey.Value);
               this.Info.Value = race;
+
+              if (this.Info.Value?.Payoff != null)
+              {
+                this.ticketUpdated = this.Info.Value.Payoff.Income.Subscribe(income =>
+                {
+                  this.RaceList.UpdatePayoff(race.Data.Key, income);
+                });
+              }
             });
           }
         }

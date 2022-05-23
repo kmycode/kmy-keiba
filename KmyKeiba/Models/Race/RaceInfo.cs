@@ -7,11 +7,13 @@ using KmyKeiba.Models.Image;
 using KmyKeiba.Models.Script;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -107,11 +109,28 @@ namespace KmyKeiba.Models.Race
       });
     }
 
-    public async Task WaitAllSetupsAsync()
+    public async Task WaitHorsesSetupAsync()
     {
       while (!this.Horses.Any())
       {
         await Task.Delay(10);
+      }
+    }
+
+    public void WaitTicketsAndCallback(Action<BettingTicketInfo> callback)
+    {
+      if (this.Tickets.Value != null)
+      {
+        callback(this.Tickets.Value);
+      }
+      else
+      {
+        IDisposable? disposable = null;
+        disposable = this.Tickets.Where(t => t != null).Subscribe(t =>
+        {
+          disposable?.Dispose();
+          callback(t!);
+        }).AddTo(this._disposables);
       }
     }
 
@@ -131,7 +150,7 @@ namespace KmyKeiba.Models.Race
 
     public async Task SetWeatherAsync(string key)
     {
-      await this.WaitAllSetupsAsync();
+      await this.WaitHorsesSetupAsync();
 
       short.TryParse(key, out var value);
 
@@ -146,7 +165,7 @@ namespace KmyKeiba.Models.Race
 
     public async Task SetConditionAsync(string key)
     {
-      await this.WaitAllSetupsAsync();
+      await this.WaitHorsesSetupAsync();
 
       short.TryParse(key, out var value);
 

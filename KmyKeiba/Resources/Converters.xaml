@@ -30,6 +30,7 @@
                          MarkDeleted="{StaticResource MarkDeleted}"/>
   <cv:TicketTypeBackgroundConverter x:Key="TicketTypeBackgroundConv"/>
   <cv:TicketSummaryConverter x:Key="TicketSummaryConv"/>
+  <cv:RaceListItemStatusBackgroundConverter x:Key="RaceListItemStatusBackgroundConv"/>
 
   <cv:BooleanBrushConverter x:Key="BooleanForegroundSubOrBaseConv" TrueBrush="{DynamicResource SubForeground}" FalseBrush="{DynamicResource BaseForeground}"/>
 </ResourceDictionary>
