@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Data;
+using KmyKeiba.Models.Injection;
 using KmyKeiba.Models.Race;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -18,6 +19,8 @@ namespace KmyKeiba.Models.Analysis
 {
   public class RaceHorseAnalyzer : IDisposable
   {
+    private static ITimeDeviationValueCalculator? timeDeviationValueCalculator = InjectionManager.GetInstance<ITimeDeviationValueCalculator>(InjectionManager.TimeDeviationValueCalculator);
+
     public static RaceHorseAnalyzer Empty { get; } = new(new RaceData(), new RaceHorseData());
 
     public RaceData Race { get; }
@@ -289,10 +292,10 @@ namespace KmyKeiba.Models.Analysis
     public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData? raceStandardTime)
       : this(race, horse)
     {
-      if (raceStandardTime != null && raceStandardTime.SampleCount > 0)
+      if (raceStandardTime != null && raceStandardTime.SampleCount > 0 && timeDeviationValueCalculator != null)
       {
-        this.ResultTimeDeviationValue = 100 - StatisticSingleArray.CalcDeviationValue(this.ResultTimePerMeter, raceStandardTime.Average, raceStandardTime.Deviation);
-        this.A3HResultTimeDeviationValue = 100 - StatisticSingleArray.CalcDeviationValue(horse.AfterThirdHalongTime.TotalSeconds, raceStandardTime.A3FAverage, raceStandardTime.A3FDeviation);
+        this.ResultTimeDeviationValue = timeDeviationValueCalculator.GetTimeDeviationValue(race, horse, raceStandardTime);
+        this.A3HResultTimeDeviationValue = timeDeviationValueCalculator.GetA3HTimeDeviationValue(race, horse, raceStandardTime);
       }
     }
 
