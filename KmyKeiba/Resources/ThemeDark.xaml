@@ -71,4 +71,8 @@
   <SolidColorBrush x:Key="TrioTicketBackground" Color="#007515"/>
   <SolidColorBrush x:Key="TrifectaTicketBackground" Color="#a57400"/>
 
+  <SolidColorBrush x:Key="RaceTimelineItemBackground" Color="#515157"/>
+  <SolidColorBrush x:Key="RaceTimelineItemHoverBackground" Color="#73737a"/>
+  <SolidColorBrush x:Key="RaceTimelineFinishedItemBackground" Color="#303f45"/>
+
 </ResourceDictionary>

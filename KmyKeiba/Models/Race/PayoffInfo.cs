@@ -126,20 +126,15 @@ namespace KmyKeiba.Models.Race
         dele => tickets.Tickets.CollectionChanged -= dele)
       .Subscribe(_ =>
       {
-        this.UpdateTicketsData();
+        this.UpdateTicketsData(this._tickets.Tickets);
       }).AddTo(this._ticketsDisposables);
 
-      this.UpdateTicketsData();
+      this.UpdateTicketsData(this._tickets.Tickets);
     }
 
-    private void UpdateTicketsData()
+    public void UpdateTicketsData(IEnumerable<TicketItem> tickets)
     {
-      if (this._tickets == null)
-      {
-        return;
-      }
-
-      var hits = this._tickets.Tickets.SelectMany(t => t
+      var hits = tickets.SelectMany(t => t
         .GetHitRows(this.Payoff.Trifecta1Number1, this.Payoff.Trifecta2Number1, this.Payoff.Trifecta3Number1, this.Payoff.Frame1Number1, this.Payoff.Frame2Number1)
         .Concat(t.GetHitRows(this.Payoff.Trifecta1Number2, this.Payoff.Trifecta2Number2, this.Payoff.Trifecta3Number2, this.Payoff.Frame1Number2, this.Payoff.Frame2Number2))
         .Concat(t.GetHitRows(this.Payoff.Trifecta1Number3, this.Payoff.Trifecta2Number3, this.Payoff.Trifecta3Number3, this.Payoff.Frame1Number3, this.Payoff.Frame2Number3))
@@ -193,9 +188,9 @@ namespace KmyKeiba.Models.Race
 
       var paySum = 0;
       var hitSum = 0;
-      if (this._tickets.Tickets.Any())
+      if (tickets.Any())
       {
-        paySum = this._tickets.Tickets.Sum(t => t.Count.Value * 100);
+        paySum = tickets.Sum(t => t.Count.Value * 100);
       }
       if (itemCollections.Any(i => i.IsHit.Value))
       {

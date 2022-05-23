@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.RList;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,8 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<RaceInfo?> Race => this.model.Info;
 
+    public RaceList RaceList => this.model.RaceList;
+
     public ReactiveProperty<bool> IsLoaded => this.model.IsLoaded;
 
     public MainViewModel()
@@ -28,12 +31,7 @@ namespace KmyKeiba.ViewModels
       ThemeUtil.Current = ApplicationTheme.Dark;
     }
 
-    /*
-    public ICommand UpdateRaceTrendAnalysisCommand =>
-      this._updateRaceTrendAnalysisCommand ??=
-        new ReactiveCommand().WithSubscribe(() => this.model.BeginUpdateRaceTrendAnalysis());
-    private ReactiveCommand? _updateRaceTrendAnalysisCommand;
-    */
+    #region RaceDetail
 
     public ICommand ChangeActiveHorseCommand =>
       this._changeHorseNumberCommand ??=
@@ -121,6 +119,8 @@ namespace KmyKeiba.ViewModels
       this._approveReplacingScriptTicketsCommand ??=
         new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Script.ApproveReplacingTicketsAsync() ?? Task.CompletedTask);
     private AsyncReactiveCommand<object>? _approveReplacingScriptTicketsCommand;
+
+    #endregion
 
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;

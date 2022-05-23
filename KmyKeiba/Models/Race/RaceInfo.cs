@@ -173,8 +173,10 @@ namespace KmyKeiba.Models.Race
       this.Payoff?.Dispose();
     }
 
-    public static async Task<RaceInfo?> FromKeyAsync(MyContext db, string key)
+    public static async Task<RaceInfo?> FromKeyAsync(string key)
     {
+      using var db = new MyContext();
+
       var race = await db.Races!.FirstOrDefaultAsync(r => r.Key == key);
       if (race == null)
       {
@@ -188,11 +190,13 @@ namespace KmyKeiba.Models.Race
         payoffInfo = new PayoffInfo(payoff);
       }
 
-      return await FromDataAsync(db, race, payoffInfo);
+      return await FromDataAsync(race, payoffInfo);
     }
 
-    public static Task<RaceInfo> FromDataAsync(MyContext db, RaceData race, PayoffInfo? payoff)
+    public static Task<RaceInfo> FromDataAsync(RaceData race, PayoffInfo? payoff)
     {
+      var db = new MyContext();
+
       var info = new RaceInfo(race, payoff);
 
       AddCorner(info.Corners, race.Corner1Result, race.Corner1Number, race.Corner1Position, race.Corner1LapTime);
@@ -298,6 +302,10 @@ namespace KmyKeiba.Models.Race
         catch
         {
           // TODO log
+        }
+        finally
+        {
+          db.Dispose();
         }
       });
 

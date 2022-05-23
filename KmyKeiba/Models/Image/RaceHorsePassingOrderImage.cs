@@ -197,6 +197,7 @@ namespace KmyKeiba.Models.Image
 
       if (this._bitmap != null)
       {
+        canvas.Clear();
         canvas.DrawBitmap(this._bitmap, 0, 0);
       }
     }

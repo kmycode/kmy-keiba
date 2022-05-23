@@ -72,6 +72,22 @@ namespace KmyKeiba.Views.Parts
       this.Children.Add(this.subBorder);
       this.Children.Add(this.textBlock);
       this.Update();
+
+      this.LayoutUpdated += (_, _) =>
+      {
+        if (this.Subject?.SecondaryClass != null)
+        {
+          this.subBorder.Background = this.GetBrush(this.Subject.SecondaryClass);
+          var height = !double.IsNaN(this.Height) ? this.Height : 0;
+          var actualHeight = !double.IsNaN(this.ActualHeight) ? this.ActualHeight : 0;
+          var size = Math.Max(Math.Max(height, actualHeight) / 2, 3);
+          this.subBorder.Height = size;
+        }
+        else
+        {
+          this.subBorder.Background = this.GetBrush(string.Empty);
+        }
+      };
     }
 
     private void Update()

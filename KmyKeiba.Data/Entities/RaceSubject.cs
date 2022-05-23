@@ -108,7 +108,7 @@ namespace KmyKeiba.JVLink.Entities
 
             if (className != null)
             {
-              if (max.Level > 0)
+              if (max != null && max.Level > 0)
               {
                 return className.Name + max.Level;
               }

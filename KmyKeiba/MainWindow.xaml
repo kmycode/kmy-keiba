@@ -8,9 +8,15 @@
         xmlns:b="clr-namespace:KmyKeiba.Behaviors"
         xmlns:local="clr-namespace:KmyKeiba"
         xmlns:uc="clr-namespace:KmyKeiba.Views.Details"
+        xmlns:um="clr-namespace:KmyKeiba.Views.Main"
         mc:Ignorable="d"
-        Title="KMY競馬" MinHeight="740" MinWidth="1300" Height="720" Width="1300">
+        Title="KMY競馬" MinHeight="740" MinWidth="1300" Height="1000" Width="1700">
   <Grid Style="{DynamicResource WindowTopPanel}">
-    <uc:RaceView Race="{Binding Race.Value}"/>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="auto"/>
+      <ColumnDefinition/>
+    </Grid.ColumnDefinitions>
+    <um:RaceListView RaceList="{Binding RaceList}"/>
+    <uc:RaceView Grid.Column="1" Race="{Binding Race.Value}"/>
   </Grid>
 </Window>

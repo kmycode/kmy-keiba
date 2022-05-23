@@ -89,37 +89,10 @@ namespace KmyKeiba.Models.Race
 
       foreach (var ticket in existTickets)
       {
-        if (ticket.Type == TicketType.Single)
+        var item = TicketItem.FromData(ticket, this._horses, odds);
+        if (item != null)
         {
-          this.Tickets.Add(new SingleTicketItem(ticket, odds));
-        }
-        else if (ticket.Type == TicketType.Place)
-        {
-          this.Tickets.Add(new PlaceTicketItem(ticket, odds));
-        }
-        else if (ticket.Type == TicketType.FrameNumber)
-        {
-          this.Tickets.Add(new FrameNumberTicketItem(ticket, odds, this._horses));
-        }
-        else if (ticket.Type == TicketType.QuinellaPlace)
-        {
-          this.Tickets.Add(new QuinellaPlaceTicketItem(ticket, odds, this._horses.Count));
-        }
-        else if (ticket.Type == TicketType.Quinella)
-        {
-          this.Tickets.Add(new QuinellaTicketItem(ticket, odds));
-        }
-        else if (ticket.Type == TicketType.Exacta)
-        {
-          this.Tickets.Add(new ExactaTicketItem(ticket, odds));
-        }
-        else if (ticket.Type == TicketType.Trio)
-        {
-          this.Tickets.Add(new TrioTicketItem(ticket, odds));
-        }
-        else if (ticket.Type == TicketType.Trifecta)
-        {
-          this.Tickets.Add(new TrifectaTicketItem(ticket, odds));
+          this.Tickets.Add(item);
         }
       }
 
@@ -944,6 +917,46 @@ namespace KmyKeiba.Models.Race
     {
       this.Rows.Dispose();
     }
+
+    public static TicketItem? FromData(TicketData ticket, IReadOnlyList<RaceHorseData> horses, OddsInfo? odds)
+    {
+      odds ??= new OddsInfo(horses, null, null, null, null, null, null);
+
+      if (ticket.Type == TicketType.Single)
+      {
+        return new SingleTicketItem(ticket, odds);
+      }
+      else if (ticket.Type == TicketType.Place)
+      {
+        return new PlaceTicketItem(ticket, odds);
+      }
+      else if (ticket.Type == TicketType.FrameNumber)
+      {
+        return new FrameNumberTicketItem(ticket, odds, horses);
+      }
+      else if (ticket.Type == TicketType.QuinellaPlace)
+      {
+        return new QuinellaPlaceTicketItem(ticket, odds, horses.Count);
+      }
+      else if (ticket.Type == TicketType.Quinella)
+      {
+        return new QuinellaTicketItem(ticket, odds);
+      }
+      else if (ticket.Type == TicketType.Exacta)
+      {
+        return new ExactaTicketItem(ticket, odds);
+      }
+      else if (ticket.Type == TicketType.Trio)
+      {
+        return new TrioTicketItem(ticket, odds);
+      }
+      else if (ticket.Type == TicketType.Trifecta)
+      {
+        return new TrifectaTicketItem(ticket, odds);
+      }
+
+      return null;
+    }
   }
 
   public class SingleTicketItem : TicketItem
@@ -992,7 +1005,7 @@ namespace KmyKeiba.Models.Race
   {
     public PlaceTicketItem(TicketData data, OddsInfo odds) : base(data)
     {
-      if (odds.Singles.Value != null)
+      if (odds.Singles.Value != null && odds.Singles.Value.Any())
       {
         this.SetRows(data.Numbers1
           .Join(odds.Singles.Value, n => n, o => o.Number1, (n, o) => new { Number = n, Odds = o.PlaceOddsMin, OddsMax = o.PlaceOddsMax, })
