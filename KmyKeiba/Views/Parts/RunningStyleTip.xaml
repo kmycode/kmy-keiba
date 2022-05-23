@@ -6,7 +6,7 @@
              xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:b="clr-namespace:KmyKeiba.Behaviors"
-             xmlns:uc="clr-namespace:KmyKeiba.Views.Controls"
+             xmlns:uc="clr-namespace:KmyKeiba.Views.Details"
              xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
              xmlns:local="clr-namespace:KmyKeiba.Views.Parts"
              mc:Ignorable="d" 

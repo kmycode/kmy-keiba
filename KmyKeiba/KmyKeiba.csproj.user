@@ -7,28 +7,28 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Views\Controls\RaceCornerView.xaml.cs">
+    <Compile Update="Views\Details\RaceCornerView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Controls\RaceExpectAllView.xaml.cs">
+    <Compile Update="Views\Details\RaceExpectAllView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Controls\RaceExpectHorseView.xaml.cs">
+    <Compile Update="Views\Details\RaceExpectHorseView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Controls\RaceResultAllView.xaml.cs">
+    <Compile Update="Views\Details\RaceResultAllView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Controls\RaceSummaryView.xaml.cs">
+    <Compile Update="Views\Details\RaceSummaryView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Controls\RaceView.xaml.cs">
+    <Compile Update="Views\Details\RaceView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Controls\TrendAnalyzerAnalysisView.xaml.cs">
+    <Compile Update="Views\Details\TrendAnalyzerAnalysisView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Controls\TrendAnalyzerView.xaml.cs">
+    <Compile Update="Views\Details\TrendAnalyzerView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\ListItems\RaceHorsePillar.xaml.cs">
@@ -63,28 +63,28 @@
     <Page Update="Resources\ThemeDark.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Controls\RaceCornerView.xaml">
+    <Page Update="Views\Details\RaceCornerView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Controls\RaceExpectAllView.xaml">
+    <Page Update="Views\Details\RaceExpectAllView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Controls\RaceExpectHorseView.xaml">
+    <Page Update="Views\Details\RaceExpectHorseView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Controls\RaceResultAllView.xaml">
+    <Page Update="Views\Details\RaceResultAllView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Controls\RaceSummaryView.xaml">
+    <Page Update="Views\Details\RaceSummaryView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Controls\RaceView.xaml">
+    <Page Update="Views\Details\RaceView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Controls\TrendAnalyzerAnalysisView.xaml">
+    <Page Update="Views\Details\TrendAnalyzerAnalysisView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Controls\TrendAnalyzerView.xaml">
+    <Page Update="Views\Details\TrendAnalyzerView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\ListItems\RaceHorsePillar.xaml">

@@ -15,7 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace KmyKeiba.Views.Controls
+namespace KmyKeiba.Views.Details
 {
   /// <summary>
   /// TrendAnalyzerView.xaml の相互作用ロジック

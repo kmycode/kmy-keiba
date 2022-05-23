@@ -14,31 +14,27 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace KmyKeiba.Views.Controls
+namespace KmyKeiba.Views.Details
 {
   /// <summary>
-  /// RaceView.xaml の相互作用ロジック
+  /// RaceCornerView.xaml の相互作用ロジック
   /// </summary>
-  public partial class RaceView : UserControl
+  public partial class RaceCornerView : UserControl
   {
-    public static readonly DependencyProperty RaceProperty
+    public static readonly DependencyProperty RaceCornerProperty
     = DependencyProperty.Register(
-        nameof(Race),
-        typeof(RaceInfo),
-        typeof(RaceView),
+        nameof(RaceCorner),
+        typeof(RaceCorner),
+        typeof(RaceCornerView),
         new PropertyMetadata(null));
 
-    public RaceInfo? Race
+    public RaceCorner? RaceCorner
     {
-      get { return (RaceInfo)GetValue(RaceProperty); }
-      set { SetValue(RaceProperty, value); }
+      get { return (RaceCorner)GetValue(RaceCornerProperty); }
+      set { SetValue(RaceCornerProperty, value); }
     }
 
-    public Guid UniqueId { get; } = Guid.NewGuid();
-
-    public Guid UniqueId2 { get; } = Guid.NewGuid();
-
-    public RaceView()
+    public RaceCornerView()
     {
       InitializeComponent();
     }

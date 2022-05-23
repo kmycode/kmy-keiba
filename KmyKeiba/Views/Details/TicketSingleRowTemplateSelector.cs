@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace KmyKeiba.Views.Controls
+namespace KmyKeiba.Views.Details
 {
   internal class TicketSingleRowTemplateSelector : DataTemplateSelector
   {

@@ -1,5 +1,4 @@
 ﻿using KmyKeiba.Models.Analysis;
-using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Race;
 using System;
 using System.Collections.Generic;
@@ -16,18 +15,18 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace KmyKeiba.Views.Controls
+namespace KmyKeiba.Views.Details
 {
   /// <summary>
-  /// TrendAnalyzerAnalysisView.xaml の相互作用ロジック
+  /// RaceExpectHorseView.xaml の相互作用ロジック
   /// </summary>
-  public partial class TrendAnalyzerAnalysisView : UserControl
+  public partial class RaceExpectHorseView : UserControl
   {
     public static readonly DependencyProperty RaceProperty
     = DependencyProperty.Register(
         nameof(Race),
         typeof(RaceInfo),
-        typeof(TrendAnalyzerAnalysisView),
+        typeof(RaceExpectHorseView),
         new PropertyMetadata(null));
 
     public RaceInfo? Race
@@ -40,7 +39,7 @@ namespace KmyKeiba.Views.Controls
     = DependencyProperty.Register(
         nameof(RaceHorse),
         typeof(RaceHorseAnalyzer),
-        typeof(TrendAnalyzerAnalysisView),
+        typeof(RaceExpectHorseView),
         new PropertyMetadata(null));
 
     public RaceHorseAnalyzer? RaceHorse
@@ -49,33 +48,11 @@ namespace KmyKeiba.Views.Controls
       set { SetValue(RaceHorseProperty, value); }
     }
 
-    public static readonly DependencyProperty TrendAnalyzersProperty
-    = DependencyProperty.Register(
-        nameof(TrendAnalyzers),
-        typeof(ITrendAnalysisSelector),
-        typeof(TrendAnalyzerAnalysisView),
-        new PropertyMetadata(null));
+    public Guid UniqueId { get; } = Guid.NewGuid();
 
-    public ITrendAnalysisSelector? TrendAnalyzers
-    {
-      get { return (ITrendAnalysisSelector)GetValue(TrendAnalyzersProperty); }
-      set { SetValue(TrendAnalyzersProperty, value); }
-    }
+    public Guid UniqueId2 { get; } = Guid.NewGuid();
 
-    public static readonly DependencyProperty MenuContentProperty
-    = DependencyProperty.Register(
-        nameof(MenuContent),
-        typeof(object),
-        typeof(TrendAnalyzerAnalysisView),
-        new PropertyMetadata(null));
-
-    public object? MenuContent
-    {
-      get { return GetValue(MenuContentProperty); }
-      set { SetValue(MenuContentProperty, value); }
-    }
-
-    public TrendAnalyzerAnalysisView()
+    public RaceExpectHorseView()
     {
       InitializeComponent();
     }
