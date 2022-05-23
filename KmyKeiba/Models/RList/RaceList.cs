@@ -72,8 +72,8 @@ namespace KmyKeiba.Models.RList
           item.NextRaceStartTime.Value = nextItem?.StartTime ?? DateTime.MinValue;
           item.PrevRaceStartTime.Value = prevItem?.StartTime ?? DateTime.MinValue;
 
-          item.ViewTop.Value = ((prevItem?.StartTime.TimeOfDay.TotalMinutes ?? (items[i].StartTime.TimeOfDay.TotalMinutes - 50)) - Definitions.RaceTimelineStartHour * 60)
-            * Definitions.RaceTimelineHeightPerMinutes + 4;
+          item.ViewTop.Value = ((prevItem?.StartTime.TimeOfDay.TotalMinutes ?? (items[i].StartTime.TimeOfDay.TotalMinutes - 40)) - Definitions.RaceTimelineStartHour * 60)
+            * Definitions.RaceTimelineHeightPerMinutes;
 
           var refund = payoffs.FirstOrDefault(r => r.RaceKey == items[i].Key);
           if (refund != null)

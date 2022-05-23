@@ -16,8 +16,6 @@ namespace KmyKeiba.Models.Race
 {
   internal class RaceModel : IDisposable
   {
-    //private const string defaultRaceKey = "2020072844070111";    // 地方
-    private const string defaultRaceKey = "2020032807010710";    // 中央
     private readonly CompositeDisposable _disposables = new();
 
     public ReactiveProperty<string> RaceKey { get; } = new(string.Empty);
@@ -34,8 +32,6 @@ namespace KmyKeiba.Models.Race
         .Select(i => i != null)
         .ToReactiveProperty()
         .AddTo(this._disposables);
-
-      this.RaceKey.Value = defaultRaceKey;
 
       this.RaceList.SelectedRaceKey.Subscribe(key =>
       {

@@ -112,7 +112,7 @@
             </Grid>
           </Popup>
         </Grid>
-        <Grid Grid.Column="3" Margin="8,0,0,0" Width="40">
+        <Grid Grid.Column="3" Margin="8,0,0,0" Width="45">
           <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition/>

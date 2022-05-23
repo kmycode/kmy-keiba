@@ -26,7 +26,7 @@
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition Width="auto"/>
-          <ColumnDefinition/>
+          <ColumnDefinition Width="auto"/>
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
@@ -40,9 +40,7 @@
             <Run Text="{Binding Race.Data.CourseRaceNumber,ElementName=Root}"/>R
           </TextBlock>
         </Border>
-        <TextBlock Grid.Column="2" Text="{Binding Race.Name,ElementName=Root}" FontSize="26" FontWeight="Bold"
-                   VerticalAlignment="Center" Margin="8,0,0,0"/>
-        <StackPanel Grid.Column="3" VerticalAlignment="Center">
+        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="8,0,0,0" Width="40">
           <up:CourseSimpleImageView Race="{Binding Race.Data,ElementName=Root}" HorizontalAlignment="Center" Height="18">
             <FrameworkElement.LayoutTransform>
               <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
@@ -51,10 +49,12 @@
           <TextBlock Text="{Binding Race.Data.Distance,ElementName=Root}" HorizontalAlignment="Center"
                      FontSize="14" Height="18"/>
         </StackPanel>
-        <TextBlock Grid.Column="4" FontSize="16" TextAlignment="Center" Margin="16,0,8,0" VerticalAlignment="Center">
+        <TextBlock Grid.Column="3" FontSize="16" TextAlignment="Center" Margin="16,0,8,0" VerticalAlignment="Center" Width="40">
           <Run Text="{Binding Race.Weather.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/><LineBreak/>
           <Run Text="{Binding Race.Condition.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
         </TextBlock>
+        <TextBlock Grid.Column="4" Text="{Binding Race.Name,ElementName=Root}" FontSize="28" FontWeight="Bold"
+                   VerticalAlignment="Center" Margin="24,0,0,0"/>
       </Grid>
 
       <!-- ここまでヘッダ -->
@@ -119,8 +119,14 @@
           </RadioButton>
 
           <RadioButton FontSize="18" Content="全体" Margin="0,12,0,0" GroupName="{Binding UniqueId,ElementName=Root}"
-                       Style="{StaticResource InnerToggleButtonDefault}" Name="S_All" IsChecked="True"
-                       Visibility="{Binding IsChecked,ElementName=S_Predict,Converter={StaticResource BooleanVisibilityConv}}"/>
+                       Style="{StaticResource InnerToggleButtonDefault}" Name="S_All" IsChecked="True">
+            <Control.Visibility>
+              <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                <Binding Path="IsChecked" ElementName="S_Predict"/>
+                <Binding Path="Race.HasHorses.Value" ElementName="Root"/>
+              </MultiBinding>
+            </Control.Visibility>
+          </RadioButton>
           <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}"
                         Visibility="{Binding IsChecked,ElementName=S_Predict,Converter={StaticResource BooleanVisibilityConv}}">
             <ItemsControl.ItemsPanel>
@@ -155,8 +161,9 @@
         <!-- レース概要 -->
         <uc:RaceSummaryView Race="{Binding Race,ElementName=Root}" Grid.Column="1">
           <Control.Visibility>
-            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
               <Binding Path="IsChecked" ElementName="S_Summary"/>
+              <Binding Path="Race.HasHorses.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
             </MultiBinding>
           </Control.Visibility>
         </uc:RaceSummaryView>
@@ -167,6 +174,7 @@
             <MultiBinding Converter="{StaticResource MultiBooleanConv}">
               <Binding Path="IsChecked" ElementName="S_Predict"/>
               <Binding Path="IsChecked" ElementName="S_All"/>
+              <Binding Path="Race.HasHorses.Value" ElementName="Root"/>
             </MultiBinding>
           </Control.Visibility>
         </uc:RaceExpectAllView>
@@ -177,6 +185,7 @@
             <MultiBinding Converter="{StaticResource MultiBooleanConv}">
               <Binding Path="IsChecked" ElementName="S_Predict"/>
               <Binding Path="IsChecked" ElementName="S_All" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="Race.HasHorses.Value" ElementName="Root"/>
             </MultiBinding>
           </Control.Visibility>
         </uc:RaceExpectHorseView>
@@ -186,6 +195,7 @@
           <Control.Visibility>
             <MultiBinding Converter="{StaticResource MultiBooleanConv}">
               <Binding Path="IsChecked" ElementName="S_Result"/>
+              <Binding Path="Race.HasResults.Value" ElementName="Root"/>
             </MultiBinding>
           </Control.Visibility>
         </uc:RaceResultAllView>

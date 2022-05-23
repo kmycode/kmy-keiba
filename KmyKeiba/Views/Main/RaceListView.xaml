@@ -22,7 +22,7 @@
     </Grid>
     
     <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto">
-      <ItemsControl ItemsSource="{Binding RaceList.Courses,ElementName=Root}">
+      <ItemsControl ItemsSource="{Binding RaceList.Courses,ElementName=Root}" Width="300">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <StackPanel Orientation="Horizontal"/>

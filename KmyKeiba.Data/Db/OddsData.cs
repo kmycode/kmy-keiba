@@ -597,14 +597,14 @@ namespace KmyKeiba.Data.Db
             {
               break;
             }
-            var value = (this.Odds[i] << 24) + (this.Odds[i + 1] << 16) + (this.Odds[i + 2] << 8) + this.Odds[i + 3];
+            var value = ((uint)this.Odds[i] << 24) + ((uint)this.Odds[i + 1] << 16) + ((uint)this.Odds[i + 2] << 8) + (uint)this.Odds[i + 3];
             i += 4;
             list.Add(new TrifectaOdds.OddsData
             {
               HorseNumber1 = (short)f1,
               HorseNumber2 = (short)f2,
               HorseNumber3 = (short)f3,
-              Odds = (uint)value,
+              Odds = value,
             });
           }
         }

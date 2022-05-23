@@ -58,11 +58,11 @@ namespace KmyKeiba.Views.Parts
         if (this.Race.PrevRaceStartTime.Value != DateTime.MinValue)
         {
           var timeLength = this.Race.StartTime - this.Race.PrevRaceStartTime.Value;
-          this.TopChild.Height = timeLength.TotalMinutes * Definitions.RaceTimelineHeightPerMinutes - 4;
+          this.TopChild.Height = timeLength.TotalMinutes * Definitions.RaceTimelineHeightPerMinutes;
         }
         else
         {
-          this.TopChild.Height = Definitions.RaceTimelineHeightPerMinutes * 50 - 4;
+          this.TopChild.Height = Definitions.RaceTimelineHeightPerMinutes * 40;
         }
       }
     }

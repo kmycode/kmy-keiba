@@ -109,10 +109,11 @@ namespace KmyKeiba.Views.Parts
         var actualHeight = !double.IsNaN(this.ActualHeight) ? this.ActualHeight : 0;
         var size = Math.Max(Math.Max(height, actualHeight) / 2, 3);
         this.subBorder.Height = size;
+        this.subBorder.Visibility = Visibility.Visible;
       }
       else
       {
-        this.subBorder.Background = this.GetBrush(string.Empty);
+        this.subBorder.Visibility = Visibility.Collapsed;
       }
     }
 

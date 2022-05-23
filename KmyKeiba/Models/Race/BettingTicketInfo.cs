@@ -7,6 +7,7 @@ using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -33,7 +34,7 @@ namespace KmyKeiba.Models.Race
 
     public MultipleCheckableCollection<BettingFrameItem> FrameNumbers2 { get; }
 
-    public ReactiveCollection<TicketItem> Tickets { get; } = new();
+    public TicketItemCollection Tickets { get; } = new();
 
     public ReactiveProperty<string> Count { get; } = new("1");
 
@@ -199,6 +200,7 @@ namespace KmyKeiba.Models.Race
     public void Dispose()
     {
       this._disposables.Dispose();
+      this.Tickets.Dispose();
     }
 
     public void SetType(string str)
@@ -696,8 +698,60 @@ namespace KmyKeiba.Models.Race
     }
   }
 
+  public class TicketItemCollection : ObservableItemCollection<TicketItem>, IDisposable
+  {
+    private readonly CompositeDisposable _disposables = new();
+    private readonly Dictionary<TicketItem, List<IDisposable>> _disposableItems = new();
+
+    public TicketItemCollection()
+    {
+      this.NewItemObservable.Subscribe(i =>
+      {
+        this._disposableItems.TryGetValue(i, out var list);
+        if (list == null)
+        {
+          list = new();
+          this._disposableItems.Add(i, list);
+        }
+
+        var d = i.Count.Subscribe(c =>
+        {
+          this.TicketCountChanged?.Invoke(this, EventArgs.Empty);
+        });
+        list.Add(d);
+      }).AddTo(this._disposables);
+
+      this.OldItemObservable.Subscribe(i =>
+      {
+        this._disposableItems.TryGetValue(i, out var list);
+        if (list != null)
+        {
+          foreach (var disposable in list)
+          {
+            disposable.Dispose();
+          }
+          this._disposableItems.Remove(i);
+        }
+      });
+    }
+
+    public new void Dispose()
+    {
+      base.Dispose();
+      this._disposables.Dispose();
+      foreach (var disposable in this._disposableItems.SelectMany(i => i.Value))
+      {
+        disposable.Dispose();
+      }
+    }
+
+    public event EventHandler? TicketCountChanged;
+  }
+
   public abstract class TicketItem : IComparable<TicketItem>, IDisposable
   {
+    private readonly CompositeDisposable _disposables = new();
+
     public TicketData Data { get; }
 
     public MultipleCheckableCollection<TicketItemRow> Rows { get; private set; } = new();
@@ -728,6 +782,14 @@ namespace KmyKeiba.Models.Race
     {
       this.Data = data;
       this.Count.Value = data.Count;
+
+      this.Count.Subscribe(c =>
+      {
+        foreach (var row in this.Rows)
+        {
+          row.DataCount = c;
+        }
+      }).AddTo(this._disposables);
     }
 
     protected void SetRows(IReadOnlyList<TicketItemRow> rows)
@@ -737,6 +799,7 @@ namespace KmyKeiba.Models.Race
         row.Type = this.Data.Type;
         row.IsSingleRow = rows.Count == 1;
         row.IsAllRowsChecked = this.IsAllRowsChecked;
+        row.DataCount = this.Data.Count;
         this.Rows.Add(row);
       }
 
@@ -792,11 +855,7 @@ namespace KmyKeiba.Models.Race
 
     protected abstract TicketItem GenerateNewItem(TicketData data, int money, int moneyMax);
 
-    public virtual IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2, short frame3 = default)
-    {
-      var rows = this.Rows.Where(r => r.Number1 == num1 && (num2 == default || r.Number2 == num2) && (num3 == default || r.Number3 == num3));
-      return rows.ToArray();
-    }
+    public abstract IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2);
 
     protected static IReadOnlyList<(byte, byte, byte)> GetFormationNumbers(byte[] num1, byte[]? num2, byte[]? num3, bool isOrder, bool canSameNumber, bool isMulti)
     {
@@ -916,6 +975,7 @@ namespace KmyKeiba.Models.Race
     public void Dispose()
     {
       this.Rows.Dispose();
+      this._disposables.Dispose();
     }
 
     public static TicketItem? FromData(TicketData ticket, IReadOnlyList<RaceHorseData> horses, OddsInfo? odds)
@@ -999,6 +1059,12 @@ namespace KmyKeiba.Models.Race
       data.Type = TicketType.Single;
       return new SingleTicketItem(data, money);
     }
+
+    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2)
+    {
+      var rows = this.Rows.Where(r => r.Number1 == num1);
+      return rows.ToArray();
+    }
   }
 
   public class PlaceTicketItem : TicketItem
@@ -1044,7 +1110,7 @@ namespace KmyKeiba.Models.Race
       return new PlaceTicketItem(data, money, moneyMax);
     }
 
-    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2, short frame3)
+    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2)
     {
       var rows = this.Rows.Where(r => r.Number1 == num1 || r.Number1 == num2 || r.Number1 == num3);
       return rows.ToArray();
@@ -1124,9 +1190,9 @@ namespace KmyKeiba.Models.Race
       return new FrameNumberTicketItem(data, money);
     }
 
-    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2, short frame3)
+    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2)
     {
-      var rows = this.Rows.Where(r => r.Number1 == frame1 && (frame2 == default || r.Number2 == frame2) && (frame3 == default || r.Number3 == frame3));
+      var rows = this.Rows.Where(r => r.Number1 == frame1 && (frame2 == default || r.Number2 == frame2));
       return rows.ToArray();
     }
   }
@@ -1189,7 +1255,7 @@ namespace KmyKeiba.Models.Race
       return new QuinellaPlaceTicketItem(data, money, moneyMax, this._isUnder7);
     }
 
-    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2, short frame3)
+    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2)
     {
       if (this._isUnder7)
       {
@@ -1261,7 +1327,7 @@ namespace KmyKeiba.Models.Race
       return new QuinellaTicketItem(data, money, moneyMax);
     }
 
-    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2, short frame3)
+    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2)
     {
       var rows = this.Rows.Where(r => (r.Number1 == num1 && r.Number2 == num2) ||
                                       (r.Number1 == num2 && r.Number2 == num1));
@@ -1318,6 +1384,12 @@ namespace KmyKeiba.Models.Race
     {
       data.Type = TicketType.Exacta;
       return new ExactaTicketItem(data, money);
+    }
+
+    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2)
+    {
+      var rows = this.Rows.Where(r => r.Number1 == num1 && r.Number2 == num2);
+      return rows.ToArray();
     }
   }
 
@@ -1381,7 +1453,7 @@ namespace KmyKeiba.Models.Race
       return new TrioTicketItem(data, money);
     }
 
-    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2, short frame3)
+    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2)
     {
       var rows = this.Rows.Where(r => (r.Number1 == num1 && r.Number2 == num2 && r.Number3 == num3) ||
                                       (r.Number1 == num1 && r.Number2 == num3 && r.Number3 == num2) ||
@@ -1453,7 +1525,7 @@ namespace KmyKeiba.Models.Race
       return new TrifectaTicketItem(data, money);
     }
 
-    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2, short frame3)
+    public override IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2)
     {
       var rows = this.Rows.Where(r => (r.Number1 == num1 && r.Number2 == num2 && r.Number3 == num3));
       return rows.ToArray();
@@ -1479,6 +1551,8 @@ namespace KmyKeiba.Models.Race
     public int MoneyMax { get; init; }
 
     public ReactiveProperty<int>? Count => null;  // xamlバインディング用
+
+    public int DataCount { get; set; }
 
     public ReactiveProperty<bool> IsChecked { get; } = new();
 

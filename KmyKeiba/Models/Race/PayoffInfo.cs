@@ -129,6 +129,15 @@ namespace KmyKeiba.Models.Race
         this.UpdateTicketsData(this._tickets.Tickets);
       }).AddTo(this._ticketsDisposables);
 
+      Observable.FromEvent<EventHandler, EventArgs>(
+        h => (s, e) => h(e),
+        dele => tickets.Tickets.TicketCountChanged += dele,
+        dele => tickets.Tickets.TicketCountChanged -= dele)
+      .Subscribe(_ =>
+      {
+        this.UpdateTicketsData(this._tickets.Tickets);
+      }).AddTo(this._ticketsDisposables);
+
       this.UpdateTicketsData(this._tickets.Tickets);
     }
 
@@ -144,35 +153,51 @@ namespace KmyKeiba.Models.Race
         ).ToArray();
       foreach (var item in this.Singles)
       {
-        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Type == TicketType.Single);
+        var hit = hits.Where(h => h.Number1 == item.Number1 && h.Type == TicketType.Single);
+        item.IsHit.Value = hit.Any();
+        item.Count.Value = hit.Any() ? hit.Sum(h => h.DataCount) : 0;
       }
       foreach (var item in this.Places)
       {
-        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Type == TicketType.Place);
+        var hit = hits.Where(h => h.Number1 == item.Number1 && h.Type == TicketType.Place);
+        item.IsHit.Value = hit.Any();
+        item.Count.Value = hit.Any() ? hit.Sum(h => h.DataCount) : 0;
       }
       foreach (var item in this.Frames)
       {
-        item.IsHit.Value = hits.Any(h => h.Number1 == item.Frame1 && h.Number2 == item.Frame2 && h.Type == TicketType.FrameNumber);
+        var hit = hits.Where(h => h.Number1 == item.Frame1 && h.Number2 == item.Frame2 && h.Type == TicketType.FrameNumber);
+        item.IsHit.Value = hit.Any();
+        item.Count.Value = hit.Any() ? hit.Sum(h => h.DataCount) : 0;
       }
       foreach (var item in this.QuinellaPlaces)
       {
-        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Type == TicketType.QuinellaPlace);
+        var hit = hits.Where(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Type == TicketType.QuinellaPlace);
+        item.IsHit.Value = hit.Any();
+        item.Count.Value = hit.Any() ? hit.Sum(h => h.DataCount) : 0;
       }
       foreach (var item in this.Quinellas)
       {
-        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Type == TicketType.Quinella);
+        var hit = hits.Where(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Type == TicketType.Quinella);
+        item.IsHit.Value = hit.Any();
+        item.Count.Value = hit.Any() ? hit.Sum(h => h.DataCount) : 0;
       }
       foreach (var item in this.Exactas)
       {
-        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Type == TicketType.Exacta);
+        var hit = hits.Where(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Type == TicketType.Exacta);
+        item.IsHit.Value = hit.Any();
+        item.Count.Value = hit.Any() ? hit.Sum(h => h.DataCount) : 0;
       }
       foreach (var item in this.Trios)
       {
-        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Number3 == item.Number3 && h.Type == TicketType.Trio);
+        var hit = hits.Where(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Number3 == item.Number3 && h.Type == TicketType.Trio);
+        item.IsHit.Value = hit.Any();
+        item.Count.Value = hit.Any() ? hit.Sum(h => h.DataCount) : 0;
       }
       foreach (var item in this.Trifectas)
       {
-        item.IsHit.Value = hits.Any(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Number3 == item.Number3 && h.Type == TicketType.Trifecta);
+        var hit = hits.Where(h => h.Number1 == item.Number1 && h.Number2 == item.Number2 && h.Number3 == item.Number3 && h.Type == TicketType.Trifecta);
+        item.IsHit.Value = hit.Any();
+        item.Count.Value = hit.Any() ? hit.Sum(h => h.DataCount) : 0;
       }
       this.Singles.UpdateMoneySum();
       this.Places.UpdateMoneySum();
@@ -190,11 +215,11 @@ namespace KmyKeiba.Models.Race
       var hitSum = 0;
       if (tickets.Any())
       {
-        paySum = tickets.Sum(t => t.Count.Value * 100);
+        paySum = tickets.Sum(t => t.Count.Value * t.Rows.Count * 100);
       }
       if (itemCollections.Any(i => i.IsHit.Value))
       {
-        hitSum = itemCollections.Where(i => i.IsHit.Value).Sum(i => i.Money);
+        hitSum = itemCollections.Where(i => i.IsHit.Value).Sum(i => i.Count.Value * i.Money);
       }
       this.PayMoneySum.Value = paySum;
       this.HitMoneySum.Value = hitSum;
@@ -211,6 +236,8 @@ namespace KmyKeiba.Models.Race
   public abstract class PayoffItem
   {
     public int Money { get; init; }
+
+    public ReactiveProperty<int> Count { get; } = new();
 
     public ReactiveProperty<bool> IsHit { get; } = new();
 
@@ -282,7 +309,7 @@ namespace KmyKeiba.Models.Race
       var hits = this.Where(i => i.IsHit.Value);
       if (hits.Any())
       {
-        this.HitMoneySum.Value = hits.Sum(i => i.Money);
+        this.HitMoneySum.Value = hits.Sum(i => i.Money * i.Count.Value);
       }
       else
       {

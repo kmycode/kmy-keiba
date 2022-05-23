@@ -21,8 +21,9 @@
     <StackPanel>
       <up:RaceSubjectIcon Subject="{Binding Race.Subject,ElementName=Root}" FontSize="10" Opacity="0.7"/>
       <TextBlock Text="{Binding Race.Money.Value,ElementName=Root}" TextAlignment="Right" Margin="8,0" FontWeight="Bold"
-                Foreground="{Binding Race.MoneyComparation.Value,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
-                Visibility="{Binding Race.Money.Value,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+                 Foreground="{Binding Race.MoneyComparation.Value,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
+                 Visibility="{Binding Race.Money.Value,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"
+                 IsHitTestVisible="False"/>
     </StackPanel>
   </Grid>
 </UserControl>
