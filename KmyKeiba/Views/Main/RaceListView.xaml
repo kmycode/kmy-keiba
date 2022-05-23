@@ -17,8 +17,23 @@
     </Grid.Resources>
 
     <Grid>
-      <TextBlock FontSize="24" Text="{Binding RaceList.Date.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
-                 Margin="4,8" HorizontalAlignment="Center"/>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition/>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="auto"/>
+      </Grid.ColumnDefinitions>
+      <Button Content="＜" Command="{Binding MoveToPrevDayCommand}"/>
+      <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Center">
+        <TextBlock FontSize="24" Text="{Binding RaceList.Date.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
+                   Margin="4,8" HorizontalAlignment="Center"/>
+        <ToggleButton Grid.Column="2" Name="CalendarButton" Width="50" Height="30" Content="選択" Padding="0" Margin="8,0,8,0" FontSize="16"/>
+        <Popup PlacementTarget="{Binding ElementName=CalendarButton}" Placement="Bottom" IsOpen="{Binding IsChecked,ElementName=CalendarButton}"
+               StaysOpen="False">
+          <Calendar SelectedDate="{Binding RaceList.Date.Value,Mode=TwoWay,ElementName=Root}"/>
+        </Popup>
+      </StackPanel>
+      <Button Content="＞" Grid.Column="3" Command="{Binding MoveToNextDayCommand}"/>
     </Grid>
     
     <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto">

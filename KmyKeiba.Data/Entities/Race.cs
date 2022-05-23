@@ -301,7 +301,7 @@ namespace KmyKeiba.JVLink.Entities
     /// <summary>
     /// 中止
     /// </summary>
-    Aborted = 9,
+    Canceled = 9,
 
     /// <summary>
     /// 地方競馬
@@ -339,9 +339,6 @@ namespace KmyKeiba.JVLink.Entities
 
   public enum RaceCourse : short
   {
-    LocalMinValue = 30,
-    CentralMaxValue = 29,
-
     [RaceCourseInfo(RaceCourseType.Central, "不明")]
     Unknown = 0,
 
@@ -625,6 +622,8 @@ namespace KmyKeiba.JVLink.Entities
 バーレーン
     */
 
+    LocalMinValue = 30,
+    CentralMaxValue = 29,
   }
 
   public enum TrackGround : short

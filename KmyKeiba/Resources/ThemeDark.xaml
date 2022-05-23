@@ -76,5 +76,6 @@
   <SolidColorBrush x:Key="RaceTimelineSelectedItemBackground" Color="#a3ad40"/>
   <SolidColorBrush x:Key="RaceTimelineNotStartItemBackground" Color="#515157"/>
   <SolidColorBrush x:Key="RaceTimelineFinishedItemBackground" Color="#202020"/>
+  <SolidColorBrush x:Key="RaceTimelineCanceledItemBackground" Color="#7d4f5d"/>
 
 </ResourceDictionary>

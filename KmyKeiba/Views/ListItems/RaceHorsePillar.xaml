@@ -172,6 +172,14 @@
             <up:RaceResultOrderGradeRow Header="方向" FontSize="12" Grade="{Binding Horse.History.SameDirectionGrade,ElementName=Root}"/>
             <up:RaceResultOrderGradeRow Header="馬場" FontSize="12" Grade="{Binding Horse.History.SameConditionGrade,ElementName=Root}"/>
           </StackPanel>
+          <StackPanel Width="60" Margin="8,0,0,0">
+            <TextBlock Text="T偏差値" Foreground="{DynamicResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding Horse.History.TimeDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"/>
+          </StackPanel>
+          <StackPanel Width="60">
+            <TextBlock Text="A3H偏" Foreground="{DynamicResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding Horse.History.A3HTimeDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"/>
+          </StackPanel>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Column="8" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
           <TextBlock Text="{Binding Horse.Data.ResultTime,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}"

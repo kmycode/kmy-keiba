@@ -87,7 +87,7 @@ namespace KmyKeiba.Models.Analysis
     protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceTrendAnalyzer analyzer, int count, int offset)
     {
       var query = db.Races!
-        .Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Aborted && r.TrackType == this.Race.TrackType);
+        .Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
 
       if (keys.Contains(Key.SameCourse))
       {

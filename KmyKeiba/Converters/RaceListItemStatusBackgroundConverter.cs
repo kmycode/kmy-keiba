@@ -17,6 +17,7 @@ namespace KmyKeiba.Converters
     private static readonly Brush? _selected = ResourceUtil.TryGetResource<Brush>("RaceTimelineSelectedItemBackground");
     private static readonly Brush? _notStart = ResourceUtil.TryGetResource<Brush>("RaceTimelineNotStartItemBackground");
     private static readonly Brush? _finished = ResourceUtil.TryGetResource<Brush>("RaceTimelineFinishedItemBackground");
+    private static readonly Brush? _canceled = ResourceUtil.TryGetResource<Brush>("RaceTimelineCanceledItemBackground");
 
     public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
@@ -27,6 +28,7 @@ namespace KmyKeiba.Converters
           RaceListItemStatus.NotStart => _notStart,
           RaceListItemStatus.Finished => _finished,
           RaceListItemStatus.Selected => _selected,
+          RaceListItemStatus.Canceled => _canceled,
           _ => _default,
         };
       }

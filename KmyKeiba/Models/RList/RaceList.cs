@@ -6,6 +6,7 @@ using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,15 @@ namespace KmyKeiba.Models.RList
     public ReactiveProperty<RaceCourseItem?> CurrentCourse { get; } = new();
 
     public ReactiveProperty<string?> SelectedRaceKey { get; } = new();
+
+    public RaceList()
+    {
+      this.Date.Subscribe(async _ =>
+      {
+        this.Courses.Clear();
+        await this.UpdateListAsync();
+      }).AddTo(this._disposables);
+    }
 
     public async Task UpdateListAsync()
     {
@@ -59,7 +69,7 @@ namespace KmyKeiba.Models.RList
           this.Courses.AddOnScheduler(course);
         }
 
-        course.Races.Clear();
+        course.Races.ClearOnScheduler();
         var items = group.ToArray();
         var newItems = new List<RaceListItem>();
         for (var i = 0; i < items.Length; i++)
@@ -83,6 +93,7 @@ namespace KmyKeiba.Models.RList
             this.UpdatePayoff(item, myHorses, myTickets, refund);
           }
 
+          item.UpdateStatus();
           newItems.Add(item);
         }
 
@@ -151,6 +162,16 @@ namespace KmyKeiba.Models.RList
       }
     }
 
+    public void MoveToNextDay()
+    {
+      this.Date.Value = this.Date.Value.AddDays(1);
+    }
+
+    public void MoveToPrevDay()
+    {
+      this.Date.Value = this.Date.Value.AddDays(-1);
+    }
+
     public void Dispose()
     {
       this._disposables.Dispose();
@@ -211,7 +232,14 @@ namespace KmyKeiba.Models.RList
 
     public void UpdateStatus()
     {
-      this.Status.Value = this.StartTime > DateTime.Now ? RaceListItemStatus.NotStart : RaceListItemStatus.Finished;
+      if (this._race.DataStatus == RaceDataStatus.Canceled)
+      {
+        this.Status.Value = RaceListItemStatus.Canceled;
+      }
+      else
+      {
+        this.Status.Value = this.StartTime > DateTime.Now ? RaceListItemStatus.NotStart : RaceListItemStatus.Finished;
+      }
     }
 
     public void SetIncome(int money)
@@ -237,5 +265,6 @@ namespace KmyKeiba.Models.RList
     Selected,
     NotStart,
     Finished,
+    Canceled,
   }
 }

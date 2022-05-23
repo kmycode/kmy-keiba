@@ -38,7 +38,7 @@ namespace KmyKeiba.Data.DataObjects
 
     private void ReadData()
     {
-      this.IsCanceled.Value = this.Data.DataStatus == RaceDataStatus.Aborted;
+      this.IsCanceled.Value = this.Data.DataStatus == RaceDataStatus.Canceled;
 
       this.Subject.Value = RaceSubject.Parse(this.Data.SubjectName);
 

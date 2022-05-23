@@ -52,9 +52,12 @@ namespace KmyKeiba.Models.Race
 
               if (this.Info.Value?.Payoff != null)
               {
-                this.ticketUpdated = this.Info.Value.Payoff.Income.Subscribe(income =>
+                this.ticketUpdated = this.Info.Value.Payoff.Income.SkipWhile(i => i == 0).Subscribe(income =>
                 {
-                  this.RaceList.UpdatePayoff(race.Data.Key, income);
+                  if (race != null)
+                  {
+                    this.RaceList.UpdatePayoff(race.Data.Key, income);
+                  }
                 });
               }
             });

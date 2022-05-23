@@ -31,6 +31,16 @@ namespace KmyKeiba.ViewModels
       ThemeUtil.Current = ApplicationTheme.Dark;
     }
 
+    public ICommand MoveToNextDayCommand =>
+      this._moveToNextDayCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.model.RaceList.MoveToNextDay());
+    private ReactiveCommand? _moveToNextDayCommand;
+
+    public ICommand MoveToPrevDayCommand =>
+      this._moveToPrevDayCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.model.RaceList.MoveToPrevDay());
+    private ReactiveCommand? _moveToPrevDayCommand;
+
     #region RaceDetail
 
     public ICommand ChangeActiveHorseCommand =>

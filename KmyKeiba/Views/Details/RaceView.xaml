@@ -29,6 +29,7 @@
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition Width="auto"/>
+          <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
         <up:RaceSubjectIcon Subject="{Binding Race.Subject.Subject,ElementName=Root}"
                             FontSize="32" Width="120"/>
@@ -40,7 +41,11 @@
             <Run Text="{Binding Race.Data.CourseRaceNumber,ElementName=Root}"/>R
           </TextBlock>
         </Border>
-        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="8,0,0,0" Width="40">
+        <Border Grid.Column="2" Width="120" Visibility="{Binding Race.IsCanceled,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                Background="{DynamicResource BadBackground}">
+          <TextBlock Text="中止" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"/>
+        </Border>
+        <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="8,0,0,0" Width="40">
           <up:CourseSimpleImageView Race="{Binding Race.Data,ElementName=Root}" HorizontalAlignment="Center" Height="18">
             <FrameworkElement.LayoutTransform>
               <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
@@ -49,11 +54,11 @@
           <TextBlock Text="{Binding Race.Data.Distance,ElementName=Root}" HorizontalAlignment="Center"
                      FontSize="14" Height="18"/>
         </StackPanel>
-        <TextBlock Grid.Column="3" FontSize="16" TextAlignment="Center" Margin="16,0,8,0" VerticalAlignment="Center" Width="40">
+        <TextBlock Grid.Column="4" FontSize="16" TextAlignment="Center" Margin="16,0,8,0" VerticalAlignment="Center" Width="40">
           <Run Text="{Binding Race.Weather.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/><LineBreak/>
           <Run Text="{Binding Race.Condition.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
         </TextBlock>
-        <TextBlock Grid.Column="4" Text="{Binding Race.Name,ElementName=Root}" FontSize="28" FontWeight="Bold"
+        <TextBlock Grid.Column="5" Text="{Binding Race.Name,ElementName=Root}" FontSize="28" FontWeight="Bold"
                    VerticalAlignment="Center" Margin="24,0,0,0"/>
       </Grid>
 
@@ -117,6 +122,10 @@
               </Style>
             </ToggleButton.Style>
           </RadioButton>
+          <Border Visibility="{Binding Race.IsCanceled,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                  Margin="0,16" Height="56" Background="{DynamicResource BadBackground}">
+            <TextBlock Text="中止" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"/>
+          </Border>
 
           <RadioButton FontSize="18" Content="全体" Margin="0,12,0,0" GroupName="{Binding UniqueId,ElementName=Root}"
                        Style="{StaticResource InnerToggleButtonDefault}" Name="S_All" IsChecked="True">
