@@ -22,7 +22,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KmyKeiba.Downloader", "KmyK
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KmyKeiba", "KmyKeiba\KmyKeiba.csproj", "{F84FCA84-B68C-4CF3-94E2-48E65050FE37}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "KmyKeiba.Shared", "KmyKeiba.Shared\KmyKeiba.Shared.shproj", "{485AC3AA-2254-4152-BF00-41A9AA418BFC}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		KmyKeiba.Shared\KmyKeiba.Shared.projitems*{485ac3aa-2254-4152-bf00-41a9aa418bfc}*SharedItemsImports = 13
+		KmyKeiba.Shared\KmyKeiba.Shared.projitems*{696e5de9-5b60-468e-b128-e197c0727ec9}*SharedItemsImports = 5
+		KmyKeiba.Shared\KmyKeiba.Shared.projitems*{f84fca84-b68c-4cf3-94e2-48e65050fe37}*SharedItemsImports = 5
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86

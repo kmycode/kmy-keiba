@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -30,5 +31,7 @@
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="cd $(ProjectDir)..\&#xD;&#xA;xcopy &quot;dist\x86\$(Configuration)&quot; &quot;dist\x64\$(Configuration)\downloader&quot; /e /i /y" />
   </Target>
+
+  <Import Project="..\KmyKeiba.Shared\KmyKeiba.Shared.projitems" Label="Shared" />
 
 </Project>

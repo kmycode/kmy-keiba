@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Shared;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -14,10 +15,8 @@ namespace KmyKeiba.Downloader
     {
       //this.ConnectionString = "server=localhost;database=kmykeiba;uid=root;pwd=takaki;";
 
-      var path = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "KMYsofts", "KMYKeiba");
-      Directory.CreateDirectory(path);
-      this.ConnectionString = "Data Source=" + Path.Combine(path, "maindata.sqlite3");
+      Directory.CreateDirectory(Constrants.AppDataPath);
+      this.ConnectionString = "Data Source=" + Constrants.DatabasePath;
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

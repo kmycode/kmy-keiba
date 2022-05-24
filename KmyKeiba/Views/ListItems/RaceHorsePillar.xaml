@@ -203,7 +203,7 @@
         </Grid.ColumnDefinitions>
 
         <Border Width="40" Height="64" VerticalAlignment="Top">
-          <StackPanel VerticalAlignment="Center">
+          <StackPanel VerticalAlignment="Center" Visibility="{Binding Horse.Data.PreviousRaceDays,ElementName=Root,Converter={StaticResource NonMinusVisibilityConv}}">
             <Polygon Points="8,0 8,20 0,10" Fill="{DynamicResource ThinSubForeground}" StrokeThickness="0"
                      HorizontalAlignment="Center"/>
             <TextBlock Text="{Binding Horse.Data.PreviousRaceDays,ElementName=Root}" FontSize="14" TextAlignment="Center"/>
@@ -254,12 +254,14 @@
                 </StackPanel>
                 
                 <!--前走日数-->
-                <StackPanel Width="40" VerticalAlignment="Center">
-                  <Polygon Points="8,0 8,20 0,10" Fill="{DynamicResource ThinSubForeground}" StrokeThickness="0"
-                           HorizontalAlignment="Center"/>
-                  <TextBlock Text="{Binding Data.PreviousRaceDays}" FontSize="14" TextAlignment="Center"
-                             Foreground="{DynamicResource SubForeground}"/>
-                </StackPanel>
+                <Border Width="40">
+                  <StackPanel Width="40" VerticalAlignment="Center" Visibility="{Binding Data.PreviousRaceDays,Converter={StaticResource NonMinusVisibilityConv}}">
+                    <Polygon Points="8,0 8,20 0,10" Fill="{DynamicResource ThinSubForeground}" StrokeThickness="0"
+                             HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding Data.PreviousRaceDays}" FontSize="14" TextAlignment="Center"
+                               Foreground="{DynamicResource SubForeground}"/>
+                  </StackPanel>
+                </Border>
               </StackPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>

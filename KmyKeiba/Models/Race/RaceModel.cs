@@ -28,6 +28,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<bool> IsLoaded { get; }
 
+    public ReactiveProperty<bool> IsFirstLoadStarted { get; } = new();
+
     public RaceModel()
     {
       this.IsLoaded = this.Info
@@ -43,6 +45,8 @@ namespace KmyKeiba.Models.Race
           {
             Task.Run(async () =>
             {
+              this.IsFirstLoadStarted.Value = true;
+
               this.RaceKey.Value = key;
               this.Info.Value?.Dispose();
               this.ticketUpdated?.Dispose();

@@ -127,6 +127,7 @@
             <TextBlock Text="中止" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"/>
           </Border>
 
+          <!--馬番号表示-->
           <RadioButton FontSize="18" Content="全体" Margin="0,12,0,0" GroupName="{Binding UniqueId,ElementName=Root}"
                        Style="{StaticResource InnerToggleButtonDefault}" Name="S_All" IsChecked="True">
             <Control.Visibility>
@@ -150,7 +151,7 @@
                              GroupName="{Binding UniqueId,ElementName=Root}">
                   <Border>
                     <StackPanel Orientation="Horizontal">
-                      <TextBlock FontSize="20" Text="{Binding Data.Number}"/>
+                      <TextBlock FontSize="20" Text="{Binding Data.Number}" Width="30" TextAlignment="Right" Margin="0,0,4,0"/>
                       <ContentControl Template="{Binding Mark.Value,Converter={StaticResource HorseMarkConv}}">
                         <ContentControl.RenderTransform>
                           <TransformGroup>
@@ -211,7 +212,13 @@
       </Grid>
     </Grid>
 
-    <Grid Visibility="{Binding IsLoaded.Value,Converter={StaticResource NegativeVisibilityConv}}">
+    <Grid>
+      <Grid.Visibility>
+        <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+          <Binding Path="IsLoaded.Value" Converter="{StaticResource NegativeConv}"/>
+          <Binding Path="IsFirstRaceLoadStarted.Value"/>
+        </MultiBinding>
+      </Grid.Visibility>
       <Border>
         <TextBlock FontSize="32" Style="{StaticResource SubTextBlock}" Text="ロード中です。しばらくお待ちください..."
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>

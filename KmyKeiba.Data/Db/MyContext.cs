@@ -55,6 +55,8 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<TicketData>? Tickets { get; set; }
 
+    public DbSet<DownloaderTaskData>? DownloaderTasks { get; set; }
+
     #endregion
 
     private IDbContextTransaction? _transaction;

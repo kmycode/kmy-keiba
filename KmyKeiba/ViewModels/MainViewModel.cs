@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Models.RList;
 using Reactive.Bindings;
@@ -18,6 +19,7 @@ namespace KmyKeiba.ViewModels
   internal class MainViewModel : INotifyPropertyChanged
   {
     private readonly RaceModel model = new();
+    private readonly DownloaderModel downloader = new();
 
     public ReactiveProperty<RaceInfo?> Race => this.model.Info;
 
@@ -25,10 +27,29 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<bool> IsLoaded => this.model.IsLoaded;
 
+    public ReactiveProperty<bool> IsInitializationError => this.downloader.IsInitializationError;
+
+    public ReactiveProperty<string> DownloaderErrorMessage => this.downloader.ErrorMessage;
+
+    public ReactiveProperty<bool> IsInitialized => this.downloader.IsInitialized;
+
+    public ReactiveProperty<bool> IsFirstRaceLoadStarted => this.model.IsFirstLoadStarted;
+
+    public OpenDialogRequest Dialog { get; } = new();
+
     public MainViewModel()
     {
       // TODO: いずれModelにうつす
       ThemeUtil.Current = ApplicationTheme.Dark;
+
+      Task.Run(async () =>
+      {
+        var isFirst = await this.downloader.InitializeAsync();
+        if (isFirst)
+        {
+          // TODO: 初期設定画面を開く
+        }
+      });
     }
 
     public ICommand MoveToNextDayCommand =>

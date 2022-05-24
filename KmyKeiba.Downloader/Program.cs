@@ -4,6 +4,7 @@ using KmyKeiba.Downloader.Math;
 using KmyKeiba.Downloader.Models;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
+using KmyKeiba.Shared;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -24,38 +25,80 @@ namespace KmyKeiba.Downloader
     public static void Main(string[] args)
     {
       selfPath = Assembly.GetEntryAssembly()?.Location.Replace("Downloader.dll", "Downloader.exe") ?? string.Empty;
-      var startIndex = args.ElementAtOrDefault(0)?.Contains("Downloader.") == true ? 1 : 0;
-      if (args.Length >= 1 + startIndex)
-      {
-        _ = int.TryParse(args[0 + startIndex], out loadStartYear);
-      }
-      if (args.Length >= 2 + startIndex)
-      {
-        _ = int.TryParse(args[1 + startIndex], out loadStartMonth);
-      }
-      if (args.Length >= 3 + startIndex)
-      {
-        _ = int.TryParse(args[2 + startIndex], out beforeProcessNumber);
-        try
-        {
-          if (beforeProcessNumber != 0)
-          {
-            Process.GetProcessById(beforeProcessNumber)?.Kill();
-          }
-        }
-        catch
-        {
-          // 切り捨てる
-        }
-      }
 
       // マイグレーション
-      Task.Run(async () =>
+      var isDbError = false;
+      Exception? dbError = null;
+      try
       {
+        Task.Run(async () =>
+        {
+          using var db = new MyContext();
+          db.Database.SetCommandTimeout(1200);
+          await db.Database.MigrateAsync();
+        }).Wait();
+      }
+      catch (Exception ex)
+      {
+        // TODO: logs
+        isDbError = true;
+        dbError = ex;
+      }
+
+      var command = string.Empty;
+      if (args.Length >= 1)
+      {
+        command = args[0];
+      }
+
+      if (command == DownloaderCommand.Initialization.GetCommandText())
+      {
+        var version = args[1];
+
+        // さっきのマイグレーションでやることは全部終わってるので、ここでアプリ終了
         using var db = new MyContext();
-        db.Database.SetCommandTimeout(1200);
-        await db.Database.MigrateAsync();
-      }).Wait();
+        db.DownloaderTasks!.Add(new DownloaderTaskData
+        {
+          Command = DownloaderCommand.Initialization,
+          IsFinished = true,
+          Error = version != Constrants.ApplicationVersion ? DownloaderError.InvalidVersion : DownloaderError.Succeed,
+          Result = dbError?.Message ?? string.Empty,
+        });
+        db.SaveChanges();
+        return;
+      }
+      else
+      {
+        var startIndex = args.ElementAtOrDefault(0)?.Contains("Downloader.") == true ? 1 : 0;
+        if (args.Length >= 1 + startIndex)
+        {
+          _ = int.TryParse(args[0 + startIndex], out loadStartYear);
+        }
+        if (args.Length >= 2 + startIndex)
+        {
+          _ = int.TryParse(args[1 + startIndex], out loadStartMonth);
+        }
+        if (args.Length >= 3 + startIndex)
+        {
+          _ = int.TryParse(args[2 + startIndex], out beforeProcessNumber);
+          try
+          {
+            if (beforeProcessNumber != 0)
+            {
+              Process.GetProcessById(beforeProcessNumber)?.Kill();
+            }
+          }
+          catch
+          {
+            // 切り捨てる
+            // TODO: log
+          }
+        }
+
+        StartLoad();
+      }
+
+
 
       StartLoad();
 
