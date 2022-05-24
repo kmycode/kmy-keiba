@@ -277,6 +277,26 @@ namespace KmyKeiba.Models.Race
               BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
             });
           }
+          {
+            // タイム指数の相対評価
+            var timedvMax = horseInfos.Where(i => (i.History?.TimeDeviationValue ?? default) != default).OrderByDescending(i => i.History?.TimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.TimeDeviationValue;
+            var timedvMin = horseInfos.Where(i => (i.History?.TimeDeviationValue ?? default) != default).OrderBy(i => i.History?.TimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.TimeDeviationValue;
+            var a3htimedvMax = horseInfos.Where(i => (i.History?.A3HTimeDeviationValue ?? default) != default).OrderByDescending(i => i.History?.A3HTimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.A3HTimeDeviationValue;
+            var a3htimedvMin = horseInfos.Where(i => (i.History?.A3HTimeDeviationValue ?? default) != default).OrderBy(i => i.History?.A3HTimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.A3HTimeDeviationValue;
+            foreach (var horse in horseInfos)
+            {
+              if (horse.History != null && timedvMax != null && timedvMin != null)
+              {
+                horse.History.TimeDVComparation = horse.History.TimeDeviationValue + 2 >= timedvMax ? ValueComparation.Good :
+                  horse.History.TimeDeviationValue - 2 <= timedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+              }
+              if (horse.History != null && a3htimedvMax != null && a3htimedvMin != null)
+              {
+                horse.History.A3HTimeDVComparation = horse.History.A3HTimeDeviationValue + 2 >= a3htimedvMax ? ValueComparation.Good :
+                  horse.History.A3HTimeDeviationValue - 2 <= a3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+              }
+            }
+          }
           info.SetHorsesDelay(horseInfos, standardTime);
 
           // オッズ

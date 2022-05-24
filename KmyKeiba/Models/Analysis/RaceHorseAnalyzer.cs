@@ -105,6 +105,10 @@ namespace KmyKeiba.Models.Analysis
       /// </summary>
       public double TimeDeviationValue { get; }
 
+      public ValueComparation TimeDVComparation { get; set; }
+
+      public ValueComparation A3HTimeDVComparation { get; set; }
+
       /// <summary>
       /// 距離適性
       /// </summary>

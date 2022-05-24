@@ -150,7 +150,7 @@ namespace KmyKeiba.Models.Race
         .Concat(t.GetHitRows(this.Payoff.Trifecta1Number4, this.Payoff.Trifecta2Number4, this.Payoff.Trifecta3Number4, this.Payoff.Frame1Number3, this.Payoff.Frame2Number3))
         .Concat(t.GetHitRows(this.Payoff.Trifecta1Number5, this.Payoff.Trifecta2Number5, this.Payoff.Trifecta3Number5, this.Payoff.Frame1Number3, this.Payoff.Frame2Number3))
         .Concat(t.GetHitRows(this.Payoff.Trifecta1Number6, this.Payoff.Trifecta2Number6, this.Payoff.Trifecta3Number6, this.Payoff.Frame1Number3, this.Payoff.Frame2Number3))
-        ).ToArray();
+        ).Distinct().ToArray();
       foreach (var item in this.Singles)
       {
         var hit = hits.Where(h => h.Number1 == item.Number1 && h.Type == TicketType.Single);
