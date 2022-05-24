@@ -9,32 +9,43 @@
         xmlns:local="clr-namespace:KmyKeiba"
         xmlns:uc="clr-namespace:KmyKeiba.Views.Details"
         xmlns:um="clr-namespace:KmyKeiba.Views.Main"
+        xmlns:ud="clr-namespace:KmyKeiba.Views.Dialogs"
         mc:Ignorable="d"
         Title="KMY競馬" MinHeight="740" MinWidth="1300" Height="1000" Width="1700">
   <i:Interaction.Behaviors>
     <b:OpenDialogBehavior Controller="{Binding Dialog}"/>
   </i:Interaction.Behaviors>
   <Grid Style="{DynamicResource WindowTopPanel}">
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="auto"/>
-      <ColumnDefinition/>
-    </Grid.ColumnDefinitions>
-    <Grid Grid.Column="1">
+    <Grid>
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition/>
       </Grid.ColumnDefinitions>
-      <um:RaceListView MinWidth="300" RaceList="{Binding RaceList}"/>
-      <uc:RaceView Grid.Column="1" Race="{Binding Race.Value}"/>
+      <Grid Grid.Column="1">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <um:RaceListView MinWidth="300" RaceList="{Binding RaceList}"/>
+        <uc:RaceView Grid.Column="1" Race="{Binding Race.Value}"/>
+      </Grid>
+
+      <Border Grid.ColumnSpan="2" Background="{DynamicResource BaseBackground}" Visibility="{Binding IsInitialized.Value,Converter={StaticResource NegativeVisibilityConv}}">
+        <TextBlock FontSize="48" Text="初期化しています。しばらくお待ちください..." Foreground="{DynamicResource SubForeground}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      </Border>
+      <Border Grid.ColumnSpan="2" Background="{DynamicResource BaseBackground}" Visibility="{Binding IsInitializationError.Value,Converter={StaticResource BooleanVisibilityConv}}">
+        <TextBlock FontSize="48" Text="{Binding DownloaderErrorMessage.Value}" Foreground="{DynamicResource ErrorForeground}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      </Border>
     </Grid>
 
-    <Border Grid.ColumnSpan="2" Background="{DynamicResource BaseBackground}" Visibility="{Binding IsInitializationError.Value,Converter={StaticResource BooleanVisibilityConv}}">
-      <TextBlock FontSize="48" Text="{Binding DownloaderErrorMessage.Value}" Foreground="{DynamicResource ErrorForeground}"
-                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
-    </Border>
-    <Border Grid.ColumnSpan="2" Background="{DynamicResource BaseBackground}" Visibility="{Binding IsInitialized.Value,Converter={StaticResource NegativeVisibilityConv}}">
-      <TextBlock FontSize="48" Text="初期化しています。しばらくお待ちください..." Foreground="{DynamicResource SubForeground}"
-                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
-    </Border>
+    <Grid Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=Download}">
+      <Border Background="Black" Opacity="0.5"/>
+      <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="2"
+              Padding="24,8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <ud:DownloadDialog/>
+      </Border>
+    </Grid>
   </Grid>
 </Window>

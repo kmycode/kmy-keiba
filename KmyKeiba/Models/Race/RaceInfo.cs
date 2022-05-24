@@ -31,6 +31,10 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<bool> HasHorses { get; } = new();
 
+    public ReactiveProperty<bool> IsLoadCompleted { get; } = new();
+
+    public ReactiveProperty<bool> IsLoadError { get; } = new();
+
     public bool CanChangeWeathers { get; }
 
     public bool IsCanceled => this.Data.DataStatus == RaceDataStatus.Canceled;
@@ -339,10 +343,14 @@ namespace KmyKeiba.Models.Race
           {
             await info.Script.UpdateAsync();
           });
+
+          info.IsLoadCompleted.Value = true;
         }
         catch
         {
           // TODO log
+          info.IsLoadError.Value = true;
+          info.IsLoadCompleted.Value = true;
         }
         finally
         {

@@ -15,11 +15,7 @@ namespace KmyKeiba.Downloader
   internal class Program
   {
     private static string selfPath = string.Empty;
-    private static int loadStartYear;
-    private static int loadStartMonth;
-    private static int loadingYear;
-    private static int loadingMonth;
-    private static int beforeProcessNumber;
+    private static DownloaderTaskData? currentTask;
 
     [STAThread]
     public static void Main(string[] args)
@@ -57,30 +53,22 @@ namespace KmyKeiba.Downloader
 
         // さっきのマイグレーションでやることは全部終わってるので、ここでアプリ終了
         using var db = new MyContext();
-        db.DownloaderTasks!.Add(new DownloaderTaskData
+        var data = new DownloaderTaskData
         {
           Command = DownloaderCommand.Initialization,
           IsFinished = true,
           Error = version != Constrants.ApplicationVersion ? DownloaderError.InvalidVersion : DownloaderError.Succeed,
-          Result = dbError?.Message ?? string.Empty,
-        });
+        };
+        data.Result = !string.IsNullOrEmpty(dbError?.Message) ? dbError!.Message : data.Error.GetErrorText();
+        db.DownloaderTasks!.Add(data);
         db.SaveChanges();
         return;
       }
-      else
+      else if (command == DownloaderCommand.DownloadSetup.GetCommandText())
       {
-        var startIndex = args.ElementAtOrDefault(0)?.Contains("Downloader.") == true ? 1 : 0;
-        if (args.Length >= 1 + startIndex)
+        if (args.Length >= 3)
         {
-          _ = int.TryParse(args[0 + startIndex], out loadStartYear);
-        }
-        if (args.Length >= 2 + startIndex)
-        {
-          _ = int.TryParse(args[1 + startIndex], out loadStartMonth);
-        }
-        if (args.Length >= 3 + startIndex)
-        {
-          _ = int.TryParse(args[2 + startIndex], out beforeProcessNumber);
+          _ = int.TryParse(args[2], out var beforeProcessNumber);
           try
           {
             if (beforeProcessNumber != 0)
@@ -95,12 +83,17 @@ namespace KmyKeiba.Downloader
           }
         }
 
-        StartLoad();
+        var task = GetTask(args[1], DownloaderCommand.DownloadSetup);
+        if (task != null)
+        {
+          currentTask = task;
+          StartLoad(task);
+        }
       }
 
 
 
-      StartLoad();
+      //StartLoad();
 
       //StartSetPreviousRaceDays();
       //StartRunningStyleTraining();
@@ -108,14 +101,46 @@ namespace KmyKeiba.Downloader
       //StartMakingStandardTimeMasterData();
     }
 
-    private static void StartLoad()
+    private static DownloaderTaskData? GetTask(string idStr, DownloaderCommand command)
+    {
+      uint.TryParse(idStr, out var id);
+      if (id == default)
+      {
+        return null;
+      }
+
+      using var db = new MyContext();
+      var task = db.DownloaderTasks!.Find(id);
+      if (task == null)
+      {
+        db.DownloaderTasks!.Add(new DownloaderTaskData
+        {
+          Id = id,
+          IsFinished = true,
+          Error = DownloaderError.ApplicationError,
+          Command = DownloaderCommand.DownloadSetup,
+        });
+        return null;
+      }
+      if (task.Command != command)
+      {
+        task.IsFinished = true;
+        task.Error = DownloaderError.ApplicationError;
+        db.SaveChanges();
+        return null;
+      }
+
+      return task;
+    }
+
+    private static void StartLoad(DownloaderTaskData task)
     {
       var loader = new JVLinkLoader();
-
       var isLoaded = false;
+
       Task.Run(async () =>
       {
-        await LoadAsync(loader);
+        await LoadAsync(loader, task);
         isLoaded = true;
 
         loader.Dispose();
@@ -124,26 +149,57 @@ namespace KmyKeiba.Downloader
       while (!isLoaded)
       {
         Console.Write($"\rDWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) SV [{loader.Saved.Value} / {loader.SaveSize.Value}] PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
-        Task.Delay(100).Wait();
+        task.Result = loader.Process.ToString().ToLower();
+        Task.Delay(1000).Wait();
       }
     }
 
-    private static async Task LoadAsync(JVLinkLoader loader)
+    private static async Task LoadAsync(JVLinkLoader loader, DownloaderTaskData task)
     {
-      var startYear = 1990;
-      var startMonth = 1;
+      var end = DateTime.Now.AddMonths(1);
 
-      if (loadStartYear > 0) startYear = loadStartYear;
-      if (loadStartMonth > 0) startMonth = loadStartMonth;
-      if (loadStartYear > 0 || loadStartMonth > 0)
+      using var db = new MyContext();
+      db.DownloaderTasks!.Attach(task);
+
+      var parameters = task.Parameter.Split(',');
+      if (parameters.Length < 3)
       {
-        Console.WriteLine($"{loadStartYear} 年 {loadStartMonth} 月 開始");
-
-        // 前のアプリが終わるのを待つ
-        await Task.Delay(5000);
+        task.Error = DownloaderError.ApplicationError;
+        task.IsFinished = true;
+        await db.SaveChangesAsync();
+        return;
       }
 
-      for (var year = startYear; year <= DateTime.Now.Year; year++)
+      int.TryParse(parameters[0], out var startYear);
+      int.TryParse(parameters[1], out var startMonth);
+      if (startYear < 1986 || startYear > end.Year || startMonth < 0 || startMonth > 12)
+      {
+        task.Error = DownloaderError.ApplicationError;
+        task.IsFinished = true;
+        await db.SaveChangesAsync();
+        return;
+      }
+
+      var link = parameters[2] == "central" ? JVLinkObject.Central : parameters[2] == "local" ? JVLinkObject.Local : null;
+      if (link == null)
+      {
+        task.Error = DownloaderError.ApplicationError;
+        task.IsFinished = true;
+        await db.SaveChangesAsync();
+        return;
+      }
+
+      var specs = parameters[3] == "odds" ? new string[] { "O1", "O2", "O3", "O4", "O5", "O6", } :
+        parameters[3] == "race" ? new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "JC", "HC", "WC", "HR", } :
+        new string[] { };
+
+      var dataspec = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku;
+      if (parameters[2] == "central")
+      {
+        dataspec |= JVLinkDataspec.Wood;
+      }
+
+      for (var year = startYear; year <= end.Year; year++)
       {
         for (var month = 1; month <= 12; month++)
         {
@@ -151,24 +207,28 @@ namespace KmyKeiba.Downloader
           {
             continue;
           }
+          if (year == end.Year && month > end.Month)
+          {
+            break;
+          }
 
-          loadingYear = year;
-          loadingMonth = month;
           var start = new DateTime(year, month, 1);
+          var option = (DateTime.Now - start).Days > 300 ? JVLinkOpenOption.Setup : JVLinkOpenOption.Normal;
 
           Console.WriteLine($"{year} 年 {month} 月");
-          await loader.LoadAsync(JVLinkObject.Central,
-            //JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
-            JVLinkDataspec.Race,
+          await loader.LoadAsync(link,
+            dataspec,
+            //JVLinkDataspec.Race,
             JVLinkOpenOption.Setup,
             raceKey: null,
             startTime: start,
             endTime: start.AddMonths(1),
-            //loadSpecs: new string[] { "O1", "O2", "O3", "O4", "O5", "O6", });
-            loadSpecs: new string[] { "O5", "O6", });
-            //loadSpecs: new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "JC", "HC", "WC", "HR", });
+            loadSpecs: specs);
           Console.WriteLine();
           Console.WriteLine();
+
+          task.Parameter = $"{year},{month},{string.Join(',', parameters.Skip(2))}";
+          await db.SaveChangesAsync();
         }
       }
       /*
@@ -183,19 +243,33 @@ namespace KmyKeiba.Downloader
 
     public static Task RestartProgramAsync(bool isIncrement)
     {
+      if (currentTask == null)
+      {
+        return Task.CompletedTask;
+      }
+
+      Console.WriteLine();
+      Console.WriteLine();
+
       var myProcess = Process.GetCurrentProcess();
       var myProcessNumber = myProcess?.Id ?? 0;
 
-      var month = loadingMonth;
-      var year = loadingYear;
+      var parameters = currentTask.Parameter.Split(',');
+      int.TryParse(parameters[0], out var year);
+      int.TryParse(parameters[1], out var month);
       if (isIncrement)
       {
         month++;
-      }
-      if (month > 12)
-      {
-        month = 1;
-        year++;
+        if (month > 12)
+        {
+          month = 1;
+          year++;
+        }
+
+        using var db = new MyContext();
+        db.DownloaderTasks!.Attach(currentTask);
+        currentTask.Parameter = $"{year},{month},{string.Join(',', parameters.Skip(2))}";
+        db.SaveChanges();
       }
 
       try
@@ -204,13 +278,12 @@ namespace KmyKeiba.Downloader
         {
           FileName = "cmd",
           ArgumentList =
-        {
-          "/c",
-          selfPath,
-          year.ToString(),
-          month.ToString(),
-          myProcessNumber.ToString(),
-        },
+          {
+            "/c",
+            selfPath,
+            currentTask.Id.ToString(),
+            myProcessNumber.ToString(),
+          },
           Verb = "RunAs",    // 管理者権限
         });
       }
@@ -218,6 +291,13 @@ namespace KmyKeiba.Downloader
       {
         Console.WriteLine(ex.Message);
         Console.WriteLine(ex.StackTrace);
+
+        using var db = new MyContext();
+        db.DownloaderTasks!.Attach(currentTask);
+        currentTask.IsFinished = true;
+        currentTask.Error = DownloaderError.ApplicationRuntimeError;
+        db.SaveChanges();
+
         return Task.CompletedTask;
       }
 

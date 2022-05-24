@@ -28,7 +28,7 @@ namespace KmyKeiba.Models.Connection
     {
       get
       {
-        return !File.Exists(Constrants.DatabasePath);
+        return File.Exists(Constrants.DatabasePath);
       }
     }
 
@@ -62,30 +62,47 @@ namespace KmyKeiba.Models.Connection
       }
     }
 
-    private async Task<DownloaderTaskData> WaitForFinished(MyContext db, uint taskDataId)
+    private async Task<DownloaderTaskData> WaitForFinished(MyContext db, uint taskDataId, Func<DownloaderTaskData, Task>? processing)
     {
       if (taskDataId == default)
       {
         throw new ArgumentException();
       }
 
+      var tryCount = 0;
       while (true)
       {
         try
         {
           var item = await db.DownloaderTasks!.FindAsync(taskDataId);
-          if (item != null && item.Id == taskDataId && item.IsFinished)
+          if (item != null && item.Id == taskDataId)
           {
-            db.Remove(item);
-            await db.SaveChangesAsync();
-            return item;
+            if (item.IsFinished)
+            {
+              db.Remove(item);
+              await db.SaveChangesAsync();
+              return item;
+            }
+            else
+            {
+              if (processing != null)
+              {
+                await processing(item);
+              }
+            }
           }
-          await Task.Delay(50);
         }
         catch
         {
           // TODO: log
+          tryCount++;
+          if (tryCount > 1200)
+          {
+            throw new DownloaderCommandException(DownloaderError.ConnectionTimeout);
+          }
         }
+
+        await Task.Delay(50);
       }
     }
 
@@ -97,6 +114,8 @@ namespace KmyKeiba.Models.Connection
       {
         await Task.Delay(100);
       }
+
+      var tryCount = 0;
 
       var canConnect = false;
       while (!canConnect)
@@ -114,17 +133,42 @@ namespace KmyKeiba.Models.Connection
 
             if (task.Error == DownloaderError.InvalidVersion)
             {
-              throw new DownloaderCommandException(task.Error);
+              throw new DownloaderCommandException(task.Error, task.Result);
             }
 
             canConnect = true;
           }
         }
+        catch (DownloaderCommandException ex)
+        {
+          throw ex;
+        }
         catch
         {
+          // TODO: logs
+          tryCount++;
+          if (tryCount > 600)
+          {
+            throw new DownloaderCommandException(DownloaderError.ConnectionTimeout);
+          }
+
           await Task.Delay(100);
         }
       }
+    }
+
+    public async Task DownloadAsync(string link, string type, int startYear, int startMonth, Func<DownloaderTaskData, Task> progress)
+    {
+      using var db = new MyContext();
+      var task = new DownloaderTaskData
+      {
+        Command = DownloaderCommand.DownloadSetup,
+        Parameter = $"{startYear},{startMonth},{link},{type}",
+      };
+      await db.DownloaderTasks!.AddAsync(task);
+      await db.SaveChangesAsync();
+
+      await this.WaitForFinished(db, task.Id, progress);
     }
   }
 

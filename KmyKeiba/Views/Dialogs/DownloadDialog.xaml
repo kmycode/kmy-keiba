@@ -1,0 +1,50 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Dialogs.DownloadDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+  <Grid Width="400" Height="400">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto"/>
+      <RowDefinition/>
+      <RowDefinition Height="auto"/>
+      <RowDefinition Height="auto"/>
+    </Grid.RowDefinitions>
+    <TextBlock FontSize="36" FontWeight="Bold" Text="ダウンロード" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,24"/>
+    <StackPanel Grid.Row="1">
+      <StackPanel.Resources>
+        <Style TargetType="ComboBoxItem">
+          <Setter Property="Background" Value="{DynamicResource BaseBackground}"/>
+          <Setter Property="BorderBrush" Value="{DynamicResource BaseBackground}"/>
+          <Setter Property="Foreground" Value="{DynamicResource BaseForeground}"/>
+        </Style>
+      </StackPanel.Resources>
+      <TextBlock FontSize="28" Text="開始年月" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16"/>
+      <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
+        <ComboBox ItemsSource="{Binding Downloader.StartYearSelection}" SelectedItem="{Binding Downloader.StartYear.Value,Mode=TwoWay}"
+                  FontSize="16" Width="80"/>
+        <TextBlock Text="年" Style="{StaticResource TextBlockDefault}" FontSize="16" Margin="4,0"/>
+        <ComboBox ItemsSource="{Binding Downloader.StartMonthSelection}" SelectedItem="{Binding Downloader.StartMonth.Value,Mode=TwoWay}"
+                  FontSize="16" Width="50"/>
+        <TextBlock Text="月" Style="{StaticResource TextBlockDefault}" FontSize="16" Margin="4,0"/>
+      </StackPanel>
+    </StackPanel>
+    <TextBlock Style="{StaticResource TextBlockDefault}" FontSize="16" Grid.Row="2" Margin="0,0,0,16">
+      ダウンロードはバックグラウンドで実行されます。<LineBreak/>
+      問題が発生した場合は、このダイアログが再表示されます。<LineBreak/>
+      ダウンロード中に表示したレースデータの一部が破損・欠損したよ<LineBreak/>うに見えることがありますが異常ではありません。
+    </TextBlock>
+    <Grid Grid.Row="3" Margin="0,0,0,16">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition/>
+        <ColumnDefinition Width="auto"/>
+      </Grid.ColumnDefinitions>
+      <Button Content="キャンセル" FontSize="16" Width="120"/>
+      <Button Content="開始" Grid.Column="2" FontSize="16" Width="80"/>
+    </Grid>
+  </Grid>
+</UserControl>

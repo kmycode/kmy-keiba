@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -20,6 +21,8 @@ namespace KmyKeiba.ViewModels
   {
     private readonly RaceModel model = new();
     private readonly DownloaderModel downloader = new();
+
+    public DownloaderModel Downloader => this.downloader;
 
     public ReactiveProperty<RaceInfo?> Race => this.model.Info;
 
@@ -37,8 +40,14 @@ namespace KmyKeiba.ViewModels
 
     public OpenDialogRequest Dialog { get; } = new();
 
+    public ReactiveProperty<DialogType> CurrentDialog { get; } = new(DialogType.Download);
+
+    public ReactiveProperty<bool> IsDialogOpen { get; }
+
     public MainViewModel()
     {
+      this.IsDialogOpen = this.CurrentDialog.Select(d => d != DialogType.Unknown).ToReactiveProperty();
+
       // TODO: いずれModelにうつす
       ThemeUtil.Current = ApplicationTheme.Dark;
 
@@ -156,5 +165,11 @@ namespace KmyKeiba.ViewModels
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore CS0067
+  }
+
+  public enum DialogType
+  {
+    Unknown,
+    Download,
   }
 }

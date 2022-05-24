@@ -16,6 +16,7 @@
       <Grid.RowDefinitions>
         <RowDefinition Height="auto"/>
         <RowDefinition Height="auto"/>
+        <RowDefinition Height="auto"/>
         <RowDefinition/>
       </Grid.RowDefinitions>
 
@@ -95,6 +96,16 @@
           </StackPanel>
         </StackPanel>
       </StackPanel>
+      
+      <!--ローディング-->
+      <Border Grid.Row="2" Margin="0,56,0,0" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
+        <TextBlock Text="詳細情報をロード中です。しばらくお待ちください..." FontSize="36" Foreground="{DynamicResource SubForeground}"
+                   HorizontalAlignment="Center"/>
+      </Border>
+      <Border Grid.Row="2" Margin="0,56,0,0" Visibility="{Binding Race.IsLoadError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+        <TextBlock Text="一部データの読み込みに失敗しました" FontSize="24" Foreground="{DynamicResource ErrorForeground}"
+                   HorizontalAlignment="Center" />
+      </Border>
     </Grid>
   </ScrollViewer>
 </UserControl>

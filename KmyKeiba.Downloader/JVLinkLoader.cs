@@ -23,6 +23,8 @@ namespace KmyKeiba.Downloader
 
     private readonly CompositeDisposable disposables = new();
 
+    public LoadProcessing Process { get; set; }
+
     public ReactiveProperty<DateTime> StartTime { get; } = new(DateTime.Today);
 
     public ReactiveProperty<DateTime> EndTime { get; } = new(DateTime.Today);
@@ -179,6 +181,7 @@ namespace KmyKeiba.Downloader
         {
           logger.Info("Start Load JVLink");
           logger.Info($"Load Type: {link.GetType().Name}");
+          this.Process = LoadProcessing.Opening;
 
           if (option != JVLinkOpenOption.RealTime)
           {
@@ -273,6 +276,7 @@ namespace KmyKeiba.Downloader
 
       this.DownloadSize.Value = reader.DownloadCount;
       logger.Info($"Download: {reader.DownloadCount}");
+      this.Process = LoadProcessing.Downloading;
 
       while (this.DownloadSize.Value > this.Downloaded.Value)
       {
@@ -299,6 +303,7 @@ namespace KmyKeiba.Downloader
 
       this.LoadSize.Value = reader.ReadCount;
       logger.Info("Load start");
+      this.Process = LoadProcessing.Loading;
       try
       {
         data = reader.Load(loadSpecs);
@@ -321,6 +326,7 @@ namespace KmyKeiba.Downloader
 
         if (!isDisposed)
         {
+          this.Process = LoadProcessing.Closing;
           var d = (DateTime.Now - loadStartTime).TotalSeconds;
           if (d < 0) d = 0;
           await Task.Delay(TimeSpan.FromSeconds(System.Math.Max(30.0 - d, 0.1)));
@@ -441,6 +447,7 @@ namespace KmyKeiba.Downloader
         // saved += items.Count();
       }
 
+      this.Process = LoadProcessing.Writing;
       await db.BeginTransactionAsync();
 
       await SaveDicAsync(data.RaceHorses,
@@ -532,6 +539,7 @@ namespace KmyKeiba.Downloader
       this.ProcessSize.Value = 0;
       this.Processed.Value = 0;
       this.ProcessSize.Value += data.SingleAndDoubleWinOdds.Count;
+      this.Process = LoadProcessing.Processing;
 
       // 単勝オッズを設定する
       {
@@ -686,5 +694,16 @@ WHERE racehorses.racekey IN ('{arr}') AND racehorses.RaceKey=buf.racekey AND rac
     {
       this.disposables.Dispose();
     }
+  }
+
+  enum LoadProcessing
+  {
+    Unknown,
+    Opening,
+    Downloading,
+    Loading,
+    Writing,
+    Processing,
+    Closing,
   }
 }

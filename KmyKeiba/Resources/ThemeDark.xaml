@@ -34,6 +34,7 @@
   <SolidColorBrush x:Key="ErrorForeground" Color="#ff9090"/>
   <SolidColorBrush x:Key="HorseMarkForeground" Color="#ffcccc"/>
   <SolidColorBrush x:Key="HorseMarkDeletedForeground" Color="#aaaaff"/>
+  <SolidColorBrush x:Key="ProgressBarForeground" Color="#a0c0f0"/>
 
   <SolidColorBrush x:Key="ClickableBackground" Color="#202020"/>
   <SolidColorBrush x:Key="HoverBackground" Color="#444444"/>

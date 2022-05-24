@@ -25,6 +25,9 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderCommand("initialization")]
     Initialization = 1,
+
+    [DownloaderCommand("download")]
+    DownloadSetup = 2,
   }
 
   public enum DownloaderError : short
@@ -42,6 +45,12 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderError("ダウンローダが起動できませんでした")]
     ProcessNotStarted = 4,
+
+    [DownloaderError("ダウンローダとの接続がタイムアウトしました")]
+    ConnectionTimeout = 5,
+
+    [DownloaderError("ダウンローダの内部エラー")]
+    ApplicationRuntimeError = 6,
   }
 
   internal class DownloaderCommandAttribute : Attribute
