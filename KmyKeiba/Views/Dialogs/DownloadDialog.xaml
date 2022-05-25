@@ -3,39 +3,99 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-  <Grid Width="400" Height="400">
+  <Grid Width="600" Height="460" Background="{DynamicResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition/>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="auto"/>
     </Grid.RowDefinitions>
-    <TextBlock FontSize="36" FontWeight="Bold" Text="ダウンロード" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,24"/>
-    <StackPanel Grid.Row="1">
-      <StackPanel.Resources>
-        <Style TargetType="ComboBoxItem">
-          <Setter Property="Background" Value="{DynamicResource BaseBackground}"/>
-          <Setter Property="BorderBrush" Value="{DynamicResource BaseBackground}"/>
-          <Setter Property="Foreground" Value="{DynamicResource BaseForeground}"/>
-        </Style>
-      </StackPanel.Resources>
-      <TextBlock FontSize="28" Text="開始年月" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16"/>
-      <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
-        <ComboBox ItemsSource="{Binding Downloader.StartYearSelection}" SelectedItem="{Binding Downloader.StartYear.Value,Mode=TwoWay}"
-                  FontSize="16" Width="80"/>
-        <TextBlock Text="年" Style="{StaticResource TextBlockDefault}" FontSize="16" Margin="4,0"/>
-        <ComboBox ItemsSource="{Binding Downloader.StartMonthSelection}" SelectedItem="{Binding Downloader.StartMonth.Value,Mode=TwoWay}"
-                  FontSize="16" Width="50"/>
-        <TextBlock Text="月" Style="{StaticResource TextBlockDefault}" FontSize="16" Margin="4,0"/>
+    <TextBlock FontSize="36" FontWeight="Bold" Text="データベースのインストール" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,24"/>
+    <Grid Grid.Row="1" Visibility="{Binding Downloader.IsBusy.Value,Converter={StaticResource NegativeVisibilityConv}}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition Width="auto"/>
+      </Grid.ColumnDefinitions>
+      <StackPanel Margin="0,0,32,0">
+        <StackPanel.Resources>
+          <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="{DynamicResource BaseBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BaseBackground}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BaseForeground}"/>
+          </Style>
+        </StackPanel.Resources>
+        <RadioButton Style="{StaticResource ToggleButtonDefault}" GroupName="DownloadStyle" FontSize="16" Content="前回取得分から現在までのデータを取得する" Margin="0,0,0,8"
+                     IsChecked="{Binding Downloader.Mode.Value,Converter={StaticResource EqualConv},ConverterParameter=Continuous,Mode=OneWay}"
+                     Command="{Binding SetDownloadModeCommand}" CommandParameter="Continuous"/>
+        <RadioButton Style="{StaticResource ToggleButtonDefault}" GroupName="DownloadStyle" FontSize="16" Content="開始年月を指定する" Margin="0,0,0,16"
+                     IsChecked="{Binding Downloader.Mode.Value,Converter={StaticResource EqualConv},ConverterParameter=WithStartDate,Mode=OneWay}"
+                     Command="{Binding SetDownloadModeCommand}" CommandParameter="WithStartDate" Name="Mode_WithStartDate"/>
+        <TextBlock FontSize="28" Text="開始年月" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16"
+                   Visibility="{Binding IsChecked,ElementName=Mode_WithStartDate,Converter={StaticResource BooleanVisibilityConv}}"/>
+        <StackPanel Orientation="Horizontal" Margin="8,0,0,0"
+                    Visibility="{Binding IsChecked,ElementName=Mode_WithStartDate,Converter={StaticResource BooleanVisibilityConv}}">
+          <ComboBox ItemsSource="{Binding Downloader.StartYearSelection}" SelectedItem="{Binding Downloader.StartYear.Value,Mode=TwoWay}"
+                    FontSize="16" Width="80" VerticalAlignment="Top"/>
+          <TextBlock Text="年" Style="{StaticResource TextBlockDefault}" FontSize="16" Margin="4,0"/>
+          <ComboBox ItemsSource="{Binding Downloader.StartMonthSelection}" SelectedItem="{Binding Downloader.StartMonth.Value,Mode=TwoWay}"
+                    FontSize="16" Width="50" VerticalAlignment="Top"/>
+          <TextBlock Text="月" Style="{StaticResource TextBlockDefault}" FontSize="16" Margin="4,0"/>
+        </StackPanel>
+        <TextBlock FontSize="16" Style="{StaticResource SubTextBlock}" Margin="16,8,0,0"
+                   Visibility="{Binding IsChecked,ElementName=Mode_WithStartDate,Converter={StaticResource BooleanVisibilityConv}}">
+          大量データの取得には数日かかることがあります。<LineBreak/>アプリを終了しても、次回起動時に月単位で途中から<LineBreak/>再開できます。
+        </TextBlock>
       </StackPanel>
-    </StackPanel>
+      <Grid Grid.Column="1">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="auto"/>
+          <RowDefinition Height="auto"/>
+          <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="1" Width="80" Margin="4,0,0,0"/>
+        <TextBlock Grid.ColumnSpan="2" FontSize="28" Text="対象" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16"/>
+        <ToggleButton Grid.Row="1" FontSize="16" Content="中央競馬" Width="100"
+                      IsChecked="{Binding Downloader.IsDownloadCentral.Value,Mode=TwoWay}"/>
+        <Button Grid.Row="1" Grid.Column="1" FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
+                Visibility="{Binding Downloader.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                Command="{Binding OpenJvlinkConfigCommand}"/>
+        <ToggleButton Grid.Row="2" FontSize="16" Content="地方競馬" Width="100" Margin="0,20,0,0"
+                      IsChecked="{Binding Downloader.IsDownloadLocal.Value,Mode=TwoWay}"/>
+        <Button Grid.Row="2" Grid.Column="1" FontSize="16" Content="設定" Width="80" Margin="4,20,0,0"
+                Visibility="{Binding Downloader.IsDownloadLocal.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                Command="{Binding OpenNvlinkConfigCommand}"/>
+      </Grid>
+    </Grid>
+    <Grid Grid.Row="1" Visibility="{Binding Downloader.IsBusy.Value,Converter={StaticResource BooleanVisibilityConv}}">
+      <StackPanel Margin="0,24,0,0">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+          <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="中央" Visibility="{Binding Downloader.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}" Margin="8,0"/>
+          <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="地方" Visibility="{Binding Downloader.IsDownloadLocal.Value,Converter={StaticResource BooleanVisibilityConv}}" Margin="8,0"/>
+        </StackPanel>
+        <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Margin="0,0,0,24" TextAlignment="Center">
+          <Run Text="{Binding Downloader.StartYear.Value}"/>年<Run Text="{Binding Downloader.StartMonth.Value}"/>月開始
+        </TextBlock>
+        <TextBlock Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16" FontSize="20" TextAlignment="Center">
+          <Run Text="{Binding Downloader.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/> <Run Text="{Binding Downloader.DownloadingYear.Value}"/>年 <Run Text="{Binding Downloader.DownloadingMonth.Value}"/>月 <Run Text="{Binding Downloader.LoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
+        </TextBlock>
+        <up:MyProgressBar>
+          <up:MyProgressBar.RenderTransform>
+            <TranslateTransform X="210"/>
+          </up:MyProgressBar.RenderTransform>
+        </up:MyProgressBar>
+      </StackPanel>
+    </Grid>
     <TextBlock Style="{StaticResource TextBlockDefault}" FontSize="16" Grid.Row="2" Margin="0,0,0,16">
-      ダウンロードはバックグラウンドで実行されます。<LineBreak/>
-      問題が発生した場合は、このダイアログが再表示されます。<LineBreak/>
-      ダウンロード中に表示したレースデータの一部が破損・欠損したよ<LineBreak/>うに見えることがありますが異常ではありません。
+      処理はバックグラウンドで実行されます。問題が発生した場合は、このダイアログが再表示されます。<LineBreak/>
+      処理中に表示したレースデータの一部が破損・欠損したように見えることがありますが、<LineBreak/>異常ではありません。
     </TextBlock>
     <Grid Grid.Row="3" Margin="0,0,0,16">
       <Grid.ColumnDefinitions>
@@ -43,8 +103,11 @@
         <ColumnDefinition/>
         <ColumnDefinition Width="auto"/>
       </Grid.ColumnDefinitions>
-      <Button Content="キャンセル" FontSize="16" Width="120"/>
-      <Button Content="開始" Grid.Column="2" FontSize="16" Width="80"/>
+      <Button Content="閉じる" FontSize="16" Width="80" VerticalAlignment="Bottom"/>
+      <Button Content="開始" Grid.Column="2" FontSize="16" Width="80" Command="{Binding StartDownloadCommand}"
+              Visibility="{Binding Downloader.IsBusy.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
+      <Button Grid.Column="2" FontSize="14" Content="中止" Width="80" Command="{Binding CancelDownloadCommand}"
+              Visibility="{Binding Downloader.IsBusy.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
     </Grid>
   </Grid>
 </UserControl>

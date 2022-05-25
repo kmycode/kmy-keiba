@@ -14,6 +14,8 @@ namespace KmyKeiba.Data.Db
 
     public bool IsFinished { get; set; }
 
+    public bool IsCanceled { get; set; }
+
     public DownloaderError Error { get; set; }
 
     public string Result { get; set; } = string.Empty;
@@ -28,6 +30,15 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderCommand("download")]
     DownloadSetup = 2,
+
+    [DownloaderCommand("shutdown")]
+    Shutdown = 3,
+
+    [DownloaderCommand("jvconfig")]
+    OpenJvlinkConfigs = 4,
+
+    [DownloaderCommand("nvconfig")]
+    OpenNvlinkConfigs = 5,
   }
 
   public enum DownloaderError : short
@@ -51,6 +62,9 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderError("ダウンローダの内部エラー")]
     ApplicationRuntimeError = 6,
+
+    [DownloaderError("必要なソフトウェアがインストールされていません")]
+    NotInstalledCom,
   }
 
   internal class DownloaderCommandAttribute : Attribute

@@ -61,6 +61,11 @@ namespace KmyKeiba.ViewModels
       });
     }
 
+    public void OnApplicationExit()
+    {
+      this.downloader.Dispose();
+    }
+
     public ICommand MoveToNextDayCommand =>
       this._moveToNextDayCommand ??=
         new ReactiveCommand().WithSubscribe(() => this.model.RaceList.MoveToNextDay());
@@ -70,6 +75,31 @@ namespace KmyKeiba.ViewModels
       this._moveToPrevDayCommand ??=
         new ReactiveCommand().WithSubscribe(() => this.model.RaceList.MoveToPrevDay());
     private ReactiveCommand? _moveToPrevDayCommand;
+
+    public ICommand SetDownloadModeCommand =>
+      this._setDownloadModeCommand ??=
+        new ReactiveCommand<string>().WithSubscribe(p => this.downloader.SetMode(p));
+    private ReactiveCommand<string>? _setDownloadModeCommand;
+
+    public ICommand OpenJvlinkConfigCommand =>
+      this._openJvlinkConfigCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(async p => await this.downloader.OpenJvlinkConfigAsync());
+    private AsyncReactiveCommand<object>? _openJvlinkConfigCommand;
+
+    public ICommand OpenNvlinkConfigCommand =>
+      this._openNvlinkConfigCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(async p => await this.downloader.OpenNvlinkConfigAsync());
+    private AsyncReactiveCommand<object>? _openNvlinkConfigCommand;
+
+    public ICommand StartDownloadCommand =>
+      this._startDownloadCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(async p => await this.downloader.DownloadAsync());
+    private AsyncReactiveCommand<object>? _startDownloadCommand;
+
+    public ICommand CancelDownloadCommand =>
+      this._cancelDownloadCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(async p => await this.downloader.CancelDownloadAsync());
+    private AsyncReactiveCommand<object>? _cancelDownloadCommand;
 
     #region RaceDetail
 

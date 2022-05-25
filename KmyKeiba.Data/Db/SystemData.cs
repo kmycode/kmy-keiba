@@ -11,6 +11,21 @@ namespace KmyKeiba.Data.Db
   {
     [Key]
     public uint Id { get; set; }
-    public string Name { get; set; } = string.Empty;
+
+    public SettingKey Key { get; set; }
+
+    public int IntValue { get; set; }
+
+    public string StringValue { get; set; } = string.Empty;
+  }
+
+  public enum SettingKey : short
+  {
+    Unknown = 0,
+
+    LastDownloadCentralDate = 1,
+    LastDownloadLocalDate = 2,
+    IsDownloadCentral = 3,
+    IsDownloadLocal = 4,
   }
 }

@@ -28,6 +28,8 @@ namespace KmyKeiba
       InitializeComponent();
 
       this.DataContext = new MainViewModel();
+
+      this.Closing += (_, _) => ((MainViewModel)this.DataContext).OnApplicationExit();
     }
   }
 }

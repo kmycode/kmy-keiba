@@ -23,7 +23,6 @@ namespace KmyKeiba.Downloader
       selfPath = Assembly.GetEntryAssembly()?.Location.Replace("Downloader.dll", "Downloader.exe") ?? string.Empty;
 
       // マイグレーション
-      var isDbError = false;
       Exception? dbError = null;
       try
       {
@@ -37,7 +36,6 @@ namespace KmyKeiba.Downloader
       catch (Exception ex)
       {
         // TODO: logs
-        isDbError = true;
         dbError = ex;
       }
 
@@ -53,6 +51,7 @@ namespace KmyKeiba.Downloader
 
         // さっきのマイグレーションでやることは全部終わってるので、ここでアプリ終了
         using var db = new MyContext();
+        db.DownloaderTasks!.RemoveRange(db.DownloaderTasks!);
         var data = new DownloaderTaskData
         {
           Command = DownloaderCommand.Initialization,
@@ -88,6 +87,48 @@ namespace KmyKeiba.Downloader
         {
           currentTask = task;
           StartLoad(task);
+        }
+      }
+      else if (command == DownloaderCommand.OpenJvlinkConfigs.GetCommandText())
+      {
+        var task = GetTask(args[1], DownloaderCommand.OpenJvlinkConfigs);
+        if (task != null)
+        {
+          try
+          {
+            JVLinkObject.Central.OpenConfigWindow();
+            SetTask(task, t => t.IsFinished = true);
+          }
+          catch (Exception ex)
+          {
+            SetTask(task, t =>
+            {
+              t.IsFinished = true;
+              t.Error = DownloaderError.NotInstalledCom;
+              t.Result = ex.GetType().Name + "/" + ex.Message;
+            });
+          }
+        }
+      }
+      else if (command == DownloaderCommand.OpenNvlinkConfigs.GetCommandText())
+      {
+        var task = GetTask(args[1], DownloaderCommand.OpenNvlinkConfigs);
+        if (task != null)
+        {
+          try
+          {
+            JVLinkObject.Local.OpenConfigWindow();
+            SetTask(task, t => t.IsFinished = true);
+          }
+          catch (Exception ex)
+          {
+            SetTask(task, t =>
+            {
+              t.IsFinished = true;
+              t.Error = DownloaderError.NotInstalledCom;
+              t.Result = ex.GetType().Name + "/" + ex.Message;
+            });
+          }
         }
       }
 
@@ -133,6 +174,14 @@ namespace KmyKeiba.Downloader
       return task;
     }
 
+    private static void SetTask(DownloaderTaskData task, Action<DownloaderTaskData> changes)
+    {
+      using var db = new MyContext();
+      db.DownloaderTasks!.Attach(task);
+      changes(task);
+      db.SaveChanges();
+    }
+
     private static void StartLoad(DownloaderTaskData task)
     {
       var loader = new JVLinkLoader();
@@ -146,10 +195,16 @@ namespace KmyKeiba.Downloader
         loader.Dispose();
       });
 
+      using var db = new MyContext();
+      db.DownloaderTasks!.Attach(task);
+
       while (!isLoaded)
       {
         Console.Write($"\rDWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) SV [{loader.Saved.Value} / {loader.SaveSize.Value}] PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
+
         task.Result = loader.Process.ToString().ToLower();
+        db.SaveChanges();
+
         Task.Delay(1000).Wait();
       }
     }
@@ -198,6 +253,19 @@ namespace KmyKeiba.Downloader
       {
         dataspec |= JVLinkDataspec.Wood;
       }
+      if (parameters[3] == "odds")
+      {
+        dataspec = JVLinkDataspec.Race;
+      }
+
+      if (parameters[2] == "local")
+      {
+        startYear = System.Math.Max(startYear, 2005);
+        if (parameters[3] == "odds")
+        {
+          startYear = System.Math.Max(startYear, 2010);
+        }
+      }
 
       for (var year = startYear; year <= end.Year; year++)
       {
@@ -211,6 +279,9 @@ namespace KmyKeiba.Downloader
           {
             break;
           }
+
+          task.Parameter = $"{year},{month},{string.Join(',', parameters.Skip(2))}";
+          await db.SaveChangesAsync();
 
           var start = new DateTime(year, month, 1);
           var option = (DateTime.Now - start).Days > 300 ? JVLinkOpenOption.Setup : JVLinkOpenOption.Normal;
@@ -227,8 +298,7 @@ namespace KmyKeiba.Downloader
           Console.WriteLine();
           Console.WriteLine();
 
-          task.Parameter = $"{year},{month},{string.Join(',', parameters.Skip(2))}";
-          await db.SaveChangesAsync();
+          CheckShutdown(db);
         }
       }
       /*
@@ -270,6 +340,11 @@ namespace KmyKeiba.Downloader
         db.DownloaderTasks!.Attach(currentTask);
         currentTask.Parameter = $"{year},{month},{string.Join(',', parameters.Skip(2))}";
         db.SaveChanges();
+        CheckShutdown(db);
+      }
+      else
+      {
+        CheckShutdown();
       }
 
       try
@@ -281,10 +356,13 @@ namespace KmyKeiba.Downloader
           {
             "/c",
             selfPath,
+            currentTask.Command.GetCommandText(),
             currentTask.Id.ToString(),
             myProcessNumber.ToString(),
           },
-          Verb = "RunAs",    // 管理者権限
+#if !DEBUG
+          CreateNoWindow = true,
+#endif
         });
       }
       catch (Exception ex)
@@ -304,6 +382,32 @@ namespace KmyKeiba.Downloader
       Environment.Exit(0);
 
       return Task.CompletedTask;
+    }
+
+    public static void CheckShutdown(MyContext? db = null)
+    {
+      var isDispose = db == null;
+
+      db ??= new MyContext();
+      var tasks = db.DownloaderTasks!.Where(t => t.Command == DownloaderCommand.Shutdown);
+      if (tasks.Any())
+      {
+        Environment.Exit(0);
+      }
+
+      if (currentTask != null)
+      {
+        var task = db.DownloaderTasks!.FirstOrDefault(t => t.Id == currentTask.Id);
+        if (task != null && task.IsCanceled)
+        {
+          Environment.Exit(0);
+        }
+      }
+
+      if (isDispose)
+      {
+        db.Dispose();
+      }
     }
 
     public static void Exit() => Environment.Exit(-1);

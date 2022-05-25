@@ -278,10 +278,18 @@ namespace KmyKeiba.Downloader
       logger.Info($"Download: {reader.DownloadCount}");
       this.Process = LoadProcessing.Downloading;
 
+      var waitCount = 0;
       while (this.DownloadSize.Value > this.Downloaded.Value)
       {
         this.Downloaded.Value = reader.DownloadedCount;
         Task.Delay(80).Wait();
+
+        waitCount += 80;
+        if (waitCount > 10_000)
+        {
+          Program.CheckShutdown();
+          waitCount = 0;
+        }
       }
       logger.Info("Download completed");
 
@@ -313,6 +321,7 @@ namespace KmyKeiba.Downloader
         throw new Exception("Load error", ex);
       }
       isLoaded = true;
+      Program.CheckShutdown();
 
       // readerのDisposeが完了しない場合がある
       var isDisposed = false;
@@ -392,6 +401,7 @@ namespace KmyKeiba.Downloader
           await SaveAsyncPrivate(chunk, dataSet, entityId, dataId, dataIdSelector);
 
           position = position.Skip(10000);
+          Program.CheckShutdown(db);
         }
       }
 
@@ -565,6 +575,7 @@ namespace KmyKeiba.Downloader
           }
 
           this.Processed.Value++;
+          Program.CheckShutdown(db);
         }
 
         await db.SaveChangesAsync();
@@ -591,6 +602,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed.Value++;
+            Program.CheckShutdown(db);
           }
 
           await db.SaveChangesAsync();
@@ -621,6 +633,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed.Value++;
+            Program.CheckShutdown(db);
           }
 
           await db.SaveChangesAsync();
@@ -638,6 +651,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed.Value++;
+            Program.CheckShutdown(db);
           }
 
           await db.SaveChangesAsync();
@@ -657,6 +671,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed.Value++;
+            Program.CheckShutdown(db);
           }
 
           await db.SaveChangesAsync();
