@@ -122,7 +122,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
       if (result != -1)
       {
-        return new JVLinkReader(this.link, readCount, downloadCount, from, to);
+        return new JVLinkReader(this.link, readCount, downloadCount, from, to, options == JVLinkOpenOption.RealTime);
       }
 
       return new EmptyJVLinkReader(this.link);

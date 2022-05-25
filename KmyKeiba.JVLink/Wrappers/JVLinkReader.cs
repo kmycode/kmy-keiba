@@ -53,6 +53,7 @@ namespace KmyKeiba.JVLink.Wrappers
   class JVLinkReader : IJVLinkReader
   {
     private readonly IJVLinkObject link;
+    private readonly bool isRealTime;
 
     public JVLinkObjectType Type => this.link.Type;
 
@@ -76,13 +77,15 @@ namespace KmyKeiba.JVLink.Wrappers
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     }
 
-    public JVLinkReader(IJVLinkObject link, int readCount, int downloadCount, DateTime? start, DateTime? end)
+    public JVLinkReader(IJVLinkObject link, int readCount, int downloadCount, DateTime? start, DateTime? end, bool isRealtime)
     {
       this.ReadCount = readCount;
       this.DownloadCount = downloadCount;
 
       this.link = link;
       link.IsOpen = true;
+
+      this.isRealTime = isRealtime;
 
       this.StartDate = start ?? default;
       this.EndDate = end ?? default;
@@ -124,6 +127,18 @@ namespace KmyKeiba.JVLink.Wrappers
         else if (result == 0)
         {
           break;
+        }
+
+        // 地方競馬の場合、取得するファイルをファイル名で判別する（終端時刻が指定できないため）
+        var isSkip = false;
+        var fileDateStr = fileName.Substring(4, 6);
+        if (this.link.Type == JVLinkObjectType.Local && this.EndDate != default && int.TryParse(fileDateStr, out var fileDate))
+        {
+          var downloadEndDate = this.EndDate.Year * 100 + this.EndDate.Month;
+          if (fileDate > downloadEndDate)
+          {
+            isSkip = true;
+          }
         }
 
         // var managedBuff = new byte[buff.Length];
@@ -180,11 +195,14 @@ namespace KmyKeiba.JVLink.Wrappers
           if (this.link.Type == JVLinkObjectType.Local && this.EndDate != default)
           {
             // 地方競馬UmaConnでは終端時刻を指定しても最新まですべて読み込んでしまう
+            // ファイル名ではじくようにしたのでこの処理は不要？
+            /*
             if (item.LastModified != default && (item.LastModified < this.StartDate || item.LastModified > this.EndDate))
             {
               this.ReadedEntityCount--;
               return;
             }
+            */
           }
 
           list.TryGetValue(key, out var oldItem);
@@ -199,9 +217,12 @@ namespace KmyKeiba.JVLink.Wrappers
           list[key] = item;
         }
 
-        if (targetSpecs != null && targetSpecs.Any() && !targetSpecs.Contains(spec))
+        if ((targetSpecs != null && targetSpecs.Any() && !targetSpecs.Contains(spec)) || isSkip)
         {
-          this.link.Skip();
+          if (!this.isRealTime)
+          {
+            this.link.Skip();
+          }
         }
         else
         {
@@ -389,7 +410,10 @@ namespace KmyKeiba.JVLink.Wrappers
               }
             default:
               this.ReadedEntityCount--;
-              this.link.Skip();
+              if (!this.isRealTime)
+              {
+                this.link.Skip();
+              }
               break;
           }
         }

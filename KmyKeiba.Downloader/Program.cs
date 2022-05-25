@@ -23,6 +23,8 @@ namespace KmyKeiba.Downloader
     {
       selfPath = Assembly.GetEntryAssembly()?.Location.Replace("Downloader.dll", "Downloader.exe") ?? string.Empty;
 
+      Console.WriteLine("\n\n\n============= Start Program ==============\n");
+
       // マイグレーション
       Exception? dbError = null;
       try
@@ -204,10 +206,14 @@ namespace KmyKeiba.Downloader
       {
         Console.Write($"\rDWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) SV [{loader.Saved.Value} / {loader.SaveSize.Value}] PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
 
-        task.Result = loader.Process.ToString().ToLower();
-        db.SaveChanges();
+        var p = loader.Process.ToString().ToLower();
+        if (p != task.Result)
+        {
+          task.Result = p;
+          db.SaveChanges();
+        }
 
-        Task.Delay(1000).Wait();
+        Task.Delay(800).Wait();
       }
     }
 
@@ -246,8 +252,8 @@ namespace KmyKeiba.Downloader
         return;
       }
 
-      var specs1 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", };
-      var specs2 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "JC", "HC", "WC", "HR", };
+      var specs1 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "JC", "HC", "WC", "HR", };
+      var specs2 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", };
       var dataspec1 = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku;
       if (parameters[2] == "central")
       {
@@ -255,10 +261,13 @@ namespace KmyKeiba.Downloader
       }
       var dataspec2 = JVLinkDataspec.Race;
 
-      if (parameters[2] == "local")
+      if (parameters[2] == "local" && startYear < 2005)
       {
-        startYear = System.Math.Max(startYear, 2005);
+        startYear = 2005;
+        startMonth = 1;
       }
+
+      var mode = parameters[3];
 
       var option = (DateTime.Now.Year * 12 + DateTime.Now.Month) - (startYear * 12 + startMonth) > 11 ? JVLinkOpenOption.Setup : JVLinkOpenOption.Normal;
 
@@ -275,36 +284,37 @@ namespace KmyKeiba.Downloader
             break;
           }
 
-          var mode = "race";
-          task.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
-          await db.SaveChangesAsync();
-
           var start = new DateTime(year, month, 1);
 
           Console.WriteLine($"{year} 年 {month} 月");
-          Console.WriteLine("race");
-          await loader.LoadAsync(link,
-            dataspec1,
-            option,
-            raceKey: null,
-            startTime: start,
-            endTime: start.AddMonths(1),
-            loadSpecs: specs1);
-          if (parameters[2] != "local" || year >= 2005)
+
+          if (mode != "odds")
           {
-            mode = "odds";
+            mode = "race";
             task.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
             await db.SaveChangesAsync();
-
-            Console.WriteLine("odds");
+            Console.WriteLine("race");
             await loader.LoadAsync(link,
-              dataspec2,
+              dataspec1,
               option,
               raceKey: null,
               startTime: start,
               endTime: start.AddMonths(1),
-              loadSpecs: specs2);
+              loadSpecs: specs1);
           }
+
+          mode = "odds";
+          task.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
+          await db.SaveChangesAsync();
+          Console.WriteLine("\nodds");
+          await loader.LoadAsync(link,
+            dataspec2,
+            option,
+            raceKey: null,
+            startTime: start,
+            endTime: start.AddMonths(1),
+            loadSpecs: specs2);
+
           Console.WriteLine();
           Console.WriteLine();
 
@@ -349,18 +359,30 @@ namespace KmyKeiba.Downloader
       var parameters = currentTask.Parameter.Split(',');
       int.TryParse(parameters[0], out var year);
       int.TryParse(parameters[1], out var month);
+      var mode = parameters[3];
       if (isIncrement)
       {
-        month++;
-        if (month > 12)
+        retryDownloadCount = 0;
+
+        if (mode == "race")
         {
-          month = 1;
-          year++;
+          mode = "odds";
+        }
+        else
+        {
+          mode = "race";
+
+          month++;
+          if (month > 12)
+          {
+            month = 1;
+            year++;
+          }
         }
 
         using var db = new MyContext();
         db.DownloaderTasks!.Attach(currentTask);
-        currentTask.Parameter = $"{year},{month},{string.Join(',', parameters.Skip(2))}";
+        currentTask.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
         db.SaveChanges();
         CheckShutdown(db);
       }

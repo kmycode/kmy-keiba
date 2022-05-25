@@ -154,9 +154,7 @@ namespace KmyKeiba.Models.Connection
       if (this.IsDownloadCentral.Value) link |= DownloadLink.Central;
       if (this.IsDownloadLocal.Value) link |= DownloadLink.Local;
 
-      this.IsDownloading.Value = true;
       await this.DownloadAsync(link);
-      this.IsDownloading.Value = false;
     }
 
     private async Task DownloadAsync(DownloadLink link)
@@ -169,6 +167,7 @@ namespace KmyKeiba.Models.Connection
       }
 
       this.IsError.Value = false;
+      this.IsDownloading.Value = true;
 
       var downloader = DownloaderConnector.Default;
       var linkName = link == DownloadLink.Central ? "central" : "local";
@@ -193,13 +192,17 @@ namespace KmyKeiba.Models.Connection
       }
       catch (DownloaderCommandException ex)
       {
-        this.ErrorMessage.Value = !string.IsNullOrEmpty(ex.Message) ? ex.Message : ex.Error.GetErrorText();
+        this.ErrorMessage.Value = ex.Error.GetErrorText();
         this.IsError.Value = true;
       }
       catch (Exception ex)
       {
         this.ErrorMessage.Value = ex.Message;
         this.IsError.Value = true;
+      }
+      finally
+      {
+        this.IsDownloading.Value = false;
       }
     }
 
@@ -208,7 +211,7 @@ namespace KmyKeiba.Models.Connection
       var p = task.Parameter.Split(',');
       int.TryParse(p[0], out var year);
       int.TryParse(p[1], out var month);
-      var mode = p[2];
+      var mode = p[3];
 
       this.DownloadingYear.Value = year;
       this.DownloadingMonth.Value = month;
@@ -231,19 +234,19 @@ namespace KmyKeiba.Models.Connection
       };
 
       // 現在ダウンロード中の年月を保存する
-      if (task.Parameter.Contains("central") && this.CentralDownloadedMonth.Value != month || this.CentralDownloadedYear.Value != year)
+      if (task.Parameter.Contains("central") && (this.CentralDownloadedMonth.Value != month || this.CentralDownloadedYear.Value != year))
       {
         this.CentralDownloadedMonth.Value = month;
         this.CentralDownloadedYear.Value = year;
         using var db = new MyContext();
         await ConfigUtil.SetIntValueAsync(db, SettingKey.LastDownloadCentralDate, year * 100 + month);
       }
-      if (task.Parameter.Contains("local") && this.LocalDownloadedMonth.Value != month || this.LocalDownloadedYear.Value != year)
+      if (task.Parameter.Contains("local") && (this.LocalDownloadedMonth.Value != month || this.LocalDownloadedYear.Value != year))
       {
         this.LocalDownloadedMonth.Value = month;
         this.LocalDownloadedYear.Value = year;
         using var db = new MyContext();
-        await ConfigUtil.SetIntValueAsync(db, SettingKey.LastDownloadCentralDate, year * 100 + month);
+        await ConfigUtil.SetIntValueAsync(db, SettingKey.LastDownloadLocalDate, year * 100 + month);
       }
     }
 

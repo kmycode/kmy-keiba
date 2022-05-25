@@ -335,6 +335,8 @@ namespace KmyKeiba.Downloader
       }
       logger.Info("Download completed");
 
+      waitCount = 0;
+
       JVLinkReaderData data = new();
       var isLoaded = false;
       var loadTask = Task.Run(async () =>
@@ -344,6 +346,13 @@ namespace KmyKeiba.Downloader
           await Task.Delay(80);
           this.Loaded.Value = reader.ReadedCount;
           this.LoadEntityCount.Value = reader.ReadedEntityCount;
+
+          waitCount += 80;
+          if (waitCount > 10_000)
+          {
+            Program.CheckShutdown();
+            waitCount = 0;
+          }
         }
       });
 
@@ -424,6 +433,9 @@ namespace KmyKeiba.Downloader
       });
       timer.Start();
 
+      this.Process = LoadProcessing.Writing;
+      Task.Delay(1000).Wait();    // トランザクションが始まるので、ここで待機しないとProgram.csからこの値をDBに保存できず、メインアプリにWritingが伝わらなくなる
+
       using var db = new MyContext();
 
       async Task SaveDicAsync<E, D, I, KEY>(Dictionary<KEY, E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
@@ -499,7 +511,6 @@ namespace KmyKeiba.Downloader
         // saved += items.Count();
       }
 
-      this.Process = LoadProcessing.Writing;
       await db.BeginTransactionAsync();
 
       await SaveDicAsync(data.RaceHorses,
