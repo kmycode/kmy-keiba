@@ -6,10 +6,12 @@ using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Models.RList;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +21,7 @@ namespace KmyKeiba.ViewModels
 {
   internal class MainViewModel : INotifyPropertyChanged
   {
+    private readonly CompositeDisposable _disposables = new();
     private readonly RaceModel model = new();
     private readonly DownloaderModel downloader = new();
 
@@ -46,7 +49,10 @@ namespace KmyKeiba.ViewModels
 
     public MainViewModel()
     {
-      this.IsDialogOpen = this.CurrentDialog.Select(d => d != DialogType.Unknown).ToReactiveProperty();
+      this.IsDialogOpen = this.CurrentDialog.Select(d => d != DialogType.Unknown).ToReactiveProperty().AddTo(this._disposables);
+
+      // モデル同士のイベントをつなぐ
+      this.downloader.IsInitialized.Where(i => i).Subscribe(i => this.model.OnDatabaseInitialized()).AddTo(this._disposables);
 
       // TODO: いずれModelにうつす
       ThemeUtil.Current = ApplicationTheme.Dark;

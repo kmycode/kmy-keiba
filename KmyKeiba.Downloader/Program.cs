@@ -16,6 +16,7 @@ namespace KmyKeiba.Downloader
   {
     private static string selfPath = string.Empty;
     private static DownloaderTaskData? currentTask;
+    private static int retryDownloadCount;
 
     [STAThread]
     public static void Main(string[] args)
@@ -68,6 +69,7 @@ namespace KmyKeiba.Downloader
         if (args.Length >= 3)
         {
           _ = int.TryParse(args[2], out var beforeProcessNumber);
+          _ = int.TryParse(args[3], out retryDownloadCount);
           try
           {
             if (beforeProcessNumber != 0)
@@ -244,28 +246,21 @@ namespace KmyKeiba.Downloader
         return;
       }
 
-      var specs = parameters[3] == "odds" ? new string[] { "O1", "O2", "O3", "O4", "O5", "O6", } :
-        parameters[3] == "race" ? new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "JC", "HC", "WC", "HR", } :
-        new string[] { };
-
-      var dataspec = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku;
+      var specs1 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", };
+      var specs2 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "JC", "HC", "WC", "HR", };
+      var dataspec1 = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku;
       if (parameters[2] == "central")
       {
-        dataspec |= JVLinkDataspec.Wood;
+        dataspec1 |= JVLinkDataspec.Wood;
       }
-      if (parameters[3] == "odds")
-      {
-        dataspec = JVLinkDataspec.Race;
-      }
+      var dataspec2 = JVLinkDataspec.Race;
 
       if (parameters[2] == "local")
       {
         startYear = System.Math.Max(startYear, 2005);
-        if (parameters[3] == "odds")
-        {
-          startYear = System.Math.Max(startYear, 2010);
-        }
       }
+
+      var option = (DateTime.Now.Year * 12 + DateTime.Now.Month) - (startYear * 12 + startMonth) > 11 ? JVLinkOpenOption.Setup : JVLinkOpenOption.Normal;
 
       for (var year = startYear; year <= end.Year; year++)
       {
@@ -280,21 +275,36 @@ namespace KmyKeiba.Downloader
             break;
           }
 
-          task.Parameter = $"{year},{month},{string.Join(',', parameters.Skip(2))}";
+          var mode = "race";
+          task.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
           await db.SaveChangesAsync();
 
           var start = new DateTime(year, month, 1);
-          var option = (DateTime.Now - start).Days > 300 ? JVLinkOpenOption.Setup : JVLinkOpenOption.Normal;
 
           Console.WriteLine($"{year} 年 {month} 月");
+          Console.WriteLine("race");
           await loader.LoadAsync(link,
-            dataspec,
-            //JVLinkDataspec.Race,
-            JVLinkOpenOption.Setup,
+            dataspec1,
+            option,
             raceKey: null,
             startTime: start,
             endTime: start.AddMonths(1),
-            loadSpecs: specs);
+            loadSpecs: specs1);
+          if (parameters[2] != "local" || year >= 2005)
+          {
+            mode = "odds";
+            task.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
+            await db.SaveChangesAsync();
+
+            Console.WriteLine("odds");
+            await loader.LoadAsync(link,
+              dataspec2,
+              option,
+              raceKey: null,
+              startTime: start,
+              endTime: start.AddMonths(1),
+              loadSpecs: specs2);
+          }
           Console.WriteLine();
           Console.WriteLine();
 
@@ -315,6 +325,18 @@ namespace KmyKeiba.Downloader
     {
       if (currentTask == null)
       {
+        return Task.CompletedTask;
+      }
+
+      if (retryDownloadCount >= 16)
+      {
+        SetTask(currentTask, t =>
+        {
+          t.IsFinished = true;
+          t.Error = DownloaderError.Timeout;
+        });
+
+        Environment.Exit(0);
         return Task.CompletedTask;
       }
 
@@ -359,6 +381,7 @@ namespace KmyKeiba.Downloader
             currentTask.Command.GetCommandText(),
             currentTask.Id.ToString(),
             myProcessNumber.ToString(),
+            (retryDownloadCount + 1).ToString()
           },
 #if !DEBUG
           CreateNoWindow = true,
@@ -384,6 +407,20 @@ namespace KmyKeiba.Downloader
       return Task.CompletedTask;
     }
 
+    public static void Shutdown(DownloaderError error, string? message = null)
+    {
+      if (currentTask != null)
+      {
+        SetTask(currentTask, t =>
+        {
+          t.Error = error;
+          t.Result = message ?? string.Empty;
+        });
+      }
+
+      Environment.Exit(0);
+    }
+
     public static void CheckShutdown(MyContext? db = null)
     {
       var isDispose = db == null;
@@ -402,6 +439,10 @@ namespace KmyKeiba.Downloader
         {
           Environment.Exit(0);
         }
+      }
+      else
+      {
+        Environment.Exit(0);
       }
 
       if (isDispose)

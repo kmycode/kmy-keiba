@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,7 +21,7 @@ namespace KmyKeiba.Models.RList
   {
     private readonly CompositeDisposable _disposables = new();
 
-    public ReactiveProperty<DateTime> Date { get; } = new(new DateTime(2020, 3, 28));
+    public ReactiveProperty<DateTime> Date { get; } = new(DateTime.Now.Date);
 
     public ReactiveCollection<RaceCourseItem> Courses { get; } = new();
 
@@ -30,7 +31,7 @@ namespace KmyKeiba.Models.RList
 
     public RaceList()
     {
-      this.Date.Subscribe(async _ =>
+      this.Date.Skip(1).Subscribe(async _ =>
       {
         this.Courses.Clear();
         await this.UpdateListAsync();

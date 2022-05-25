@@ -7,15 +7,17 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-  <Grid Width="600" Height="460" Background="{DynamicResource BaseBackground}">
+  <Grid Width="600" Height="510" Background="{DynamicResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition/>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="auto"/>
+      <RowDefinition Height="auto"/>
     </Grid.RowDefinitions>
     <TextBlock FontSize="36" FontWeight="Bold" Text="データベースのインストール" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,24"/>
-    <Grid Grid.Row="1" Visibility="{Binding Downloader.IsBusy.Value,Converter={StaticResource NegativeVisibilityConv}}">
+    <Grid Grid.Row="1" Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource NegativeVisibilityConv}}"
+          IsEnabled="{Binding Downloader.IsBusy.Value,Converter={StaticResource NegativeConv}}">
       <Grid.ColumnDefinitions>
         <ColumnDefinition/>
         <ColumnDefinition Width="auto"/>
@@ -47,7 +49,7 @@
         </StackPanel>
         <TextBlock FontSize="16" Style="{StaticResource SubTextBlock}" Margin="16,8,0,0"
                    Visibility="{Binding IsChecked,ElementName=Mode_WithStartDate,Converter={StaticResource BooleanVisibilityConv}}">
-          大量データの取得には数日かかることがあります。<LineBreak/>アプリを終了しても、次回起動時に月単位で途中から<LineBreak/>再開できます。
+          大量データの取得には数日かかることがあります。
         </TextBlock>
       </StackPanel>
       <Grid Grid.Column="1">
@@ -74,7 +76,7 @@
                 Command="{Binding OpenNvlinkConfigCommand}"/>
       </Grid>
     </Grid>
-    <Grid Grid.Row="1" Visibility="{Binding Downloader.IsBusy.Value,Converter={StaticResource BooleanVisibilityConv}}">
+    <Grid Grid.Row="1" Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}">
       <StackPanel Margin="0,24,0,0">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
           <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="中央" Visibility="{Binding Downloader.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}" Margin="8,0"/>
@@ -84,7 +86,7 @@
           <Run Text="{Binding Downloader.StartYear.Value}"/>年<Run Text="{Binding Downloader.StartMonth.Value}"/>月開始
         </TextBlock>
         <TextBlock Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16" FontSize="20" TextAlignment="Center">
-          <Run Text="{Binding Downloader.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/> <Run Text="{Binding Downloader.DownloadingYear.Value}"/>年 <Run Text="{Binding Downloader.DownloadingMonth.Value}"/>月 <Run Text="{Binding Downloader.LoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
+          <Run Text="{Binding Downloader.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/> <Run Text="{Binding Downloader.DownloadingYear.Value}"/>年 <Run Text="{Binding Downloader.DownloadingMonth.Value}"/>月 [<Run Text="{Binding Downloader.DownloadingType.Value,Converter={StaticResource LabelConv}}"/>] <Run Text="{Binding Downloader.LoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
         </TextBlock>
         <up:MyProgressBar>
           <up:MyProgressBar.RenderTransform>
@@ -93,11 +95,16 @@
         </up:MyProgressBar>
       </StackPanel>
     </Grid>
-    <TextBlock Style="{StaticResource TextBlockDefault}" FontSize="16" Grid.Row="2" Margin="0,0,0,16">
+    <Border Grid.Row="2" Height="60" Margin="0,0,0,16">
+      <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{DynamicResource ErrorForeground}" FontSize="20" TextWrapping="Wrap"
+                 Text="{Binding Downloader.ErrorMessage.Value}" Visibility="{Binding Downloader.IsError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+    </Border>
+    <TextBlock Style="{StaticResource TextBlockDefault}" FontSize="16" Grid.Row="3" Margin="0,0,0,16">
       処理はバックグラウンドで実行されます。問題が発生した場合は、このダイアログが再表示されます。<LineBreak/>
-      処理中に表示したレースデータの一部が破損・欠損したように見えることがありますが、<LineBreak/>異常ではありません。
+      処理中に表示したレースデータの一部が破損・欠損したように見えることがありますが、<LineBreak/>異常ではありません。<LineBreak/>
+      処理中にアプリを終了しても、次回起動時に月単位で途中から再開できます。
     </TextBlock>
-    <Grid Grid.Row="3" Margin="0,0,0,16">
+    <Grid Grid.Row="4" Margin="0,0,0,16">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition/>

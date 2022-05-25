@@ -226,14 +226,32 @@ namespace KmyKeiba.Downloader
 
           logger.Error("error", ex);
 
-          // TODO: ネット接続切れた時は再起動しないなどの処理が必要（ダウンローダとアプリを連携してからやる）
-          if (ex.Code != JVLinkLoadResult.SetupCanceled)
+          if (ex.Code == JVLinkLoadResult.SetupCanceled)
           {
-            _ = Program.RestartProgramAsync(false);
+            Program.Shutdown(DownloaderError.SetupDialogCanceled);
+          }
+          else if (ex.Code == JVLinkLoadResult.LicenceKeyExpired)
+          {
+            Program.Shutdown(DownloaderError.LicenceKeyExpired);
+          }
+          else if (ex.Code == JVLinkLoadResult.LicenceKeyNotSet)
+          {
+            Program.Shutdown(DownloaderError.LicenceKeyNotSet);
+          }
+          else if (ex.Code == JVLinkLoadResult.InMaintance)
+          {
+            Program.Shutdown(DownloaderError.InMaintance);
+          }
+          else if (ex.Code == JVLinkLoadResult.InvalidDataspec || ex.Code == JVLinkLoadResult.InvalidDatespecAndOption ||
+            ex.Code == JVLinkLoadResult.InvalidFromTime || ex.Code == JVLinkLoadResult.InvalidKey ||
+            ex.Code == JVLinkLoadResult.InvalidOption || ex.Code == JVLinkLoadResult.InvalidRegistry ||
+            ex.Code == JVLinkLoadResult.InvalidServerApplication)
+          {
+            Program.Shutdown(DownloaderError.ApplicationError);
           }
           else
           {
-            Program.Exit();
+            _ = Program.RestartProgramAsync(false);
           }
         }
         catch (JVLinkException<JVLinkReadResult> ex)
@@ -279,6 +297,8 @@ namespace KmyKeiba.Downloader
       this.Process = LoadProcessing.Downloading;
 
       var waitCount = 0;
+      var lastUpdatedDownloadCount = 0;
+      var stayCount = 0;
       while (this.DownloadSize.Value > this.Downloaded.Value)
       {
         this.Downloaded.Value = reader.DownloadedCount;
@@ -289,6 +309,28 @@ namespace KmyKeiba.Downloader
         {
           Program.CheckShutdown();
           waitCount = 0;
+        }
+        if (reader.DownloadedCount < 0)
+        {
+          // TODO: いろいろなエラーコードに対応する
+          Program.RestartProgramAsync(false).Wait();
+        }
+        else
+        {
+          // ダウンロード数が増えなかったときのタイムアウト
+          if (reader.DownloadedCount != lastUpdatedDownloadCount)
+          {
+            lastUpdatedDownloadCount = reader.DownloadedCount;
+            stayCount = 0;
+          }
+          else
+          {
+            stayCount += 80;
+            if (stayCount >= 60_000)
+            {
+              Program.RestartProgramAsync(false).Wait();
+            }
+          }
         }
       }
       logger.Info("Download completed");

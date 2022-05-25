@@ -64,7 +64,25 @@ namespace KmyKeiba.Data.Db
     ApplicationRuntimeError = 6,
 
     [DownloaderError("必要なソフトウェアがインストールされていません")]
-    NotInstalledCom,
+    NotInstalledCom = 7,
+
+    [DownloaderError("処理がタイムアウトしました")]
+    Timeout = 8,
+
+    [DownloaderError("セットアップダイアログをキャンセルしました")]
+    SetupDialogCanceled = 9,
+
+    [DownloaderError("ライセンスキーが設定されていません")]
+    LicenceKeyNotSet = 10,
+
+    [DownloaderError("ライセンスキーの有効期限が切れています")]
+    LicenceKeyExpired = 11,
+
+    [DownloaderError("サーバーメンテナンス中です")]
+    InMaintance = 12,
+
+    [DownloaderError("操作はキャンセルされました")]
+    Canceled = 13,
   }
 
   internal class DownloaderCommandAttribute : Attribute

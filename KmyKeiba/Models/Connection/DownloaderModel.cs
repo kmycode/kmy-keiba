@@ -23,6 +23,8 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsBusy => DownloaderConnector.Default.IsBusy;
 
+    public ReactiveProperty<bool> IsDownloading { get; } = new();
+
     public ReactiveProperty<string> ErrorMessage { get; } = new();
 
     public ReactiveProperty<bool> IsInitialized { get; } = new();
@@ -135,7 +137,7 @@ namespace KmyKeiba.Models.Connection
       {
         // TODO: logs
         this.IsInitializationError.Value = true;
-        this.ErrorMessage.Value = ex.Message;
+        this.ErrorMessage.Value = !string.IsNullOrEmpty(ex.Message) ? ex.Message : ex.Error.GetErrorText();
         isFirst = false;
       }
       catch
@@ -151,7 +153,10 @@ namespace KmyKeiba.Models.Connection
       var link = (DownloadLink)0;
       if (this.IsDownloadCentral.Value) link |= DownloadLink.Central;
       if (this.IsDownloadLocal.Value) link |= DownloadLink.Local;
+
+      this.IsDownloading.Value = true;
       await this.DownloadAsync(link);
+      this.IsDownloading.Value = false;
     }
 
     private async Task DownloadAsync(DownloadLink link)
@@ -179,17 +184,16 @@ namespace KmyKeiba.Models.Connection
       try
       {
         this.DownloadingLink.Value = link;
-        this.DownloadingType.Value = Connection.DownloadingType.Race;
         var isContinue = await downloader.DownloadAsync(linkName, "race", startYear, startMonth, this.OnDownloadProgress);
         if (isContinue)
         {
-          this.DownloadingType.Value = Connection.DownloadingType.Odds;
-          await downloader.DownloadAsync(linkName, "odds", startYear, startMonth, this.OnDownloadProgress);
+          // this.DownloadingType.Value = Connection.DownloadingType.Odds;
+          // await downloader.DownloadAsync(linkName, "odds", startYear, startMonth, this.OnDownloadProgress);
         }
       }
       catch (DownloaderCommandException ex)
       {
-        this.ErrorMessage.Value = ex.Error.GetErrorText();
+        this.ErrorMessage.Value = !string.IsNullOrEmpty(ex.Message) ? ex.Message : ex.Error.GetErrorText();
         this.IsError.Value = true;
       }
       catch (Exception ex)
@@ -204,6 +208,7 @@ namespace KmyKeiba.Models.Connection
       var p = task.Parameter.Split(',');
       int.TryParse(p[0], out var year);
       int.TryParse(p[1], out var month);
+      var mode = p[2];
 
       this.DownloadingYear.Value = year;
       this.DownloadingMonth.Value = month;
@@ -217,6 +222,12 @@ namespace KmyKeiba.Models.Connection
         "processing" => LoadingProcessValue.Processing,
         "closing" => LoadingProcessValue.Closing,
         _ => LoadingProcessValue.Unknown,
+      };
+      this.DownloadingType.Value = mode switch
+      {
+        "race" => Connection.DownloadingType.Race,
+        "odds" => Connection.DownloadingType.Odds,
+        _ => default,
       };
 
       // 現在ダウンロード中の年月を保存する
@@ -297,7 +308,10 @@ namespace KmyKeiba.Models.Connection
 
   enum DownloadingType
   {
+    [Label("レース")]
     Race,
+
+    [Label("オッズ")]
     Odds,
   }
 

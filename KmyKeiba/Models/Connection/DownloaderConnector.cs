@@ -93,8 +93,11 @@ namespace KmyKeiba.Models.Connection
           {
             if (item.IsFinished)
             {
-              db.Remove(item);
-              await db.SaveChangesAsync();
+              if (!item.IsCanceled)
+              {
+                db.Remove(item);
+                await db.SaveChangesAsync();
+              }
               return item;
             }
             else
@@ -194,9 +197,14 @@ namespace KmyKeiba.Models.Connection
         this.ExecuteDownloader(task.Command, task.Id.ToString());
         var result = await this.WaitForFinished(task.Id, progress);
 
+        if (result.Error != DownloaderError.Succeed)
+        {
+          throw new DownloaderCommandException(result.Error, result.Result);
+        }
         if (result.IsCanceled)
         {
-          return false;
+          // return false;
+          throw new DownloaderCommandException(DownloaderError.Canceled);
         }
       }
       finally

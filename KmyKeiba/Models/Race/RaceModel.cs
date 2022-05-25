@@ -72,7 +72,10 @@ namespace KmyKeiba.Models.Race
           // TODO: レース選択解除状態
         }
       });
+    }
 
+    public void OnDatabaseInitialized()
+    {
       Task.Run(async () =>
       {
         try

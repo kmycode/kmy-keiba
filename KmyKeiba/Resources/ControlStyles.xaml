@@ -49,6 +49,11 @@
       <Trigger Property="IsPressed" Value="True">
         <Setter Property="Background" Value="{DynamicResource PressedBackground}"/>
       </Trigger>
+      <Trigger Property="IsEnabled" Value="False">
+        <Setter Property="Background" Value="{DynamicResource DisabledBackground}"/>
+        <Setter Property="Foreground" Value="{DynamicResource SubForeground}"/>
+        <Setter Property="Opacity" Value="0.8"/>
+      </Trigger>
     </Style.Triggers>
   </Style>
   <Style TargetType="Button" BasedOn="{StaticResource ButtonDefault}"/>
