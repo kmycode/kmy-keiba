@@ -69,6 +69,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<bool> CanExecuteScript { get; } = new();
 
+    public ReactiveProperty<bool> CanUpdate { get; } = new();
+
     public double TimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.ResultTimeDeviationValue ?? 0;
 
     public double A3HTimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.A3HResultTimeDeviationValue ?? 0;
@@ -107,7 +109,7 @@ namespace KmyKeiba.Models.Race
         this.Horses.AddRangeOnScheduler(horses.OrderBy(h => h.Data.Number));
         this.HorsesResultOrdered.AddRangeOnScheduler(
           horses.Where(h => h.Data.ResultOrder > 0).OrderBy(h => h.Data.ResultOrder).Concat(
-            horses.Where(h => h.Data.ResultOrder == 0).OrderBy(h => h.Data.Number).OrderBy(h => h.Data.AbnormalResult)));
+            horses.Where(h => h.Data.ResultOrder == 0 && h.Data.AbnormalResult != RaceAbnormality.Unknown).OrderBy(h => h.Data.Number).OrderBy(h => h.Data.AbnormalResult)));
         this.RaceAnalyzer.Value = new RaceAnalyzer(this.Data, horses.Select(h => h.Data).ToArray(), standardTime);
 
         this.HasResults.Value = this.Horses.Any(h => h.Data.ResultOrder > 0);
@@ -182,6 +184,53 @@ namespace KmyKeiba.Models.Race
       this.Data.IsConditionSetManually = true;
 
       await db.SaveChangesAsync();
+    }
+
+    public async Task CheckCanUpdateAsync()
+    {
+      // LastModifiedに時刻は記録されないので、各項目を比較するしかない
+      using var db = new MyContext();
+      var newData = await db.Races!.FirstOrDefaultAsync(r => r.Key == this.Data.Key);
+      if (newData != null)
+      {
+        var isUpdate = newData.DataStatus != this.Data.DataStatus ||
+          newData.TrackWeather != this.Data.TrackWeather ||
+          newData.TrackCondition != this.Data.TrackCondition ||
+          newData.TrackGround != this.Data.TrackGround ||
+          newData.Course != this.Data.Course ||
+          newData.CourseType != this.Data.CourseType ||
+          newData.TrackOption != this.Data.TrackOption ||
+          newData.TrackCornerDirection != this.Data.TrackCornerDirection ||
+          newData.StartTime != this.Data.StartTime;
+
+        if (!isUpdate)
+        {
+          var newHorses = await db.RaceHorses!
+            .Where(rh => rh.RaceKey == this.Data.Key)
+            .Select(rh => new { rh.Key, rh.DataStatus, rh.ResultOrder, rh.AbnormalResult, rh.RiderName, rh.RiderWeight, rh.Weight, rh.Odds, })
+            .ToArrayAsync();
+          isUpdate = newHorses
+            .Join(this.Horses.Select(h => h.Data), h => h.Key, h => h.Key, (nh, h) => new {
+              IsUpdate = nh.DataStatus != h.DataStatus || nh.ResultOrder != h.ResultOrder || nh.AbnormalResult != h.AbnormalResult ||
+              nh.RiderName != h.RiderName || nh.RiderWeight != h.RiderWeight || nh.Weight != h.Weight || nh.Odds != h.Odds,
+            })
+            .Any(d => d.IsUpdate);
+
+          if (!isUpdate && this.Payoff == null)
+          {
+            var refund = await db.Refunds!.FirstOrDefaultAsync(r => r.RaceKey == this.Data.Key);
+            if (refund != null)
+            {
+              isUpdate = true;
+            }
+          }
+        }
+
+        if (isUpdate)
+        {
+          this.CanUpdate.Value = isUpdate;
+        }
+      }
     }
 
     public void Dispose()

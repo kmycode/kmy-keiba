@@ -43,28 +43,8 @@ namespace KmyKeiba.Models.Race
         {
           if (key != this.RaceKey.Value)
           {
-            Task.Run(async () =>
-            {
-              this.IsFirstLoadStarted.Value = true;
-
-              this.RaceKey.Value = key;
-              this.Info.Value?.Dispose();
-              this.ticketUpdated?.Dispose();
-
-              var race = await RaceInfo.FromKeyAsync(this.RaceKey.Value);
-              this.Info.Value = race;
-
-              if (this.Info.Value?.Payoff != null)
-              {
-                this.ticketUpdated = this.Info.Value.Payoff.Income.SkipWhile(i => i == 0).Subscribe(income =>
-                {
-                  if (race != null)
-                  {
-                    this.RaceList.UpdatePayoff(race.Data.Key, income);
-                  }
-                });
-              }
-            });
+            this.RaceKey.Value = key;
+            this.UpdateCurrentRaceInfo();
           }
         }
         else
@@ -100,6 +80,72 @@ namespace KmyKeiba.Models.Race
       horse.Mark.Value = horse.Data.Mark = mark;
 
       await db.SaveChangesAsync();
+    }
+
+    public void OnSelectedRaceUpdated()
+    {
+      Task.Run(async () =>
+      {
+        if (this.Info.Value != null)
+        {
+          await this.Info.Value.CheckCanUpdateAsync();
+        }
+      });
+    }
+
+    public void UpdateCurrentRaceInfo()
+    {
+      Task.Run(async () =>
+      {
+        this.IsFirstLoadStarted.Value = true;
+
+        this.Info.Value?.Dispose();
+        this.ticketUpdated?.Dispose();
+
+        var race = await RaceInfo.FromKeyAsync(this.RaceKey.Value);
+        this.Info.Value = race;
+
+        if (race == null)
+        {
+          return;
+        }
+
+        if (this.Info.Value?.Payoff != null)
+        {
+          this.ticketUpdated = this.Info.Value.Payoff.Income.SkipWhile(i => i == 0).Subscribe(income =>
+          {
+            if (race != null)
+            {
+              this.RaceList.UpdatePayoff(race.Data.Key, income);
+            }
+          });
+        }
+        else
+        {
+          race!.WaitTicketsAndCallback(tickets =>
+          {
+            Action act = () =>
+            {
+              if (tickets.Tickets.Any())
+              {
+                var money = tickets.Tickets.Sum(t => t.Count.Value * t.Rows.Count * 100);
+                this.RaceList.UpdatePayoff(race.Data.Key, money * -1);
+              }
+              else
+              {
+                this.RaceList.UpdatePayoff(race.Data.Key, 0);
+              }
+            };
+
+            var dis = new CompositeDisposable();
+            Observable.FromEvent<EventHandler, EventArgs>(a => (s, e) => a(e), dele => tickets.Tickets.TicketCountChanged += dele, dele => tickets.Tickets.TicketCountChanged -= dele)
+              .Subscribe(_ => act()).AddTo(dis);
+            Observable.FromEvent<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>(a => (s, e) => a(e), dele => tickets.Tickets.CollectionChanged += dele, dele => tickets.Tickets.CollectionChanged -= dele)
+              .Subscribe(_ => act()).AddTo(dis);
+            this.ticketUpdated = dis;
+          });
+        }
+      });
     }
 
     public void Dispose()

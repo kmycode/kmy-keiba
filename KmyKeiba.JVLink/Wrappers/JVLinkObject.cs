@@ -112,7 +112,7 @@ namespace KmyKeiba.JVLink.Wrappers
       {
         var key = from != null ? ((DateTime)from).ToString("yyyyMMdd")! : raceKey!;
         result = this.link.RtOpen(string.Join(string.Empty, attributes.Select((a) => a!.Code)),
-                                  raceKey!);
+                                  key);
       }
 
       if (result != 0 && result != -1)

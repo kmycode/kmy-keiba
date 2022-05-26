@@ -22,6 +22,7 @@ namespace KmyKeiba.Models.Connection
   {
     private readonly CompositeDisposable _disposables = new();
     private readonly ReactiveProperty<DownloaderTaskData?> currentTask = new();
+    private readonly ReactiveProperty<DownloaderTaskData?> currentRTTask = new();
     private readonly string _downloaderPath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location)!, @"downloader\\KmyKeiba.Downloader.exe");
 
     public static DownloaderConnector Default => _default ??= new();
@@ -30,6 +31,8 @@ namespace KmyKeiba.Models.Connection
     public ReactiveProperty<bool> IsConnecting { get; } = new();
 
     public ReactiveProperty<bool> IsBusy { get; }
+
+    public ReactiveProperty<bool> IsRTBusy { get; }
 
     public bool IsExistsDatabase
     {
@@ -42,6 +45,7 @@ namespace KmyKeiba.Models.Connection
     private DownloaderConnector()
     {
       this.IsBusy = this.currentTask.Select(t => t != null).ToReactiveProperty().AddTo(this._disposables);
+      this.IsRTBusy = this.currentRTTask.Select(t => t != null).ToReactiveProperty().AddTo(this._disposables);
     }
 
     private void ExecuteDownloader(DownloaderCommand command, params string[] arguments)
@@ -175,9 +179,19 @@ namespace KmyKeiba.Models.Connection
       }
     }
 
-    public async Task<bool> DownloadAsync(string link, string type, int startYear, int startMonth, Func<DownloaderTaskData, Task> progress)
+    public async Task<bool> DownloadAsync(string link, string type, int startYear, int startMonth, Func<DownloaderTaskData, Task>? progress)
     {
-      if (this.IsBusy.Value)
+      return await this.DownloadAsync(link, type, new DateOnly(startYear, startMonth, 1), progress, false);
+    }
+
+    public async Task<bool> DownloadRTAsync(string link, DateOnly date, Func<DownloaderTaskData, Task>? progress)
+    {
+      return await this.DownloadAsync(link, string.Empty, date, progress, true);
+    }
+
+    private async Task<bool> DownloadAsync(string link, string type, DateOnly start, Func<DownloaderTaskData, Task>? progress, bool isRealTime)
+    {
+      if (isRealTime ? this.IsRTBusy.Value : this.IsBusy.Value)
       {
         throw new InvalidOperationException();
       }
@@ -185,12 +199,25 @@ namespace KmyKeiba.Models.Connection
       try
       {
         using var db = new MyContext();
-        var task = new DownloaderTaskData
+        DownloaderTaskData task;
+        if (isRealTime)
         {
-          Command = DownloaderCommand.DownloadSetup,
-          Parameter = $"{startYear},{startMonth},{link},{type}",
-        };
-        this.currentTask.Value = task;
+          task = new DownloaderTaskData
+          {
+            Command = DownloaderCommand.DownloadRealTimeData,
+            Parameter = $"{start:yyyyMMdd},{link},1,0",
+          };
+          this.currentRTTask.Value = task;
+        }
+        else
+        {
+          task = new DownloaderTaskData
+          {
+            Command = DownloaderCommand.DownloadSetup,
+            Parameter = $"{start.Year},{start.Month},{link},{type}",
+          };
+          this.currentTask.Value = task;
+        }
         await db.DownloaderTasks!.AddAsync(task);
         await db.SaveChangesAsync();
 
@@ -209,7 +236,14 @@ namespace KmyKeiba.Models.Connection
       }
       finally
       {
-        this.currentTask.Value = null;
+        if (isRealTime)
+        {
+          this.currentRTTask.Value = null;
+        }
+        else
+        {
+          this.currentTask.Value = null;
+        }
       }
 
       return true;

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 
 namespace KmyKeiba.Converters
@@ -12,6 +13,10 @@ namespace KmyKeiba.Converters
   {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
+      if (targetType == typeof(Visibility))
+      {
+        return value.ToString() == parameter?.ToString() ? Visibility.Visible : Visibility.Collapsed;
+      }
       return value.ToString() == parameter?.ToString();
     }
 

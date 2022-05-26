@@ -43,7 +43,7 @@ namespace KmyKeiba.ViewModels
 
     public OpenDialogRequest Dialog { get; } = new();
 
-    public ReactiveProperty<DialogType> CurrentDialog { get; } = new(DialogType.Download);
+    public ReactiveProperty<DialogType> CurrentDialog { get; } = new();
 
     public ReactiveProperty<bool> IsDialogOpen { get; }
 
@@ -53,6 +53,22 @@ namespace KmyKeiba.ViewModels
 
       // モデル同士のイベントをつなぐ
       this.downloader.IsInitialized.Where(i => i).Subscribe(i => this.model.OnDatabaseInitialized()).AddTo(this._disposables);
+      Observable.FromEvent<EventHandler, EventArgs>(
+        e => (s, a) => e(a),
+        dele => this.downloader.RacesUpdated += dele,
+        dele => this.downloader.RacesUpdated -= dele)
+        .Subscribe(_ => ThreadUtil.InvokeOnUiThread(async () =>
+        {
+          await this.RaceList.UpdateListAsync();
+        })).AddTo(this._disposables);
+      Observable.FromEvent<EventHandler, EventArgs>(
+        e => (s, a) => e(a),
+        dele => this.RaceList.SelectedRaceUpdated += dele,
+        dele => this.RaceList.SelectedRaceUpdated -= dele)
+        .Subscribe(_ => ThreadUtil.InvokeOnUiThread(() =>
+        {
+          this.model.OnSelectedRaceUpdated();
+        })).AddTo(this._disposables);
 
       // TODO: いずれModelにうつす
       ThemeUtil.Current = ApplicationTheme.Dark;
@@ -71,6 +87,18 @@ namespace KmyKeiba.ViewModels
     {
       this.downloader.Dispose();
     }
+
+    public ICommand OpenDownloadDialogCommand =>
+      this._openDownloadDialogCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Download);
+    private ReactiveCommand? _openDownloadDialogCommand;
+
+    public ICommand CloseDialogCommand =>
+      this._closeDialogCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Unknown);
+    private ReactiveCommand? _closeDialogCommand;
+
+    #region RaceList
 
     public ICommand MoveToNextDayCommand =>
       this._moveToNextDayCommand ??=
@@ -107,7 +135,14 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<object>().WithSubscribe(async p => await this.downloader.CancelDownloadAsync());
     private AsyncReactiveCommand<object>? _cancelDownloadCommand;
 
+    #endregion
+
     #region RaceDetail
+
+    public ICommand UpdateRaceInfoCommand =>
+      this._updateRaceInfoCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.model.UpdateCurrentRaceInfo());
+    private ReactiveCommand? _updateRaceInfoCommand;
 
     public ICommand ChangeActiveHorseCommand =>
       this._changeHorseNumberCommand ??=

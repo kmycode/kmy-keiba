@@ -85,8 +85,13 @@
         <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Margin="0,0,0,24" TextAlignment="Center">
           <Run Text="{Binding Downloader.StartYear.Value}"/>年<Run Text="{Binding Downloader.StartMonth.Value}"/>月開始
         </TextBlock>
-        <TextBlock Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16" FontSize="20" TextAlignment="Center">
+        <TextBlock Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16" FontSize="20" TextAlignment="Center"
+                   Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}">
           <Run Text="{Binding Downloader.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/> <Run Text="{Binding Downloader.DownloadingYear.Value}"/>年 <Run Text="{Binding Downloader.DownloadingMonth.Value}"/>月 [<Run Text="{Binding Downloader.DownloadingType.Value,Converter={StaticResource LabelConv}}"/>] <Run Text="{Binding Downloader.LoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
+        </TextBlock>
+        <TextBlock Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16" FontSize="20" TextAlignment="Center"
+                   Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <Run Text="{Binding Downloader.ProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
         </TextBlock>
         <up:MyProgressBar>
           <up:MyProgressBar.RenderTransform>
@@ -110,7 +115,7 @@
         <ColumnDefinition/>
         <ColumnDefinition Width="auto"/>
       </Grid.ColumnDefinitions>
-      <Button Content="閉じる" FontSize="16" Width="80" VerticalAlignment="Bottom"/>
+      <Button Content="閉じる" FontSize="16" Width="80" VerticalAlignment="Bottom" Command="{Binding CloseDialogCommand}"/>
       <Button Content="開始" Grid.Column="2" FontSize="16" Width="80" Command="{Binding StartDownloadCommand}"
               Visibility="{Binding Downloader.IsBusy.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
       <Button Grid.Column="2" FontSize="14" Content="中止" Width="80" Command="{Binding CancelDownloadCommand}"

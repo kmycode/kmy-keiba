@@ -39,6 +39,9 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderCommand("nvconfig")]
     OpenNvlinkConfigs = 5,
+
+    [DownloaderCommand("dwrt")]
+    DownloadRealTimeData = 6,
   }
 
   public enum DownloaderError : short
@@ -83,6 +86,12 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderError("操作はキャンセルされました")]
     Canceled = 13,
+
+    [DownloaderError("データベースとの接続がタイムアウトしました")]
+    DatabaseTimeout = 14,
+
+    [DownloaderError("ダウンロード対象が存在しません")]
+    TargetsNotExists = 15,
   }
 
   internal class DownloaderCommandAttribute : Attribute

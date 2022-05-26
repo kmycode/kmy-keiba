@@ -40,7 +40,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public void Dispose()
     {
-      // this.link.Close();
+      this.link.Close();
       this.link.IsOpen = false;
     }
 
@@ -132,7 +132,7 @@ namespace KmyKeiba.JVLink.Wrappers
         // 地方競馬の場合、取得するファイルをファイル名で判別する（終端時刻が指定できないため）
         var isSkip = false;
         var fileDateStr = fileName.Substring(4, 6);
-        if (this.link.Type == JVLinkObjectType.Local && this.EndDate != default && int.TryParse(fileDateStr, out var fileDate))
+        if (this.link.Type == JVLinkObjectType.Local && this.EndDate != DateTime.MinValue && int.TryParse(fileDateStr, out var fileDate))
         {
           var downloadEndDate = this.EndDate.Year * 100 + this.EndDate.Month;
           if (fileDate > downloadEndDate)
@@ -434,10 +434,7 @@ namespace KmyKeiba.JVLink.Wrappers
     {
       try
       {
-        // if (this.ReadedEntityCount > 0)
-        {
-          this.link.Close();
-        }
+        this.link.Close();
         this.link.IsOpen = false;
       }
       catch

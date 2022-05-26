@@ -21,13 +21,55 @@
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition/>
       </Grid.ColumnDefinitions>
+      
+      <!--メインコンテンツ-->
       <Grid Grid.Column="1">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <um:RaceListView MinWidth="300" RaceList="{Binding RaceList}"/>
+        <Grid.RowDefinitions>
+          <RowDefinition/>
+          <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <um:RaceListView MinWidth="300" Grid.RowSpan="2" RaceList="{Binding RaceList}"/>
         <uc:RaceView Grid.Column="1" Race="{Binding Race.Value}"/>
+        
+        <!--メニュー-->
+        <Border Grid.Column="1" Grid.Row="1" Height="60" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0,1,0,0">
+          <Grid>
+            <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
+              <Button Width="80" Height="50" FontSize="24" Padding="0" Content="DL" Command="{Binding OpenDownloadDialogCommand}"/>
+              <Border Width="240">
+                <Grid Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                  <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}"
+                             VerticalAlignment="Center" Margin="16,0,0,0">
+                    <Run Text="{Binding Downloader.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/> <Run Text="{Binding Downloader.DownloadingYear.Value}"/>年 <Run Text="{Binding Downloader.DownloadingMonth.Value}"/>月<LineBreak/>
+                    [<Run Text="{Binding Downloader.DownloadingType.Value,Converter={StaticResource LabelConv}}"/>] <Run Text="{Binding Downloader.LoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
+                  </TextBlock>
+                  <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                             VerticalAlignment="Center" Margin="16,0,0,0">
+                    <Run Text="{Binding Downloader.ProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
+                  </TextBlock>
+                </Grid>
+              </Border>
+              <Button Width="80" Height="50" FontSize="24" Padding="0" Content="RT"/>
+              <Border Width="240">
+                <Grid Visibility="{Binding Downloader.IsRTDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                  <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsRTProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}"
+                             VerticalAlignment="Center" Margin="16,0,0,0">
+                    <Run Text="{Binding Downloader.RTDownloadingLink.Value,Converter={StaticResource LabelConv}}"/><LineBreak/>
+                    [<Run Text="{Binding Downloader.RTDownloadingDataspec.Value,Converter={StaticResource LabelConv}}"/>] <Run Text="{Binding Downloader.RTLoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
+                  </TextBlock>
+                  <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsRTProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                             VerticalAlignment="Center" Margin="16,0,0,0">
+                    <Run Text="{Binding Downloader.RTProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
+                  </TextBlock>
+                </Grid>
+              </Border>
+            </StackPanel>
+          </Grid>
+        </Border>
       </Grid>
 
       <Border Grid.ColumnSpan="2" Background="{DynamicResource BaseBackground}" Visibility="{Binding IsInitialized.Value,Converter={StaticResource NegativeVisibilityConv}}">

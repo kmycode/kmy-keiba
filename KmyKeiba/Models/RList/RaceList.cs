@@ -95,6 +95,11 @@ namespace KmyKeiba.Models.RList
           }
 
           item.UpdateStatus();
+          if (item.Key == this.SelectedRaceKey.Value)
+          {
+            item.Status.Value = RaceListItemStatus.Selected;
+            this.SelectedRaceUpdated?.Invoke(this, EventArgs.Empty);
+          }
           newItems.Add(item);
         }
 
@@ -181,6 +186,8 @@ namespace KmyKeiba.Models.RList
         item.Selected -= this.Item_Selected;
       }
     }
+
+    public event EventHandler? SelectedRaceUpdated;
   }
 
   public class RaceCourseItem

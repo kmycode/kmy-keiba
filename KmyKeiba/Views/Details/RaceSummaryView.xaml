@@ -21,7 +21,7 @@
       </Grid.RowDefinitions>
 
       <!-- レースの正式な条件 -->
-      <TextBlock FontSize="20" Foreground="{DynamicResource SubForeground}" Margin="0,0,0,8">
+      <TextBlock FontSize="20" Foreground="{DynamicResource SubForeground}" Margin="0,0,0,48">
         <Run Text="{Binding Race.Data.SubName,ElementName=Root,Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding Race.Data.SubjectName,ElementName=Root,Mode=OneWay}"/>
       </TextBlock>
 

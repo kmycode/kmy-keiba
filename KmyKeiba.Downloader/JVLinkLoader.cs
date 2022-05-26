@@ -196,7 +196,7 @@ namespace KmyKeiba.Downloader
             if (raceKey == null)
             {
               var reader = link.StartRead(dataspec,
-                 JVLinkOpenOption.RealTime, DateTime.Today);
+                 JVLinkOpenOption.RealTime, this.StartTime.Value.Date);
               await this.LoadAsync(reader, loadSpecs, false, true);
             }
             else
@@ -336,6 +336,7 @@ namespace KmyKeiba.Downloader
       logger.Info("Download completed");
 
       waitCount = 0;
+      var isDisposed = false;
 
       JVLinkReaderData data = new();
       var isLoaded = false;
@@ -375,7 +376,6 @@ namespace KmyKeiba.Downloader
       Program.CheckShutdown();
 
       // readerのDisposeが完了しない場合がある
-      var isDisposed = false;
       var isDone = false;
       _ = Task.Run(async () =>
       {
@@ -511,7 +511,30 @@ namespace KmyKeiba.Downloader
         // saved += items.Count();
       }
 
-      await db.BeginTransactionAsync();
+      {
+        // efcoreのdb.Database.SetConnectionTimeoutがなぜか効かないので、30分待つ
+        var isSucceed = false;
+        var tryCount = 0;
+        while (!isSucceed)
+        {
+          try
+          {
+            await db.BeginTransactionAsync();
+            isSucceed = true;
+          }
+          catch
+          {
+            // TODO: log
+            tryCount++;
+            if (tryCount >= 30 * 60)
+            {
+              Program.Shutdown(DownloaderError.DatabaseTimeout);
+            }
+
+            await Task.Delay(1000);
+          }
+        }
+      }
 
       await SaveDicAsync(data.RaceHorses,
         db.RaceHorses!,

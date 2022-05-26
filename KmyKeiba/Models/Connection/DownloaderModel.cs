@@ -21,11 +21,23 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsError { get; } = new();
 
+    public ReactiveProperty<bool> IsRTError { get; } = new();
+
     public ReactiveProperty<bool> IsBusy => DownloaderConnector.Default.IsBusy;
+
+    public ReactiveProperty<bool> IsRTBusy => DownloaderConnector.Default.IsRTBusy;
 
     public ReactiveProperty<bool> IsDownloading { get; } = new();
 
+    public ReactiveProperty<bool> IsProcessing { get; } = new();
+
+    public ReactiveProperty<bool> IsRTDownloading { get; } = new();
+
+    public ReactiveProperty<bool> IsRTProcessing { get; } = new();
+
     public ReactiveProperty<string> ErrorMessage { get; } = new();
+
+    public ReactiveProperty<string> RTErrorMessage { get; } = new();
 
     public ReactiveProperty<bool> IsInitialized { get; } = new();
 
@@ -40,6 +52,8 @@ namespace KmyKeiba.Models.Connection
     public ReactiveProperty<DownloadingType> DownloadingType { get; } = new();
 
     public ReactiveProperty<DownloadLink> DownloadingLink { get; } = new();
+
+    public ReactiveProperty<DownloadLink> RTDownloadingLink { get; } = new();
 
     public ReactiveProperty<int> DownloadingYear { get; } = new();
 
@@ -58,6 +72,14 @@ namespace KmyKeiba.Models.Connection
     public ReactiveProperty<bool> IsDownloadLocal { get; } = new();
 
     public ReactiveProperty<LoadingProcessValue> LoadingProcess { get; } = new();
+
+    public ReactiveProperty<LoadingProcessValue> RTLoadingProcess { get; } = new();
+
+    public ReactiveProperty<DownloadingDataspec> RTDownloadingDataspec { get; } = new();
+
+    public ReactiveProperty<ProcessingStep> ProcessingStep { get; } = new();
+
+    public ReactiveProperty<ProcessingStep> RTProcessingStep { get; } = new();
 
     public ReactiveProperty<DownloadMode> Mode { get; } = new();
 
@@ -132,6 +154,9 @@ namespace KmyKeiba.Models.Connection
           this.StartYear.Value = 2000;
           this.StartMonth.Value = 1;
         }
+
+        // 最新情報をダウンロードする
+        this.StartDownloadLoop();
       }
       catch (DownloaderCommandException ex)
       {
@@ -146,6 +171,40 @@ namespace KmyKeiba.Models.Connection
       }
 
       return isFirst;
+    }
+
+    private void StartDownloadLoop()
+    {
+      Task.Run(async () =>
+      {
+        while (true)
+        {
+          var now = DateTime.Now;
+
+          try
+          {
+            var today = new DateOnly(now.Year, now.Month, now.Day);
+            if (this.IsDownloadCentral.Value)
+            {
+              await this.DownloadRTAsync(DownloadLink.Central, today);
+            }
+            if (this.IsDownloadLocal.Value)
+            {
+              await this.DownloadRTAsync(DownloadLink.Local, today);
+            }
+          }
+          catch
+          {
+            // TODO: logs
+          }
+
+          while ((DateTime.Now - now).TotalMinutes < 5)
+          {
+            // ５分に１回ずつ更新する
+            await Task.Delay(1000);
+          }
+        }
+      });
     }
 
     public async Task DownloadAsync()
@@ -184,11 +243,27 @@ namespace KmyKeiba.Models.Connection
       {
         this.DownloadingLink.Value = link;
         var isContinue = await downloader.DownloadAsync(linkName, "race", startYear, startMonth, this.OnDownloadProgress);
+        this.RacesUpdated?.Invoke(this, EventArgs.Empty);
         if (isContinue)
         {
           // this.DownloadingType.Value = Connection.DownloadingType.Odds;
           // await downloader.DownloadAsync(linkName, "odds", startYear, startMonth, this.OnDownloadProgress);
         }
+
+        this.ProcessingStep.Value = Connection.ProcessingStep.InvalidData;
+        this.IsProcessing.Value = true;
+        await ShapeDatabaseModel.RemoveInvalidDataAsync();
+        this.ProcessingStep.Value = Connection.ProcessingStep.RunningStyle;
+        if (link == DownloadLink.Central)
+        {
+          ShapeDatabaseModel.TrainRunningStyle(isForce: true);
+        }
+        ShapeDatabaseModel.StartRunningStylePredicting();
+        this.ProcessingStep.Value = Connection.ProcessingStep.StandardTime;
+        await ShapeDatabaseModel.MakeStandardTimeMasterDataAsync(startYear - 2, link);
+        this.ProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
+        await ShapeDatabaseModel.SetPreviousRaceDaysAsync();
+        this.RacesUpdated?.Invoke(this, EventArgs.Empty);
       }
       catch (DownloaderCommandException ex)
       {
@@ -203,6 +278,54 @@ namespace KmyKeiba.Models.Connection
       finally
       {
         this.IsDownloading.Value = false;
+        this.IsProcessing.Value = false;
+      }
+    }
+
+    private async Task DownloadRTAsync(DownloadLink link, DateOnly date)
+    {
+      if (link == DownloadLink.Both)
+      {
+        await this.DownloadRTAsync(DownloadLink.Central, date);
+        await this.DownloadRTAsync(DownloadLink.Local, date);
+        return;
+      }
+
+      this.IsRTError.Value = false;
+      this.IsRTDownloading.Value = true;
+      this.RTDownloadingLink.Value = link;
+
+      var downloader = DownloaderConnector.Default;
+      var linkName = link == DownloadLink.Central ? "central" : "local";
+
+      try
+      {
+        await downloader.DownloadRTAsync(linkName, date, this.OnRTDownloadProgress);
+        this.RacesUpdated?.Invoke(this, EventArgs.Empty);
+
+        this.RTProcessingStep.Value = Connection.ProcessingStep.InvalidData;
+        this.IsRTProcessing.Value = true;
+        await ShapeDatabaseModel.RemoveInvalidDataAsync();
+        this.RTProcessingStep.Value = Connection.ProcessingStep.RunningStyle;
+        ShapeDatabaseModel.StartRunningStylePredicting();
+        this.RTProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
+        await ShapeDatabaseModel.SetPreviousRaceDaysAsync();
+        this.RacesUpdated?.Invoke(this, EventArgs.Empty);
+      }
+      catch (DownloaderCommandException ex)
+      {
+        this.RTErrorMessage.Value = ex.Error.GetErrorText();
+        this.IsRTError.Value = true;
+      }
+      catch (Exception ex)
+      {
+        this.RTErrorMessage.Value = ex.Message;
+        this.IsRTError.Value = true;
+      }
+      finally
+      {
+        this.IsRTDownloading.Value = false;
+        this.IsRTProcessing.Value = false;
       }
     }
 
@@ -250,6 +373,34 @@ namespace KmyKeiba.Models.Connection
       }
     }
 
+    private Task OnRTDownloadProgress(DownloaderTaskData task)
+    {
+      var p = task.Parameter.Split(',');
+
+      this.RTDownloadingDataspec.Value = p[2] switch
+      {
+        "1" => DownloadingDataspec.RB12,
+        "2" => DownloadingDataspec.RB15,
+        "3" => DownloadingDataspec.RB30,
+        "4" => DownloadingDataspec.RB11,
+        "5" => DownloadingDataspec.RB14,
+        _ => DownloadingDataspec.Unknown,
+      };
+
+      this.RTLoadingProcess.Value = task.Result switch
+      {
+        "opening" => LoadingProcessValue.Opening,
+        "downloading" => LoadingProcessValue.Downloading,
+        "loading" => LoadingProcessValue.Loading,
+        "writing" => LoadingProcessValue.Writing,
+        "processing" => LoadingProcessValue.Processing,
+        "closing" => LoadingProcessValue.Closing,
+        _ => LoadingProcessValue.Unknown,
+      };
+
+      return Task.CompletedTask;
+    }
+
     public async Task CancelDownloadAsync()
     {
       await DownloaderConnector.Default.CancelCurrentTaskAsync();
@@ -295,6 +446,8 @@ namespace KmyKeiba.Models.Connection
       this._disposables.Dispose();
       DownloaderConnector.Default.Dispose();
     }
+
+    public event EventHandler? RacesUpdated;
   }
 
   [Flags]
@@ -345,5 +498,42 @@ namespace KmyKeiba.Models.Connection
   {
     Continuous,
     WithStartDate,
+  }
+
+  enum DownloadingDataspec
+  {
+    Unknown,
+
+    [Label("レース結果")]
+    RB12,
+
+    [Label("レース情報")]
+    RB15,
+
+    [Label("オッズ")]
+    RB30,
+
+    [Label("馬体重")]
+    RB11,
+
+    [Label("変更情報")]
+    RB14,
+  }
+
+  enum ProcessingStep
+  {
+    Unknown,
+
+    [Label("不正なデータを処理中")]
+    InvalidData,
+
+    [Label("脚質を計算中")]
+    RunningStyle,
+
+    [Label("基準タイムを計算中")]
+    StandardTime,
+
+    [Label("馬データの成型中")]
+    PreviousRaceDays,
   }
 }
