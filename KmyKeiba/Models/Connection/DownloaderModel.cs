@@ -100,7 +100,11 @@ namespace KmyKeiba.Models.Connection
     {
       this.StartYearSelection = Enumerable.Range(1986, DateTime.Now.Year - 1986 + 1).ToArray();
       this.StartMonthSelection = Enumerable.Range(1, 12).ToArray();
-      this.CanSaveOthers = this.LoadingProcess.Select(p => p != LoadingProcessValue.Writing).ToReactiveProperty().AddTo(this._disposables);
+      this.CanSaveOthers = this.LoadingProcess
+        .Select(p => p != LoadingProcessValue.Writing)
+        .CombineLatest(this.ProcessingStep.Select(s => s != Connection.ProcessingStep.StandardTime && s != Connection.ProcessingStep.PreviousRaceDays), (a, b) => a && b)
+        .ToReactiveProperty()
+        .AddTo(this._disposables);
       this.DownloadingStatus = this.CanSaveOthers.Select(p => p ? StatusFeeling.Unknown : StatusFeeling.Bad).ToReactiveProperty();
 
       // 設定を保存

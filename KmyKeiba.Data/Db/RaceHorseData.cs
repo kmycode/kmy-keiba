@@ -197,7 +197,6 @@ namespace KmyKeiba.Data.Db
       this.Type = entity.Type;
       this.Color = entity.Color;
       this.Number = entity.Number;
-      this.Popular = entity.Popular;
       this.RaceKey = entity.RaceKey;
       this.Course = entity.Course;
       this.ResultOrder = entity.ResultOrder;
@@ -225,6 +224,7 @@ namespace KmyKeiba.Data.Db
       if (this.CanSetOdds(entity.Odds))
       {
         this.Odds = entity.Odds;
+        this.Popular = entity.Popular;
       }
 
       if (!this.IsRunningStyleSetManually)
@@ -245,9 +245,9 @@ namespace KmyKeiba.Data.Db
 
       if (this.AbnormalResult == RaceAbnormality.Scratched || this.AbnormalResult == RaceAbnormality.ExcludedByStarters)
       {
-        return false;
+        return true;
       }
-      return true;
+      return false;
     }
 
     public override bool IsEquals(DataBase<RaceHorse> b)

@@ -44,7 +44,7 @@ namespace KmyKeiba.Models.Race
           if (key != this.RaceKey.Value)
           {
             this.RaceKey.Value = key;
-            this.UpdateCurrentRaceInfo();
+            this.LoadCurrentRace();
           }
         }
         else
@@ -93,7 +93,12 @@ namespace KmyKeiba.Models.Race
       });
     }
 
-    public void UpdateCurrentRaceInfo()
+    public void UpdateCurrentRace()
+    {
+      this.LoadCurrentRace(this.Info.Value?.Data.Key);
+    }
+
+    public void LoadCurrentRace(string? key = null)
     {
       Task.Run(async () =>
       {
@@ -102,7 +107,9 @@ namespace KmyKeiba.Models.Race
         this.Info.Value?.Dispose();
         this.ticketUpdated?.Dispose();
 
-        var race = await RaceInfo.FromKeyAsync(this.RaceKey.Value);
+        var raceKey = key ?? this.RaceKey.Value;
+
+        var race = await RaceInfo.FromKeyAsync(raceKey);
         this.Info.Value = race;
 
         if (race == null)
@@ -137,12 +144,9 @@ namespace KmyKeiba.Models.Race
               }
             };
 
-            var dis = new CompositeDisposable();
-            Observable.FromEvent<EventHandler, EventArgs>(a => (s, e) => a(e), dele => tickets.Tickets.TicketCountChanged += dele, dele => tickets.Tickets.TicketCountChanged -= dele)
-              .Subscribe(_ => act()).AddTo(dis);
-            Observable.FromEvent<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>(a => (s, e) => a(e), dele => tickets.Tickets.CollectionChanged += dele, dele => tickets.Tickets.CollectionChanged -= dele)
-              .Subscribe(_ => act()).AddTo(dis);
-            this.ticketUpdated = dis;
+            this.ticketUpdated = tickets.Tickets.CollectionChangedAsObservable()
+              .CombineLatest(Observable.FromEvent<EventHandler, EventArgs>(a => (s, e) => a(e), dele => tickets.Tickets.TicketCountChanged += dele, dele => tickets.Tickets.TicketCountChanged -= dele), (a, b) => true)
+              .Subscribe(_ => act());
           });
         }
       });

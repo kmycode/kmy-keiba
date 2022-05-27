@@ -59,8 +59,6 @@ namespace KmyKeiba.Models.Race
         {
           HorseNumber = h.Data.Number,
           Name = h.Data.Name,
-          IsEnabled = { Value = h.Data.AbnormalResult != RaceAbnormality.Scratched &&
-                                h.Data.AbnormalResult != RaceAbnormality.ExcludedByStarters, },
         }.AddTo(this._disposables));
       var frames = horses
         .GroupBy(h => h.Data.FrameNumber)

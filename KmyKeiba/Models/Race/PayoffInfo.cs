@@ -120,23 +120,13 @@ namespace KmyKeiba.Models.Race
       this._ticketsDisposables = new();
       this._tickets = tickets;
 
-      Observable.FromEvent<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>(
-        h => (s, e) => h(e),
-        dele => tickets.Tickets.CollectionChanged += dele,
-        dele => tickets.Tickets.CollectionChanged -= dele)
-      .Subscribe(_ =>
-      {
-        this.UpdateTicketsData(this._tickets.Tickets);
-      }).AddTo(this._ticketsDisposables);
-
-      Observable.FromEvent<EventHandler, EventArgs>(
-        h => (s, e) => h(e),
-        dele => tickets.Tickets.TicketCountChanged += dele,
-        dele => tickets.Tickets.TicketCountChanged -= dele)
-      .Subscribe(_ =>
-      {
-        this.UpdateTicketsData(this._tickets.Tickets);
-      }).AddTo(this._ticketsDisposables);
+      tickets.Tickets.CollectionChangedAsObservable()
+        .CombineLatest(Observable.FromEvent<EventHandler, EventArgs>(
+            h => (s, e) => h(e),
+            dele => tickets.Tickets.TicketCountChanged += dele,
+            dele => tickets.Tickets.TicketCountChanged -= dele), (a, b) => true)
+        .Subscribe(_ => this.UpdateTicketsData(this._tickets.Tickets))
+        .AddTo(this._ticketsDisposables);
 
       this.UpdateTicketsData(this._tickets.Tickets);
     }

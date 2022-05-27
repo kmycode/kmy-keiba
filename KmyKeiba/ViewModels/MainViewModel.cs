@@ -153,7 +153,7 @@ namespace KmyKeiba.ViewModels
 
     public ICommand UpdateRaceInfoCommand =>
       this._updateRaceInfoCommand ??=
-        new ReactiveCommand().WithSubscribe(() => this.model.UpdateCurrentRaceInfo());
+        new ReactiveCommand().WithSubscribe(() => this.model.UpdateCurrentRace());
     private ReactiveCommand? _updateRaceInfoCommand;
 
     public ICommand ChangeActiveHorseCommand =>

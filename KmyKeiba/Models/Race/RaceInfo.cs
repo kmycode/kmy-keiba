@@ -105,10 +105,13 @@ namespace KmyKeiba.Models.Race
       this.CanBuy.Value = _buyer?.CanBuy(race) == true;
       if (this.CanBuy.Value)
       {
-        this.Tickets.Select(t => t?.Tickets.Any() == true).Subscribe(isAnyTickets =>
+        this.WaitTicketsAndCallback(tickets =>
         {
-          this.CanBuy.Value = isAnyTickets;
-        }).AddTo(this._disposables);
+          tickets.Tickets
+            .CollectionChangedAsObservable()
+            .Subscribe(_ => this.CanBuy.Value = tickets.Tickets.Any())
+            .AddTo(this._disposables);
+        });
       }
     }
 

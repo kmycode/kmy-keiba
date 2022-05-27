@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-  <Grid Width="600" Height="440" Background="{DynamicResource BaseBackground}">
+  <Grid Width="600" Height="520" Background="{DynamicResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="auto"/>
@@ -61,7 +61,10 @@
                  Text="{Binding Downloader.RTErrorMessage.Value}" Visibility="{Binding Downloader.IsRTError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
     </Border>
     <TextBlock Style="{StaticResource TextBlockDefault}" FontSize="16" Grid.Row="5" Margin="0,0,0,16">
-      処理はバックグラウンドで実行されます。問題が発生した場合は、このダイアログが再表示されます。
+      処理はバックグラウンドで実行されます。問題が発生した場合は、画面下部に表示されます。<LineBreak/>
+      5分に1回自動で処理が開始されます。<LineBreak/>
+      平日にも中央競馬データが配信される場合がありますが、不要である場合は手動で<LineBreak/>更新を無効にしてください。<LineBreak/>
+      データベースインストールを同時実行している場合、データ保存が遅延する場合があります。
     </TextBlock>
     <Grid Grid.Row="6" Margin="0,0,0,16">
       <Grid.ColumnDefinitions>
