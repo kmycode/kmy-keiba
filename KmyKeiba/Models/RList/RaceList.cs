@@ -29,6 +29,10 @@ namespace KmyKeiba.Models.RList
 
     public ReactiveProperty<string?> SelectedRaceKey { get; } = new();
 
+    public ReactiveProperty<int> CurrentDateIncomes { get; } = new();
+
+    public ReactiveProperty<ValueComparation> CurrentDateIncomesComparation { get; } = new();
+
     public RaceList()
     {
       this.Date.Skip(1).Subscribe(async _ =>
@@ -61,61 +65,62 @@ namespace KmyKeiba.Models.RList
         horses = horseData.Select(h => new RaceHorseData { RaceKey = h.RaceKey, Number = h.Number, FrameNumber = h.FrameNumber, }).ToArray();
       }
 
-      foreach (var group in races.OrderBy(r => r.StartTime).GroupBy(r => r.Course).OrderBy(g => g.Key))
+      ThreadUtil.InvokeOnUiThread(() =>
       {
-        var course = this.Courses.FirstOrDefault(c => c.Course == group.Key);
-        if (course == null)
+        foreach (var group in races.OrderBy(r => r.StartTime).GroupBy(r => r.Course).OrderBy(g => g.Key))
         {
-          course = new RaceCourseItem(group.Key);
-          this.Courses.AddOnScheduler(course);
-        }
-
-        course.Races.ClearOnScheduler();
-        var items = group.ToArray();
-        var newItems = new List<RaceListItem>();
-        for (var i = 0; i < items.Length; i++)
-        {
-          var item = new RaceListItem(items[i]);
-          item.Selected += Item_Selected;
-
-          var nextItem = i < items.Length - 1 ? items[i + 1] : null;
-          var prevItem = i > 0 ? items[i - 1] : null;
-          item.NextRaceStartTime.Value = nextItem?.StartTime ?? DateTime.MinValue;
-          item.PrevRaceStartTime.Value = prevItem?.StartTime ?? DateTime.MinValue;
-
-          item.ViewTop.Value = ((prevItem?.StartTime.TimeOfDay.TotalMinutes ?? (items[i].StartTime.TimeOfDay.TotalMinutes - 40)) - Definitions.RaceTimelineStartHour * 60)
-            * Definitions.RaceTimelineHeightPerMinutes;
-
-          var refund = payoffs.FirstOrDefault(r => r.RaceKey == items[i].Key);
-          var myTickets = tickets.Where(t => t.RaceKey == items[i].Key);
-          var myHorses = horses.Where(h => h.RaceKey == items[i].Key).ToArray();
-          if (refund != null)
+          var course = this.Courses.FirstOrDefault(c => c.Course == group.Key);
+          if (course == null)
           {
-            this.UpdatePayoff(item, myHorses, myTickets, refund);
+            course = new RaceCourseItem(group.Key);
+            this.Courses.Add(course);
           }
-          else if (myTickets.Any())
+
+          course.Races.Clear();
+          var items = group.ToArray();
+
+          for (var i = 0; i < items.Length; i++)
           {
-            var ts = myTickets.Select(t => TicketItem.FromData(t, myHorses, null)).Where(t => t != null).Select(t => t!);
-            if (ts.SelectMany(t => t.Rows).Any())
+            var item = new RaceListItem(items[i]);
+            item.Selected += Item_Selected;
+
+            var nextItem = i < items.Length - 1 ? items[i + 1] : null;
+            var prevItem = i > 0 ? items[i - 1] : null;
+            item.NextRaceStartTime.Value = nextItem?.StartTime ?? DateTime.MinValue;
+            item.PrevRaceStartTime.Value = prevItem?.StartTime ?? DateTime.MinValue;
+
+            item.ViewTop.Value = ((prevItem?.StartTime.TimeOfDay.TotalMinutes ?? (items[i].StartTime.TimeOfDay.TotalMinutes - 40)) - Definitions.RaceTimelineStartHour * 60)
+              * Definitions.RaceTimelineHeightPerMinutes;
+
+            var refund = payoffs.FirstOrDefault(r => r.RaceKey == items[i].Key);
+            var myTickets = tickets.Where(t => t.RaceKey == items[i].Key);
+            var myHorses = horses.Where(h => h.RaceKey == items[i].Key).ToArray();
+            if (refund != null)
             {
-              item.SetIncome(ts.Sum(t => t.Count.Value * t.Rows.Count * -100));
+              this.UpdatePayoff(item, myHorses, myTickets, refund);
             }
-          }
+            else if (myTickets.Any())
+            {
+              var ts = myTickets.Select(t => TicketItem.FromData(t, myHorses, null)).Where(t => t != null).Select(t => t!);
+              if (ts.SelectMany(t => t.Rows).Any())
+              {
+                item.SetIncome(ts.Sum(t => t.Count.Value * t.Rows.Count * -100));
+              }
+            }
 
-          item.UpdateStatus();
-          if (item.Key == this.SelectedRaceKey.Value)
-          {
-            item.Status.Value = RaceListItemStatus.Selected;
-            this.SelectedRaceUpdated?.Invoke(this, EventArgs.Empty);
+            item.UpdateStatus();
+            if (item.Key == this.SelectedRaceKey.Value)
+            {
+              item.Status.Value = RaceListItemStatus.Selected;
+              this.SelectedRaceUpdated?.Invoke(this, EventArgs.Empty);
+            }
+
+            course.Races.Add(item);
           }
-          newItems.Add(item);
         }
 
-        ThreadUtil.InvokeOnUiThread(() =>
-        {
-          course.Races.AddRangeOnScheduler(newItems);
-        });
-      }
+        this.UpdateCurrentDateIncomes();
+      });
     }
 
     public void UpdatePayoff(string raceKey, int income)
@@ -125,6 +130,8 @@ namespace KmyKeiba.Models.RList
       {
         item.SetIncome(income);
       }
+
+      this.UpdateCurrentDateIncomes();
     }
 
     public async Task UpdatePayoffAsync(string raceKey)
@@ -160,6 +167,25 @@ namespace KmyKeiba.Models.RList
       var money = payoff.Income.Value;
       item.SetIncome(money);
       item.UpdateStatus();
+
+      this.UpdateCurrentDateIncomes();
+    }
+
+    private void UpdateCurrentDateIncomes()
+    {
+      var items = this.Courses.SelectMany(c => c.Races).Select(r => r.Money.Value);
+      if (items.Any())
+      {
+        this.CurrentDateIncomes.Value = items.Sum(i => i);
+      }
+      else
+      {
+        this.CurrentDateIncomes.Value = 0;
+      }
+
+      this.CurrentDateIncomesComparation.Value =
+        this.CurrentDateIncomes.Value > 0 ? ValueComparation.Good :
+        this.CurrentDateIncomes.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
     }
 
     private void Item_Selected(object? sender, EventArgs e)

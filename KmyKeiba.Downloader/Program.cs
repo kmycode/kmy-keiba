@@ -299,6 +299,12 @@ namespace KmyKeiba.Downloader
 
       int.TryParse(parameters[0], out var startYear);
       int.TryParse(parameters[1], out var startMonth);
+      var startDay = 0;
+      if (startMonth > 40)
+      {
+        startDay = startMonth % 100;
+        startMonth /= 100;
+      }
       if (startYear < 1986 || startYear > end.Year || startMonth < 0 || startMonth > 12)
       {
         task.Error = DownloaderError.ApplicationError;
@@ -348,7 +354,7 @@ namespace KmyKeiba.Downloader
             break;
           }
 
-          var start = new DateTime(year, month, 1);
+          var start = new DateTime(year, month, System.Math.Max(1, startDay));
 
           Console.WriteLine($"{year} 年 {month} 月");
 
@@ -423,9 +429,10 @@ namespace KmyKeiba.Downloader
         return;
       }
 
+      var todayFormat = DateTime.Today.ToString("yyyyMMdd");
       if (date == "today")
       {
-        date = DateTime.Today.ToString("yyyyMMdd");
+        date = todayFormat;
       }
       int.TryParse(date.AsSpan(0, 4), out var year);
       int.TryParse(date.AsSpan(4, 2), out var month);
@@ -451,11 +458,11 @@ namespace KmyKeiba.Downloader
       var start = new DateTime(year, month, day);
 
       int.TryParse(skip, out var skipCount);
-      var races = await db.Races!
-        .Where(r => r.StartTime.Date == start)
+      var query = db.Races!
+        .Where(r => r.StartTime.Date >= start)
         .OrderBy(r => r.StartTime)
-        .Select(r => new { r.Key, r.Course, r.Grade, r.DataStatus, })
-        .ToArrayAsync();
+        .Select(r => new { r.Key, r.StartTime, r.Course, r.Grade, r.DataStatus, });
+      var races = await query.ToArrayAsync();
       if (!races.Any())
       {
         task.Error = DownloaderError.TargetsNotExists;
@@ -468,11 +475,17 @@ namespace KmyKeiba.Downloader
       {
         if (type == "central")
         {
-          return r.Course <= RaceCourse.CentralMaxValue || r.Grade == RaceGrade.LocalGrade1 || r.Grade == RaceGrade.LocalGrade2 || r.Grade == RaceGrade.LocalGrade3 || r.Grade == RaceGrade.LocalNoNamedGrade;
+          var result = r.Course <= RaceCourse.CentralMaxValue || r.Grade == RaceGrade.LocalGrade1 || r.Grade == RaceGrade.LocalGrade2 || r.Grade == RaceGrade.LocalGrade3 || r.Grade == RaceGrade.LocalNoNamedGrade;
+          if (result)
+          {
+            // 馬券が金曜日日販売になるのは一部のG1レースのみ
+            result = r.Grade == RaceGrade.Grade1 || r.StartTime.Date == start;
+          }
+          return result;
         }
         else
         {
-          return r.Course >= RaceCourse.LocalMinValue;
+          return r.StartTime.Date == start && r.Course >= RaceCourse.LocalMinValue;
         }
       }).ToArray();
 
@@ -503,6 +516,7 @@ namespace KmyKeiba.Downloader
           }
           else if (dataspecs[i] == JVLinkDataspec.RB30)
           {
+            // オッズは各レースごとに落とすから時間がかかる
             if (race.DataStatus >= RaceDataStatus.PreliminaryGrade3)
             {
               continue;

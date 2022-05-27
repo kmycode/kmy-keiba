@@ -22,6 +22,8 @@ namespace KmyKeiba.Models.Connection
     private readonly CompositeDisposable _disposables = new();
     private readonly DownloaderConnector _downloader = DownloaderConnector.Instance;
 
+    private bool _isInitializationDownloading = false;
+
     public ReactiveProperty<bool> IsInitializationError { get; } = new();
 
     public ReactiveProperty<bool> IsError { get; } = new();
@@ -78,6 +80,8 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsRTDownloadCentral { get; } = new();
 
+    public ReactiveProperty<bool> IsRTDownloadCentralAfterThursdayOnly { get; } = new();
+
     public ReactiveProperty<bool> IsRTDownloadLocal { get; } = new();
 
     public ReactiveProperty<LoadingProcessValue> LoadingProcess { get; } = new();
@@ -92,7 +96,7 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<DownloadMode> Mode { get; } = new(DownloadMode.WithStartDate);
 
-    public ReactiveProperty<bool> CanSaveOthers { get; }
+    public ReactiveProperty<bool> CanSaveOthers { get; } = new();
 
     public ReactiveProperty<StatusFeeling> DownloadingStatus { get; }
 
@@ -100,18 +104,22 @@ namespace KmyKeiba.Models.Connection
     {
       this.StartYearSelection = Enumerable.Range(1986, DateTime.Now.Year - 1986 + 1).ToArray();
       this.StartMonthSelection = Enumerable.Range(1, 12).ToArray();
-      this.CanSaveOthers = this.LoadingProcess
-        .Select(p => p != LoadingProcessValue.Writing)
-        .CombineLatest(this.ProcessingStep.Select(s => s != Connection.ProcessingStep.StandardTime && s != Connection.ProcessingStep.PreviousRaceDays), (a, b) => a && b)
-        .ToReactiveProperty()
-        .AddTo(this._disposables);
+
+      void UpdateCanSave()
+      {
+        this.CanSaveOthers.Value = this.LoadingProcess.Value != LoadingProcessValue.Writing &&
+          this.ProcessingStep.Value != Connection.ProcessingStep.StandardTime && this.ProcessingStep.Value != Connection.ProcessingStep.PreviousRaceDays;
+      }
+      this.LoadingProcess.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
+      this.ProcessingStep.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
       this.DownloadingStatus = this.CanSaveOthers.Select(p => p ? StatusFeeling.Unknown : StatusFeeling.Bad).ToReactiveProperty();
 
       // 設定を保存
-      this.IsDownloadCentral.Where(_ => this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadCentral, v ? 1 : 0)).AddTo(this._disposables);
-      this.IsDownloadLocal.Where(_ => this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadLocal, v ? 1 : 0)).AddTo(this._disposables);
-      this.IsRTDownloadCentral.Where(_ => this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadCentral, v ? 1 : 0)).AddTo(this._disposables);
-      this.IsRTDownloadLocal.Where(_ => this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadLocal, v ? 1 : 0)).AddTo(this._disposables);
+      this.IsDownloadCentral.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadCentral, v ? 1 : 0)).AddTo(this._disposables);
+      this.IsDownloadLocal.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadLocal, v ? 1 : 0)).AddTo(this._disposables);
+      this.IsRTDownloadCentralAfterThursdayOnly.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadCentralOnThursdayAfterOnly, v ? 1 : 0)).AddTo(this._disposables);
+      this.IsRTDownloadCentral.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadCentral, v ? 1 : 0)).AddTo(this._disposables);
+      this.IsRTDownloadLocal.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadLocal, v ? 1 : 0)).AddTo(this._disposables);
     }
 
     public async Task<bool> InitializeAsync()
@@ -140,6 +148,8 @@ namespace KmyKeiba.Models.Connection
         var isRTLocal = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsRTDownloadLocal);
         this.IsRTDownloadCentral.Value = isRTCentral != 0;
         this.IsRTDownloadLocal.Value = isRTLocal != 0;
+
+        this.IsRTDownloadCentralAfterThursdayOnly.Value = (await ConfigUtil.GetIntValueAsync(db, SettingKey.IsDownloadCentralOnThursdayAfterOnly)) != 0;
 
         // アプリ起動時デフォルトで設定されるダウンロード開始年月を設定する
         var centralDownloadedYear = (this.IsDownloadCentral.Value && this.CentralDownloadedYear.Value != default) ? this.CentralDownloadedYear.Value : default;
@@ -200,23 +210,81 @@ namespace KmyKeiba.Models.Connection
 
     private void StartRTDownloadLoop()
     {
+      async Task DownloadRTAsync(DateOnly date)
+      {
+        if (this.IsRTDownloadCentral.Value)
+        {
+          var isDownload = true;
+          var isDownloadAfterThursday = (await ConfigUtil.GetIntValueAsync(SettingKey.IsDownloadCentralOnThursdayAfterOnly)) != 0;
+          if (isDownloadAfterThursday)
+          {
+            var weekday = date.DayOfWeek;
+            isDownload = weekday == DayOfWeek.Thursday || weekday == DayOfWeek.Friday || weekday == DayOfWeek.Saturday || weekday == DayOfWeek.Sunday;
+          }
+          if (isDownload)
+          {
+            await this.DownloadRTAsync(DownloadLink.Central, date);
+          }
+        }
+        if (this.IsRTDownloadLocal.Value)
+        {
+          await this.DownloadRTAsync(DownloadLink.Local, date);
+        }
+      }
+
       Task.Run(async () =>
       {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        // 最初に最終起動からの差分を落とす
+        // （真っ先にやらないと、ユーザーが先に過去データダウンロードを開始する可能性あり）
+        _ = Task.Run(async () =>
+        {
+          this._isInitializationDownloading = true;
+
+          using var db = new MyContext();
+          var lastLaunchDay = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastLaunchDate);
+          if (lastLaunchDay != default)
+          {
+            var year = lastLaunchDay / 10000;
+            var month = lastLaunchDay / 100 % 100;
+            var day = lastLaunchDay % 100;
+            var lastLaunch = new DateOnly(year, month, day);
+
+            var minDate = today.AddMonths(-3);
+            if (lastLaunch < minDate)
+            {
+              lastLaunch = minDate;
+            }
+
+            // １日に２回以上前日のデータを落とす必要はない
+            if (lastLaunch != today)
+            {
+              // 自動更新用のフラグでセットアップデータを落としてるが、これでよい
+              // （自動更新したいデータが１週間より前のものだとRTからダウンロードできなくなるので）
+              if (this.IsRTDownloadCentral.Value)
+              {
+                await this.DownloadAsync(DownloadLink.Central, year, month, day);
+              }
+              if (this.IsRTDownloadLocal.Value)
+              {
+                await this.DownloadAsync(DownloadLink.Local, year, month, day);
+              }
+            }
+          }
+          await ConfigUtil.SetIntValueAsync(db, SettingKey.LastLaunchDate, today.Year * 10000 + today.Month * 100 + today.Day);
+
+          this._isInitializationDownloading = false;
+        });
+
         while (true)
         {
           var now = DateTime.Now;
 
           try
           {
-            var today = new DateOnly(now.Year, now.Month, now.Day);
-            if (this.IsRTDownloadCentral.Value)
-            {
-              await this.DownloadRTAsync(DownloadLink.Central, today);
-            }
-            if (this.IsRTDownloadLocal.Value)
-            {
-              await this.DownloadRTAsync(DownloadLink.Local, today);
-            }
+            var today2 = DateOnly.FromDateTime(now);
+            await DownloadRTAsync(today2);
           }
           catch
           {
@@ -241,12 +309,12 @@ namespace KmyKeiba.Models.Connection
       await this.DownloadAsync(link);
     }
 
-    private async Task DownloadAsync(DownloadLink link)
+    private async Task DownloadAsync(DownloadLink link, int year = 0, int month = 0, int startDay = 0)
     {
       if (link == DownloadLink.Both)
       {
-        await this.DownloadAsync(DownloadLink.Central);
-        await this.DownloadAsync(DownloadLink.Local);
+        await this.DownloadAsync(DownloadLink.Central, year, month, startDay);
+        await this.DownloadAsync(DownloadLink.Local, year, month, startDay);
         return;
       }
 
@@ -256,8 +324,10 @@ namespace KmyKeiba.Models.Connection
       var downloader = this._downloader;
       var linkName = link == DownloadLink.Central ? "central" : "local";
 
-      var startYear = this.StartYear.Value;
-      var startMonth = this.StartMonth.Value;
+      var startYear = year;
+      if (year == 0) startYear = this.StartYear.Value;
+      var startMonth = month;
+      if (month == 0) startMonth = this.StartMonth.Value;
       if (this.Mode.Value == DownloadMode.Continuous)
       {
         using var db = new MyContext();
@@ -267,7 +337,7 @@ namespace KmyKeiba.Models.Connection
       try
       {
         this.DownloadingLink.Value = link;
-        var isContinue = await downloader.DownloadAsync(linkName, "race", startYear, startMonth, this.OnDownloadProgress);
+        var isContinue = await downloader.DownloadAsync(linkName, "race", startYear, startMonth, this.OnDownloadProgress, startDay);
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
         if (isContinue)
         {
@@ -288,6 +358,7 @@ namespace KmyKeiba.Models.Connection
         await ShapeDatabaseModel.MakeStandardTimeMasterDataAsync(startYear - 2, link);
         this.ProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
         await ShapeDatabaseModel.SetPreviousRaceDaysAsync();
+        this.ProcessingStep.Value = Connection.ProcessingStep.Unknown;
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
       }
       catch (DownloaderCommandException ex)
@@ -335,6 +406,7 @@ namespace KmyKeiba.Models.Connection
         ShapeDatabaseModel.StartRunningStylePredicting();
         this.RTProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
         await ShapeDatabaseModel.SetPreviousRaceDaysAsync(DateOnly.FromDateTime(DateTime.Today));
+        this.RTProcessingStep.Value = Connection.ProcessingStep.Unknown;
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
       }
       catch (DownloaderCommandException ex)
@@ -382,19 +454,22 @@ namespace KmyKeiba.Models.Connection
       };
 
       // 現在ダウンロード中の年月を保存する
-      if (task.Parameter.Contains("central") && (this.CentralDownloadedMonth.Value != month || this.CentralDownloadedYear.Value != year))
+      if (!this._isInitializationDownloading)
       {
-        this.CentralDownloadedMonth.Value = month;
-        this.CentralDownloadedYear.Value = year;
-        using var db = new MyContext();
-        await ConfigUtil.SetIntValueAsync(db, SettingKey.LastDownloadCentralDate, year * 100 + month);
-      }
-      if (task.Parameter.Contains("local") && (this.LocalDownloadedMonth.Value != month || this.LocalDownloadedYear.Value != year))
-      {
-        this.LocalDownloadedMonth.Value = month;
-        this.LocalDownloadedYear.Value = year;
-        using var db = new MyContext();
-        await ConfigUtil.SetIntValueAsync(db, SettingKey.LastDownloadLocalDate, year * 100 + month);
+        if (task.Parameter.Contains("central") && (this.CentralDownloadedMonth.Value != month || this.CentralDownloadedYear.Value != year))
+        {
+          this.CentralDownloadedMonth.Value = month;
+          this.CentralDownloadedYear.Value = year;
+          using var db = new MyContext();
+          await ConfigUtil.SetIntValueAsync(db, SettingKey.LastDownloadCentralDate, year * 100 + month);
+        }
+        if (task.Parameter.Contains("local") && (this.LocalDownloadedMonth.Value != month || this.LocalDownloadedYear.Value != year))
+        {
+          this.LocalDownloadedMonth.Value = month;
+          this.LocalDownloadedYear.Value = year;
+          using var db = new MyContext();
+          await ConfigUtil.SetIntValueAsync(db, SettingKey.LastDownloadLocalDate, year * 100 + month);
+        }
       }
     }
 

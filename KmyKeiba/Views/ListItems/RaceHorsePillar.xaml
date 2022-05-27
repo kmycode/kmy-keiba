@@ -165,10 +165,11 @@
         <StackPanel Orientation="Horizontal" Grid.Column="8" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
           <StackPanel Margin="24,0,0,0" VerticalAlignment="Center" Width="120">
             <up:RaceResultOrderGradeRow Header="全て" FontSize="12" Grade="{Binding Horse.History.AllGrade,ElementName=Root}"/>
+            <up:RaceResultOrderGradeRow Header="場所" FontSize="12" Grade="{Binding Horse.History.SameCourseGrade,ElementName=Root}"/>
             <up:RaceResultOrderGradeRow Header="地面" FontSize="12" Grade="{Binding Horse.History.SameGroundGrade,ElementName=Root}"/>
-            <up:RaceResultOrderGradeRow Header="距離" FontSize="12" Grade="{Binding Horse.History.SameDistanceGrade,ElementName=Root}"/>
           </StackPanel>
           <StackPanel Margin="12,0,0,0" VerticalAlignment="Center" Width="120">
+            <up:RaceResultOrderGradeRow Header="距離" FontSize="12" Grade="{Binding Horse.History.SameDistanceGrade,ElementName=Root}"/>
             <up:RaceResultOrderGradeRow Header="方向" FontSize="12" Grade="{Binding Horse.History.SameDirectionGrade,ElementName=Root}"/>
             <up:RaceResultOrderGradeRow Header="馬場" FontSize="12" Grade="{Binding Horse.History.SameConditionGrade,ElementName=Root}"/>
           </StackPanel>

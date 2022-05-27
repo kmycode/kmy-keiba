@@ -11,6 +11,12 @@ namespace KmyKeiba.Common
 {
   internal static class ConfigUtil
   {
+    public static async Task<int> GetIntValueAsync(SettingKey key)
+    {
+      using var db = new MyContext();
+      return await GetIntValueAsync(db, key);
+    }
+
     public static async Task<int> GetIntValueAsync(MyContext db, SettingKey key)
     {
       var data = await db.SystemData!.FirstOrDefaultAsync(s => s.Key == key);

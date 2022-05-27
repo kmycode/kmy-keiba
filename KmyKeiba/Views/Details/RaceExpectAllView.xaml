@@ -680,7 +680,8 @@
 
         <!--馬券の種類選択-->
         <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-          <RadioButton GroupName="{Binding UniqueId3,ElementName=Root}" Name="ST_Single" IsChecked="True"
+          <RadioButton GroupName="{Binding UniqueId3,ElementName=Root}" Name="ST_Single"
+                       IsChecked="{Binding Race.Tickets.Value.Type.Value,Mode=OneWay,ElementName=Root,Converter={StaticResource EqualConv},ConverterParameter=Single}"
                        Command="{Binding SetTicketTypeCommand}" CommandParameter="1">
             単勝
             <RadioButton.Style>
@@ -694,6 +695,7 @@
             </RadioButton.Style>
           </RadioButton>
           <RadioButton GroupName="{Binding UniqueId3,ElementName=Root}" Name="ST_Place"
+                       IsChecked="{Binding Race.Tickets.Value.Type.Value,Mode=OneWay,ElementName=Root,Converter={StaticResource EqualConv},ConverterParameter=Place}"
                        Command="{Binding SetTicketTypeCommand}" CommandParameter="2">
             複勝
             <RadioButton.Style>
@@ -707,6 +709,7 @@
             </RadioButton.Style>
           </RadioButton>
           <RadioButton GroupName="{Binding UniqueId3,ElementName=Root}" Name="ST_Frame"
+                       IsChecked="{Binding Race.Tickets.Value.Type.Value,Mode=OneWay,ElementName=Root,Converter={StaticResource EqualConv},ConverterParameter=FrameNumber}"
                        Command="{Binding SetTicketTypeCommand}" CommandParameter="3">
             枠連
             <RadioButton.Style>
@@ -720,6 +723,7 @@
             </RadioButton.Style>
           </RadioButton>
           <RadioButton GroupName="{Binding UniqueId3,ElementName=Root}" Name="ST_QuinellaPlace"
+                       IsChecked="{Binding Race.Tickets.Value.Type.Value,Mode=OneWay,ElementName=Root,Converter={StaticResource EqualConv},ConverterParameter=QuinellaPlace}"
                        Command="{Binding SetTicketTypeCommand}" CommandParameter="4">
             ワイド
             <RadioButton.Style>
@@ -733,6 +737,7 @@
             </RadioButton.Style>
           </RadioButton>
           <RadioButton GroupName="{Binding UniqueId3,ElementName=Root}" Name="ST_Quinella"
+                       IsChecked="{Binding Race.Tickets.Value.Type.Value,Mode=OneWay,ElementName=Root,Converter={StaticResource EqualConv},ConverterParameter=Quinella}"
                        Command="{Binding SetTicketTypeCommand}" CommandParameter="5">
             馬連
             <RadioButton.Style>
@@ -746,6 +751,7 @@
             </RadioButton.Style>
           </RadioButton>
           <RadioButton GroupName="{Binding UniqueId3,ElementName=Root}" Name="ST_Exacta"
+                       IsChecked="{Binding Race.Tickets.Value.Type.Value,Mode=OneWay,ElementName=Root,Converter={StaticResource EqualConv},ConverterParameter=Exacta}"
                        Command="{Binding SetTicketTypeCommand}" CommandParameter="6">
             馬単
             <RadioButton.Style>
@@ -759,6 +765,7 @@
             </RadioButton.Style>
           </RadioButton>
           <RadioButton GroupName="{Binding UniqueId3,ElementName=Root}" Name="ST_Trio"
+                       IsChecked="{Binding Race.Tickets.Value.Type.Value,Mode=OneWay,ElementName=Root,Converter={StaticResource EqualConv},ConverterParameter=Trio}"
                        Command="{Binding SetTicketTypeCommand}" CommandParameter="7">
             三連複
             <RadioButton.Style>
@@ -772,6 +779,7 @@
             </RadioButton.Style>
           </RadioButton>
           <RadioButton GroupName="{Binding UniqueId3,ElementName=Root}" Name="ST_Trifecta"
+                       IsChecked="{Binding Race.Tickets.Value.Type.Value,Mode=OneWay,ElementName=Root,Converter={StaticResource EqualConv},ConverterParameter=Trifecta}"
                        Command="{Binding SetTicketTypeCommand}" CommandParameter="8">
             三連単
             <RadioButton.Style>

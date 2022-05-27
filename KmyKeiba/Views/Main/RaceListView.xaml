@@ -25,8 +25,15 @@
       </Grid.ColumnDefinitions>
       <Button Content="＜" Command="{Binding MoveToPrevDayCommand}"/>
       <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Center">
-        <TextBlock FontSize="24" Text="{Binding RaceList.Date.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
-                   Margin="4,8" HorizontalAlignment="Center"/>
+        <StackPanel VerticalAlignment="Center">
+          <TextBlock FontSize="22" Text="{Binding RaceList.Date.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
+                     Margin="4,0,4,0" HorizontalAlignment="Center"/>
+          <Border Height="24" Margin="0,-4,0,4">
+            <TextBlock FontSize="12" HorizontalAlignment="Center">
+              収支 <Run FontSize="18" Text="{Binding RaceList.CurrentDateIncomes.Value,ElementName=Root}" Foreground="{Binding RaceList.CurrentDateIncomesComparation.Value,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
+            </TextBlock>
+          </Border>
+        </StackPanel>
         <ToggleButton Grid.Column="2" Name="CalendarButton" Width="50" Height="30" Content="選択" Padding="0" Margin="8,0,8,0" FontSize="16"/>
         <Popup PlacementTarget="{Binding ElementName=CalendarButton}" Placement="Bottom" IsOpen="{Binding IsChecked,ElementName=CalendarButton}"
                StaysOpen="False">

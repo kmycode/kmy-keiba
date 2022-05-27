@@ -78,6 +78,8 @@ namespace KmyKeiba.Models.Analysis
 
       public ResultOrderGradeMap AllGrade { get; }
 
+      public ResultOrderGradeMap SameCourseGrade { get; }
+
       public ResultOrderGradeMap SameGroundGrade { get; }
 
       public ResultOrderGradeMap SameDistanceGrade { get; }
@@ -148,6 +150,8 @@ namespace KmyKeiba.Models.Analysis
 
           // 成績
           this.AllGrade = new ResultOrderGradeMap(this.BeforeRaces.Select(r => r.Data).ToArray());
+          this.SameCourseGrade = new ResultOrderGradeMap(this.BeforeRaces
+            .Where(r => r.Race.Course == race.Course).Select(r => r.Data).ToArray());
           this.SameGroundGrade = new ResultOrderGradeMap(this.BeforeRaces
             .Where(r => r.Race.TrackGround == race.TrackGround).Select(r => r.Data).ToArray());
           this.SameDistanceGrade = new ResultOrderGradeMap(this.BeforeRaces
