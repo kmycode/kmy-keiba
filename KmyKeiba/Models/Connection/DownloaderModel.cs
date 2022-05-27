@@ -90,7 +90,7 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<ProcessingStep> RTProcessingStep { get; } = new();
 
-    public ReactiveProperty<DownloadMode> Mode { get; } = new();
+    public ReactiveProperty<DownloadMode> Mode { get; } = new(DownloadMode.WithStartDate);
 
     public ReactiveProperty<bool> CanSaveOthers { get; }
 
