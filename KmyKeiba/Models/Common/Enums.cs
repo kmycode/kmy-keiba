@@ -11,5 +11,6 @@ namespace KmyKeiba.Models.Common
     Unknown,
     Good,
     Bad,
+    Standard,
   }
 }

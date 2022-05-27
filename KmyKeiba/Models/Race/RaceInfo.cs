@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Common;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
 using KmyKeiba.Models.Injection;
@@ -79,6 +80,12 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<bool> CanBuy { get; } = new();
 
+    public ReactiveProperty<TimeSpan> BuyLimit { get; } = new();
+
+    public ReactiveProperty<bool> IsBeforeLimitTime { get; } = new();
+
+    public ReactiveProperty<StatusFeeling> LimitStatus { get; } = new();
+
     public double TimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.ResultTimeDeviationValue ?? 0;
 
     public double A3HTimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.A3HResultTimeDeviationValue ?? 0;
@@ -115,6 +122,31 @@ namespace KmyKeiba.Models.Race
             .AddTo(this._disposables);
         });
       }
+
+      var limit = this.Data.StartTime.AddMinutes(-1);
+      Observable.Interval(TimeSpan.FromSeconds(1))
+        .Subscribe(_ =>
+        {
+          if (limit > DateTime.Now)
+          {
+            var d = limit - DateTime.Now;
+            if (d.TotalDays < 1)
+            {
+              this.IsBeforeLimitTime.Value = true;
+              this.BuyLimit.Value = limit - DateTime.Now;
+              this.LimitStatus.Value = this.BuyLimit.Value.TotalSeconds < 300 ? StatusFeeling.Bad : StatusFeeling.Unknown;
+            }
+            else
+            {
+              this.IsBeforeLimitTime.Value = false;
+            }
+          }
+          else
+          {
+            this.IsBeforeLimitTime.Value = false;
+          }
+        })
+        .AddTo(this._disposables);
     }
 
     private RaceInfo(RaceData race, PayoffInfo? payoff) : this(race)

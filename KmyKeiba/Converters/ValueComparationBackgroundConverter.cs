@@ -70,7 +70,7 @@ namespace KmyKeiba.Converters
         {
           StatusFeeling.Good => goodBrush,
           StatusFeeling.Bad => badBrush,
-          _ => Brushes.Transparent,
+          _ => baseBrush,
         };
       }
       return string.Empty;

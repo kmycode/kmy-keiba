@@ -136,6 +136,18 @@
           </Border>
           <Button FontSize="22" Visibility="{Binding Race.CanUpdate.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
                   Content="更新する" Command="{Binding UpdateRaceInfoCommand}"/>
+          
+          <!--投票-->
+          <StackPanel Orientation="Horizontal" Visibility="{Binding Race.IsBeforeLimitTime.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}" Margin="0,12,0,0"
+                      HorizontalAlignment="Center">
+            <TextBlock FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0">
+              投票<LineBreak/>締切
+            </TextBlock>
+            <TextBlock FontSize="32" VerticalAlignment="Center"
+                       Foreground="{Binding Race.LimitStatus.Value,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}">
+              <Run Text="{Binding Race.BuyLimit.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=h\\:mm\\:ss}"/>
+            </TextBlock>
+          </StackPanel>
 
           <!--馬番号表示-->
           <RadioButton FontSize="18" Content="全体" Margin="0,12,0,0" GroupName="{Binding UniqueId,ElementName=Root}"
