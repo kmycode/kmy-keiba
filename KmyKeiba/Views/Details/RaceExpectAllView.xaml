@@ -1043,7 +1043,7 @@
                       <Border Margin="10,0,0,0" Width="55">
                         <TextBlock Text="{Binding MoneyMax}" Foreground="{DynamicResource SubForeground}" Visibility="{Binding MoneyMax,Converter={StaticResource NonZeroVisibilityConv}}"/>
                       </Border>
-                      <TextBlock Text="{Binding Money}" Width="60" Margin="16,0,0,0"/>
+                      <TextBlock Text="{Binding Money}" Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}" Width="60" Margin="16,0,0,0"/>
                       <Border Width="40">
                         <Border Visibility="{Binding IsSingleRow,Converter={StaticResource BooleanVisibilityConv}}">
                           <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16">
@@ -1099,11 +1099,8 @@
                 <TextBlock FontSize="16" VerticalAlignment="Center">
                   購入<LineBreak/>総額
                 </TextBlock>
-                <TextBlock Text="100" FontSize="32" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                <TextBlock FontSize="16" VerticalAlignment="Center" Margin="32,0,0,0">
-                  最大<LineBreak/>収支
-                </TextBlock>
-                <TextBlock Text="100" FontSize="32" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Race.Tickets.Value.TotalMoney.Value,ElementName=Root}" Width="170" TextAlignment="Right"
+                           FontSize="32" Margin="8,0,0,0" VerticalAlignment="Center"/>
               </StackPanel>
               <Button Width="120" Grid.Column="1" Content="購入" FontSize="20"
                       Command="{Binding BuyCommand}" IsEnabled="{Binding Race.CanBuy.Value,ElementName=Root}"/>

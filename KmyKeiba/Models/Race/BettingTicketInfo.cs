@@ -48,6 +48,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<bool> IsSelectedItems { get; } = new();
 
+    public ReactiveProperty<int> TotalMoney { get; } = new();
+
     public BettingTicketInfo(IEnumerable<RaceHorseAnalyzer> horses, OddsInfo odds, IReadOnlyList<TicketData> existTickets)
     {
       this.Odds = odds;
@@ -96,6 +98,11 @@ namespace KmyKeiba.Models.Race
       }
 
       this.SortTickets();
+      this.UpdateTotalMoney();
+
+      Observable.FromEvent<EventHandler, EventArgs>(a => (s, e) => a(e), dele => this.Tickets.TicketCountChanged += dele, dele => this.Tickets.TicketCountChanged -= dele)
+        .Subscribe(_ => this.UpdateTotalMoney())
+        .AddTo(this._disposables);
     }
 
     private void SortTickets()
@@ -296,6 +303,27 @@ namespace KmyKeiba.Models.Race
       this.SortTickets();
 
       await db.Tickets!.AddRangeAsync(tickets.Select(t => t.Data));
+      this.UpdateTotalMoney();
+    }
+
+    private void UpdateTotalMoney()
+    {
+      if (this.Tickets.SelectMany(t => t.Rows).Any())
+      {
+        this.TotalMoney.Value = this.Tickets.SelectMany(t => t.Rows).Sum(r => r.DataCount) * 100;
+
+        var sum = this.TotalMoney.Value;
+        foreach (var row in this.Tickets.SelectMany(t => t.Rows))
+        {
+          var money = row.Money * row.DataCount;
+          row.Comparation.Value = money < sum ? ValueComparation.Bad :
+            money > sum ? ValueComparation.Good : ValueComparation.Standard;
+        }
+      }
+      else
+      {
+        this.TotalMoney.Value = 0;
+      }
     }
 
     public async Task BuyAsync(IEnumerable<TicketData> tickets)
@@ -773,6 +801,8 @@ namespace KmyKeiba.Models.Race
     public int MoneyMax => this.Rows[0].MoneyMax;
 
     public TicketType Type => this.Rows[0].Type;
+
+    public ReactiveProperty<ValueComparation> Comparation => this.Rows[0].Comparation;
 
     public ReactiveProperty<bool> IsChecked => this.Rows[0].IsChecked;
 
@@ -1555,6 +1585,8 @@ namespace KmyKeiba.Models.Race
     public ReactiveProperty<bool> IsChecked { get; } = new();
 
     public ReactiveProperty<bool>? IsAllRowsChecked { get; set; }
+
+    public ReactiveProperty<ValueComparation> Comparation { get; } = new();
   }
 
   public class BettingHorseItem : IDisposable, IMultipleCheckableItem
