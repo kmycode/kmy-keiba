@@ -69,6 +69,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<BettingTicketInfo?> Tickets { get; } = new();
 
+    public ReactiveCollection<RaceChangeInfo> Changes { get; } = new();
+
     public ScriptManager Script { get; }
 
     public ReactiveProperty<bool> CanExecuteScript { get; } = new();
@@ -405,6 +407,22 @@ namespace KmyKeiba.Models.Race
 
           // 払い戻し情報を更新
           info.Payoff?.SetTickets(info.Tickets.Value);
+
+          // 最新情報
+          var changes = await db.RaceChanges!.Where(c => c.RaceKey == race.Key).ToArrayAsync();
+          ThreadUtil.InvokeOnUiThread(() =>
+          {
+            var isWeightAdded = false;
+            foreach (var change in changes.Select(c => new RaceChangeInfo(c, race, horses)))
+            {
+              if (change.Data.ChangeType == RaceChangeType.HorseWeight)
+              {
+                if (isWeightAdded) continue;
+                isWeightAdded = true;
+              }
+              info.Changes.Add(change);
+            }
+          });
 
           // 調教
           var historyStartDate = race.StartTime.AddMonths(-4);

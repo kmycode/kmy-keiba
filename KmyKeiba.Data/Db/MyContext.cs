@@ -57,6 +57,8 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<DownloaderTaskData>? DownloaderTasks { get; set; }
 
+    public DbSet<RaceChangeData>? RaceChanges { get; set; }
+
     #endregion
 
     private IDbContextTransaction? _transaction;

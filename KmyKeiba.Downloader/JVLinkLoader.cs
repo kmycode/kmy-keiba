@@ -695,6 +695,33 @@ namespace KmyKeiba.Downloader
         this.ProcessSize.Value += data.CourseWeatherConditions.Count;
         this.ProcessSize.Value += data.HorseAbnormalities.Count;
         this.ProcessSize.Value += data.HorseRiderChanges.Count;
+        this.ProcessSize.Value += data.RaceStartTimeChanges.Count;
+        this.ProcessSize.Value += data.RaceCourseChanges.Count;
+
+        // 古いデータは削除
+        var today = DateTime.Today;
+        var olds = db.RaceChanges!.Where(c => c.LastModified < today);
+        db.RaceChanges!.RemoveRange(olds);
+        await db.SaveChangesAsync();
+
+        async Task AddDataAsync(IEnumerable<RaceChangeData> data)
+        {
+          var raceKeys = data.Select(d => d.RaceKey);
+          var exists = await db!.RaceChanges!.Where(c => raceKeys.Contains(c.RaceKey)).ToArrayAsync();
+          foreach (var d in data)
+          {
+            var ex = exists.FirstOrDefault(c => c.ChangeType == d.ChangeType && c.RaceKey == d.RaceKey && c.HorseNumber == d.HorseNumber);
+            if (ex != null)
+            {
+              ex.LastModified = DateTime.Now;
+            }
+            else
+            {
+              d.LastModified = DateTime.Now;
+              await db!.RaceChanges!.AddAsync(d);
+            }
+          }
+        }
 
         // 馬の体重を設定する
         {
@@ -713,6 +740,7 @@ namespace KmyKeiba.Downloader
             Program.CheckShutdown(db);
           }
 
+          await AddDataAsync(data.HorseWeights.SelectMany(c => RaceChangeData.GetData(c)));
           await db.SaveChangesAsync();
         }
 
@@ -744,6 +772,7 @@ namespace KmyKeiba.Downloader
             Program.CheckShutdown(db);
           }
 
+          await AddDataAsync(data.CourseWeatherConditions.Select(c => RaceChangeData.GetData(c)));
           await db.SaveChangesAsync();
         }
 
@@ -762,6 +791,7 @@ namespace KmyKeiba.Downloader
             Program.CheckShutdown(db);
           }
 
+          await AddDataAsync(data.HorseAbnormalities.Select(c => RaceChangeData.GetData(c)));
           await db.SaveChangesAsync();
         }
 
@@ -782,6 +812,48 @@ namespace KmyKeiba.Downloader
             Program.CheckShutdown(db);
           }
 
+          await AddDataAsync(data.HorseRiderChanges.Select(c => RaceChangeData.GetData(c)));
+          await db.SaveChangesAsync();
+        }
+
+        // 開始時刻
+        {
+          foreach (var st in data.RaceStartTimeChanges)
+          {
+            var race = await db.Races!
+              .FirstOrDefaultAsync((h) => h.Key == st.RaceKey);
+            if (race != null)
+            {
+              race.StartTime = new DateTime(race.StartTime.Year, race.StartTime.Month, race.StartTime.Day, st.StartTime.Hour, st.StartTime.Minute, 0);
+            }
+
+            this.Processed.Value++;
+            Program.CheckShutdown(db);
+          }
+
+          await AddDataAsync(data.RaceStartTimeChanges.Select(c => RaceChangeData.GetData(c)));
+          await db.SaveChangesAsync();
+        }
+
+        // コース
+        {
+          foreach (var st in data.RaceCourseChanges)
+          {
+            var race = await db.Races!
+              .FirstOrDefaultAsync((h) => h.Key == st.RaceKey);
+            if (race != null)
+            {
+              race.TrackGround = st.TrackGround;
+              race.TrackCornerDirection = st.TrackCornerDirection;
+              race.TrackType = st.TrackType;
+              race.TrackOption = st.TrackOption;
+            }
+
+            this.Processed.Value++;
+            Program.CheckShutdown(db);
+          }
+
+          await AddDataAsync(data.RaceCourseChanges.Select(c => RaceChangeData.GetData(c)));
           await db.SaveChangesAsync();
         }
       }

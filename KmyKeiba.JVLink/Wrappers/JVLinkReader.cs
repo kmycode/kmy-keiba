@@ -335,6 +335,24 @@ namespace KmyKeiba.JVLink.Wrappers
                 ReadDic(item, data.WoodtipTrainings, item.HorseKey + item.StartTime);
                 break;
               }
+            case "TC":
+              {
+                var a = new JVData_Struct.JV_TC_INFO();
+                a.SetDataB(ref d);
+                var item = RaceStartTimeChange.FromJV(a);
+
+                Read(item, data.RaceStartTimeChanges, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<RaceStartTimeChange>(x => x?.RaceKey));
+                break;
+              }
+            case "CC":
+              {
+                var a = new JVData_Struct.JV_CC_INFO();
+                a.SetDataB(ref d);
+                var item = RaceCourseChange.FromJV(a);
+
+                Read(item, data.RaceCourseChanges, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<RaceCourseChange>(x => x?.RaceKey));
+                break;
+              }
             case "HR":
               {
                 var a = new JVData_Struct.JV_HR_PAY();
@@ -482,6 +500,10 @@ namespace KmyKeiba.JVLink.Wrappers
     public List<HorseAbnormality> HorseAbnormalities { get; internal set; } = new();
 
     public List<HorseRiderChange> HorseRiderChanges { get; internal set; } = new();
+
+    public List<RaceCourseChange> RaceCourseChanges { get; internal set; } = new();
+
+    public List<RaceStartTimeChange> RaceStartTimeChanges { get; internal set; } = new();
 
     public Dictionary<string, Training> Trainings { get; internal set; } = new();
 
