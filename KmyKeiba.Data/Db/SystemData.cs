@@ -27,5 +27,7 @@ namespace KmyKeiba.Data.Db
     LastDownloadLocalDate = 2,
     IsDownloadCentral = 3,
     IsDownloadLocal = 4,
+    IsRTDownloadCentral = 5,
+    IsRTDownloadLocal = 6,
   }
 }

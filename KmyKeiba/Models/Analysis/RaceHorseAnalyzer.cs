@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -228,7 +229,7 @@ namespace KmyKeiba.Models.Analysis
       this.ResultOrderComparation = horse.ResultOrder >= 1 && horse.ResultOrder <= 3 ? ValueComparation.Good :
         horse.ResultOrder >= 8 || horse.ResultOrder >= race.HorsesCount * 0.7f ? ValueComparation.Bad : ValueComparation.Standard;
 
-      this.Memo.Subscribe(async m =>
+      this.Memo.Skip(1).Subscribe(async m =>
       {
         if (this.IsMemoSaving.Value)
         {
@@ -240,6 +241,7 @@ namespace KmyKeiba.Models.Analysis
         using var db = new MyContext();
         db.RaceHorses!.Attach(this.Data);
         this.Data.Memo = m;
+
         await db.SaveChangesAsync();
 
         this.IsMemoSaving.Value = false;
@@ -317,7 +319,7 @@ namespace KmyKeiba.Models.Analysis
 
     public ICommand SetMarkCommand =>
       this._setDoubleCircleMarkCommand ??=
-        new AsyncReactiveCommand<string>().WithSubscribe(p => this.ChangeHorseMarkAsync(p));
+        new AsyncReactiveCommand<string>(Connection.DownloaderModel.Instance.CanSaveOthers).WithSubscribe(p => this.ChangeHorseMarkAsync(p));
     private AsyncReactiveCommand<string>? _setDoubleCircleMarkCommand;
 
     private readonly CompositeDisposable _disposables = new();

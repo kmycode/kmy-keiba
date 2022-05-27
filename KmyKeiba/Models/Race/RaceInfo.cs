@@ -4,6 +4,7 @@ using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
+using KmyKeiba.Models.Injection;
 using KmyKeiba.Models.Script;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
@@ -21,6 +22,9 @@ namespace KmyKeiba.Models.Race
 {
   public class RaceInfo : IDisposable
   {
+    private static IBuyer? _buyer => __buyer ??= InjectionManager.GetInstance<IBuyer>(InjectionManager.Buyer);
+    private static IBuyer? __buyer;
+
     private readonly CompositeDisposable _disposables = new();
 
     public RaceData Data { get; }
@@ -71,6 +75,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<bool> CanUpdate { get; } = new();
 
+    public ReactiveProperty<bool> CanBuy { get; } = new();
+
     public double TimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.ResultTimeDeviationValue ?? 0;
 
     public double A3HTimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.A3HResultTimeDeviationValue ?? 0;
@@ -95,6 +101,15 @@ namespace KmyKeiba.Models.Race
 
       this.TrendAnalyzers = new RaceTrendAnalysisSelector(race);
       this.CourseSummaryImage.Race = race;
+
+      this.CanBuy.Value = _buyer?.CanBuy(race) == true;
+      if (this.CanBuy.Value)
+      {
+        this.Tickets.Select(t => t?.Tickets.Any() == true).Subscribe(isAnyTickets =>
+        {
+          this.CanBuy.Value = isAnyTickets;
+        }).AddTo(this._disposables);
+      }
     }
 
     private RaceInfo(RaceData race, PayoffInfo? payoff) : this(race)
@@ -231,6 +246,26 @@ namespace KmyKeiba.Models.Race
           this.CanUpdate.Value = isUpdate;
         }
       }
+    }
+
+    public async Task BuyAsync()
+    {
+      if (!this.CanBuy.Value)
+      {
+        return;
+      }
+
+      using var db = new MyContext();
+      var tickets = await db.Tickets!.Where(t => t.RaceKey == this.Data.Key).ToArrayAsync();
+      if (!tickets.Any())
+      {
+        return;
+      }
+
+      var buyer = _buyer!;
+      buyer.CreateNewPurchase(this.Data)
+        .AddTicketRange(tickets)
+        .Send();
     }
 
     public void Dispose()

@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -28,6 +29,15 @@ namespace KmyKeiba.Converters
           _ => Brushes.Transparent,
         };
       }
+      if (value is StatusFeeling fel)
+      {
+        return fel switch
+        {
+          StatusFeeling.Good => goodBrush,
+          StatusFeeling.Bad => badBrush,
+          _ => Brushes.Transparent,
+        };
+      }
       return string.Empty;
     }
 
@@ -52,6 +62,15 @@ namespace KmyKeiba.Converters
           ValueComparation.Good => goodBrush,
           ValueComparation.Bad => badBrush,
           _ => baseBrush,
+        };
+      }
+      if (value is StatusFeeling fel)
+      {
+        return fel switch
+        {
+          StatusFeeling.Good => goodBrush,
+          StatusFeeling.Bad => badBrush,
+          _ => Brushes.Transparent,
         };
       }
       return string.Empty;

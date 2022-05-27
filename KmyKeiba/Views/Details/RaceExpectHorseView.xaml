@@ -71,7 +71,7 @@
           <TextBlock Text="メモ" FontWeight="Bold" FontSize="24" Margin="0,24,0,8"/>
           <TextBox TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="120" Margin="8,0"
                    Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}" FontSize="16"
-                   Text="{Binding RaceHorse.Memo.Value,ElementName=Root}"/>
+                   Text="{Binding RaceHorse.Memo.Value,ElementName=Root}" IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}"/>
         </StackPanel>
       </ScrollViewer>
     </Grid>

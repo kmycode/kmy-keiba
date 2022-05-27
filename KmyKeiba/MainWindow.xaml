@@ -41,7 +41,8 @@
             <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
               <Button Width="80" Height="50" FontSize="24" Padding="0" Content="DL" Command="{Binding OpenDownloadDialogCommand}"/>
               <Border Width="240">
-                <Grid Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                <Grid Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                      Background="{Binding Downloader.DownloadingStatus.Value,Converter={StaticResource ValueComparationBackgroundConv}}">
                   <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}"
                              VerticalAlignment="Center" Margin="16,0,0,0">
                     <Run Text="{Binding Downloader.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/> <Run Text="{Binding Downloader.DownloadingYear.Value}"/>年 <Run Text="{Binding Downloader.DownloadingMonth.Value}"/>月<LineBreak/>
@@ -49,11 +50,12 @@
                   </TextBlock>
                   <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}"
                              VerticalAlignment="Center" Margin="16,0,0,0">
+                    <Run Text="{Binding Downloader.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/><LineBreak/>
                     <Run Text="{Binding Downloader.ProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
                   </TextBlock>
                 </Grid>
               </Border>
-              <Button Width="80" Height="50" FontSize="24" Padding="0" Content="RT"/>
+              <Button Width="80" Height="50" FontSize="24" Padding="0" Content="RT" Command="{Binding OpenRTDownloadDialogCommand}"/>
               <Border Width="240">
                 <Grid Visibility="{Binding Downloader.IsRTDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}">
                   <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsRTProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}"
@@ -63,6 +65,7 @@
                   </TextBlock>
                   <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsRTProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}"
                              VerticalAlignment="Center" Margin="16,0,0,0">
+                    <Run Text="{Binding Downloader.RTDownloadingLink.Value,Converter={StaticResource LabelConv}}"/><LineBreak/>
                     <Run Text="{Binding Downloader.RTProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
                   </TextBlock>
                 </Grid>
@@ -82,11 +85,19 @@
       </Border>
     </Grid>
 
-    <Grid Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=Download}">
+    <Grid Visibility="{Binding IsDialogOpen.Value,Converter={StaticResource BooleanVisibilityConv}}">
       <Border Background="Black" Opacity="0.5"/>
       <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="2"
-              Padding="24,8" HorizontalAlignment="Center" VerticalAlignment="Center">
+              Padding="24,8" HorizontalAlignment="Center" VerticalAlignment="Center"
+              Background="{DynamicResource BaseBackground}"
+              Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=Download}">
         <ud:DownloadDialog/>
+      </Border>
+      <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="2"
+              Padding="24,8" HorizontalAlignment="Center" VerticalAlignment="Center"
+              Background="{DynamicResource BaseBackground}"
+              Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=RTDownload}">
+        <ud:RTDownloadDialog/>
       </Border>
     </Grid>
   </Grid>

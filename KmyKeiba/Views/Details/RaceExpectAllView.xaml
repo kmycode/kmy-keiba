@@ -1003,78 +1003,105 @@
           </Border>
           
           <!--購入する馬券のリスト-->
-          <ScrollViewer Grid.Column="4">
-            <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Tickets,ElementName=Root}">
-              <ItemsControl.Resources>
-                <DataTemplate x:Key="TicketRow">
-                  <!--馬券１行分（複数Row・単一Row共通）-->
-                  <StackPanel Orientation="Horizontal">
-                    <FrameworkElement.Resources>
-                      <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
-                        <Setter Property="FontSize" Value="16"/>
-                        <Setter Property="TextAlignment" Value="Right"/>
-                      </Style>
-                    </FrameworkElement.Resources>
-                    <Border Background="{Binding Type,Converter={StaticResource TicketTypeBackgroundConv}}" Width="80">
-                      <TextBlock Text="{Binding Type,Converter={StaticResource EnumsConv}}" Margin="4,2" TextAlignment="Left" HorizontalAlignment="Left"/>
-                    </Border>
-                    <TextBlock Text="{Binding Number1}" Width="40"/>
-                    <Border Width="40">
-                      <TextBlock Text="{Binding Number2}" Visibility="{Binding Number2,Converter={StaticResource NonZeroVisibilityConv}}"/>
-                    </Border>
-                    <Border Width="40">
-                      <TextBlock Text="{Binding Number3}" Visibility="{Binding Number3,Converter={StaticResource NonZeroVisibilityConv}}"/>
-                    </Border>
-                    <Border Width="24" Visibility="{Binding IsSingleRow,Converter={StaticResource BooleanVisibilityConv}}"/>
-                    <Border Margin="10,0,0,0" Width="55">
-                      <TextBlock Text="{Binding MoneyMax}" Foreground="{DynamicResource SubForeground}" Visibility="{Binding MoneyMax,Converter={StaticResource NonZeroVisibilityConv}}"/>
-                    </Border>
-                    <TextBlock Text="{Binding Money}" Width="60" Margin="16,0,0,0"/>
-                    <Border Width="40">
-                      <Border Visibility="{Binding IsSingleRow,Converter={StaticResource BooleanVisibilityConv}}">
-                        <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16">
-                          x<Run Text="{Binding Count.Value}"/>
-                        </TextBlock>
+          <Grid Grid.Column="4">
+            <Grid.RowDefinitions>
+              <RowDefinition/>
+              <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            
+            <ScrollViewer>
+              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Tickets,ElementName=Root}">
+                <ItemsControl.Resources>
+                  <DataTemplate x:Key="TicketRow">
+                    <!--馬券１行分（複数Row・単一Row共通）-->
+                    <StackPanel Orientation="Horizontal">
+                      <FrameworkElement.Resources>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                          <Setter Property="FontSize" Value="16"/>
+                          <Setter Property="TextAlignment" Value="Right"/>
+                        </Style>
+                      </FrameworkElement.Resources>
+                      <Border Background="{Binding Type,Converter={StaticResource TicketTypeBackgroundConv}}" Width="80">
+                        <TextBlock Text="{Binding Type,Converter={StaticResource EnumsConv}}" Margin="4,2" TextAlignment="Left" HorizontalAlignment="Left"/>
                       </Border>
-                    </Border>
-                    <ToggleButton Content="選択" IsChecked="{Binding IsChecked.Value}" Margin="12,0,0,0"
-                                  Command="{Binding DataContext.UpdateSelectedTicketsCommand,ElementName=Root}"
-                                  Visibility="{Binding IsAllRowsChecked.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
-                  </StackPanel>
-                </DataTemplate>
-              </ItemsControl.Resources>
-              <ItemsControl.ItemTemplateSelector>
-                <local:TicketSingleRowTemplateSelector SingleRow="{StaticResource TicketRow}">
-                  <local:TicketSingleRowTemplateSelector.MultipleRow>
-                    <DataTemplate>
-                      <!--馬券表示（複数Rowのみ）-->
-                      <StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                          <Border Background="{Binding Data.Type,Converter={StaticResource TicketTypeBackgroundConv}}" Width="80">
-                            <TextBlock Text="{Binding Data.Type,Converter={StaticResource EnumsConv}}" FontSize="16" Foreground="{DynamicResource BaseForeground}"
-                                     Margin="4,2"/>
-                          </Border>
-                          <ToggleButton Width="20" Margin="24,2,0,2" Padding="0" IsChecked="{Binding IsOpen.Value}"/>
-                          <TextBlock Text="{Binding}" Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="4,2"
-                                     Width="232" FontWeight="Bold"/>
-                          <Border Width="36">
-                            <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right">
-                              x<Run Text="{Binding Count.Value}"/>
-                            </TextBlock>
-                          </Border>
-                          <ToggleButton Content="選択" IsChecked="{Binding IsAllRowsChecked.Value}" Margin="16,0,0,0"
-                                        Command="{Binding DataContext.UpdateSelectedTicketsCommand,ElementName=Root}"/>
+                      <TextBlock Text="{Binding Number1}" Width="40"/>
+                      <Border Width="40">
+                        <TextBlock Text="{Binding Number2}" Visibility="{Binding Number2,Converter={StaticResource NonZeroVisibilityConv}}"/>
+                      </Border>
+                      <Border Width="40">
+                        <TextBlock Text="{Binding Number3}" Visibility="{Binding Number3,Converter={StaticResource NonZeroVisibilityConv}}"/>
+                      </Border>
+                      <Border Width="24" Visibility="{Binding IsSingleRow,Converter={StaticResource BooleanVisibilityConv}}"/>
+                      <Border Margin="10,0,0,0" Width="55">
+                        <TextBlock Text="{Binding MoneyMax}" Foreground="{DynamicResource SubForeground}" Visibility="{Binding MoneyMax,Converter={StaticResource NonZeroVisibilityConv}}"/>
+                      </Border>
+                      <TextBlock Text="{Binding Money}" Width="60" Margin="16,0,0,0"/>
+                      <Border Width="40">
+                        <Border Visibility="{Binding IsSingleRow,Converter={StaticResource BooleanVisibilityConv}}">
+                          <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16">
+                            x<Run Text="{Binding Count.Value}"/>
+                          </TextBlock>
+                        </Border>
+                      </Border>
+                      <ToggleButton Content="選択" IsChecked="{Binding IsChecked.Value}" Margin="12,0,0,0"
+                                    Command="{Binding DataContext.UpdateSelectedTicketsCommand,ElementName=Root}"
+                                    Visibility="{Binding IsAllRowsChecked.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.Resources>
+                <ItemsControl.ItemTemplateSelector>
+                  <local:TicketSingleRowTemplateSelector SingleRow="{StaticResource TicketRow}">
+                    <local:TicketSingleRowTemplateSelector.MultipleRow>
+                      <DataTemplate>
+                        <!--馬券表示（複数Rowのみ）-->
+                        <StackPanel>
+                          <StackPanel Orientation="Horizontal">
+                            <Border Background="{Binding Data.Type,Converter={StaticResource TicketTypeBackgroundConv}}" Width="80">
+                              <TextBlock Text="{Binding Data.Type,Converter={StaticResource EnumsConv}}" FontSize="16" Foreground="{DynamicResource BaseForeground}"
+                                       Margin="4,2"/>
+                            </Border>
+                            <ToggleButton Width="20" Margin="24,2,0,2" Padding="0" IsChecked="{Binding IsOpen.Value}"/>
+                            <TextBlock Text="{Binding}" Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="4,2"
+                                       Width="232" FontWeight="Bold"/>
+                            <Border Width="36">
+                              <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right">
+                                x<Run Text="{Binding Count.Value}"/>
+                              </TextBlock>
+                            </Border>
+                            <ToggleButton Content="選択" IsChecked="{Binding IsAllRowsChecked.Value}" Margin="16,0,0,0"
+                                          Command="{Binding DataContext.UpdateSelectedTicketsCommand,ElementName=Root}"/>
+                          </StackPanel>
+                          <StackPanel Orientation="Horizontal" Margin="24,0,0,0" Visibility="{Binding IsOpen.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                            <ItemsControl ItemsSource="{Binding Rows}" ItemTemplate="{StaticResource TicketRow}"/>
+                          </StackPanel>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="24,0,0,0" Visibility="{Binding IsOpen.Value,Converter={StaticResource BooleanVisibilityConv}}">
-                          <ItemsControl ItemsSource="{Binding Rows}" ItemTemplate="{StaticResource TicketRow}"/>
-                        </StackPanel>
-                      </StackPanel>
-                    </DataTemplate>
-                  </local:TicketSingleRowTemplateSelector.MultipleRow>
-                </local:TicketSingleRowTemplateSelector>
-              </ItemsControl.ItemTemplateSelector>
-            </ItemsControl>
-          </ScrollViewer>
+                      </DataTemplate>
+                    </local:TicketSingleRowTemplateSelector.MultipleRow>
+                  </local:TicketSingleRowTemplateSelector>
+                </ItemsControl.ItemTemplateSelector>
+              </ItemsControl>
+            </ScrollViewer>
+
+            <Grid Grid.Row="1" Height="60" Margin="0,8,16,24">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="auto"/>
+              </Grid.ColumnDefinitions>
+              <StackPanel Orientation="Horizontal">
+                <TextBlock FontSize="16" VerticalAlignment="Center">
+                  購入<LineBreak/>総額
+                </TextBlock>
+                <TextBlock Text="100" FontSize="32" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock FontSize="16" VerticalAlignment="Center" Margin="32,0,0,0">
+                  最大<LineBreak/>収支
+                </TextBlock>
+                <TextBlock Text="100" FontSize="32" Margin="8,0,0,0" VerticalAlignment="Center"/>
+              </StackPanel>
+              <Button Width="120" Grid.Column="1" Content="購入" FontSize="20"
+                      Command="{Binding BuyCommand}" IsEnabled="{Binding Race.CanBuy.Value,ElementName=Root}"/>
+            </Grid>
+          </Grid>
+          
         </Grid>
       </Grid>
     </Grid>

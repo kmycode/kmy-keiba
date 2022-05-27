@@ -13,6 +13,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
 
 namespace KmyKeiba.Downloader
 {
@@ -183,26 +184,54 @@ namespace KmyKeiba.Downloader
           logger.Info($"Load Type: {link.GetType().Name}");
           this.Process = LoadProcessing.Opening;
 
+          IJVLinkReader StartReadWithTimeout(Func<IJVLinkReader> reader)
+          {
+            var isSucceed = false;
+            var start = DateTime.Now;
+
+            var waitSeconds = link.Type == JVLinkObjectType.Local ?
+              (DateTime.Now - this.StartTime.Value).TotalDays / 365 * 60 + 60 :  // 1年あたり60秒
+              60;
+
+            Task.Run(async () =>
+            {
+              while (!isSucceed)
+              {
+                await Task.Delay(1000);
+
+                if (DateTime.Now - start > TimeSpan.FromSeconds(waitSeconds))
+                {
+                  await Program.RestartProgramAsync(false);
+                }
+                Program.CheckShutdown();
+              }
+            });
+
+            var result = reader();
+            isSucceed = true;
+            return result;
+          }
+
           if (option != JVLinkOpenOption.RealTime)
           {
-            var reader = link.StartRead(dataspec,
+            var reader = StartReadWithTimeout(() => link.StartRead(dataspec,
                option,
                this.StartTime.Value,
-               this.IsSetEndTime.Value ? this.EndTime.Value : null);
+               this.IsSetEndTime.Value ? this.EndTime.Value : null));
             await this.LoadAsync(reader, loadSpecs, true, false);
           }
           else
           {
             if (raceKey == null)
             {
-              var reader = link.StartRead(dataspec,
-                 JVLinkOpenOption.RealTime, this.StartTime.Value.Date);
+              var reader = StartReadWithTimeout(() => link.StartRead(dataspec,
+                 JVLinkOpenOption.RealTime, this.StartTime.Value.Date));
               await this.LoadAsync(reader, loadSpecs, false, true);
             }
             else
             {
-              var reader = link.StartRead(dataspec,
-                  JVLinkOpenOption.RealTime, raceKey);
+              var reader = StartReadWithTimeout(() => link.StartRead(dataspec,
+                  JVLinkOpenOption.RealTime, raceKey));
               await this.LoadAsync(reader, loadSpecs, false, true);
             }
           }
@@ -522,7 +551,7 @@ namespace KmyKeiba.Downloader
             await db.BeginTransactionAsync();
             isSucceed = true;
           }
-          catch
+          catch (SqliteException ex) when (ex.SqliteErrorCode == 5)  // file locked
           {
             // TODO: log
             tryCount++;
@@ -641,7 +670,7 @@ namespace KmyKeiba.Downloader
           foreach (var horse in horses)
           {
             var o = odds.Value.Odds.FirstOrDefault((oo) => oo.HorseNumber == horse.Number);
-            if (o.HorseNumber != default)
+            if (o.HorseNumber != default && horse.CanSetOdds(o.Odds))
             {
               horse.Odds = (short)o.Odds;
               horse.Popular = o.Popular;

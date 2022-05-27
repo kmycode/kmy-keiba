@@ -13,4 +13,20 @@ namespace KmyKeiba.Models.Injection
 
     double GetA3HTimeDeviationValue(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData standardTime);
   }
+
+  public interface IBuyer
+  {
+    bool CanBuy(RaceData race);
+
+    IPurchaseBuilder CreateNewPurchase(RaceData race);
+  }
+
+  public interface IPurchaseBuilder
+  {
+    IPurchaseBuilder AddTicket(TicketData ticket);
+
+    IPurchaseBuilder AddTicketRange(IEnumerable<TicketData> tickets);
+
+    void Send();
+  }
 }

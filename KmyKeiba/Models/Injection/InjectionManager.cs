@@ -12,6 +12,8 @@ namespace KmyKeiba.Models.Injection
 
     public const string TimeDeviationValueCalculator = "KmyKeiba.Models.Injection.Private.TimeDeviationValueCalculator";
 
+    public const string Buyer = "KmyKeiba.Models.Injection.Private.KscBuyer";
+
     public static T? GetInstance<T>(string typeName) where T : class
     {
       var exists = instances.TryGetValue(typeName, out var instance);

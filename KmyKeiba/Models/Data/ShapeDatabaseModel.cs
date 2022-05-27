@@ -3,6 +3,7 @@ using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Connection;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -89,7 +90,27 @@ namespace KmyKeiba.Models.Data
       try
       {
         using var db = new MyContext();
-        await db.BeginTransactionAsync();
+
+        var tryCount = 0;
+        var isSucceed = false;
+        while (!isSucceed)
+        {
+          try
+          {
+            await db.BeginTransactionAsync();
+            isSucceed = true;
+          }
+          catch (SqliteException ex) when (ex.SqliteErrorCode == 5)
+          {
+            // TODO: logs
+            tryCount++;
+            if (tryCount >= 30 * 60)
+            {
+              throw new Exception(ex.Message, ex);
+            }
+            await Task.Delay(1000);
+          }
+        }
 
         var grounds = new[] { TrackGround.Turf, TrackGround.Dirt, TrackGround.TurfToDirt, };
         var types = new[] { TrackType.Flat, TrackType.Steeplechase, };
@@ -262,7 +283,7 @@ namespace KmyKeiba.Models.Data
       }
     }
 
-    public static async Task SetPreviousRaceDaysAsync()
+    public static async Task SetPreviousRaceDaysAsync(DateOnly? date = null)
     {
       var count = 0;
       var prevCommitCount = 0;
@@ -273,9 +294,17 @@ namespace KmyKeiba.Models.Data
       db.Database.SetCommandTimeout(180);
       await db.BeginTransactionAsync();
 
-      var allTargets = db.RaceHorses!
+      var query = db.RaceHorses!
         .Where(rh => rh.PreviousRaceDays == 0)
-        .Where(rh => rh.Key != "0000000000" && rh.Key != "" && rh.RaceKey != "")
+        .Where(rh => rh.Key != "0000000000" && rh.Key != "" && rh.RaceKey != "");
+      if (date != null)
+      {
+        var d = date.Value;
+        var str = d.ToString("yyyyMMdd");
+        query = query.Where(rh => rh.RaceKey.StartsWith(str));
+      }
+
+      var allTargets = query
         .GroupBy(rh => rh.Key)
         .Select(g => g.Key);
 

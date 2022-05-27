@@ -25,7 +25,7 @@ namespace KmyKeiba.Models.Connection
     private readonly ReactiveProperty<DownloaderTaskData?> currentRTTask = new();
     private readonly string _downloaderPath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location)!, @"downloader\\KmyKeiba.Downloader.exe");
 
-    public static DownloaderConnector Default => _default ??= new();
+    public static DownloaderConnector Instance => _default ??= new();
     private static DownloaderConnector? _default;
 
     public ReactiveProperty<bool> IsConnecting { get; } = new();
@@ -129,6 +129,11 @@ namespace KmyKeiba.Models.Connection
 
     public async Task InitializeAsync()
     {
+      if (File.Exists(Constrants.ShutdownFilePath))
+      {
+        File.Delete(Constrants.ShutdownFilePath);
+      }
+
       this.ExecuteDownloader(DownloaderCommand.Initialization, Constrants.ApplicationVersion);
 
       while (!File.Exists(Constrants.DatabasePath))
@@ -308,13 +313,7 @@ namespace KmyKeiba.Models.Connection
 
     public void Dispose()
     {
-      using var db = new MyContext();
-      db.DownloaderTasks!.Add(new DownloaderTaskData
-      {
-        Command = DownloaderCommand.Shutdown,
-      });
-      db.SaveChanges();
-
+      File.WriteAllText(Constrants.ShutdownFilePath, string.Empty);
       this._disposables.Dispose();
     }
   }

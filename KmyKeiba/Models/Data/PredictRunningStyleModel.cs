@@ -150,7 +150,7 @@ namespace KmyKeiba.Models.Data
       return done;
     }
 
-    public void Reset()
+    public async Task ResetAsync()
     {
       this.IsError.Value = false;
 
@@ -168,7 +168,7 @@ namespace KmyKeiba.Models.Data
             horse.IsRunningStyleSetManually = false;
             this.Processed.Value++;
           }
-          db.SaveChanges();
+          await db.SaveChangesAsync();
         }
         this.CanPredict.Value = this.ml.CanSave;
       }

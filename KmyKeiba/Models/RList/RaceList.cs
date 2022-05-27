@@ -87,11 +87,19 @@ namespace KmyKeiba.Models.RList
             * Definitions.RaceTimelineHeightPerMinutes;
 
           var refund = payoffs.FirstOrDefault(r => r.RaceKey == items[i].Key);
+          var myTickets = tickets.Where(t => t.RaceKey == items[i].Key);
+          var myHorses = horses.Where(h => h.RaceKey == items[i].Key).ToArray();
           if (refund != null)
           {
-            var myHorses = horses.Where(h => h.RaceKey == items[i].Key).ToArray();
-            var myTickets = tickets.Where(t => t.RaceKey == items[i].Key);
             this.UpdatePayoff(item, myHorses, myTickets, refund);
+          }
+          else if (myTickets.Any())
+          {
+            var ts = myTickets.Select(t => TicketItem.FromData(t, myHorses, null)).Where(t => t != null).Select(t => t!);
+            if (ts.SelectMany(t => t.Rows).Any())
+            {
+              item.SetIncome(ts.Sum(t => t.Count.Value * t.Rows.Count * -100));
+            }
           }
 
           item.UpdateStatus();
@@ -254,7 +262,7 @@ namespace KmyKeiba.Models.RList
     {
       this.Money.Value = money;
 
-      if (this.StartTime < DateTime.Now)
+      if (this._race.DataStatus >= RaceDataStatus.PreliminaryGrade3)
       {
         this.MoneyComparation.Value = money < 0 ? ValueComparation.Bad : money > 0 ? ValueComparation.Good : ValueComparation.Standard;
       }

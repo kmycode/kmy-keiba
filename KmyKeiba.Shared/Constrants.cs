@@ -13,6 +13,8 @@ namespace KmyKeiba.Shared
 
     public static readonly string DatabasePath = Path.Combine(AppDataPath, "maindata.sqlite3");
 
+    public static readonly string ShutdownFilePath = Path.Combine(AppDataPath, "req_shutdown");
+
     public const string ApplicationVersion = "v1.0.0";
   }
 }

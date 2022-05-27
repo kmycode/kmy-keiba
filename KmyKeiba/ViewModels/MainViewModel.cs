@@ -23,7 +23,7 @@ namespace KmyKeiba.ViewModels
   {
     private readonly CompositeDisposable _disposables = new();
     private readonly RaceModel model = new();
-    private readonly DownloaderModel downloader = new();
+    private readonly DownloaderModel downloader = DownloaderModel.Instance;
 
     public DownloaderModel Downloader => this.downloader;
 
@@ -46,6 +46,8 @@ namespace KmyKeiba.ViewModels
     public ReactiveProperty<DialogType> CurrentDialog { get; } = new();
 
     public ReactiveProperty<bool> IsDialogOpen { get; }
+
+    public ReactiveProperty<bool> CanSave => this.downloader.CanSaveOthers;
 
     public MainViewModel()
     {
@@ -93,10 +95,20 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Download);
     private ReactiveCommand? _openDownloadDialogCommand;
 
+    public ICommand OpenRTDownloadDialogCommand =>
+      this._openRTDownloadDialogCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.RTDownload);
+    private ReactiveCommand? _openRTDownloadDialogCommand;
+
     public ICommand CloseDialogCommand =>
       this._closeDialogCommand ??=
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Unknown);
     private ReactiveCommand? _closeDialogCommand;
+
+    public ICommand BuyCommand =>
+      this._buyCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(_ => this.Race.Value?.BuyAsync() ?? Task.CompletedTask);
+    private AsyncReactiveCommand<object>? _buyCommand;
 
     #region RaceList
 
@@ -156,12 +168,12 @@ namespace KmyKeiba.ViewModels
 
     public ICommand SetWeatherCommand =>
       this._setWeatherCommand ??=
-        new AsyncReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value != null ? this.model.Info.Value.SetWeatherAsync(p) : Task.CompletedTask);
+        new AsyncReactiveCommand<string>(this.CanSave).WithSubscribe(p => this.model.Info.Value != null ? this.model.Info.Value.SetWeatherAsync(p) : Task.CompletedTask);
     private AsyncReactiveCommand<string>? _setWeatherCommand;
 
     public ICommand SetConditionCommand =>
       this._setConditionCommand ??=
-        new AsyncReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value != null ? this.model.Info.Value.SetConditionAsync(p) : Task.CompletedTask);
+        new AsyncReactiveCommand<string>(this.CanSave).WithSubscribe(p => this.model.Info.Value != null ? this.model.Info.Value.SetConditionAsync(p) : Task.CompletedTask);
     private AsyncReactiveCommand<string>? _setConditionCommand;
 
     public ICommand SetTrioBlockCommand =>
@@ -198,12 +210,12 @@ namespace KmyKeiba.ViewModels
 
     public ICommand BuyTicketCommand =>
       this._buyTicketCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value != null ? this.model.Info.Value.Tickets.Value!.BuyAsync() : Task.CompletedTask);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Tickets.Value != null ? this.model.Info.Value.Tickets.Value!.BuyAsync() : Task.CompletedTask);
     private AsyncReactiveCommand<object>? _buyTicketCommand;
 
     public ICommand RemoveTicketCommand =>
       this._removeTicketCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value != null ? this.model.Info.Value.Tickets.Value!.RemoveTicketAsync() : Task.CompletedTask);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Tickets.Value != null ? this.model.Info.Value.Tickets.Value!.RemoveTicketAsync() : Task.CompletedTask);
     private AsyncReactiveCommand<object>? _removeTicketCommand;
 
     public ICommand UpdateSelectedTicketsCommand =>
@@ -213,22 +225,22 @@ namespace KmyKeiba.ViewModels
 
     public ICommand UpdateSelectedTicketCountsCommand =>
       this._updateSelectedTicketCountsCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.UpdateTicketCountAsync() ?? Task.CompletedTask);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.UpdateTicketCountAsync() ?? Task.CompletedTask);
     private AsyncReactiveCommand<object>? _updateSelectedTicketCountsCommand;
 
     public ICommand ApproveScriptMarksCommand =>
       this._approveScriptMarksCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Script.ApproveMarksAsync() ?? Task.CompletedTask);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveMarksAsync() ?? Task.CompletedTask);
     private AsyncReactiveCommand<object>? _approveScriptMarksCommand;
 
     public ICommand ApproveScriptTicketsCommand =>
       this._approveScriptTicketsCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Script.ApproveTicketsAsync() ?? Task.CompletedTask);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveTicketsAsync() ?? Task.CompletedTask);
     private AsyncReactiveCommand<object>? _approveScriptTicketsCommand;
 
     public ICommand ApproveReplacingScriptTicketsCommand =>
       this._approveReplacingScriptTicketsCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Script.ApproveReplacingTicketsAsync() ?? Task.CompletedTask);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveReplacingTicketsAsync() ?? Task.CompletedTask);
     private AsyncReactiveCommand<object>? _approveReplacingScriptTicketsCommand;
 
     #endregion
@@ -242,5 +254,6 @@ namespace KmyKeiba.ViewModels
   {
     Unknown,
     Download,
+    RTDownload,
   }
 }

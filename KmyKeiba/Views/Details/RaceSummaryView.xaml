@@ -78,7 +78,8 @@
               </Style>
             </StackPanel.Resources>
             <TextBlock FontSize="24" Margin="0,48,0,0" Text="天気・馬場を変更" FontWeight="Bold"/>
-            <TextBlock FontSize="16" Margin="0,8,0,8" Text="天気データが届いておりません。実際の発表を確認して設定してください" Style="{StaticResource SubTextBlock}"/>
+            <TextBlock FontSize="16" Margin="0,8,0,0" Text="天気データが届いておりません。実際の発表を確認して設定してください。" Style="{StaticResource SubTextBlock}"/>
+            <TextBlock FontSize="16" Margin="0,0,0,8" Text="データ受信次第、下記の設定は受信された情報に置き換えられます。" Style="{StaticResource SubTextBlock}"/>
             <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
               <RadioButton GroupName="{Binding UniqueId,ElementName=Root}" Command="{Binding SetWeatherCommand}" CommandParameter="1" IsChecked="{Binding Race.Weather.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Fine}" Content="晴れ"/>
               <RadioButton GroupName="{Binding UniqueId,ElementName=Root}" Command="{Binding SetWeatherCommand}" CommandParameter="2" IsChecked="{Binding Race.Weather.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Cloudy}" Content="曇り"/>

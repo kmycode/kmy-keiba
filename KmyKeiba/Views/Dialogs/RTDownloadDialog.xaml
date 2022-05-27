@@ -1,0 +1,75 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Dialogs.RTDownloadDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
+             xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+  <Grid Width="600" Height="440" Background="{DynamicResource BaseBackground}">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto"/>
+      <RowDefinition Height="auto"/>
+      <RowDefinition Height="auto"/>
+      <RowDefinition/>
+      <RowDefinition Height="auto"/>
+      <RowDefinition Height="auto"/>
+      <RowDefinition Height="auto"/>
+    </Grid.RowDefinitions>
+    <TextBlock FontSize="36" FontWeight="Bold" Text="自動更新設定" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,24"/>
+    <TextBlock Grid.Row="1" FontSize="28" Text="対象" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16"/>
+    <Grid Grid.Row="2" IsEnabled="{Binding Downloader.CanSaveOthers.Value}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+      </Grid.ColumnDefinitions>
+      <StackPanel Orientation="Horizontal">
+        <ToggleButton Grid.Row="1" FontSize="16" Content="中央競馬" Width="100"
+                      IsChecked="{Binding Downloader.IsRTDownloadCentral.Value,Mode=TwoWay}"/>
+        <Button Grid.Row="1" Grid.Column="1" FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
+                Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                Command="{Binding OpenJvlinkConfigCommand}"/>
+      </StackPanel>
+      <StackPanel Grid.Column="1" Orientation="Horizontal">
+        <ToggleButton Grid.Row="2" FontSize="16" Content="地方競馬" Width="100"
+                      IsChecked="{Binding Downloader.IsRTDownloadLocal.Value,Mode=TwoWay}"/>
+        <Button Grid.Row="2" Grid.Column="1" FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
+                Visibility="{Binding Downloader.IsRTDownloadLocal.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                Command="{Binding OpenNvlinkConfigCommand}"/>
+      </StackPanel>
+    </Grid>
+    <Grid Grid.Row="3" Visibility="{Binding Downloader.IsRTDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}">
+      <StackPanel VerticalAlignment="Center">
+        <TextBlock Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16" FontSize="20" TextAlignment="Center"
+                   Visibility="{Binding Downloader.IsRTProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}">
+          <Run Text="{Binding Downloader.RTDownloadingLink.Value,Converter={StaticResource LabelConv}}"/> <Run Text="{Binding Downloader.RTLoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
+        </TextBlock>
+        <TextBlock Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16" FontSize="20" TextAlignment="Center"
+                   Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <Run Text="{Binding Downloader.ProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
+        </TextBlock>
+        <up:MyProgressBar>
+          <up:MyProgressBar.RenderTransform>
+            <TranslateTransform X="210"/>
+          </up:MyProgressBar.RenderTransform>
+        </up:MyProgressBar>
+      </StackPanel>
+    </Grid>
+    <Border Grid.Row="4" Height="60" Margin="0,0,0,16">
+      <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{DynamicResource ErrorForeground}" FontSize="20" TextWrapping="Wrap"
+                 Text="{Binding Downloader.RTErrorMessage.Value}" Visibility="{Binding Downloader.IsRTError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+    </Border>
+    <TextBlock Style="{StaticResource TextBlockDefault}" FontSize="16" Grid.Row="5" Margin="0,0,0,16">
+      処理はバックグラウンドで実行されます。問題が発生した場合は、このダイアログが再表示されます。
+    </TextBlock>
+    <Grid Grid.Row="6" Margin="0,0,0,16">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition/>
+        <ColumnDefinition Width="auto"/>
+      </Grid.ColumnDefinitions>
+      <Button Content="閉じる" FontSize="16" Width="80" VerticalAlignment="Bottom" Command="{Binding CloseDialogCommand}"/>
+    </Grid>
+  </Grid>
+</UserControl>

@@ -20,8 +20,12 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public bool IsError { get; private set; }
 
+    public JVLinkObjectType Type { get; }
+
     private JVLinkObject(JVLinkObjectType type)
     {
+      this.Type = type;
+
       try
       {
         this.link = type switch

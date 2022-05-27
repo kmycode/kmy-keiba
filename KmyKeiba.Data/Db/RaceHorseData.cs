@@ -219,9 +219,13 @@ namespace KmyKeiba.Data.Db
       this.OwnerName = entity.OwnerName;
       this.Weight = entity.Weight;
       this.WeightDiff = entity.WeightDiff;
-      this.Odds = entity.Odds;
       this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
       this.AbnormalResult = entity.AbnormalResult;
+
+      if (this.CanSetOdds(entity.Odds))
+      {
+        this.Odds = entity.Odds;
+      }
 
       if (!this.IsRunningStyleSetManually)
       {
@@ -233,6 +237,17 @@ namespace KmyKeiba.Data.Db
         this.UniformFormat = entity.UniformFormat;
         this.UniformFormatData = new byte[0];
       }
+    }
+
+    public bool CanSetOdds(short odds)
+    {
+      if (odds != default) return true;
+
+      if (this.AbnormalResult == RaceAbnormality.Scratched || this.AbnormalResult == RaceAbnormality.ExcludedByStarters)
+      {
+        return false;
+      }
+      return true;
     }
 
     public override bool IsEquals(DataBase<RaceHorse> b)
