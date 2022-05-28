@@ -99,7 +99,7 @@ namespace KmyKeiba.Models.Race
     {
       this.Data = race;
       this.Subject = new(race);
-      this.Script = new(this);
+      this.Script = ScriptManager.GetInstance(this);
 
       this.Weather.Value = race.TrackWeather;
       this.Condition.Value = race.TrackCondition;

@@ -22,6 +22,7 @@ namespace KmyKeiba.Models.Script
 {
   public class ScriptManager
   {
+    private static readonly Dictionary<string, ScriptManager> _instances = new();
     private static int _outputNum = 0;
 
     public static JsonSerializerOptions JsonOptions { get; } = new JsonSerializerOptions
@@ -30,29 +31,75 @@ namespace KmyKeiba.Models.Script
       NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
     };
 
-    public RaceInfo Race { get; }
+    private WeakReference<RaceInfo> RaceReference { get; set; }
+
+    public RaceInfo? Race
+    {
+      get
+      {
+        this.RaceReference.TryGetTarget(out var race);
+        return race;
+      }
+      set
+      {
+        if (value != null)
+        {
+          this.RaceReference = new WeakReference<RaceInfo>(value);
+        }
+      }
+    }
 
     public BrowserController Controller { get; } = new();
 
     public ReactiveProperty<bool> IsError { get; } = new();
 
+    public ReactiveProperty<bool> IsExecuting { get; } = new();
+
+    public ReactiveProperty<bool> IsCompleted { get; } = new();
+
     public ReactiveProperty<string> ErrorMessage { get; } = new();
 
     public ReactiveProperty<ScriptSuggestion?> Suggestion { get; } = new();
 
-    public ScriptManager(RaceInfo race)
+    public ReactiveProperty<ReactiveProperty<int>?> Progress { get; } = new();
+
+    public ReactiveProperty<ReactiveProperty<int>?> ProgressMax { get; } = new();
+
+    private ScriptManager(RaceInfo race)
     {
-      this.Race = race;
+      this.RaceReference = new WeakReference<RaceInfo>(race);
+    }
+
+    public static ScriptManager GetInstance(RaceInfo race)
+    {
+      _instances.TryGetValue(race.Data.Key, out var exists);
+      if (exists != null)
+      {
+        exists.Race = race;
+        return exists;
+      }
+
+      var instance = new ScriptManager(race);
+      _instances.Add(race.Data.Key, instance);
+      return instance;
     }
 
     public async Task UpdateAsync() => await this.ExecuteAsync();
 
     public async Task ExecuteAsync()
     {
+      var race = this.Race;
+      if (race == null)
+      {
+        return;
+      }
+
       this.Suggestion.Value = null;
       this.IsError.Value = false;
+      this.IsCompleted.Value = false;
+      this.IsExecuting.Value = true;
 
-      var result = await ExecuteAsync(this.Race);
+      var result = await this.ExecuteAsync(race);
 
       if (result.IsError)
       {
@@ -74,13 +121,24 @@ namespace KmyKeiba.Models.Script
         }
         */
         this.Suggestion.Value = result.Suggestion;
+        this.IsCompleted.Value = true;
       }
+
+      this.IsExecuting.Value = false;
     }
 
-    public static async Task<ScriptResult> ExecuteAsync(RaceInfo race)
+    private async Task<ScriptResult> ExecuteAsync(RaceInfo race)
     {
       using var engine = new ScriptEngineWrapper();
-      return await engine.ExecuteAsync(race);
+      this.ProgressMax.Value = engine.Html.ProgressMaxObservable;
+      this.Progress.Value = engine.Html.ProgressObservable;
+
+      var result = await engine.ExecuteAsync(race);
+
+      this.ProgressMax.Value = null;
+      this.Progress.Value = null;
+
+      return result;
     }
 
     public async Task ApproveMarksAsync()
@@ -90,9 +148,15 @@ namespace KmyKeiba.Models.Script
         return;
       }
 
+      var race = this.Race;
+      if (race == null)
+      {
+        return;
+      }
+
       using var db = new MyContext();
 
-      foreach (var horse in this.Race.Horses)
+      foreach (var horse in race.Horses)
       {
         var mark = this.Suggestion.Value.Marks.FirstOrDefault(m => m.HorseNumber == horse.Data.Number);
         horse.ChangeHorseMark(db, mark.Mark);
@@ -116,16 +180,18 @@ namespace KmyKeiba.Models.Script
 
     private async Task ApproveTicketsAsync(bool isReplace)
     {
-      if (this.Suggestion.Value == null || !this.Suggestion.Value.HasTickets.Value || this.Race.Tickets.Value == null)
+      var race = this.Race;
+
+      if (this.Suggestion.Value == null || !this.Suggestion.Value.HasTickets.Value || race?.Tickets.Value == null)
       {
         return;
       }
 
       if (isReplace)
       {
-        await this.Race.Tickets.Value.ClearTicketsAsync();
+        await race.Tickets.Value.ClearTicketsAsync();
       }
-      await this.Race.Tickets.Value.BuyAsync(this.Suggestion.Value.Tickets);
+      await race.Tickets.Value.BuyAsync(this.Suggestion.Value.Tickets);
 
       this.Suggestion.Value.Tickets.Clear();
       this.Suggestion.Value.HasTickets.Value = false;
