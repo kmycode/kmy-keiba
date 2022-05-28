@@ -501,7 +501,7 @@ namespace KmyKeiba.Downloader
           .ToArrayAsync();
         foreach (var item in dataItems
           .Join(entities, (d) => dataId(d), (e) => entityId(e), (d, e) => new { Data = d, Entity = e, })
-          .OrderByDescending((i) => (short)i.Entity.DataStatus))
+          .OrderBy((i) => (short)i.Entity.DataStatus))
         {
           if (item.Data.DataStatus <= item.Entity.DataStatus || item.Data.LastModified <= item.Entity.LastModified)
           {

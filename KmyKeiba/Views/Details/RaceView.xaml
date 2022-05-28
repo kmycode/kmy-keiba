@@ -71,7 +71,7 @@
 
       <Grid Grid.Row="2">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition Width="200"/>
           <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
@@ -87,7 +87,7 @@
           </Style>
         </Grid.Resources>
 
-        <StackPanel Grid.Column="0" Width="200" Orientation="Vertical">
+        <StackPanel Grid.Column="0" Width="200" Orientation="Vertical" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
           <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Summary" IsChecked="True">
             概要
             <ToggleButton.Style>
@@ -129,6 +129,15 @@
           <Border Visibility="{Binding Race.IsCanceled,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
                   Margin="0,16" Height="56" Background="{DynamicResource BadBackground}">
             <TextBlock Text="中止" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"/>
+          </Border>
+          <Border Margin="0,16" Height="56" Background="{DynamicResource FirstOrderBackground}">
+            <Border.Visibility>
+              <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                <Binding Path="Race.IsWaitingResults.Value" ElementName="Root"/>
+                <Binding Path="Race.HasResults.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+              </MultiBinding>
+            </Border.Visibility>
+            <TextBlock Text="結果待ち" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"/>
           </Border>
           <Border Visibility="{Binding Race.CanUpdate.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
                   Margin="0,16" Height="56" Background="{DynamicResource GoodBackground}">

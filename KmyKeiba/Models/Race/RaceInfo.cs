@@ -86,6 +86,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<StatusFeeling> LimitStatus { get; } = new();
 
+    public ReactiveProperty<bool> IsWaitingResults { get; } = new();
+
     public double TimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.ResultTimeDeviationValue ?? 0;
 
     public double A3HTimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.A3HResultTimeDeviationValue ?? 0;
@@ -144,6 +146,7 @@ namespace KmyKeiba.Models.Race
           else
           {
             this.IsBeforeLimitTime.Value = false;
+            this.IsWaitingResults.Value = true;
           }
         })
         .AddTo(this._disposables);
@@ -365,18 +368,6 @@ namespace KmyKeiba.Models.Race
             .ToArrayAsync();
           var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race);
 
-          // コーナー順位の色分け
-          var firstHorse = horses.FirstOrDefault(h => h.ResultOrder == 1);
-          var secondHorse = horses.FirstOrDefault(h => h.ResultOrder == 2);
-          var thirdHorse = horses.FirstOrDefault(h => h.ResultOrder == 3);
-          ThreadUtil.InvokeOnUiThread(() =>
-          {
-            foreach (var corner in info.Corners)
-            {
-              corner.Image.SetOrders(firstHorse?.Number ?? 0, secondHorse?.Number ?? 0, thirdHorse?.Number ?? 0);
-            }
-          });
-
           // 各馬の情報
           var horseInfos = new List<RaceHorseAnalyzer>();
           var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
@@ -457,7 +448,7 @@ namespace KmyKeiba.Models.Race
           });
 
           // 調教
-          var historyStartDate = race.StartTime.AddMonths(-4);
+          var historyStartDate = race.StartTime.AddMonths(-3);
           var trainings = await db.Trainings!
             .Where(t => horseKeys.Contains(t.HorseKey) && t.StartTime <= race.StartTime && t.StartTime > historyStartDate)
             .OrderByDescending(t => t.StartTime)
@@ -469,19 +460,26 @@ namespace KmyKeiba.Models.Race
           foreach (var horse in horseInfos)
           {
             horse.Training.Value = new TrainingAnalyzer(
-              trainings.Where(t => t.HorseKey == horse.Data.Key).Take(50).ToArray(),
-              woodTrainings.Where(t => t.HorseKey == horse.Data.Key).Take(50).ToArray()
+              trainings.Where(t => t.HorseKey == horse.Data.Key).ToArray(),
+              woodTrainings.Where(t => t.HorseKey == horse.Data.Key).ToArray()
               );
           }
 
-          // スクリプト
-          info.CanExecuteScript.Value = true;
-          ThreadUtil.InvokeOnUiThread(async () =>
-          {
-            await info.Script.UpdateAsync();
-          });
-
+          // すべてのデータ読み込み完了
           info.IsLoadCompleted.Value = true;
+          info.CanExecuteScript.Value = true;
+
+          // コーナー順位の色分け
+          var firstHorse = horses.FirstOrDefault(h => h.ResultOrder == 1);
+          var secondHorse = horses.FirstOrDefault(h => h.ResultOrder == 2);
+          var thirdHorse = horses.FirstOrDefault(h => h.ResultOrder == 3);
+          ThreadUtil.InvokeOnUiThread(() =>
+          {
+            foreach (var corner in info.Corners)
+            {
+              corner.Image.SetOrders(firstHorse?.Number ?? 0, secondHorse?.Number ?? 0, thirdHorse?.Number ?? 0);
+            }
+          });
         }
         catch
         {

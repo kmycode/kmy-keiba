@@ -607,7 +607,7 @@
         </Grid.ColumnDefinitions>
           
         <Button Grid.ColumnSpan="2" Content="更新" Command="{Binding UpdateScriptCommand}" IsEnabled="{Binding Race.CanExecuteScript.Value,ElementName=Root}"/>
-        <cef:ChromiumWebBrowser Grid.Row="1" Visibility="{Binding Race.Script.IsError.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
+        <cef:ChromiumWebBrowser Grid.Row="1" x:Name="Browser" Visibility="{Binding Race.Script.IsError.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
           <i:Interaction.Behaviors>
             <b:BrowserControllerBehavior Controller="{Binding Race.Script.Controller,ElementName=Root}"/>
           </i:Interaction.Behaviors>

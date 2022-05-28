@@ -5,6 +5,7 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Models.RList;
+using KmyKeiba.Models.Script;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -24,6 +25,8 @@ namespace KmyKeiba.ViewModels
     private readonly CompositeDisposable _disposables = new();
     private readonly RaceModel model = new();
     private readonly DownloaderModel downloader = DownloaderModel.Instance;
+
+    public ScriptBulkModel ScriptBulk { get; } = new();
 
     public DownloaderModel Downloader => this.downloader;
 
@@ -100,6 +103,11 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.RTDownload);
     private ReactiveCommand? _openRTDownloadDialogCommand;
 
+    public ICommand OpenScriptBulkDialogCommand =>
+      this._openScriptBulkDialogCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.ScriptBulk);
+    private ReactiveCommand? _openScriptBulkDialogCommand;
+
     public ICommand CloseDialogCommand =>
       this._closeDialogCommand ??=
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Unknown);
@@ -109,6 +117,16 @@ namespace KmyKeiba.ViewModels
       this._buyCommand ??=
         new AsyncReactiveCommand<object>().WithSubscribe(_ => this.Race.Value?.BuyAsync() ?? Task.CompletedTask);
     private AsyncReactiveCommand<object>? _buyCommand;
+
+    public ICommand ExecuteScriptBulkCommand =>
+      this._executeScriptBulkCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.ScriptBulk.BeginExecute());
+    private ReactiveCommand? _executeScriptBulkCommand;
+
+    public ICommand CancelScriptBulkCommand =>
+      this._cancelScriptBulkCommand ??=
+        new ReactiveCommand<object>().WithSubscribe(_ => this.ScriptBulk.Cancel());
+    private ReactiveCommand<object>? _cancelScriptBulkCommand;
 
     #region RaceList
 
@@ -255,5 +273,6 @@ namespace KmyKeiba.ViewModels
     Unknown,
     Download,
     RTDownload,
+    ScriptBulk,
   }
 }

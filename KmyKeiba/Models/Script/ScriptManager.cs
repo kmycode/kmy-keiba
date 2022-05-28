@@ -22,8 +22,6 @@ namespace KmyKeiba.Models.Script
 {
   public class ScriptManager
   {
-    private static readonly string _backgroundColor = ResourceUtil.TryGetResource<RHColor>("BrowserBackgroundColor")?.ToHTMLColor() ?? "white";
-    private static readonly string _foregroundColor = ResourceUtil.TryGetResource<RHColor>("BrowserForegroundColor")?.ToHTMLColor() ?? "white";
     private int _outputNum = 0;
 
     public static JsonSerializerOptions JsonOptions { get; } = new JsonSerializerOptions
@@ -51,85 +49,36 @@ namespace KmyKeiba.Models.Script
 
     public async Task ExecuteAsync()
     {
-      var suggestion = new ScriptSuggestion(this.Race.Data.Key);
-      var htmlObj = new ScriptHtml();
       this.Suggestion.Value = null;
+      this.IsError.Value = false;
 
-      using var engine = new V8ScriptEngine(V8ScriptEngineFlags.EnableDynamicModuleImports |
-        V8ScriptEngineFlags.EnableTaskPromiseConversion |
-        V8ScriptEngineFlags.EnableValueTaskPromiseConversion |
-        V8ScriptEngineFlags.EnableDateTimeConversion);
+      var result = await ExecuteAsync(this.Race);
 
-      try
+      if (result.IsError)
       {
-        this.IsError.Value = false;
-
-        engine.DocumentSettings.AccessFlags |= DocumentAccessFlags.EnableAllLoading | DocumentAccessFlags.EnforceRelativePrefix;
-        engine.DocumentSettings.SearchPath = Path.Combine(Directory.GetCurrentDirectory(), "script");
-
-        engine.AddHostObject("__currentRace", new ScriptCurrentRace(this.Race));
-        engine.AddHostObject("__suggestion", suggestion);
-        engine.AddHostObject("__html", htmlObj);
-        engine.AddHostObject("__fs", new NodeJSFileSystem());
-        engine.AddHostObject("__hostFuncs", new HostFunctions());
-
-        var script = File.ReadAllText("script/index.js");
-        engine.Script.OnInit = engine.Evaluate(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
-        var result = engine.Invoke("OnInit");
-
-        string text = string.Empty;
-        if (result is string str)
-        {
-          text = str;
-        }
-        else if (result is Task<object> task)
-        {
-          text = (await task)?.ToString() ?? string.Empty;
-        }
-        else if (result is Task<string> task2)
-        {
-          text = await task2 ?? string.Empty;
-        }
-        else
-        {
-          text = result?.ToString() ?? string.Empty;
-        }
-
-        // HTML出力
+        this.IsError.Value = true;
+        this.ErrorMessage.Value = result.ErrorMessage;
+      }
+      else
+      {
         this._outputNum++;
-        htmlObj.Body = text;
-        htmlObj.DefaultHead = $@"
-    <style>
-      body {{ background-color: {_backgroundColor}; color: {_foregroundColor}; font-size: 16px; }}
-    </style>
-    <meta charset=""utf8""/>";
-        var html = htmlObj.ToString();
-
         if (this._outputNum == 1)
         {
-          File.WriteAllText($"script/output-{this._outputNum}.html", html);
+          File.WriteAllText($"script/output-{this._outputNum}.html", result.Html.ToString());
           this.Controller.Navigate($"localfolder://cefsharp/output-{this._outputNum}.html");
         }
         else
         {
-          this.Controller.UpdateHtml(html);
+          this.Controller.UpdateHtml(result.Html.ToString());
         }
+        this.Suggestion.Value = result.Suggestion;
       }
-      catch (Exception ex)
-      {
-        this.IsError.Value = true;
-        if (ex is ScriptEngineException sex)
-        {
-          this.ErrorMessage.Value = sex.ErrorDetails;
-        }
-        else
-        {
-          this.ErrorMessage.Value = ex.Message;
-        }
-      }
+    }
 
-      // 提案
-      this.Suggestion.Value = suggestion;
+    public static async Task<ScriptResult> ExecuteAsync(RaceInfo race)
+    {
+      using var engine = new ScriptEngineWrapper();
+      return await engine.ExecuteAsync(race);
     }
 
     public async Task ApproveMarksAsync()
@@ -178,6 +127,160 @@ namespace KmyKeiba.Models.Script
 
       this.Suggestion.Value.Tickets.Clear();
       this.Suggestion.Value.HasTickets.Value = false;
+    }
+  }
+
+  public class ScriptResult
+  {
+    public bool IsError { get; init; }
+
+    public string ErrorMessage { get; init; } = string.Empty;
+
+    public ScriptSuggestion Suggestion { get; }
+
+    public ScriptHtml Html { get; }
+
+    public ScriptResult(ScriptHtml html, ScriptSuggestion suggestion)
+    {
+      this.Html = html;
+      this.Suggestion = suggestion;
+    }
+  }
+
+  public class ScriptEngineWrapper : IDisposable
+  {
+    private static readonly string _backgroundColor = ResourceUtil.TryGetResource<RHColor>("BrowserBackgroundColor")?.ToHTMLColor() ?? "white";
+    private static readonly string _foregroundColor = ResourceUtil.TryGetResource<RHColor>("BrowserForegroundColor")?.ToHTMLColor() ?? "white";
+
+    protected ScriptObjectContainer<ScriptHtml> HtmlContainer { get; } = new();
+
+    protected V8ScriptEngine Engine { get; }
+
+    protected ScriptObjectContainer<ScriptCurrentRace> RaceContainer { get; } = new();
+
+    protected ScriptObjectContainer<ScriptSuggestion> SuggestionContainer { get; } = new();
+
+    public ScriptEngineWrapper()
+    {
+      this.Engine = new V8ScriptEngine(V8ScriptEngineFlags.EnableDynamicModuleImports |
+        V8ScriptEngineFlags.EnableTaskPromiseConversion |
+        V8ScriptEngineFlags.EnableValueTaskPromiseConversion |
+        V8ScriptEngineFlags.EnableDateTimeConversion);
+
+      this.Engine.DocumentSettings.AccessFlags |= DocumentAccessFlags.EnableAllLoading | DocumentAccessFlags.EnforceRelativePrefix;
+      this.Engine.DocumentSettings.SearchPath = Path.Combine(Directory.GetCurrentDirectory(), "script");
+
+      this.Engine.AddHostObject("__currentRace", this.RaceContainer);
+      this.Engine.AddHostObject("__suggestion", this.SuggestionContainer);
+      this.Engine.AddHostObject("__html", this.HtmlContainer);
+      this.Engine.AddHostObject("__fs", new NodeJSFileSystem());
+      this.Engine.AddHostObject("__hostFuncs", new HostFunctions());
+    }
+
+    protected virtual object Execute(RaceInfo race)
+    {
+      var script = File.ReadAllText("script/index.js");
+      this.Engine.Script.OnInit = this.Engine.Evaluate(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
+      return this.Engine.Invoke("OnInit");
+    }
+
+    public async Task<ScriptResult> ExecuteAsync(RaceInfo race)
+    {
+      var isError = false;
+      var errorMessage = string.Empty;
+
+      this.RaceContainer.SetItem(new ScriptCurrentRace(race));
+      this.SuggestionContainer.SetItem(new ScriptSuggestion(race.Data.Key));
+      this.HtmlContainer.SetItem(new ScriptHtml());
+
+      try
+      {
+        var result = this.Execute(race);
+        var htmlObj = this.HtmlContainer.Item!;
+
+        string text = string.Empty;
+        if (result is string str)
+        {
+          text = str;
+        }
+        else if (result is Task<object> task)
+        {
+          text = (await task)?.ToString() ?? string.Empty;
+        }
+        else if (result is Task<string> task2)
+        {
+          text = await task2 ?? string.Empty;
+        }
+        else
+        {
+          text = result?.ToString() ?? string.Empty;
+        }
+
+        // HTML出力
+        htmlObj.Body = text;
+        htmlObj.DefaultHead = $@"
+    <style>
+      body {{ background-color: {_backgroundColor}; color: {_foregroundColor}; font-size: 16px; }}
+    </style>
+    <meta charset=""utf8""/>";
+      }
+      catch (Exception ex)
+      {
+        isError = true;
+        if (ex is ScriptEngineException sex)
+        {
+          errorMessage = sex.ErrorDetails;
+        }
+        else
+        {
+          errorMessage = ex.Message;
+        }
+      }
+
+      return new ScriptResult(this.HtmlContainer.Item!, this.SuggestionContainer.Item!)
+      {
+        IsError = isError,
+        ErrorMessage = errorMessage,
+      };
+    }
+
+    public void Dispose()
+    {
+      this.Engine.Dispose();
+    }
+  }
+
+  public class CompiledScriptEngineWrapper : ScriptEngineWrapper
+  {
+    private V8Script? _compiled;
+
+    protected override object Execute(RaceInfo race)
+    {
+      if (this._compiled == null)
+      {
+        this.Compile();
+      }
+
+      return this.Engine.Invoke("OnInit");
+    }
+
+    private void Compile()
+    {
+      var script = File.ReadAllText("script/index.js");
+      this._compiled = this.Engine.Compile(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
+      this.Engine.Script.OnInit = this.Engine.Evaluate(this._compiled);
+    }
+  }
+
+  [NoDefaultScriptAccess]
+  public class ScriptObjectContainer<T> where T : class
+  {
+    [ScriptMember("item")]
+    public T? Item { get; private set; }
+
+    public void SetItem(T race)
+    {
+      this.Item = race;
     }
   }
 

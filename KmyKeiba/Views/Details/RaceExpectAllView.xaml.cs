@@ -45,8 +45,10 @@ namespace KmyKeiba.Views.Details
 
     public Guid UniqueId4 { get; } = Guid.NewGuid();
 
-    public RaceExpectAllView()
+    static RaceExpectAllView()
     {
+      System.IO.File.WriteAllText("script/dummy.html", string.Empty);
+
       var settings = new CefSettings();
       settings.RegisterScheme(new CefCustomScheme
       {
@@ -58,8 +60,13 @@ namespace KmyKeiba.Views.Details
         ),
       });
       Cef.Initialize(settings);
+    }
 
+    public RaceExpectAllView()
+    {
       InitializeComponent();
+
+      this.Browser.LoadUrl("localfolder://cefsharp/dummy.html");
     }
   }
 }

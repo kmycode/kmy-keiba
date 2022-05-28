@@ -74,6 +74,15 @@
                              Text="{Binding Downloader.RTErrorMessage.Value}" Visibility="{Binding Downloader.IsRTError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                 </Grid>
               </Border>
+              <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                  <Button Width="120" Height="25" FontSize="16" Padding="0" Content="スクリプト一括" Command="{Binding OpenScriptBulkDialogCommand}"/>
+                  <TextBlock Text="実行中..." Visibility="{Binding ScriptBulk.IsExecuting.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                             Foreground="{DynamicResource SubForeground}" FontSize="16" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                  <TextBlock Text="{Binding ScriptBulk.SumOfIncomes.Value}" Foreground="{Binding ScriptBulk.IncomeComparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
+                             FontSize="16" VerticalAlignment="Center" Width="80" TextAlignment="Right"/>
+                </StackPanel>
+              </StackPanel>
             </StackPanel>
           </Grid>
         </Border>
@@ -102,6 +111,12 @@
               Background="{DynamicResource BaseBackground}"
               Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=RTDownload}">
         <ud:RTDownloadDialog/>
+      </Border>
+      <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="2"
+              Padding="24,8" Margin="48,60"
+              Background="{DynamicResource BaseBackground}"
+              Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=ScriptBulk}">
+        <ud:ExecuteScriptBulkDialog ScriptBulk="{Binding ScriptBulk}"/>
       </Border>
     </Grid>
   </Grid>
