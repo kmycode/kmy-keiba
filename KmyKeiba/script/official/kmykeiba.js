@@ -508,13 +508,18 @@ export function RaceHorse(data, csraceobj) {
   this.memo = data.memo;
 
   // 体重。値は実際の10倍
+  // ※発表されるまではゼロ
   this.weight = data.weight;
 
   // 前回のレースからの重量比較。値は実際の10倍ではない
+  // ※発表されるまではゼロ
   this.weightDiff = data.weightDiff;
 
   // 斤量。値は実際の10倍
   this.riderWeight = data.riderWeight;
+
+  // ブリンカーをつけているか
+  this.isBlinkers = data.isBlinkers;
 
   // 今回のレースで使用された脚質。地方競馬では機械学習で判断
   // 0:不明　1:逃げ　2:先行　3:差し　4:追込

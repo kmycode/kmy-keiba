@@ -87,6 +87,9 @@ namespace KmyKeiba.Models.Script
     [JsonPropertyName("riderWeight")]
     public short RiderWeight => this._horse.RiderWeight;
 
+    [JsonPropertyName("isBlinkers")]
+    public bool IsBlinkers => this._horse.IsBlinkers;
+
     [JsonPropertyName("memo")]
     public string Memo => this._horse.Memo ?? string.Empty;
 
