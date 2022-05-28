@@ -53,7 +53,7 @@
     </Border>
 
     <ItemsControl Grid.Row="2" Style="{StaticResource TableList}" ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                  ItemsSource="{Binding ScriptBulk.Results,ElementName=Root}">
+                  ItemsSource="{Binding ScriptBulk.Results,ElementName=Root}" Margin="0,0,0,8">
       <ItemsControl.Resources>
         <Style TargetType="Border" x:Key="Cell">
           <Setter Property="BorderBrush" Value="{DynamicResource BaseBorderBrush}"/>
@@ -86,20 +86,24 @@
                 <TextBlock Text="{Binding Race.Distance}" FontSize="14"/>
               </StackPanel>
             </Border>
+            <Border Width="220" Style="{StaticResource Cell}">
+              <TextBlock Text="{Binding Name}" HorizontalAlignment="Left"/>
+            </Border>
             <Grid>
               <Border Visibility="{Binding IsExecuting.Value,Converter={StaticResource BooleanVisibilityConv}}">
-                <TextBlock Text="実行中..." FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
-                           FontSize="16" Margin="48,0,0,0"/>
+                <TextBlock FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
+                           FontSize="16" Margin="48,0,0,0">
+                  実行中...　( <Run Text="{Binding HandlerEngine.Value.Progress.Value.Value}"/> / <Run Text="{Binding HandlerEngine.Value.ProgressMax.Value.Value}"/> )
+                </TextBlock>
               </Border>
-              <Border Visibility="{Binding IsError.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                      Style="{StaticResource Cell}">
-                <TextBlock Text="スクリプトエラー" FontWeight="Bold" Foreground="{DynamicResource ErrorForeground}"
-                           FontSize="16"/>
+              <Border Visibility="{Binding IsError.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                <TextBlock Text="{Binding ErrorType.Value,Converter={StaticResource LabelConv}}" FontWeight="Bold" Foreground="{DynamicResource ErrorForeground}"
+                           FontSize="16" Margin="12,0,0,0"/>
               </Border>
               <StackPanel Orientation="Horizontal">
                 <StackPanel.Visibility>
                   <MultiBinding Converter="{StaticResource MultiBooleanConv}">
-                    <Binding Path="IsExecuting.Value" Converter="{StaticResource NegativeConv}"/>
+                    <Binding Path="IsCompleted.Value"/>
                     <Binding Path="IsError.Value" Converter="{StaticResource NegativeConv}"/>
                   </MultiBinding>
                 </StackPanel.Visibility>

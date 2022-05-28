@@ -23,6 +23,10 @@ KmyKeiba.getTargetRace = function() {
   return new Race(data, __currentRace.item);
 }
 
+KmyKeiba.getProgress = function() {
+  return Progress;
+}
+
 KmyKeiba.getSuggestion = function() {
   return Suggestion;
 }
@@ -33,6 +37,18 @@ KmyKeiba.setHead = function(text) {
 
 KmyKeiba.__csDateTimeToDate = function(dateTime) {
   return new Date(dateTime);
+}
+
+
+function Progress() {
+}
+
+Progress.setMaxValue = function(value) {
+  __html.item.progressMax = value;
+}
+
+Progress.setValue = function(value) {
+  __html.item.progress = value;
 }
 
 
@@ -85,7 +101,7 @@ Suggestion.quinellaPlace = function(count, nums1, nums2) {
 //  count: 購入量　1で1枚（100円）
 //  nums:  馬の番号の配列
 Suggestion.quinellaPlaceBox = function(count, nums1) {
-  __suggestion.quinellaPlace(2, count, toClrArray(nums1), toClrArray(0));
+  __suggestion.item.quinellaPlace(2, count, toClrArray(nums1), toClrArray(0));
 }
 
 // 馬連馬券を提案する
@@ -490,6 +506,15 @@ export function RaceHorse(data, csraceobj) {
 
   // メモ
   this.memo = data.memo;
+
+  // 体重。値は実際の10倍
+  this.weight = data.weight;
+
+  // 前回のレースからの重量比較。値は実際の10倍ではない
+  this.weightDiff = data.weightDiff;
+
+  // 斤量。値は実際の10倍
+  this.riderWeight = data.riderWeight;
 
   // 今回のレースで使用された脚質。地方競馬では機械学習で判断
   // 0:不明　1:逃げ　2:先行　3:差し　4:追込

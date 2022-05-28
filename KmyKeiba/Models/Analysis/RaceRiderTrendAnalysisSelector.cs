@@ -89,12 +89,18 @@ namespace KmyKeiba.Models.Analysis
       return new RaceRiderTrendAnalyzer(this.Race, this.RaceHorse);
     }
 
-    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceRiderTrendAnalyzer analyzer, int count, int offset)
+    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceRiderTrendAnalyzer analyzer, int count, int offset, bool isLoadSameHorses)
     {
+      /*
       var query = db.Races!
         .Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType)
         .Join(db.RaceHorses!, r => r.Key, rh => rh.RaceKey, (r, rh) => new { Race = r, RaceHorse = rh, })
         .Where(d => d.RaceHorse.RiderCode == this.RaceHorse.RiderCode);
+      */
+      var query = db.RaceHorses!
+        .Where(d => d.RiderCode == this.RaceHorse.RiderCode)
+        .Join(db.Races!.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType),
+          rh => rh.RaceKey, r => r.Key, (rh, r) => new { RaceHorse = rh, Race = r, });
 
       if (keys.Contains(Key.SameCourse))
       {
@@ -157,9 +163,13 @@ namespace KmyKeiba.Models.Analysis
         .Take(count)
         .ToArrayAsync();
       var raceKeys = races.Select(r => r.Race.Key).ToArray();
-      var raceHorses = await db.RaceHorses!
-        .Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 5 && raceKeys.Contains(rh.RaceKey))
-        .ToArrayAsync();
+      var raceHorses = Array.Empty<RaceHorseData>();
+      if (isLoadSameHorses)
+      {
+        raceHorses = await db.RaceHorses!
+          .Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 5 && raceKeys.Contains(rh.RaceKey))
+          .ToArrayAsync();
+      }
 
       var list = new List<RaceHorseAnalyzer>();
       foreach (var race in races)

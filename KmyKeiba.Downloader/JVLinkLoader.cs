@@ -643,14 +643,14 @@ namespace KmyKeiba.Downloader
         (list) => e => list.Contains(e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute));
       await SaveDicAsync(data.Trainings,
         db.Trainings!,
-        (e) => e.HorseKey + e.StartTime,
-        (d) => d.HorseKey + d.StartTime,
-        (list) => e => list.Contains(e.HorseKey + e.StartTime));
+        (e) => e.HorseKey + e.StartTime.Year + "_" + e.StartTime.Month + "_" + e.StartTime.Day + "_" + e.StartTime.Hour + "_" + e.StartTime.Minute,
+        (d) => d.HorseKey + d.StartTime.Year + "_" + d.StartTime.Month + "_" + d.StartTime.Day + "_" + d.StartTime.Hour + "_" + d.StartTime.Minute,
+        (list) => e => list.Contains(e.HorseKey + e.StartTime.Year + "_" + e.StartTime.Month + "_" + e.StartTime.Day + "_" + e.StartTime.Hour + "_" + e.StartTime.Minute));
       await SaveDicAsync(data.WoodtipTrainings,
         db.WoodtipTrainings!,
-        (e) => e.HorseKey + e.StartTime,
-        (d) => d.HorseKey + d.StartTime,
-        (list) => e => list.Contains(e.HorseKey + e.StartTime));
+        (e) => e.HorseKey + e.StartTime.Year + "_" + e.StartTime.Month + "_" + e.StartTime.Day + "_" + e.StartTime.Hour + "_" + e.StartTime.Minute,
+        (d) => d.HorseKey + d.StartTime.Year + "_" + d.StartTime.Month + "_" + d.StartTime.Day + "_" + d.StartTime.Hour + "_" + d.StartTime.Minute,
+        (list) => e => list.Contains(e.HorseKey + e.StartTime.Year + "_" + e.StartTime.Month + "_" + e.StartTime.Day + "_" + e.StartTime.Hour + "_" + e.StartTime.Minute));
       await db.CommitAsync();
 
       // 保存後のデータに他のデータを追加する

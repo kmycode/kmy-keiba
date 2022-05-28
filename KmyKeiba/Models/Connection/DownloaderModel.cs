@@ -334,7 +334,7 @@ namespace KmyKeiba.Models.Connection
             await DownloadRTAsync(today2);
 
             // アプリ起動した後に中央競馬DLを有効にした場合
-            if (!isCentralChecked && this.IsDownloadCentral.Value)
+            if (!isCentralChecked && this.IsDownloadCentral.Value && !this.IsDownloading.Value)
             {
               await CheckCentralHolidaysAsync();
               isCentralChecked = true;

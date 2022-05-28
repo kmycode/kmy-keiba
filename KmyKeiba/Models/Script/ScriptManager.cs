@@ -22,7 +22,7 @@ namespace KmyKeiba.Models.Script
 {
   public class ScriptManager
   {
-    private int _outputNum = 0;
+    private static int _outputNum = 0;
 
     public static JsonSerializerOptions JsonOptions { get; } = new JsonSerializerOptions
     {
@@ -61,16 +61,18 @@ namespace KmyKeiba.Models.Script
       }
       else
       {
-        this._outputNum++;
-        if (this._outputNum == 1)
+        _outputNum++;
+        //if (_outputNum == 1)
         {
-          File.WriteAllText($"script/output-{this._outputNum}.html", result.Html.ToString());
-          this.Controller.Navigate($"localfolder://cefsharp/output-{this._outputNum}.html");
+          File.WriteAllText($"script/output-{_outputNum}.html", result.Html.ToString());
+          this.Controller.Navigate($"localfolder://cefsharp/output-{_outputNum}.html");
         }
+        /*
         else
         {
           this.Controller.UpdateHtml(result.Html.ToString());
         }
+        */
         this.Suggestion.Value = result.Suggestion;
       }
     }
@@ -154,6 +156,8 @@ namespace KmyKeiba.Models.Script
 
     protected ScriptObjectContainer<ScriptHtml> HtmlContainer { get; } = new();
 
+    public ScriptHtml Html => this.HtmlContainer.Item!;
+
     protected V8ScriptEngine Engine { get; }
 
     protected ScriptObjectContainer<ScriptCurrentRace> RaceContainer { get; } = new();
@@ -175,6 +179,8 @@ namespace KmyKeiba.Models.Script
       this.Engine.AddHostObject("__html", this.HtmlContainer);
       this.Engine.AddHostObject("__fs", new NodeJSFileSystem());
       this.Engine.AddHostObject("__hostFuncs", new HostFunctions());
+
+      this.HtmlContainer.SetItem(new ScriptHtml());
     }
 
     protected virtual object Execute(RaceInfo race)
@@ -191,7 +197,6 @@ namespace KmyKeiba.Models.Script
 
       this.RaceContainer.SetItem(new ScriptCurrentRace(race));
       this.SuggestionContainer.SetItem(new ScriptSuggestion(race.Data.Key));
-      this.HtmlContainer.SetItem(new ScriptHtml());
 
       try
       {
@@ -237,14 +242,18 @@ namespace KmyKeiba.Models.Script
         }
       }
 
-      return new ScriptResult(this.HtmlContainer.Item!, this.SuggestionContainer.Item!)
+      var data = new ScriptResult(this.HtmlContainer.Item!, this.SuggestionContainer.Item!)
       {
         IsError = isError,
         ErrorMessage = errorMessage,
       };
+
+      this.HtmlContainer.SetItem(new ScriptHtml());
+
+      return data;
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
       this.Engine.Dispose();
     }
@@ -270,6 +279,12 @@ namespace KmyKeiba.Models.Script
       this._compiled = this.Engine.Compile(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
       this.Engine.Script.OnInit = this.Engine.Evaluate(this._compiled);
     }
+
+    public override void Dispose()
+    {
+      base.Dispose();
+      this._compiled?.Dispose();
+    }
   }
 
   [NoDefaultScriptAccess]
@@ -293,6 +308,22 @@ namespace KmyKeiba.Models.Script
     public string DefaultHead { get; set; } = string.Empty;
 
     public string Body { get; set; } = string.Empty;
+
+    [ScriptMember("progress")]
+    public int Progress
+    {
+      get => this.ProgressObservable.Value;
+      set => this.ProgressObservable.Value = value;
+    }
+    public ReactiveProperty<int> ProgressObservable { get; } = new();
+
+    [ScriptMember("progressMax")]
+    public int ProgressMax
+    {
+      get => this.ProgressMaxObservable.Value;
+      set => this.ProgressMaxObservable.Value = value;
+    }
+    public ReactiveProperty<int> ProgressMaxObservable { get; } = new();
 
     public override string ToString()
     {

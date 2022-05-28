@@ -97,12 +97,10 @@
           </StackPanel>
           
           <!--レースの変更情報-->
-          <ItemsControl ItemsSource="{Binding Race.Changes,ElementName=Root}" Margin="0,16,0,0">
+          <ItemsControl ItemsSource="{Binding Race.Changes,ElementName=Root}" Margin="0,24,0,0">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="{Binding Data.LastModified,Converter={StaticResource StringFormatConv},ConverterParameter=MM/dd HH:mm}"
-                             Width="120" FontSize="16" Foreground="{DynamicResource SubForeground}"/>
                   <TextBlock Text="{Binding Converter={StaticResource RaceChangeTextConv}}" FontSize="16" Foreground="{DynamicResource BaseForeground}"/>
                 </StackPanel>
               </DataTemplate>

@@ -613,11 +613,11 @@
           </i:Interaction.Behaviors>
         </cef:ChromiumWebBrowser>
         <Border Grid.ColumnSpan="2" Grid.Row="1" Visibility="{Binding Race.Script.IsError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
-          <TextBlock FontSize="16" Text="{Binding Race.Script.ErrorMessage.Value,ElementName=Root}" Foreground="{DynamicResource ErrorForeground}"/>
+          <TextBlock FontSize="16" Text="{Binding Race.Script.ErrorMessage.Value,ElementName=Root}" Foreground="{DynamicResource ErrorForeground}" TextWrapping="Wrap"/>
         </Border>
         
         <!--馬券提案-->
-        <ScrollViewer Grid.Column="1" Grid.Row="1">
+        <ScrollViewer Grid.Column="1" Grid.Row="1" Visibility="{Binding Race.Script.IsError.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
           <StackPanel>
             <StackPanel Width="300" Visibility="{Binding Race.Script.Suggestion.Value.HasMarks.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}" Margin="0,8,0,48">
               <TextBlock Text="印の提案" FontSize="24" FontWeight="Bold" Margin="0,8,0,0"/>

@@ -236,7 +236,7 @@ namespace KmyKeiba.Models.Analysis
       return new RaceHorseBloodTrendAnalyzer(new RaceData(), new RaceHorseData());
     }
 
-    protected override Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseBloodTrendAnalyzer analyzer, int count, int offset)
+    protected override Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseBloodTrendAnalyzer analyzer, int count, int offset, bool isLoadSameHorses)
     {
       return Task.CompletedTask;
     }
@@ -314,7 +314,7 @@ namespace KmyKeiba.Models.Analysis
       return new RaceHorseBloodTrendAnalyzer(this.Race, this.RaceHorse);
     }
 
-    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseBloodTrendAnalyzer analyzer, int count, int offset)
+    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseBloodTrendAnalyzer analyzer, int count, int offset, bool isLoadSameHorses)
     {
       // WARNING: 全体の総数が多くないと予想されるのでここでDBからすべて取得し、配分している
       //          間違ってもこれをこのまま他のSelectorクラスにコピペしないように

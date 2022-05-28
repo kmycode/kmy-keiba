@@ -45,10 +45,15 @@ namespace KmyKeiba.Models.Script
       this.IsError.Value = false;
       this.SumOfIncomes.Value = 0;
 
-      ScriptEngineWrapper engine;
+      var divitions = 3;
+
+      var engines = new List<EngineInfo>();
       try
       {
-        engine = new CompiledScriptEngineWrapper();
+        for (var s = 0; s < divitions; s++)
+        {
+          engines.Add(new EngineInfo(new CompiledScriptEngineWrapper()));
+        }
       }
       catch
       {
@@ -66,9 +71,10 @@ namespace KmyKeiba.Models.Script
         .ToArrayAsync();
 
       var items = new List<ScriptResultItem>();
+      var i = 0;
       foreach (var race in races)
       {
-        items.Add(new ScriptResultItem(race));
+        items.Add(new ScriptResultItem(i++, race));
       }
       ThreadUtil.InvokeOnUiThread(() =>
       {
@@ -79,68 +85,31 @@ namespace KmyKeiba.Models.Script
         }
       });
 
-      foreach (var item in items)
+      for (var s = 0; s < divitions; s++)
       {
-        item.IsExecuting.Value = true;
-
-        try
+        var engine = engines[s];
+        var t = s;
+        _ = Task.Run(async () =>
         {
-          var info = await RaceInfo.FromKeyAsync(item.Race.Key);
-          if (info != null)
-          {
-            while (!info.IsLoadCompleted.Value)
-            {
-              await Task.Delay(50);
-            }
-            var result = await engine.ExecuteAsync(info);
+          await engine.DoAsync(this, items.Where(i => i.Index % divitions == t));
+        });
 
-            if (result.IsError)
-            {
-              item.IsError.Value = true;
-              item.ErrorType.Value = ScriptBulkErrorType.ScriptError;
-            }
-            else if (info.Tickets.Value != null && info.Payoff != null)
-            {
-              info.Payoff.UpdateTicketsData(result.Suggestion.Tickets
-                .Select(t => TicketItem.FromData(t, info.Horses.Select(h => h.Data).ToArray(), info.Odds.Value))
-                .Where(t => t != null)
-                .Select(t => t!));
-              item.PaidMoney.Value = info.Payoff.PayMoneySum.Value;
-              item.PayoffMoney.Value = info.Payoff.HitMoneySum.Value;
-              item.Income.Value = info.Payoff.Income.Value;
-              item.IncomeComparation.Value = item.Income.Value > 0 ? ValueComparation.Good :
-                item.Income.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
-              item.IsCompleted.Value = true;
+        // 同時に始めるとInjectionManagerでIBuyer取得時にエラーが発生することがある
+        await Task.Delay(1000);
+      }
 
-              this.SumOfIncomes.Value += item.Income.Value;
-              this.IncomeComparation.Value = this.SumOfIncomes.Value > 0 ? ValueComparation.Bad :
-                this.SumOfIncomes.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
-            }
-          }
-          else
-          {
-            item.IsError.Value = true;
-            item.ErrorType.Value = ScriptBulkErrorType.NoRace;
-          }
-        }
-        catch
-        {
-          item.IsError.Value = true;
-          item.ErrorType.Value = ScriptBulkErrorType.AnyError;
-        }
-        finally
-        {
-          item.IsExecuting.Value = false;
-        }
-
-        if (this._isCanceled)
-        {
-          break;
-        }
+      while (engines.Any(f => !f.IsFinished))
+      {
+        await Task.Delay(1000);
       }
 
       this.IsExecuting.Value = false;
       this._isCanceled = false;
+
+      foreach (var engine in engines)
+      {
+        engine.Dispose();
+      }
     }
 
     public void Cancel()
@@ -152,11 +121,115 @@ namespace KmyKeiba.Models.Script
 
       this._isCanceled = true;
     }
+
+    public class EngineInfo : IDisposable
+    {
+      public ScriptEngineWrapper Engine { get; }
+
+      public ReactiveProperty<ReactiveProperty<int>?> ProgressMax { get; } = new();
+
+      public ReactiveProperty<ReactiveProperty<int>?> Progress { get; } = new();
+
+      public bool IsFinished { get; set; }
+
+      public EngineInfo(ScriptEngineWrapper engine)
+      {
+        this.Engine = engine;
+      }
+
+      public async Task DoAsync(ScriptBulkModel model, IEnumerable<ScriptResultItem> items)
+      {
+        foreach (var item in items)
+        {
+          if (item.IsCompleted.Value || item.IsExecuting.Value)
+          {
+            continue;
+          }
+
+          item.IsExecuting.Value = true;
+          item.HandlerEngine.Value = this;
+
+          try
+          {
+            if (this.Progress.Value != null && this.ProgressMax.Value != null)
+            {
+              this.ProgressMax.Value.Value = this.Progress.Value.Value = 0;
+            }
+
+            var info = await RaceInfo.FromKeyAsync(item.Race.Key);
+            if (info != null)
+            {
+              while (!info.IsLoadCompleted.Value)
+              {
+                await Task.Delay(50);
+              }
+
+              this.ProgressMax.Value = this.Engine.Html.ProgressMaxObservable;
+              this.Progress.Value = this.Engine.Html.ProgressObservable;
+
+              var result = await this.Engine.ExecuteAsync(info);
+
+              if (result.IsError)
+              {
+                item.IsError.Value = true;
+                item.ErrorType.Value = ScriptBulkErrorType.ScriptError;
+              }
+              else if (info.Tickets.Value != null && info.Payoff != null)
+              {
+                info.Payoff.UpdateTicketsData(result.Suggestion.Tickets
+                  .Select(t => TicketItem.FromData(t, info.Horses.Select(h => h.Data).ToArray(), info.Odds.Value))
+                  .Where(t => t != null)
+                  .Select(t => t!));
+                item.PaidMoney.Value = info.Payoff.PayMoneySum.Value;
+                item.PayoffMoney.Value = info.Payoff.HitMoneySum.Value;
+                item.Income.Value = info.Payoff.Income.Value;
+                item.IncomeComparation.Value = item.Income.Value > 0 ? ValueComparation.Good :
+                  item.Income.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
+                item.IsCompleted.Value = true;
+
+                model.SumOfIncomes.Value += item.Income.Value;
+                model.IncomeComparation.Value = model.SumOfIncomes.Value > 0 ? ValueComparation.Good :
+                  model.SumOfIncomes.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
+              }
+            }
+            else
+            {
+              item.IsError.Value = true;
+              item.ErrorType.Value = ScriptBulkErrorType.NoRace;
+            }
+          }
+          catch
+          {
+            item.IsError.Value = true;
+            item.ErrorType.Value = ScriptBulkErrorType.AnyError;
+          }
+          finally
+          {
+            item.IsExecuting.Value = false;
+            item.HandlerEngine.Value = null;
+          }
+
+          if (model._isCanceled)
+          {
+            break;
+          }
+        }
+
+        this.IsFinished = true;
+      }
+
+      public void Dispose()
+      {
+        this.Engine.Dispose();
+      }
+    }
   }
 
   public class ScriptResultItem
   {
     private RaceSubjectInfo _subject;
+
+    public int Index { get; }
 
     public RaceData Race { get; }
 
@@ -186,8 +259,11 @@ namespace KmyKeiba.Models.Script
 
     public ReactiveProperty<ScriptBulkErrorType> ErrorType { get; } = new();
 
-    public ScriptResultItem(RaceData race)
+    public ReactiveProperty<ScriptBulkModel.EngineInfo?> HandlerEngine { get; } = new();
+
+    public ScriptResultItem(int index, RaceData race)
     {
+      this.Index = index;
       this.Race = race;
       this._subject = new RaceSubjectInfo(race);
     }

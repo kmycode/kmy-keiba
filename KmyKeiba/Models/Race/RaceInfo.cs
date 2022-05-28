@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Common;
+using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
 using KmyKeiba.Models.Injection;
@@ -125,7 +126,7 @@ namespace KmyKeiba.Models.Race
         });
       }
 
-      var limit = this.Data.StartTime.AddMinutes(-1);
+      var limit = this.Data.StartTime.AddMinutes(-2);
       Observable.Interval(TimeSpan.FromSeconds(1))
         .Subscribe(_ =>
         {
@@ -342,9 +343,13 @@ namespace KmyKeiba.Models.Race
       return await FromDataAsync(race, payoffInfo);
     }
 
-    public static Task<RaceInfo> FromDataAsync(RaceData race, PayoffInfo? payoff)
+    public static async Task<RaceInfo> FromDataAsync(RaceData race, PayoffInfo? payoff)
     {
       var db = new MyContext();
+      if (DownloaderModel.Instance.CanSaveOthers.Value)
+      {
+        await db.BeginTransactionAsync();
+      }
 
       var info = new RaceInfo(race, payoff);
 
@@ -371,10 +376,13 @@ namespace KmyKeiba.Models.Race
           // 各馬の情報
           var horseInfos = new List<RaceHorseAnalyzer>();
           var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
+          /*
           var horseHistorySameHorses = await db.RaceHorses!
             .Where(h => h.ResultOrder >= 1 && h.ResultOrder <= 5)
             .Where(h => horseHistoryKeys.Contains(h.RaceKey))
             .ToArrayAsync();
+          */
+          var horseHistorySameHorses = Array.Empty<RaceHorseData>();
           foreach (var horse in horses)
           {
             var histories = new List<RaceHorseAnalyzer>();
@@ -447,6 +455,22 @@ namespace KmyKeiba.Models.Race
             }
           });
 
+          // すべてのデータ読み込み完了
+          info.IsLoadCompleted.Value = true;
+          info.CanExecuteScript.Value = true;
+
+          // コーナー順位の色分け
+          var firstHorse = horses.FirstOrDefault(h => h.ResultOrder == 1);
+          var secondHorse = horses.FirstOrDefault(h => h.ResultOrder == 2);
+          var thirdHorse = horses.FirstOrDefault(h => h.ResultOrder == 3);
+          ThreadUtil.InvokeOnUiThread(() =>
+          {
+            foreach (var corner in info.Corners)
+            {
+              corner.Image.SetOrders(firstHorse?.Number ?? 0, secondHorse?.Number ?? 0, thirdHorse?.Number ?? 0);
+            }
+          });
+
           // 調教
           var historyStartDate = race.StartTime.AddMonths(-3);
           var trainings = await db.Trainings!
@@ -464,22 +488,6 @@ namespace KmyKeiba.Models.Race
               woodTrainings.Where(t => t.HorseKey == horse.Data.Key).ToArray()
               );
           }
-
-          // すべてのデータ読み込み完了
-          info.IsLoadCompleted.Value = true;
-          info.CanExecuteScript.Value = true;
-
-          // コーナー順位の色分け
-          var firstHorse = horses.FirstOrDefault(h => h.ResultOrder == 1);
-          var secondHorse = horses.FirstOrDefault(h => h.ResultOrder == 2);
-          var thirdHorse = horses.FirstOrDefault(h => h.ResultOrder == 3);
-          ThreadUtil.InvokeOnUiThread(() =>
-          {
-            foreach (var corner in info.Corners)
-            {
-              corner.Image.SetOrders(firstHorse?.Number ?? 0, secondHorse?.Number ?? 0, thirdHorse?.Number ?? 0);
-            }
-          });
         }
         catch
         {
@@ -493,7 +501,7 @@ namespace KmyKeiba.Models.Race
         }
       });
 
-      return Task.FromResult(info);
+      return info;
     }
 
     private static void AddCorner(IList<RaceCorner> corners, string result, int num, int pos, TimeSpan lap)

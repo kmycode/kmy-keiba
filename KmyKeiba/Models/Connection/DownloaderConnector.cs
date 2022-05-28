@@ -186,7 +186,7 @@ namespace KmyKeiba.Models.Connection
 
     public async Task<bool> DownloadAsync(string link, string type, int startYear, int startMonth, Func<DownloaderTaskData, Task>? progress, int startDay = 0)
     {
-      return await this.DownloadAsync(link, type, new DateOnly(startYear, startMonth, startDay), progress, false);
+      return await this.DownloadAsync(link, type, new DateOnly(startYear, startMonth, Math.Max(1, startDay)), progress, false);
     }
 
     public async Task<bool> DownloadRTAsync(string link, DateOnly date, Func<DownloaderTaskData, Task>? progress)

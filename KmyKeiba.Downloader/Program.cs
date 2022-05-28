@@ -475,11 +475,12 @@ namespace KmyKeiba.Downloader
       {
         if (type == "central")
         {
+          // 中央レースと地方重賞とか
           var result = r.Course <= RaceCourse.CentralMaxValue || r.Grade == RaceGrade.LocalGrade1 || r.Grade == RaceGrade.LocalGrade2 || r.Grade == RaceGrade.LocalGrade3 || r.Grade == RaceGrade.LocalNoNamedGrade;
           if (result)
           {
             // 馬券が金曜日日販売になるのは一部のG1レースのみ
-            result = r.Grade == RaceGrade.Grade1 || r.StartTime.Date == start;
+            result = r.Grade == RaceGrade.Grade1 || r.Grade == RaceGrade.Grade2 || r.Grade == RaceGrade.Grade3 || r.StartTime.Date == start;
           }
           return result;
         }

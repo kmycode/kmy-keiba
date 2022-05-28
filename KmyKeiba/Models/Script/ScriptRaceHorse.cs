@@ -78,6 +78,15 @@ namespace KmyKeiba.Models.Script
     [JsonPropertyName("placeOddsMin")]
     public short PlaceOddsMin => this._horse.PlaceOddsMin;
 
+    [JsonPropertyName("weight")]
+    public short Weight => this._horse.Weight;
+
+    [JsonPropertyName("weightDiff")]
+    public short WeightDiff => this._horse.WeightDiff;
+
+    [JsonPropertyName("riderWeight")]
+    public short RiderWeight => this._horse.RiderWeight;
+
     [JsonPropertyName("memo")]
     public string Memo => this._horse.Memo ?? string.Empty;
 
@@ -120,7 +129,7 @@ namespace KmyKeiba.Models.Script
     [ScriptMember("getRiderSimilarRacesAsync")]
     public async Task<string> LoadRiderTrendRacesAsync(string keys, int count = 300, int offset = 0)
     {
-      var analyzer = this._analyzer?.RiderTrendAnalyzers?.BeginLoad(keys, count, offset);
+      var analyzer = this._analyzer?.RiderTrendAnalyzers?.BeginLoad(keys, count, offset, true);
       if (analyzer != null)
       {
         await analyzer.WaitAnalysisAsync();
