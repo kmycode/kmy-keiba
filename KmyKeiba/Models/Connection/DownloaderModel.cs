@@ -107,8 +107,17 @@ namespace KmyKeiba.Models.Connection
 
       void UpdateCanSave()
       {
-        this.CanSaveOthers.Value = this.LoadingProcess.Value != LoadingProcessValue.Writing &&
-          this.ProcessingStep.Value != Connection.ProcessingStep.StandardTime && this.ProcessingStep.Value != Connection.ProcessingStep.PreviousRaceDays;
+        var canSave = this.LoadingProcess.Value != LoadingProcessValue.Writing &&
+            this.ProcessingStep.Value != Connection.ProcessingStep.StandardTime && this.ProcessingStep.Value != Connection.ProcessingStep.PreviousRaceDays;
+        if (this.CanSaveOthers.Value != canSave)
+        {
+          // このプロパティはViewModel内のReactiveCommandのCanExecuteにも使われる
+          // この場合、UIスレッドから書き換えないとエラーになるっぽい
+          ThreadUtil.InvokeOnUiThread(() =>
+          {
+            this.CanSaveOthers.Value = canSave;
+          });
+        }
       }
       this.LoadingProcess.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
       this.ProcessingStep.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
