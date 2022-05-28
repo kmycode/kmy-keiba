@@ -109,11 +109,11 @@ namespace KmyKeiba.Models.Data
       {
         return new InputData
         {
-          FirstCornerOrder = (d.RaceHorse.FirstCornerOrder / (float)d.Race.HorsesCount),
-          SecondCornerOrder = (d.RaceHorse.SecondCornerOrder / (float)d.Race.HorsesCount),
-          ThirdCornerOrder = (d.RaceHorse.ThirdCornerOrder / (float)d.Race.HorsesCount),
-          FourthCornerOrder = (d.RaceHorse.FourthCornerOrder / (float)d.Race.HorsesCount),
-          ResultOrder = (d.RaceHorse.ResultOrder / (float)d.Race.HorsesCount),
+          FirstCornerOrder = ((d.RaceHorse.FirstCornerOrder - 1) / (float)(d.Race.HorsesCount - 1)),
+          SecondCornerOrder = ((d.RaceHorse.SecondCornerOrder - 1) / (float)(d.Race.HorsesCount - 1)),
+          ThirdCornerOrder = ((d.RaceHorse.ThirdCornerOrder - 1) / (float)(d.Race.HorsesCount - 1)),
+          FourthCornerOrder = ((d.RaceHorse.FourthCornerOrder - 1) / (float)(d.Race.HorsesCount - 1)),
+          ResultOrder = ((d.RaceHorse.ResultOrder - 1) / (float)(d.Race.HorsesCount - 1)),
           RunningStyle = (short)d.RaceHorse.RunningStyle,
         };
       }

@@ -72,8 +72,10 @@ namespace KmyKeiba.Models.Data
         {
           var targets = db.RaceHorses!
             .Where((h) => h.Course <= RaceCourse.CentralMaxValue && !h.IsRunningStyleSetManually &&
-                          h.ResultOrder > 0 && h.RunningStyle != RunningStyle.Unknown)
+                          h.ResultOrder > 0 && h.RunningStyle != RunningStyle.Unknown &&
+                          h.FourthCornerOrder != 0)
             .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { RaceHorse = rh, Race = r, })
+            .Where((d) => d.Race.HorsesCount > 1)  // ClusteringModelでのゼロ除算防止
             .OrderByDescending(d => d.Race.StartTime)
             .Take(100000)
             .ToArray()
