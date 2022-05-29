@@ -25,7 +25,14 @@ namespace KmyKeiba.Models.Injection
   {
     IPurchaseBuilder AddTicket(TicketData ticket);
 
-    IPurchaseBuilder AddTicketRange(IEnumerable<TicketData> tickets);
+    IPurchaseBuilder AddTicketRange(IEnumerable<TicketData> tickets)
+    {
+      foreach (var ticket in tickets)
+      {
+        this.AddTicket(ticket);
+      }
+      return this;
+    }
 
     void Send();
   }

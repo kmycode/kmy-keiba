@@ -112,12 +112,13 @@ namespace KmyKeiba.Models.Data
 
           var targets = db.RaceHorses!.Where((h) => h.Course >= RaceCourse.CentralMaxValue &&
             !h.IsRunningStyleSetManually && h.RunningStyle == RunningStyle.Unknown &&
-            h.ResultOrder > 0)
+            h.ResultOrder > 0 && h.FourthCornerOrder != 0)
             .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new
             {
               Race = r,
               RaceHorse = rh,
             })
+            .Where((d) => d.Race.HorsesCount > 1)  // ClusteringModelでのゼロ除算防止
             .Take(count)
             .ToArray()
             .Select(d => new ClusteringModel.RaceHorseDataInput
