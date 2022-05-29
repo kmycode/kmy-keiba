@@ -73,21 +73,25 @@ namespace KmyKeiba.Views.Parts
       this.Children.Add(this.textBlock);
       this.Update();
 
-      this.LayoutUpdated += (_, _) =>
+      this.LayoutUpdated += RaceSubjectIcon_LayoutUpdated;
+    }
+
+    private void RaceSubjectIcon_LayoutUpdated(object? sender, EventArgs e)
+    {
+      if (this.Subject?.SecondaryClass != null)
       {
-        if (this.Subject?.SecondaryClass != null)
-        {
-          this.subBorder.Background = this.GetBrush(this.Subject.SecondaryClass);
-          var height = !double.IsNaN(this.Height) ? this.Height : 0;
-          var actualHeight = !double.IsNaN(this.ActualHeight) ? this.ActualHeight : 0;
-          var size = Math.Max(Math.Max(height, actualHeight) / 2, 3);
-          this.subBorder.Height = size;
-        }
-        else
-        {
-          this.subBorder.Background = this.GetBrush(string.Empty);
-        }
-      };
+        this.subBorder.Background = this.GetBrush(this.Subject.SecondaryClass);
+        var height = !double.IsNaN(this.Height) ? this.Height : 0;
+        var actualHeight = !double.IsNaN(this.ActualHeight) ? this.ActualHeight : 0;
+        var size = Math.Max(Math.Max(height, actualHeight) / 2, 3);
+        this.subBorder.Height = size;
+      }
+      else
+      {
+        this.subBorder.Background = this.GetBrush(string.Empty);
+      }
+
+      this.LayoutUpdated -= RaceSubjectIcon_LayoutUpdated;
     }
 
     private void Update()
@@ -138,8 +142,23 @@ namespace KmyKeiba.Views.Parts
         RaceGrade.Steeplechase3 => Brushes.Green,
         RaceGrade.NoNamedGrade => Brushes.Gray,
         RaceGrade.NonGradeSpecial => Brushes.DarkGoldenrod,
-        RaceGrade.Listed => Brushes.Gray,
-        _ => Brushes.LightGray,
+        RaceGrade.Listed => Brushes.DarkGoldenrod,
+        RaceSubjectType.Win3 => Brushes.DarkRed,
+        RaceSubjectType.Win2 => Brushes.DarkBlue,
+        RaceSubjectType.Win1 => Brushes.Green,
+        RaceSubjectType.MoneyLess10000 => Brushes.DarkRed,
+        RaceSubjectType.MoneyLess9900 => Brushes.DarkRed,
+        RaceSubjectType.MoneyLess1600 => Brushes.DarkRed,
+        RaceSubjectType.MoneyLess1000 => Brushes.DarkBlue,
+        RaceSubjectType.MoneyLess500 => Brushes.DarkBlue,
+        RaceSubjectType.MoneyLess300 => Brushes.Green,
+        RaceSubjectType.MoneyLess200 => Brushes.Green,
+        RaceSubjectType.MoneyLess100 => Brushes.Green,
+        RaceSubjectType.Maiden => Brushes.BlueViolet,
+        RaceSubjectType.Open => Brushes.DeepPink,
+        RaceSubjectType.NewComer => Brushes.DeepSkyBlue,
+        RaceSubjectType.Unraced => Brushes.DeepSkyBlue,
+        _ => Brushes.Transparent,
       };
     }
   }

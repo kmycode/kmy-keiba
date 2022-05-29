@@ -23,6 +23,8 @@ namespace KmyKeiba.JVLink.Entities
 
     public bool IsNotWon { get; private set; }
 
+    public bool IsOpen { get; private set; }
+
     public int Age { get; private set; }
 
     public bool IsLocal { get; set; }
@@ -37,6 +39,8 @@ namespace KmyKeiba.JVLink.Entities
 
       public RaceSubjectType Type { get; init; }
     }
+
+    public RaceSubjectType NotAgeSubjectType { get; set; }
 
     public RaceClass MaxClass =>
       this.Items.Any() ? this.Items.Max((i) => i.Class) :
@@ -53,26 +57,47 @@ namespace KmyKeiba.JVLink.Entities
     {
       get
       {
-        if (!this.IsLocal)
-        {
-          // 中央で表示する必要はない
-          return null;
-        }
-
         var maxClass = this.MaxClass;
-        if (maxClass == RaceClass.Age || maxClass == RaceClass.Money)
+        var displayClass = this.DisplayClass;
+
+        // 地方競馬
+        if (maxClass != RaceClass.Unknown)
         {
-          return null;
+          if (maxClass == RaceClass.Age || maxClass == RaceClass.Money)
+          {
+            if (this.IsNotWon)
+            {
+              return RaceSubjectType.Maiden;
+            }
+            if (this.IsNewHorses)
+            {
+              return RaceSubjectType.NewComer;
+            }
+            if (this.IsOpen)
+            {
+              return RaceSubjectType.Open;
+            }
+
+            return null;
+          }
+
+          // 年齢制限は中央地方のほとんどのレースにある。いちいち入れると画面がうるさい
+          if (displayClass is RaceGrade || displayClass is RaceClass.Age)
+          {
+            return maxClass;
+          }
+        }
+        // 中央競馬
+        else
+        {
+          // 特別レースの条件（中央競馬）
+          if ((displayClass is RaceGrade.NonGradeSpecial || displayClass is RaceGrade.Listed || displayClass is RaceClass.Age) && this.AgeSubjects.Any())
+          {
+            return this.AgeSubjects.Max(s => s.Type);
+          }
         }
 
-        return this.DisplayClass switch
-        {
-          // DisplayClassの１つ下のクラス
-          RaceGrade => /* /* 年齢制限はほとんどのレースにある this.AgeSubjects.Any() ? RaceClass.Age : */
-            this.MaxClass != RaceClass.Unknown ? this.MaxClass : null,
-          RaceClass.Age => this.MaxClass != RaceClass.Unknown ? this.MaxClass : null,
-          _ => null,
-        };
+        return null;
       }
     }
     public RaceClass[] AllClasses => this.Items.Any() ? this.Items.Select(i => i.Class).ToArray() :
@@ -140,6 +165,26 @@ namespace KmyKeiba.JVLink.Entities
       }
     }
 
+    public string DisplayName
+    {
+      get
+      {
+        if (!string.IsNullOrEmpty(this.Name))
+        {
+          return this.Name;
+        }
+
+        if (this.AgeSubjects.Any())
+        {
+          var ages = string.Join(',', this.AgeSubjects.Select(s => s.Age + "歳"));
+          var subjects = this.AgeSubjects.First().Type.GetLabel();
+          return $"{ages} - {subjects}";
+        }
+
+        return string.Empty;
+      }
+    }
+
     public List<DataItem> Items { get; } = new();
 
     public class DataItem
@@ -166,7 +211,7 @@ namespace KmyKeiba.JVLink.Entities
     {
     }
 
-    public static RaceSubject Parse(string text)
+    public static RaceSubject Parse(string text, string raceName)
     {
       var subject = new RaceSubject
       {
@@ -257,38 +302,58 @@ namespace KmyKeiba.JVLink.Entities
         }
       }
 
-      if (text.Contains("新馬"))
+      bool TryMatch(Regex reg, string str)
+      {
+        match = reg.Match(str);
+        if (match.Success)
+        {
+          int.TryParse(match.Groups["age"].Value, out int age);
+          subject!.Age = age;
+          return true;
+        }
+        return false;
+      }
+
+      if (text.Contains("新馬") || raceName.Contains("新馬"))
       {
         subject.IsNewHorses = true;
 
         reg = new Regex(@"(?<age>\d)歳");
-        match = reg.Match(text);
-        if (match.Success)
+
+        if (!TryMatch(reg, text))
         {
-          int.TryParse(match.Groups["age"].Value, out int age);
-          subject.Age = age;
+          TryMatch(reg, raceName);
         }
       }
-      else if (text.Contains("未勝利") || text.Contains("認未勝"))
+      else if (text.Contains("未勝利") || text.Contains("認未勝") || raceName.Contains("未勝利") || raceName.Contains("認未勝"))
       {
         subject.IsNotWon = true;
 
         reg = new Regex(@"(?<age>\d)歳");
-        match = reg.Match(text);
-        if (match.Success)
+
+        if (!TryMatch(reg, text))
         {
-          int.TryParse(match.Groups["age"].Value, out int age);
-          subject.Age = age;
+          TryMatch(reg, raceName);
+        }
+      }
+      else if (text.Contains("OP") || raceName.Contains("OP"))
+      {
+        subject.IsOpen = true;
+
+        reg = new Regex(@"(?<age>\d)歳");
+
+        if (!TryMatch(reg, text))
+        {
+          TryMatch(reg, raceName);
         }
       }
       else if (!subject.Items.Any())
       {
         reg = new Regex(@"(?<age>\d+)歳");
-        match = reg.Match(text);
-        if (match.Success)
+
+        if (!TryMatch(reg, text))
         {
-          int.TryParse(match.Groups["age"].Value, out int age);
-          subject.Age = age;
+          TryMatch(reg, raceName);
         }
       }
 
@@ -297,7 +362,10 @@ namespace KmyKeiba.JVLink.Entities
 
     internal static RaceSubject FromJV(JVData_Struct.JV_RA_RACE race)
     {
-      var subject = Parse(race.JyokenName.Trim());
+      // Parseメソッドとは二重処理になってないはず
+      // ここでは、JVやNVから来たレースデータをEnumに直してる程度
+
+      var subject = Parse(race.JyokenName.Trim(), race.RaceInfo.Hondai.Trim());
 
       var grade = Enum
         .GetValues<RaceGrade>()

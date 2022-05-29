@@ -20,11 +20,13 @@ namespace KmyKeiba.Models.Race
     }
     private string _displayName = string.Empty;
 
+    public string DisplaySubjectName => this.Subject.DisplayName;
+
     public string ShorterName { get; }
 
     public RaceSubjectInfo(RaceData race)
     {
-      this.Subject = RaceSubject.Parse(race.SubjectName);
+      this.Subject = RaceSubject.Parse(race.SubjectName, race.Name);
 
       this.Subject.IsLocal = race.Course >= RaceCourse.LocalMinValue;
       this.Subject.Grade = race.Grade;
