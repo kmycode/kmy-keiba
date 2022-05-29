@@ -55,13 +55,13 @@
         </Grid.ColumnDefinitions>
         <Border Grid.Column="1" Width="80" Margin="4,0,0,0"/>
         <TextBlock Grid.ColumnSpan="2" FontSize="28" Text="対象" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16"/>
-        <ToggleButton Grid.Row="1" FontSize="16" Content="中央競馬" Width="100"
-                      IsChecked="{Binding Downloader.IsDownloadCentral.Value,Mode=TwoWay}"/>
+        <RadioButton Grid.Row="1" FontSize="16" Content="中央競馬" Width="100" Style="{StaticResource ToggleButtonDefault}"
+                     IsChecked="{Binding Downloader.IsDownloadCentral.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
         <Button Grid.Row="1" Grid.Column="1" FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
                 Visibility="{Binding Downloader.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
                 Command="{Binding OpenJvlinkConfigCommand}"/>
-        <ToggleButton Grid.Row="2" FontSize="16" Content="地方競馬" Width="100" Margin="0,20,0,0"
-                      IsChecked="{Binding Downloader.IsDownloadLocal.Value,Mode=TwoWay}"/>
+        <RadioButton Grid.Row="2" FontSize="16" Content="地方競馬" Width="100" Margin="0,20,0,0" Style="{StaticResource ToggleButtonDefault}"
+                     IsChecked="{Binding Downloader.IsDownloadLocal.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
         <Button Grid.Row="2" Grid.Column="1" FontSize="16" Content="設定" Width="80" Margin="4,20,0,0"
                 Visibility="{Binding Downloader.IsDownloadLocal.Value,Converter={StaticResource BooleanVisibilityConv}}"
                 Command="{Binding OpenNvlinkConfigCommand}"/>
@@ -82,7 +82,7 @@
         </TextBlock>
         <TextBlock Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16" FontSize="20" TextAlignment="Center"
                    Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}">
-          <Run Text="{Binding Downloader.RTProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
+          <Run Text="{Binding Downloader.ProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
         </TextBlock>
         <up:MyProgressBar>
           <up:MyProgressBar.RenderTransform>
@@ -106,14 +106,17 @@
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition/>
         <ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="auto"/>
       </Grid.ColumnDefinitions>
       <Button Content="閉じる" FontSize="16" Width="80" VerticalAlignment="Bottom"
               Command="{Binding CloseDialogCommand}" Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
       <Button Content="閉じる（処理は継続されます）" FontSize="16" Width="240" VerticalAlignment="Bottom"
               Command="{Binding CloseDialogCommand}" Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-      <Button Content="開始" Grid.Column="2" FontSize="16" Width="80" Command="{Binding StartDownloadCommand}"
-              Visibility="{Binding Downloader.IsBusy.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
-      <Button Grid.Column="2" FontSize="14" Content="中止" Width="80" Command="{Binding CancelDownloadCommand}"
+      <Button Content="基準タイム計算" Grid.Column="2" FontSize="16" Width="140" Command="{Binding DoProcessingCommand}"
+              Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource NegativeVisibilityConv}}" Margin="0,0,4,0"/>
+      <Button Content="開始" Grid.Column="3" FontSize="16" Width="80" Command="{Binding StartDownloadCommand}"
+              Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
+      <Button Grid.Column="3" FontSize="14" Content="中止" Width="80" Command="{Binding CancelDownloadCommand}"
               Visibility="{Binding Downloader.IsBusy.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
     </Grid>
   </Grid>

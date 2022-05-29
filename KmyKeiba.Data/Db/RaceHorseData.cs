@@ -209,15 +209,10 @@ namespace KmyKeiba.Data.Db
       this.SecondCornerOrder = entity.SecondCornerOrder;
       this.ThirdCornerOrder = entity.ThirdCornerOrder;
       this.FourthCornerOrder = entity.FourthCornerOrder;
-      this.RiderCode = entity.RiderCode;
-      this.RiderName = entity.RiderName;
-      this.RiderWeight = entity.RiderWeight;
       this.TrainerCode = entity.TrainerCode;
       this.TrainerName = entity.TrainerName;
       this.OwnerCode = entity.OwnerCode;
       this.OwnerName = entity.OwnerName;
-      this.Weight = entity.Weight;
-      this.WeightDiff = entity.WeightDiff;
       this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
       this.AbnormalResult = entity.AbnormalResult;
 
@@ -225,6 +220,11 @@ namespace KmyKeiba.Data.Db
       {
         this.Odds = entity.Odds;
         this.Popular = entity.Popular;
+        this.RiderCode = entity.RiderCode;
+        this.RiderName = entity.RiderName;
+        this.RiderWeight = entity.RiderWeight;
+        this.Weight = entity.Weight;
+        this.WeightDiff = entity.WeightDiff;
       }
 
       if (!this.IsRunningStyleSetManually)
@@ -241,7 +241,7 @@ namespace KmyKeiba.Data.Db
 
     public bool CanSetOdds(short odds)
     {
-      if (odds != default) return true;
+      if (this.Odds == default || odds != default) return true;
 
       if (this.AbnormalResult == RaceAbnormality.Scratched || this.AbnormalResult == RaceAbnormality.ExcludedByStarters)
       {

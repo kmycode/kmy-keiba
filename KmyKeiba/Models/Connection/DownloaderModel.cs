@@ -108,7 +108,8 @@ namespace KmyKeiba.Models.Connection
       void UpdateCanSave()
       {
         var canSave = this.LoadingProcess.Value != LoadingProcessValue.Writing &&
-            this.ProcessingStep.Value != Connection.ProcessingStep.StandardTime && this.ProcessingStep.Value != Connection.ProcessingStep.PreviousRaceDays;
+            this.ProcessingStep.Value != Connection.ProcessingStep.StandardTime && this.ProcessingStep.Value != Connection.ProcessingStep.PreviousRaceDays &&
+            this.RTProcessingStep.Value != Connection.ProcessingStep.StandardTime && this.RTProcessingStep.Value != Connection.ProcessingStep.PreviousRaceDays;
         if (this.CanSaveOthers.Value != canSave)
         {
           // このプロパティはViewModel内のReactiveCommandのCanExecuteにも使われる
@@ -372,6 +373,57 @@ namespace KmyKeiba.Models.Connection
       await this.DownloadAsync(link);
     }
 
+    public void BeginProcessing()
+    {
+      Task.Run(async () =>
+      {
+        if (this.IsDownloadCentral.Value)
+        {
+          await this.ProcessAsync(DownloadLink.Central, true);
+        }
+        if (this.IsDownloadLocal.Value)
+        {
+          await this.ProcessAsync(DownloadLink.Local, true);
+        }
+      });
+    }
+
+    private async Task ProcessAsync(DownloadLink link, bool isStandardTime = false)
+    {
+      try
+      {
+        this.IsDownloading.Value = true;
+        this.DownloadingLink.Value = link;
+
+        this.ProcessingStep.Value = Connection.ProcessingStep.InvalidData;
+        this.IsProcessing.Value = true;
+        await ShapeDatabaseModel.RemoveInvalidDataAsync();
+        this.ProcessingStep.Value = Connection.ProcessingStep.RunningStyle;
+        if (link == DownloadLink.Central)
+        {
+          ShapeDatabaseModel.TrainRunningStyle(isForce: true);
+        }
+        ShapeDatabaseModel.StartRunningStylePredicting();
+        this.ProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
+        await ShapeDatabaseModel.SetPreviousRaceDaysAsync();
+        this.RacesUpdated?.Invoke(this, EventArgs.Empty);
+
+        // 途中から再開できないものは最後に
+        if (isStandardTime)
+        {
+          this.ProcessingStep.Value = Connection.ProcessingStep.StandardTime;
+          await ShapeDatabaseModel.MakeStandardTimeMasterDataAsync(1990, link);
+        }
+      }
+      finally
+      {
+        this.IsDownloading.Value = false;
+        this.IsProcessing.Value = false;
+        this.ProcessingStep.Value = Connection.ProcessingStep.Unknown;
+        this.LoadingProcess.Value = LoadingProcessValue.Unknown;
+      }
+    }
+
     private async Task DownloadAsync(DownloadLink link, int year = 0, int month = 0, int startDay = 0)
     {
       if (link == DownloadLink.Both)
@@ -400,28 +452,10 @@ namespace KmyKeiba.Models.Connection
       try
       {
         this.DownloadingLink.Value = link;
-        var isContinue = await downloader.DownloadAsync(linkName, "race", startYear, startMonth, this.OnDownloadProgress, startDay);
+        await downloader.DownloadAsync(linkName, "race", startYear, startMonth, this.OnDownloadProgress, startDay);
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
-        if (isContinue)
-        {
-          // this.DownloadingType.Value = Connection.DownloadingType.Odds;
-          // await downloader.DownloadAsync(linkName, "odds", startYear, startMonth, this.OnDownloadProgress);
-        }
 
-        this.ProcessingStep.Value = Connection.ProcessingStep.InvalidData;
-        this.IsProcessing.Value = true;
-        await ShapeDatabaseModel.RemoveInvalidDataAsync();
-        this.ProcessingStep.Value = Connection.ProcessingStep.RunningStyle;
-        if (link == DownloadLink.Central)
-        {
-          ShapeDatabaseModel.TrainRunningStyle(isForce: true);
-        }
-        ShapeDatabaseModel.StartRunningStylePredicting();
-        this.ProcessingStep.Value = Connection.ProcessingStep.StandardTime;
-        await ShapeDatabaseModel.MakeStandardTimeMasterDataAsync(startYear - 2, link);
-        this.ProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
-        await ShapeDatabaseModel.SetPreviousRaceDaysAsync();
-        this.RacesUpdated?.Invoke(this, EventArgs.Empty);
+        await this.ProcessAsync(link);
       }
       catch (DownloaderCommandException ex)
       {
