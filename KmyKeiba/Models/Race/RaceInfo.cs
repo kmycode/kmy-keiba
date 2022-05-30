@@ -114,6 +114,8 @@ namespace KmyKeiba.Models.Race
       this.TrendAnalyzers = new RaceTrendAnalysisSelector(race);
       this.CourseSummaryImage.Race = race;
 
+      var buyLimitTime = this.Data.StartTime.AddMinutes(-2);
+
       this.CanBuy.Value = _buyer?.CanBuy(race) == true;
       if (this.CanBuy.Value)
       {
@@ -121,33 +123,38 @@ namespace KmyKeiba.Models.Race
         {
           tickets.Tickets
             .CollectionChangedAsObservable()
+            .TakeWhile(_ => DateTime.Now < buyLimitTime)
             .Subscribe(_ => this.CanBuy.Value = tickets.Tickets.Any())
             .AddTo(this._disposables);
+          this.CanBuy.Value = tickets.Tickets.Any();
         });
       }
 
-      var limit = this.Data.StartTime.AddMinutes(-2);
       Observable.Interval(TimeSpan.FromSeconds(1))
         .Subscribe(_ =>
         {
-          if (limit > DateTime.Now)
+          if (buyLimitTime > DateTime.Now)
           {
-            var d = limit - DateTime.Now;
+            var d = buyLimitTime - DateTime.Now;
             if (d.TotalDays < 1)
             {
               this.IsBeforeLimitTime.Value = true;
-              this.BuyLimit.Value = limit - DateTime.Now;
+              this.BuyLimit.Value = buyLimitTime - DateTime.Now;
               this.LimitStatus.Value = this.BuyLimit.Value.TotalSeconds < 300 ? StatusFeeling.Bad : StatusFeeling.Unknown;
             }
             else
             {
+              // 締め切りがあと１日を超えている場合は、タイマーを表示しない
+              // （表示上の都合）
               this.IsBeforeLimitTime.Value = false;
             }
           }
           else
           {
+            // 締め切りを過ぎた
             this.IsBeforeLimitTime.Value = false;
             this.IsWaitingResults.Value = true;
+            this.CanBuy.Value = false;
           }
         })
         .AddTo(this._disposables);

@@ -6,6 +6,7 @@ using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Models.RList;
 using KmyKeiba.Models.Script;
+using KmyKeiba.Shared;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -51,6 +52,8 @@ namespace KmyKeiba.ViewModels
     public ReactiveProperty<bool> IsDialogOpen { get; }
 
     public ReactiveProperty<bool> CanSave => this.downloader.CanSaveOthers;
+
+    public string VersionNumber => Constrants.ApplicationVersion;
 
     public MainViewModel()
     {

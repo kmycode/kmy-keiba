@@ -672,7 +672,16 @@ namespace KmyKeiba.Models.Race
         }
       }
 
-      this.SortTickets();
+      if (this.Tickets.Any())
+      {
+        this.SortTickets();
+      }
+      else
+      {
+        // SortTickets内でAddが呼び出され、そこからUpdateTotalMoneyが呼び出される
+        // しかしSortTicketsでソート対象がないとforeachが回らず呼び出されなくなる
+        this.UpdateTotalMoney();
+      }
       await db.SaveChangesAsync();
     }
 
@@ -1679,6 +1688,10 @@ namespace KmyKeiba.Models.Race
         {
           return "BOX " + string.Join(',', ticket.Numbers1);
         }
+        else if (ticket.FormType == TicketFormType.Single)
+        {
+          return ticket.Numbers1.FirstOrDefault() + "　" + ticket.Numbers2.FirstOrDefault();
+        }
       }
       else
       {
@@ -1695,6 +1708,10 @@ namespace KmyKeiba.Models.Race
         {
           var label = ticket.IsMulti ? "流しマルチ" : "流し";
           return label + " 軸:" + string.Join(',', ticket.Numbers1) + " - " + string.Join(',', ticket.Numbers2);
+        }
+        else if (ticket.FormType == TicketFormType.Single)
+        {
+          return ticket.Numbers1.FirstOrDefault() + "　" + ticket.Numbers2.FirstOrDefault() + "　" + ticket.Numbers3.FirstOrDefault();
         }
       }
 
