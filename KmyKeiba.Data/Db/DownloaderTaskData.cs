@@ -32,6 +32,7 @@ namespace KmyKeiba.Data.Db
     DownloadSetup = 2,
 
     [DownloaderCommand("shutdown")]
+    [Obsolete("ファイルを使ったやり取りに変更。DownloaderConnectorクラスを参照")]
     Shutdown = 3,
 
     [DownloaderCommand("jvconfig")]
@@ -42,6 +43,9 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderCommand("dwrt")]
     DownloadRealTimeData = 6,
+
+    [DownloaderCommand("movie")]
+    OpenMovie = 7,
   }
 
   public enum DownloaderError : short

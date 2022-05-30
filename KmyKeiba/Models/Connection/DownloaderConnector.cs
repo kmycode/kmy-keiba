@@ -254,6 +254,38 @@ namespace KmyKeiba.Models.Connection
       return true;
     }
 
+    public async Task OpenMovieAsync(MovieType type, DownloadLink link, string key)
+    {
+      if (this.IsBusy.Value)
+      {
+        throw new InvalidOperationException();
+      }
+
+      try
+      {
+        using var db = new MyContext();
+        var task = new DownloaderTaskData
+        {
+          Command = DownloaderCommand.OpenMovie,
+          Parameter = key + "," + (short)type + "," + (link == DownloadLink.Central ? "central" : "local"),
+        };
+        this.currentTask.Value = task;
+        await db.DownloaderTasks!.AddAsync(task);
+        await db.SaveChangesAsync();
+
+        this.ExecuteDownloader(task.Command, task.Id.ToString());
+        var result = await WaitForFinished(task.Id, null);
+        if (result.Error != DownloaderError.Succeed)
+        {
+          throw new DownloaderCommandException(result.Error, result.Result);
+        }
+      }
+      finally
+      {
+        this.currentTask.Value = null;
+      }
+    }
+
     private async Task OpenConfigAsync(DownloaderCommand command)
     {
       if (this.IsBusy.Value)
@@ -336,5 +368,14 @@ namespace KmyKeiba.Models.Connection
     {
       this.Error = error;
     }
+  }
+
+  public enum MovieType
+  {
+    Race = 0,
+    Paddock = 1,
+    MultiCameras = 2,
+    Patrol = 3,
+    Training = 11,
   }
 }

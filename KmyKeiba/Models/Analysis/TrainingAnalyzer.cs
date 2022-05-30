@@ -1,11 +1,15 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Math;
+using KmyKeiba.Models.Connection;
+using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace KmyKeiba.Models.Analysis
 {
@@ -47,6 +51,8 @@ namespace KmyKeiba.Models.Analysis
 
     public class TrainingRow
     {
+      public string HorseKey { get; }
+
       public TrainingCenter Center { get; }
 
       public bool IsWoodtip { get; }
@@ -58,6 +64,8 @@ namespace KmyKeiba.Models.Analysis
       public DateTime StartTime { get; }
 
       public IReadOnlyList<LapTimeData> LapTimes { get; private set; } = Array.Empty<LapTimeData>();
+
+      public RaceMovieInfo Movie { get; } = new();
 
       private ValueComparation GetComparation(short value, StatisticSingleArray statistic)
       {
@@ -101,6 +109,7 @@ namespace KmyKeiba.Models.Analysis
       {
         this.StartTime = data.StartTime;
         this.Center = data.Center;
+        this.HorseKey = data.HorseKey;
         var lapTimes = new short[]
         {
           data.FirstLapTime,
@@ -119,6 +128,7 @@ namespace KmyKeiba.Models.Analysis
         this.WoodtipCourse = data.Course;
         this.WoodtipDirection = data.Direction;
         this.IsWoodtip = true;
+        this.HorseKey = data.HorseKey;
         var lapTimes = new short[]
         {
           data.Lap1Time,
@@ -142,6 +152,11 @@ namespace KmyKeiba.Models.Analysis
 
         public ValueComparation LapTimeComparation { get; init; }
       }
+
+      public ICommand PlayTrainingCommand =>
+        this._playTrainingCommand ??=
+          new AsyncReactiveCommand<object>(this.Movie.IsTrainingError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayTrainingAsync(this.StartTime.ToString("yyyyMMdd") + this.HorseKey));
+      private AsyncReactiveCommand<object>? _playTrainingCommand;
     }
   }
 }

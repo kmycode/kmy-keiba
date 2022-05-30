@@ -15,7 +15,7 @@ namespace KmyKeiba.JVLink.Wrappers
     public static JVLinkObject Central => _central ??= new JVLinkObject(JVLinkObjectType.Central);
     public static JVLinkObject Local => _local ??= new JVLinkObject(JVLinkObjectType.Local);
 
-    public static string CentralInitializationKey { get; set; } = "UNKNOWN";
+    public static string CentralInitializationKey { get; set; } = "SA000000/SD000004";
 
     private readonly IJVLinkObject link;
     private bool hasInitialized = false;
@@ -47,6 +47,19 @@ namespace KmyKeiba.JVLink.Wrappers
     public void OpenConfigWindow()
     {
       this.link.SetUIProperties();
+    }
+
+    public JVLinkMovieResult PlayMovie(JVLinkMovieType type, string key)
+    {
+      this.CheckInitialized();
+
+      var result = this.link.MVPlayWithType(((short)type).ToString("00"), key);
+      if (result != 0)
+      {
+        throw JVLinkException.GetError((JVLinkMovieResult)result);
+      }
+
+      return (JVLinkMovieResult)result;
     }
 
     public IJVLinkReader StartRead(JVLinkDataspec dataspec, JVLinkOpenOption options, DateTime from, DateTime? to = null)
@@ -310,6 +323,15 @@ namespace KmyKeiba.JVLink.Wrappers
 
     [JVLinkDataspec("WOOD", JVLinkOpenOption.WithoutThisWeek)]
     Wood = 0b1000_0000_0000_0000_0000_0000_0000_0000,
+  }
+
+  public enum JVLinkMovieType
+  {
+    Race = 0,
+    Paddock = 1,
+    MultiCameras = 2,
+    Patrol = 3,
+    Training = 11,
   }
 
   public static class JVLinkExtensions

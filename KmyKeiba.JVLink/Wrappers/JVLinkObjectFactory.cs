@@ -33,6 +33,8 @@ namespace KmyKeiba.JVLink.Wrappers
     int FileDelete(string filename);
 
     int Fuku(string pattern, ref byte[] buff);
+
+    int MVPlayWithType(string type, string key);
   }
 
   internal static class JVLinkObjectFactory
@@ -114,6 +116,11 @@ namespace KmyKeiba.JVLink.Wrappers
       {
         return default;
       }
+
+      public int MVPlayWithType(string type, string key)
+      {
+        return default;
+      }
     }
 
     private class JVLinkObjectImpl : IJVLinkObject
@@ -168,6 +175,8 @@ namespace KmyKeiba.JVLink.Wrappers
         buff = (byte[])obj;
         return r;
       }
+
+      public int MVPlayWithType(string type, string key) => this.link.JVMVPlayWithType(type, key);
     }
 
     private class NVLinkObjectImpl : IJVLinkObject
@@ -214,6 +223,48 @@ namespace KmyKeiba.JVLink.Wrappers
         var r = this.link.NVFuku(pattern, ref obj);
         buff = (byte[])obj;
         return r;
+      }
+
+      public int MVPlayWithType(string type, string key)
+      {
+        JVLinkMovieResult result = JVLinkMovieResult.Succeed;
+
+        var courseCode = key.Substring(8, 2);
+        var rakutenCourseCode = courseCode switch
+        {
+          "45" => "2135",      // 川崎
+          "41" => "2015",      // 大井
+          "43" => "1914",      // 船橋
+          "42" => "1813",      // 浦和
+          "36" => "1106",      // 水沢
+          "30" => "3601",      // 門別
+          "83" => "0304",      // 帯広（ば）
+          "46" => "2218",      // 金沢
+          "47" => "2320",      // 笠松
+          "48" => "2433",      // 名古屋
+          "50" => "2726",      // 園田
+          "54" => "3129",      // 高知
+          "55" => "3230",      // 佐賀
+          "51" => "2826",      // 姫路
+          "35" => "1006",      // 盛岡
+          _ => string.Empty,
+        };
+        var rakutenKey = key.Substring(0, 8) + rakutenCourseCode + key.Substring(10);
+
+        try
+        {
+          System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+          {
+            FileName = "https://keiba.rakuten.co.jp/archivemovie/RACEID/" + rakutenKey,
+            UseShellExecute = true,
+          });
+        }
+        catch
+        {
+          result = JVLinkMovieResult.ServerError;
+        }
+
+        return (int)result;
       }
     }
   }

@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Math;
+using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Injection;
 using KmyKeiba.Models.Race;
@@ -63,6 +64,9 @@ namespace KmyKeiba.Models.Analysis
     /// 後３ハロンタイム指数
     /// </summary>
     public double A3HResultTimeDeviationValue { get; }
+
+    public RaceMovieInfo Movie => this._movie ??= new(this.Race);
+    private RaceMovieInfo? _movie;
 
     public HistoryData? History { get; }
 
@@ -357,6 +361,26 @@ namespace KmyKeiba.Models.Analysis
       this._setDoubleCircleMarkCommand ??=
         new AsyncReactiveCommand<string>(Connection.DownloaderModel.Instance.CanSaveOthers).WithSubscribe(p => this.ChangeHorseMarkAsync(p));
     private AsyncReactiveCommand<string>? _setDoubleCircleMarkCommand;
+
+    public ICommand PlayRaceMovieCommand =>
+      this._playRaceMovieCommand ??=
+        new AsyncReactiveCommand<object>(this.Movie.IsRaceError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayRaceAsync());
+    private AsyncReactiveCommand<object>? _playRaceMovieCommand;
+
+    public ICommand PlayPaddockCommand =>
+      this._playPaddockCommand ??=
+        new AsyncReactiveCommand<object>(this.Movie.IsPaddockError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPaddockAsync());
+    private AsyncReactiveCommand<object>? _playPaddockCommand;
+
+    public ICommand PlayPatrolCommand =>
+      this._playPatrolCommand ??=
+        new AsyncReactiveCommand<object>(this.Movie.IsPatrolError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPatrolAsync());
+    private AsyncReactiveCommand<object>? _playPatrolCommand;
+
+    public ICommand PlayMultiCamerasCommand =>
+      this._playMultiCamerasCommand ??=
+        new AsyncReactiveCommand<object>(this.Movie.IsMultiCamerasError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayMultiCamerasAsync());
+    private AsyncReactiveCommand<object>? _playMultiCamerasCommand;
 
     private readonly CompositeDisposable _disposables = new();
 

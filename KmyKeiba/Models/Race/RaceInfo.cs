@@ -95,6 +95,9 @@ namespace KmyKeiba.Models.Race
 
     public string Name => this.Subject.DisplayName;
 
+    public RaceMovieInfo Movie => this._movie ??= new(this.Data);
+    private RaceMovieInfo? _movie;
+
     private RaceInfo(RaceData race)
     {
       this.Data = race;

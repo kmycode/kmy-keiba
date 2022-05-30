@@ -27,7 +27,7 @@ namespace KmyKeiba.Downloader
 
       if (args.FirstOrDefault() != "kill")
       {
-        //args = new[] { "dwrt", "134", };
+        //args = new[] { "movie", "1266", };
         //args = new[] { "kill", "2960" };
       }
 
@@ -174,6 +174,16 @@ namespace KmyKeiba.Downloader
               t.Result = ex.GetType().Name + "/" + ex.Message;
             });
           }
+          KillMe();
+        }
+      }
+      else if (command == DownloaderCommand.OpenMovie.GetCommandText())
+      {
+        var task = GetTask(args[1], DownloaderCommand.OpenMovie);
+        if (task != null)
+        {
+          currentTask = task;
+          OpenMovie();
           KillMe();
         }
       }
@@ -759,6 +769,44 @@ namespace KmyKeiba.Downloader
       }
     }
 
-    public static void Exit() => Environment.Exit(-1);
+    public static void OpenMovie()
+    {
+      var task = currentTask;
+      if (task == null)
+      {
+        return;
+      }
+
+      var p = task.Parameter.Split(',');
+      if (p.Length < 3)
+      {
+        return;
+      }
+      var raceKey = p[0];
+      var typeStr = p[1];
+      var linkName = p[2];
+
+      var link = linkName == "central" ? JVLinkObject.Central : JVLinkObject.Local;
+      short.TryParse(typeStr, out var type);
+
+      try
+      {
+        link.PlayMovie((JVLinkMovieType)type, raceKey);
+        SetTask(task, t =>
+        {
+          t.IsFinished = true;
+          t.Result = "ok";
+        });
+      }
+      catch (JVLinkException<JVLinkMovieResult> ex)
+      {
+        SetTask(task, t =>
+        {
+          t.IsFinished = true;
+          t.Result = JVLinkException.GetAttribute(ex.Code).Message;
+          t.Error = DownloaderError.TargetsNotExists;
+        });
+      }
+    }
   }
 }

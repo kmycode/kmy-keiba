@@ -184,6 +184,59 @@ namespace KmyKeiba.JVLink.Wrappers
     InMaintance = -504,
   }
 
+  public enum JVLinkMovieResult
+  {
+    Succeed = 0,
+
+    [JVLinkCode("該当するデータがありません")]
+    NotFound = -1,
+
+    [JVLinkCode("種類が誤っています")]
+    InvalidType = -111,
+
+    [JVLinkCode("キーが誤っています")]
+    InvalidKey = -114,
+
+    [JVLinkCode("初期化が行われていません")]
+    NoInitialized = -201,
+
+    [JVLinkCode("すでに接続が開かれています")]
+    AlreadyOpen = -202,
+
+    [JVLinkCode("レジストリの値が不正です")]
+    InvalidRegistry = -211,
+
+    [JVLinkCode("認証エラーです")]
+    AuthenticationError = -301,
+
+    [JVLinkCode("利用キーが不正です")]
+    LicenceKeyExpired = -302,
+
+    [JVLinkCode("利用キーが設定されていません")]
+    LicenceKeyNotSet = -303,
+
+    [JVLinkCode("内部エラー")]
+    InternalError = -401,
+
+    [JVLinkCode("サーバーエラー404")]
+    NotFoundHttp = -411,
+
+    [JVLinkCode("サーバーエラー403")]
+    Forbidden = -412,
+
+    [JVLinkCode("サーバーエラー")]
+    ServerError = -413,
+
+    [JVLinkCode("サーバーの不正な応答")]
+    InvalidServerResponse = -421,
+
+    [JVLinkCode("サーバーアプリケーションの不正な応答")]
+    InvalidServerApplication = -431,
+
+    [JVLinkCode("現在サーバーはメンテナンス中です")]
+    InMaintance = -504,
+  }
+
   public class JVLinkException : JVLinkException<JVLinkCommonCode>
   {
     public static JVLinkException<T> GetError<T>(T code) where T : System.Enum => new JVLinkException<T>(code);

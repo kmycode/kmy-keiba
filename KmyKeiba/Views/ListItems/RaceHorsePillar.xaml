@@ -219,51 +219,70 @@
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <StackPanel Orientation="Horizontal" Margin="2">
-                
-                <!--レース成績-->
-                <StackPanel Width="154" Height="60" Background="{Binding Data.ResultOrder,Converter={StaticResource OrderBackgroundConv}}">
-                  <StackPanel.Resources>
-                    <Style TargetType="TextBlock" BasedOn="{StaticResource SubTextBlock}">
-                      <Setter Property="Foreground" Value="#dddddd"/>
-                    </Style>
-                  </StackPanel.Resources>
-                  <StackPanel Orientation="Horizontal" Height="20">
-                    <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Width="32" Height="20" VerticalAlignment="Center" FontSize="11.5"/>
-                    <TextBlock Text="{Binding Subject.ShorterName}" FontSize="14" FontWeight="Bold" Margin="4,0,0,0"
-                               Width="86"/>
-                    <up:RunningStyleTip RunningStyle="{Binding Data.RunningStyle}">
-                      <FrameworkElement.LayoutTransform>
-                        <ScaleTransform ScaleX="0.7" ScaleY="0.8"/>
-                      </FrameworkElement.LayoutTransform>
-                    </up:RunningStyleTip>
-                  </StackPanel>
-                  <StackPanel Orientation="Horizontal">
-                    <up:CornerResultTip CornerGrades="{Binding CornerGrades}" FontSize="13"
-                                        PartWidth="20" PartHeight="20" Visibility="{Binding IsAbnormalResult,Converter={StaticResource NegativeVisibilityConv}}"/>
-                    <TextBlock FontSize="14" Foreground="{DynamicResource BadForeground}" FontWeight="Bold"
-                               Text="{Binding Data.AbnormalResult,Converter={StaticResource EnumsConv}}"
-                               Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}"/>
-                  </StackPanel>
-                  <StackPanel Orientation="Horizontal">
-                    <up:CourseSimpleImageView Race="{Binding Race}"/>
-                    <TextBlock FontSize="14" Text="{Binding Race.Distance}" Width="40" TextAlignment="Center"/>
-                    <TextBlock FontSize="12" Text="{Binding Data.RiderName}" Width="60" VerticalAlignment="Center"/>
-                    <TextBlock FontSize="14" Text="{Binding Race.TrackWeather,Converter={StaticResource TrackConv}}"/>
-                    <TextBlock FontSize="14" Text="{Binding Race.TrackCondition,Converter={StaticResource TrackConv}}"/>
-                  </StackPanel>
-                </StackPanel>
-                
-                <!--前走日数-->
-                <Border Width="40">
-                  <StackPanel Width="40" VerticalAlignment="Center" Visibility="{Binding Data.PreviousRaceDays,Converter={StaticResource NonMinusVisibilityConv}}">
-                    <Polygon Points="8,0 8,20 0,10" Fill="{DynamicResource ThinSubForeground}" StrokeThickness="0"
-                             HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding Data.PreviousRaceDays}" FontSize="14" TextAlignment="Center"
-                               Foreground="{DynamicResource SubForeground}"/>
-                  </StackPanel>
-                </Border>
-              </StackPanel>
+              <Grid>
+                <ToggleButton Name="PastRace">
+                  <ToggleButton.Template>
+                    <ControlTemplate>
+                      <StackPanel Orientation="Horizontal" Margin="2">
+
+                        <!--レース成績-->
+                        <StackPanel Width="154" Height="60" Background="{Binding Data.ResultOrder,Converter={StaticResource OrderBackgroundConv}}">
+                          <StackPanel.Resources>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource SubTextBlock}">
+                              <Setter Property="Foreground" Value="#dddddd"/>
+                            </Style>
+                          </StackPanel.Resources>
+                          <StackPanel Orientation="Horizontal" Height="20">
+                            <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Width="32" Height="20" VerticalAlignment="Center" FontSize="11.5"/>
+                            <TextBlock Text="{Binding Subject.ShorterName}" FontSize="14" FontWeight="Bold" Margin="4,0,0,0"
+                                       Width="86"/>
+                            <up:RunningStyleTip RunningStyle="{Binding Data.RunningStyle}">
+                              <FrameworkElement.LayoutTransform>
+                                <ScaleTransform ScaleX="0.7" ScaleY="0.8"/>
+                              </FrameworkElement.LayoutTransform>
+                            </up:RunningStyleTip>
+                          </StackPanel>
+                          <StackPanel Orientation="Horizontal">
+                            <up:CornerResultTip CornerGrades="{Binding CornerGrades}" FontSize="13"
+                                                PartWidth="20" PartHeight="20" Visibility="{Binding IsAbnormalResult,Converter={StaticResource NegativeVisibilityConv}}"/>
+                            <TextBlock FontSize="14" Foreground="{DynamicResource BadForeground}" FontWeight="Bold"
+                                       Text="{Binding Data.AbnormalResult,Converter={StaticResource EnumsConv}}"
+                                       Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}"/>
+                          </StackPanel>
+                          <StackPanel Orientation="Horizontal">
+                            <up:CourseSimpleImageView Race="{Binding Race}"/>
+                            <TextBlock FontSize="14" Text="{Binding Race.Distance}" Width="40" TextAlignment="Center"/>
+                            <TextBlock FontSize="12" Text="{Binding Data.RiderName}" Width="60" VerticalAlignment="Center"/>
+                            <TextBlock FontSize="14" Text="{Binding Race.TrackWeather,Converter={StaticResource TrackConv}}"/>
+                            <TextBlock FontSize="14" Text="{Binding Race.TrackCondition,Converter={StaticResource TrackConv}}"/>
+                          </StackPanel>
+                        </StackPanel>
+
+                        <!--前走日数-->
+                        <Border Width="40">
+                          <StackPanel Width="40" VerticalAlignment="Center" Visibility="{Binding Data.PreviousRaceDays,Converter={StaticResource NonMinusVisibilityConv}}">
+                            <Polygon Points="8,0 8,20 0,10" Fill="{DynamicResource ThinSubForeground}" StrokeThickness="0"
+                                     HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding Data.PreviousRaceDays}" FontSize="14" TextAlignment="Center"
+                                       Foreground="{DynamicResource SubForeground}"/>
+                          </StackPanel>
+                        </Border>
+                      </StackPanel>
+                    </ControlTemplate>
+                  </ToggleButton.Template>
+                </ToggleButton>
+                <Popup IsOpen="{Binding IsChecked,ElementName=PastRace,Mode=TwoWay}" StaysOpen="False">
+                  <Border Width="200" Height="36" Background="{DynamicResource BaseBackground}"
+                          BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
+                    <StackPanel Margin="8,4">
+                      <Button Content="動画を見る" Command="{Binding PlayRaceMovieCommand}"/>
+                      <Button Content="パドック" Command="{Binding PlayPaddockCommand}"/>
+                      <Button Content="パトロール" Command="{Binding PlayPatrolCommand}"/>
+                      <Button Content="マルチカメラ" Command="{Binding PlayMultiCamerasCommand}"/>
+                    </StackPanel>
+                  </Border>
+                </Popup>
+              </Grid>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
