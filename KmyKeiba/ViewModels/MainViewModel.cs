@@ -108,6 +108,11 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.ScriptBulk);
     private ReactiveCommand? _openScriptBulkDialogCommand;
 
+    public ICommand OpenVersionDialogCommand =>
+      this._openVersionDialogCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Version);
+    private ReactiveCommand? _openVersionDialogCommand;
+
     public ICommand CloseDialogCommand =>
       this._closeDialogCommand ??=
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Unknown);
@@ -279,5 +284,6 @@ namespace KmyKeiba.ViewModels
     Download,
     RTDownload,
     ScriptBulk,
+    Version,
   }
 }

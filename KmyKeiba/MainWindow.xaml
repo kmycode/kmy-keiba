@@ -38,6 +38,10 @@
         <!--メニュー-->
         <Border Grid.Column="1" Grid.Row="1" Height="60" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0,1,0,0">
           <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition/>
+              <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
               <Button Width="80" Height="50" FontSize="24" Padding="0" Content="DL" Command="{Binding OpenDownloadDialogCommand}"/>
               <Border Width="240">
@@ -84,6 +88,10 @@
                 </StackPanel>
               </StackPanel>
             </StackPanel>
+
+            <StackPanel Grid.Column="1">
+              <Button Width="80" Height="50" FontSize="24" Padding="0" Content="Ver" Command="{Binding OpenVersionDialogCommand}"/>
+            </StackPanel>
           </Grid>
         </Border>
       </Grid>
@@ -111,6 +119,12 @@
               Background="{DynamicResource BaseBackground}"
               Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=RTDownload}">
         <ud:RTDownloadDialog/>
+      </Border>
+      <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="2"
+              Padding="24,8" HorizontalAlignment="Center" VerticalAlignment="Center"
+              Background="{DynamicResource BaseBackground}"
+              Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=Version}">
+        <ud:VersionDialog/>
       </Border>
       <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="2"
               Padding="24,8" Margin="48,60"
