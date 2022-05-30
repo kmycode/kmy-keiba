@@ -46,6 +46,12 @@ namespace KmyKeiba.Data.Db
     public double A3FMedian { get; set; }
 
     public double A3FDeviation { get; set; }
+
+    public double UntilA3FAverage { get; set; }
+
+    public double UntilA3FMedian { get; set; }
+
+    public double UntilA3FDeviation { get; set; }
   }
 
   /// <summary>

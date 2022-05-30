@@ -376,13 +376,10 @@ namespace KmyKeiba.Models.Race
           // 各馬の情報
           var horseInfos = new List<RaceHorseAnalyzer>();
           var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
-          /*
           var horseHistorySameHorses = await db.RaceHorses!
             .Where(h => h.ResultOrder >= 1 && h.ResultOrder <= 5)
             .Where(h => horseHistoryKeys.Contains(h.RaceKey))
             .ToArrayAsync();
-          */
-          var horseHistorySameHorses = Array.Empty<RaceHorseData>();
           foreach (var horse in horses)
           {
             var histories = new List<RaceHorseAnalyzer>();

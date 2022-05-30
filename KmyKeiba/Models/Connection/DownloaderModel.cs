@@ -250,6 +250,7 @@ namespace KmyKeiba.Models.Connection
         var year = 0;
         var month = 0;
         var day = 0;
+        var lastStandardTimeUpdatedYear = 0;
 
         {
           using var db = new MyContext();
@@ -257,6 +258,8 @@ namespace KmyKeiba.Models.Connection
           year = lastLaunchDay / 10000;
           month = lastLaunchDay / 100 % 100;
           day = lastLaunchDay % 100;
+
+          lastStandardTimeUpdatedYear = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastUpdateStandardTimeYear);
         }
 
         // 最初に最終起動からの差分を落とす
@@ -290,7 +293,14 @@ namespace KmyKeiba.Models.Connection
               }
             }
           }
+
           await ConfigUtil.SetIntValueAsync(SettingKey.LastLaunchDate, today.Year * 10000 + today.Month * 100 + today.Day);
+
+          // 年を跨ぐ場合は基準タイムの更新も行う
+          if (lastStandardTimeUpdatedYear != today.Year)
+          {
+            await this.ProcessAsync(DownloadLink.Both, Connection.ProcessingStep.StandardTime);
+          }
 
           this._isInitializationDownloading = false;
         });
@@ -379,41 +389,59 @@ namespace KmyKeiba.Models.Connection
       {
         if (this.IsDownloadCentral.Value)
         {
-          await this.ProcessAsync(DownloadLink.Central, true);
+          await this.ProcessAsync(DownloadLink.Central, Connection.ProcessingStep.All);
         }
         if (this.IsDownloadLocal.Value)
         {
-          await this.ProcessAsync(DownloadLink.Local, true);
+          await this.ProcessAsync(DownloadLink.Local, Connection.ProcessingStep.All);
         }
       });
     }
 
-    private async Task ProcessAsync(DownloadLink link, bool isStandardTime = false)
+    private async Task ProcessAsync(DownloadLink link, ProcessingStep steps)
     {
+      if (link == DownloadLink.Both)
+      {
+        await this.ProcessAsync(DownloadLink.Central, steps);
+        await this.ProcessAsync(DownloadLink.Local, steps);
+        return;
+      }
+
       try
       {
         this.IsDownloading.Value = true;
         this.DownloadingLink.Value = link;
-
-        this.ProcessingStep.Value = Connection.ProcessingStep.InvalidData;
         this.IsProcessing.Value = true;
-        await ShapeDatabaseModel.RemoveInvalidDataAsync();
-        this.ProcessingStep.Value = Connection.ProcessingStep.RunningStyle;
-        if (link == DownloadLink.Central)
+
+        if (steps.HasFlag(Connection.ProcessingStep.InvalidData))
         {
-          ShapeDatabaseModel.TrainRunningStyle(isForce: true);
+          this.ProcessingStep.Value = Connection.ProcessingStep.InvalidData;
+          await ShapeDatabaseModel.RemoveInvalidDataAsync();
         }
-        ShapeDatabaseModel.StartRunningStylePredicting();
-        this.ProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
-        await ShapeDatabaseModel.SetPreviousRaceDaysAsync();
-        this.RacesUpdated?.Invoke(this, EventArgs.Empty);
+        if (steps.HasFlag(Connection.ProcessingStep.RunningStyle))
+        {
+          this.ProcessingStep.Value = Connection.ProcessingStep.RunningStyle;
+          if (link == DownloadLink.Central)
+          {
+            ShapeDatabaseModel.TrainRunningStyle(isForce: true);
+          }
+          ShapeDatabaseModel.StartRunningStylePredicting();
+        }
+        if (steps.HasFlag(Connection.ProcessingStep.PreviousRaceDays))
+        {
+          this.ProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
+          await ShapeDatabaseModel.SetPreviousRaceDaysAsync();
+        }
 
         // 途中から再開できないものは最後に
-        if (isStandardTime)
+        if (steps.HasFlag(Connection.ProcessingStep.StandardTime))
         {
           this.ProcessingStep.Value = Connection.ProcessingStep.StandardTime;
           await ShapeDatabaseModel.MakeStandardTimeMasterDataAsync(1990, link);
+          await ConfigUtil.SetIntValueAsync(SettingKey.LastUpdateStandardTimeYear, DateTime.Today.Year);
         }
+
+        this.RacesUpdated?.Invoke(this, EventArgs.Empty);
       }
       finally
       {
@@ -455,7 +483,7 @@ namespace KmyKeiba.Models.Connection
         await downloader.DownloadAsync(linkName, "race", startYear, startMonth, this.OnDownloadProgress, startDay);
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
 
-        await this.ProcessAsync(link);
+        await this.ProcessAsync(link, Connection.ProcessingStep.ExceptForStandardTime);
       }
       catch (DownloaderCommandException ex)
       {
@@ -497,11 +525,7 @@ namespace KmyKeiba.Models.Connection
         await downloader.DownloadRTAsync(linkName, date, this.OnRTDownloadProgress);
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
 
-        this.RTProcessingStep.Value = Connection.ProcessingStep.InvalidData;
-        this.IsRTProcessing.Value = true;
-        await ShapeDatabaseModel.RemoveInvalidDataAsync();
-        this.RTProcessingStep.Value = Connection.ProcessingStep.RunningStyle;
-        ShapeDatabaseModel.StartRunningStylePredicting();
+        await this.ProcessAsync(link, Connection.ProcessingStep.InvalidData | Connection.ProcessingStep.RunningStyle);
         this.RTProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
         await ShapeDatabaseModel.SetPreviousRaceDaysAsync(DateOnly.FromDateTime(DateTime.Today));
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
@@ -719,20 +743,24 @@ namespace KmyKeiba.Models.Connection
     RB14,
   }
 
+  [Flags]
   enum ProcessingStep
   {
-    Unknown,
+    Unknown = 0,
 
     [Label("不正なデータを処理中")]
-    InvalidData,
+    InvalidData = 1,
 
     [Label("脚質を計算中")]
-    RunningStyle,
+    RunningStyle = 2,
 
     [Label("基準タイムを計算中")]
-    StandardTime,
+    StandardTime = 4,
 
     [Label("馬データの成型中")]
-    PreviousRaceDays,
+    PreviousRaceDays = 8,
+
+    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays,
+    ExceptForStandardTime = InvalidData | RunningStyle | PreviousRaceDays,
   }
 }

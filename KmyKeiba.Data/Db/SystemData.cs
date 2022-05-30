@@ -31,5 +31,6 @@ namespace KmyKeiba.Data.Db
     IsRTDownloadLocal = 6,
     LastLaunchDate = 7,
     IsDownloadCentralOnThursdayAfterOnly = 8,
+    LastUpdateStandardTimeYear = 9,
   }
 }

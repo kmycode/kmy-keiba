@@ -54,6 +54,11 @@ namespace KmyKeiba.Models.Analysis
       return item ?? new();
     }
 
+    public static void ClearStandardTimeCaches()
+    {
+      _standardData.Clear();
+    }
+
     public static double CalcRoughRate(IReadOnlyList<RaceHorseData> topHorses)
     {
       return topHorses.Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 3)

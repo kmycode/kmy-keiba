@@ -345,6 +345,9 @@ namespace KmyKeiba.JVLink.Entities
 
   public enum RaceCourse : short
   {
+    [RaceCourseInfo(RaceCourseType.Unknown, "全て")]
+    All = -1,
+
     [RaceCourseInfo(RaceCourseType.Central, "不明")]
     Unknown = 0,
 

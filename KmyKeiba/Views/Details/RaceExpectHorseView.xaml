@@ -45,11 +45,17 @@
     <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Summary,Converter={StaticResource BooleanVisibilityConv}}">
       <ScrollViewer>
         <StackPanel>
-          <ul:RaceHorsePillar Horse="{Binding RaceHorse,ElementName=Root}" IsAllRaces="True"/>
+          <Border Height="260">
+            <ul:RaceHorsePillar Horse="{Binding RaceHorse,ElementName=Root}" IsAllRaces="True"/>
+          </Border>
           <Grid Margin="24,32,0,0">
             <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="auto"/>
-              <ColumnDefinition/>
+              <ColumnDefinition Width="0.2*"/>
+              <ColumnDefinition Width="0.4*"/>
+              <ColumnDefinition Width="0.2*"/>
+              <ColumnDefinition Width="0.4*"/>
+              <ColumnDefinition Width="0.2*"/>
+              <ColumnDefinition Width="0.4*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
               <RowDefinition/>
@@ -60,16 +66,82 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
               </Style>
             </Grid.Resources>
-            <TextBlock Text="距離適性" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
-            <TextBlock Grid.Column="1" FontSize="24"
+            <TextBlock Grid.Column="0" Text="記号" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
+            <TextBlock Grid.Column="0" Grid.Row="1" Text="毛色" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
+            <TextBlock Grid.Column="2" Text="距離適性" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
+            <TextBlock Grid.Column="3" FontSize="24"
                        Text="{Binding RaceHorse.History.BestDistance,ElementName=Root,Converter={StaticResource LabelConv}}"/>
-            <TextBlock Text="副距離適性" Grid.Row="1" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
-            <TextBlock Grid.Column="1" Grid.Row="1" FontSize="24" Margin="0,8,0,0"
+            <TextBlock Grid.Column="2" Text="副距離適性" Grid.Row="1" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
+            <TextBlock Grid.Column="3" Grid.Row="1" FontSize="24" Margin="0,8,0,0"
                        Text="{Binding RaceHorse.History.SecondDistance,ElementName=Root,Converter={StaticResource LabelConv}}"/>
           </Grid>
 
-          <TextBlock Text="メモ" FontWeight="Bold" FontSize="24" Margin="0,24,0,8"/>
-          <TextBox TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="120" Margin="8,0"
+          <StackPanel Margin="8,36,0,36" Visibility="{Binding RaceHorse.History.HasCourseGrades,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+            <TextBlock Text="競馬場ごとの近い距離の成績" FontWeight="Bold" FontSize="24"/>
+            <StackPanel Orientation="Horizontal" Margin="8,12,0,0">
+              <StackPanel.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource SubTextBlock}">
+                  <Setter Property="FontSize" Value="16"/>
+                  <Setter Property="TextAlignment" Value="Right"/>
+                  <Setter Property="VerticalAlignment" Value="Center"/>
+                </Style>
+              </StackPanel.Resources>
+              <TextBlock Width="60" Text="場名" TextAlignment="Left"/>
+              <TextBlock Width="156" Text="成績" TextAlignment="Center"/>
+              <TextBlock Width="60" Text="距離" TextAlignment="Center"/>
+              <TextBlock Width="80" Text="持ち時計"/>
+              <TextBlock Width="60" Text="T偏"/>
+              <TextBlock Width="60" Text="TOP偏"/>
+              <TextBlock Width="40" Text="着順"/>
+              <TextBlock Width="50" Text="斤量"/>
+              <TextBlock Width="30" Text="歳"/>
+              <TextBlock Width="120" Text="日付"/>
+              <TextBlock Width="240" Text="レース名" TextAlignment="Left" Margin="8,0,0,0"/>
+            </StackPanel>
+            <ItemsControl ItemsSource="{Binding RaceHorse.History.CourseGrades,ElementName=Root}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid>
+                    <Border Background="{DynamicResource TableListFocusedRowBackground}" Visibility="{Binding IsCurrentCourse,Converter={StaticResource BooleanVisibilityConv}}"/>
+                    <StackPanel Orientation="Horizontal" Height="48" Margin="8,0,0,0">
+                      <StackPanel.Resources>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                          <Setter Property="FontSize" Value="16"/>
+                          <Setter Property="TextAlignment" Value="Right"/>
+                          <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                      </StackPanel.Resources>
+                      <TextBlock Width="60" Text="{Binding Course,Converter={StaticResource CourseNameConv}}" FontWeight="Bold" TextAlignment="Left"/>
+                      <StackPanel Width="140" VerticalAlignment="Center">
+                        <up:RaceResultOrderGradeRow Header="全て" Grade="{Binding AllGrade}" FontSize="14"/>
+                        <up:RaceResultOrderGradeRow Header="距離" Grade="{Binding Grade}" FontSize="14" Visibility="{Binding HasData,Converter={StaticResource BooleanVisibilityConv}}"/>
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal" Visibility="{Binding HasData,Converter={StaticResource BooleanVisibilityConv}}">
+                        <Border Width="60" Margin="16,0,0,0">
+                          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <up:CourseSimpleImageView Race="{Binding ShortestTimeRace}"/>
+                            <TextBlock Text="{Binding ShortestTimeRace.Distance}" FontSize="14" TextAlignment="Left" Margin="2,0,0,0"/>
+                          </StackPanel>
+                        </Border>
+                        <TextBlock Width="80" Text="{Binding ShortestTimeRaceHorse.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss}" FontSize="24"/>
+                        <TextBlock Width="60" Text="{Binding ShortestTimeRaceHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+                        <TextBlock Width="60" Text="{Binding ShortestTimeRaceTopHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+                        <TextBlock Width="40" Text="{Binding ShortestTimeRaceHorse.ResultOrder}"/>
+                        <TextBlock Width="50" Text="{Binding ShortestTimeRaceHorse.RiderWeight,Converter={StaticResource DigitMinusConv}}"/>
+                        <TextBlock Width="30" Text="{Binding ShortestTimeRaceHorse.Age}"/>
+                        <TextBlock Width="120" Text="{Binding ShortestTimeRace.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"/>
+                        <up:RaceSubjectIcon Subject="{Binding ShortestTimeRaceSubject.Subject}" Margin="8,0,8,0" Width="40" Height="24" FontSize="14" VerticalAlignment="Center"/>
+                        <TextBlock Width="200" Text="{Binding ShortestTimeRaceSubject.DisplayName}" TextAlignment="Left"/>
+                      </StackPanel>
+                    </StackPanel>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <TextBlock Text="メモ" FontWeight="Bold" FontSize="24" Margin="8,24,0,8"/>
+          <TextBox TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" MinHeight="100" Margin="16,0"
                    Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}" FontSize="16"
                    Text="{Binding RaceHorse.Memo.Value,ElementName=Root}" IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}"/>
         </StackPanel>

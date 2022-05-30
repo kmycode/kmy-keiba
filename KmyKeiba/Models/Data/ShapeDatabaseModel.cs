@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Connection;
 using Microsoft.Data.Sqlite;
@@ -210,6 +211,8 @@ namespace KmyKeiba.Models.Data
 
                     var arr = times.SelectMany(t => t.Horses.Select(h => h.ResultTime.TotalSeconds / t.Race.Distance)).ToArray();
                     var arr2 = times.SelectMany(t => t.Horses.Select(h => h.AfterThirdHalongTime.TotalSeconds)).ToArray();
+                    var arr3 = times.Where(t => t.Race.Distance >= 800).SelectMany(t => t.Horses
+                      .Select(h => (h.ResultTime.TotalSeconds - h.AfterThirdHalongTime.TotalSeconds) / (t.Race.Distance - 600))).ToArray();
                     var statistic = new StatisticSingleArray
                     {
                       Values = arr,
@@ -217,6 +220,10 @@ namespace KmyKeiba.Models.Data
                     var statistic2 = new StatisticSingleArray
                     {
                       Values = arr2,
+                    };
+                    var statistic3 = new StatisticSingleArray
+                    {
+                      Values = arr3,
                     };
 
                     RaceStandardTimeMasterData data;
@@ -234,6 +241,9 @@ namespace KmyKeiba.Models.Data
                       data.A3FAverage = statistic2.Average;
                       data.A3FMedian = statistic2.Median;
                       data.A3FDeviation = statistic2.Deviation;
+                      data.UntilA3FAverage = statistic3.Average;
+                      data.UntilA3FMedian = statistic3.Median;
+                      data.UntilA3FDeviation = statistic3.Deviation;
                     }
                     else
                     {
@@ -254,6 +264,9 @@ namespace KmyKeiba.Models.Data
                         A3FAverage = statistic2.Average,
                         A3FMedian = statistic2.Median,
                         A3FDeviation = statistic2.Deviation,
+                        UntilA3FAverage = statistic3.Average,
+                        UntilA3FMedian = statistic3.Median,
+                        UntilA3FDeviation = statistic3.Deviation,
                       };
                       await db.RaceStandardTimes!.AddAsync(data);
                     }
@@ -276,6 +289,9 @@ namespace KmyKeiba.Models.Data
           // コースごと
           await db.CommitAsync();
         }
+
+        // キャッシュをクリア
+        AnalysisUtil.ClearStandardTimeCaches();
       }
       catch
       {
