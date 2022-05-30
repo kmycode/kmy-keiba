@@ -111,8 +111,12 @@ namespace KmyKeiba.Models.Script
         _outputNum++;
         //if (_outputNum == 1)
         {
-          File.WriteAllText($"script/output-{_outputNum}.html", result.Html.ToString());
-          this.Controller.Navigate($"localfolder://cefsharp/output-{_outputNum}.html");
+          if (!Directory.Exists("script/tmp"))
+          {
+            Directory.CreateDirectory("script/tmp");
+          }
+          File.WriteAllText($"script/tmp/output-{_outputNum}.html", result.Html.ToString());
+          this.Controller.Navigate($"localfolder://cefsharp/tmp/output-{_outputNum}.html");
         }
         /*
         else
