@@ -95,6 +95,20 @@ namespace KmyKeiba.Converters
           _ => string.Empty,
         };
       }
+      if (value is HorseBodyColor color)
+      {
+        return color switch
+        {
+          HorseBodyColor.Chestnut => "栗",
+          HorseBodyColor.DarkChestnut => "栃栗",
+          HorseBodyColor.Bay => "鹿",
+          HorseBodyColor.DarkBay => "黒鹿",
+          HorseBodyColor.Brown => "青鹿",
+          HorseBodyColor.Black => "青",
+          HorseBodyColor.Grey => "芦",
+          _ => "不明",
+        };
+      }
       throw new NotImplementedException();
     }
 

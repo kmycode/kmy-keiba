@@ -72,6 +72,8 @@ namespace KmyKeiba.Models.Analysis
     {
       public IReadOnlyList<RaceHorseAnalyzer> BeforeRaces { get; } = Array.Empty<RaceHorseAnalyzer>();
 
+      public IReadOnlyList<RaceHorseAnalyzer> Before15Races { get; } = Array.Empty<RaceHorseAnalyzer>();
+
       public IReadOnlyList<RaceHorseAnalyzer> BeforeFiveRaces { get; } = Array.Empty<RaceHorseAnalyzer>();
 
       public bool HasHistories => this.BeforeRaces.Any();
@@ -132,6 +134,7 @@ namespace KmyKeiba.Models.Analysis
       {
         this.BeforeRaces = raceHistory.OrderByDescending(h => h.Race.StartTime).ToArray();
         this.BeforeFiveRaces = this.BeforeRaces.Take(5).ToArray();
+        this.Before15Races = this.BeforeRaces.Take(15).ToArray();
 
         if (this.BeforeRaces.Any())
         {

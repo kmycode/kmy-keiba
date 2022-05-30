@@ -33,6 +33,7 @@
   <cv:RaceListItemStatusBackgroundConverter x:Key="RaceListItemStatusBackgroundConv"/>
   <cv:NonMinusVisibilityConverter x:Key="NonMinusVisibilityConv"/>
   <cv:RaceChangeToTextConverter x:Key="RaceChangeTextConv"/>
+  <cv:HorseColorBrushConverter x:Key="HorseColorBrushConv"/>
 
   <cv:BooleanBrushConverter x:Key="BooleanForegroundSubOrBaseConv" TrueBrush="{DynamicResource SubForeground}" FalseBrush="{DynamicResource BaseForeground}"/>
 </ResourceDictionary>

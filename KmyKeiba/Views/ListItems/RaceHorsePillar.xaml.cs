@@ -56,7 +56,7 @@ namespace KmyKeiba.Views.ListItems
         {
           if (sender is RaceHorsePillar view)
           {
-            var binding = new Binding(view.IsAllRaces ? "Horse.History.BeforeRaces" : "Horse.History.BeforeFiveRaces")
+            var binding = new Binding(view.IsAllRaces ? "Horse.History.Before15Races" : "Horse.History.BeforeFiveRaces")
             {
               Source = view,
             };
