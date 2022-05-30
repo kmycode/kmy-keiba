@@ -27,6 +27,8 @@ namespace KmyKeiba.Data.Db
 
     public short FourthLapTime { get; set; }
 
+    public MovieStatus MovieStatus { get; set; }
+
     public override void SetEntity(Training race)
     {
       this.LastModified = race.LastModified;
@@ -45,5 +47,12 @@ namespace KmyKeiba.Data.Db
       var obj = (TrainingData)b;
       return this.HorseKey == obj.HorseKey && this.StartTime == obj.StartTime;
     }
+  }
+
+  public enum MovieStatus : short
+  {
+    Unchecked = 0,
+    Available = 1,
+    Unavailable = 2,
   }
 }

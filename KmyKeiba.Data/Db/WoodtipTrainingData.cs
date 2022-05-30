@@ -43,6 +43,8 @@ namespace KmyKeiba.Data.Db
 
     public short Lap10Time { get; set; }
 
+    public MovieStatus MovieStatus { get; set; }
+
     public override void SetEntity(WoodtipTraining race)
     {
       this.LastModified = race.LastModified;

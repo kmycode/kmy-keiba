@@ -46,6 +46,9 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderCommand("movie")]
     OpenMovie = 7,
+
+    [DownloaderCommand("movielist")]
+    OpenMovieList = 8,
   }
 
   public enum DownloaderError : short

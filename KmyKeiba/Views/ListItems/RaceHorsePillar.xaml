@@ -272,9 +272,13 @@
                   </ToggleButton.Template>
                 </ToggleButton>
                 <Popup IsOpen="{Binding IsChecked,ElementName=PastRace,Mode=TwoWay}" StaysOpen="False">
-                  <Border Width="200" Height="36" Background="{DynamicResource BaseBackground}"
+                  <Border Width="200" Height="166" Background="{DynamicResource BaseBackground}"
                           BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
                     <StackPanel Margin="8,4">
+                      <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" TextAlignment="Center" Margin="0,0,0,8">
+                        <Run Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd HH\\:mm}"/><LineBreak/>
+                        <Run Text="{Binding Race.Course,Converter={StaticResource CourseNameConv}}"/> <Run Text="{Binding Race.CourseRaceNumber}"/> R
+                      </TextBlock>
                       <Button Content="動画を見る" Command="{Binding PlayRaceMovieCommand}"/>
                       <Button Content="パドック" Command="{Binding PlayPaddockCommand}"/>
                       <Button Content="パトロール" Command="{Binding PlayPatrolCommand}"/>

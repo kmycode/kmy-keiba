@@ -150,11 +150,6 @@ namespace KmyKeiba.Data.Db
     public TimeSpan AfterThirdHalongTime { get; set; }
 
     /// <summary>
-    /// 後３ハロンタイムの順位
-    /// </summary>
-    public short AfterThirdHalongTimeOrder { get; set; }
-
-    /// <summary>
     /// 脚質
     /// </summary>
     public RunningStyle RunningStyle { get; set; }
@@ -174,12 +169,6 @@ namespace KmyKeiba.Data.Db
     /// </summary>
     [StringLength(120)]
     public string UniformFormat { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 勝負服の画像
-    /// </summary>
-    [MaxLength(8000), Column(TypeName = "VARBINARY(8000)")]
-    public byte[] UniformFormatData { get; set; } = Array.Empty<byte>();
 
     /// <summary>
     /// メモ
@@ -215,6 +204,7 @@ namespace KmyKeiba.Data.Db
       this.OwnerName = entity.OwnerName;
       this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
       this.AbnormalResult = entity.AbnormalResult;
+      this.UniformFormat = entity.UniformFormat;
 
       if (this.CanSetOdds(entity.Odds))
       {
@@ -230,12 +220,6 @@ namespace KmyKeiba.Data.Db
       if (!this.IsRunningStyleSetManually)
       {
         this.RunningStyle = entity.RunningStyle;
-      }
-
-      if (this.UniformFormat != entity.UniformFormat)
-      {
-        this.UniformFormat = entity.UniformFormat;
-        this.UniformFormatData = new byte[0];
       }
     }
 

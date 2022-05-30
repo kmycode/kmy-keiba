@@ -65,7 +65,7 @@ namespace KmyKeiba.Models.Analysis
 
       public IReadOnlyList<LapTimeData> LapTimes { get; private set; } = Array.Empty<LapTimeData>();
 
-      public RaceMovieInfo Movie { get; } = new();
+      public TrainingMovieInfo Movie { get; }
 
       private ValueComparation GetComparation(short value, StatisticSingleArray statistic)
       {
@@ -118,6 +118,8 @@ namespace KmyKeiba.Models.Analysis
           data.FourthLapTime,
         }.Where(d => d > 0).ToArray();
 
+        this.Movie = new TrainingMovieInfo(data.Id, false, data.MovieStatus);
+
         this.InitializeValueComparations(statistics, lapTimes);
       }
 
@@ -143,6 +145,8 @@ namespace KmyKeiba.Models.Analysis
           data.Lap10Time,
         }.Where(d => d > 0).ToArray();
 
+        this.Movie = new TrainingMovieInfo(data.Id, true, data.MovieStatus);
+
         this.InitializeValueComparations(statistics, lapTimes);
       }
 
@@ -155,7 +159,7 @@ namespace KmyKeiba.Models.Analysis
 
       public ICommand PlayTrainingCommand =>
         this._playTrainingCommand ??=
-          new AsyncReactiveCommand<object>(this.Movie.IsTrainingError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayTrainingAsync(this.StartTime.ToString("yyyyMMdd") + this.HorseKey));
+          new AsyncReactiveCommand<object>(this.Movie.IsTrainingError.CombineLatest(TrainingMovieInfo.IsLoading, (te, il) => !te && !il)).WithSubscribe(async _ => await this.Movie.PlayTrainingAsync(this.StartTime.ToString("yyyyMMdd") + this.HorseKey));
       private AsyncReactiveCommand<object>? _playTrainingCommand;
     }
   }
