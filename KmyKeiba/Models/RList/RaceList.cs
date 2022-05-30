@@ -67,7 +67,7 @@ namespace KmyKeiba.Models.RList
 
       ThreadUtil.InvokeOnUiThread(() =>
       {
-        foreach (var group in races.OrderBy(r => r.StartTime).GroupBy(r => r.Course).OrderBy(g => g.Key))
+        foreach (var group in races.OrderBy(r => r.CourseRaceNumber).GroupBy(r => r.Course).OrderBy(g => g.Key))
         {
           var course = this.Courses.FirstOrDefault(c => c.Course == group.Key);
           if (course == null)
@@ -79,6 +79,8 @@ namespace KmyKeiba.Models.RList
           course.Races.Clear();
           var items = group.ToArray();
 
+          var jvlinkLocalRaceCount = 0;
+
           for (var i = 0; i < items.Length; i++)
           {
             var item = new RaceListItem(items[i]);
@@ -88,6 +90,31 @@ namespace KmyKeiba.Models.RList
             var prevItem = i > 0 ? items[i - 1] : null;
             item.NextRaceStartTime.Value = nextItem?.StartTime ?? DateTime.MinValue;
             item.PrevRaceStartTime.Value = prevItem?.StartTime ?? DateTime.MinValue;
+
+            // たまにバグで時刻がゼロになっていることがある（現在地方競馬のみで確認）
+            if (items[i].StartTime.TimeOfDay == default)
+            {
+              if (nextItem != null && prevItem != null && nextItem.StartTime.Date != default && prevItem.StartTime.Date != default)
+              {
+                var time = (nextItem.StartTime.TimeOfDay + prevItem.StartTime.TimeOfDay) / 2;
+                items[i].StartTime = new DateTime(nextItem.StartTime.Year, nextItem.StartTime.Month, nextItem.StartTime.Day, time.Hours, time.Minutes, time.Seconds);
+              }
+              else if (nextItem != null && nextItem.StartTime.Date != default)
+              {
+                items[i].StartTime = nextItem.StartTime.AddMinutes(-40);
+              }
+              else if (prevItem != null && prevItem.StartTime.Date != default)
+              {
+                items[i].StartTime = prevItem.StartTime.AddMinutes(40);
+              }
+              else
+              {
+                // このユーザーはおそらくUmaConnを使用していない。
+                // UmaConnがなければ開始時刻の推定が不可能
+                items[i].StartTime = items[i].StartTime.AddHours(Definitions.RaceTimelineStartHour).AddMinutes(jvlinkLocalRaceCount * 60);
+                jvlinkLocalRaceCount++;
+              }
+            }
 
             item.ViewTop.Value = ((prevItem?.StartTime.TimeOfDay.TotalMinutes ?? (items[i].StartTime.TimeOfDay.TotalMinutes - 40)) - Definitions.RaceTimelineStartHour * 60)
               * Definitions.RaceTimelineHeightPerMinutes;

@@ -505,7 +505,16 @@ namespace KmyKeiba.Downloader
         {
           if (item.Data.DataStatus <= item.Entity.DataStatus || item.Data.LastModified <= item.Entity.LastModified)
           {
-            item.Data.SetEntity(item.Entity);
+            if (item.Entity.DataStatus == RaceDataStatus.Local && item.Data.DataStatus <= RaceDataStatus.Canceled)
+            {
+              // 地方重賞などについて、JV-LinkではDataStatusをLocalに設定しているが、UmaConnでは通常レースと同様に1～9の値を設定している
+              // JV-Linkから来るデータは開始時刻など一部情報が欠損しているが、UmaConnから来る情報はそれがない。よってJV-Linkの情報をとばす
+              // 条件分岐の際は、中央競馬のみを落とす場合／先に中央を落として後日地方を追加で落とす場合も考慮する
+            }
+            else
+            {
+              item.Data.SetEntity(item.Entity);
+            }
           }
           copyed.Remove(item.Entity);
           changed++;
