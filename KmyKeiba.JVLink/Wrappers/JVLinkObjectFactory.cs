@@ -124,7 +124,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
       bool IJVLinkObject.IsOpen { get; set; }
 
-      public int Init() => this.link.JVInit("SA000000");
+      public int Init() => this.link.JVInit(JVLinkObject.CentralInitializationKey);
 
       public int SetUIProperties() => this.link.JVSetUIProperties();
 
@@ -178,7 +178,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
       bool IJVLinkObject.IsOpen { get; set; }
 
-      public int Init() => this.link.NVInit("SA000000");
+      public int Init() => this.link.NVInit("UNKNOWN");
 
       public int SetUIProperties() => this.link.NVSetUIProperties();
 

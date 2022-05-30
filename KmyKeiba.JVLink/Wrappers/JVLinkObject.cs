@@ -15,6 +15,8 @@ namespace KmyKeiba.JVLink.Wrappers
     public static JVLinkObject Central => _central ??= new JVLinkObject(JVLinkObjectType.Central);
     public static JVLinkObject Local => _local ??= new JVLinkObject(JVLinkObjectType.Local);
 
+    public static string CentralInitializationKey { get; set; } = "UNKNOWN";
+
     private readonly IJVLinkObject link;
     private bool hasInitialized = false;
 

@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
+using KmyKeiba.Downloader.Injection;
 using KmyKeiba.Downloader.Math;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
@@ -28,6 +29,13 @@ namespace KmyKeiba.Downloader
       {
         //args = new[] { "dwrt", "134", };
         //args = new[] { "kill", "2960" };
+      }
+
+      // JV-LinkのIDを設定
+      var softwareId = InjectionManager.GetInstance<ICentralSoftwareIdGetter>(InjectionManager.CentralSoftwareIdGetter);
+      if (softwareId != null)
+      {
+        JVLinkObject.CentralInitializationKey = softwareId.InitializationKey;
       }
 
       // マイグレーション

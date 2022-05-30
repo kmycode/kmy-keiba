@@ -17,3 +17,4 @@ KmyKeiba.Old/obj/
 *.DS_Store
 dist/
 KmyKeiba/Models/Injection/Private/
+KmyKeiba.Downloader/Injection/Private/
