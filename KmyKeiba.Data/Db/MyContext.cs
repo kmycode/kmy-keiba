@@ -53,6 +53,8 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<RaceStandardTimeMasterData>? RaceStandardTimes { get; set; }
 
+    public DbSet<RiderWinRateMasterData>? RiderWinRates { get; set; }
+
     public DbSet<TicketData>? Tickets { get; set; }
 
     public DbSet<DownloaderTaskData>? DownloaderTasks { get; set; }
@@ -82,6 +84,30 @@ namespace KmyKeiba.Data.Db
     public async Task BeginTransactionAsync()
     {
       this._transaction = await this.Database.BeginTransactionAsync();
+    }
+
+    public async Task TryBeginTransactionAsync ()
+    {
+      var tryCount = 0;
+      var isSucceed = false;
+      while (!isSucceed)
+      {
+        try
+        {
+          await this.BeginTransactionAsync();
+          isSucceed = true;
+        }
+        catch (Exception ex) when (ex.Message.Contains('5') && ex.Message.ToLower().Contains("sqlite") && ex.Message.Contains("lock"))
+        {
+          // TODO: logs
+          tryCount++;
+          if (tryCount >= 30 * 60)
+          {
+            throw new Exception(ex.Message, ex);
+          }
+          await Task.Delay(1000);
+        }
+      }
     }
 
     public override void Dispose()

@@ -3,6 +3,7 @@ using System;
 using KmyKeiba.Downloader;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KmyKeiba.Downloader.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20220530140321_AddRiderWinRateMasterData")]
+    partial class AddRiderWinRateMasterData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.5");
@@ -1326,38 +1328,17 @@ namespace KmyKeiba.Downloader.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<short>("AllDirtCount")
+                    b.Property<short>("AllCount")
                         .HasColumnType("INTEGER");
 
-                    b.Property<short>("AllDirtSteepsCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("AllTurfCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("AllTurfSteepsCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("Distance")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("DistanceMax")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("FirstDirtCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("FirstDirtSteepsCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("FirstTurfCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("FirstTurfSteepsCount")
+                    b.Property<short>("FirstCount")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastModified")
                         .HasColumnType("TEXT");
+
+                    b.Property<short>("LosedCount")
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Month")
                         .HasColumnType("INTEGER");
@@ -1366,28 +1347,10 @@ namespace KmyKeiba.Downloader.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<short>("SecondDirtCount")
+                    b.Property<short>("SecondCount")
                         .HasColumnType("INTEGER");
 
-                    b.Property<short>("SecondDirtSteepsCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("SecondTurfCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("SecondTurfSteepsCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("ThirdDirtCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("ThirdDirtSteepsCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("ThirdTurfCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("ThirdTurfSteepsCount")
+                    b.Property<short>("ThirdCount")
                         .HasColumnType("INTEGER");
 
                     b.Property<ushort>("Version")

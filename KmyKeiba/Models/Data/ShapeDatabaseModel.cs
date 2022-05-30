@@ -92,26 +92,7 @@ namespace KmyKeiba.Models.Data
       {
         using var db = new MyContext();
 
-        var tryCount = 0;
-        var isSucceed = false;
-        while (!isSucceed)
-        {
-          try
-          {
-            await db.BeginTransactionAsync();
-            isSucceed = true;
-          }
-          catch (SqliteException ex) when (ex.SqliteErrorCode == 5)
-          {
-            // TODO: logs
-            tryCount++;
-            if (tryCount >= 30 * 60)
-            {
-              throw new Exception(ex.Message, ex);
-            }
-            await Task.Delay(1000);
-          }
-        }
+        await db.TryBeginTransactionAsync();
 
         var grounds = new[] { TrackGround.Turf, TrackGround.Dirt, TrackGround.TurfToDirt, };
         var types = new[] { TrackType.Flat, TrackType.Steeplechase, };
@@ -308,7 +289,7 @@ namespace KmyKeiba.Models.Data
 
       // 通常のクエリは３分まで
       db.Database.SetCommandTimeout(180);
-      await db.BeginTransactionAsync();
+      //await db.BeginTransactionAsync();
 
       var query = db.RaceHorses!
         .Where(rh => rh.PreviousRaceDays == 0)
@@ -377,6 +358,133 @@ namespace KmyKeiba.Models.Data
           Console.Write($"\r完了: {count}");
 
           targets = await allTargets.Take(96).ToArrayAsync();
+        }
+      }
+      catch
+      {
+        // TODO: logs
+      }
+    }
+
+    public static async Task SetRiderWinRatesAsync(DateOnly? startMonth = null)
+    {
+      DateOnly month;
+      if (startMonth != null)
+      {
+        month = new DateOnly(startMonth.Value.Year, startMonth.Value.Month, 1);
+      }
+      else
+      {
+        month = new DateOnly(1986, 1, 1);
+      }
+
+      using var db = new MyContext();
+
+      // 通常のクエリは３分まで
+      db.Database.SetCommandTimeout(180);
+      await db.TryBeginTransactionAsync();
+      //await db.BeginTransactionAsync();
+
+      var query = db.RaceHorses!
+        .Where(rh => rh.ResultOrder > 0)
+        .Where(rh => rh.Key != "0000000000" && rh.Key != "" && rh.RaceKey != "" && rh.RiderCode != "00000");
+
+      var today = DateOnly.FromDateTime(DateTime.Today);
+      var lastMonth = new DateOnly(today.Year, today.Month, 1).AddDays(-1);  // 先月末
+
+      var distances = new short[] { 0, 1000, 1400, 1800, 2200, 2800, 10000, };
+
+      try
+      {
+        while (month < lastMonth)
+        {
+          var monthStr = month.ToString("yyyyMM");
+
+          var allTargets = query
+            .Where(rh => rh.RaceKey.StartsWith(monthStr) && !rh.IsContainsRiderWinRate)
+            .GroupBy(rh => rh.RiderCode)
+            .Select(g => g.Key);
+
+          while (allTargets.Any())
+          {
+            var targets = await allTargets.Take(96).ToArrayAsync();
+            var targetHorses = await query
+              .Where(rh => rh.RaceKey.StartsWith(monthStr))
+              .Where(rh => targets.Contains(rh.RiderCode))
+                .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { rh.Id, rh.RiderCode, rh.ResultOrder, r.Distance, r.TrackType, r.TrackGround, })
+              .ToArrayAsync();
+
+            foreach (var riderCode in targets)
+            {
+              var riderGrades = targetHorses
+                .Where(rh => rh.RiderCode == riderCode)
+                .ToArray();
+              var existsMasterData = await db.RiderWinRates!.Where(r => r.Year == month.Year && r.Month == month.Month && r.RiderCode == riderCode).ToArrayAsync();
+
+              for (var di = 0; di < distances.Length - 1; di++)
+              {
+                var distanceMin = distances[di];
+                var distanceMax = distances[di + 1];
+
+                var distanceGrades = riderGrades.Where(r => r.Distance >= distanceMin && r.Distance < distanceMax);
+                if (!distanceGrades.Any())
+                {
+                  continue;
+                }
+
+                var data = existsMasterData.FirstOrDefault(r => r.Distance == distanceMin && r.DistanceMax == distanceMax);
+                if (data == null)
+                {
+                  data = new RiderWinRateMasterData
+                  {
+                    Year = (short)month.Year,
+                    Month = (short)month.Month,
+                    RiderCode = riderCode,
+                    Distance = distanceMin,
+                    DistanceMax = distanceMax,
+                  };
+                  await db.RiderWinRates!.AddAsync(data);
+                }
+
+                var grades = distanceGrades.Where(r => r.TrackType == TrackType.Flat && r.TrackGround == TrackGround.Turf);
+                data.AllTurfCount = (short)grades.Count();
+                data.FirstTurfCount = (short)grades.Count(r => r.ResultOrder == 1);
+                data.SecondTurfCount = (short)grades.Count(r => r.ResultOrder == 2);
+                data.ThirdTurfCount = (short)grades.Count(r => r.ResultOrder == 3);
+
+                grades = distanceGrades.Where(r => r.TrackType == TrackType.Flat && r.TrackGround == TrackGround.Dirt);
+                data.AllDirtCount = (short)grades.Count();
+                data.FirstDirtCount = (short)grades.Count(r => r.ResultOrder == 1);
+                data.SecondDirtCount = (short)grades.Count(r => r.ResultOrder == 2);
+                data.ThirdDirtCount = (short)grades.Count(r => r.ResultOrder == 3);
+
+                grades = distanceGrades.Where(r => r.TrackType == TrackType.Steeplechase && r.TrackGround == TrackGround.Turf);
+                data.AllTurfSteepsCount = (short)grades.Count();
+                data.FirstTurfSteepsCount = (short)grades.Count(r => r.ResultOrder == 1);
+                data.SecondTurfSteepsCount = (short)grades.Count(r => r.ResultOrder == 2);
+                data.ThirdTurfSteepsCount = (short)grades.Count(r => r.ResultOrder == 3);
+
+                grades = distanceGrades.Where(r => r.TrackType == TrackType.Steeplechase && r.TrackGround == TrackGround.Dirt);
+                data.AllDirtSteepsCount = (short)grades.Count();
+                data.FirstDirtSteepsCount = (short)grades.Count(r => r.ResultOrder == 1);
+                data.SecondDirtSteepsCount = (short)grades.Count(r => r.ResultOrder == 2);
+                data.ThirdDirtSteepsCount = (short)grades.Count(r => r.ResultOrder == 3);
+              }
+
+              foreach (var horse in riderGrades)
+              {
+                var hd = new RaceHorseData
+                {
+                  Id = horse.Id,
+                };
+                db.RaceHorses!.Attach(hd);
+                hd.IsContainsRiderWinRate = true;
+              }
+            }
+          }
+
+          month = month.AddMonths(1);
+          await db.SaveChangesAsync();
         }
       }
       catch

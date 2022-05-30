@@ -84,7 +84,7 @@
             <ContentControl Template="{Binding Horse.Mark.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource HorseMarkConv}}" RenderTransform="{StaticResource MarkTransform}"/>
           </ToggleButton>
           <Popup Name="MarkPopup" Grid.Column="2" Width="254" Height="38" IsOpen="{Binding IsChecked,ElementName=MarkButton,Mode=TwoWay}" StaysOpen="False"
-                 PlacementTarget="{Binding ElementName=MarkButton}" Placement="Left" Margin="4,0,0,0">
+                 PlacementTarget="{Binding ElementName=MarkButton}" Placement="Right" Margin="4,0,0,0">
             <Grid Background="{DynamicResource BaseBorderBrush}">
               <StackPanel Orientation="Horizontal" Margin="1">
                 <Button Command="{Binding Horse.SetMarkCommand,ElementName=Root}" CommandParameter="0">
@@ -272,18 +272,33 @@
                   </ToggleButton.Template>
                 </ToggleButton>
                 <Popup IsOpen="{Binding IsChecked,ElementName=PastRace,Mode=TwoWay}" StaysOpen="False">
-                  <Border Width="200" Height="166" Background="{DynamicResource BaseBackground}"
+                  <Border Width="400" Height="170" Background="{DynamicResource BaseBackground}"
                           BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
-                    <StackPanel Margin="8,4">
-                      <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" TextAlignment="Center" Margin="0,0,0,8">
-                        <Run Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd HH\\:mm}"/><LineBreak/>
-                        <Run Text="{Binding Race.Course,Converter={StaticResource CourseNameConv}}"/> <Run Text="{Binding Race.CourseRaceNumber}"/> R
-                      </TextBlock>
-                      <Button Content="動画を見る" Command="{Binding PlayRaceMovieCommand}"/>
-                      <Button Content="パドック" Command="{Binding PlayPaddockCommand}"/>
-                      <Button Content="パトロール" Command="{Binding PlayPatrolCommand}"/>
-                      <Button Content="マルチカメラ" Command="{Binding PlayMultiCamerasCommand}"/>
-                    </StackPanel>
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                      </Grid.ColumnDefinitions>
+                      <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition/>
+                      </Grid.RowDefinitions>
+                      <StackPanel Margin="8,4" Grid.RowSpan="2">
+                        <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" TextAlignment="Center" Margin="0,0,0,8">
+                          <Run Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd HH\\:mm}"/><LineBreak/>
+                          <Run Text="{Binding Race.Course,Converter={StaticResource CourseNameConv}}"/> <Run Text="{Binding Race.CourseRaceNumber}"/> R <Run Text="{Binding Data.Number}"/> 番
+                        </TextBlock>
+                        <Border Height="4" Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
+                        <Button Content="動画を見る" Command="{Binding PlayRaceMovieCommand}"/>
+                        <Button Content="パドック" Command="{Binding PlayPaddockCommand}"/>
+                        <Button Content="パトロール" Command="{Binding PlayPatrolCommand}"/>
+                        <Button Content="マルチカメラ" Command="{Binding PlayMultiCamerasCommand}"/>
+                      </StackPanel>
+                      <TextBlock Grid.Column="1" FontSize="18" Margin="4,8,0,8" Text="メモ"/>
+                      <ScrollViewer Grid.Column="1" Grid.Row="1" Margin="8,4,0,0">
+                        <TextBlock Text="{Binding Data.Memo}" FontSize="14" TextWrapping="Wrap"/>
+                      </ScrollViewer>
+                    </Grid>
                   </Border>
                 </Popup>
               </Grid>

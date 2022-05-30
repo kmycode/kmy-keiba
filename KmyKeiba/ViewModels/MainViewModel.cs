@@ -116,6 +116,18 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Version);
     private ReactiveCommand? _openVersionDialogCommand;
 
+    public ICommand OpenLocalRaceLiveCommand =>
+      this._openLocalRaceLiveCommand ??=
+        new ReactiveCommand().WithSubscribe(() =>
+        {
+          System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+          {
+            UseShellExecute = true,
+            FileName = "https://keiba-lv-st.jp/",
+          });
+        });
+    private ReactiveCommand? _openLocalRaceLiveCommand;
+
     public ICommand CloseDialogCommand =>
       this._closeDialogCommand ??=
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Unknown);

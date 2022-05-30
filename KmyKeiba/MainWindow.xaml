@@ -41,6 +41,7 @@
             <Grid.ColumnDefinitions>
               <ColumnDefinition/>
               <ColumnDefinition Width="auto"/>
+              <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
               <Button Width="80" Height="50" FontSize="24" Padding="0" Content="DL" Command="{Binding OpenDownloadDialogCommand}"/>
@@ -63,7 +64,8 @@
               </Border>
               <Button Width="80" Height="50" FontSize="24" Padding="0" Content="RT" Command="{Binding OpenRTDownloadDialogCommand}"/>
               <Border Width="240">
-                <Grid Visibility="{Binding Downloader.IsRTDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                <Grid Visibility="{Binding Downloader.IsRTDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                      Background="{Binding Downloader.RTDownloadingStatus.Value,Converter={StaticResource ValueComparationBackgroundConv}}">
                   <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsRTProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}"
                              VerticalAlignment="Center" Margin="16,0,0,0">
                     <Run Text="{Binding Downloader.RTDownloadingLink.Value,Converter={StaticResource LabelConv}}"/><LineBreak/>
@@ -78,20 +80,29 @@
                              Text="{Binding Downloader.RTErrorMessage.Value}" Visibility="{Binding Downloader.IsRTError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                 </Grid>
               </Border>
-              <StackPanel>
-                <StackPanel Orientation="Horizontal">
-                  <Button Width="120" Height="25" FontSize="16" Padding="0" Content="スクリプト一括" Command="{Binding OpenScriptBulkDialogCommand}"/>
-                  <TextBlock Text="実行中..." Visibility="{Binding ScriptBulk.IsExecuting.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                             Foreground="{DynamicResource SubForeground}" FontSize="16" Margin="16,0,0,0" VerticalAlignment="Center"/>
-                  <TextBlock Text="{Binding ScriptBulk.SumOfIncomes.Value}" Foreground="{Binding ScriptBulk.IncomeComparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
-                             FontSize="16" VerticalAlignment="Center" Width="80" TextAlignment="Right"/>
-                </StackPanel>
+              <StackPanel Orientation="Horizontal">
+                <Button Width="90" Padding="0" Command="{Binding OpenScriptBulkDialogCommand}">
+                  <TextBlock FontSize="16" TextAlignment="Center">
+                    スクリプト<LineBreak/>一括実行
+                  </TextBlock>
+                </Button>
+                <TextBlock Text="実行中..." Visibility="{Binding ScriptBulk.IsExecuting.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                           Foreground="{DynamicResource SubForeground}" FontSize="16" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding ScriptBulk.SumOfIncomes.Value}" Foreground="{Binding ScriptBulk.IncomeComparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
+                           FontSize="16" VerticalAlignment="Center" Width="80" TextAlignment="Right"
+                           Visibility="{Binding ScriptBulk.SumOfIncomes.Value,Converter={StaticResource NonZeroVisibilityConv}}"/>
               </StackPanel>
             </StackPanel>
 
-            <StackPanel Grid.Column="1">
-              <Button Width="80" Height="50" FontSize="24" Padding="0" Content="Ver" Command="{Binding OpenVersionDialogCommand}"/>
-            </StackPanel>
+            <Button Grid.Column="1" Width="80" Height="50" Padding="0"
+                    Command="{Binding OpenLocalRaceLiveCommand}" Margin="0,0,8,0">
+              <TextBlock FontSize="16" TextAlignment="Center">
+                地方競馬<LineBreak/>ライブ
+              </TextBlock>
+            </Button>
+
+            <Button Grid.Column="2" Width="80" Height="50" FontSize="24" Padding="0" Content="Ver"
+                    Command="{Binding OpenVersionDialogCommand}" Margin="0,0,8,0"/>
           </Grid>
         </Border>
       </Grid>

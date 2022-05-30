@@ -165,6 +165,11 @@ namespace KmyKeiba.Data.Db
     public short PreviousRaceDays { get; set; }
 
     /// <summary>
+    /// 騎手の勝率マスターデータにこのデータは含まれているか
+    /// </summary>
+    public bool IsContainsRiderWinRate { get; set; }
+
+    /// <summary>
     /// 勝負服の模様
     /// </summary>
     [StringLength(120)]

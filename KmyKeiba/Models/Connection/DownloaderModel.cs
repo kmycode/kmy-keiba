@@ -100,16 +100,26 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<StatusFeeling> DownloadingStatus { get; }
 
+    public ReactiveProperty<StatusFeeling> RTDownloadingStatus { get; }
+
     private DownloaderModel()
     {
       this.StartYearSelection = Enumerable.Range(1986, DateTime.Now.Year - 1986 + 1).ToArray();
       this.StartMonthSelection = Enumerable.Range(1, 12).ToArray();
 
+      this.DownloadingStatus =
+        this.ProcessingStep
+          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates)
+          .CombineLatest(this.LoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
+          .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
+          .ToReactiveProperty().AddTo(this._disposables);
+      this.RTDownloadingStatus =
+        this.RTProcessingStep.Select(p => (p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates) ? StatusFeeling.Unknown : StatusFeeling.Bad)
+        .ToReactiveProperty().AddTo(this._disposables);
+
       void UpdateCanSave()
       {
-        var canSave = this.LoadingProcess.Value != LoadingProcessValue.Writing &&
-            this.ProcessingStep.Value != Connection.ProcessingStep.StandardTime && this.ProcessingStep.Value != Connection.ProcessingStep.PreviousRaceDays &&
-            this.RTProcessingStep.Value != Connection.ProcessingStep.StandardTime && this.RTProcessingStep.Value != Connection.ProcessingStep.PreviousRaceDays;
+        var canSave = this.DownloadingStatus.Value != StatusFeeling.Bad && this.RTDownloadingStatus.Value != StatusFeeling.Bad;
         if (this.CanSaveOthers.Value != canSave)
         {
           // このプロパティはViewModel内のReactiveCommandのCanExecuteにも使われる
@@ -122,7 +132,6 @@ namespace KmyKeiba.Models.Connection
       }
       this.LoadingProcess.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
       this.ProcessingStep.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
-      this.DownloadingStatus = this.CanSaveOthers.Select(p => p ? StatusFeeling.Unknown : StatusFeeling.Bad).ToReactiveProperty();
 
       // 設定を保存
       this.IsDownloadCentral.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadCentral, v ? 1 : 0)).AddTo(this._disposables);
@@ -299,7 +308,7 @@ namespace KmyKeiba.Models.Connection
           // 年を跨ぐ場合は基準タイムの更新も行う
           if (lastStandardTimeUpdatedYear != today.Year)
           {
-            await this.ProcessAsync(DownloadLink.Both, Connection.ProcessingStep.StandardTime);
+            await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.StandardTime);
           }
 
           this._isInitializationDownloading = false;
@@ -389,38 +398,47 @@ namespace KmyKeiba.Models.Connection
       {
         if (this.IsDownloadCentral.Value)
         {
-          await this.ProcessAsync(DownloadLink.Central, Connection.ProcessingStep.All);
+          await this.ProcessAsync(DownloadLink.Central, this.ProcessingStep, false, Connection.ProcessingStep.All);
         }
         if (this.IsDownloadLocal.Value)
         {
-          await this.ProcessAsync(DownloadLink.Local, Connection.ProcessingStep.All);
+          await this.ProcessAsync(DownloadLink.Local, this.ProcessingStep, false, Connection.ProcessingStep.All);
         }
       });
     }
 
-    private async Task ProcessAsync(DownloadLink link, ProcessingStep steps)
+    private async Task ProcessAsync(DownloadLink link, ReactiveProperty<ProcessingStep> step, bool isRt, ProcessingStep steps, bool isFlagSetManually = false)
     {
       if (link == DownloadLink.Both)
       {
-        await this.ProcessAsync(DownloadLink.Central, steps);
-        await this.ProcessAsync(DownloadLink.Local, steps);
+        await this.ProcessAsync(DownloadLink.Central, step, isRt, steps);
+        await this.ProcessAsync(DownloadLink.Local, step, isRt, steps);
         return;
       }
 
       try
       {
-        this.IsDownloading.Value = true;
-        this.DownloadingLink.Value = link;
-        this.IsProcessing.Value = true;
+        if (isRt)
+        {
+          this.IsRTDownloading.Value = true;
+          this.RTDownloadingLink.Value = link;
+          this.IsRTProcessing.Value = true;
+        }
+        else
+        {
+          this.IsDownloading.Value = true;
+          this.DownloadingLink.Value = link;
+          this.IsProcessing.Value = true;
+        }
 
         if (steps.HasFlag(Connection.ProcessingStep.InvalidData))
         {
-          this.ProcessingStep.Value = Connection.ProcessingStep.InvalidData;
+          step.Value = Connection.ProcessingStep.InvalidData;
           await ShapeDatabaseModel.RemoveInvalidDataAsync();
         }
         if (steps.HasFlag(Connection.ProcessingStep.RunningStyle))
         {
-          this.ProcessingStep.Value = Connection.ProcessingStep.RunningStyle;
+          step.Value = Connection.ProcessingStep.RunningStyle;
           if (link == DownloadLink.Central)
           {
             ShapeDatabaseModel.TrainRunningStyle(isForce: true);
@@ -429,14 +447,19 @@ namespace KmyKeiba.Models.Connection
         }
         if (steps.HasFlag(Connection.ProcessingStep.PreviousRaceDays))
         {
-          this.ProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
+          step.Value = Connection.ProcessingStep.PreviousRaceDays;
           await ShapeDatabaseModel.SetPreviousRaceDaysAsync();
+        }
+        if (steps.HasFlag(Connection.ProcessingStep.RiderWinRates))
+        {
+          step.Value = Connection.ProcessingStep.RiderWinRates;
+          await ShapeDatabaseModel.SetRiderWinRatesAsync();
         }
 
         // 途中から再開できないものは最後に
         if (steps.HasFlag(Connection.ProcessingStep.StandardTime))
         {
-          this.ProcessingStep.Value = Connection.ProcessingStep.StandardTime;
+          step.Value = Connection.ProcessingStep.StandardTime;
           await ShapeDatabaseModel.MakeStandardTimeMasterDataAsync(1990, link);
           await ConfigUtil.SetIntValueAsync(SettingKey.LastUpdateStandardTimeYear, DateTime.Today.Year);
         }
@@ -445,10 +468,20 @@ namespace KmyKeiba.Models.Connection
       }
       finally
       {
-        this.IsDownloading.Value = false;
-        this.IsProcessing.Value = false;
-        this.ProcessingStep.Value = Connection.ProcessingStep.Unknown;
-        this.LoadingProcess.Value = LoadingProcessValue.Unknown;
+        if (!isFlagSetManually)
+        {
+          if (isRt)
+          {
+            this.IsRTDownloading.Value = false;
+            this.IsRTProcessing.Value = false;
+          }
+          else
+          {
+            this.IsDownloading.Value = false;
+            this.IsProcessing.Value = false;
+          }
+        }
+        step.Value = Connection.ProcessingStep.Unknown;
       }
     }
 
@@ -483,7 +516,7 @@ namespace KmyKeiba.Models.Connection
         await downloader.DownloadAsync(linkName, "race", startYear, startMonth, this.OnDownloadProgress, startDay);
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
 
-        await this.ProcessAsync(link, Connection.ProcessingStep.ExceptForStandardTime);
+        await this.ProcessAsync(link, this.ProcessingStep, false, Connection.ProcessingStep.ExceptForMasterData, isFlagSetManually: true);
       }
       catch (DownloaderCommandException ex)
       {
@@ -525,9 +558,11 @@ namespace KmyKeiba.Models.Connection
         await downloader.DownloadRTAsync(linkName, date, this.OnRTDownloadProgress);
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
 
-        await this.ProcessAsync(link, Connection.ProcessingStep.InvalidData | Connection.ProcessingStep.RunningStyle);
+        await this.ProcessAsync(link, this.RTProcessingStep, true, Connection.ProcessingStep.InvalidData | Connection.ProcessingStep.RunningStyle, isFlagSetManually: true);
         this.RTProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
         await ShapeDatabaseModel.SetPreviousRaceDaysAsync(DateOnly.FromDateTime(DateTime.Today));
+        this.RTProcessingStep.Value = Connection.ProcessingStep.RiderWinRates;
+        await ShapeDatabaseModel.SetRiderWinRatesAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
       }
       catch (DownloaderCommandException ex)
@@ -760,7 +795,10 @@ namespace KmyKeiba.Models.Connection
     [Label("馬データの成型中")]
     PreviousRaceDays = 8,
 
-    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays,
-    ExceptForStandardTime = InvalidData | RunningStyle | PreviousRaceDays,
+    [Label("騎手の勝率を計算中")]
+    RiderWinRates = 16,
+
+    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates,
+    ExceptForMasterData = InvalidData | RunningStyle | PreviousRaceDays,
   }
 }
