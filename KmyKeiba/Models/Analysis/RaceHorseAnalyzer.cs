@@ -305,7 +305,10 @@ namespace KmyKeiba.Models.Analysis
 
       // コーナーの成績
       static CornerGradeType GetCornerGradeType(short order, short beforeOrder)
-        => order > beforeOrder ? CornerGradeType.Bad : order < beforeOrder ? CornerGradeType.Good : CornerGradeType.Standard;
+        => beforeOrder == 0 ? CornerGradeType.Standard :
+           order > beforeOrder ? CornerGradeType.Bad :
+           order < beforeOrder ? CornerGradeType.Good :
+           CornerGradeType.Standard;
       var corners = new List<RaceHorseCornerGrade>();
       if (horse.FirstCornerOrder > 0)
       {
