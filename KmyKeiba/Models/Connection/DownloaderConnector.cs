@@ -46,11 +46,25 @@ namespace KmyKeiba.Models.Connection
     {
       this.IsBusy = this.currentTask.Select(t => t != null).ToReactiveProperty().AddTo(this._disposables);
       this.IsRTBusy = this.currentRTTask.Select(t => t != null).ToReactiveProperty().AddTo(this._disposables);
+
+      // アプリが強制終了した場合に備え、ファイルの更新時刻を定期的にアップデートする
+      var liveFileName = Path.Combine(Constrants.AppDataPath, "live");
+      File.WriteAllText(liveFileName, DateTime.Now.ToString());
+      Observable.Interval(TimeSpan.FromSeconds(30)).Subscribe(_ =>
+      {
+        try
+        {
+          File.WriteAllText(liveFileName, DateTime.Now.ToString());
+        }
+        catch
+        {
+          // TODO: logs
+        }
+      }).AddTo(this._disposables);
     }
 
     private void ExecuteDownloader(DownloaderCommand command, params string[] arguments)
     {
-
       // 32bitアプリなので、cmdを経由して起動する
       var info = new ProcessStartInfo
       {

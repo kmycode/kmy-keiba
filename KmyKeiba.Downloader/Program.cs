@@ -746,6 +746,15 @@ namespace KmyKeiba.Downloader
         //Environment.Exit(0);
       }
 
+      if (currentTask != null)
+      {
+        var liveFileName = Path.Combine(Constrants.AppDataPath, "live");
+        if (!File.Exists(liveFileName) || File.GetLastWriteTime(liveFileName) < DateTime.Now.AddMinutes(-5))
+        {
+          KillMe();
+        }
+      }
+
       db ??= new MyContext();
 
       if (currentTask != null)

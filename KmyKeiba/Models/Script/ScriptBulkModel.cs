@@ -45,7 +45,7 @@ namespace KmyKeiba.Models.Script
       this.IsError.Value = false;
       this.SumOfIncomes.Value = 0;
 
-      var divitions = 3;
+      var divitions = 2;
 
       var engines = new List<EngineInfo>();
       try
