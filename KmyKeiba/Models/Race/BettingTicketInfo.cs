@@ -890,6 +890,17 @@ namespace KmyKeiba.Models.Race
       return rows;
     }
 
+    public virtual int CountAvailableRows(IReadOnlyList<RaceHorseData> horses)
+    {
+      var abnormalHorses = horses.Where(h => h.AbnormalResult != RaceAbnormality.Unknown).Select(h => h.Number);
+      if (!abnormalHorses.Any())
+      {
+        return this.Rows.Count;
+      }
+
+      return this.Rows.Count(r => !abnormalHorses.Contains(r.Number1) && !abnormalHorses.Contains(r.Number2) && !abnormalHorses.Contains(r.Number3));
+    }
+
     protected abstract TicketItem GenerateNewItem(TicketData data, int money, int moneyMax);
 
     public abstract IReadOnlyList<TicketItemRow> GetHitRows(short num1, short num2, short num3, short frame1, short frame2);
@@ -1231,6 +1242,12 @@ namespace KmyKeiba.Models.Race
     {
       var rows = this.Rows.Where(r => r.Number1 == frame1 && (frame2 == default || r.Number2 == frame2));
       return rows.ToArray();
+    }
+
+    public override int CountAvailableRows(IReadOnlyList<RaceHorseData> horses)
+    {
+      var availableFrames = horses.Where(h => h.AbnormalResult == RaceAbnormality.Unknown).Select(h => h.FrameNumber);
+      return this.Rows.Count(r => availableFrames.Contains(r.Number1) && availableFrames.Contains(r.Number2));
     }
   }
 

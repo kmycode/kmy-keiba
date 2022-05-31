@@ -40,6 +40,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<int> PayMoneySum { get; } = new();
 
+    public ReactiveProperty<int> ReturnMoneySum { get; } = new();
+
     public ReactiveProperty<int> Income { get; } = new();
 
     public ReactiveProperty<ValueComparation> IncomeComparation { get; } = new();
@@ -110,7 +112,7 @@ namespace KmyKeiba.Models.Race
         this.Trifectas.Add(new TrifectaPayoffItem { Number1 = payoff.Trifecta1Number6, Number2 = payoff.Trifecta2Number6, Number3 = payoff.Trifecta3Number6, Money = payoff.TrifectaNumber6Money, });
     }
 
-    public void SetTickets(BettingTicketInfo tickets)
+    public void SetTickets(BettingTicketInfo tickets, IReadOnlyList<RaceHorseData> horses)
     {
       if (this._ticketsDisposables != null)
       {
@@ -125,13 +127,13 @@ namespace KmyKeiba.Models.Race
             h => (s, e) => h(e),
             dele => tickets.Tickets.TicketCountChanged += dele,
             dele => tickets.Tickets.TicketCountChanged -= dele), (a, b) => true)
-        .Subscribe(_ => this.UpdateTicketsData(this._tickets.Tickets))
+        .Subscribe(_ => this.UpdateTicketsData(this._tickets.Tickets, horses))
         .AddTo(this._ticketsDisposables);
 
-      this.UpdateTicketsData(this._tickets.Tickets);
+      this.UpdateTicketsData(this._tickets.Tickets, horses);
     }
 
-    public void UpdateTicketsData(IEnumerable<TicketItem> tickets)
+    public void UpdateTicketsData(IEnumerable<TicketItem> tickets, IReadOnlyList<RaceHorseData> horses)
     {
       var hits = tickets.SelectMany(t => t
         .GetHitRows(this.Payoff.Trifecta1Number1, this.Payoff.Trifecta2Number1, this.Payoff.Trifecta3Number1, this.Payoff.Frame1Number1, this.Payoff.Frame2Number1)
@@ -203,9 +205,11 @@ namespace KmyKeiba.Models.Race
 
       var paySum = 0;
       var hitSum = 0;
+      var returnSum = 0;
       if (tickets.Any())
       {
-        paySum = tickets.Sum(t => t.Count.Value * t.Rows.Count * 100);
+        paySum = tickets.Sum(t => t.Count.Value * t.CountAvailableRows(horses) * 100);
+        returnSum = tickets.Sum(t => t.Count.Value * t.Rows.Count * 100) - paySum;
       }
       if (itemCollections.Any(i => i.IsHit.Value))
       {
@@ -213,6 +217,7 @@ namespace KmyKeiba.Models.Race
       }
       this.PayMoneySum.Value = paySum;
       this.HitMoneySum.Value = hitSum;
+      this.ReturnMoneySum.Value = returnSum;
       this.Income.Value = hitSum - paySum;
       this.IncomeComparation.Value = this.Income.Value > 0 ? ValueComparation.Good : this.Income.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
     }

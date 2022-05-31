@@ -432,8 +432,8 @@ namespace KmyKeiba.Models.Race
               }
               if (riderPlaceRateMax != 0)
               {
-                horse.RiderPlaceBitsRateComparation = horse.RiderPlaceBitsRate + 2 >= riderPlaceRateMax ? ValueComparation.Good :
-                horse.RiderPlaceBitsRate - 2 <= riderPlaceRateMin ? ValueComparation.Bad : ValueComparation.Standard;
+                horse.RiderPlaceBitsRateComparation = horse.RiderPlaceBitsRate + 0.02 >= riderPlaceRateMax ? ValueComparation.Good :
+                horse.RiderPlaceBitsRate - 0.02 <= riderPlaceRateMin ? ValueComparation.Bad : ValueComparation.Standard;
               }
             }
           }
@@ -453,7 +453,7 @@ namespace KmyKeiba.Models.Race
           info.Tickets.Value = new BettingTicketInfo(horseInfos, info.Odds.Value, tickets);
 
           // 払い戻し情報を更新
-          info.Payoff?.SetTickets(info.Tickets.Value);
+          info.Payoff?.SetTickets(info.Tickets.Value, horses);
 
           // 最新情報
           var changes = await db.RaceChanges!.Where(c => c.RaceKey == race.Key).ToArrayAsync();

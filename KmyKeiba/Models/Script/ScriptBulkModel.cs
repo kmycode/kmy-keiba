@@ -179,7 +179,7 @@ namespace KmyKeiba.Models.Script
                 info.Payoff.UpdateTicketsData(result.Suggestion.Tickets
                   .Select(t => TicketItem.FromData(t, info.Horses.Select(h => h.Data).ToArray(), info.Odds.Value))
                   .Where(t => t != null)
-                  .Select(t => t!));
+                  .Select(t => t!), info.Horses.Select(h => h.Data).ToArray());
                 item.PaidMoney.Value = info.Payoff.PayMoneySum.Value;
                 item.PayoffMoney.Value = info.Payoff.HitMoneySum.Value;
                 item.Income.Value = info.Payoff.Income.Value;

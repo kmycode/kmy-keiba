@@ -112,6 +112,7 @@
                 <RowDefinition/>
                 <RowDefinition/>
                 <RowDefinition/>
+                <RowDefinition/>
               </Grid.RowDefinitions>
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="0.2*"/>
@@ -371,6 +372,11 @@
                 <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="20" Text="払い戻し"/>
                 <TextBlock FontSize="32" Text="{Binding Race.Payoff.HitMoneySum.Value,ElementName=Root}" Margin="16,0,90,0"/>
                 <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="24" Text="収支"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Grid.Row="9" Grid.ColumnSpan="2" HorizontalAlignment="Right"
+                          Margin="0,0,0,0" Visibility="{Binding Race.Payoff.ReturnMoneySum.Value,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}">
+                <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="16" Text="返還"/>
+                <TextBlock FontSize="24" Text="{Binding Race.Payoff.ReturnMoneySum.Value,ElementName=Root}" Margin="16,0,136,0"/>
               </StackPanel>
               <Border Grid.Row="8" Grid.Column="2" Margin="0,16,0,8">
                 <TextBlock FontSize="46" Foreground="{Binding Race.Payoff.IncomeComparation.Value,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"

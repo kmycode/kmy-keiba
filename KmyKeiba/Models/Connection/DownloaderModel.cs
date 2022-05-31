@@ -361,7 +361,11 @@ namespace KmyKeiba.Models.Connection
           try
           {
             var today2 = DateOnly.FromDateTime(now);
-            await DownloadRTAsync(today2);
+
+            if (this.CanSaveOthers.Value)
+            {
+              await DownloadRTAsync(today2);
+            }
 
             // アプリ起動した後に中央競馬DLを有効にした場合
             if (!isCentralChecked && this.IsRTDownloadCentral.Value && !this.IsRTDownloading.Value)

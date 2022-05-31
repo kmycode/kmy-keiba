@@ -437,8 +437,10 @@ namespace KmyKeiba.Models.Data
 
           var monthStr = month.ToString("yyyyMM");
 
+          // 指定したKeyのレースが存在しない場合があるので、Joinで存在確認する
           var allTargets = query
-            .Where(rh => rh.RaceKey.StartsWith(monthStr) && !rh.IsContainsRiderWinRate);
+            .Where(rh => rh.RaceKey.StartsWith(monthStr) && !rh.IsContainsRiderWinRate)
+            .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => rh);
           var allRiderCodes = allTargets
             .GroupBy(rh => rh.RiderCode)
             .Select(g => g.Key);
@@ -449,7 +451,7 @@ namespace KmyKeiba.Models.Data
             var targetHorses = await query
               .Where(rh => rh.RaceKey.StartsWith(monthStr))
               .Where(rh => targets.Contains(rh.RiderCode))
-                .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { rh.Id, rh.RiderCode, rh.ResultOrder, r.Distance, r.TrackType, r.TrackGround, Horse = rh, })
+              .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { rh.Id, rh.RiderCode, rh.ResultOrder, r.Distance, r.TrackType, r.TrackGround, Horse = rh, })
               .ToArrayAsync();
 
             foreach (var riderCode in targets)

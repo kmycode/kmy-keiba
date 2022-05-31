@@ -60,6 +60,12 @@ namespace KmyKeiba.JVLink.Entities
         var maxClass = this.MaxClass;
         var displayClass = this.DisplayClass;
 
+        if (this.Grade == RaceGrade.Grade1 || this.Grade == RaceGrade.Grade2 || this.Grade == RaceGrade.Grade3 ||
+          this.Grade == RaceGrade.LocalGrade1 || this.Grade == RaceGrade.LocalGrade2 || this.Grade == RaceGrade.LocalGrade3)
+        {
+          return null;
+        }
+
         // 地方競馬
         if (maxClass != RaceClass.Unknown)
         {

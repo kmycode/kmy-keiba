@@ -155,7 +155,7 @@ namespace KmyKeiba.Views.Parts
         RaceSubjectType.MoneyLess200 => Brushes.Green,
         RaceSubjectType.MoneyLess100 => Brushes.Green,
         RaceSubjectType.Maiden => Brushes.BlueViolet,
-        RaceSubjectType.Open => Brushes.DeepPink,
+        RaceSubjectType.Open => Brushes.RosyBrown,
         RaceSubjectType.NewComer => Brushes.DeepSkyBlue,
         RaceSubjectType.Unraced => Brushes.DeepSkyBlue,
         _ => Brushes.Transparent,

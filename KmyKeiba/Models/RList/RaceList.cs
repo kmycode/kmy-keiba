@@ -60,9 +60,9 @@ namespace KmyKeiba.Models.RList
         
         var horseData = await db.RaceHorses!
           .Where(r => keys.Contains(r.RaceKey))
-          .Select(r => new { r.Number, r.FrameNumber, r.RaceKey })
+          .Select(r => new { r.Number, r.FrameNumber, r.RaceKey, r.AbnormalResult, })
           .ToArrayAsync();
-        horses = horseData.Select(h => new RaceHorseData { RaceKey = h.RaceKey, Number = h.Number, FrameNumber = h.FrameNumber, }).ToArray();
+        horses = horseData.Select(h => new RaceHorseData { RaceKey = h.RaceKey, Number = h.Number, FrameNumber = h.FrameNumber, AbnormalResult = h.AbnormalResult, }).ToArray();
       }
 
       ThreadUtil.InvokeOnUiThread(() =>
@@ -183,13 +183,13 @@ namespace KmyKeiba.Models.RList
 
     private void UpdatePayoff(RaceListItem item, IReadOnlyList<RaceHorseData> horses, IEnumerable<TicketData> tickets, RefundData refund)
     {
-      this.UpdatePayoff(item, tickets.Select(t => TicketItem.FromData(t, horses, null)).Where(t => t != null).Select(t => t!), refund);
+      this.UpdatePayoff(item, tickets.Select(t => TicketItem.FromData(t, horses, null)).Where(t => t != null).Select(t => t!), horses, refund);
     }
 
-    private void UpdatePayoff(RaceListItem item, IEnumerable<TicketItem> tickets, RefundData refund)
+    private void UpdatePayoff(RaceListItem item, IEnumerable<TicketItem> tickets, IReadOnlyList<RaceHorseData> horses, RefundData refund)
     {
       var payoff = new PayoffInfo(refund);
-      payoff.UpdateTicketsData(tickets.Where(t => t != null).OfType<TicketItem>().ToArray());
+      payoff.UpdateTicketsData(tickets.Where(t => t != null).OfType<TicketItem>().ToArray(), horses);
 
       var money = payoff.Income.Value;
       item.SetIncome(money);
