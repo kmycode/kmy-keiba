@@ -35,6 +35,5 @@ namespace KmyKeiba.Models.Injection
     }
 
     void Send(Action<bool>? isSucceedCallback);
-    void Test();
   }
 }

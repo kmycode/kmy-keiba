@@ -14,6 +14,8 @@ namespace KmyKeiba.Downloader
 {
   internal class Program
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private static string selfPath = string.Empty;
     private static DownloaderTaskData? currentTask;
     private static int retryDownloadCount;
@@ -22,6 +24,16 @@ namespace KmyKeiba.Downloader
     public static void Main(string[] args)
     {
       selfPath = Assembly.GetEntryAssembly()?.Location.Replace("Downloader.dll", "Downloader.exe") ?? string.Empty;
+      var selfPathDir = Path.GetDirectoryName(selfPath) ?? "./";
+
+      log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo(Path.Combine(selfPathDir, "log4net.config")));
+      log4net.GlobalContext.Properties["pid"] = System.Diagnostics.Process.GetCurrentProcess().Id;
+
+      logger.Info("================================");
+      logger.Info("==                            ==");
+      logger.Info("==            開始            ==");
+      logger.Info("==                            ==");
+      logger.Info("================================");
 
       Console.WriteLine("\n\n\n============= Start Program ==============\n");
 
@@ -29,6 +41,8 @@ namespace KmyKeiba.Downloader
       {
         //args = new[] { "movie", "1266", };
         //args = new[] { "kill", "2960" };
+
+        logger.Info($"デバッグ用のパラメータ {args[0]} {args[1]}");
       }
 
       // JV-LinkのIDを設定
@@ -36,47 +50,65 @@ namespace KmyKeiba.Downloader
       if (softwareId != null)
       {
         JVLinkObject.CentralInitializationKey = softwareId.InitializationKey;
+        logger.Info("ソフトIDを設定しました");
       }
-
-      // マイグレーション
-      Exception? dbError = null;
-      try
+      else
       {
-        Task.Run(async () =>
-        {
-          using var db = new MyContext();
-          db.Database.SetCommandTimeout(1200);
-          await db.Database.MigrateAsync();
-        }).Wait();
-      }
-      catch (Exception ex)
-      {
-        // TODO: logs
-        dbError = ex;
+        logger.Warn("ソフトIDが見つからなかったので、デフォルト値を設定します");
       }
 
       var command = string.Empty;
       if (args.Length >= 1)
       {
         command = args[0];
+        logger.Info($"コマンド {command}");
+      }
+      else
+      {
+        logger.Warn("コマンドが見つかりません");
       }
 
       if (command == DownloaderCommand.Initialization.GetCommandText())
       {
         var version = args[1];
+        logger.Info("初期化を開始します");
 
-        // さっきのマイグレーションでやることは全部終わってるので、ここでアプリ終了
-        using var db = new MyContext();
-        db.DownloaderTasks!.RemoveRange(db.DownloaderTasks!);
-        var data = new DownloaderTaskData
+        try
         {
-          Command = DownloaderCommand.Initialization,
-          IsFinished = true,
-          Error = version != Constrants.ApplicationVersion ? DownloaderError.InvalidVersion : DownloaderError.Succeed,
-        };
-        data.Result = !string.IsNullOrEmpty(dbError?.Message) ? dbError!.Message : data.Error.GetErrorText();
-        db.DownloaderTasks!.Add(data);
-        db.SaveChanges();
+          logger.Info("DBのマイグレーションを開始");
+          Task.Run(async () =>
+          {
+            using var db = new MyContext();
+            db.Database.SetCommandTimeout(1200);
+            await db.Database.MigrateAsync();
+          }).Wait();
+          logger.Info("DBのマイグレーション完了");
+
+          using var db = new MyContext();
+          db.DownloaderTasks!.RemoveRange(db.DownloaderTasks!);
+          var data = new DownloaderTaskData
+          {
+            Command = DownloaderCommand.Initialization,
+            IsFinished = true,
+            Error = version != Constrants.ApplicationVersion ? DownloaderError.InvalidVersion : DownloaderError.Succeed,
+          };
+          data.Result = data.Error.GetErrorText();
+          db.DownloaderTasks!.Add(data);
+          db.SaveChanges();
+
+          if (data.Error == DownloaderError.InvalidVersion)
+          {
+            logger.Error($"バージョンが異なります アプリ:{version} ダウンローダ:{Constrants.ApplicationVersion}");
+          }
+          if (data.Error == DownloaderError.Succeed)
+          {
+            logger.Info("初期化に成功しました");
+          }
+        }
+        catch (Exception ex)
+        {
+          logger.Error("初期化に失敗しました", ex);
+        }
         return;
       }
       else if (command == DownloaderCommand.DownloadSetup.GetCommandText())
@@ -85,6 +117,9 @@ namespace KmyKeiba.Downloader
         {
           _ = int.TryParse(args[2], out var beforeProcessNumber);
           _ = int.TryParse(args[3], out retryDownloadCount);
+
+          logger.Warn($"プロセス {beforeProcessNumber} をキルします");
+
           try
           {
             if (beforeProcessNumber != 0)
@@ -92,10 +127,10 @@ namespace KmyKeiba.Downloader
               Process.GetProcessById(beforeProcessNumber)?.Kill();
             }
           }
-          catch
+          catch (Exception ex)
           {
             // 切り捨てる
-            // TODO: log
+            logger.Warn($"プロセス {beforeProcessNumber} のキルに失敗しました", ex);
           }
         }
 
@@ -113,6 +148,9 @@ namespace KmyKeiba.Downloader
         {
           _ = int.TryParse(args[2], out var beforeProcessNumber);
           _ = int.TryParse(args[3], out retryDownloadCount);
+
+          logger.Warn($"プロセス {beforeProcessNumber} をキルします");
+
           try
           {
             if (beforeProcessNumber != 0)
@@ -120,10 +158,10 @@ namespace KmyKeiba.Downloader
               Process.GetProcessById(beforeProcessNumber)?.Kill();
             }
           }
-          catch
+          catch (Exception ex)
           {
             // 切り捨てる
-            // TODO: log
+            logger.Warn($"プロセス {beforeProcessNumber} のキルに失敗しました", ex);
           }
         }
 
@@ -146,6 +184,7 @@ namespace KmyKeiba.Downloader
           }
           catch (Exception ex)
           {
+            logger.Error("中央競馬設定画面のオープンに失敗しました", ex);
             SetTask(task, t =>
             {
               t.IsFinished = true;
@@ -167,6 +206,7 @@ namespace KmyKeiba.Downloader
           }
           catch (Exception ex)
           {
+            logger.Error("地方競馬設定画面のオープンに失敗しました", ex);
             SetTask(task, t =>
             {
               t.IsFinished = true;
@@ -190,6 +230,8 @@ namespace KmyKeiba.Downloader
       else if (command == "kill")
       {
         _ = int.TryParse(args[1], out var beforeProcessNumber);
+        logger.Warn($"プロセス {beforeProcessNumber} をキルします");
+
         try
         {
           if (beforeProcessNumber != 0)
@@ -200,13 +242,13 @@ namespace KmyKeiba.Downloader
         catch (Exception ex)
         {
           // 切り捨てる
-          // TODO: log
+          logger.Warn($"プロセス {beforeProcessNumber} のキルに失敗しました", ex);
           Console.WriteLine(ex.Message);
           Console.ReadKey();
         }
       }
 
-
+      logger.Info("完了");
 
       //StartLoad();
 
@@ -235,6 +277,7 @@ namespace KmyKeiba.Downloader
           Error = DownloaderError.ApplicationError,
           Command = DownloaderCommand.DownloadSetup,
         });
+        logger.Warn($"ID {id} のタスクが見つかりませんでした");
         return null;
       }
       if (task.Command != command)
@@ -242,6 +285,7 @@ namespace KmyKeiba.Downloader
         task.IsFinished = true;
         task.Error = DownloaderError.ApplicationError;
         db.SaveChanges();
+        logger.Warn($"ID {id} のタスクは {task.Command} を期待していましたが、実際にコマンドラインパラメータとして送られてきたコマンドは {command} でした");
         return null;
       }
 
@@ -250,10 +294,17 @@ namespace KmyKeiba.Downloader
 
     private static void SetTask(DownloaderTaskData task, Action<DownloaderTaskData> changes)
     {
-      using var db = new MyContext();
-      db.DownloaderTasks!.Attach(task);
-      changes(task);
-      db.SaveChanges();
+      try
+      {
+        using var db = new MyContext();
+        db.DownloaderTasks!.Attach(task);
+        changes(task);
+        db.SaveChanges();
+      }
+      catch (Exception ex)
+      {
+        logger.Error("タスクへのデータ書き込みに失敗しました", ex);
+      }
     }
 
     private static void StartLoad(DownloaderTaskData task, bool isRealTime = false)
@@ -263,21 +314,34 @@ namespace KmyKeiba.Downloader
 
       Task.Run(async () =>
       {
-        if (isRealTime)
+        try
         {
-          await RTLoadAsync(loader, task);
+          if (isRealTime)
+          {
+            logger.Info("ダウンロードを開始します（RT）");
+            await RTLoadAsync(loader, task);
+          }
+          else
+          {
+            logger.Info("ダウンロードを開始します（セットアップ／通常）");
+            await LoadAsync(loader, task);
+          }
+          isLoaded = true;
         }
-        else
+        catch (Exception ex)
         {
-          await LoadAsync(loader, task);
+          logger.Error("ダウンロードでエラーが発生しました", ex);
         }
-        isLoaded = true;
-
-        loader.Dispose();
+        finally
+        {
+          loader.Dispose();
+        }
       });
 
       using var db = new MyContext();
       db.DownloaderTasks!.Attach(task);
+
+      var loopCount = 0;
 
       while (!isLoaded)
       {
@@ -288,6 +352,13 @@ namespace KmyKeiba.Downloader
         {
           task.Result = p;
           db.SaveChanges();
+          logger.Info($"ダウンロード状態が {p} に移行しました");
+        }
+
+        loopCount++;
+        if (loopCount % 60 == 0)
+        {
+          logger.Info($"DWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) SV [{loader.Saved.Value} / {loader.SaveSize.Value}] PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
         }
 
         Task.Delay(800).Wait();
@@ -312,6 +383,7 @@ namespace KmyKeiba.Downloader
         task.Error = DownloaderError.ApplicationError;
         task.IsFinished = true;
         await db.SaveChangesAsync();
+        logger.Error("タスクのパラメータが足りません");
         return;
       }
 
@@ -328,6 +400,7 @@ namespace KmyKeiba.Downloader
         task.Error = DownloaderError.ApplicationError;
         task.IsFinished = true;
         await db.SaveChangesAsync();
+        logger.Error($"開始年月が誤りです {parameters[0]} {parameters[1]}");
         return;
       }
 
@@ -337,6 +410,7 @@ namespace KmyKeiba.Downloader
         task.Error = DownloaderError.ApplicationError;
         task.IsFinished = true;
         await db.SaveChangesAsync();
+        logger.Error($"リンクの指定が誤りです {parameters[2]}");
         return;
       }
 
@@ -375,6 +449,7 @@ namespace KmyKeiba.Downloader
           var start = new DateTime(year, month, System.Math.Max(1, startDay));
 
           Console.WriteLine($"{year} 年 {month} 月");
+          logger.Info($"{year} 年 {month} 月");
 
           if (mode != "odds")
           {
@@ -382,6 +457,7 @@ namespace KmyKeiba.Downloader
             task.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
             await db.SaveChangesAsync();
             Console.WriteLine("race");
+            logger.Info("レースのダウンロードを開始します");
             await loader.LoadAsync(link,
               dataspec1,
               option,
@@ -395,6 +471,7 @@ namespace KmyKeiba.Downloader
           task.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
           await db.SaveChangesAsync();
           Console.WriteLine("\nodds");
+          logger.Info("オッズのダウンロードを開始します");
           await loader.LoadAsync(link,
             dataspec2,
             option,
@@ -430,6 +507,7 @@ namespace KmyKeiba.Downloader
         task.Error = DownloaderError.ApplicationError;
         task.IsFinished = true;
         await db.SaveChangesAsync();
+        logger.Error("タスクのパラメータが足りません");
         return;
       }
 
@@ -444,6 +522,7 @@ namespace KmyKeiba.Downloader
         task.Error = DownloaderError.ApplicationError;
         task.IsFinished = true;
         await db.SaveChangesAsync();
+        logger.Error($"リンクの指定が誤りです {parameters[2]}");
         return;
       }
 
@@ -470,6 +549,7 @@ namespace KmyKeiba.Downloader
         // Restartメソッドを考慮し、エラーにはしない
         task.IsFinished = true;
         await db.SaveChangesAsync();
+        logger.Warn("このタスクはすでに完了している可能性があります");
         return;
       }
 
@@ -486,6 +566,7 @@ namespace KmyKeiba.Downloader
         task.Error = DownloaderError.TargetsNotExists;
         task.IsFinished = true;
         await db.SaveChangesAsync();
+        logger.Warn($"以下の時刻以降のレースが存在しません 開始: {start}");
         return;
       }
 
@@ -516,8 +597,11 @@ namespace KmyKeiba.Downloader
       }
 
       Console.WriteLine("realtime");
+      logger.Info("リアルタイムデータのダウンロードを開始します");
       for (var i = startIndex - 1; i < dataspecs.Length; i++)
       {
+        logger.Info($"spec: {dataspecs[i]}");
+
         var currentRaceIndex = 0;
         var targets = races;
         if (i == startIndex - 1)
@@ -565,8 +649,11 @@ namespace KmyKeiba.Downloader
 
     private static void KillMe()
     {
+      logger.Info("自殺を開始します");
+
       if (currentTask?.Parameter.Contains("central") == true)
       {
+        logger.Info("中央競馬：正常終了");
         Environment.Exit(0);
         return;
       }
@@ -574,6 +661,7 @@ namespace KmyKeiba.Downloader
       var myProcess = Process.GetCurrentProcess();
       var myProcessNumber = myProcess?.Id ?? 0;
 
+      logger.Info($"自分を殺すプロセスを開始します {myProcessNumber}");
       Process.Start(new ProcessStartInfo
       {
         FileName = "cmd",
@@ -594,11 +682,14 @@ namespace KmyKeiba.Downloader
 
     public static async Task RestartProgramAsync(bool isIncrement)
     {
+      logger.Info($"プログラムを再起動します インクリメント:{isIncrement}");
+
       var myProcess = Process.GetCurrentProcess();
       var myProcessNumber = myProcess?.Id ?? 0;
 
       if (currentTask == null)
       {
+        logger.Warn("現在のタスクが見つかりませんでした");
         KillMe();
         return;
       }
@@ -610,6 +701,7 @@ namespace KmyKeiba.Downloader
           t.IsFinished = true;
           t.Error = DownloaderError.Timeout;
         });
+        logger.Warn("リトライ回数が上限に達しました");
 
         KillMe();
         return;
@@ -620,6 +712,8 @@ namespace KmyKeiba.Downloader
 
       var shellParams = new List<string>();
       var parameters = currentTask.Parameter.Split(',');
+
+      logger.Info($"現在のタスクのコマンド: {currentTask.Command}");
 
       if (currentTask.Command == DownloaderCommand.DownloadSetup)
       {
@@ -650,10 +744,12 @@ namespace KmyKeiba.Downloader
           db.DownloaderTasks!.Attach(currentTask);
           currentTask.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
           await db.SaveChangesAsync();
+          logger.Info(currentTask.Parameter);
           CheckShutdown(db);
         }
         else
         {
+          logger.Info("データを保存せずにシャットダウンします");
           CheckShutdown();
         }
 
@@ -663,6 +759,8 @@ namespace KmyKeiba.Downloader
       }
       else
       {
+        logger.Info("リアルタイム更新を再起動");
+
         int.TryParse(parameters[2], out var kind);
         int.TryParse(parameters[3], out var skip);
 
@@ -670,6 +768,7 @@ namespace KmyKeiba.Downloader
         db.DownloaderTasks!.Attach(currentTask);
         currentTask.Parameter = $"{parameters[0]},{parameters[1]},{kind},{skip + 1},{string.Join(',', parameters.Skip(4))}";
         await db.SaveChangesAsync();
+        logger.Info(currentTask.Parameter);
         CheckShutdown(db);
 
         shellParams.Add(currentTask.Id.ToString());
@@ -677,9 +776,9 @@ namespace KmyKeiba.Downloader
         shellParams.Add((retryDownloadCount + 1).ToString());
       }
 
-
       try
       {
+        logger.Info($"新しいプロセスを開始します");
         var info = new ProcessStartInfo
         {
           FileName = "cmd",
@@ -697,10 +796,12 @@ namespace KmyKeiba.Downloader
         {
           info.ArgumentList.Add(param);
         }
+        logger.Info($"パラメータ: {string.Join('/', info.ArgumentList)}");
         Process.Start(info);
       }
       catch (Exception ex)
       {
+        logger.Error("プロセス起動でエラーが発生しました", ex);
         Console.WriteLine(ex.Message);
         Console.WriteLine(ex.StackTrace);
 
@@ -717,13 +818,17 @@ namespace KmyKeiba.Downloader
         KillMe();
       }
 
+      logger.Info("完了");
       Environment.Exit(0);
     }
 
     public static void Shutdown(DownloaderError error, string? message = null)
     {
+      logger.Info($"シャットダウンを試みます　コード:{error}");
+
       if (currentTask != null)
       {
+        logger.Info($"タスク {currentTask.Id}");
         SetTask(currentTask, t =>
         {
           t.IsFinished = true;
@@ -742,6 +847,7 @@ namespace KmyKeiba.Downloader
 
       if (File.Exists(Constrants.ShutdownFilePath))
       {
+        logger.Warn("シャットダウンファイルが存在したのでシャットダウンします");
         KillMe();
         //Environment.Exit(0);
       }
@@ -751,6 +857,7 @@ namespace KmyKeiba.Downloader
         var liveFileName = Path.Combine(Constrants.AppDataPath, "live");
         if (!File.Exists(liveFileName) || File.GetLastWriteTime(liveFileName) < DateTime.Now.AddMinutes(-5))
         {
+          logger.Warn("ライブファイルが存在しないか、更新時刻を超過していたのでシャットダウンします");
           KillMe();
         }
       }
@@ -762,12 +869,14 @@ namespace KmyKeiba.Downloader
         var task = db.DownloaderTasks!.FirstOrDefault(t => t.Id == currentTask.Id);
         if (task != null && task.IsCanceled)
         {
+          logger.Warn("タスクが存在しないか、キャンセルされていたのでシャットダウンします");
           KillMe();
           //Environment.Exit(0);
         }
       }
       else
       {
+        logger.Warn("現在のタスクが見つかりませんでした。シャットダウンします");
         KillMe();
         //Environment.Exit(0);
       }
@@ -776,6 +885,7 @@ namespace KmyKeiba.Downloader
       {
         db.Dispose();
       }
+      logger.Info("シャットダウンメソッドの終了");
     }
 
     public static void OpenMovie()
@@ -783,12 +893,16 @@ namespace KmyKeiba.Downloader
       var task = currentTask;
       if (task == null)
       {
+        logger.Warn("動画再生のタスクが見つかりませんでした");
         return;
       }
+
+      logger.Info($"動画再生を開始します。パラメータ: {task.Parameter}");
 
       var p = task.Parameter.Split(',');
       if (p.Length < 3)
       {
+        logger.Error("パラメータの数が足りません");
         return;
       }
       var raceKey = p[0];
@@ -800,21 +914,31 @@ namespace KmyKeiba.Downloader
 
       try
       {
+        logger.Info($"動画再生をリンクに問い合わせます {type} / {raceKey}");
+
         link.PlayMovie((JVLinkMovieType)type, raceKey);
         SetTask(task, t =>
         {
           t.IsFinished = true;
           t.Result = "ok";
         });
+
+        logger.Info("動画再生に成功しました");
       }
       catch (JVLinkException<JVLinkMovieResult> ex)
       {
+        logger.Error($"動画再生に失敗しました {ex.Code}", ex);
+
         SetTask(task, t =>
         {
           t.IsFinished = true;
           t.Result = JVLinkException.GetAttribute(ex.Code).Message;
           t.Error = DownloaderError.TargetsNotExists;
         });
+      }
+      catch (Exception ex)
+      {
+        logger.Error("動画再生でエラーが発生しました", ex);
       }
     }
   }
