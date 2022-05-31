@@ -1096,19 +1096,26 @@
               </ItemsControl>
             </ScrollViewer>
 
-            <Grid Grid.Row="1" Height="60" Margin="0,8,16,24">
+            <Grid Grid.Row="1" Margin="0,8,16,24">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition Width="auto"/>
               </Grid.ColumnDefinitions>
-              <StackPanel Orientation="Horizontal">
+              <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="60"/>
+              </Grid.RowDefinitions>
+              <TextBlock Grid.ColumnSpan="2" TextAlignment="Right" Foreground="{Binding Race.PurchaseStatusFeeling.Value,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
+                         Text="{Binding Race.PurchaseStatus.Value,ElementName=Root,Converter={StaticResource LabelConv}}"
+                         FontSize="16" Margin="0,4"/>
+              <StackPanel Orientation="Horizontal" Grid.Row="1">
                 <TextBlock FontSize="16" VerticalAlignment="Center">
                   購入<LineBreak/>総額
                 </TextBlock>
                 <TextBlock Text="{Binding Race.Tickets.Value.TotalMoney.Value,ElementName=Root}" Width="170" TextAlignment="Right"
                            FontSize="32" Margin="8,0,0,0" VerticalAlignment="Center"/>
               </StackPanel>
-              <Button Width="120" Grid.Column="1" Content="購入" FontSize="20"
+              <Button Width="120" Grid.Column="1" Grid.Row="1" Content="購入" FontSize="20"
                       Command="{Binding BuyCommand}" IsEnabled="{Binding Race.CanBuy.Value,ElementName=Root}"/>
             </Grid>
           </Grid>

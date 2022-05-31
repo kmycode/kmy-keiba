@@ -89,6 +89,10 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<bool> IsWaitingResults { get; } = new();
 
+    public ReactiveProperty<PurchaseStatusCode> PurchaseStatus { get; } = new();
+
+    public ReactiveProperty<StatusFeeling> PurchaseStatusFeeling { get; } = new();
+
     public double TimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.ResultTimeDeviationValue ?? 0;
 
     public double A3HTimeDeviationValue => this.HorsesResultOrdered.FirstOrDefault()?.A3HResultTimeDeviationValue ?? 0;
@@ -126,8 +130,9 @@ namespace KmyKeiba.Models.Race
         {
           tickets.Tickets
             .CollectionChangedAsObservable()
+            .CombineLatest(this.PurchaseStatus, (_, pur) => tickets.Tickets.Any() && pur != PurchaseStatusCode.Checking)
             .TakeWhile(_ => DateTime.Now < buyLimitTime)
-            .Subscribe(_ => this.CanBuy.Value = tickets.Tickets.Any())
+            .Subscribe(val => this.CanBuy.Value = val)
             .AddTo(this._disposables);
           this.CanBuy.Value = tickets.Tickets.Any();
         });
@@ -313,10 +318,25 @@ namespace KmyKeiba.Models.Race
         return;
       }
 
+      this.PurchaseStatus.Value = PurchaseStatusCode.Checking;
+      this.PurchaseStatusFeeling.Value = StatusFeeling.Standard;
+
       var buyer = _buyer!;
       buyer.CreateNewPurchase(this.Data)
         .AddTicketRange(tickets)
-        .Send();
+        .Send(result =>
+        {
+          if (result)
+          {
+            this.PurchaseStatus.Value = PurchaseStatusCode.Succeed;
+            this.PurchaseStatusFeeling.Value = StatusFeeling.Good;
+          }
+          else
+          {
+            this.PurchaseStatus.Value = PurchaseStatusCode.Failed;
+            this.PurchaseStatusFeeling.Value = StatusFeeling.Bad;
+          }
+        });
     }
 
     public void Dispose()
@@ -534,5 +554,19 @@ namespace KmyKeiba.Models.Race
 
       corners.Add(corner);
     }
+  }
+
+  public enum PurchaseStatusCode
+  {
+    Unknown,
+
+    [Label("購入を検証中")]
+    Checking,
+
+    [Label("購入成功")]
+    Succeed,
+
+    [Label("購入に失敗した可能性があります")]
+    Failed,
   }
 }
