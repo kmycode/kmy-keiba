@@ -518,6 +518,10 @@ export function RaceHorse(data, csraceobj) {
   // 斤量。値は実際の10倍
   this.riderWeight = data.riderWeight;
 
+  // 騎手の同じ地面・近い距離での直近１年間の複勝率
+  // ※予想対象レースでのみ取得可能
+  this.riderPlaceBitsRate = data.riderPlaceBitsRate;
+
   // ブリンカーをつけているか
   this.isBlinkers = data.isBlinkers;
 

@@ -133,11 +133,6 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Unknown);
     private ReactiveCommand? _closeDialogCommand;
 
-    public ICommand DoProcessingCommand =>
-      this._doProcessingCommand ??=
-        new ReactiveCommand().WithSubscribe(() => this.downloader.BeginProcessing());
-    private ReactiveCommand? _doProcessingCommand;
-
     public ICommand BuyCommand =>
       this._buyCommand ??=
         new AsyncReactiveCommand<object>().WithSubscribe(_ => this.Race.Value?.BuyAsync() ?? Task.CompletedTask);
@@ -165,11 +160,6 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(() => this.model.RaceList.MoveToPrevDay());
     private ReactiveCommand? _moveToPrevDayCommand;
 
-    public ICommand SetDownloadModeCommand =>
-      this._setDownloadModeCommand ??=
-        new ReactiveCommand<string>().WithSubscribe(p => this.downloader.SetMode(p));
-    private ReactiveCommand<string>? _setDownloadModeCommand;
-
     public ICommand OpenJvlinkConfigCommand =>
       this._openJvlinkConfigCommand ??=
         new AsyncReactiveCommand<object>().WithSubscribe(async p => await this.downloader.OpenJvlinkConfigAsync());
@@ -182,8 +172,8 @@ namespace KmyKeiba.ViewModels
 
     public ICommand StartDownloadCommand =>
       this._startDownloadCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(async p => await this.downloader.DownloadAsync());
-    private AsyncReactiveCommand<object>? _startDownloadCommand;
+        new ReactiveCommand().WithSubscribe(() => this.downloader.BeginDownload());
+    private ReactiveCommand? _startDownloadCommand;
 
     public ICommand CancelDownloadCommand =>
       this._cancelDownloadCommand ??=

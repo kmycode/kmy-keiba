@@ -400,7 +400,9 @@ namespace KmyKeiba.Models.Race
               histories.Add(new RaceHorseAnalyzer(history.Race, history.RaceHorse, sameHorses.ToArray(), historyStandardTime));
             }
 
-            horseInfos.Add(new RaceHorseAnalyzer(race, horse, horses, histories, standardTime)
+            var riderWinRate = await AnalysisUtil.GetRiderWinRateAsync(db, race, horse.RiderCode);
+
+            horseInfos.Add(new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate)
             {
               TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse),
               RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(race, horse),
@@ -414,6 +416,8 @@ namespace KmyKeiba.Models.Race
             var timedvMin = horseInfos.Where(i => (i.History?.TimeDeviationValue ?? default) != default).OrderBy(i => i.History?.TimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.TimeDeviationValue;
             var a3htimedvMax = horseInfos.Where(i => (i.History?.A3HTimeDeviationValue ?? default) != default).OrderByDescending(i => i.History?.A3HTimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.A3HTimeDeviationValue;
             var a3htimedvMin = horseInfos.Where(i => (i.History?.A3HTimeDeviationValue ?? default) != default).OrderBy(i => i.History?.A3HTimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.A3HTimeDeviationValue;
+            var riderPlaceRateMax = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderByDescending(i => i).Skip(2).FirstOrDefault();
+            var riderPlaceRateMin = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderBy(i => i).Skip(2).FirstOrDefault();
             foreach (var horse in horseInfos)
             {
               if (horse.History != null && timedvMax != null && timedvMin != null)
@@ -425,6 +429,11 @@ namespace KmyKeiba.Models.Race
               {
                 horse.History.A3HTimeDVComparation = horse.History.A3HTimeDeviationValue + 2 >= a3htimedvMax ? ValueComparation.Good :
                   horse.History.A3HTimeDeviationValue - 2 <= a3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+              }
+              if (riderPlaceRateMax != 0)
+              {
+                horse.RiderPlaceBitsRateComparation = horse.RiderPlaceBitsRate + 2 >= riderPlaceRateMax ? ValueComparation.Good :
+                horse.RiderPlaceBitsRate - 2 <= riderPlaceRateMin ? ValueComparation.Bad : ValueComparation.Standard;
               }
             }
           }

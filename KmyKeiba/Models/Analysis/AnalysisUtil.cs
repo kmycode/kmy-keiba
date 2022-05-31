@@ -13,6 +13,7 @@ namespace KmyKeiba.Models.Analysis
   internal static class AnalysisUtil
   {
     private static readonly Dictionary<RaceCourse, IReadOnlyList<RaceStandardTimeMasterData>> _standardData = new();
+    private static readonly Dictionary<string, IReadOnlyList<RiderWinRateMasterData>> _riderWinRateData = new();
 
     public static async Task<RaceStandardTimeMasterData> GetRaceStandardTimeAsync(MyContext db, RaceData race)
     {
@@ -57,6 +58,56 @@ namespace KmyKeiba.Models.Analysis
     public static void ClearStandardTimeCaches()
     {
       _standardData.Clear();
+    }
+
+    public static async Task<RiderWinRateMasterData> GetRiderWinRateAsync(MyContext db, RaceData race, string riderCode)
+    {
+      _riderWinRateData.TryGetValue(riderCode, out var list);
+
+      if (list == null)
+      {
+        list = await db.RiderWinRates!
+          .Where(rw => rw.RiderCode == riderCode)
+          .ToArrayAsync();
+        _riderWinRateData[riderCode] = list;
+      }
+
+      var raceMonth = new DateOnly(race.StartTime.Year, race.StartTime.Month, 1);
+      var query = list
+        .Select(rw => new { Month = new DateOnly(rw.Year, rw.Month, 1), Data = rw, })
+        .Where(rw => rw.Month < raceMonth && rw.Month >= raceMonth.AddYears(-1))
+        .Where(rw => race.Distance >= rw.Data.Distance && race.Distance < rw.Data.DistanceMax);
+
+      RiderWinRateMasterData item = query.Aggregate(new RiderWinRateMasterData
+      {
+        RiderCode = riderCode,
+      }, (a, b) =>
+      {
+        a.AllTurfCount += b.Data.AllTurfCount;
+        a.FirstTurfCount += b.Data.FirstDirtCount;
+        a.SecondTurfCount += b.Data.SecondTurfCount;
+        a.ThirdTurfCount += b.Data.ThirdTurfCount;
+        a.AllDirtCount += b.Data.AllDirtCount;
+        a.FirstDirtCount += b.Data.FirstDirtCount;
+        a.SecondDirtCount += b.Data.SecondDirtCount;
+        a.ThirdDirtCount += b.Data.ThirdDirtCount;
+        a.AllTurfSteepsCount += b.Data.AllTurfSteepsCount;
+        a.FirstTurfSteepsCount += b.Data.FirstDirtSteepsCount;
+        a.SecondTurfSteepsCount += b.Data.SecondTurfSteepsCount;
+        a.ThirdTurfSteepsCount += b.Data.ThirdTurfSteepsCount;
+        a.AllDirtSteepsCount += b.Data.AllDirtSteepsCount;
+        a.FirstDirtSteepsCount += b.Data.FirstDirtSteepsCount;
+        a.SecondDirtSteepsCount += b.Data.SecondDirtSteepsCount;
+        a.ThirdDirtSteepsCount += b.Data.ThirdDirtSteepsCount;
+        return a;
+      });
+
+      return item;
+    }
+
+    public static void ClearRiderWinRateCaches()
+    {
+      _riderWinRateData.Clear();
     }
 
     public static double CalcRoughRate(IReadOnlyList<RaceHorseData> topHorses)

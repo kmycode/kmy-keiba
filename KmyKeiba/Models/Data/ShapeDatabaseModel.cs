@@ -6,6 +6,7 @@ using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Connection;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -78,7 +79,7 @@ namespace KmyKeiba.Models.Data
       }
     }
 
-    public static async Task MakeStandardTimeMasterDataAsync(int startYear, DownloadLink link = DownloadLink.Both)
+    public static async Task MakeStandardTimeMasterDataAsync(int startYear, DownloadLink link = DownloadLink.Both, ReactiveProperty<bool>? isCanceled = null)
     {
       if (link == DownloadLink.Both)
       {
@@ -265,6 +266,12 @@ namespace KmyKeiba.Models.Data
 
             // 毎年
             await db.SaveChangesAsync();
+
+            if (isCanceled?.Value == true)
+            {
+              await db.CommitAsync();
+              return;
+            }
           }
 
           // コースごと
@@ -280,7 +287,7 @@ namespace KmyKeiba.Models.Data
       }
     }
 
-    public static async Task SetPreviousRaceDaysAsync(DateOnly? date = null)
+    public static async Task SetPreviousRaceDaysAsync(DateOnly? date = null, ReactiveProperty<bool>? isCanceled = null)
     {
       var count = 0;
       var prevCommitCount = 0;
@@ -350,6 +357,13 @@ namespace KmyKeiba.Models.Data
           }
 
           await db.SaveChangesAsync();
+
+          if (isCanceled?.Value == true)
+          {
+            await db.CommitAsync();
+            return;
+          }
+
           if (count >= prevCommitCount + 10000)
           {
             await db.CommitAsync();
@@ -366,7 +380,7 @@ namespace KmyKeiba.Models.Data
       }
     }
 
-    public static async Task SetRiderWinRatesAsync(DateOnly? startMonth = null)
+    public static async Task SetRiderWinRatesAsync(DateOnly? startMonth = null, ReactiveProperty<bool>? isCanceled = null)
     {
       DateOnly month;
       if (startMonth != null)
@@ -398,20 +412,44 @@ namespace KmyKeiba.Models.Data
       {
         while (month < lastMonth)
         {
+          if (month.Month == 1)
+          {
+            // ２回目以降の処理を高速化するため、まず処理対象を年単位で確認する
+            while (month < lastMonth)
+            {
+              var yearStr = month.ToString("yyyy");
+              var yearAllTargets = query
+                .Where(rh => rh.RaceKey.StartsWith(yearStr) && !rh.IsContainsRiderWinRate);
+
+              if (yearAllTargets.Any())
+              {
+                break;
+              }
+
+              month = month.AddYears(1);
+            }
+
+            if (month >= lastMonth)
+            {
+              break;
+            }
+          }
+
           var monthStr = month.ToString("yyyyMM");
 
           var allTargets = query
-            .Where(rh => rh.RaceKey.StartsWith(monthStr) && !rh.IsContainsRiderWinRate)
+            .Where(rh => rh.RaceKey.StartsWith(monthStr) && !rh.IsContainsRiderWinRate);
+          var allRiderCodes = allTargets
             .GroupBy(rh => rh.RiderCode)
             .Select(g => g.Key);
 
           while (allTargets.Any())
           {
-            var targets = await allTargets.Take(96).ToArrayAsync();
+            var targets = await allRiderCodes.Take(96).ToArrayAsync();
             var targetHorses = await query
               .Where(rh => rh.RaceKey.StartsWith(monthStr))
               .Where(rh => targets.Contains(rh.RiderCode))
-                .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { rh.Id, rh.RiderCode, rh.ResultOrder, r.Distance, r.TrackType, r.TrackGround, })
+                .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { rh.Id, rh.RiderCode, rh.ResultOrder, r.Distance, r.TrackType, r.TrackGround, Horse = rh, })
               .ToArrayAsync();
 
             foreach (var riderCode in targets)
@@ -473,24 +511,29 @@ namespace KmyKeiba.Models.Data
 
               foreach (var horse in riderGrades)
               {
-                var hd = new RaceHorseData
-                {
-                  Id = horse.Id,
-                };
-                db.RaceHorses!.Attach(hd);
-                hd.IsContainsRiderWinRate = true;
+                horse.Horse.IsContainsRiderWinRate = true;
               }
+            }
+
+            await db.SaveChangesAsync();
+
+            if (isCanceled?.Value == true)
+            {
+              await db.CommitAsync();
+              return;
             }
           }
 
           month = month.AddMonths(1);
-          await db.SaveChangesAsync();
+          await db.CommitAsync();
         }
       }
       catch
       {
         // TODO: logs
       }
+
+      AnalysisUtil.ClearRiderWinRateCaches();
     }
   }
 }

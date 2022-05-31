@@ -55,7 +55,6 @@
                   </TextBlock>
                   <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}"
                              VerticalAlignment="Center" Margin="16,0,0,0">
-                    <Run Text="{Binding Downloader.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/><LineBreak/>
                     <Run Text="{Binding Downloader.ProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
                   </TextBlock>
                   <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{DynamicResource ErrorForeground}" FontSize="20" TextWrapping="Wrap"
@@ -73,7 +72,6 @@
                   </TextBlock>
                   <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsRTProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}"
                              VerticalAlignment="Center" Margin="16,0,0,0">
-                    <Run Text="{Binding Downloader.RTDownloadingLink.Value,Converter={StaticResource LabelConv}}"/><LineBreak/>
                     <Run Text="{Binding Downloader.RTProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
                   </TextBlock>
                   <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{DynamicResource ErrorForeground}" FontSize="20" TextWrapping="Wrap"

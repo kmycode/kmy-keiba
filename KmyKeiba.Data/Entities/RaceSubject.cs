@@ -51,7 +51,7 @@ namespace KmyKeiba.JVLink.Entities
     public object DisplayClass =>
       this.Grade != RaceGrade.Unknown && this.Grade != RaceGrade.Others ? this.Grade :
       this.AgeSubjects.Any() ? RaceClass.Age :
-      this.MaxClass;
+      this.MaxClass != RaceClass.Unknown ? this.MaxClass : RaceSubjectType.Open;
 
     public object? SecondaryClass
     {
@@ -158,10 +158,10 @@ namespace KmyKeiba.JVLink.Entities
           {
             return this.Age + "歳";
           }
-          return string.Empty;
+          return "OP";
         }
 
-        return string.Empty;
+        return "OP";
       }
     }
 

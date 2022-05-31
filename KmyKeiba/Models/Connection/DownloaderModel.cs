@@ -21,6 +21,7 @@ namespace KmyKeiba.Models.Connection
 
     private readonly CompositeDisposable _disposables = new();
     private readonly DownloaderConnector _downloader = DownloaderConnector.Instance;
+    public ReactiveProperty<bool> IsCancelProcessing { get; } = new();
 
     private bool _isInitializationDownloading = false;
 
@@ -78,6 +79,8 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsDownloadLocal { get; } = new();
 
+    public ReactiveProperty<bool> IsBuildMasterData { get; } = new();
+
     public ReactiveProperty<bool> IsRTDownloadCentral { get; } = new();
 
     public ReactiveProperty<bool> IsRTDownloadCentralAfterThursdayOnly { get; } = new();
@@ -93,8 +96,6 @@ namespace KmyKeiba.Models.Connection
     public ReactiveProperty<ProcessingStep> ProcessingStep { get; } = new();
 
     public ReactiveProperty<ProcessingStep> RTProcessingStep { get; } = new();
-
-    public ReactiveProperty<DownloadMode> Mode { get; } = new(DownloadMode.WithStartDate);
 
     public ReactiveProperty<bool> CanSaveOthers { get; } = new();
 
@@ -134,8 +135,8 @@ namespace KmyKeiba.Models.Connection
       this.ProcessingStep.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
 
       // 設定を保存
-      this.IsDownloadCentral.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadCentral, v ? 1 : 0)).AddTo(this._disposables);
-      this.IsDownloadLocal.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadLocal, v ? 1 : 0)).AddTo(this._disposables);
+      this.IsDownloadCentral.SkipWhile(_ => !this.IsInitialized.Value).Where(_ => !this.IsBuildMasterData.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadCentral, v ? 1 : 0)).AddTo(this._disposables);
+      this.IsDownloadLocal.SkipWhile(_ => !this.IsInitialized.Value).Where(_ => !this.IsBuildMasterData.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadLocal, v ? 1 : 0)).AddTo(this._disposables);
       this.IsRTDownloadCentralAfterThursdayOnly.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadCentralOnThursdayAfterOnly, v ? 1 : 0)).AddTo(this._disposables);
       this.IsRTDownloadCentral.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadCentral, v ? 1 : 0)).AddTo(this._disposables);
       this.IsRTDownloadLocal.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadLocal, v ? 1 : 0)).AddTo(this._disposables);
@@ -344,7 +345,7 @@ namespace KmyKeiba.Models.Connection
         }
 
         var isCentralChecked = false;
-        if (this.IsDownloadCentral.Value)
+        if (this.IsRTDownloadCentral.Value)
         {
           if (lastLaunchDay == default || new DateOnly(year, month, day) < today)
           {
@@ -363,7 +364,7 @@ namespace KmyKeiba.Models.Connection
             await DownloadRTAsync(today2);
 
             // アプリ起動した後に中央競馬DLを有効にした場合
-            if (!isCentralChecked && this.IsDownloadCentral.Value && !this.IsDownloading.Value)
+            if (!isCentralChecked && this.IsRTDownloadCentral.Value && !this.IsRTDownloading.Value)
             {
               await CheckCentralHolidaysAsync();
               isCentralChecked = true;
@@ -383,38 +384,27 @@ namespace KmyKeiba.Models.Connection
       });
     }
 
-    public async Task DownloadAsync()
-    {
-      var link = (DownloadLink)0;
-      if (this.IsDownloadCentral.Value) link |= DownloadLink.Central;
-      if (this.IsDownloadLocal.Value) link |= DownloadLink.Local;
-
-      await this.DownloadAsync(link);
-    }
-
-    public void BeginProcessing()
+    public void BeginDownload()
     {
       Task.Run(async () =>
       {
-        if (this.IsDownloadCentral.Value)
+        if (this.IsBuildMasterData.Value)
         {
-          await this.ProcessAsync(DownloadLink.Central, this.ProcessingStep, false, Connection.ProcessingStep.All);
+          await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.All);
         }
-        if (this.IsDownloadLocal.Value)
+        else
         {
-          await this.ProcessAsync(DownloadLink.Local, this.ProcessingStep, false, Connection.ProcessingStep.All);
+          var link = (DownloadLink)0;
+          if (this.IsDownloadCentral.Value) link |= DownloadLink.Central;
+          if (this.IsDownloadLocal.Value) link |= DownloadLink.Local;
+          await this.DownloadAsync(link);
         }
       });
     }
 
     private async Task ProcessAsync(DownloadLink link, ReactiveProperty<ProcessingStep> step, bool isRt, ProcessingStep steps, bool isFlagSetManually = false)
     {
-      if (link == DownloadLink.Both)
-      {
-        await this.ProcessAsync(DownloadLink.Central, step, isRt, steps);
-        await this.ProcessAsync(DownloadLink.Local, step, isRt, steps);
-        return;
-      }
+      this.IsCancelProcessing.Value = false;
 
       try
       {
@@ -436,31 +426,31 @@ namespace KmyKeiba.Models.Connection
           step.Value = Connection.ProcessingStep.InvalidData;
           await ShapeDatabaseModel.RemoveInvalidDataAsync();
         }
-        if (steps.HasFlag(Connection.ProcessingStep.RunningStyle))
+        if (steps.HasFlag(Connection.ProcessingStep.RunningStyle) && !this.IsCancelProcessing.Value)
         {
           step.Value = Connection.ProcessingStep.RunningStyle;
-          if (link == DownloadLink.Central)
+          if (link.HasFlag(DownloadLink.Central))
           {
             ShapeDatabaseModel.TrainRunningStyle(isForce: true);
           }
           ShapeDatabaseModel.StartRunningStylePredicting();
         }
-        if (steps.HasFlag(Connection.ProcessingStep.PreviousRaceDays))
+        if (steps.HasFlag(Connection.ProcessingStep.PreviousRaceDays) && !this.IsCancelProcessing.Value)
         {
           step.Value = Connection.ProcessingStep.PreviousRaceDays;
-          await ShapeDatabaseModel.SetPreviousRaceDaysAsync();
+          await ShapeDatabaseModel.SetPreviousRaceDaysAsync(isCanceled: this.IsCancelProcessing);
         }
-        if (steps.HasFlag(Connection.ProcessingStep.RiderWinRates))
+        if (steps.HasFlag(Connection.ProcessingStep.RiderWinRates) && !this.IsCancelProcessing.Value)
         {
           step.Value = Connection.ProcessingStep.RiderWinRates;
-          await ShapeDatabaseModel.SetRiderWinRatesAsync();
+          await ShapeDatabaseModel.SetRiderWinRatesAsync(isCanceled: this.IsCancelProcessing);
         }
 
         // 途中から再開できないものは最後に
-        if (steps.HasFlag(Connection.ProcessingStep.StandardTime))
+        if (steps.HasFlag(Connection.ProcessingStep.StandardTime) && !this.IsCancelProcessing.Value)
         {
           step.Value = Connection.ProcessingStep.StandardTime;
-          await ShapeDatabaseModel.MakeStandardTimeMasterDataAsync(1990, link);
+          await ShapeDatabaseModel.MakeStandardTimeMasterDataAsync(1990, isCanceled: this.IsCancelProcessing);
           await ConfigUtil.SetIntValueAsync(SettingKey.LastUpdateStandardTimeYear, DateTime.Today.Year);
         }
 
@@ -482,6 +472,7 @@ namespace KmyKeiba.Models.Connection
           }
         }
         step.Value = Connection.ProcessingStep.Unknown;
+        this.IsCancelProcessing.Value = false;
       }
     }
 
@@ -504,11 +495,6 @@ namespace KmyKeiba.Models.Connection
       if (year == 0) startYear = this.StartYear.Value;
       var startMonth = month;
       if (month == 0) startMonth = this.StartMonth.Value;
-      if (this.Mode.Value == DownloadMode.Continuous)
-      {
-        using var db = new MyContext();
-
-      }
 
       try
       {
@@ -662,11 +648,7 @@ namespace KmyKeiba.Models.Connection
     public async Task CancelDownloadAsync()
     {
       await this._downloader.CancelCurrentTaskAsync();
-    }
-
-    public void SetMode(string mode)
-    {
-      this.Mode.Value = mode == "Continuous" ? DownloadMode.Continuous : DownloadMode.WithStartDate;
+      this.IsCancelProcessing.Value = true;
     }
 
     public async Task OpenJvlinkConfigAsync()

@@ -183,6 +183,11 @@
             <TextBlock Text="{Binding Horse.History.A3HTimeDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
                        Foreground="{Binding Horse.History.A3HTimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
           </StackPanel>
+          <StackPanel Width="60">
+            <TextBlock Text="騎手複勝" Foreground="{DynamicResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding Horse.RiderPlaceBitsRate,ElementName=Root,StringFormat=P1}" FontSize="16" HorizontalAlignment="Center"
+                       Foreground="{Binding Horse.RiderPlaceBitsRateComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
+          </StackPanel>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Column="8" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
           <TextBlock Text="{Binding Horse.Data.ResultTime,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}"
@@ -294,9 +299,10 @@
                         <Button Content="パトロール" Command="{Binding PlayPatrolCommand}"/>
                         <Button Content="マルチカメラ" Command="{Binding PlayMultiCamerasCommand}"/>
                       </StackPanel>
-                      <TextBlock Grid.Column="1" FontSize="18" Margin="4,8,0,8" Text="メモ"/>
+                      <TextBlock Grid.Column="1" FontSize="18" Margin="4,8,0,8" Text="メモ" Foreground="{DynamicResource BaseForeground}"/>
                       <ScrollViewer Grid.Column="1" Grid.Row="1" Margin="8,4,0,0">
-                        <TextBlock Text="{Binding Data.Memo}" FontSize="14" TextWrapping="Wrap"/>
+                        <TextBox Background="{DynamicResource BaseBackground}" Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource BaseForeground}"
+                                 IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}"/>
                       </ScrollViewer>
                     </Grid>
                   </Border>
