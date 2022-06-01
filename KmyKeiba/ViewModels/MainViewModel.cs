@@ -23,6 +23,8 @@ namespace KmyKeiba.ViewModels
 {
   internal class MainViewModel : INotifyPropertyChanged
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private readonly CompositeDisposable _disposables = new();
     private readonly RaceModel model = new();
     private readonly DownloaderModel downloader = DownloaderModel.Instance;
@@ -45,6 +47,14 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<bool> IsFirstRaceLoadStarted => this.model.IsFirstLoadStarted;
 
+    public ReactiveProperty<bool> IsViewExpection => this.model.IsViewExpection;
+
+    public ReactiveProperty<bool> IsViewResult => this.model.IsViewResult;
+
+    public ReactiveProperty<bool> IsSelectedAllHorses => this.model.IsSelectedAllHorses;
+
+    public string FirstMessage => this.model.FirstMessage;
+
     public OpenDialogRequest Dialog { get; } = new();
 
     public ReactiveProperty<DialogType> CurrentDialog { get; } = new();
@@ -57,6 +67,8 @@ namespace KmyKeiba.ViewModels
 
     public MainViewModel()
     {
+      logger.Debug("アプリ関係オブジェクトの生成開始");
+
       this.IsDialogOpen = this.CurrentDialog.Select(d => d != DialogType.Unknown).ToReactiveProperty().AddTo(this._disposables);
 
       // モデル同士のイベントをつなぐ
@@ -86,14 +98,20 @@ namespace KmyKeiba.ViewModels
         var isFirst = await this.downloader.InitializeAsync();
         if (isFirst)
         {
-          // TODO: 初期設定画面を開く
+          // 初期設定画面
+          logger.Debug("初めての利用のようです。初期画面を表示します");
+          this.CurrentDialog.Value = DialogType.Download;
         }
       });
+
+      logger.Debug("ビューモデルの初期化完了");
     }
 
     public void OnApplicationExit()
     {
+      logger.Debug("アプリ終了処理開始");
       this.downloader.Dispose();
+      logger.Debug("アプリ終了処理完了");
     }
 
     public ICommand OpenDownloadDialogCommand =>

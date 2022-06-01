@@ -12,11 +12,15 @@ namespace KmyKeiba.Models.Analysis
 {
   internal static class AnalysisUtil
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private static readonly Dictionary<RaceCourse, IReadOnlyList<RaceStandardTimeMasterData>> _standardData = new();
     private static readonly Dictionary<string, IReadOnlyList<RiderWinRateMasterData>> _riderWinRateData = new();
 
     public static async Task<RaceStandardTimeMasterData> GetRaceStandardTimeAsync(MyContext db, RaceData race)
     {
+      logger.Debug($"基準タイム取得 {race.Key}");
+
       _standardData.TryGetValue(race.Course, out var list);
 
       if (list == null)
@@ -25,6 +29,7 @@ namespace KmyKeiba.Models.Analysis
           .Where(st => st.Course == race.Course && st.SampleCount > 0)
           .ToArrayAsync();
         _standardData[race.Course] = list;
+        logger.Info($"基準タイムキャッシュをDBから読み込みました 項目数: {list.Count}");
       }
 
       var query = list
@@ -52,16 +57,20 @@ namespace KmyKeiba.Models.Analysis
         item = query.FirstOrDefault();
       }
 
+      logger.Info($"レース {race.Key} 基準タイムのサンプル数: {item?.SampleCount}");
       return item ?? new();
     }
 
     public static void ClearStandardTimeCaches()
     {
+      logger.Info("基準タイムのキャッシュをリセット");
       _standardData.Clear();
     }
 
     public static async Task<RiderWinRateMasterData> GetRiderWinRateAsync(MyContext db, RaceData race, string riderCode)
     {
+      logger.Debug($"騎手の勝率情報 騎手コード: {riderCode}");
+
       _riderWinRateData.TryGetValue(riderCode, out var list);
 
       if (list == null)
@@ -70,6 +79,7 @@ namespace KmyKeiba.Models.Analysis
           .Where(rw => rw.RiderCode == riderCode)
           .ToArrayAsync();
         _riderWinRateData[riderCode] = list;
+        logger.Info($"騎手勝率情報キャッシュをDBから読み込みました 項目数: {list.Count}");
       }
 
       var raceMonth = new DateOnly(race.StartTime.Year, race.StartTime.Month, 1);
@@ -102,16 +112,19 @@ namespace KmyKeiba.Models.Analysis
         return a;
       });
 
+      logger.Info($"騎手 {riderCode} 勝率情報のサンプル数: {item.AllTurfCount} / {item.AllDirtCount} / {item.AllTurfSteepsCount} / {item.AllDirtSteepsCount}");
       return item;
     }
 
     public static void ClearRiderWinRateCaches()
     {
+      logger.Info("騎手勝率情報のキャッシュをリセット");
       _riderWinRateData.Clear();
     }
 
     public static double CalcRoughRate(IReadOnlyList<RaceHorseData> topHorses)
     {
+      logger.Debug($"レース荒れ度を計算 馬数: {topHorses.Count}");
       return topHorses.Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 3)
             .Select(rh => (double)rh.Popular * rh.Popular)
             .Append(0)    // Sum時の例外防止

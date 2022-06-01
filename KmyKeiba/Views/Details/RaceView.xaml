@@ -108,6 +108,7 @@
               </ToggleButton.Style>
             </RadioButton>
             <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Predict"
+                         IsChecked="{Binding IsViewExpection.Value,Mode=TwoWay}"
                          Visibility="{Binding Race.HasHorses.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
               予想
               <ToggleButton.Style>
@@ -121,6 +122,7 @@
               </ToggleButton.Style>
             </RadioButton>
             <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Result"
+                         IsChecked="{Binding IsViewResult.Value,Mode=TwoWay}"
                          Visibility="{Binding Race.HasResults.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
               結果
               <ToggleButton.Style>
@@ -167,7 +169,8 @@
 
             <!--馬番号表示-->
             <RadioButton FontSize="18" Content="全体" Margin="0,12,0,0" GroupName="{Binding UniqueId,ElementName=Root}"
-                         Style="{StaticResource InnerToggleButtonDefault}" Name="S_All" IsChecked="True">
+                         Style="{StaticResource InnerToggleButtonDefault}" Name="S_All"
+                         IsChecked="{Binding IsSelectedAllHorses.Value,Mode=TwoWay}">
               <Control.Visibility>
                 <MultiBinding Converter="{StaticResource MultiBooleanConv}">
                   <Binding Path="IsChecked" ElementName="S_Predict"/>
@@ -280,6 +283,19 @@
       </Grid.Visibility>
       <Border>
         <TextBlock FontSize="32" Style="{StaticResource SubTextBlock}" Text="ロード中です。しばらくお待ちください..."
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      </Border>
+    </Grid>
+
+    <Grid>
+      <Grid.Visibility>
+        <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+          <Binding Path="IsLoaded.Value" Converter="{StaticResource NegativeConv}"/>
+          <Binding Path="IsFirstRaceLoadStarted.Value" Converter="{StaticResource NegativeConv}"/>
+        </MultiBinding>
+      </Grid.Visibility>
+      <Border>
+        <TextBlock FontSize="32" Style="{StaticResource SubTextBlock}" Text="{Binding FirstMessage}"
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
       </Border>
     </Grid>

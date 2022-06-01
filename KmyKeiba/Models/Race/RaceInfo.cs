@@ -8,6 +8,7 @@ using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
 using KmyKeiba.Models.Injection;
 using KmyKeiba.Models.Script;
+using KmyKeiba.Shared;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -24,6 +25,8 @@ namespace KmyKeiba.Models.Race
 {
   public class RaceInfo : IDisposable
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private static IBuyer? _buyer => __buyer ??= InjectionManager.GetInstance<IBuyer>(InjectionManager.Buyer);
     private static IBuyer? __buyer;
 
@@ -102,11 +105,18 @@ namespace KmyKeiba.Models.Race
     public RaceMovieInfo Movie => this._movie ??= new(this.Data);
     private RaceMovieInfo? _movie;
 
+    public string PurchaseLabel { get; }
+
     private RaceInfo(RaceData race)
     {
+      logger.Debug($"{race.Key} のレースの初期化を開始します");
+
       this.Data = race;
       this.Subject = new(race);
       this.Script = ScriptManager.GetInstance(this);
+
+      this.PurchaseLabel = _buyer?.GetPurchaseLabel(race) ?? "投票不可";
+      logger.Info($"馬券購入ラベル: {this.PurchaseLabel}");
 
       this.Weather.Value = race.TrackWeather;
       this.Condition.Value = race.TrackCondition;
@@ -122,6 +132,7 @@ namespace KmyKeiba.Models.Race
       this.CourseSummaryImage.Race = race;
 
       var buyLimitTime = this.Data.StartTime.AddMinutes(-2);
+      logger.Debug($"購入締め切り: {buyLimitTime} レース開始: {race.StartTime}");
 
       this.CanBuy.Value = _buyer?.CanBuy(race) == true;
       if (this.CanBuy.Value)
@@ -138,7 +149,8 @@ namespace KmyKeiba.Models.Race
         });
       }
 
-      Observable.Interval(TimeSpan.FromSeconds(1))
+      IDisposable? buyLimitTimeDisposable = null;
+      buyLimitTimeDisposable = Observable.Interval(TimeSpan.FromSeconds(1))
         .Subscribe(_ =>
         {
           if (buyLimitTime > DateTime.Now)
@@ -163,6 +175,13 @@ namespace KmyKeiba.Models.Race
             this.IsBeforeLimitTime.Value = false;
             this.IsWaitingResults.Value = true;
             this.CanBuy.Value = false;
+            logger.Debug("馬券購入締め切りを過ぎました");
+
+            if (buyLimitTimeDisposable != null)
+            {
+              buyLimitTimeDisposable.Dispose();
+              this._disposables.Remove(buyLimitTimeDisposable);
+            }
           }
         })
         .AddTo(this._disposables);
@@ -185,12 +204,15 @@ namespace KmyKeiba.Models.Race
 
         this.HasResults.Value = this.Horses.Any(h => h.Data.ResultOrder > 0);
         this.HasHorses.Value = true;
+
+        logger.Info($"馬が設定されました {horses.Count}");
+        logger.Debug($"基準タイムのサンプル数: {standardTime.SampleCount}");
       });
     }
 
     public async Task WaitHorsesSetupAsync()
     {
-      while (!this.Horses.Any())
+      while (!this.HasHorses.Value)
       {
         await Task.Delay(10);
       }
@@ -216,13 +238,21 @@ namespace KmyKeiba.Models.Race
     public void SetActiveHorse(int num)
     {
       this.ActiveHorse.Value = this.Horses.FirstOrDefault(h => h.Data.Number == num);
+      logger.Debug($"馬番 {num} の馬 {this.ActiveHorse.Value?.Data.Name} を選択しました");
 
       // 遅延でデータ読み込み
       if (this.ActiveHorse.Value?.BloodSelectors?.IsRequestedInitialization == true)
       {
         Task.Run(async () => {
           using var db = new MyContext();
-          await this.ActiveHorse.Value.BloodSelectors.InitializeBloodListAsync(db);
+          try
+          {
+            await this.ActiveHorse.Value.BloodSelectors.InitializeBloodListAsync(db);
+          }
+          catch (Exception ex)
+          {
+            logger.Warn($"{this.ActiveHorse.Value.Data.Name} の血統情報がロードできませんでした", ex);
+          }
         });
       }
     }
@@ -233,13 +263,22 @@ namespace KmyKeiba.Models.Race
 
       short.TryParse(key, out var value);
 
-      using var db = new MyContext();
-      db.Races!.Attach(this.Data);
+      try
+      {
+        using var db = new MyContext();
+        db.Races!.Attach(this.Data);
 
-      this.Weather.Value = this.Data.TrackWeather = (RaceCourseWeather)value;
-      this.Data.IsWeatherSetManually = true;
+        this.Weather.Value = this.Data.TrackWeather = (RaceCourseWeather)value;
+        this.Data.IsWeatherSetManually = true;
 
-      await db.SaveChangesAsync();
+        await db.SaveChangesAsync();
+
+        logger.Debug($"天気情報を {this.Weather.Value} に変更しました key: {key}");
+      }
+      catch (Exception ex)
+      {
+        logger.Warn($"天気情報を {key} に変更できませんでした", ex);
+      }
     }
 
     public async Task SetConditionAsync(string key)
@@ -248,73 +287,96 @@ namespace KmyKeiba.Models.Race
 
       short.TryParse(key, out var value);
 
-      using var db = new MyContext();
-      db.Races!.Attach(this.Data);
+      try
+      {
+        using var db = new MyContext();
+        db.Races!.Attach(this.Data);
 
-      this.Condition.Value = this.Data.TrackCondition = (RaceCourseCondition)value;
-      this.Data.IsConditionSetManually = true;
+        this.Condition.Value = this.Data.TrackCondition = (RaceCourseCondition)value;
+        this.Data.IsConditionSetManually = true;
 
-      await db.SaveChangesAsync();
+        await db.SaveChangesAsync();
+
+        logger.Debug($"馬場状態を {this.Weather.Value} に変更しました key: {key}");
+      }
+      catch (Exception ex)
+      {
+        logger.Warn($"馬場状態を {key} に変更できませんでした", ex);
+      }
     }
 
     public async Task CheckCanUpdateAsync()
     {
       // LastModifiedに時刻は記録されないので、各項目を比較するしかない
-      using var db = new MyContext();
-      var newData = await db.Races!.FirstOrDefaultAsync(r => r.Key == this.Data.Key);
-      if (newData != null)
+      try
       {
-        var isUpdate = newData.DataStatus != this.Data.DataStatus ||
-          newData.TrackWeather != this.Data.TrackWeather ||
-          newData.TrackCondition != this.Data.TrackCondition ||
-          newData.TrackGround != this.Data.TrackGround ||
-          newData.Course != this.Data.Course ||
-          newData.CourseType != this.Data.CourseType ||
-          newData.TrackOption != this.Data.TrackOption ||
-          newData.TrackCornerDirection != this.Data.TrackCornerDirection ||
-          newData.StartTime != this.Data.StartTime;
-
-        if (!isUpdate)
+        using var db = new MyContext();
+        var newData = await db.Races!.FirstOrDefaultAsync(r => r.Key == this.Data.Key);
+        if (newData != null)
         {
-          var newHorses = await db.RaceHorses!
-            .Where(rh => rh.RaceKey == this.Data.Key)
-            .Select(rh => new { rh.Key, rh.DataStatus, rh.ResultOrder, rh.AbnormalResult, rh.RiderName, rh.RiderWeight, rh.Weight, rh.Odds, })
-            .ToArrayAsync();
-          isUpdate = newHorses
-            .Join(this.Horses.Select(h => h.Data), h => h.Key, h => h.Key, (nh, h) => new {
-              IsUpdate = nh.DataStatus != h.DataStatus || nh.ResultOrder != h.ResultOrder || nh.AbnormalResult != h.AbnormalResult ||
-              nh.RiderName != h.RiderName || nh.RiderWeight != h.RiderWeight || nh.Weight != h.Weight || nh.Odds != h.Odds,
-            })
-            .Any(d => d.IsUpdate);
+          var isUpdate = newData.DataStatus != this.Data.DataStatus ||
+            newData.TrackWeather != this.Data.TrackWeather ||
+            newData.TrackCondition != this.Data.TrackCondition ||
+            newData.TrackGround != this.Data.TrackGround ||
+            newData.Course != this.Data.Course ||
+            newData.CourseType != this.Data.CourseType ||
+            newData.TrackOption != this.Data.TrackOption ||
+            newData.TrackCornerDirection != this.Data.TrackCornerDirection ||
+            newData.StartTime != this.Data.StartTime;
+          logger.Debug($"レース基本情報を確認: {isUpdate}");
 
-          if (!isUpdate && this.Payoff == null)
+          if (!isUpdate)
           {
-            var refund = await db.Refunds!.FirstOrDefaultAsync(r => r.RaceKey == this.Data.Key);
-            if (refund != null)
+            var newHorses = await db.RaceHorses!
+              .Where(rh => rh.RaceKey == this.Data.Key)
+              .Select(rh => new { rh.Key, rh.DataStatus, rh.ResultOrder, rh.AbnormalResult, rh.RiderName, rh.RiderWeight, rh.Weight, rh.Odds, })
+              .ToArrayAsync();
+            isUpdate = newHorses
+              .Join(this.Horses.Select(h => h.Data), h => h.Key, h => h.Key, (nh, h) => new
+              {
+                IsUpdate = nh.DataStatus != h.DataStatus || nh.ResultOrder != h.ResultOrder || nh.AbnormalResult != h.AbnormalResult ||
+                nh.RiderName != h.RiderName || nh.RiderWeight != h.RiderWeight || nh.Weight != h.Weight || nh.Odds != h.Odds,
+              })
+              .Any(d => d.IsUpdate);
+            logger.Debug($"馬のウッズ、状態を確認: {isUpdate}");
+
+            if (!isUpdate && this.Payoff == null)
             {
-              isUpdate = true;
+              var refund = await db.Refunds!.FirstOrDefaultAsync(r => r.RaceKey == this.Data.Key);
+              if (refund != null)
+              {
+                isUpdate = true;
+              }
+              logger.Debug($"払い戻し状況を確認: {isUpdate}");
             }
           }
-        }
 
-        if (isUpdate)
-        {
-          this.CanUpdate.Value = isUpdate;
+          if (isUpdate)
+          {
+            this.CanUpdate.Value = isUpdate;
+          }
+
+          logger.Debug($"表示中のレース {this.Data.Key} の更新状態を確認しました。結果: {isUpdate}");
         }
+      }
+      catch (Exception ex)
+      {
+        logger.Error($"{this.Data.Key} のレースの更新可能状態を確認できませんでした", ex);
       }
     }
 
     public async Task BuyAsync()
     {
-      if (!this.CanBuy.Value)
+      if (!this.CanBuy.Value || this.Tickets.Value == null)
       {
+        logger.Warn($"購入できません CanBuy: {this.CanBuy.Value} / Tickets: {this.Tickets.Value}");
         return;
       }
 
-      using var db = new MyContext();
-      var tickets = await db.Tickets!.Where(t => t.RaceKey == this.Data.Key).ToArrayAsync();
+      var tickets = this.Tickets.Value.Tickets.Select(t => t.Data).ToArray();
       if (!tickets.Any())
       {
+        logger.Warn("設定されている馬券がないため購入を中止しました");
         return;
       }
 
@@ -322,9 +384,9 @@ namespace KmyKeiba.Models.Race
       this.PurchaseStatusFeeling.Value = StatusFeeling.Standard;
 
       var buyer = _buyer!;
-      buyer.CreateNewPurchase(this.Data)
+      await buyer.CreateNewPurchase(this.Data)
         .AddTicketRange(tickets)
-        .Send(result =>
+        .SendAsync(result =>
         {
           if (result)
           {
@@ -336,6 +398,7 @@ namespace KmyKeiba.Models.Race
             this.PurchaseStatus.Value = PurchaseStatusCode.Failed;
             this.PurchaseStatusFeeling.Value = StatusFeeling.Bad;
           }
+          logger.Info($"購入処理が完了 結果: {result}");
         });
     }
 
@@ -355,11 +418,14 @@ namespace KmyKeiba.Models.Race
 
     public static async Task<RaceInfo?> FromKeyAsync(string key)
     {
+      logger.Info($"{key} のレースを読み込みます");
+
       using var db = new MyContext();
 
       var race = await db.Races!.FirstOrDefaultAsync(r => r.Key == key);
       if (race == null)
       {
+        logger.Warn("レースがDBから見つかりませんでした");
         return null;
       }
 
@@ -367,17 +433,21 @@ namespace KmyKeiba.Models.Race
       PayoffInfo? payoffInfo = null;
       if (payoff != null)
       {
+        logger.Debug("払い戻し情報が見つかりました");
         payoffInfo = new PayoffInfo(payoff);
       }
 
       return await FromDataAsync(race, payoffInfo);
     }
 
-    public static async Task<RaceInfo> FromDataAsync(RaceData race, PayoffInfo? payoff)
+    private static async Task<RaceInfo> FromDataAsync(RaceData race, PayoffInfo? payoff)
     {
+      logger.Debug($"{race.Key} のレース情報を読み込みます");
+
       var db = new MyContext();
       if (DownloaderModel.Instance.CanSaveOthers.Value)
       {
+        logger.Debug("念のためトランザクションを開始します");
         await db.BeginTransactionAsync();
       }
 
@@ -394,6 +464,8 @@ namespace KmyKeiba.Models.Race
         try
         {
           var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == race.Key).ToArrayAsync();
+          logger.Info($"馬の数: {horses.Length}, レース情報に記録されている馬の数: {race.HorsesCount}");
+
           var horseKeys = horses.Select(h => h.Key).ToArray();
           var horseAllHistories = await db.RaceHorses!
             .Where(rh => horseKeys.Contains(rh.Key))
@@ -402,6 +474,7 @@ namespace KmyKeiba.Models.Race
             .OrderByDescending(d => d.Race.StartTime)
             .ToArrayAsync();
           var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race);
+          logger.Debug($"馬の過去レースの総数: {horseAllHistories.Length}");
 
           // 各馬の情報
           var horseInfos = new List<RaceHorseAnalyzer>();
@@ -410,6 +483,7 @@ namespace KmyKeiba.Models.Race
             .Where(h => h.ResultOrder >= 1 && h.ResultOrder <= 5)
             .Where(h => horseHistoryKeys.Contains(h.RaceKey))
             .ToArrayAsync();
+          logger.Debug($"馬の過去レースの同走馬数: {horseHistorySameHorses.Length}");
           foreach (var horse in horses)
           {
             var histories = new List<RaceHorseAnalyzer>();
@@ -429,6 +503,7 @@ namespace KmyKeiba.Models.Race
               TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
               BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
             });
+            logger.Debug($"馬 {horse.Name} の情報を登録");
           }
           {
             // タイム指数の相対評価
@@ -457,6 +532,7 @@ namespace KmyKeiba.Models.Race
               }
             }
           }
+          logger.Debug("馬のタイム指数相対評価を設定");
           info.SetHorsesDelay(horseInfos, standardTime);
 
           // オッズ
@@ -467,10 +543,12 @@ namespace KmyKeiba.Models.Race
           var trioOdds = await db.TrioOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
           var trifectaOdds = await db.TrifectaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
           info.Odds.Value = new OddsInfo(horses, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
+          logger.Info($"オッズ 枠連:{frameOdds != null} ワイド:{quinellaPlaceOdds != null} 馬連:{quinellaOdds != null} 馬単:{exactaOdds != null} 三連複:{trioOdds != null} 三連単:{trifectaOdds != null}");
 
           // 購入済馬券
           var tickets = await db.Tickets!.Where(t => t.RaceKey == race.Key).ToArrayAsync();
           info.Tickets.Value = new BettingTicketInfo(horseInfos, info.Odds.Value, tickets);
+          logger.Info($"保存されている馬券数: {tickets.Length}");
 
           // 払い戻し情報を更新
           info.Payoff?.SetTickets(info.Tickets.Value, horses);
@@ -490,10 +568,12 @@ namespace KmyKeiba.Models.Race
               info.Changes.Add(change);
             }
           });
+          logger.Debug($"最新情報の数: {changes.Length}");
 
           // すべてのデータ読み込み完了
           info.IsLoadCompleted.Value = true;
           info.CanExecuteScript.Value = true;
+          logger.Info("レースの読み込みが完了しました");
 
           // コーナー順位の色分け
           var firstHorse = horses.FirstOrDefault(h => h.ResultOrder == 1);
@@ -517,6 +597,7 @@ namespace KmyKeiba.Models.Race
             .Where(t => horseKeys.Contains(t.HorseKey) && t.StartTime <= race.StartTime && t.StartTime > historyStartDate)
             .OrderByDescending(t => t.StartTime)
             .ToArrayAsync();
+          logger.Info($"坂路調教: {trainings.Length}, ウッドチップ調教: {woodTrainings.Length}");
           foreach (var horse in horseInfos)
           {
             horse.Training.Value = new TrainingAnalyzer(
@@ -525,9 +606,9 @@ namespace KmyKeiba.Models.Race
               );
           }
         }
-        catch
+        catch (Exception ex)
         {
-          // TODO log
+          logger.Error("レース情報の読み込みに失敗しました", ex);
           info.IsLoadError.Value = true;
           info.IsLoadCompleted.Value = true;
         }

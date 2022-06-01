@@ -62,6 +62,19 @@ namespace KmyKeiba.JVLink.Wrappers
       return (JVLinkMovieResult)result;
     }
 
+    public JVLinkMovieReader OpenMovie(JVLinkTrainingMovieType type, string key)
+    {
+      this.CheckInitialized();
+
+      var result = this.link.MVOpen(((short)type).ToString(), key);
+      if (result != 0)
+      {
+        throw new JVLinkException<JVLinkMovieResult>((JVLinkMovieResult)result);
+      }
+
+      return new JVLinkMovieReader(this.link);
+    }
+
     public IJVLinkReader StartRead(JVLinkDataspec dataspec, JVLinkOpenOption options, DateTime from, DateTime? to = null)
     {
       return this.StartRead(dataspec, options, from, to, null);
@@ -332,6 +345,13 @@ namespace KmyKeiba.JVLink.Wrappers
     MultiCameras = 2,
     Patrol = 3,
     Training = 11,
+  }
+
+  public enum JVLinkTrainingMovieType
+  {
+    Weekly = 11,
+    WeekAndHorse = 12,
+    Horse = 13,
   }
 
   public static class JVLinkExtensions

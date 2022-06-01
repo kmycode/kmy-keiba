@@ -34,6 +34,11 @@ namespace KmyKeiba.Models.Connection
         {
           this.IsRaceError.Value = true;
         }
+        // 外国
+        if (race.Course >= RaceCourse.Foreign)
+        {
+          this.IsRaceError.Value = true;
+        }
       }
     }
 

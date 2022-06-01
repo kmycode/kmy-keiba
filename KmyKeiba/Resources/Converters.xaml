@@ -34,6 +34,7 @@
   <cv:NonMinusVisibilityConverter x:Key="NonMinusVisibilityConv"/>
   <cv:RaceChangeToTextConverter x:Key="RaceChangeTextConv"/>
   <cv:HorseColorBrushConverter x:Key="HorseColorBrushConv"/>
+  <cv:NonNullVisibilityConverter x:Key="NonNullVisibilityConv"/>
 
   <cv:BooleanBrushConverter x:Key="BooleanForegroundSubOrBaseConv" TrueBrush="{DynamicResource SubForeground}" FalseBrush="{DynamicResource BaseForeground}"/>
 </ResourceDictionary>

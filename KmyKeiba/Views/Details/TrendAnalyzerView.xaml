@@ -16,7 +16,7 @@
         <RowDefinition/>
       </Grid.RowDefinitions>
 
-      <Border Background="{DynamicResource MoreThinBaseBackground}" Margin="0,0,0,8">
+      <Border Background="{DynamicResource MoreThinBaseBackground}" Margin="0,0,0,8" Width="180">
         <TextBlock Text="{Binding Selector.Name,ElementName=Root}" FontSize="20" FontWeight="Bold"
                    Margin="8,8,8,16"/>
       </Border>

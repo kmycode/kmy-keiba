@@ -99,6 +99,12 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderError("ダウンロード対象が存在しません")]
     TargetsNotExists = 15,
+
+    [DownloaderError("サーバーエラーです。インターネットに接続されていない可能性があります")]
+    ServerError = 16,
+
+    [DownloaderError("認証で問題が発生しました")]
+    AuthenticationError = 17,
   }
 
   internal class DownloaderCommandAttribute : Attribute

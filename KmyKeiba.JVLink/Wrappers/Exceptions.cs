@@ -69,6 +69,9 @@ namespace KmyKeiba.JVLink.Wrappers
     [JVLinkCode("すでに接続が開かれています")]
     AlreadyOpen = -202,
 
+    [JVLinkCode("接続が開かれていません")]
+    NotOpen = -203,
+
     [JVLinkCode("レジストリの値が不正です")]
     InvalidRegistry = -211,
 
@@ -101,6 +104,9 @@ namespace KmyKeiba.JVLink.Wrappers
 
     [JVLinkCode("スタートキット（CD-ROM）が無効です")]
     InvalidStartKit = -501,
+
+    [JVLinkCode("何らかの理由でダウンロードが失敗しました")]
+    DownloadFailed = -502,
 
     [JVLinkCode("現在サーバーはメンテナンス中です")]
     InMaintance = -504,

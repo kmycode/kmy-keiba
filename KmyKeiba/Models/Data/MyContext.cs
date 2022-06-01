@@ -16,9 +16,6 @@ namespace KmyKeiba.Models.Data
   {
     public MyContext()
     {
-      //this.ConnectionString = "server=localhost;database=kmykeiba;uid=root;pwd=takaki;";
-
-      Directory.CreateDirectory(Constrants.AppDataPath);
       this.ConnectionString = "Data Source=" + Constrants.DatabasePath;
     }
 

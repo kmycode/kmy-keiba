@@ -35,6 +35,10 @@ namespace KmyKeiba.JVLink.Wrappers
     int Fuku(string pattern, ref byte[] buff);
 
     int MVPlayWithType(string type, string key);
+
+    int MVOpen(string type, string key);
+
+    int MVRead(out string buff, out int size);
   }
 
   internal static class JVLinkObjectFactory
@@ -121,6 +125,18 @@ namespace KmyKeiba.JVLink.Wrappers
       {
         return default;
       }
+
+      public int MVOpen(string type, string key)
+      {
+        return default;
+      }
+
+      public int MVRead(out string buff, out int size)
+      {
+        buff = string.Empty;
+        size = default;
+        return default;
+      }
     }
 
     private class JVLinkObjectImpl : IJVLinkObject
@@ -177,6 +193,10 @@ namespace KmyKeiba.JVLink.Wrappers
       }
 
       public int MVPlayWithType(string type, string key) => this.link.JVMVPlayWithType(type, key);
+
+      public int MVOpen(string type, string key) => this.link.JVMVOpen(type, key);
+
+      public int MVRead(out string buff, out int size) => this.link.JVMVRead(out buff, out size);
     }
 
     private class NVLinkObjectImpl : IJVLinkObject
@@ -265,6 +285,18 @@ namespace KmyKeiba.JVLink.Wrappers
         }
 
         return (int)result;
+      }
+
+      public int MVOpen(string type, string key)
+      {
+        return default;
+      }
+
+      public int MVRead(out string buff, out int size)
+      {
+        buff = string.Empty;
+        size = default;
+        return default;
       }
     }
   }

@@ -24,7 +24,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.0" />
     <PackageReference Include="ReactiveProperty" Version="7.10.0" />
   </ItemGroup>
 

@@ -1,7 +1,6 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.Downloader.Injection;
-using KmyKeiba.Downloader.Math;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
 using KmyKeiba.Shared;
@@ -26,6 +25,9 @@ namespace KmyKeiba.Downloader
       selfPath = Assembly.GetEntryAssembly()?.Location.Replace("Downloader.dll", "Downloader.exe") ?? string.Empty;
       var selfPathDir = Path.GetDirectoryName(selfPath) ?? "./";
 
+      //CreateTrainingMovieList();
+      //return;
+
       log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo(Path.Combine(selfPathDir, "log4net.config")));
       log4net.GlobalContext.Properties["pid"] = System.Diagnostics.Process.GetCurrentProcess().Id;
 
@@ -34,16 +36,23 @@ namespace KmyKeiba.Downloader
       logger.Info("==            開始            ==");
       logger.Info("==                            ==");
       logger.Info("================================");
+      logger.Info($"Version: {Constrants.ApplicationVersion}");
 
       Console.WriteLine("\n\n\n============= Start Program ==============\n");
 
       if (args.FirstOrDefault() != "kill")
       {
+        object oldArgs = args;
+
         //args = new[] { "movie", "1266", };
         //args = new[] { "kill", "2960" };
 
-        logger.Info($"デバッグ用のパラメータ {args[0]} {args[1]}");
+        if ((object)args != oldArgs)
+        {
+          logger.Info($"下記のパラメータはデバッグのために隠蔽されました: {string.Join(',', oldArgs)}");
+        }
       }
+      logger.Info($"コマンドラインパラメータ: {string.Join(',', args)}");
 
       // JV-LinkのIDを設定
       var softwareId = InjectionManager.GetInstance<ICentralSoftwareIdGetter>(InjectionManager.CentralSoftwareIdGetter);
@@ -246,6 +255,10 @@ namespace KmyKeiba.Downloader
           Console.WriteLine(ex.Message);
           Console.ReadKey();
         }
+      }
+      else
+      {
+        logger.Warn("このパラメータは対応していません");
       }
 
       logger.Info("完了");
@@ -885,10 +898,9 @@ namespace KmyKeiba.Downloader
       {
         db.Dispose();
       }
-      logger.Info("シャットダウンメソッドの終了");
     }
 
-    public static void OpenMovie()
+    private static void OpenMovie()
     {
       var task = currentTask;
       if (task == null)
@@ -940,6 +952,82 @@ namespace KmyKeiba.Downloader
       {
         logger.Error("動画再生でエラーが発生しました", ex);
       }
+    }
+
+    private static void CreateTrainingMovieList()
+    {
+      var task = currentTask;
+      if (task == null)
+      {
+        // return;
+        task = new();
+      }
+
+      var isLoaded = false;
+
+      Task.Run(async () =>
+      {
+        JVLinkObject? link = null;
+        try
+        {
+          link = JVLinkObject.Central;
+          using var reader = link.OpenMovie(JVLinkTrainingMovieType.Weekly, "20220528");
+
+          var list = reader.ReadKeys();
+        }
+        catch (JVLinkException<JVLinkMovieResult> ex)
+        {
+          task.Error = DownloaderError.ApplicationRuntimeError;
+          task.Result = ex.Message;
+        }
+        catch (Exception ex)
+        {
+          logger.Error("動画リストダウンロードでエラーが発生しました", ex);
+        }
+        finally
+        {
+          isLoaded = true;
+        }
+      });
+
+      using var db = new MyContext();
+      // db.DownloaderTasks!.Attach(task);
+
+      var loopCount = 0;
+
+      while (!isLoaded)
+      {
+        Task.Delay(800).Wait();
+
+        if (loopCount++ > 200)
+        {
+          task.Error = DownloaderError.Timeout;
+          break;
+        }
+      }
+
+      task.IsFinished = true;
+      db.SaveChanges();
+
+      KillMe();
+    }
+  }
+
+  internal static class ResultExtensions
+  {
+    public static DownloaderError ToDownloaderError(this JVLinkMovieResult result)
+    {
+      return result switch
+      {
+        JVLinkMovieResult.ServerError => DownloaderError.ServerError,
+        JVLinkMovieResult.AuthenticationError => DownloaderError.AuthenticationError,
+        JVLinkMovieResult.InternalError => DownloaderError.ServerError,
+        JVLinkMovieResult.InvalidKey => DownloaderError.LicenceKeyExpired,
+        JVLinkMovieResult.InMaintance => DownloaderError.InMaintance,
+        JVLinkMovieResult.NotFound => DownloaderError.TargetsNotExists,
+        JVLinkMovieResult.Succeed => DownloaderError.Succeed,
+        _ => DownloaderError.ApplicationRuntimeError,
+      };
     }
   }
 }

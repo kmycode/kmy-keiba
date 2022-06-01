@@ -142,7 +142,13 @@
                 <up:CourseSimpleImageView Race="{Binding Race}" HorizontalAlignment="Right"/>
               </Border>
               <TextBlock Text="{Binding Race.Distance}" FontSize="14" Width="36" TextAlignment="Right"/>
-              <StackPanel Orientation="Horizontal" Visibility="{Binding IsAbnormalResult,Converter={StaticResource NegativeVisibilityConv}}">
+              <StackPanel Orientation="Horizontal">
+                <StackPanel.Visibility>
+                  <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                    <Binding Path="IsAbnormalResult" Converter="{StaticResource NegativeVisibilityConv}"/>
+                    <Binding Path="Data.ResultOrder" Converter="{StaticResource NonZeroVisibilityConv}"/>
+                  </MultiBinding>
+                </StackPanel.Visibility>
                 <TextBlock Text="{Binding Data.ResultOrder}" Foreground="{Binding ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}" FontSize="16" Width="40"/>
                 <TextBlock Text="{Binding Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="55"/>
                 <TextBlock Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="55"/>

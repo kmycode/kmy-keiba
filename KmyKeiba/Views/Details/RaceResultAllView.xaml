@@ -36,6 +36,10 @@
       
       <!--着順-->
       <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_RaceResultOrderList,Converter={StaticResource BooleanVisibilityConv}}">
+        <Grid.RowDefinitions>
+          <RowDefinition/>
+          <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
         <ItemsControl ItemsSource="{Binding Race.HorsesResultOrdered,ElementName=Root}"
                       Margin="0,0,4,0" Style="{StaticResource TableList}">
           <ItemsControl.ItemsPanel>
@@ -55,6 +59,10 @@
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
+        <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="36" HorizontalAlignment="Center" Grid.Row="1"
+                   Margin="0,48" VerticalAlignment="Center" Text="全ての結果がそろうまでしばらくお待ちください..." Visibility="{Binding Race.Data.DataStatus,ElementName=Root,Converter={StaticResource EqualConv},ConverterParameter=PreliminaryGrade3}"/>
+        <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="36" HorizontalAlignment="Center" Grid.Row="1"
+                   Margin="0,48" VerticalAlignment="Center" Text="全ての結果がそろうまでしばらくお待ちください..." Visibility="{Binding Race.Data.DataStatus,ElementName=Root,Converter={StaticResource EqualConv},ConverterParameter=PreliminaryGrade5}"/>
       </Grid>
 
       <!-- 展開 -->

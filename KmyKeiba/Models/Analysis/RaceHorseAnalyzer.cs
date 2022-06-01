@@ -6,6 +6,7 @@ using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Injection;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Shared;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -158,7 +159,7 @@ namespace KmyKeiba.Models.Analysis
 
         if (this.BeforeRaces.Any())
         {
-          var targetRaces = this.BeforeRaces.Take(10).ToArray();
+          var targetRaces = this.BeforeRaces.Where(r => r.Data.ResultOrder > 0 && r.Data.AbnormalResult == RaceAbnormality.Unknown).Take(10).ToArray();
 
           var startTime = new DateTime(1980, 1, 1);
           var statistic = new StatisticSingleArray(targetRaces.Select(r => r.ResultTimeDeviationValue).ToArray());

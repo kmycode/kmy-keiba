@@ -187,12 +187,14 @@
                     <up:CourseSimpleImageView Race="{Binding Data}" HorizontalAlignment="Right"/>
                   </Border>
                   <TextBlock Text="{Binding Data.Distance}" FontSize="14" Width="36" TextAlignment="Right"/>
-                  <TextBlock Text="{Binding TopHorse.Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="60"/>
-                  <TextBlock Text="{Binding TopHorse.ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
-                  <Border Width="60">
-                    <up:RunningStyleTip RunningStyle="{Binding TopRunningStyle}" HorizontalAlignment="Right"/>
-                  </Border>
-                  <TextBlock Text="{Binding RoughRate,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
+                  <StackPanel Orientation="Horizontal" Visibility="{Binding TopHorse.Data.ResultOrder,Converter={StaticResource NonZeroVisibilityConv}}">
+                    <TextBlock Text="{Binding TopHorse.Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="60"/>
+                    <TextBlock Text="{Binding TopHorse.ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
+                    <Border Width="60">
+                      <up:RunningStyleTip RunningStyle="{Binding TopRunningStyle}" HorizontalAlignment="Right"/>
+                    </Border>
+                    <TextBlock Text="{Binding RoughRate,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
+                  </StackPanel>
                 </StackPanel>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -619,7 +621,8 @@
           </TextBlock>
         </Border>
         <Border Grid.ColumnSpan="2" Grid.Row="1" Visibility="{Binding Race.Script.IsError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
-          <TextBlock FontSize="16" Text="{Binding Race.Script.ErrorMessage.Value,ElementName=Root}" Foreground="{DynamicResource ErrorForeground}" TextWrapping="Wrap"/>
+          <TextBox IsReadOnly="True" FontSize="20" Text="{Binding Race.Script.ErrorMessage.Value,Mode=OneWay,ElementName=Root}" Foreground="{DynamicResource ErrorForeground}"
+                   TextWrapping="Wrap" Background="{DynamicResource BaseBackground}"/>
         </Border>
         
         <!--馬券提案-->
@@ -1115,8 +1118,8 @@
                 <TextBlock Text="{Binding Race.Tickets.Value.TotalMoney.Value,ElementName=Root}" Width="170" TextAlignment="Right"
                            FontSize="32" Margin="8,0,0,0" VerticalAlignment="Center"/>
               </StackPanel>
-              <Button Width="120" Grid.Column="1" Grid.Row="1" Content="購入" FontSize="20"
-                      Command="{Binding BuyCommand}" IsEnabled="{Binding Race.CanBuy.Value,ElementName=Root}"/>
+              <Button Width="120" Grid.Column="1" Grid.Row="1" Content="{Binding Race.PurchaseLabel,ElementName=Root}" FontSize="16"
+                      Command="{Binding BuyCommand}" IsEnabled="{Binding Race.CanBuy.Value,ElementName=Root}" TextBlock.TextAlignment="Center"/>
             </Grid>
           </Grid>
           

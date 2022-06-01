@@ -16,6 +16,8 @@ namespace KmyKeiba.Models.Injection
 
   public interface IBuyer
   {
+    string GetPurchaseLabel(RaceData race);
+
     bool CanBuy(RaceData race);
 
     IPurchaseBuilder CreateNewPurchase(RaceData race);
@@ -34,6 +36,6 @@ namespace KmyKeiba.Models.Injection
       return this;
     }
 
-    void Send(Action<bool>? isSucceedCallback);
+    Task SendAsync(Action<bool>? isSucceedCallback);
   }
 }

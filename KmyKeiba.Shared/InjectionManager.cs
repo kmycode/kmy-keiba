@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KmyKeiba.Models.Injection
+namespace KmyKeiba.Shared
 {
   public static class InjectionManager
   {
@@ -13,6 +13,8 @@ namespace KmyKeiba.Models.Injection
     public const string TimeDeviationValueCalculator = "KmyKeiba.Models.Injection.Private.TimeDeviationValueCalculator";
 
     public const string Buyer = "KmyKeiba.Models.Injection.Private.KscBuyer";
+
+    public const string CentralSoftwareIdGetter = "KmyKeiba.Downloader.Injection.Private.CentralSoftwareIdGetter";
 
     public static T? GetInstance<T>(string typeName) where T : class
     {

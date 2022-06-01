@@ -20,6 +20,8 @@ namespace KmyKeiba.Models.Connection
 {
   internal class DownloaderConnector : IDisposable
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private readonly CompositeDisposable _disposables = new();
     private readonly ReactiveProperty<DownloaderTaskData?> currentTask = new();
     private readonly ReactiveProperty<DownloaderTaskData?> currentRTTask = new();
@@ -56,9 +58,9 @@ namespace KmyKeiba.Models.Connection
         {
           File.WriteAllText(liveFileName, DateTime.Now.ToString());
         }
-        catch
+        catch (Exception ex)
         {
-          // TODO: logs
+          logger.Error("ライブファイルがアップデートできませんでした", ex);
         }
       }).AddTo(this._disposables);
     }
@@ -80,14 +82,17 @@ namespace KmyKeiba.Models.Connection
       {
         info.ArgumentList.Add(arg);
       }
+      logger.Info($"ダウンローダのコマンド: {command}");
+      logger.Info($"ダウンローダ起動パラメータ: {string.Join(',', arguments)}");
 
       try
       {
         Process.Start(info);
+        logger.Info("ダウンローダを起動しました");
       }
       catch (Exception ex)
       {
-        // TODO: logs
+        logger.Error("ダウンローダの起動に失敗しました", ex);
         throw new DownloaderCommandException(DownloaderError.ProcessNotStarted, ex.Message, ex);
       }
     }
@@ -111,10 +116,12 @@ namespace KmyKeiba.Models.Connection
           {
             if (item.IsFinished)
             {
+              logger.Info($"ダウンローダのタスク {taskDataId} 完了を検知しました");
               if (!item.IsCanceled)
               {
                 db.Remove(item);
                 await db.SaveChangesAsync();
+                logger.Info("正常終了");
               }
               return item;
             }
@@ -126,13 +133,19 @@ namespace KmyKeiba.Models.Connection
               }
             }
           }
+          else
+          {
+            throw new NullReferenceException();
+          }
         }
-        catch
+        catch (Exception ex)
         {
-          // TODO: log
+          logger.Warn($"タスク {taskDataId} の待ち処理で例外が発生しました", ex);
+
           tryCount++;
           if (tryCount > 1200)
           {
+            logger.Error($"タスク {taskDataId} の待ち処理を中止します", ex);
             throw new DownloaderCommandException(DownloaderError.ConnectionTimeout);
           }
         }
@@ -143,8 +156,11 @@ namespace KmyKeiba.Models.Connection
 
     public async Task InitializeAsync()
     {
+      logger.Info("ダウンローダとの接続初期化を開始します");
+
       if (File.Exists(Constrants.ShutdownFilePath))
       {
+        logger.Debug("シャットダウンファイルを削除");
         File.Delete(Constrants.ShutdownFilePath);
       }
 
@@ -154,6 +170,7 @@ namespace KmyKeiba.Models.Connection
       {
         await Task.Delay(100);
       }
+      logger.Info("データベースファイルの存在を確認");
 
       var tryCount = 0;
 
@@ -170,9 +187,11 @@ namespace KmyKeiba.Models.Connection
           {
             db.DownloaderTasks!.Remove(task);
             await db.SaveChangesAsync();
+            logger.Debug("接続確認");
 
             if (task.Error == DownloaderError.InvalidVersion)
             {
+              logger.Error($"ダウンローダとアプリのバージョンが異なります アプリのバージョン: {Constrants.ApplicationVersion}");
               throw new DownloaderCommandException(task.Error, task.Result);
             }
 
@@ -181,15 +200,18 @@ namespace KmyKeiba.Models.Connection
         }
         catch (DownloaderCommandException ex)
         {
+          logger.Fatal("初期化でエラーが発生しました", ex);
           throw ex;
         }
-        catch
+        catch (Exception ex)
         {
-          // TODO: logs
+          logger.Error("初期化でエラーが発生しました", ex);
+
           // 最新task取得の時点でデータベースが初期化されていない可能性があるので、そのエラーを受ける
           tryCount++;
           if (tryCount > 600)
           {
+            logger.Fatal("初期化エラーのため初期化を中止します");
             throw new DownloaderCommandException(DownloaderError.ConnectionTimeout);
           }
 
@@ -210,14 +232,16 @@ namespace KmyKeiba.Models.Connection
 
     private async Task<bool> DownloadAsync(string link, string type, DateOnly start, Func<DownloaderTaskData, Task>? progress, bool isRealTime)
     {
+      logger.Info($"ダウンロードを開始します RT:{isRealTime} リンク:{link} タイプ:{type} 開始年月:{start}");
+
       if (isRealTime ? this.IsRTBusy.Value : this.IsBusy.Value)
       {
+        logger.Warn("すでにダウンロード中です");
         throw new InvalidOperationException();
       }
 
       try
       {
-        using var db = new MyContext();
         DownloaderTaskData task;
         if (isRealTime)
         {
@@ -237,21 +261,8 @@ namespace KmyKeiba.Models.Connection
           };
           this.currentTask.Value = task;
         }
-        await db.DownloaderTasks!.AddAsync(task);
-        await db.SaveChangesAsync();
 
-        this.ExecuteDownloader(task.Command, task.Id.ToString());
-        var result = await this.WaitForFinished(task.Id, progress);
-
-        if (result.Error != DownloaderError.Succeed)
-        {
-          throw new DownloaderCommandException(result.Error, result.Result);
-        }
-        if (result.IsCanceled)
-        {
-          // return false;
-          throw new DownloaderCommandException(DownloaderError.Canceled);
-        }
+        await this.PublishTaskAsync(task, progress);
       }
       finally
       {
@@ -272,27 +283,18 @@ namespace KmyKeiba.Models.Connection
     {
       if (this.IsBusy.Value)
       {
+        logger.Warn("すでにダウンロード中です");
         throw new InvalidOperationException();
       }
 
       try
       {
-        using var db = new MyContext();
-        var task = new DownloaderTaskData
+        this.currentTask.Value = new DownloaderTaskData
         {
           Command = DownloaderCommand.OpenMovie,
           Parameter = key + "," + (short)type + "," + (link == DownloadLink.Central ? "central" : "local"),
         };
-        this.currentTask.Value = task;
-        await db.DownloaderTasks!.AddAsync(task);
-        await db.SaveChangesAsync();
-
-        this.ExecuteDownloader(task.Command, task.Id.ToString());
-        var result = await WaitForFinished(task.Id, null);
-        if (result.Error != DownloaderError.Succeed)
-        {
-          throw new DownloaderCommandException(result.Error, result.Result);
-        }
+        await this.PublishTaskAsync(this.currentTask.Value);
       }
       finally
       {
@@ -300,30 +302,43 @@ namespace KmyKeiba.Models.Connection
       }
     }
 
+    private async Task PublishTaskAsync(DownloaderTaskData task, Func<DownloaderTaskData, Task>? progressing = null)
+    {
+      using var db = new MyContext();
+      await db.DownloaderTasks!.AddAsync(task);
+      await db.SaveChangesAsync();
+
+      logger.Info($"タスク発行 ID: {task.Id}, コマンド: {task.Command}, パラメータ: {task.Parameter}");
+
+      this.ExecuteDownloader(task.Command, task.Id.ToString());
+      var result = await WaitForFinished(task.Id, progressing);
+      if (result.Error != DownloaderError.Succeed)
+      {
+        logger.Error($"タスクがエラーを返しました {task.Id} {result.Error} {result.Result}");
+        throw new DownloaderCommandException(result.Error, result.Result);
+      }
+      if (result.IsCanceled)
+      {
+        logger.Warn($"タスクがキャンセルされました {task.Id}");
+        throw new DownloaderCommandException(DownloaderError.Canceled);
+      }
+    }
+
     private async Task OpenConfigAsync(DownloaderCommand command)
     {
       if (this.IsBusy.Value)
       {
+        logger.Warn("すでにダウンロード中です");
         throw new InvalidOperationException();
       }
 
       try
       {
-        using var db = new MyContext();
-        var task = new DownloaderTaskData
+        this.currentTask.Value = new DownloaderTaskData
         {
           Command = command,
         };
-        this.currentTask.Value = task;
-        await db.DownloaderTasks!.AddAsync(task);
-        await db.SaveChangesAsync();
-
-        this.ExecuteDownloader(task.Command, task.Id.ToString());
-        var result = await WaitForFinished(task.Id, null);
-        if (result.Error != DownloaderError.Succeed)
-        {
-          throw new DownloaderCommandException(result.Error, result.Result);
-        }
+        await this.PublishTaskAsync(this.currentTask.Value);
       }
       finally
       {
@@ -345,20 +360,31 @@ namespace KmyKeiba.Models.Connection
     {
       if (!this.IsBusy.Value)
       {
+        logger.Warn("キャンセルしようとしましたが、そのような状態ではないので処理を中止しました");
         return;
       }
 
-      using var db = new MyContext();
-      db.DownloaderTasks!.Attach(this.currentTask.Value!);
-      this.currentTask.Value!.IsCanceled = true;
-      this.currentTask.Value!.IsFinished = true;
-      await db.SaveChangesAsync();
+      try
+      {
+        using var db = new MyContext();
+        db.DownloaderTasks!.Attach(this.currentTask.Value!);
+        this.currentTask.Value!.IsCanceled = true;
+        this.currentTask.Value!.IsFinished = true;
+        await db.SaveChangesAsync();
+
+        logger.Info($"タスク {this.currentTask.Value.Id} をキャンセルしました");
+      }
+      catch (Exception ex)
+      {
+        logger.Warn($"タスク {this.currentTask.Value?.Id} のキャンセルに失敗しました", ex);
+      }
 
       this.currentTask.Value = null;
     }
 
     public void Dispose()
     {
+      logger.Info("シャットダウンファイルを作成します");
       File.WriteAllText(Constrants.ShutdownFilePath, string.Empty);
       this._disposables.Dispose();
     }
