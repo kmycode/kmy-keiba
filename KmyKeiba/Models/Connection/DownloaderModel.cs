@@ -522,6 +522,7 @@ namespace KmyKeiba.Models.Connection
       {
         this.IsDownloading.Value = false;
         this.IsProcessing.Value = false;
+        this.IsCancelProcessing.Value = false;
         this.ProcessingStep.Value = Connection.ProcessingStep.Unknown;
         this.LoadingProcess.Value = LoadingProcessValue.Unknown;
       }
@@ -569,6 +570,7 @@ namespace KmyKeiba.Models.Connection
       {
         this.IsRTDownloading.Value = false;
         this.IsRTProcessing.Value = false;
+        this.IsCancelProcessing.Value = false;
         this.RTProcessingStep.Value = Connection.ProcessingStep.Unknown;
         this.RTLoadingProcess.Value = LoadingProcessValue.Unknown;
       }
