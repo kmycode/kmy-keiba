@@ -23,7 +23,11 @@ namespace KmyKeiba.JVLink.Entities
 
     public bool IsNotWon { get; private set; }
 
+    public bool IsOpen { get; private set; }
+
     public int Age { get; private set; }
+
+    public bool IsLocal { get; set; }
 
     public RaceGrade Grade { get; set; }
 
@@ -36,6 +40,8 @@ namespace KmyKeiba.JVLink.Entities
       public RaceSubjectType Type { get; init; }
     }
 
+    public RaceSubjectType NotAgeSubjectType { get; set; }
+
     public RaceClass MaxClass =>
       this.Items.Any() ? this.Items.Max((i) => i.Class) :
       this.Money > 0 ? RaceClass.Money :
@@ -45,26 +51,107 @@ namespace KmyKeiba.JVLink.Entities
     public object DisplayClass =>
       this.Grade != RaceGrade.Unknown && this.Grade != RaceGrade.Others ? this.Grade :
       this.AgeSubjects.Any() ? RaceClass.Age :
-      this.MaxClass;
+      this.MaxClass != RaceClass.Unknown ? this.MaxClass : RaceSubjectType.Open;
+
+    public object? SecondaryClass
+    {
+      get
+      {
+        var maxClass = this.MaxClass;
+        var displayClass = this.DisplayClass;
+
+        if (this.Grade == RaceGrade.Grade1 || this.Grade == RaceGrade.Grade2 || this.Grade == RaceGrade.Grade3 ||
+          this.Grade == RaceGrade.LocalGrade1 || this.Grade == RaceGrade.LocalGrade2 || this.Grade == RaceGrade.LocalGrade3)
+        {
+          return null;
+        }
+
+        // 地方競馬
+        if (maxClass != RaceClass.Unknown)
+        {
+          if (maxClass == RaceClass.Age || maxClass == RaceClass.Money)
+          {
+            if (this.IsNotWon)
+            {
+              return RaceSubjectType.Maiden;
+            }
+            if (this.IsNewHorses)
+            {
+              return RaceSubjectType.NewComer;
+            }
+            if (this.IsOpen)
+            {
+              return RaceSubjectType.Open;
+            }
+
+            return null;
+          }
+
+          // 年齢制限は中央地方のほとんどのレースにある。いちいち入れると画面がうるさい
+          if (displayClass is RaceGrade || displayClass is RaceClass.Age)
+          {
+            return maxClass;
+          }
+        }
+        // 中央競馬
+        else
+        {
+          // 特別レースの条件（中央競馬）
+          if ((displayClass is RaceGrade.NonGradeSpecial || displayClass is RaceGrade.Listed || displayClass is RaceClass.Age) && this.AgeSubjects.Any())
+          {
+            return this.AgeSubjects.Max(s => s.Type);
+          }
+        }
+
+        return null;
+      }
+    }
+    public RaceClass[] AllClasses => this.Items.Any() ? this.Items.Select(i => i.Class).ToArray() :
+      this.Money > 0 ? new[] { RaceClass.Money, } :
+      this.Age > 0 ? new[] { RaceClass.Age, } : Array.Empty<RaceClass>();
 
     public string ClassName
     {
       get
       {
+        if (this.DisplayClass is RaceGrade grade)
+        {
+          return grade.GetLabel();
+        }
+
+        if (this.DisplayClass is RaceClass cls)
+        {
+          if (cls == RaceClass.Age && this.AgeSubjects.Any())
+          {
+            var age = this.AgeSubjects.Min((s) => s.Age);
+            if (age <= 5)
+            {
+              return age + "歳";
+            }
+            return "最若";
+          }
+
+          if (cls != RaceClass.Age)
+          {
+            var maxClass = cls;
+            var max = this.Items.FirstOrDefault((i) => i.Class == maxClass);
+            var className = max?.Class.GetAttribute();
+
+            if (className != null)
+            {
+              if (max != null && max.Level > 0)
+              {
+                return className.Name + max.Level;
+              }
+              return className.Name;
+            }
+          }
+        }
+
         if (this.Grade != RaceGrade.Unknown && this.Grade != RaceGrade.Others &&
           (string.IsNullOrEmpty(this.Name) || this.Grade != RaceGrade.NonGradeSpecial))
         {
           return this.Grade.GetLabel();
-        }
-
-        if (this.AgeSubjects.Any())
-        {
-          var age = this.AgeSubjects.Min((s) => s.Age);
-          if (age <= 5)
-          {
-            return age + "歳";
-          }
-          return "最若";
         }
 
         if (!this.Items.Any())
@@ -77,20 +164,27 @@ namespace KmyKeiba.JVLink.Entities
           {
             return this.Age + "歳";
           }
-          return string.Empty;
+          return "OP";
         }
 
-        var maxClass = this.MaxClass;
-        var max = this.Items.First((i) => i.Class == maxClass);
-        var className = max.Class.GetAttribute();
+        return "OP";
+      }
+    }
 
-        if (className != null)
+    public string DisplayName
+    {
+      get
+      {
+        if (!string.IsNullOrEmpty(this.Name))
         {
-          if (max.Level > 0)
-          {
-            return className.Name + max.Level;
-          }
-          return className.Name;
+          return this.Name;
+        }
+
+        if (this.AgeSubjects.Any())
+        {
+          var ages = string.Join(',', this.AgeSubjects.Select(s => s.Age + "歳"));
+          var subjects = this.AgeSubjects.First().Type.GetLabel();
+          return $"{ages} - {subjects}";
         }
 
         return string.Empty;
@@ -123,7 +217,7 @@ namespace KmyKeiba.JVLink.Entities
     {
     }
 
-    public static RaceSubject Parse(string text)
+    public static RaceSubject Parse(string text, string raceName)
     {
       var subject = new RaceSubject
       {
@@ -214,38 +308,58 @@ namespace KmyKeiba.JVLink.Entities
         }
       }
 
-      if (text.Contains("新馬"))
+      bool TryMatch(Regex reg, string str)
+      {
+        match = reg.Match(str);
+        if (match.Success)
+        {
+          int.TryParse(match.Groups["age"].Value, out int age);
+          subject!.Age = age;
+          return true;
+        }
+        return false;
+      }
+
+      if (text.Contains("新馬") || raceName.Contains("新馬"))
       {
         subject.IsNewHorses = true;
 
         reg = new Regex(@"(?<age>\d)歳");
-        match = reg.Match(text);
-        if (match.Success)
+
+        if (!TryMatch(reg, text))
         {
-          int.TryParse(match.Groups["age"].Value, out int age);
-          subject.Age = age;
+          TryMatch(reg, raceName);
         }
       }
-      else if (text.Contains("未勝利") || text.Contains("認未勝"))
+      else if (text.Contains("未勝利") || text.Contains("認未勝") || raceName.Contains("未勝利") || raceName.Contains("認未勝"))
       {
         subject.IsNotWon = true;
 
         reg = new Regex(@"(?<age>\d)歳");
-        match = reg.Match(text);
-        if (match.Success)
+
+        if (!TryMatch(reg, text))
         {
-          int.TryParse(match.Groups["age"].Value, out int age);
-          subject.Age = age;
+          TryMatch(reg, raceName);
+        }
+      }
+      else if (text.Contains("OP") || raceName.Contains("OP"))
+      {
+        subject.IsOpen = true;
+
+        reg = new Regex(@"(?<age>\d)歳");
+
+        if (!TryMatch(reg, text))
+        {
+          TryMatch(reg, raceName);
         }
       }
       else if (!subject.Items.Any())
       {
         reg = new Regex(@"(?<age>\d+)歳");
-        match = reg.Match(text);
-        if (match.Success)
+
+        if (!TryMatch(reg, text))
         {
-          int.TryParse(match.Groups["age"].Value, out int age);
-          subject.Age = age;
+          TryMatch(reg, raceName);
         }
       }
 
@@ -254,7 +368,10 @@ namespace KmyKeiba.JVLink.Entities
 
     internal static RaceSubject FromJV(JVData_Struct.JV_RA_RACE race)
     {
-      var subject = Parse(race.JyokenName.Trim());
+      // Parseメソッドとは二重処理になってないはず
+      // ここでは、JVやNVから来たレースデータをEnumに直してる程度
+
+      var subject = Parse(race.JyokenName.Trim(), race.RaceInfo.Hondai.Trim());
 
       var grade = Enum
         .GetValues<RaceGrade>()
@@ -441,13 +558,13 @@ namespace KmyKeiba.JVLink.Entities
     [RaceGradeInfo("E", RaceGradeType.NonGradeSpecial, "特別")]
     NonGradeSpecial = 5,
 
-    [RaceGradeInfo("F", RaceGradeType.Steeplechase, "J1")]
+    [RaceGradeInfo("F", RaceGradeType.Steeplechase, "Jpn1")]
     Steeplechase1 = 6,
 
-    [RaceGradeInfo("G", RaceGradeType.Steeplechase, "J2")]
+    [RaceGradeInfo("G", RaceGradeType.Steeplechase, "Jpn2")]
     Steeplechase2 = 7,
 
-    [RaceGradeInfo("H", RaceGradeType.Steeplechase, "J3")]
+    [RaceGradeInfo("H", RaceGradeType.Steeplechase, "Jpn3")]
     Steeplechase3 = 8,
 
     [RaceGradeInfo("L", RaceGradeType.Listed, "L")]

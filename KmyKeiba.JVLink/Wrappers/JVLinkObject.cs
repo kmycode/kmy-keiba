@@ -15,19 +15,19 @@ namespace KmyKeiba.JVLink.Wrappers
     public static JVLinkObject Central => _central ??= new JVLinkObject(JVLinkObjectType.Central);
     public static JVLinkObject Local => _local ??= new JVLinkObject(JVLinkObjectType.Local);
 
-    private enum JVLinkObjectType
-    {
-      Central,
-      Local,
-    }
+    public static string CentralInitializationKey { get; set; } = "SA000000/SD000004";
 
     private readonly IJVLinkObject link;
     private bool hasInitialized = false;
 
     public bool IsError { get; private set; }
 
+    public JVLinkObjectType Type { get; }
+
     private JVLinkObject(JVLinkObjectType type)
     {
+      this.Type = type;
+
       try
       {
         this.link = type switch
@@ -47,6 +47,32 @@ namespace KmyKeiba.JVLink.Wrappers
     public void OpenConfigWindow()
     {
       this.link.SetUIProperties();
+    }
+
+    public JVLinkMovieResult PlayMovie(JVLinkMovieType type, string key)
+    {
+      this.CheckInitialized();
+
+      var result = this.link.MVPlayWithType(((short)type).ToString("00"), key);
+      if (result != 0)
+      {
+        throw JVLinkException.GetError((JVLinkMovieResult)result);
+      }
+
+      return (JVLinkMovieResult)result;
+    }
+
+    public JVLinkMovieReader OpenMovie(JVLinkTrainingMovieType type, string key)
+    {
+      this.CheckInitialized();
+
+      var result = this.link.MVOpen(((short)type).ToString(), key);
+      if (result != 0)
+      {
+        throw new JVLinkException<JVLinkMovieResult>((JVLinkMovieResult)result);
+      }
+
+      return new JVLinkMovieReader(this.link);
     }
 
     public IJVLinkReader StartRead(JVLinkDataspec dataspec, JVLinkOpenOption options, DateTime from, DateTime? to = null)
@@ -118,7 +144,7 @@ namespace KmyKeiba.JVLink.Wrappers
       {
         var key = from != null ? ((DateTime)from).ToString("yyyyMMdd")! : raceKey!;
         result = this.link.RtOpen(string.Join(string.Empty, attributes.Select((a) => a!.Code)),
-                                  raceKey!);
+                                  key);
       }
 
       if (result != 0 && result != -1)
@@ -128,7 +154,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
       if (result != -1)
       {
-        return new JVLinkReader(this.link, readCount, downloadCount, from, to);
+        return new JVLinkReader(this.link, readCount, downloadCount, from, to, options == JVLinkOpenOption.RealTime);
       }
 
       return new EmptyJVLinkReader(this.link);
@@ -176,6 +202,13 @@ namespace KmyKeiba.JVLink.Wrappers
     }
 
     public void Dispose() => this.link.Dispose();
+  }
+
+  public enum JVLinkObjectType
+  {
+    Unknown,
+    Central,
+    Local,
   }
 
   [Flags]
@@ -303,6 +336,22 @@ namespace KmyKeiba.JVLink.Wrappers
 
     [JVLinkDataspec("WOOD", JVLinkOpenOption.WithoutThisWeek)]
     Wood = 0b1000_0000_0000_0000_0000_0000_0000_0000,
+  }
+
+  public enum JVLinkMovieType
+  {
+    Race = 0,
+    Paddock = 1,
+    MultiCameras = 2,
+    Patrol = 3,
+    Training = 11,
+  }
+
+  public enum JVLinkTrainingMovieType
+  {
+    Weekly = 11,
+    WeekAndHorse = 12,
+    Horse = 13,
   }
 
   public static class JVLinkExtensions

@@ -150,14 +150,24 @@ namespace KmyKeiba.Data.Db
     public TimeSpan AfterThirdHalongTime { get; set; }
 
     /// <summary>
-    /// 後３ハロンタイムの順位
-    /// </summary>
-    public short AfterThirdHalongTimeOrder { get; set; }
-
-    /// <summary>
     /// 脚質
     /// </summary>
     public RunningStyle RunningStyle { get; set; }
+
+    /// <summary>
+    /// 脚質を手動で設定したか
+    /// </summary>
+    public bool IsRunningStyleSetManually { get; set; }
+
+    /// <summary>
+    /// 前回のレースは何日前か
+    /// </summary>
+    public short PreviousRaceDays { get; set; }
+
+    /// <summary>
+    /// 騎手の勝率マスターデータにこのデータは含まれているか
+    /// </summary>
+    public bool IsContainsRiderWinRate { get; set; }
 
     /// <summary>
     /// 勝負服の模様
@@ -166,10 +176,9 @@ namespace KmyKeiba.Data.Db
     public string UniformFormat { get; set; } = string.Empty;
 
     /// <summary>
-    /// 勝負服の画像
+    /// メモ
     /// </summary>
-    [MaxLength(8000), Column(TypeName = "VARBINARY(8000)")]
-    public byte[] UniformFormatData { get; set; } = Array.Empty<byte>();
+    public string? Memo { get; set; }
 
     public override void SetEntity(RaceHorse entity)
     {
@@ -182,7 +191,6 @@ namespace KmyKeiba.Data.Db
       this.Type = entity.Type;
       this.Color = entity.Color;
       this.Number = entity.Number;
-      this.Popular = entity.Popular;
       this.RaceKey = entity.RaceKey;
       this.Course = entity.Course;
       this.ResultOrder = entity.ResultOrder;
@@ -195,25 +203,40 @@ namespace KmyKeiba.Data.Db
       this.SecondCornerOrder = entity.SecondCornerOrder;
       this.ThirdCornerOrder = entity.ThirdCornerOrder;
       this.FourthCornerOrder = entity.FourthCornerOrder;
-      this.RiderCode = entity.RiderCode;
-      this.RiderName = entity.RiderName;
-      this.RiderWeight = entity.RiderWeight;
       this.TrainerCode = entity.TrainerCode;
       this.TrainerName = entity.TrainerName;
       this.OwnerCode = entity.OwnerCode;
       this.OwnerName = entity.OwnerName;
-      this.Weight = entity.Weight;
-      this.WeightDiff = entity.WeightDiff;
-      this.Odds = entity.Odds;
       this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
       this.AbnormalResult = entity.AbnormalResult;
-      this.RunningStyle = entity.RunningStyle;
+      this.UniformFormat = entity.UniformFormat;
 
-      if (this.UniformFormat != entity.UniformFormat)
+      if (this.CanSetOdds(entity.Odds))
       {
-        this.UniformFormat = entity.UniformFormat;
-        this.UniformFormatData = new byte[0];
+        this.Odds = entity.Odds;
+        this.Popular = entity.Popular;
+        this.RiderCode = entity.RiderCode;
+        this.RiderName = entity.RiderName;
+        this.RiderWeight = entity.RiderWeight;
+        this.Weight = entity.Weight;
+        this.WeightDiff = entity.WeightDiff;
       }
+
+      if (!this.IsRunningStyleSetManually)
+      {
+        this.RunningStyle = entity.RunningStyle;
+      }
+    }
+
+    public bool CanSetOdds(short odds)
+    {
+      if (this.Odds == default || odds != default) return true;
+
+      if (this.AbnormalResult == RaceAbnormality.Scratched || this.AbnormalResult == RaceAbnormality.ExcludedByStarters)
+      {
+        return true;
+      }
+      return false;
     }
 
     public override bool IsEquals(DataBase<RaceHorse> b)

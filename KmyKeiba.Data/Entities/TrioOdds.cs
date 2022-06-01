@@ -16,24 +16,15 @@ namespace KmyKeiba.JVLink.Entities
 
     public List<OddsData> Odds { get; } = new();
 
-    public struct OddsData : IEntityBase
+    public struct OddsData
     {
-      public DateTime LastModified { get; set; }
-
-      public RaceDataStatus DataStatus { get; set; }
-
-      public string RaceKey { get; set; }
-
       public short HorseNumber1 { get; init; }
 
       public short HorseNumber2 { get; init; }
 
       public short HorseNumber3 { get; init; }
 
-      public float Odds { get; init; }
-
-      public override int GetHashCode()
-        => $"{this.RaceKey}{this.HorseNumber1} {this.HorseNumber2} {this.HorseNumber3}".GetHashCode();
+      public uint Odds { get; init; }
     }
 
     public static TrioOdds FromJV(JVData_Struct.JV_O5_ODDS_SANREN odds)
@@ -47,7 +38,7 @@ namespace KmyKeiba.JVLink.Entities
 
       int.TryParse(odds.TorokuTosu, out int horsesCount);
       foreach (var data in odds.OddsSanrenInfo
-        .Where((o) => o.Odds != "000000" && o.Odds != "******" && o.Odds != "------" && !string.IsNullOrWhiteSpace(o.Odds)).OrderBy((o) => o.Odds).Take(20))
+        .Where((o) => o.Odds != "000000" && o.Odds != "******" && o.Odds != "------" && !string.IsNullOrWhiteSpace(o.Odds)))
       {
         short.TryParse(data.Kumi.Substring(0, 2), out short num1);
         short.TryParse(data.Kumi.Substring(2, 2), out short num2);
@@ -57,17 +48,14 @@ namespace KmyKeiba.JVLink.Entities
           continue;
         }
 
-        float.TryParse(data.Odds, out float oval);
+        uint.TryParse(data.Odds, out uint oval);
 
         od.Odds.Add(new OddsData
         {
-          DataStatus = od.DataStatus,
-          LastModified = od.LastModified,
-          RaceKey = od.RaceKey,
           HorseNumber1 = num1,
           HorseNumber2 = num2,
           HorseNumber3 = num3,
-          Odds = oval / 10,
+          Odds = oval,
         });
       }
 

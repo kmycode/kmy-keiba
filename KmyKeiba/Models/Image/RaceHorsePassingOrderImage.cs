@@ -31,6 +31,10 @@ namespace KmyKeiba.Models.Image
     }
     private IEnumerable<RaceCorner.Group>? _groups;
 
+    private short _firstHorse;
+    private short _secondHorse;
+    private short _thirdHorse;
+
     private float _width;
     private float _height;
 
@@ -39,6 +43,14 @@ namespace KmyKeiba.Models.Image
 
     public RaceHorsePassingOrderImage()
     {
+      this.UpdateBitmap();
+    }
+
+    public void SetOrders(short firstHorse, short secondHorse, short thirdHorse)
+    {
+      this._firstHorse = firstHorse;
+      this._secondHorse = secondHorse;
+      this._thirdHorse = thirdHorse;
       this.UpdateBitmap();
     }
 
@@ -59,6 +71,13 @@ namespace KmyKeiba.Models.Image
         ?? SKColors.Black;
       var horceNumberPlateItemForeground = ResourceUtil.TryGetResource<RHColor>("HorseNumberPlateItemForeground")?.ToSKColor()
         ?? SKColors.Black;
+
+      var horceNumberPlateItemBackgroundFirst = ResourceUtil.TryGetResource<RHColor>("HorseNumberPlateItemBackgroundFirst")?.ToSKColor()
+        ?? new SKColor(255, 255, 230);
+      var horceNumberPlateItemBackgroundSecond = ResourceUtil.TryGetResource<RHColor>("HorseNumberPlateItemBackgroundSecond")?.ToSKColor()
+        ?? new SKColor(255, 255, 230);
+      var horceNumberPlateItemBackgroundThird = ResourceUtil.TryGetResource<RHColor>("HorseNumberPlateItemBackgroundThird")?.ToSKColor()
+        ?? new SKColor(255, 255, 230);
 
       const int SmallSpaceSize = 40;
       const int LargeSpaceSize = 100;
@@ -89,6 +108,11 @@ namespace KmyKeiba.Models.Image
           return;
         }
 
+        var color = num == this._firstHorse ? horceNumberPlateItemBackgroundFirst :
+          num == this._secondHorse ? horceNumberPlateItemBackgroundSecond :
+          num == this._thirdHorse ? horceNumberPlateItemBackgroundThird :
+          horceNumberPlateItemBackground;
+
         canvas.DrawRectWithBorder(x, y, HorseNumberSize, HorseNumberSize,
           new SKPaint
           {
@@ -97,7 +121,7 @@ namespace KmyKeiba.Models.Image
           },
           new SKPaint
           {
-            Color = horceNumberPlateItemBackground,
+            Color = color,
           });
         canvas.DrawText(num.ToString(), x + HorseNumberSize / 2, y + HorseNumberSize - 6, new SKPaint
         {
@@ -173,6 +197,7 @@ namespace KmyKeiba.Models.Image
 
       if (this._bitmap != null)
       {
+        canvas.Clear();
         canvas.DrawBitmap(this._bitmap, 0, 0);
       }
     }

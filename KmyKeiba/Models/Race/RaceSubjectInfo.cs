@@ -13,14 +13,22 @@ namespace KmyKeiba.Models.Race
   {
     public RaceSubject Subject { get; }
 
-    public string DisplayName { get; }
+    public string DisplayName
+    {
+      get => this._displayName;
+      set => this._displayName = value.Trim();
+    }
+    private string _displayName = string.Empty;
+
+    public string DisplaySubjectName => this.Subject.DisplayName;
 
     public string ShorterName { get; }
 
     public RaceSubjectInfo(RaceData race)
     {
-      this.Subject = RaceSubject.Parse(race.SubjectName);
+      this.Subject = RaceSubject.Parse(race.SubjectName, race.Name);
 
+      this.Subject.IsLocal = race.Course >= RaceCourse.LocalMinValue;
       this.Subject.Grade = race.Grade;
       if (race.SubjectAge2 != RaceSubjectType.Unknown)
       {

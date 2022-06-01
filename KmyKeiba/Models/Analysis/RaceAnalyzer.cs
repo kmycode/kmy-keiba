@@ -1,86 +1,103 @@
-﻿using KmyKeiba.Data.Db;
-using KmyKeiba.Models.Data;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Race;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Analysis
 {
-  /// <summary>
-  /// レースの傾向などを解析
-  /// </summary>
-  public class RaceAnalyzer
+  public class RaceAnalyzer : IDisposable
   {
-    private bool _isLoadedRelatedRaces;
+    public RaceData Data { get; }
 
-    public RaceInfo Race { get; }
+    public RaceSubjectInfo Subject { get; }
 
-    public ObservableCollection<RaceData> SameCourseRaces { get; } = new();
+    public RaceHorseData? TopHorseData => this.TopHorse.Data;
 
-    public ObservableCollection<RaceData> SamePastRaces { get; } = new();
+    public RaceHorseAnalyzer TopHorse { get; } = RaceHorseAnalyzer.Empty;
 
-    public RaceAnalyzer(RaceInfo race)
+    public IReadOnlyList<RaceHorseAnalyzer> TopHorses { get; }
+
+    public RunningStyle TopRunningStyle { get; }
+
+    public IReadOnlyList<RunningStyle> RunningStyles { get; }
+
+    /// <summary>
+    /// 荒れ度
+    /// </summary>
+    public double RoughRate { get; }
+
+    public double ResultTimeDeviationValue { get; }
+
+    public double A3HResultTimeDeviationValue { get; }
+
+    public RacePace Pace { get; }
+
+    public RacePace A3HPace { get; }
+
+    public RaceAnalyzer(RaceData race, IReadOnlyList<RaceHorseData> topHorses, RaceStandardTimeMasterData raceStandardTime)
     {
-      this.Race = race;
-    }
+      var topHorse = topHorses.OrderBy(h => h.ResultOrder).FirstOrDefault(h => h.ResultOrder == 1) ?? new();
 
-    public async Task PredictAsync(MyContext db)
-    {
-      await this.LoadSimilarRacesAsync(db);
-    }
+      this.Data = race;
+      this.TopHorses = topHorses.Select(h => new RaceHorseAnalyzer(race, h, raceStandardTime)).ToArray();
+      this.Subject = new RaceSubjectInfo(race);
+      this.RunningStyles = topHorses.OrderBy(h => h.ResultOrder)
+        .Take(3)
+        .Select(rh => rh.RunningStyle)
+        .Where(rs => rs != RunningStyle.Unknown)
+        .ToArray();
+      this.TopRunningStyle = this.RunningStyles.FirstOrDefault();
 
-    public async Task AnalysisResultAsync(MyContext db)
-    {
-      await this.LoadSimilarRacesAsync(db);
-    }
+      this.RoughRate = AnalysisUtil.CalcRoughRate(topHorses);
 
-    private async Task LoadSimilarRacesAsync(MyContext db)
-    {
-      if (this._isLoadedRelatedRaces)
+      if (topHorse != null)
       {
-        return;
-      }
-      this._isLoadedRelatedRaces = true;
+        this.TopHorse = new RaceHorseAnalyzer(race, topHorse, raceStandardTime);
 
-      var races = db.Races!
-        .Where(r => r.Course == this.Race.Data.Course)
-        .Where(r => r.TrackGround == this.Race.Data.TrackGround)
-        .Where(r => r.TrackType == this.Race.Data.TrackType)
-        .Where(r => r.CourseType == this.Race.Data.CourseType)
-        .Where(r => r.Distance <= this.Race.Data.Distance + 200 && r.Distance >= this.Race.Data.Distance - 200)
-        .OrderByDescending(r => r.StartTime);
-
-      // 条件の近いレース
-      var similarRaces = await races
-        .Where(r => r.StartTime < this.Race.Data.StartTime && r.StartTime >= this.Race.Data.StartTime.AddYears(-1))
-        .Take(100)
-        .ToArrayAsync();
-      foreach (var race in similarRaces)
-      {
-        this.SameCourseRaces.Add(race);
-      }
-
-      // 同じ名前・条件の過去レース
-      var samePastRacesQuery =
-        !string.IsNullOrWhiteSpace(this.Race.Data.Name) ? races.Where(r => r.Name == this.Race.Data.Name) :
-        !string.IsNullOrWhiteSpace(this.Race.Data.SubjectName) ? races.Where(r => r.SubjectName == this.Race.Data.Name) :
-        races.Where(r => r.SubjectAge2 == this.Race.Data.SubjectAge2 &&
-                         r.SubjectAge3 == this.Race.Data.SubjectAge3 &&
-                         r.SubjectAge4 == this.Race.Data.SubjectAge4 &&
-                         r.SubjectAge5 == this.Race.Data.SubjectAge5);
-      var samePastRaces = await samePastRacesQuery
-        .Where(r => r.Distance == this.Race.Data.Distance)
-        .Take(20)
-        .ToArrayAsync();
-      foreach (var race in samePastRaces)
-      {
-        this.SamePastRaces.Add(race);
+        this.Pace = this.TopHorse.ResultTimeDeviationValue < 38 ? RacePace.VeryLow :
+          this.TopHorse.ResultTimeDeviationValue < 45 ? RacePace.Low :
+          this.TopHorse.ResultTimeDeviationValue < 55 ? RacePace.Standard :
+          this.TopHorse.ResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
+        this.A3HPace = this.TopHorse.A3HResultTimeDeviationValue < 38 ? RacePace.VeryLow :
+          this.TopHorse.A3HResultTimeDeviationValue < 45 ? RacePace.Low :
+          this.TopHorse.A3HResultTimeDeviationValue < 55 ? RacePace.Standard :
+          this.TopHorse.A3HResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
+        this.ResultTimeDeviationValue = this.TopHorse.ResultTimeDeviationValue;
+        this.A3HResultTimeDeviationValue = this.TopHorse.A3HResultTimeDeviationValue;
       }
     }
+
+    public void Dispose()
+    {
+      this.TopHorse.Dispose();
+      foreach (var h in this.TopHorses)
+      {
+        h.Dispose();
+      }
+    }
+  }
+
+  public enum RacePace
+  {
+    [Label("とても速い")]
+    VeryHigh,
+
+    [Label("速い")]
+    High,
+
+    [Label("標準")]
+    Standard,
+
+    [Label("遅い")]
+    Low,
+
+    [Label("とても遅い")]
+    VeryLow,
   }
 }

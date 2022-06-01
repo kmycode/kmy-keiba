@@ -13,7 +13,7 @@ namespace KmyKeiba.Views.Parts
   /// <summary>
   /// レース条件の色付きアイコン
   /// </summary>
-  public class RaceSubjectIcon : Label
+  public class RaceSubjectIcon : Grid
   {
     public static readonly DependencyProperty SubjectProperty
       = DependencyProperty.Register(
@@ -34,26 +34,91 @@ namespace KmyKeiba.Views.Parts
       set { SetValue(SubjectProperty, value); }
     }
 
+    public static readonly DependencyProperty FontSizeProperty
+      = DependencyProperty.Register(
+          nameof(FontSize),
+          typeof(double),
+          typeof(RaceSubjectIcon),
+          new PropertyMetadata(12.0, (sender, e) =>
+          {
+            if (sender is RaceSubjectIcon view)
+            {
+              view.textBlock.FontSize = (double)e.NewValue;
+            }
+          }));
+
+    public double FontSize
+    {
+      get { return (double)GetValue(FontSizeProperty); }
+      set { SetValue(FontSizeProperty, value); }
+    }
+
+    private readonly Border border = new();
+    private readonly TextBlock textBlock = new TextBlock
+    {
+      Foreground = Brushes.White,
+      FontWeight = FontWeights.Bold,
+      VerticalAlignment = VerticalAlignment.Center,
+      HorizontalAlignment = HorizontalAlignment.Center,
+    };
+    private readonly Border subBorder = new Border
+    {
+      VerticalAlignment = VerticalAlignment.Bottom,
+    };
+
     public RaceSubjectIcon()
     {
-      this.Foreground = Brushes.White;
-      this.HorizontalContentAlignment = HorizontalAlignment.Center;
-      this.VerticalContentAlignment = VerticalAlignment.Center;
-      this.FontWeight = FontWeights.Bold;
+      this.Children.Add(this.border);
+      this.Children.Add(this.subBorder);
+      this.Children.Add(this.textBlock);
       this.Update();
+
+      this.LayoutUpdated += RaceSubjectIcon_LayoutUpdated;
+    }
+
+    private void RaceSubjectIcon_LayoutUpdated(object? sender, EventArgs e)
+    {
+      if (this.Subject?.SecondaryClass != null)
+      {
+        this.subBorder.Background = this.GetBrush(this.Subject.SecondaryClass);
+        var height = !double.IsNaN(this.Height) ? this.Height : 0;
+        var actualHeight = !double.IsNaN(this.ActualHeight) ? this.ActualHeight : 0;
+        var size = Math.Max(Math.Max(height, actualHeight) / 2, 3);
+        this.subBorder.Height = size;
+      }
+      else
+      {
+        this.subBorder.Background = this.GetBrush(string.Empty);
+      }
+
+      this.LayoutUpdated -= RaceSubjectIcon_LayoutUpdated;
     }
 
     private void Update()
     {
       if (this.Subject == null)
       {
-        this.Content = string.Empty;
-        this.Background = this.GetBrush(string.Empty);    // 引数は何でもいい
+        this.textBlock.Text = string.Empty;
+        this.border.Background = this.subBorder.Background = this.GetBrush(string.Empty);    // 引数は何でもいい
         return;
       }
 
-      this.Content = this.Subject.ClassName;
-      this.Background = this.GetBrush(this.Subject.DisplayClass);
+      this.textBlock.Text = this.Subject.ClassName;
+      this.border.Background = this.GetBrush(this.Subject.DisplayClass);
+
+      if (this.Subject.SecondaryClass != null)
+      {
+        this.subBorder.Background = this.GetBrush(this.Subject.SecondaryClass);
+        var height = !double.IsNaN(this.Height) ? this.Height : 0;
+        var actualHeight = !double.IsNaN(this.ActualHeight) ? this.ActualHeight : 0;
+        var size = Math.Max(Math.Max(height, actualHeight) / 2, 3);
+        this.subBorder.Height = size;
+        this.subBorder.Visibility = Visibility.Visible;
+      }
+      else
+      {
+        this.subBorder.Visibility = Visibility.Collapsed;
+      }
     }
 
     private Brush GetBrush(object cls)
@@ -65,7 +130,7 @@ namespace KmyKeiba.Views.Parts
         RaceClass.ClassC => Brushes.Green,
         RaceClass.ClassD => Brushes.Gray,
         RaceClass.Money => Brushes.DarkGoldenrod,
-        RaceClass.Age => Brushes.SkyBlue,
+        RaceClass.Age => Brushes.CadetBlue,
         RaceGrade.Grade1 => Brushes.DarkRed,
         RaceGrade.Grade2 => Brushes.DarkBlue,
         RaceGrade.Grade3 => Brushes.Green,
@@ -77,8 +142,23 @@ namespace KmyKeiba.Views.Parts
         RaceGrade.Steeplechase3 => Brushes.Green,
         RaceGrade.NoNamedGrade => Brushes.Gray,
         RaceGrade.NonGradeSpecial => Brushes.DarkGoldenrod,
-        RaceGrade.Listed => Brushes.Gray,
-        _ => Brushes.LightGray,
+        RaceGrade.Listed => Brushes.DarkGoldenrod,
+        RaceSubjectType.Win3 => Brushes.DarkRed,
+        RaceSubjectType.Win2 => Brushes.DarkBlue,
+        RaceSubjectType.Win1 => Brushes.Green,
+        RaceSubjectType.MoneyLess10000 => Brushes.DarkRed,
+        RaceSubjectType.MoneyLess9900 => Brushes.DarkRed,
+        RaceSubjectType.MoneyLess1600 => Brushes.DarkRed,
+        RaceSubjectType.MoneyLess1000 => Brushes.DarkBlue,
+        RaceSubjectType.MoneyLess500 => Brushes.DarkBlue,
+        RaceSubjectType.MoneyLess300 => Brushes.Green,
+        RaceSubjectType.MoneyLess200 => Brushes.Green,
+        RaceSubjectType.MoneyLess100 => Brushes.Green,
+        RaceSubjectType.Maiden => Brushes.BlueViolet,
+        RaceSubjectType.Open => Brushes.RosyBrown,
+        RaceSubjectType.NewComer => Brushes.DeepSkyBlue,
+        RaceSubjectType.Unraced => Brushes.DeepSkyBlue,
+        _ => Brushes.Transparent,
       };
     }
   }

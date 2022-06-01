@@ -3,15 +3,144 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:cef="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
         xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:b="clr-namespace:KmyKeiba.Behaviors"
         xmlns:local="clr-namespace:KmyKeiba"
-        xmlns:uc="clr-namespace:KmyKeiba.Views.Controls"
+        xmlns:uc="clr-namespace:KmyKeiba.Views.Details"
+        xmlns:um="clr-namespace:KmyKeiba.Views.Main"
+        xmlns:ud="clr-namespace:KmyKeiba.Views.Dialogs"
         mc:Ignorable="d"
-        Title="KMY競馬" MinHeight="700" MinWidth="1300" Height="700" Width="1300">
-  <Grid>
-    <uc:RaceView Race="{Binding Race.Value}"/>
+        Title="KMY競馬" MinHeight="740" MinWidth="1300" Height="1000" Width="1700">
+  <i:Interaction.Behaviors>
+    <b:OpenDialogBehavior Controller="{Binding Dialog}"/>
+  </i:Interaction.Behaviors>
+  <Grid Style="{DynamicResource WindowTopPanel}">
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition/>
+      </Grid.ColumnDefinitions>
+      
+      <!--メインコンテンツ-->
+      <Grid Grid.Column="1">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition/>
+          <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <um:RaceListView MinWidth="300" Grid.RowSpan="2" RaceList="{Binding RaceList}"/>
+        <uc:RaceView Grid.Column="1" Race="{Binding Race.Value}"/>
+        
+        <!--メニュー-->
+        <Border Grid.Column="1" Grid.Row="1" Height="60" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0,1,0,0">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition/>
+              <ColumnDefinition Width="auto"/>
+              <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
+              <Button Width="80" Height="50" FontSize="24" Padding="0" Content="DL" Command="{Binding OpenDownloadDialogCommand}"/>
+              <Border Width="240">
+                <Grid Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                      Background="{Binding Downloader.DownloadingStatus.Value,Converter={StaticResource ValueComparationBackgroundConv}}">
+                  <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}"
+                             VerticalAlignment="Center" Margin="16,0,0,0">
+                    <Run Text="{Binding Downloader.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/> <Run Text="{Binding Downloader.DownloadingYear.Value}"/>年 <Run Text="{Binding Downloader.DownloadingMonth.Value}"/>月<LineBreak/>
+                    [<Run Text="{Binding Downloader.DownloadingType.Value,Converter={StaticResource LabelConv}}"/>] <Run Text="{Binding Downloader.LoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
+                  </TextBlock>
+                  <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                             VerticalAlignment="Center" Margin="16,0,0,0">
+                    <Run Text="{Binding Downloader.ProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
+                  </TextBlock>
+                  <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{DynamicResource ErrorForeground}" FontSize="20" TextWrapping="Wrap"
+                             Text="{Binding Downloader.ErrorMessage.Value}" Visibility="{Binding Downloader.IsError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                </Grid>
+              </Border>
+              <Button Width="80" Height="50" FontSize="24" Padding="0" Content="RT" Command="{Binding OpenRTDownloadDialogCommand}"/>
+              <Border Width="240">
+                <Grid Visibility="{Binding Downloader.IsRTDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                      Background="{Binding Downloader.RTDownloadingStatus.Value,Converter={StaticResource ValueComparationBackgroundConv}}">
+                  <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsRTProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}"
+                             VerticalAlignment="Center" Margin="16,0,0,0">
+                    <Run Text="{Binding Downloader.RTDownloadingLink.Value,Converter={StaticResource LabelConv}}"/><LineBreak/>
+                    [<Run Text="{Binding Downloader.RTDownloadingDataspec.Value,Converter={StaticResource LabelConv}}"/>] <Run Text="{Binding Downloader.RTLoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
+                  </TextBlock>
+                  <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsRTProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                             VerticalAlignment="Center" Margin="16,0,0,0">
+                    <Run Text="{Binding Downloader.RTProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
+                  </TextBlock>
+                  <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{DynamicResource ErrorForeground}" FontSize="20" TextWrapping="Wrap"
+                             Text="{Binding Downloader.RTErrorMessage.Value}" Visibility="{Binding Downloader.IsRTError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                </Grid>
+              </Border>
+              <StackPanel Orientation="Horizontal">
+                <Button Width="90" Padding="0" Command="{Binding OpenScriptBulkDialogCommand}">
+                  <TextBlock FontSize="16" TextAlignment="Center">
+                    スクリプト<LineBreak/>一括実行
+                  </TextBlock>
+                </Button>
+                <TextBlock Text="実行中..." Visibility="{Binding ScriptBulk.IsExecuting.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                           Foreground="{DynamicResource SubForeground}" FontSize="16" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding ScriptBulk.SumOfIncomes.Value}" Foreground="{Binding ScriptBulk.IncomeComparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
+                           FontSize="16" VerticalAlignment="Center" Width="80" TextAlignment="Right"
+                           Visibility="{Binding ScriptBulk.SumOfIncomes.Value,Converter={StaticResource NonZeroVisibilityConv}}"/>
+              </StackPanel>
+            </StackPanel>
+
+            <Button Grid.Column="1" Width="80" Height="50" Padding="0"
+                    Command="{Binding OpenLocalRaceLiveCommand}" Margin="0,0,8,0">
+              <TextBlock FontSize="16" TextAlignment="Center">
+                地方競馬<LineBreak/>ライブ
+              </TextBlock>
+            </Button>
+
+            <Button Grid.Column="2" Width="80" Height="50" FontSize="24" Padding="0" Content="Ver"
+                    Command="{Binding OpenVersionDialogCommand}" Margin="0,0,8,0"/>
+          </Grid>
+        </Border>
+      </Grid>
+
+      <Border Grid.ColumnSpan="2" Background="{DynamicResource BaseBackground}" Visibility="{Binding IsInitialized.Value,Converter={StaticResource NegativeVisibilityConv}}">
+        <TextBlock FontSize="48" Text="初期化しています。しばらくお待ちください..." Foreground="{DynamicResource SubForeground}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      </Border>
+      <Border Grid.ColumnSpan="2" Background="{DynamicResource BaseBackground}" Visibility="{Binding IsInitializationError.Value,Converter={StaticResource BooleanVisibilityConv}}">
+        <TextBlock FontSize="48" Text="{Binding DownloaderErrorMessage.Value}" Foreground="{DynamicResource ErrorForeground}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      </Border>
+    </Grid>
+
+    <Grid Visibility="{Binding IsDialogOpen.Value,Converter={StaticResource BooleanVisibilityConv}}">
+      <Border Background="Black" Opacity="0.5"/>
+      <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="2"
+              Padding="24,8" HorizontalAlignment="Center" VerticalAlignment="Center"
+              Background="{DynamicResource BaseBackground}"
+              Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=Download}">
+        <ud:DownloadDialog/>
+      </Border>
+      <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="2"
+              Padding="24,8" HorizontalAlignment="Center" VerticalAlignment="Center"
+              Background="{DynamicResource BaseBackground}"
+              Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=RTDownload}">
+        <ud:RTDownloadDialog/>
+      </Border>
+      <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="2"
+              Padding="24,8" HorizontalAlignment="Center" VerticalAlignment="Center"
+              Background="{DynamicResource BaseBackground}"
+              Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=Version}">
+        <ud:VersionDialog/>
+      </Border>
+      <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="2"
+              Padding="24,8" Margin="48,60"
+              Background="{DynamicResource BaseBackground}"
+              Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=ScriptBulk}">
+        <ud:ExecuteScriptBulkDialog ScriptBulk="{Binding ScriptBulk}"/>
+      </Border>
+    </Grid>
   </Grid>
 </Window>

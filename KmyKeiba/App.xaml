@@ -7,6 +7,7 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Resources/ThemeDark.xaml"/>
+        <ResourceDictionary Source="Resources/HorseMarks.xaml"/>
         <ResourceDictionary Source="Resources/Converters.xaml"/>
         <ResourceDictionary Source="Resources/ControlStyles.xaml"/>
       </ResourceDictionary.MergedDictionaries>

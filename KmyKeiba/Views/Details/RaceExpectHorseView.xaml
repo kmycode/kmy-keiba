@@ -1,0 +1,286 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Details.RaceExpectHorseView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:b="clr-namespace:KmyKeiba.Behaviors"
+             xmlns:uc="clr-namespace:KmyKeiba.Views.Details"
+             xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
+             xmlns:ul="clr-namespace:KmyKeiba.Views.ListItems"
+             xmlns:local="clr-namespace:KmyKeiba.Views.Details"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Name="Root">
+  <Grid Margin="8,0,0,0">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto"/>
+      <RowDefinition/>
+    </Grid.RowDefinitions>
+
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+      </Grid.ColumnDefinitions>
+      <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="概要" Name="S_Summary" IsChecked="True"/>
+      <RadioButton Grid.Column="1" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="傾向" Name="S_HorseTrend"/>
+      <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="騎手" Name="S_Rider"/>
+      <RadioButton Grid.Column="3" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="調教師" Name="S_Trainer"/>
+      <RadioButton Grid.Column="4" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="血統" Name="S_HorseBlood"/>
+      <RadioButton Grid.Column="5" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="調教" Name="S_Training"/>
+    </Grid>
+
+    <!-- 概要 -->
+    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Summary,Converter={StaticResource BooleanVisibilityConv}}">
+      <ScrollViewer>
+        <StackPanel>
+          <Border Height="260">
+            <ul:RaceHorsePillar Horse="{Binding RaceHorse,ElementName=Root}" IsAllRaces="True"/>
+          </Border>
+          <Grid Margin="24,32,0,0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="0.2*"/>
+              <ColumnDefinition Width="0.4*"/>
+              <ColumnDefinition Width="0.2*"/>
+              <ColumnDefinition Width="0.4*"/>
+              <ColumnDefinition Width="0.2*"/>
+              <ColumnDefinition Width="0.4*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+              <RowDefinition/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                <Setter Property="VerticalAlignment" Value="Center"/>
+              </Style>
+            </Grid.Resources>
+            <TextBlock Grid.Column="0" Text="記号" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
+            <up:HorseTypeTip Grid.Column="1" HorseType="{Binding RaceHorse.Data.Type,ElementName=Root}"/>
+            <TextBlock Grid.Column="0" Grid.Row="1" Text="毛色" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
+            <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal">
+              <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Margin="0,0,8,0"
+                      Width="80" Height="20" Background="{Binding RaceHorse.Data.Color,ElementName=Root,Converter={StaticResource HorseColorBrushConv}}"/>
+              <TextBlock Text="{Binding RaceHorse.Data.Color,ElementName=Root,Converter={StaticResource EnumsConv}}"
+                         FontSize="24"/>
+            </StackPanel>
+            <TextBlock Grid.Column="2" Text="距離適性" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
+            <TextBlock Grid.Column="3" FontSize="24"
+                       Text="{Binding RaceHorse.History.BestDistance,ElementName=Root,Converter={StaticResource LabelConv}}"/>
+            <TextBlock Grid.Column="2" Text="副距離適性" Grid.Row="1" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
+            <TextBlock Grid.Column="3" Grid.Row="1" FontSize="24" Margin="0,8,0,0"
+                       Text="{Binding RaceHorse.History.SecondDistance,ElementName=Root,Converter={StaticResource LabelConv}}"/>
+            <TextBlock Grid.Column="4" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0">
+              同距離・地面<LineBreak/>騎手複勝
+            </TextBlock>
+            <TextBlock Grid.Column="5" FontSize="24" Foreground="{Binding RaceHorse.RiderPlaceBitsRateComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
+                       Text="{Binding RaceHorse.RiderPlaceBitsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
+            <TextBlock Grid.Column="5" Grid.Row="1" FontSize="16">
+              <Run Text="１着" Foreground="{DynamicResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderFirstCount,ElementName=Root,Mode=OneWay}"/>　
+              <Run Text="２着" Foreground="{DynamicResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderSecondCount,ElementName=Root,Mode=OneWay}"/><LineBreak/>
+              <Run Text="３着" Foreground="{DynamicResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderThirdCount,ElementName=Root,Mode=OneWay}"/>　
+              <Run Text="着外" Foreground="{DynamicResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderLosedCount,ElementName=Root,Mode=OneWay}"/>
+            </TextBlock>
+          </Grid>
+
+          <StackPanel Margin="8,36,0,36" Visibility="{Binding RaceHorse.History.HasCourseGrades,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+            <TextBlock Text="競馬場ごとの近い距離の成績" FontWeight="Bold" FontSize="24"/>
+            <StackPanel Orientation="Horizontal" Margin="8,12,0,0">
+              <StackPanel.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource SubTextBlock}">
+                  <Setter Property="FontSize" Value="16"/>
+                  <Setter Property="TextAlignment" Value="Right"/>
+                  <Setter Property="VerticalAlignment" Value="Center"/>
+                </Style>
+              </StackPanel.Resources>
+              <TextBlock Width="60" Text="場名" TextAlignment="Left"/>
+              <TextBlock Width="156" Text="成績" TextAlignment="Center"/>
+              <TextBlock Width="60" Text="距離" TextAlignment="Center"/>
+              <TextBlock Width="80" Text="持ち時計"/>
+              <TextBlock Width="60" Text="T偏"/>
+              <TextBlock Width="60" Text="TOP偏"/>
+              <TextBlock Width="40" Text="着順"/>
+              <TextBlock Width="50" Text="斤量"/>
+              <TextBlock Width="30" Text="歳"/>
+              <TextBlock Width="120" Text="日付"/>
+              <TextBlock Width="240" Text="レース名" TextAlignment="Left" Margin="8,0,0,0"/>
+            </StackPanel>
+            <ItemsControl ItemsSource="{Binding RaceHorse.History.CourseGrades,ElementName=Root}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid>
+                    <Border Background="{DynamicResource TableListFocusedRowBackground}" Visibility="{Binding IsCurrentCourse,Converter={StaticResource BooleanVisibilityConv}}"/>
+                    <StackPanel Orientation="Horizontal" Height="48" Margin="8,0,0,0">
+                      <StackPanel.Resources>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                          <Setter Property="FontSize" Value="16"/>
+                          <Setter Property="TextAlignment" Value="Right"/>
+                          <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                      </StackPanel.Resources>
+                      <TextBlock Width="60" Text="{Binding Course,Converter={StaticResource CourseNameConv}}" FontWeight="Bold" TextAlignment="Left"/>
+                      <StackPanel Width="140" VerticalAlignment="Center">
+                        <up:RaceResultOrderGradeRow Header="全て" Grade="{Binding AllGrade}" FontSize="14"/>
+                        <up:RaceResultOrderGradeRow Header="距離" Grade="{Binding Grade}" FontSize="14" Visibility="{Binding HasData,Converter={StaticResource BooleanVisibilityConv}}"/>
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal" Visibility="{Binding HasData,Converter={StaticResource BooleanVisibilityConv}}">
+                        <Border Width="60" Margin="16,0,0,0">
+                          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <up:CourseSimpleImageView Race="{Binding ShortestTimeRace}"/>
+                            <TextBlock Text="{Binding ShortestTimeRace.Distance}" FontSize="14" TextAlignment="Left" Margin="2,0,0,0"/>
+                          </StackPanel>
+                        </Border>
+                        <TextBlock Width="80" Text="{Binding ShortestTimeRaceHorse.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss}" FontSize="24"/>
+                        <TextBlock Width="60" Text="{Binding ShortestTimeRaceHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+                        <TextBlock Width="60" Text="{Binding ShortestTimeRaceTopHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+                        <TextBlock Width="40" Text="{Binding ShortestTimeRaceHorse.ResultOrder}"/>
+                        <TextBlock Width="50" Text="{Binding ShortestTimeRaceHorse.RiderWeight,Converter={StaticResource DigitMinusConv}}"/>
+                        <TextBlock Width="30" Text="{Binding ShortestTimeRaceHorse.Age}"/>
+                        <TextBlock Width="120" Text="{Binding ShortestTimeRace.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"/>
+                        <up:RaceSubjectIcon Subject="{Binding ShortestTimeRaceSubject.Subject}" Margin="8,0,8,0" Width="40" Height="24" FontSize="14" VerticalAlignment="Center"/>
+                        <TextBlock Width="200" Text="{Binding ShortestTimeRaceSubject.DisplayName}" TextAlignment="Left"/>
+                      </StackPanel>
+                    </StackPanel>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <TextBlock Text="メモ" FontWeight="Bold" FontSize="24" Margin="8,24,0,8"/>
+          <TextBox TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" MinHeight="100" Margin="16,0"
+                   Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}" FontSize="16"
+                   Text="{Binding RaceHorse.Memo.Value,ElementName=Root}" IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}"/>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+
+    <!-- 騎手傾向 -->
+    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Rider,Converter={StaticResource BooleanVisibilityConv}}">
+      <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.RiderTrendAnalyzers,ElementName=Root}"/>
+    </Grid>
+
+    <!-- 調教師傾向 -->
+    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Trainer,Converter={StaticResource BooleanVisibilityConv}}">
+      <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.TrainerTrendAnalyzers,ElementName=Root}"/>
+    </Grid>
+
+    <!-- 傾向 -->
+    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseTrend,Converter={StaticResource BooleanVisibilityConv}}">
+      <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.TrendAnalyzers,ElementName=Root}"/>
+    </Grid>
+
+    <!-- 血統 -->
+    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseBlood,Converter={StaticResource BooleanVisibilityConv}}">
+      <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value,ElementName=Root}">
+        <uc:TrendAnalyzerAnalysisView.MenuContent>
+          <Grid DataContext="{Binding RelativeSource={RelativeSource FindAncestor,AncestorType=uc:RaceExpectHorseView}}">
+            <ItemsControl ItemsSource="{Binding RaceHorse.BloodSelectors.MenuItems}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <RadioButton IsChecked="{Binding IsChecked.Value,Mode=TwoWay}" GroupName="{Binding UniqueId2,RelativeSource={RelativeSource FindAncestor,AncestorType=uc:RaceExpectHorseView}}"
+                               Style="{StaticResource ToggleButtonDefault}" IsEnabled="{Binding IsEnabled}">
+                    <Grid Width="145">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="0.5*"/>
+                        <ColumnDefinition/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="{Binding Selector.Type,Converter={StaticResource LabelConv}}"
+                                 FontSize="14" Foreground="{DynamicResource SubForeground}"/>
+                      <TextBlock Grid.Column="1" Text="{Binding Selector.Name}"
+                                 FontSize="14" FontWeight="Bold"/>
+                    </Grid>
+                  </RadioButton>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Grid>
+        </uc:TrendAnalyzerAnalysisView.MenuContent>
+      </uc:TrendAnalyzerAnalysisView>
+    </Grid>
+
+    <!--調教-->
+    <Grid Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_Training,Converter={StaticResource BooleanVisibilityConv}}">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="auto"/>
+        <RowDefinition/>
+      </Grid.RowDefinitions>
+
+      <!--過去調教の一覧-->
+      <StackPanel Orientation="Horizontal" Margin="0,16,0,8">
+        <StackPanel.Resources>
+          <Style TargetType="TextBlock" BasedOn="{StaticResource TableListHeaderItem}"/>
+        </StackPanel.Resources>
+        <TextBlock Text="日付" Width="110"/>
+        <TextBlock Text="場所" Width="50"/>
+        <TextBlock Text="動画" Width="60"/>
+        <TextBlock Text="Wコース" Width="60"/>
+        <TextBlock Text="LAP1" Width="60"/>
+        <TextBlock Text="LAP2" Width="60"/>
+        <TextBlock Text="LAP3" Width="60"/>
+        <TextBlock Text="LAP4" Width="60"/>
+        <TextBlock Text="LAP5" Width="60"/>
+        <TextBlock Text="LAP6" Width="60"/>
+        <TextBlock Text="LAP7" Width="60"/>
+        <TextBlock Text="LAP8" Width="60"/>
+        <TextBlock Text="LAP9" Width="60"/>
+        <TextBlock Text="LAP10" Width="60"/>
+      </StackPanel>
+      <ItemsControl Grid.Row="2" ItemsSource="{Binding RaceHorse.Training.Value.Trainings,ElementName=Root}"
+                    Style="{StaticResource TableList}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+              <StackPanel.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                  <Setter Property="TextAlignment" Value="Right"/>
+                </Style>
+              </StackPanel.Resources>
+              <TextBlock Text="{Binding StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd HH:mm}" FontSize="16" Width="110"
+                         TextAlignment="Left"/>
+              <TextBlock Text="{Binding Center,Converter={StaticResource EnumsConv}}" Foreground="{Binding Center,Converter={StaticResource EnumsConv}}" FontSize="16" Width="50"
+                         TextAlignment="Right"/>
+              <Button Content="動画" Width="50" Margin="10,0,0,0" VerticalAlignment="Center" Command="{Binding PlayTrainingCommand}"/>
+              <Border Width="30">
+                <TextBlock Text="{Binding WoodtipCourse}" TextAlignment="Right"
+                           VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                           Visibility="{Binding IsWoodtip,Converter={StaticResource BooleanVisibilityConv}}"/>
+              </Border>
+              <Border Width="30">
+                <up:WoodtipTrainingDirectionIcon Direction="{Binding WoodtipDirection}"
+                                                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                 Visibility="{Binding IsWoodtip,Converter={StaticResource BooleanVisibilityConv}}"/>
+              </Border>
+              <ItemsControl ItemsSource="{Binding LapTimes}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding LapTime,Converter={StaticResource DigitMinusConv}}" FontSize="16" Width="60"
+                               Foreground="{Binding LapTimeComparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                               TextAlignment="Right"/>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+    </Grid>
+  </Grid>
+</UserControl>

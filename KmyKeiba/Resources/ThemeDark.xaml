@@ -8,19 +8,40 @@
   <u:RHColor x:Key="HorseNumberPlateItemBackground" Red="200" Green="200" Blue="200"/>
   <u:RHColor x:Key="HorseNumberPlateItemBorder" Red="0" Green="0" Blue="0"/>
   <u:RHColor x:Key="HorseNumberPlateItemForeground" Red="0" Green="0" Blue="0"/>
+  <u:RHColor x:Key="HorseNumberPlateItemBackgroundFirst" Red="245" Green="245" Blue="220"/>
+  <u:RHColor x:Key="HorseNumberPlateItemBackgroundSecond" Red="220" Green="220" Blue="255"/>
+  <u:RHColor x:Key="HorseNumberPlateItemBackgroundThird" Red="255" Green="220" Blue="220"/>
   <u:RHColor x:Key="TurfColor" Red="0" Green="128" Blue="0"/>
-  <u:RHColor x:Key="DirtColor" Red="132" Green="132" Blue="0"/>
+  <u:RHColor x:Key="DirtColor" Red="142" Green="142" Blue="0"/>
+  <u:RHColor x:Key="WoodtipColor" Red="200" Green="112" Blue="112"/>
   <u:RHColor x:Key="UphillColor" Red="240" Green="96" Blue="96"/>
   <u:RHColor x:Key="DownhillColor" Red="120" Green="180" Blue="240"/>
+  <u:RHColor x:Key="RunningStyleDisabledColor" Red="96" Green="96" Blue="96"/>
+  <u:RHColor x:Key="FrontRunnerColor" Red="255" Green="160" Blue="160"/>
+  <u:RHColor x:Key="StalkerRunnerColor" Red="160" Green="180" Blue="255"/>
+  <u:RHColor x:Key="SotpRunnerColor" Red="180" Green="255" Blue="180"/>
+  <u:RHColor x:Key="SaveRunnerColor" Red="255" Green="180" Blue="255"/>
+  <u:RHColor x:Key="BrowserBackgroundColor" Red="3" Green="3" Blue="3"/>
+  <u:RHColor x:Key="BrowserForegroundColor" Red="240" Green="240" Blue="240"/>
 
   <SolidColorBrush x:Key="BaseBackground" Color="#030303"/>
+  <SolidColorBrush x:Key="ThinBaseBackground" Color="#202020"/>
+  <SolidColorBrush x:Key="MoreThinBaseBackground" Color="#303030"/>
   <SolidColorBrush x:Key="BaseForeground" Color="#f0f0f0"/>
   <SolidColorBrush x:Key="BaseBorderBrush" Color="#cccccc"/>
   <SolidColorBrush x:Key="SubForeground" Color="#b0b0b0"/>
+  <SolidColorBrush x:Key="ThinSubForeground" Color="#808080"/>
+  <SolidColorBrush x:Key="ErrorForeground" Color="#ff9090"/>
+  <SolidColorBrush x:Key="HorseMarkForeground" Color="#ffcccc"/>
+  <SolidColorBrush x:Key="HorseMarkDeletedForeground" Color="#aaaaff"/>
+  <SolidColorBrush x:Key="ProgressBarForeground" Color="#a0c0f0"/>
+  <SolidColorBrush x:Key="TableListFocusedRowBackground" Color="#444455"/>
 
+  <SolidColorBrush x:Key="ClickableBackground" Color="#202020"/>
   <SolidColorBrush x:Key="HoverBackground" Color="#444444"/>
   <SolidColorBrush x:Key="PressedBackground" Color="#9999bb"/>
   <SolidColorBrush x:Key="CheckedBackground" Color="#8888de"/>
+  <SolidColorBrush x:Key="DisabledBackground" Color="#888888"/>
 
   <SolidColorBrush x:Key="TabBarBackground" Color="#aaaadd"/>
   <SolidColorBrush x:Key="TabBarHoverBackground" Color="#444444"/>
@@ -29,5 +50,34 @@
 
   <SolidColorBrush x:Key="RaceNumberBackground" Color="#222266"/>
   <SolidColorBrush x:Key="RaceNumberForeground" Color="#c0c0ff"/>
+
+  <SolidColorBrush x:Key="MaleForeground" Color="#aaaaff"/>
+  <SolidColorBrush x:Key="FemaleForeground" Color="#ffaaaa"/>
+  <SolidColorBrush x:Key="CastratedForeground" Color="#aaffaa"/>
+  <SolidColorBrush x:Key="TCMiuraForeground" Color="#ffccff"/>
+  <SolidColorBrush x:Key="TCRittoForeground" Color="#bbffcc"/>
+  <SolidColorBrush x:Key="GoodBackground" Color="#224f22"/>
+  <SolidColorBrush x:Key="BadBackground" Color="#5f2222"/>
+  <SolidColorBrush x:Key="GoodForeground" Color="#99ff99"/>
+  <SolidColorBrush x:Key="BadForeground" Color="#ff99cc"/>
+  <SolidColorBrush x:Key="FirstOrderBackground" Color="#454511"/>
+  <SolidColorBrush x:Key="SecondOrderBackground" Color="#11245d"/>
+  <SolidColorBrush x:Key="ThirdOrderBackground" Color="#451111"/>
+
+  <SolidColorBrush x:Key="SingleTicketBackground" Color="#00596b"/>
+  <SolidColorBrush x:Key="PlaceTicketBackground" Color="#840027"/>
+  <SolidColorBrush x:Key="FrameNumberTicketBackground" Color="#6b8c00"/>
+  <SolidColorBrush x:Key="QuinellaPlaceTicketBackground" Color="#0091aa"/>
+  <SolidColorBrush x:Key="QuinellaTicketBackground" Color="#47005b"/>
+  <SolidColorBrush x:Key="ExactaTicketBackground" Color="#91008c"/>
+  <SolidColorBrush x:Key="TrioTicketBackground" Color="#007515"/>
+  <SolidColorBrush x:Key="TrifectaTicketBackground" Color="#a57400"/>
+
+  <SolidColorBrush x:Key="RaceTimelineItemBackground" Color="#515157"/>
+  <SolidColorBrush x:Key="RaceTimelineItemHoverBackground" Color="#73737a"/>
+  <SolidColorBrush x:Key="RaceTimelineSelectedItemBackground" Color="#a3ad40"/>
+  <SolidColorBrush x:Key="RaceTimelineNotStartItemBackground" Color="#515157"/>
+  <SolidColorBrush x:Key="RaceTimelineFinishedItemBackground" Color="#202020"/>
+  <SolidColorBrush x:Key="RaceTimelineCanceledItemBackground" Color="#7d4f5d"/>
 
 </ResourceDictionary>

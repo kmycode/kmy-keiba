@@ -10,6 +10,8 @@ namespace KmyKeiba.JVLink.Wrappers
   {
     internal bool IsOpen { get; set; }
 
+    JVLinkObjectType Type { get; }
+
     int Init();
 
     int SetUIProperties();
@@ -31,6 +33,12 @@ namespace KmyKeiba.JVLink.Wrappers
     int FileDelete(string filename);
 
     int Fuku(string pattern, ref byte[] buff);
+
+    int MVPlayWithType(string type, string key);
+
+    int MVOpen(string type, string key);
+
+    int MVRead(out string buff, out int size);
   }
 
   internal static class JVLinkObjectFactory
@@ -52,6 +60,8 @@ namespace KmyKeiba.JVLink.Wrappers
     private class DefaultJVLink : IJVLinkObject
     {
       bool IJVLinkObject.IsOpen { get; set; }
+
+      public JVLinkObjectType Type => JVLinkObjectType.Unknown;
 
       public void Cancel()
       {
@@ -110,15 +120,34 @@ namespace KmyKeiba.JVLink.Wrappers
       {
         return default;
       }
+
+      public int MVPlayWithType(string type, string key)
+      {
+        return default;
+      }
+
+      public int MVOpen(string type, string key)
+      {
+        return default;
+      }
+
+      public int MVRead(out string buff, out int size)
+      {
+        buff = string.Empty;
+        size = default;
+        return default;
+      }
     }
 
     private class JVLinkObjectImpl : IJVLinkObject
     {
       private readonly JVDTLabLib.JVLink link = new();
 
+      public JVLinkObjectType Type => JVLinkObjectType.Central;
+
       bool IJVLinkObject.IsOpen { get; set; }
 
-      public int Init() => this.link.JVInit("SA000000");
+      public int Init() => this.link.JVInit(JVLinkObject.CentralInitializationKey);
 
       public int SetUIProperties() => this.link.JVSetUIProperties();
 
@@ -162,15 +191,23 @@ namespace KmyKeiba.JVLink.Wrappers
         buff = (byte[])obj;
         return r;
       }
+
+      public int MVPlayWithType(string type, string key) => this.link.JVMVPlayWithType(type, key);
+
+      public int MVOpen(string type, string key) => this.link.JVMVOpen(type, key);
+
+      public int MVRead(out string buff, out int size) => this.link.JVMVRead(out buff, out size);
     }
 
     private class NVLinkObjectImpl : IJVLinkObject
     {
       private readonly NVDTLabLib.NVLink link = new();
 
+      public JVLinkObjectType Type => JVLinkObjectType.Local;
+
       bool IJVLinkObject.IsOpen { get; set; }
 
-      public int Init() => this.link.NVInit("SA000000");
+      public int Init() => this.link.NVInit("UNKNOWN");
 
       public int SetUIProperties() => this.link.NVSetUIProperties();
 
@@ -206,6 +243,60 @@ namespace KmyKeiba.JVLink.Wrappers
         var r = this.link.NVFuku(pattern, ref obj);
         buff = (byte[])obj;
         return r;
+      }
+
+      public int MVPlayWithType(string type, string key)
+      {
+        JVLinkMovieResult result = JVLinkMovieResult.Succeed;
+
+        var courseCode = key.Substring(8, 2);
+        var rakutenCourseCode = courseCode switch
+        {
+          "45" => "2135",      // 川崎
+          "41" => "2015",      // 大井
+          "43" => "1914",      // 船橋
+          "42" => "1813",      // 浦和
+          "36" => "1106",      // 水沢
+          "30" => "3601",      // 門別
+          "83" => "0304",      // 帯広（ば）
+          "46" => "2218",      // 金沢
+          "47" => "2320",      // 笠松
+          "48" => "2433",      // 名古屋
+          "50" => "2726",      // 園田
+          "54" => "3129",      // 高知
+          "55" => "3230",      // 佐賀
+          "51" => "2826",      // 姫路
+          "35" => "1006",      // 盛岡
+          _ => string.Empty,
+        };
+        var rakutenKey = key.Substring(0, 8) + rakutenCourseCode + key.Substring(10);
+
+        try
+        {
+          System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+          {
+            FileName = "https://keiba.rakuten.co.jp/archivemovie/RACEID/" + rakutenKey,
+            UseShellExecute = true,
+          });
+        }
+        catch
+        {
+          result = JVLinkMovieResult.ServerError;
+        }
+
+        return (int)result;
+      }
+
+      public int MVOpen(string type, string key)
+      {
+        return default;
+      }
+
+      public int MVRead(out string buff, out int size)
+      {
+        buff = string.Empty;
+        size = default;
+        return default;
       }
     }
   }

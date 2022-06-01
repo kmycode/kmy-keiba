@@ -133,7 +133,7 @@ namespace KmyKeiba.Models.Image
           path.LineTo(x - size / 2, y - size / 2);
           path.LineTo(x, y + size / 2);
         }
-        canvas.DrawPath(path, slope == TrackSlope.Uphill ? slopUp : slopDown);
+        canvas!.DrawPath(path, slope == TrackSlope.Uphill ? slopUp : slopDown);
       }
 
       (float x, float y) CalcSlopPosition(float x, float y, float width, float height, CoursePosition pos)
@@ -155,6 +155,23 @@ namespace KmyKeiba.Models.Image
       void DrawSlopWithPosition(float x, float y, float width, float height, CoursePosition pos, TrackSlope slope)
       {
         var point = CalcSlopPosition(x, y, width, height, pos);
+
+        if (this.Race?.TrackCornerDirection == TrackCornerDirection.Right)
+        {
+          // 右回りで２・３コーナー間の直線の場合、矢印が進行方向と逆の順番になり紛らわしくなる
+          if (pos == CoursePosition.First)
+          {
+            if (slope == TrackSlope.UpToDownhill)
+            {
+              slope = TrackSlope.DownToUphill;
+            }
+            else if (slope == TrackSlope.DownToUphill)
+            {
+              slope = TrackSlope.UpToDownhill;
+            }
+          }
+        }
+
         DrawSlop(point.x, point.y, slope);
       }
 
@@ -286,6 +303,7 @@ namespace KmyKeiba.Models.Image
 
       if (this._bitmap != null)
       {
+        canvas.Clear();
         canvas.DrawBitmap(this._bitmap, 0, 0);
       }
     }

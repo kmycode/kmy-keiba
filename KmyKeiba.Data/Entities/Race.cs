@@ -136,6 +136,32 @@ namespace KmyKeiba.JVLink.Entities
     {
     }
 
+    internal static (TrackType, TrackGround, TrackCornerDirection, TrackOption) GetTrackType(int track)
+    {
+      var trackGround = TrackGround.Unknown;
+      var trackOption = TrackOption.Unknown;
+      var trackType = TrackType.Unknown;
+      var trackCornerDirection = TrackCornerDirection.Unknown;
+      trackType = track >= 10 && track <= 29 ? TrackType.Flat :
+        track >= 51 && track <= 59 ? TrackType.Steeplechase :
+        TrackType.Unknown;
+      trackGround = ((track >= 10 && track <= 22) || track == 51 || (track >= 53 && track <= 59)) ? TrackGround.Turf :
+        ((track >= 23 && track <= 26) || track == 29) ? TrackGround.Dirt :
+        (track == 27 || track == 28) ? TrackGround.Sand :
+        track == 52 ? TrackGround.TurfToDirt : TrackGround.Unknown;
+      trackCornerDirection = track == 10 || track == 29 ? TrackCornerDirection.Straight :
+        ((track >= 11 && track <= 16) || track == 23 || track == 25 || track == 27 || track == 53) ? TrackCornerDirection.Left :
+        ((track >= 17 && track <= 22) || track == 24 || track == 26 || track == 28) ? TrackCornerDirection.Right :
+        TrackCornerDirection.Unknown;
+      trackOption = track == 12 || track == 18 || track == 26 || track == 55 ? TrackOption.Outside :
+        track == 13 || track == 19 || track == 57 ? TrackOption.InsideToOutside :
+        track == 14 || track == 20 || track == 56 ? TrackOption.OutsideToInside :
+        track == 15 || track == 21 || track == 58 ? TrackOption.Inside2 :
+        track == 16 || track == 22 || track == 59 ? TrackOption.Outside2 :
+        TrackOption.Unknown;
+      return (trackType, trackGround, trackCornerDirection, trackOption);
+    }
+
     public static Race FromJV(JVData_Struct.JV_RA_RACE race)
     {
       var name = race.RaceInfo.Hondai.Trim();
@@ -170,28 +196,8 @@ namespace KmyKeiba.JVLink.Entities
       short.TryParse(race.TorokuTosu, out short horsesCount);
       short.TryParse(race.Kyori, out short distance);
 
-      var trackGround = TrackGround.Unknown;
-      var trackOption = TrackOption.Unknown;
-      var trackType = TrackType.Unknown;
-      var trackCornerDirection = TrackCornerDirection.Unknown;
       int.TryParse(race.TrackCD, out int track);
-      trackType = track >= 10 && track <= 29 ? TrackType.Flat :
-        track >= 51 && track <= 59 ? TrackType.Steeplechase :
-        TrackType.Unknown;
-      trackGround = ((track >= 10 && track <= 22) || track == 51 || (track >= 53 && track <= 59)) ? TrackGround.Turf :
-        ((track >= 23 && track <= 26) || track == 29) ? TrackGround.Dirt :
-        (track == 27 || track == 28) ? TrackGround.Sand :
-        track == 52 ? TrackGround.TurfToDirt : TrackGround.Unknown;
-      trackCornerDirection = track == 10 || track == 29 ? TrackCornerDirection.Straight :
-        ((track >= 11 && track <= 16) || track == 23 || track == 25 || track == 27 || track == 53) ? TrackCornerDirection.Left :
-        ((track >= 17 && track <= 22) || track == 24 || track == 26 || track == 28) ? TrackCornerDirection.Right :
-        TrackCornerDirection.Unknown;
-      trackOption = track == 12 || track == 18 || track == 26 || track == 55 ? TrackOption.Outside :
-        track == 13 || track == 19 || track == 57 ? TrackOption.InsideToOutside :
-        track == 14 || track == 20 || track == 56 ? TrackOption.OutsideToInside :
-        track == 15 || track == 21 || track == 58 ? TrackOption.Inside2 :
-        track == 16 || track == 22 || track == 59 ? TrackOption.Outside2 :
-        TrackOption.Unknown;
+      var (trackType, trackGround, trackCornerDirection, trackOption) = GetTrackType(track);
 
       int.TryParse(race.TenkoBaba.TenkoCD, out int weather);
       int.TryParse(trackGround == TrackGround.Turf ? race.TenkoBaba.SibaBabaCD : race.TenkoBaba.DirtBabaCD, out int condition);
@@ -301,7 +307,7 @@ namespace KmyKeiba.JVLink.Entities
     /// <summary>
     /// 中止
     /// </summary>
-    Aborted = 9,
+    Canceled = 9,
 
     /// <summary>
     /// 地方競馬
@@ -339,8 +345,8 @@ namespace KmyKeiba.JVLink.Entities
 
   public enum RaceCourse : short
   {
-    LocalMinValue = 30,
-    CentralMaxValue = 29,
+    [RaceCourseInfo(RaceCourseType.Unknown, "全て")]
+    All = -1,
 
     [RaceCourseInfo(RaceCourseType.Central, "不明")]
     Unknown = 0,
@@ -625,6 +631,8 @@ namespace KmyKeiba.JVLink.Entities
 バーレーン
     */
 
+    LocalMinValue = 30,
+    CentralMaxValue = 29,
   }
 
   public enum TrackGround : short

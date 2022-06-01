@@ -13,22 +13,13 @@ namespace KmyKeiba.JVLink.Entities
 
     public List<OddsData> Odds { get; } = new();
 
-    public struct OddsData : IEntityBase
+    public struct OddsData
     {
-      public DateTime LastModified { get; set; }
-
-      public RaceDataStatus DataStatus { get; set; }
-
-      public string RaceKey { get; set; }
-
       public short Frame1 { get; init; }
 
       public short Frame2 { get; init; }
 
-      public float Odds { get; init; }
-
-      public override int GetHashCode()
-        => $"{this.RaceKey}{this.Frame1} {this.Frame2}".GetHashCode();
+      public short Odds { get; init; }
     }
 
     public static FrameNumberOdds FromJV(JVData_Struct.JV_O1_ODDS_TANFUKUWAKU odds)
@@ -41,7 +32,7 @@ namespace KmyKeiba.JVLink.Entities
       };
 
       foreach (var data in odds.OddsWakurenInfo
-        .Where((o) => o.Odds != "00000" && o.Odds != "*****" && o.Odds != "-----" && !string.IsNullOrWhiteSpace(o.Odds)).OrderBy((o) => o.Odds).Take(20))
+        .Where((o) => o.Odds != "00000" && o.Odds != "*****" && o.Odds != "-----" && !string.IsNullOrWhiteSpace(o.Odds)))
       {
         short.TryParse(data.Kumi.Substring(0, 1), out short frame1);
         short.TryParse(data.Kumi.Substring(1, 1), out short frame2);
@@ -50,16 +41,13 @@ namespace KmyKeiba.JVLink.Entities
           continue;
         }
 
-        float.TryParse(data.Odds, out float oval);
+        short.TryParse(data.Odds, out short oval);
 
         od.Odds.Add(new OddsData
         {
-          DataStatus = od.DataStatus,
-          LastModified = od.LastModified,
-          RaceKey = od.RaceKey,
           Frame1 = frame1,
           Frame2 = frame2,
-          Odds = oval / 10,
+          Odds = oval,
         });
       }
 

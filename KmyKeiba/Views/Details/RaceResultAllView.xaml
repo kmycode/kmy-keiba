@@ -1,0 +1,399 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Details.RaceResultAllView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:b="clr-namespace:KmyKeiba.Behaviors"
+             xmlns:uc="clr-namespace:KmyKeiba.Views.Details"
+             xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
+             xmlns:ul="clr-namespace:KmyKeiba.Views.ListItems"
+             xmlns:local="clr-namespace:KmyKeiba.Views.Details"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Name="Root">
+  <Grid Margin="8,0,0,0">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto"/>
+      <RowDefinition/>
+    </Grid.RowDefinitions>
+
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+      </Grid.ColumnDefinitions>
+      <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                   Content="着順" Name="S_RaceResultOrderList" IsChecked="True"/>
+      <RadioButton Grid.Column="1" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                   Content="展開" Name="S_RaceResultSituation"/>
+      <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                   Content="払い戻し" Name="S_Payoff"/>
+    </Grid>
+
+    <Grid Grid.Row="1">
+      
+      <!--着順-->
+      <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_RaceResultOrderList,Converter={StaticResource BooleanVisibilityConv}}">
+        <Grid.RowDefinitions>
+          <RowDefinition/>
+          <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <ItemsControl ItemsSource="{Binding Race.HorsesResultOrdered,ElementName=Root}"
+                      Margin="0,0,4,0" Style="{StaticResource TableList}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="auto"/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <ul:RaceHorsePillar Grid.Column="1" Horse="{Binding}" IsResult="True"/>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="36" HorizontalAlignment="Center" Grid.Row="1"
+                   Margin="0,48" VerticalAlignment="Center" Text="全ての結果がそろうまでしばらくお待ちください..." Visibility="{Binding Race.Data.DataStatus,ElementName=Root,Converter={StaticResource EqualConv},ConverterParameter=PreliminaryGrade3}"/>
+        <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="36" HorizontalAlignment="Center" Grid.Row="1"
+                   Margin="0,48" VerticalAlignment="Center" Text="全ての結果がそろうまでしばらくお待ちください..." Visibility="{Binding Race.Data.DataStatus,ElementName=Root,Converter={StaticResource EqualConv},ConverterParameter=PreliminaryGrade5}"/>
+      </Grid>
+
+      <!-- 展開 -->
+      <ScrollViewer HorizontalScrollBarVisibility="Auto" Visibility="{Binding IsChecked,ElementName=S_RaceResultSituation,Converter={StaticResource BooleanVisibilityConv}}">
+        <StackPanel Margin="0,8,4,8">
+          <Grid Margin="0,0,0,32">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition/>
+              <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+              <RowDefinition/>
+              <RowDefinition/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+              </Style>
+            </Grid.Resources>
+            <TextBlock Grid.Row="0" Grid.Column="0" FontSize="16" Text="１着のタイム指数" Foreground="{DynamicResource SubForeground}"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" FontSize="32" Text="{Binding Race.RaceAnalyzer.Value.ResultTimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F2}"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" FontSize="18" Text="{Binding Race.RaceAnalyzer.Value.Pace,ElementName=Root,Converter={StaticResource LabelConv}}"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" FontSize="16" Text="１着の後３ハロンタイム指数" Foreground="{DynamicResource SubForeground}"/>
+            <TextBlock Grid.Row="1" Grid.Column="1" FontSize="32" Text="{Binding Race.RaceAnalyzer.Value.A3HResultTimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F2}"/>
+            <TextBlock Grid.Row="2" Grid.Column="1" FontSize="18" Text="{Binding Race.RaceAnalyzer.Value.A3HPace,ElementName=Root,Converter={StaticResource LabelConv}}"/>
+          </Grid>
+          <ItemsControl ItemsSource="{Binding Race.Corners,ElementName=Root}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <uc:RaceCornerView RaceCorner="{Binding}" Margin="0,0,0,8"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </ScrollViewer>
+      
+      <!-- 払い戻し -->
+      <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Payoff,Converter={StaticResource BooleanVisibilityConv}}">
+        <ScrollViewer>
+          <StackPanel>
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+              </Grid.RowDefinitions>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.2*"/>
+                <ColumnDefinition Width="0.4*"/>
+                <ColumnDefinition Width="0.4*"/>
+              </Grid.ColumnDefinitions>
+              <Grid.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                  <Setter Property="VerticalAlignment" Value="Center"/>
+                  <Setter Property="HorizontalAlignment" Value="Center"/>
+                  <Setter Property="FontSize" Value="16"/>
+                </Style>
+                <Style TargetType="TextBlock" x:Key="TicketTitle" BasedOn="{StaticResource TextBlockDefault}">
+                  <Setter Property="FontSize" Value="16"/>
+                  <Setter Property="VerticalAlignment" Value="Center"/>
+                  <Setter Property="HorizontalAlignment" Value="Center"/>
+                  <Setter Property="Margin" Value="8"/>
+                </Style>
+                <Style TargetType="TextBlock" x:Key="PayoffNumber" BasedOn="{StaticResource TextBlockDefault}">
+                  <Setter Property="FontSize" Value="22"/>
+                  <Setter Property="FontWeight" Value="Bold"/>
+                  <Setter Property="VerticalAlignment" Value="Center"/>
+                  <Setter Property="HorizontalAlignment" Value="Center"/>
+                  <Setter Property="Margin" Value="4"/>
+                </Style>
+                <Style TargetType="TextBlock" x:Key="MoneyNumber" BasedOn="{StaticResource TextBlockDefault}">
+                  <Setter Property="FontSize" Value="16"/>
+                  <Setter Property="VerticalAlignment" Value="Center"/>
+                  <Setter Property="HorizontalAlignment" Value="Center"/>
+                  <Setter Property="Margin" Value="8"/>
+                </Style>
+                <Style TargetType="TextBlock" x:Key="HitMoneyNumber" BasedOn="{StaticResource TextBlockDefault}">
+                  <Setter Property="FontSize" Value="24"/>
+                  <Setter Property="FontWeight" Value="Bold"/>
+                  <Setter Property="VerticalAlignment" Value="Center"/>
+                  <Setter Property="HorizontalAlignment" Value="Center"/>
+                  <Setter Property="Margin" Value="4"/>
+                </Style>
+              </Grid.Resources>
+              <Border Background="{DynamicResource SingleTicketBackground}">
+                <TextBlock Text="単勝" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Column="1" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Singles,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}" Text="{Binding Number1}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="1" Background="{DynamicResource PlaceTicketBackground}">
+                <TextBlock Text="複勝" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Column="2">
+                <TextBlock Text="{Binding Race.Payoff.Singles.HitMoneySum.Value,ElementName=Root}" Style="{StaticResource HitMoneyNumber}"
+                           Visibility="{Binding Race.Payoff.Singles.HitMoneySum.Value,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+              </Border>
+              <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource MoreThinBaseBackground}" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Places,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}" Text="{Binding Number1}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="1" Grid.Column="2">
+                <TextBlock Text="{Binding Race.Payoff.Places.HitMoneySum.Value,ElementName=Root}" Style="{StaticResource HitMoneyNumber}"
+                           Visibility="{Binding Race.Payoff.Places.HitMoneySum.Value,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+              </Border>
+              <Border Grid.Row="2" Background="{DynamicResource FrameNumberTicketBackground}">
+                <TextBlock Text="枠連" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Row="2" Grid.Column="1" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Frames,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}">
+                          <Run Text="{Binding Frame1}"/>　<Run Text="{Binding Frame2}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="2" Grid.Column="2">
+                <TextBlock Text="{Binding Race.Payoff.Frames.HitMoneySum.Value,ElementName=Root}" Style="{StaticResource HitMoneyNumber}"
+                           Visibility="{Binding Race.Payoff.Frames.HitMoneySum.Value,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+              </Border>
+              <Border Grid.Row="3" Background="{DynamicResource QuinellaPlaceTicketBackground}">
+                <TextBlock Text="ワイド" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Row="3" Grid.Column="1" Background="{DynamicResource MoreThinBaseBackground}" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.QuinellaPlaces,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}">
+                          <Run Text="{Binding Number1}"/>　<Run Text="{Binding Number2}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="3" Grid.Column="2">
+                <TextBlock Text="{Binding Race.Payoff.QuinellaPlaces.HitMoneySum.Value,ElementName=Root}" Style="{StaticResource HitMoneyNumber}"
+                           Visibility="{Binding Race.Payoff.QuinellaPlaces.HitMoneySum.Value,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+              </Border>
+              <Border Grid.Row="4" Background="{DynamicResource QuinellaTicketBackground}">
+                <TextBlock Text="馬連" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Row="4" Grid.Column="1" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Quinellas,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}">
+                          <Run Text="{Binding Number1}"/>　<Run Text="{Binding Number2}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="4" Grid.Column="2">
+                <TextBlock Text="{Binding Race.Payoff.Quinellas.HitMoneySum.Value,ElementName=Root}" Style="{StaticResource HitMoneyNumber}"
+                           Visibility="{Binding Race.Payoff.Quinellas.HitMoneySum.Value,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+              </Border>
+              <Border Grid.Row="5" Background="{DynamicResource ExactaTicketBackground}">
+                <TextBlock Text="馬単" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Row="5" Grid.Column="1" Background="{DynamicResource MoreThinBaseBackground}" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Exactas,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}">
+                          <Run Text="{Binding Number1}"/> - <Run Text="{Binding Number2}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="5" Grid.Column="2">
+                <TextBlock Text="{Binding Race.Payoff.Exactas.HitMoneySum.Value,ElementName=Root}" Style="{StaticResource HitMoneyNumber}"
+                           Visibility="{Binding Race.Payoff.Exactas.HitMoneySum.Value,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+              </Border>
+              <Border Grid.Row="6" Background="{DynamicResource TrioTicketBackground}">
+                <TextBlock Text="三連複" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Row="6" Grid.Column="1" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Trios,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}">
+                          <Run Text="{Binding Number1}"/>　<Run Text="{Binding Number2}"/>　<Run Text="{Binding Number3}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="6" Grid.Column="2">
+                <TextBlock Text="{Binding Race.Payoff.Trios.HitMoneySum.Value,ElementName=Root}" Style="{StaticResource HitMoneyNumber}"
+                           Visibility="{Binding Race.Payoff.Trios.HitMoneySum.Value,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+              </Border>
+              <Border Grid.Row="7" Background="{DynamicResource TrifectaTicketBackground}">
+                <TextBlock Text="三連単" Style="{StaticResource TicketTitle}"/>
+              </Border>
+              <Border Grid.Row="7" Grid.Column="1" Background="{DynamicResource MoreThinBaseBackground}" Padding="0,4">
+                <ItemsControl ItemsSource="{Binding Race.Payoff.Trifectas,ElementName=Root}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="0.7*"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource PayoffNumber}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}">
+                          <Run Text="{Binding Number1}"/> - <Run Text="{Binding Number2}"/> - <Run Text="{Binding Number3}"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1" Style="{StaticResource MoneyNumber}" Text="{Binding Money}"
+                                   Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Border>
+              <Border Grid.Row="7" Grid.Column="2">
+                <TextBlock Text="{Binding Race.Payoff.Trifectas.HitMoneySum.Value,ElementName=Root}" Style="{StaticResource HitMoneyNumber}"
+                           Visibility="{Binding Race.Payoff.Trifectas.HitMoneySum.Value,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+              </Border>
+
+              <StackPanel Orientation="Horizontal" Grid.Row="8" Grid.ColumnSpan="2" HorizontalAlignment="Right"
+                          Margin="0,16,0,0">
+                <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="20" Text="支払い"/>
+                <TextBlock FontSize="32" Text="{Binding Race.Payoff.PayMoneySum.Value,ElementName=Root}" Margin="16,0,32,0"/>
+                <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="20" Text="払い戻し"/>
+                <TextBlock FontSize="32" Text="{Binding Race.Payoff.HitMoneySum.Value,ElementName=Root}" Margin="16,0,90,0"/>
+                <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="24" Text="収支"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Grid.Row="9" Grid.ColumnSpan="2" HorizontalAlignment="Right"
+                          Margin="0,0,0,0" Visibility="{Binding Race.Payoff.ReturnMoneySum.Value,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}">
+                <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="16" Text="返還"/>
+                <TextBlock FontSize="24" Text="{Binding Race.Payoff.ReturnMoneySum.Value,ElementName=Root}" Margin="16,0,136,0"/>
+              </StackPanel>
+              <Border Grid.Row="8" Grid.Column="2" Margin="0,16,0,8">
+                <TextBlock FontSize="46" Foreground="{Binding Race.Payoff.IncomeComparation.Value,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
+                           Text="{Binding Race.Payoff.Income.Value,ElementName=Root}" FontWeight="Bold"/>
+              </Border>
+            </Grid>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+    </Grid>
+  </Grid>
+</UserControl>

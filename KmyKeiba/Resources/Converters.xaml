@@ -7,4 +7,34 @@
   <cv:BooleanVisibilityConverter x:Key="BooleanVisibilityConv"/>
   <cv:MultiBooleanConverter x:Key="MultiBooleanConv"/>
   <cv:TrackConverter x:Key="TrackConv"/>
+  <cv:LabelConverter x:Key="LabelConv"/>
+  <cv:StringFormatConverter x:Key="StringFormatConv"/>
+  <cv:RunningStyleConverter x:Key="RunningStyleConv"/>
+  <cv:FrameNumberBrushConverter x:Key="FrameNumberBrushConv"/>
+  <cv:EnumsConverter x:Key="EnumsConv"/>
+  <cv:OrderBackgroundConverter x:Key="OrderBackgroundConv"/>
+  <cv:ValueComparationBackgroundConverter x:Key="ValueComparationBackgroundConv"/>
+  <cv:ValueComparationForegroundConverter x:Key="ValueComparationForegroundConv"/>
+  <cv:DigitMinusConverter x:Key="DigitMinusConv"/>
+  <cv:NonZeroVisibilityConverter x:Key="NonZeroVisibilityConv"/>
+  <cv:EqualConverter x:Key="EqualConv"/>
+  <cv:AbnormalResultOpacityConv x:Key="AbnormalResultOpacityConv"/>
+  <cv:ResultLengthConverter x:Key="ResultLengthConv"/>
+  <cv:HorseMarkConverter x:Key="HorseMarkConv"
+                         MarkDefault="{StaticResource MarkDefault}"
+                         MarkDoubleCircle="{StaticResource MarkDoubleCircle}"
+                         MarkCircle="{StaticResource MarkCircle}"
+                         MarkTriangle="{StaticResource MarkTriangle}"
+                         MarkFilledTriangle="{StaticResource MarkFilledTriangle}"
+                         MarkStar="{StaticResource MarkStar}"
+                         MarkDeleted="{StaticResource MarkDeleted}"/>
+  <cv:TicketTypeBackgroundConverter x:Key="TicketTypeBackgroundConv"/>
+  <cv:TicketSummaryConverter x:Key="TicketSummaryConv"/>
+  <cv:RaceListItemStatusBackgroundConverter x:Key="RaceListItemStatusBackgroundConv"/>
+  <cv:NonMinusVisibilityConverter x:Key="NonMinusVisibilityConv"/>
+  <cv:RaceChangeToTextConverter x:Key="RaceChangeTextConv"/>
+  <cv:HorseColorBrushConverter x:Key="HorseColorBrushConv"/>
+  <cv:NonNullVisibilityConverter x:Key="NonNullVisibilityConv"/>
+
+  <cv:BooleanBrushConverter x:Key="BooleanForegroundSubOrBaseConv" TrueBrush="{DynamicResource SubForeground}" FalseBrush="{DynamicResource BaseForeground}"/>
 </ResourceDictionary>

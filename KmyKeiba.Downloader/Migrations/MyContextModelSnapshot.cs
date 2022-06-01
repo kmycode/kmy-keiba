@@ -15,36 +15,217 @@ namespace KmyKeiba.Downloader.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.4")
-                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.5");
+
+            modelBuilder.Entity("KmyKeiba.Data.Db.BornHorseData", b =>
+                {
+                    b.Property<uint>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Belongs")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Born")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<short>("Color")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("DataStatus")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Entried")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FFBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FFFBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FFMBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FMBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FMFBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FMMBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FatherBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("InviteFrom")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MFBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MFFBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MFMBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MMBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MMFBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MMMBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MotherBreedingCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(72)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OwnerCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProducingCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Retired")
+                        .HasColumnType("TEXT");
+
+                    b.Property<short>("Sex")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("TrainerCode")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TrainerName")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<short>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code");
+
+                    b.ToTable("BornHorses");
+                });
+
+            modelBuilder.Entity("KmyKeiba.Data.Db.DownloaderTaskData", b =>
+                {
+                    b.Property<uint>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Command")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Error")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsCanceled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsFinished")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Parameter")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Result")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<ushort>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DownloaderTasks");
+                });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.ExactaOddsData", b =>
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
-                    b.Property<short>("HorseNumber1")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("HorseNumber2")
-                        .HasColumnType("smallint");
+                    b.Property<short>("HorsesCount")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
-                    b.Property<float>("Odds")
-                        .HasColumnType("float");
+                    b.Property<byte[]>("Odds")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
 
                     b.Property<string>("RaceKey")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RaceKey");
 
                     b.ToTable("ExactaOdds");
                 });
@@ -53,28 +234,29 @@ namespace KmyKeiba.Downloader.Migrations
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
-                    b.Property<short>("Frame1")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("Frame2")
-                        .HasColumnType("smallint");
+                    b.Property<short>("FramesCount")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
-                    b.Property<float>("Odds")
-                        .HasColumnType("float");
+                    b.Property<byte[]>("Odds")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
 
                     b.Property<string>("RaceKey")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RaceKey");
 
                     b.ToTable("FrameNumberOdds");
                 });
@@ -83,55 +265,55 @@ namespace KmyKeiba.Downloader.Migrations
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("BornYear")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Color")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("FatherKey")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("From")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("MotherKey")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(72)
-                        .HasColumnType("varchar(72)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ProductingName")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Sex")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -144,139 +326,139 @@ namespace KmyKeiba.Downloader.Migrations
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Belongs")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Born")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Color")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Entried")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("FFBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("FFFBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("FFMBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("FMBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("FMFBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("FMMBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("FatherBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("InviteFrom")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("varchar(40)");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("MFBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("MFFBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("MFMBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("MMBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("MMFBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("MMMBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("MotherBreedingCode")
                         .IsRequired()
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(72)
-                        .HasColumnType("varchar(72)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("OwnerCode")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ProducingCode")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Retired")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Sex")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("TrainerCode")
                         .IsRequired()
                         .HasMaxLength(8)
-                        .HasColumnType("varchar(8)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("TrainerName")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Type")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -289,22 +471,22 @@ namespace KmyKeiba.Downloader.Migrations
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Cache")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("CacheVersion")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("HorseName")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("RaceKey")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -315,28 +497,29 @@ namespace KmyKeiba.Downloader.Migrations
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
-                    b.Property<short>("HorseNumber1")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("HorseNumber2")
-                        .HasColumnType("smallint");
+                    b.Property<short>("HorsesCount")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
-                    b.Property<float>("Odds")
-                        .HasColumnType("float");
+                    b.Property<byte[]>("Odds")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
 
                     b.Property<string>("RaceKey")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RaceKey");
 
                     b.ToTable("QuinellaOdds");
                 });
@@ -345,182 +528,218 @@ namespace KmyKeiba.Downloader.Migrations
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
-                    b.Property<short>("HorseNumber1")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("HorseNumber2")
-                        .HasColumnType("smallint");
+                    b.Property<short>("HorsesCount")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
-                    b.Property<float>("PlaceOddsMax")
-                        .HasColumnType("float");
+                    b.Property<byte[]>("OddsMax")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
 
-                    b.Property<float>("PlaceOddsMin")
-                        .HasColumnType("float");
+                    b.Property<byte[]>("OddsMin")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
 
                     b.Property<string>("RaceKey")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RaceKey");
+
                     b.ToTable("QuinellaPlaceOdds");
+                });
+
+            modelBuilder.Entity("KmyKeiba.Data.Db.RaceChangeData", b =>
+                {
+                    b.Property<uint>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("ChangeType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("HorseNumber")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RaceKey")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<ushort>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RaceChanges");
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.RaceData", b =>
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<TimeSpan>("Corner1LapTime")
-                        .HasColumnType("time(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Corner1Number")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Corner1Position")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Corner1Result")
                         .IsRequired()
                         .HasMaxLength(80)
-                        .HasColumnType("varchar(80)");
+                        .HasColumnType("TEXT");
 
                     b.Property<TimeSpan>("Corner2LapTime")
-                        .HasColumnType("time(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Corner2Number")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Corner2Position")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Corner2Result")
                         .IsRequired()
                         .HasMaxLength(80)
-                        .HasColumnType("varchar(80)");
+                        .HasColumnType("TEXT");
 
                     b.Property<TimeSpan>("Corner3LapTime")
-                        .HasColumnType("time(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Corner3Number")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Corner3Position")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Corner3Result")
                         .IsRequired()
                         .HasMaxLength(80)
-                        .HasColumnType("varchar(80)");
+                        .HasColumnType("TEXT");
 
                     b.Property<TimeSpan>("Corner4LapTime")
-                        .HasColumnType("time(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Corner4Number")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Corner4Position")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Corner4Result")
                         .IsRequired()
                         .HasMaxLength(80)
-                        .HasColumnType("varchar(80)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Course")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("CourseRaceNumber")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("CourseType")
                         .IsRequired()
                         .HasMaxLength(4)
-                        .HasColumnType("varchar(4)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Distance")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Grade")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("HorsesCount")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsConditionSetManually")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsWeatherSetManually")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("varchar(120)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Name6Chars")
                         .IsRequired()
                         .HasMaxLength(24)
-                        .HasColumnType("varchar(24)");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("SubName")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("varchar(120)");
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("SubjectAge2")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("SubjectAge3")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("SubjectAge4")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("SubjectAge5")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("SubjectAgeYounger")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("SubjectName")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("TrackCondition")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("TrackCornerDirection")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("TrackGround")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("TrackOption")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("TrackType")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("TrackWeather")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -529,225 +748,164 @@ namespace KmyKeiba.Downloader.Migrations
                     b.ToTable("Races");
                 });
 
-            modelBuilder.Entity("KmyKeiba.Data.Db.RaceHorseAnalysisData", b =>
-                {
-                    b.Property<uint>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
-
-                    b.Property<ushort>("AnalysisVersion")
-                        .HasColumnType("smallint unsigned");
-
-                    b.Property<short>("BreakthroughPoint")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("CanceledStallPosition")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("CanceledStallRecoveredPosition")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("CornerPoint")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("DownhillPoint")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("GutsPoint")
-                        .HasColumnType("smallint");
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
-
-                    b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("RaceKey")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<short>("RunningStyle")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("RunningStyleResult")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("SpeedPoint")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("StallPosition")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("StraightPoint")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("UphillPoint")
-                        .HasColumnType("smallint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RaceKey", "Key");
-
-                    b.ToTable("RaceHorseAnalysis");
-                });
-
             modelBuilder.Entity("KmyKeiba.Data.Db.RaceHorseData", b =>
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("AbnormalResult")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<TimeSpan>("AfterThirdHalongTime")
-                        .HasColumnType("time(6)");
-
-                    b.Property<short>("AfterThirdHalongTimeOrder")
-                        .HasColumnType("smallint");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Age")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Color")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Course")
-                        .HasColumnType("smallint")
+                        .HasColumnType("INTEGER")
                         .HasColumnName("CourseCode");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("FirstCornerOrder")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("FourthCornerOrder")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("FrameNumber")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsBlinkers")
-                        .HasColumnType("tinyint(1)");
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsContainsRiderWinRate")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsRunningStyleSetManually")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Mark")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Memo")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(72)
-                        .HasColumnType("varchar(72)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Number")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Odds")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("OwnerCode")
                         .IsRequired()
                         .HasMaxLength(8)
-                        .HasColumnType("varchar(8)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("OwnerName")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("varchar(128)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("PlaceOddsMax")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("PlaceOddsMin")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Popular")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("PreviousRaceDays")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("RaceKey")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("ResultLength1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("ResultLength2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("ResultLength3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("ResultOrder")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<TimeSpan>("ResultTime")
-                        .HasColumnType("time(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("RiderCode")
                         .IsRequired()
                         .HasMaxLength(8)
-                        .HasColumnType("varchar(8)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("RiderName")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("RiderWeight")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("RunningStyle")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("SecondCornerOrder")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Sex")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("ThirdCornerOrder")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("TrainerCode")
                         .IsRequired()
                         .HasMaxLength(8)
-                        .HasColumnType("varchar(8)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("TrainerName")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Type")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("UniformFormat")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("varchar(120)");
-
-                    b.Property<byte[]>("UniformFormatData")
-                        .IsRequired()
-                        .HasMaxLength(8000)
-                        .HasColumnType("VARBINARY(8000)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Weight")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("WeightDiff")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -756,322 +914,404 @@ namespace KmyKeiba.Downloader.Migrations
                     b.ToTable("RaceHorses");
                 });
 
+            modelBuilder.Entity("KmyKeiba.Data.Db.RaceStandardTimeMasterData", b =>
+                {
+                    b.Property<uint>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("A3FAverage")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("A3FDeviation")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("A3FMedian")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("Average")
+                        .HasColumnType("REAL");
+
+                    b.Property<short>("Condition")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CornerDirection")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Course")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Deviation")
+                        .HasColumnType("REAL");
+
+                    b.Property<short>("Distance")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("DistanceMax")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Ground")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("Median")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("SampleCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("SampleEndTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("SampleStartTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<short>("TrackOption")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("TrackType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("UntilA3FAverage")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("UntilA3FDeviation")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("UntilA3FMedian")
+                        .HasColumnType("REAL");
+
+                    b.Property<ushort>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Weather")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Course");
+
+                    b.ToTable("RaceStandardTimes");
+                });
+
             modelBuilder.Entity("KmyKeiba.Data.Db.RefundData", b =>
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Exacta1Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Exacta1Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Exacta1Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Exacta2Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Exacta2Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Exacta2Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("ExactaNumber1Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("ExactaNumber2Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("ExactaNumber3Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Frame1Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Frame1Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Frame1Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Frame2Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Frame2Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Frame2Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("FrameNumber1Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("FrameNumber2Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("FrameNumber3Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("PlaceNumber1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("PlaceNumber1Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("PlaceNumber2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("PlaceNumber2Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("PlaceNumber3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("PlaceNumber3Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("PlaceNumber4")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("PlaceNumber4Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("PlaceNumber5")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("PlaceNumber5Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Quinella1Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Quinella1Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Quinella1Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Quinella2Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Quinella2Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Quinella2Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("QuinellaNumber1Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("QuinellaNumber2Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("QuinellaNumber3Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace1Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace1Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace1Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace1Number4")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace1Number5")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace1Number6")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace1Number7")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace2Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace2Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace2Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace2Number4")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace2Number5")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace2Number6")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("QuinellaPlace2Number7")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("QuinellaPlaceNumber1Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("QuinellaPlaceNumber2Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("QuinellaPlaceNumber3Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("QuinellaPlaceNumber4Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("QuinellaPlaceNumber5Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("QuinellaPlaceNumber6Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("QuinellaPlaceNumber7Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("RaceKey")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("SingleNumber1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("SingleNumber1Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("SingleNumber2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("SingleNumber2Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("SingleNumber3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("SingleNumber3Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta1Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta1Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta1Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta1Number4")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta1Number5")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta1Number6")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta2Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta2Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta2Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta2Number4")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta2Number5")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta2Number6")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta3Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta3Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta3Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta3Number4")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta3Number5")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trifecta3Number6")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TrifectaNumber1Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TrifectaNumber2Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TrifectaNumber3Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TrifectaNumber4Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TrifectaNumber5Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TrifectaNumber6Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trio1Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trio1Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trio1Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trio2Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trio2Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trio2Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trio3Number1")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trio3Number2")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Trio3Number3")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TrioNumber1Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TrioNumber2Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TrioNumber3Money")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -1080,110 +1320,196 @@ namespace KmyKeiba.Downloader.Migrations
                     b.ToTable("Refunds");
                 });
 
+            modelBuilder.Entity("KmyKeiba.Data.Db.RiderWinRateMasterData", b =>
+                {
+                    b.Property<uint>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("AllDirtCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("AllDirtSteepsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("AllTurfCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("AllTurfSteepsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Distance")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("DistanceMax")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("FirstDirtCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("FirstDirtSteepsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("FirstTurfCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("FirstTurfSteepsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<short>("Month")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RiderCode")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<short>("SecondDirtCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("SecondDirtSteepsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("SecondTurfCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("SecondTurfSteepsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("ThirdDirtCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("ThirdDirtSteepsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("ThirdTurfCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("ThirdTurfSteepsCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ushort>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Year")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RiderCode");
+
+                    b.ToTable("RiderWinRates");
+                });
+
             modelBuilder.Entity("KmyKeiba.Data.Db.SingleOddsTimeline", b =>
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
-                    b.Property<float>("Odds1")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds1")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds10")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds10")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds11")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds11")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds12")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds12")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds13")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds13")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds14")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds14")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds15")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds15")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds16")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds16")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds17")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds17")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds18")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds18")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds19")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds19")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds2")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds2")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds20")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds20")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds21")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds21")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds22")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds22")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds23")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds23")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds24")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds24")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds25")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds25")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds26")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds26")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds27")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds27")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds28")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds28")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds3")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds3")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds4")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds4")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds5")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds5")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds6")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds6")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds7")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds7")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds8")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds8")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<float>("Odds9")
-                        .HasColumnType("float");
+                    b.Property<short>("Odds9")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("RaceKey")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Time")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RaceKey");
 
                     b.ToTable("SingleOddsTimelines");
                 });
@@ -1192,51 +1518,108 @@ namespace KmyKeiba.Downloader.Migrations
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
-                    b.Property<string>("Name")
+                    b.Property<int>("IntValue")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Key")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("StringValue")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.ToTable("SystemData");
                 });
 
+            modelBuilder.Entity("KmyKeiba.Data.Db.TicketData", b =>
+                {
+                    b.Property<uint>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Count")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("FormType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsMulti")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("Numbers1")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<byte[]>("Numbers2")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<byte[]>("Numbers3")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("RaceKey")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<short>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ushort>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RaceKey");
+
+                    b.ToTable("Tickets");
+                });
+
             modelBuilder.Entity("KmyKeiba.Data.Db.TrainingData", b =>
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Center")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("FirstLapTime")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("FourthLapTime")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("HorseKey")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
+
+                    b.Property<short>("MovieStatus")
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("SecondLapTime")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("ThirdLapTime")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -1249,31 +1632,29 @@ namespace KmyKeiba.Downloader.Migrations
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
-                    b.Property<short>("HorseNumber1")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("HorseNumber2")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("HorseNumber3")
-                        .HasColumnType("smallint");
+                    b.Property<short>("HorsesCount")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
-                    b.Property<float>("Odds")
-                        .HasColumnType("float");
+                    b.Property<byte[]>("Odds")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
 
                     b.Property<string>("RaceKey")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RaceKey");
 
                     b.ToTable("TrifectaOdds");
                 });
@@ -1282,31 +1663,29 @@ namespace KmyKeiba.Downloader.Migrations
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
-                    b.Property<short>("HorseNumber1")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("HorseNumber2")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("HorseNumber3")
-                        .HasColumnType("smallint");
+                    b.Property<short>("HorsesCount")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
-                    b.Property<float>("Odds")
-                        .HasColumnType("float");
+                    b.Property<byte[]>("Odds")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
 
                     b.Property<string>("RaceKey")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RaceKey");
 
                     b.ToTable("TrioOdds");
                 });
@@ -1315,60 +1694,63 @@ namespace KmyKeiba.Downloader.Migrations
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int unsigned");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Center")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Course")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("DataStatus")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Direction")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("HorseKey")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
+                        .HasColumnType("TEXT");
 
                     b.Property<short>("Lap10Time")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Lap1Time")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Lap2Time")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Lap3Time")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Lap4Time")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Lap5Time")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Lap6Time")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Lap7Time")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Lap8Time")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Lap9Time")
-                        .HasColumnType("smallint");
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastModified")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
+
+                    b.Property<short>("MovieStatus")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 

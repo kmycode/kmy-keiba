@@ -13,7 +13,10 @@ namespace KmyKeiba.Converters
   {
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
-      var result = values.OfType<bool>().All((v) => v);
+      var result = false;
+      var targetValues = values.OfType<bool>().Concat(values.OfType<Visibility>().Select(v => v == Visibility.Visible));
+      if (parameter?.ToString() == "Or") result = targetValues.Any((v) => v);
+      else result = targetValues.All((v) => v);
       if (targetType == typeof(Visibility))
       {
         return result ? Visibility.Visible : Visibility.Collapsed;

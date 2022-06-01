@@ -13,6 +13,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
 
 namespace KmyKeiba.Downloader
 {
@@ -23,13 +24,13 @@ namespace KmyKeiba.Downloader
 
     private readonly CompositeDisposable disposables = new();
 
+    public LoadProcessing Process { get; set; }
+
     public ReactiveProperty<DateTime> StartTime { get; } = new(DateTime.Today);
 
     public ReactiveProperty<DateTime> EndTime { get; } = new(DateTime.Today);
 
     public ReactiveProperty<bool> IsSetEndTime { get; } = new(false);
-
-    public ReactiveProperty<bool> IsLoading { get; } = new(false);
 
     public ReactiveProperty<int> Downloaded { get; } = new(0);
 
@@ -49,105 +50,6 @@ namespace KmyKeiba.Downloader
 
     public ReactiveProperty<int> ProcessSize { get; } = new(1);
 
-    public ReactiveProperty<JVLinkLoadResult> LoadErrorCode { get; } = new();
-
-    public ReactiveProperty<JVLinkReadResult> ReadErrorCode { get; } = new();
-
-    public ReactiveProperty<bool> IsDatabaseError { get; } = new(false);
-
-    public ReadOnlyReactiveProperty<bool> IsError { get; }
-
-    public ReactiveProperty<bool> IsCentralError { get; } = new();
-
-    public ReactiveProperty<bool> IsLocalError { get; } = new();
-
-    public JVLinkLoader()
-    {
-      this.IsError = this.LoadErrorCode
-        .Select((c) => c != JVLinkLoadResult.Succeed)
-        .CombineLatest(
-          this.ReadErrorCode.Select((c) => c != JVLinkReadResult.Succeed),
-          (a, b) => a || b)
-        .CombineLatest(
-          this.IsDatabaseError,
-          (a, b) => a || b)
-        .CombineLatest(this.IsCentralError, (a, b) => a || b)
-        .CombineLatest(this.IsLocalError, (a, b) => a || b)
-        .ToReadOnlyReactiveProperty(false)
-        .AddTo(this.disposables);
-    }
-
-    public void OpenCentralConfig()
-    {
-      JVLinkObject.Central.OpenConfigWindow();
-    }
-
-    public void OpenLocalConfig()
-    {
-      JVLinkObject.Local.OpenConfigWindow();
-    }
-
-    private void CrearErrors()
-    {
-      this.IsCentralError.Value = this.IsLocalError.Value = false;
-      this.LoadErrorCode.Value = JVLinkLoadResult.Succeed;
-      this.ReadErrorCode.Value = JVLinkReadResult.Succeed;
-      this.IsDatabaseError.Value = false;
-    }
-
-    public async Task LoadCentralAsync(DateTime from, DateTime? to = null)
-    {
-      this.SetParameters(from, to);
-      await this.LoadCentralAsync();
-    }
-
-    public async Task LoadLocalAsync(DateTime from, DateTime? to = null)
-    {
-      this.SetParameters(from, to);
-      await this.LoadLocalAsync();
-    }
-
-    private void SetParameters(DateTime from, DateTime? to = null)
-    {
-      this.StartTime.Value = from;
-      this.IsSetEndTime.Value = to != null;
-      if (to != null)
-      {
-        this.EndTime.Value = (DateTime)to;
-      }
-    }
-
-    public async Task LoadCentralAsync()
-      => await this.LoadAsync(() => JVLinkObject.Central);
-
-    public async Task LoadLocalAsync()
-      => await this.LoadAsync(() => JVLinkObject.Local);
-
-    private async Task LoadAsync(Func<JVLinkObject> linkGetter)
-    {
-      this.CrearErrors();
-      JVLinkObject? link = null;
-      try
-      {
-        link = linkGetter();
-        if (link.IsError)
-        {
-          throw new Exception();
-        }
-      }
-      catch (Exception)
-      {
-        this.IsLocalError.Value = true;
-      }
-
-      if (link != null)
-      {
-        var opt = this.StartTime.Value >= DateTime.Today.AddYears(-1) ?
-          JVLinkOpenOption.Normal : JVLinkOpenOption.Setup;
-        await this.LoadAsync(link, JVLinkDataspec.Race, opt);
-      }
-    }
-
     public async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey,
       DateTime? startTime, DateTime? endTime, IEnumerable<string>? loadSpecs = null)
     {
@@ -165,51 +67,96 @@ namespace KmyKeiba.Downloader
         this.IsSetEndTime.Value = false;
       }
 
+      logger.Info($"ロード開始 [{this.StartTime.Value} - {this.EndTime.Value}]");
+      logger.Info($"終了日時の指定状態：{this.IsSetEndTime.Value}");
+
       await this.LoadAsync(link, dataspec, option, raceKey, loadSpecs: loadSpecs);
     }
 
-    private async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey = null, int nest = 0, IEnumerable<string>? loadSpecs = null)
+    private async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey = null, IEnumerable<string>? loadSpecs = null)
     {
       this.ResetProgresses();
-      this.IsLoading.Value = true;
+
+      logger.Info($"ロードを開始します {link.Type}");
+      logger.Info($"dataspec: {dataspec}");
+      logger.Info($"option: {option}");
+      logger.Info($"racekey: {raceKey}");
+      if (loadSpecs != null)
+      {
+        logger.Info($"specs: {string.Join(',', loadSpecs)}");
+      }
+      else
+      {
+        logger.Info("specs: 制限なし");
+      }
 
       await Task.Run(async () =>
       {
         try
         {
-          logger.Info("Start Load JVLink");
-          logger.Info($"Load Type: {link.GetType().Name}");
+          this.Process = LoadProcessing.Opening;
+
+          IJVLinkReader StartReadWithTimeout(Func<IJVLinkReader> reader)
+          {
+            var isSucceed = false;
+            var start = DateTime.Now;
+
+            var waitSeconds = link.Type == JVLinkObjectType.Local ?
+              (DateTime.Now - this.StartTime.Value).TotalDays / 365 * 60 + 60 :  // 1年あたり60秒
+              60;
+
+            Task.Run(async () =>
+            {
+              while (!isSucceed)
+              {
+                await Task.Delay(1000);
+
+                if (DateTime.Now - start > TimeSpan.FromSeconds(waitSeconds))
+                {
+                  logger.Warn("接続オープンに失敗したので強制終了します");
+                  await Program.RestartProgramAsync(false);
+                }
+                Program.CheckShutdown();
+              }
+            });
+
+            var result = reader();
+            isSucceed = true;
+            return result;
+          }
 
           if (option != JVLinkOpenOption.RealTime)
           {
-            var reader = link.StartRead(dataspec,
+            logger.Info("接続オープン：セットアップまたは通常データ");
+            var reader = StartReadWithTimeout(() => link.StartRead(dataspec,
                option,
                this.StartTime.Value,
-               this.IsSetEndTime.Value ? this.EndTime.Value : null);
-            await this.LoadAsync(reader, loadSpecs, true, false, isDisposeReader: true);
+               this.IsSetEndTime.Value ? this.EndTime.Value : null));
+            await this.LoadAsync(reader, loadSpecs, true, false);
           }
           else
           {
             if (raceKey == null)
             {
-              var reader = link.StartRead(dataspec,
-                 JVLinkOpenOption.RealTime, DateTime.Today);
-              await this.LoadAsync(reader, loadSpecs, false, true, isDisposeReader: true);
+              logger.Info("接続オープン：日付");
+              var reader = StartReadWithTimeout(() => link.StartRead(dataspec,
+                 JVLinkOpenOption.RealTime, this.StartTime.Value.Date));
+              await this.LoadAsync(reader, loadSpecs, false, true);
             }
             else
             {
-              var reader = link.StartRead(dataspec,
-                  JVLinkOpenOption.RealTime, raceKey);
-              await this.LoadAsync(reader, loadSpecs, false, true, isDisposeReader: true);
+              logger.Info("接続オープン：特定レース");
+              var reader = StartReadWithTimeout(() => link.StartRead(dataspec,
+                  JVLinkOpenOption.RealTime, raceKey));
+              await this.LoadAsync(reader, loadSpecs, false, true);
             }
           }
 
-          logger.Info("JVLink load Completed");
+          logger.Info("ロードが完了しました");
         }
         catch (JVLinkException<JVLinkLoadResult> ex)
         {
-          this.LoadErrorCode.Value = ex.Code;
-          logger.Error($"error {ex.Code}");
+          logger.Error($"ロードでエラーが発生 {ex.Code}", ex);
 
           if (ex.Code == JVLinkLoadResult.AlreadyOpen)
           {
@@ -220,23 +167,45 @@ namespace KmyKeiba.Downloader
               link.Dispose();
             }
           }
-
-          logger.Error("error", ex);
+          if (ex.Code == JVLinkLoadResult.SetupCanceled)
+          {
+            Program.Shutdown(DownloaderError.SetupDialogCanceled);
+          }
+          else if (ex.Code == JVLinkLoadResult.LicenceKeyExpired)
+          {
+            Program.Shutdown(DownloaderError.LicenceKeyExpired);
+          }
+          else if (ex.Code == JVLinkLoadResult.LicenceKeyNotSet)
+          {
+            Program.Shutdown(DownloaderError.LicenceKeyNotSet);
+          }
+          else if (ex.Code == JVLinkLoadResult.InMaintance)
+          {
+            Program.Shutdown(DownloaderError.InMaintance);
+          }
+          else if (ex.Code == JVLinkLoadResult.InvalidDataspec || ex.Code == JVLinkLoadResult.InvalidDatespecAndOption ||
+            ex.Code == JVLinkLoadResult.InvalidFromTime || ex.Code == JVLinkLoadResult.InvalidKey ||
+            ex.Code == JVLinkLoadResult.InvalidOption || ex.Code == JVLinkLoadResult.InvalidRegistry ||
+            ex.Code == JVLinkLoadResult.InvalidServerApplication)
+          {
+            Program.Shutdown(DownloaderError.ApplicationError);
+          }
+          else
+          {
+            _ = Program.RestartProgramAsync(false);
+          }
         }
         catch (JVLinkException<JVLinkReadResult> ex)
         {
-          this.ReadErrorCode.Value = ex.Code;
-          logger.Error($"error {ex.Code}");
-          logger.Error("error", ex);
+          logger.Error($"データ読み込みでエラーが発生 {ex.Code}", ex);
+
+          _ = Program.RestartProgramAsync(false);
         }
         catch (Exception ex)
         {
-          this.IsDatabaseError.Value = true;
-          logger.Error("error", ex);
-        }
-        finally
-        {
-          this.IsLoading.Value = false;
+          logger.Error("不明なエラーが発生", ex);
+
+          _ = Program.RestartProgramAsync(false);
         }
       });
     }
@@ -253,19 +222,66 @@ namespace KmyKeiba.Downloader
       this.Processed.Value = 0;
     }
 
-    private async Task LoadAsync(IJVLinkReader reader, IEnumerable<string> loadSpecs, bool isProcessing, bool isRealtime, bool isDisposeReader = false)
+    private async Task LoadAsync(IJVLinkReader reader, IEnumerable<string>? loadSpecs, bool isProcessing, bool isRealtime)
     {
       this.ResetProgresses();
 
       this.DownloadSize.Value = reader.DownloadCount;
-      logger.Info($"Download: {reader.DownloadCount}");
+      logger.Info($"必要なダウンロード数: {reader.DownloadCount}");
+      this.Process = LoadProcessing.Downloading;
 
+      var waitCount = 0;
+      var lastUpdatedDownloadCount = 0;
+      var stayCount = 0;
+
+      // ダウンロードはリンク上で非同期で行われるため、待機処理をここに入れる
       while (this.DownloadSize.Value > this.Downloaded.Value)
       {
         this.Downloaded.Value = reader.DownloadedCount;
         Task.Delay(80).Wait();
+
+        waitCount += 80;
+        if (waitCount > 10_000)
+        {
+          Program.CheckShutdown();
+          waitCount = 0;
+        }
+        if (reader.DownloadedCount < 0)
+        {
+          var code = (JVLinkLoadResult)reader.DownloadedCount;
+          logger.Warn($"ダウンロード中にエラーが発生: {code}");
+
+          // 地方競馬では、きちんとネットにつながってるはずなのにこのようなエラーが出ることがある様子
+          if (code == JVLinkLoadResult.DownloadFailed)
+          {
+            throw JVLinkException.GetError((JVLinkLoadResult)reader.DownloadedCount);
+          }
+          Program.RestartProgramAsync(false).Wait();
+        }
+        else
+        {
+          // ダウンロード数が増えなかったときのタイムアウト
+          // 地方競馬ではダウンロード中にネット接続が切れてもNVStatusでエラーを返さないことがあるため、その対応。ちゃんとデバッグして
+          if (reader.DownloadedCount != lastUpdatedDownloadCount)
+          {
+            lastUpdatedDownloadCount = reader.DownloadedCount;
+            stayCount = 0;
+          }
+          else
+          {
+            stayCount += 80;
+            if (stayCount >= 60_000)
+            {
+              logger.Warn($"ダウンロード数が {reader.DownloadedCount} から増えないのでタイムアウトします");
+              Program.RestartProgramAsync(false).Wait();
+            }
+          }
+        }
       }
-      logger.Info("Download completed");
+      logger.Info("ダウンロードが完了しました");
+
+      waitCount = 0;
+      var isDisposed = false;
 
       JVLinkReaderData data = new();
       var isLoaded = false;
@@ -276,6 +292,13 @@ namespace KmyKeiba.Downloader
           await Task.Delay(80);
           this.Loaded.Value = reader.ReadedCount;
           this.LoadEntityCount.Value = reader.ReadedEntityCount;
+
+          waitCount += 80;
+          if (waitCount > 10_000)
+          {
+            Program.CheckShutdown();
+            waitCount = 0;
+          }
         }
       });
 
@@ -284,30 +307,70 @@ namespace KmyKeiba.Downloader
       // }
 
       this.LoadSize.Value = reader.ReadCount;
-      logger.Info("Load start");
+      logger.Info($"データのロードを開始します　ロード数: {reader.ReadCount}");
+      this.Process = LoadProcessing.Loading;
       try
       {
         data = reader.Load(loadSpecs);
       }
       catch (Exception ex)
       {
+        logger.Error("ロードでエラーが発生しました", ex);
         throw new Exception("Load error", ex);
       }
       isLoaded = true;
+      Program.CheckShutdown();
 
-      if (isDisposeReader)
+      // readerのDisposeが完了しない場合がある
+      var isDone = false;
+      _ = Task.Run(async () =>
       {
-        // EntityFrameworkメソッドの呼び出しでスレッドが変わることがあるので、ここで破棄する
-        reader.Dispose();
-      }
+        var loadStartTime = DateTime.Now;
+        logger.Info("ロード完了");
 
+        await LoadAfterAsync(data, isProcessing, isRealtime);
+        isDone = true;
+
+        if (!isDisposed)
+        {
+          this.Process = LoadProcessing.Closing;
+          var d = (DateTime.Now - loadStartTime).TotalSeconds;
+          if (d < 0) d = 0;
+          await Task.Delay(TimeSpan.FromSeconds(System.Math.Max(30.0 - d, 0.1)));
+
+          if (!isDisposed)
+          {
+            logger.Warn("接続のクローズが完了しないため、強制的に破棄します");
+            await Program.RestartProgramAsync(true);
+          }
+        }
+      });
+
+      // EntityFrameworkメソッドの呼び出しでスレッドが変わることがあるので、ここで破棄する
+      if (reader.Type == JVLinkObjectType.Local)
+      {
+        GC.Collect();
+      }
+      reader.Dispose();
+      isDisposed = true;
+      logger.Info("接続のクローズが完了しました");
+
+      // ロード処理を待機。終わるまで制御を戻さない
+      while (!isDone)
+      {
+        await Task.Delay(100);
+      }
+      logger.Info("ロード処理が正常に完了しました");
+    }
+
+    private async Task LoadAfterAsync(JVLinkReaderData data, bool isProcessing, bool isRealtime)
+    {
       var saved = 0;
-      this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + /*data.ExactaOdds.Sum((o) => o.Odds.Count)
-        + data.FrameNumberOdds.Sum((o) => o.Odds.Count) +
-        data.QuinellaOdds.Sum((o) => o.Odds.Count) + data.QuinellaPlaceOdds.Sum((o) => o.Odds.Count) +
-         data.TrifectaOdds.Sum((o) => o.Odds.Count) + data.TrioOdds.Sum((o) => o.Odds.Count) + */
+      this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count
+        + data.FrameNumberOdds.Count + data.QuinellaOdds.Count + data.QuinellaPlaceOdds.Count +
+         data.TrifectaOdds.Count + data.TrioOdds.Count + data.BornHorses.Count +
         data.Refunds.Count + data.Trainings.Count + data.WoodtipTrainings.Count + data.Horses.Count + data.HorseBloods.Count;
-      logger.Info($"Save size: {this.SaveSize.Value}");
+      logger.Info($"保存数: {this.SaveSize.Value}");
 
       var timer = new ReactiveTimer(TimeSpan.FromMilliseconds(80));
       timer.Subscribe((t) =>
@@ -320,313 +383,459 @@ namespace KmyKeiba.Downloader
       });
       timer.Start();
 
-      using (var db = new MyContext())
+      this.Process = LoadProcessing.Writing;
+      Task.Delay(1000).Wait();    // トランザクションが始まるので、ここで待機しないとProgram.csからこの値をDBに保存できず、メインアプリにWritingが伝わらなくなる
+
+      using var db = new MyContext();
+
+      async Task SaveDicAsync<E, D, I, KEY>(Dictionary<KEY, E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
+        where E : EntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I> where KEY : IComparable
       {
-        async Task SaveDicAsync<E, D, I, KEY>(Dictionary<KEY, E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
-          where E : EntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I> where KEY : IComparable
+        await SaveAsync(entities.Select(e => e.Value).ToList(), dataSet, entityId, dataId, dataIdSelector);
+      }
+
+      async Task SaveAsync<E, D, I>(IEnumerable<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
+        where E : IEntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
+      {
+        var position = entities;
+
+        while (position.Any())
         {
-          await SaveAsync(entities.Select(e => e.Value).ToList(), dataSet, entityId, dataId, dataIdSelector);
+          var chunk = position.Take(10000);
+          await SaveAsyncPrivate(chunk, dataSet, entityId, dataId, dataIdSelector);
+
+          position = position.Skip(10000);
+          Program.CheckShutdown(db);
         }
+      }
 
-        async Task SaveAsync<E, D, I>(IEnumerable<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
-          where E : IEntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
+      async Task SaveAsyncPrivate<E, D, I>(IEnumerable<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
+        where E : IEntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
+      {
+        var copyed = entities.ToList();
+
+        var changed = 0;
+
+        var ids = entities.Select(entityId).Distinct().ToList();
+        var dataItems = await dataSet!
+          .Where(dataIdSelector(ids))
+          .ToArrayAsync();
+        foreach (var item in dataItems
+          .Join(entities, (d) => dataId(d), (e) => entityId(e), (d, e) => new { Data = d, Entity = e, })
+          .OrderBy((i) => (short)i.Entity.DataStatus))
         {
-          var position = entities;
-
-          while (position.Any())
+          if (item.Data.DataStatus <= item.Entity.DataStatus || item.Data.LastModified <= item.Entity.LastModified)
           {
-            var chunk = position.Take(10000);
-            await SaveAsyncPrivate(chunk, dataSet, entityId, dataId, dataIdSelector);
-
-            position = position.Skip(10000);
-          }
-        }
-
-        async Task SaveAsyncPrivate<E, D, I>(IEnumerable<E> entities, DbSet<D> dataSet, Func<E, I> entityId, Func<D, I> dataId, Func<IEnumerable<I>, Expression<Func<D, bool>>> dataIdSelector)
-          where E : IEntityBase where D : DataBase<E>, new() where I : IComparable<I>, IEquatable<I>
-        {
-          var copyed = entities.ToList();
-
-          var changed = 0;
-
-          var ids = entities.Select(entityId).Distinct().ToList();
-          var dataItems = await dataSet!
-            .Where(dataIdSelector(ids))
-            .ToArrayAsync();
-          foreach (var item in dataItems
-            .Join(entities, (d) => dataId(d), (e) => entityId(e), (d, e) => new { Data = d, Entity = e, })
-            .OrderBy((i) => (short)i.Entity.DataStatus))
-          {
-            item.Data.SetEntity(item.Entity);
-            copyed.Remove(item.Entity);
-            changed++;
-
-            if (changed == 1000)
+            if (item.Entity.DataStatus == RaceDataStatus.Local && item.Data.DataStatus <= RaceDataStatus.Canceled)
             {
-              await db.SaveChangesAsync();
-              saved += changed;
-              changed = 0;
+              // 地方重賞などについて、JV-LinkではDataStatusをLocalに設定しているが、UmaConnでは通常レースと同様に1～9の値を設定している
+              // JV-Linkから来るデータは開始時刻など一部情報が欠損しているが、UmaConnから来る情報はそれがない。よってJV-Linkの情報をとばす
+              // 条件分岐の際は、中央競馬のみを落とす場合／先に中央を落として後日地方を追加で落とす場合も考慮する
+            }
+            else
+            {
+              item.Data.SetEntity(item.Entity);
             }
           }
-          await db.SaveChangesAsync();
-          saved += changed;
+          copyed.Remove(item.Entity);
+          changed++;
 
-          var newItems = copyed
-            .Where((e) => !dataItems.Any((d) => dataId(d)!.Equals(entityId(e))))
-            .Select((item) =>
-            {
-              var obj = new D();
-              obj.SetEntity(item);
-              return obj;
-            });
-
-          // 大量のデータを分割して保存する
-          var position = newItems;
-          while (position.Any())
+          if (changed == 1000)
           {
-            var chunk = position.Take(1000);
-            await dataSet.AddRangeAsync(chunk);
             await db.SaveChangesAsync();
-            saved += chunk.Count();
-
-            position = position.Skip(1000);
+            saved += changed;
+            changed = 0;
           }
-          // saved += items.Count();
+        }
+        await db.SaveChangesAsync();
+        saved += changed;
+
+        var newItems = copyed
+          .Where((e) => !dataItems.Any((d) => dataId(d)!.Equals(entityId(e))))
+          .Select((item) =>
+          {
+            var obj = new D();
+            obj.SetEntity(item);
+            return obj;
+          });
+
+        // 大量のデータを分割して保存する
+        var position = newItems;
+        var newObjCount = 0;
+        while (position.Any())
+        {
+          var chunk = position.Take(1000);
+          await dataSet.AddRangeAsync(chunk);
+          await db.SaveChangesAsync();
+
+          var count = chunk.Count();
+          saved += count;
+          newObjCount += count;
+
+          position = position.Skip(1000);
+        }
+        // saved += items.Count();
+
+        logger.Info($"保存　新規: {newObjCount}, 変更: {changed}");
+      }
+
+      {
+        // efcoreのdb.Database.SetConnectionTimeoutがなぜか効かないので、30分待つ
+        var isSucceed = false;
+        var tryCount = 0;
+        while (!isSucceed)
+        {
+          try
+          {
+            logger.Info("トランザクションの開始を試みます");
+            await db.BeginTransactionAsync();
+            logger.Info("トランザクションが正常に開始されました");
+            isSucceed = true;
+          }
+          catch (SqliteException ex) when (ex.SqliteErrorCode == 5)  // file locked
+          {
+            // TODO: log
+            tryCount++;
+            if (tryCount >= 30 * 60)
+            {
+              logger.Error("トランザクション開始でエラー発生。プログラムをシャットダウンします", ex);
+              Program.Shutdown(DownloaderError.DatabaseTimeout);
+            }
+
+            await Task.Delay(1000);
+          }
+        }
+      }
+
+      logger.Info($"RaceHorsesの保存を開始 {data.RaceHorses.Count}");
+      await SaveDicAsync(data.RaceHorses,
+        db.RaceHorses!,
+        (e) => e.Name + e.RaceKey,
+        (d) => d.Name + d.RaceKey,
+        (list) => e => list.Contains(e.Name + e.RaceKey));
+      await db.CommitAsync();
+
+      logger.Info($"Racesの保存を開始 {data.Races.Count}");
+      await SaveDicAsync(data.Races,
+        db.Races!,
+        (e) => e.Key,
+        (d) => d.Key,
+        (list) => e => list.Contains(e.Key));
+      logger.Info($"Horsesの保存を開始 {data.Horses.Count}");
+      await SaveDicAsync(data.Horses,
+        db.Horses!,
+        (e) => e.Code,
+        (d) => d.Code,
+        (list) => e => list.Contains(e.Code));
+      logger.Info($"HorseBloodsの保存を開始 {data.HorseBloods.Count}");
+      await SaveDicAsync(data.HorseBloods,
+        db.HorseBloods!,
+        (e) => e.Key,
+        (d) => d.Key,
+        (list) => e => list.Contains(e.Key));
+      await db.CommitAsync();
+      logger.Info($"BornHorsesの保存を開始 {data.BornHorses.Count}");
+      await SaveDicAsync(data.BornHorses,
+        db.BornHorses!,
+        (e) => e.Code,
+        (d) => d.Code,
+        (list) => e => list.Contains(e.Code));
+      await db.CommitAsync();
+
+      logger.Info($"FrameNumberOddsの保存を開始 {data.FrameNumberOdds.Count}");
+      await SaveDicAsync(data.FrameNumberOdds,
+        db.FrameNumberOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+      logger.Info($"QuinellaPlaceOddsの保存を開始 {data.QuinellaPlaceOdds.Count}");
+      await SaveDicAsync(data.QuinellaPlaceOdds,
+        db.QuinellaPlaceOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+      logger.Info($"QuinellaOddsの保存を開始 {data.QuinellaOdds.Count}");
+      await SaveDicAsync(data.QuinellaOdds,
+        db.QuinellaOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+      logger.Info($"ExactaOddsの保存を開始 {data.ExactaOdds.Count}");
+      await SaveDicAsync(data.ExactaOdds,
+        db.ExactaOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+      logger.Info($"TrioOddsの保存を開始 {data.TrioOdds.Count}");
+      await SaveDicAsync(data.TrioOdds,
+        db.TrioOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+      logger.Info($"TrifectaOddsの保存を開始 {data.TrifectaOdds.Count}");
+      await SaveDicAsync(data.TrifectaOdds,
+        db.TrifectaOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+      await db.CommitAsync();
+
+      logger.Info($"Refundsの保存を開始 {data.Refunds.Count}");
+      await SaveDicAsync(data.Refunds,
+        db.Refunds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
+
+      logger.Info($"SingleAndDoubleWinOddsの保存を開始 {data.SingleAndDoubleWinOdds.Count}");
+      await SaveAsync(data.SingleAndDoubleWinOdds.Where((o) => o.Value.Time != default).Select((o) => o.Value),
+        db.SingleOddsTimelines!,
+        (e) => e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute,
+        (d) => d.RaceKey + d.Time.Month + "_" + d.Time.Day + "_" + d.Time.Hour + "_" + d.Time.Minute,
+        (list) => e => list.Contains(e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute));
+      logger.Info($"Trainingsの保存を開始 {data.Trainings.Count}");
+      await SaveDicAsync(data.Trainings,
+        db.Trainings!,
+        (e) => e.HorseKey + e.StartTime.Year + "_" + e.StartTime.Month + "_" + e.StartTime.Day + "_" + e.StartTime.Hour + "_" + e.StartTime.Minute,
+        (d) => d.HorseKey + d.StartTime.Year + "_" + d.StartTime.Month + "_" + d.StartTime.Day + "_" + d.StartTime.Hour + "_" + d.StartTime.Minute,
+        (list) => e => list.Contains(e.HorseKey + e.StartTime.Year + "_" + e.StartTime.Month + "_" + e.StartTime.Day + "_" + e.StartTime.Hour + "_" + e.StartTime.Minute));
+      logger.Info($"WoodtipTrainingsの保存を開始 {data.WoodtipTrainings.Count}");
+      await SaveDicAsync(data.WoodtipTrainings,
+        db.WoodtipTrainings!,
+        (e) => e.HorseKey + e.StartTime.Year + "_" + e.StartTime.Month + "_" + e.StartTime.Day + "_" + e.StartTime.Hour + "_" + e.StartTime.Minute,
+        (d) => d.HorseKey + d.StartTime.Year + "_" + d.StartTime.Month + "_" + d.StartTime.Day + "_" + d.StartTime.Hour + "_" + d.StartTime.Minute,
+        (list) => e => list.Contains(e.HorseKey + e.StartTime.Year + "_" + e.StartTime.Month + "_" + e.StartTime.Day + "_" + e.StartTime.Hour + "_" + e.StartTime.Minute));
+      await db.CommitAsync();
+
+      // 保存後のデータに他のデータを追加する
+      this.ProcessSize.Value = 0;
+      this.Processed.Value = 0;
+      this.ProcessSize.Value += data.SingleAndDoubleWinOdds.Count;
+      this.Process = LoadProcessing.Processing;
+
+      // 単勝オッズを設定する
+      {
+        var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.Value.RaceKey).ToArray();
+        var oddsRaceHorses = await db.RaceHorses!
+          .Where((r) => oddsRaceKeys.Contains(r.RaceKey))
+          .ToArrayAsync();
+
+        logger.Info($"単勝・複勝オッズの各馬への設定を開始します {data.SingleAndDoubleWinOdds.Count}");
+        foreach (var odds in data.SingleAndDoubleWinOdds)
+        {
+          var horses = oddsRaceHorses
+            .Where((h) => h.RaceKey == odds.Value.RaceKey);
+          foreach (var horse in horses)
+          {
+            var o = odds.Value.Odds.FirstOrDefault((oo) => oo.HorseNumber == horse.Number);
+            if (o.HorseNumber != default && horse.CanSetOdds(o.Odds))
+            {
+              horse.Odds = (short)o.Odds;
+              horse.Popular = o.Popular;
+              horse.PlaceOddsMax = (short)o.PlaceOddsMax;
+              horse.PlaceOddsMin = (short)o.PlaceOddsMin;
+            }
+          }
+
+          this.Processed.Value++;
+          Program.CheckShutdown(db);
         }
 
-        await SaveDicAsync(data.Races,
-          db.Races!,
-          (e) => e.Key,
-          (d) => d.Key,
-          (list) => e => list.Contains(e.Key));
-        await SaveDicAsync(data.RaceHorses,
-          db.RaceHorses!,
-          (e) => e.Name + e.RaceKey,
-          (d) => d.Name + d.RaceKey,
-          (list) => e => list.Contains(e.Name + e.RaceKey));
-        await SaveDicAsync(data.Horses,
-          db.Horses!,
-          (e) => e.Code,
-          (d) => d.Code,
-          (list) => e => list.Contains(e.Code));
-        await SaveDicAsync(data.HorseBloods,
-          db.HorseBloods!,
-          (e) => e.Key,
-          (d) => d.Key,
-          (list) => e => list.Contains(e.Key));
+        await db.SaveChangesAsync();
+      }
 
-        /*
-        await SaveAsync(data.FrameNumberOdds.SelectMany((o) => o.Odds),
-          db.FrameNumberOdds!,
-          (e) => e.RaceKey + e.Frame1 + " " + e.Frame2,
-          (d) => d.RaceKey + d.Frame1 + " " + d.Frame2,
-          (list) => e => list.Contains(e.RaceKey + e.Frame1 + " " + e.Frame2));
-        await SaveAsync(data.QuinellaPlaceOdds.SelectMany((o) => o.Odds),
-          db.QuinellaPlaceOdds!,
-          (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2,
-          (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2,
-          (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2));
-        await SaveAsync(data.QuinellaOdds.SelectMany((o) => o.Odds),
-          db.QuinellaOdds!,
-          (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2,
-          (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2,
-          (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2));
-        await SaveAsync(data.ExactaOdds.SelectMany((o) => o.Odds),
-          db.ExactaOdds!,
-          (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2,
-          (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2,
-          (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2));
-        await SaveAsync(data.TrioOdds.SelectMany((o) => o.Odds),
-          db.TrioOdds!,
-          (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3,
-          (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2 + " " + d.HorseNumber3,
-          (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3));
-        await SaveAsync(data.TrifectaOdds.SelectMany((o) => o.Odds),
-          db.TrifectaOdds!,
-          (e) => e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3,
-          (d) => d.RaceKey + d.HorseNumber1 + " " + d.HorseNumber2 + " " + d.HorseNumber3,
-          (list) => e => list.Contains(e.RaceKey + e.HorseNumber1 + " " + e.HorseNumber2 + " " + e.HorseNumber3));
-        */
-        await SaveDicAsync(data.Refunds,
-          db.Refunds!,
-          (e) => e.RaceKey,
-          (d) => d.RaceKey,
-          (list) => e => list.Contains(e.RaceKey));
+      if (isRealtime)
+      {
+        this.ProcessSize.Value += data.HorseWeights.Count;
+        this.ProcessSize.Value += data.CourseWeatherConditions.Count;
+        this.ProcessSize.Value += data.HorseAbnormalities.Count;
+        this.ProcessSize.Value += data.HorseRiderChanges.Count;
+        this.ProcessSize.Value += data.RaceStartTimeChanges.Count;
+        this.ProcessSize.Value += data.RaceCourseChanges.Count;
 
-        await SaveAsync(data.SingleAndDoubleWinOdds.Where((o) => o.Time != default),
-          db.SingleOddsTimelines!,
-          (e) => e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute,
-          (d) => d.RaceKey + d.Time.Month + "_" + d.Time.Day + "_" + d.Time.Hour + "_" + d.Time.Minute,
-          (list) => e => list.Contains(e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute));
-        await SaveDicAsync(data.Trainings,
-          db.Trainings!,
-          (e) => e.HorseKey + e.StartTime,
-          (d) => d.HorseKey + d.StartTime,
-          (list) => e => list.Contains(e.HorseKey + e.StartTime));
-        await SaveDicAsync(data.WoodtipTrainings,
-          db.WoodtipTrainings!,
-          (e) => e.HorseKey + e.StartTime,
-          (d) => d.HorseKey + d.StartTime,
-          (list) => e => list.Contains(e.HorseKey + e.StartTime));
+        // 古いデータは削除
+        var today = DateTime.Today;
+        var olds = db.RaceChanges!.Where(c => c.LastModified < today);
+        db.RaceChanges!.RemoveRange(olds);
+        await db.SaveChangesAsync();
 
-        // 保存後のデータに他のデータを追加する
-        this.ProcessSize.Value = 0;
-        this.Processed.Value = 0;
-        this.ProcessSize.Value += data.SingleAndDoubleWinOdds.Count;
-
-        // 単勝オッズを設定する
+        async Task AddDataAsync(IEnumerable<RaceChangeData> data)
         {
-          var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.RaceKey).ToArray();
-          var oddsRaceHorses = await db.RaceHorses!
-            .Where((r) => oddsRaceKeys.Contains(r.RaceKey))
-            .ToArrayAsync();
-
-          foreach (var odds in data.SingleAndDoubleWinOdds)
+          var raceKeys = data.Select(d => d.RaceKey);
+          var exists = await db!.RaceChanges!.Where(c => raceKeys.Contains(c.RaceKey)).ToArrayAsync();
+          foreach (var d in data)
           {
-            var horses = oddsRaceHorses
-              .Where((h) => h.RaceKey == odds.RaceKey);
-            foreach (var horse in horses)
+            var ex = exists.FirstOrDefault(c => c.ChangeType == d.ChangeType && c.RaceKey == d.RaceKey && c.HorseNumber == d.HorseNumber);
+            if (ex != null)
             {
-              var o = odds.Odds.FirstOrDefault((oo) => oo.HorseNumber == horse.Number);
-              if (o.HorseNumber != default)
+              ex.LastModified = DateTime.Now;
+            }
+            else
+            {
+              d.LastModified = DateTime.Now;
+              await db!.RaceChanges!.AddAsync(d);
+            }
+          }
+        }
+
+        // 馬の体重を設定する
+        {
+          logger.Info($"馬体重を設定します {data.HorseWeights.Count}");
+          foreach (var weight in data.HorseWeights)
+          {
+            var horses = await db.RaceHorses!
+              .Where((h) => h.RaceKey == weight.RaceKey)
+              .ToArrayAsync();
+            foreach (var info in weight.Infos.Join(horses, (i) => i.HorseNumber, (h) => h.Number, (i, h) => new { Info = i, Horse = h, }))
+            {
+              info.Horse.Weight = info.Info.Weight;
+              info.Horse.WeightDiff = info.Info.WeightDiff;
+            }
+
+            this.Processed.Value++;
+            Program.CheckShutdown(db);
+          }
+
+          await AddDataAsync(data.HorseWeights.SelectMany(c => RaceChangeData.GetData(c)));
+          await db.SaveChangesAsync();
+        }
+
+        // 天候、馬場
+        {
+          logger.Info($"天気、馬場を設定します {data.CourseWeatherConditions.Count}");
+          foreach (var weather in data.CourseWeatherConditions)
+          {
+            var races = await db.Races!
+              .Where((r) => r.Key.StartsWith(weather.RaceKeyWithoutRaceNum))
+              .ToArrayAsync();
+            foreach (var race in races)
+            {
+              if (weather.Weather != RaceCourseWeather.Unknown)
               {
-                horse.Odds = (short)o.Odds;
-                horse.Popular = o.Popular;
-                horse.PlaceOddsMax = (short)o.PlaceOddsMax;
-                horse.PlaceOddsMin = (short)o.PlaceOddsMin;
+                race.TrackWeather = weather.Weather;
+              }
+              if (race.TrackGround == TrackGround.Turf && weather.TurfCondition != RaceCourseCondition.Unknown)
+              {
+                race.TrackCondition = weather.TurfCondition;
+              }
+              else if ((race.TrackGround == TrackGround.Dirt || race.TrackGround == TrackGround.TurfToDirt || race.TrackGround == TrackGround.Sand) &&
+                weather.DirtCondition != RaceCourseCondition.Unknown)
+              {
+                race.TrackCondition = weather.DirtCondition;
               }
             }
 
             this.Processed.Value++;
+            Program.CheckShutdown(db);
           }
 
+          await AddDataAsync(data.CourseWeatherConditions.Select(c => RaceChangeData.GetData(c)));
           await db.SaveChangesAsync();
         }
 
-        if (isRealtime)
+        // 馬の状態
         {
-          this.ProcessSize.Value += data.HorseWeights.Count;
-          this.ProcessSize.Value += data.CourseWeatherConditions.Count;
-          this.ProcessSize.Value += data.HorseAbnormalities.Count;
-          this.ProcessSize.Value += data.HorseRiderChanges.Count;
-
-          // 馬の体重を設定する
+          logger.Info($"馬の出走状態を設定します {data.HorseAbnormalities.Count}");
+          foreach (var ab in data.HorseAbnormalities)
           {
-            foreach (var weight in data.HorseWeights)
+            var horse = await db.RaceHorses!
+              .FirstOrDefaultAsync((h) => h.RaceKey == ab.RaceKey && h.Number == ab.HorseNumber);
+            if (horse != null)
             {
-              var horses = await db.RaceHorses!
-                .Where((h) => h.RaceKey == weight.RaceKey)
-                .ToArrayAsync();
-              foreach (var info in weight.Infos.Join(horses, (i) => i.HorseNumber, (h) => h.Number, (i, h) => new { Info = i, Horse = h, }))
-              {
-                info.Horse.Weight = info.Info.Weight;
-                info.Horse.WeightDiff = info.Info.WeightDiff;
-              }
-
-              this.Processed.Value++;
+              horse.AbnormalResult = ab.AbnormalResult;
             }
 
-            await db.SaveChangesAsync();
+            this.Processed.Value++;
+            Program.CheckShutdown(db);
           }
 
-          // 天候、馬場
-          {
-            foreach (var weather in data.CourseWeatherConditions)
-            {
-              var races = await db.Races!
-                .Where((r) => r.Key.StartsWith(weather.RaceKeyWithoutRaceNum))
-                .ToArrayAsync();
-              foreach (var race in races)
-              {
-                if (weather.Weather != RaceCourseWeather.Unknown)
-                {
-                  race.TrackWeather = weather.Weather;
-                }
-                if (race.TrackGround == TrackGround.Turf && weather.TurfCondition != RaceCourseCondition.Unknown)
-                {
-                  race.TrackCondition = weather.TurfCondition;
-                }
-                else if ((race.TrackGround == TrackGround.Dirt || race.TrackGround == TrackGround.TurfToDirt || race.TrackGround == TrackGround.Sand) &&
-                  weather.DirtCondition != RaceCourseCondition.Unknown)
-                {
-                  race.TrackCondition = weather.DirtCondition;
-                }
-              }
-
-              this.Processed.Value++;
-            }
-
-            await db.SaveChangesAsync();
-          }
-
-          // 馬の状態
-          {
-            foreach (var ab in data.HorseAbnormalities)
-            {
-              var horse = await db.RaceHorses!
-                .FirstOrDefaultAsync((h) => h.RaceKey == ab.RaceKey && h.Number == ab.HorseNumber);
-              if (horse != null)
-              {
-                horse.AbnormalResult = ab.AbnormalResult;
-              }
-
-              this.Processed.Value++;
-            }
-
-            await db.SaveChangesAsync();
-          }
-
-          // 騎手
-          {
-            foreach (var ab in data.HorseRiderChanges)
-            {
-              var horse = await db.RaceHorses!
-                .FirstOrDefaultAsync((h) => h.RaceKey == ab.RaceKey && h.Number == ab.HorseNumber);
-              if (horse != null)
-              {
-                horse.RiderCode = ab.RiderCode;
-                horse.RiderName = ab.RiderName;
-                horse.RiderWeight = ab.RiderWeight;
-              }
-
-              this.Processed.Value++;
-            }
-
-            await db.SaveChangesAsync();
-          }
+          await AddDataAsync(data.HorseAbnormalities.Select(c => RaceChangeData.GetData(c)));
+          await db.SaveChangesAsync();
         }
 
-        // 後処理　元データにはないデータを追加する
-
-        if (isProcessing)
+        // 騎手
         {
-          /*
-          // それぞれの馬に、第３ハロンタイムの順位をつける（LINQでやると時間がかかる）
-          IEnumerable<string> ids = db.RaceHorses!
-            .Where((h) => h.AfterThirdHalongTimeOrder == 0 && h.AfterThirdHalongTime > TimeSpan.Zero)
-            .Select((r) => r.RaceKey)
-            .Distinct();
-          this.ProcessSize.Value += (int)Math.Ceiling(ids.Count() / 64.0f);
-          while (ids.Any())
+          logger.Info($"騎手変更を設定します {data.HorseRiderChanges.Count}");
+          foreach (var ab in data.HorseRiderChanges)
           {
-            var arr = string.Join("','", ids.Take(64));
-            await db.Database.ExecuteSqlRawAsync($@"
-UPDATE racehorses, (SELECT racekey,`name`,afterthirdhalongtime,ROW_NUMBER() OVER(PARTITION BY racekey ORDER BY afterthirdhalongtime ASC) halongOrder
-FROM racehorses WHERE racekey IN ('{arr}') AND afterthirdhalongtime <> '00:00:00') AS buf
-SET racehorses.afterthirdhalongtimeorder=buf.halongOrder
-WHERE racehorses.racekey IN ('{arr}') AND racehorses.RaceKey=buf.racekey AND racehorses.`Name`=buf.`name`");
+            var horse = await db.RaceHorses!
+              .FirstOrDefaultAsync((h) => h.RaceKey == ab.RaceKey && h.Number == ab.HorseNumber);
+            if (horse != null)
+            {
+              horse.RiderCode = ab.RiderCode;
+              horse.RiderName = ab.RiderName;
+              horse.RiderWeight = ab.RiderWeight;
+            }
 
-            ids = ids.Skip(64);
             this.Processed.Value++;
+            Program.CheckShutdown(db);
           }
-          */
+
+          await AddDataAsync(data.HorseRiderChanges.Select(c => RaceChangeData.GetData(c)));
+          await db.SaveChangesAsync();
+        }
+
+        // 開始時刻
+        {
+          logger.Info($"レース開始時刻を設定します {data.RaceStartTimeChanges.Count}");
+          foreach (var st in data.RaceStartTimeChanges)
+          {
+            var race = await db.Races!
+              .FirstOrDefaultAsync((h) => h.Key == st.RaceKey);
+            if (race != null)
+            {
+              race.StartTime = new DateTime(race.StartTime.Year, race.StartTime.Month, race.StartTime.Day, st.StartTime.Hour, st.StartTime.Minute, 0);
+            }
+
+            this.Processed.Value++;
+            Program.CheckShutdown(db);
+          }
+
+          await AddDataAsync(data.RaceStartTimeChanges.Select(c => RaceChangeData.GetData(c)));
+          await db.SaveChangesAsync();
+        }
+
+        // コース
+        {
+          logger.Info($"コース変更を設定します {data.RaceCourseChanges.Count}");
+          foreach (var st in data.RaceCourseChanges)
+          {
+            var race = await db.Races!
+              .FirstOrDefaultAsync((h) => h.Key == st.RaceKey);
+            if (race != null)
+            {
+              race.TrackGround = st.TrackGround;
+              race.TrackCornerDirection = st.TrackCornerDirection;
+              race.TrackType = st.TrackType;
+              race.TrackOption = st.TrackOption;
+            }
+
+            this.Processed.Value++;
+            Program.CheckShutdown(db);
+          }
+
+          await AddDataAsync(data.RaceCourseChanges.Select(c => RaceChangeData.GetData(c)));
+          await db.SaveChangesAsync();
         }
       }
     }
 
     public void Dispose()
     {
+      logger.Info("接続を終了します");
       this.disposables.Dispose();
+      logger.Info("接続は終了しました");
     }
+  }
+
+  enum LoadProcessing
+  {
+    Unknown,
+    Opening,
+    Downloading,
+    Loading,
+    Writing,
+    Processing,
+    Closing,
   }
 }
