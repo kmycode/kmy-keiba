@@ -99,6 +99,16 @@ namespace KmyKeiba.JVLink.Wrappers.JVLib
 }
 ```
 
+### ビルド手順
+
+以下の手順でビルド・実行してください。
+
+```
+KmyKeiba.Downloader (x86) -> KmyKeiba (x64)
+```
+
+なお`DEBUG`ビルドで起動すると、アプリ実行中にたくさんのコンソール画面が出てきます。これらは`RELEASE`ビルドすることで抑制されますが、アプリのデバッグをする場合はお勧めしません。
+
 ### `Add-Migration` について
 
 このプログラムはEntityFrameworkCoreを使用しています。`Add-Migration` を実行するときには、以下の手順が必要です。
