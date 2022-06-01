@@ -186,7 +186,15 @@
       <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value,ElementName=Root}">
         <uc:TrendAnalyzerAnalysisView.MenuContent>
           <Grid DataContext="{Binding RelativeSource={RelativeSource FindAncestor,AncestorType=uc:RaceExpectHorseView}}">
-            <ItemsControl ItemsSource="{Binding RaceHorse.BloodSelectors.MenuItems}">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="auto"/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Border Height="40">
+              <Button Height="40" FontSize="18" Content="血統馬の成績"
+                      Click="BloodAnalysisButton_Click"/>
+            </Border>
+            <ItemsControl Grid.Row="1" ItemsSource="{Binding RaceHorse.BloodSelectors.MenuItems}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <RadioButton IsChecked="{Binding IsChecked.Value,Mode=TwoWay}" GroupName="{Binding UniqueId2,RelativeSource={RelativeSource FindAncestor,AncestorType=uc:RaceExpectHorseView}}"

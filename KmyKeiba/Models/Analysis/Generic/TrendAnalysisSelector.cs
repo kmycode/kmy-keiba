@@ -95,6 +95,13 @@ namespace KmyKeiba.Models.Analysis.Generic
       this.CurrentAnalyzer.Value = this.BeginLoad(currentKeys, 300, 0);
     }
 
+    public void BeginLoadWithExtraKey(KEY key)
+    {
+      var currentKeys = this.Keys.GetActiveKeys().Append(key).ToArray();
+
+      this.CurrentAnalyzer.Value = this.BeginLoad(currentKeys, 300, 0);
+    }
+
     public A BeginLoad(IReadOnlyList<KEY> keys, int count, int offset, bool isLoadSameHorses = true)
     {
       // ここはUIスレッドでなければならない（ReactiveCollectionなどにスレッドが伝播しないので）

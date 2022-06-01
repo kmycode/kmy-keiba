@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
@@ -171,13 +172,13 @@ namespace KmyKeiba.Models.Analysis
         var horses = await db.HorseBloods!.Where(h => bloodKeys.Contains(h.Key)).Select(h => new { h.Code, h.Key, h.Name }).ToArrayAsync();
         var items = new List<MenuItem>();
         foreach (var d in this._bloodCode
-          .Join(horses, b => b.Value, h => h.Key, (b, h) => new { Type = b.Key, Key = h.Code, h.Name, })
+          .Join(horses, b => b.Value, h => h.Key, (b, h) => new { Type = b.Key, Key = h.Code, h.Name, BloodKey = h.Key, })
           .Where(h => !string.IsNullOrEmpty(h.Name)))
         {
           this._horseKey.Add(d.Type, d.Key);
           if (!d.Key.All(k => k == '0'))
           {
-            items.Add(new MenuItem(new RaceHorseBloodTrendAnalysisSelector(this, this.Race, this.RaceHorse, d.Key, d.Name, d.Type))
+            items.Add(new MenuItem(new RaceHorseBloodTrendAnalysisSelector(this, this.Race, this.RaceHorse, d.Key, d.Name, d.Type, d.BloodKey))
             {
               Type = d.Type,
             });
@@ -227,7 +228,7 @@ namespace KmyKeiba.Models.Analysis
 
   public class EmptyRaceHorseBloodTrendAnalysisSelector : RaceHorseBloodTrendAnalysisSelector
   {
-    public EmptyRaceHorseBloodTrendAnalysisSelector(RaceHorseBloodTrendAnalysisSelectorMenu menu, string relativeName, BloodType type) : base(menu, new RaceData(), new RaceHorseData(), string.Empty, relativeName, type)
+    public EmptyRaceHorseBloodTrendAnalysisSelector(RaceHorseBloodTrendAnalysisSelectorMenu menu, string relativeName, BloodType type) : base(menu, new RaceData(), new RaceHorseData(), string.Empty, relativeName, type, string.Empty)
     {
     }
 
@@ -246,6 +247,9 @@ namespace KmyKeiba.Models.Analysis
   {
     public enum Key
     {
+      [IgnoreKey]
+      BloodHorseSelf,  // 血統馬自身を分析するときに便宜上追加するキー
+
       [Label("コース")]
       SameCourse,
 
@@ -284,9 +288,13 @@ namespace KmyKeiba.Models.Analysis
 
       [Label("間隔")]
       NearInterval,
+
+      [Label("年齢")]
+      SameAge,
     }
 
     private readonly string _key;
+    private readonly string _bloodKey;
     private IReadOnlyList<RaceHorseAnalyzer>? _allRaces;
 
     public override string Name { get; }
@@ -299,7 +307,7 @@ namespace KmyKeiba.Models.Analysis
 
     public BloodType Type { get; }
 
-    public RaceHorseBloodTrendAnalysisSelector(RaceHorseBloodTrendAnalysisSelectorMenu menu, RaceData race, RaceHorseData horse, string relativeKey, string relativeName, BloodType type) : base(typeof(Key))
+    public RaceHorseBloodTrendAnalysisSelector(RaceHorseBloodTrendAnalysisSelectorMenu menu, RaceData race, RaceHorseData horse, string relativeKey, string relativeName, BloodType type, string bloodKey) : base(typeof(Key))
     {
       this.Menu = menu;
       this.Race = race;
@@ -307,6 +315,7 @@ namespace KmyKeiba.Models.Analysis
       this._key = relativeKey;
       this.Name = relativeName;
       this.Type = type;
+      this._bloodKey = bloodKey;
     }
 
     protected override RaceHorseBloodTrendAnalyzer GenerateAnalyzer()
@@ -315,6 +324,152 @@ namespace KmyKeiba.Models.Analysis
     }
 
     protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseBloodTrendAnalyzer analyzer, int count, int offset, bool isLoadSameHorses)
+    {
+      if (keys.Contains(Key.BloodHorseSelf))
+      {
+        await this.InitializeBloodAnalyzerAsync(db, keys, analyzer, count, offset, isLoadSameHorses);
+        return;
+      }
+
+      /*
+      var query = db.Races!
+        .Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType)
+        .Join(db.RaceHorses!, r => r.Key, rh => rh.RaceKey, (r, rh) => new { Race = r, RaceHorse = rh, })
+        .Where(d => d.RaceHorse.RiderCode == this.RaceHorse.RiderCode);
+      */
+      var query = db.RaceHorses!
+        .Join(db.Races!.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType),
+          rh => rh.RaceKey, r => r.Key, (rh, r) => new { RaceHorse = rh, Race = r, });
+
+      IQueryable<HorseData> q1 = db.Horses!.Where(h => h.Id == 0);
+      IQueryable<BornHorseData> q2 = db.BornHorses!.Where(h => h.Id == 0);
+      
+      if (this.Type == BloodType.Father)
+      {
+        q1 = db.Horses!.Where(h => h.FatherBreedingCode == this._bloodKey);
+        q2 = db.BornHorses!.Where(h => h.FatherBreedingCode == this._bloodKey);
+      }
+      else if (this.Type == BloodType.FatherFather)
+      {
+      }
+      else if (this.Type == BloodType.FatherFatherFather)
+      {
+      }
+      else if (this.Type == BloodType.FatherFatherMother)
+      {
+      }
+      else if (this.Type == BloodType.FatherMother)
+      {
+      }
+      else if (this.Type == BloodType.FatherMotherFather)
+      {
+      }
+      else if (this.Type == BloodType.FatherMotherMother)
+      {
+      }
+      else if (this.Type == BloodType.Mother)
+      {
+        q1 = db.Horses!.Where(h => h.MotherBreedingCode == this._bloodKey);
+        q2 = db.BornHorses!.Where(h => h.MotherBreedingCode == this._bloodKey);
+      }
+      else if (this.Type == BloodType.MotherFather)
+      {
+      }
+      else if (this.Type == BloodType.MotherFatherFather)
+      {
+      }
+      else if (this.Type == BloodType.MotherFatherMother)
+      {
+      }
+      else if (this.Type == BloodType.MotherMother)
+      {
+      }
+      else if (this.Type == BloodType.MotherMotherFather)
+      {
+      }
+      else if (this.Type == BloodType.MotherMotherMother)
+      {
+      }
+
+      if (keys.Contains(Key.SameCourse))
+      {
+        query = query.Where(r => r.Race.Course == this.Race.Course);
+      }
+      if (keys.Contains(Key.SameGround))
+      {
+        query = query.Where(r => r.Race.TrackGround == this.Race.TrackGround);
+      }
+      if (keys.Contains(Key.NearDistance))
+      {
+        query = query.Where(r => r.Race.Distance >= this.Race.Distance - 100 && r.Race.Distance <= this.Race.Distance + 100);
+      }
+      if (keys.Contains(Key.SameDirection))
+      {
+        query = query.Where(r => r.Race.TrackCornerDirection == this.Race.TrackCornerDirection);
+      }
+      if (keys.Contains(Key.SameCondition))
+      {
+        query = query.Where(r => r.Race.TrackCondition == this.Race.TrackCondition);
+      }
+      if (keys.Contains(Key.SameSubject))
+      {
+        query = query.Where(r => r.Race.SubjectName == this.Race.SubjectName &&
+                                 r.Race.SubjectAge2 == this.Race.SubjectAge2 &&
+                                 r.Race.SubjectAge3 == this.Race.SubjectAge3 &&
+                                 r.Race.SubjectAge4 == this.Race.SubjectAge4 &&
+                                 r.Race.SubjectAge5 == this.Race.SubjectAge5 &&
+                                 r.Race.SubjectAgeYounger == this.Race.SubjectAgeYounger);
+      }
+      if (keys.Contains(Key.SameGrade))
+      {
+        query = query.Where(r => r.Race.Grade == this.Race.Grade);
+      }
+      if (keys.Contains(Key.SameWeather))
+      {
+        query = query.Where(r => r.Race.TrackWeather == this.Race.TrackWeather);
+      }
+      if (keys.Contains(Key.PlaceBets))
+      {
+        query = query.Where(r => r.RaceHorse.ResultOrder >= 1 && r.RaceHorse.ResultOrder <= 3);
+      }
+      if (keys.Contains(Key.Losed))
+      {
+        query = query.Where(r => r.RaceHorse.ResultOrder > 5);
+      }
+
+      var r0 = query
+        .Join(db.HorseBloods!, h => h.RaceHorse.Key, h => h.Code, (d, h) => new { d.Race, d.RaceHorse, BloodKey = h.Code, });
+      var r1 = r0.Join(q1, d => d.BloodKey, q => q.Code, (d, q) => new { d.Race, d.RaceHorse, });
+      var r2 = r0.Join(q2, d => d.BloodKey, q => q.Code, (d, q) => new { d.Race, d.RaceHorse, });
+
+      var races = await r1.Concat(r2)
+        .OrderByDescending(r => r.Race.StartTime)
+        .Skip(offset)
+        .Take(count)
+        .ToArrayAsync();
+      var raceKeys = races.Select(r => r.Race.Key).ToArray();
+      var raceHorses = Array.Empty<RaceHorseData>();
+      if (isLoadSameHorses)
+      {
+        raceHorses = await db.RaceHorses!
+          .Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 5 && raceKeys.Contains(rh.RaceKey))
+          .ToArrayAsync();
+      }
+
+      var list = new List<RaceHorseAnalyzer>();
+      foreach (var race in races)
+      {
+        list.Add(
+          new RaceHorseAnalyzer(
+            race.Race,
+            race.RaceHorse,
+            raceHorses.Where(rh => rh.RaceKey == race.Race.Key).ToArray(),
+            await AnalysisUtil.GetRaceStandardTimeAsync(db, race.Race)));
+      }
+      analyzer.SetSource(list);
+    }
+
+    private async Task InitializeBloodAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseBloodTrendAnalyzer analyzer, int count, int offset, bool isLoadSameHorses)
     {
       // WARNING: 全体の総数が多くないと予想されるのでここでDBからすべて取得し、配分している
       //          間違ってもこれをこのまま他のSelectorクラスにコピペしないように
