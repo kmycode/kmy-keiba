@@ -324,61 +324,70 @@ namespace KmyKeiba.Downloader
     {
       var loader = new JVLinkLoader();
       var isLoaded = false;
+      var isDbLooping = false;
 
-      Task.Run(async () =>
+      Task.Run(() =>
       {
-        try
+        using var db = new MyContext();
+        db.DownloaderTasks!.Attach(task);
+
+        var loopCount = 0;
+        isDbLooping = true;
+
+        while (!isLoaded)
         {
-          if (isRealTime)
+          Console.Write($"\rDWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) SV [{loader.Saved.Value} / {loader.SaveSize.Value}] PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
+
+          var p = loader.Process.ToString().ToLower();
+          if (p != task.Result)
           {
-            logger.Info("ダウンロードを開始します（RT）");
-            await RTLoadAsync(loader, task);
+            task.Result = p;
+            db.SaveChanges();
+            logger.Info($"ダウンロード状態が {p} に移行しました");
           }
-          else
+
+          loopCount++;
+          if (loopCount % 60 == 0)
           {
-            logger.Info("ダウンロードを開始します（セットアップ／通常）");
-            await LoadAsync(loader, task);
+            logger.Info($"DWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) SV [{loader.Saved.Value} / {loader.SaveSize.Value}] PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
           }
-          isLoaded = true;
+
+          Task.Delay(800).Wait();
         }
-        catch (Exception ex)
-        {
-          logger.Error("ダウンロードでエラーが発生しました", ex);
-        }
-        finally
-        {
-          loader.Dispose();
-        }
+
+        task.IsFinished = true;
+        db.SaveChanges();
+
+        isDbLooping = false;
       });
 
-      using var db = new MyContext();
-      db.DownloaderTasks!.Attach(task);
-
-      var loopCount = 0;
-
-      while (!isLoaded)
+      try
       {
-        Console.Write($"\rDWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) SV [{loader.Saved.Value} / {loader.SaveSize.Value}] PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
-
-        var p = loader.Process.ToString().ToLower();
-        if (p != task.Result)
+        if (isRealTime)
         {
-          task.Result = p;
-          db.SaveChanges();
-          logger.Info($"ダウンロード状態が {p} に移行しました");
+          logger.Info("ダウンロードを開始します（RT）");
+          RTLoadAsync(loader, task).Wait();
         }
-
-        loopCount++;
-        if (loopCount % 60 == 0)
+        else
         {
-          logger.Info($"DWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) SV [{loader.Saved.Value} / {loader.SaveSize.Value}] PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
+          logger.Info("ダウンロードを開始します（セットアップ／通常）");
+          LoadAsync(loader, task).Wait();
         }
-
-        Task.Delay(800).Wait();
+        isLoaded = true;
+      }
+      catch (Exception ex)
+      {
+        logger.Error("ダウンロードでエラーが発生しました", ex);
+      }
+      finally
+      {
+        loader.Dispose();
       }
 
-      task.IsFinished = true;
-      db.SaveChanges();
+      while (isDbLooping)
+      {
+        Task.Delay(50).Wait();
+      }
 
       KillMe();
     }
@@ -963,48 +972,26 @@ namespace KmyKeiba.Downloader
         task = new();
       }
 
-      var isLoaded = false;
-
-      Task.Run(async () =>
+      JVLinkObject? link = null;
+      try
       {
-        JVLinkObject? link = null;
-        try
-        {
-          link = JVLinkObject.Central;
-          using var reader = link.OpenMovie(JVLinkTrainingMovieType.Weekly, "20220528");
+        link = JVLinkObject.Central;
+        using var reader = link.OpenMovie(JVLinkTrainingMovieType.Weekly, "20220528");
 
-          var list = reader.ReadKeys();
-        }
-        catch (JVLinkException<JVLinkMovieResult> ex)
-        {
-          task.Error = DownloaderError.ApplicationRuntimeError;
-          task.Result = ex.Message;
-        }
-        catch (Exception ex)
-        {
-          logger.Error("動画リストダウンロードでエラーが発生しました", ex);
-        }
-        finally
-        {
-          isLoaded = true;
-        }
-      });
+        var list = reader.ReadKeys();
+      }
+      catch (JVLinkException<JVLinkMovieResult> ex)
+      {
+        task.Error = DownloaderError.ApplicationRuntimeError;
+        task.Result = ex.Message;
+      }
+      catch (Exception ex)
+      {
+        logger.Error("動画リストダウンロードでエラーが発生しました", ex);
+      }
 
       using var db = new MyContext();
       // db.DownloaderTasks!.Attach(task);
-
-      var loopCount = 0;
-
-      while (!isLoaded)
-      {
-        Task.Delay(800).Wait();
-
-        if (loopCount++ > 200)
-        {
-          task.Error = DownloaderError.Timeout;
-          break;
-        }
-      }
 
       task.IsFinished = true;
       db.SaveChanges();

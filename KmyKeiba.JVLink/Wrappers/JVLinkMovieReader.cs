@@ -25,7 +25,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public string[] ReadKeys()
     {
-      throw new NotImplementedException("実装方法がわかりません");
+      // throw new NotImplementedException("実装方法がわかりません");
 
       var size = 19;
       var list = new List<string>();
