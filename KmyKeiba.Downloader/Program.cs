@@ -344,19 +344,26 @@ namespace KmyKeiba.Downloader
         var loopCount = 0;
         isDbLooping = true;
 
-        void UpdateProcess()
+        void UpdateProcess(MyContext? myDb = null)
         {
+          myDb ??= db;
+
           var p = loader.Process.ToString().ToLower();
           if (p != task.Result)
           {
             task.Result = p;
-            db.SaveChanges();
+            myDb.SaveChanges();
             logger.Info($"ダウンロード状態が {p} に移行しました");
           }
         }
 
         // トランザクションを開始する前に、データ保存中という情報をアプリに渡す
-        loader.StartingTransaction += (sender, e) => UpdateProcess();
+        loader.StartingTransaction += (sender, e) =>
+        {
+          // 以下のループ処理と処理が重なって例外になることがあるので、専用のMyContextを新しく作る
+          using var myDb = new MyContext();
+          UpdateProcess(myDb);
+        };
 
         while (!isLoaded)
         {
