@@ -12,6 +12,8 @@ namespace KmyKeiba.Models.Injection
     double GetTimeDeviationValue(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData standardTime);
 
     double GetA3HTimeDeviationValue(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData standardTime);
+
+    double GetUntilA3HTimeDeviationValue(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData standardTime);
   }
 
   public interface IBuyer
