@@ -171,7 +171,11 @@ namespace KmyKeiba.Models.Analysis
 
         if (this.BeforeRaces.Any())
         {
-          var targetRaces = this.BeforeRaces.Where(r => r.Data.ResultOrder > 0 && r.Data.AbnormalResult == RaceAbnormality.Unknown).Take(10).ToArray();
+          var targetRaces = this.BeforeRaces
+            .Where(r => r.Data.ResultOrder > 0 && r.Data.AbnormalResult == RaceAbnormality.Unknown)
+            .Where(r => race.Course <= RaceCourse.CentralMaxValue ? r.Race.Course <= RaceCourse.CentralMaxValue : r.Race.Course >= RaceCourse.LocalMinValue)
+            .Take(10)
+            .ToArray();
 
           var startTime = new DateTime(1980, 1, 1);
           var statistic = new StatisticSingleArray(targetRaces.Select(r => r.ResultTimeDeviationValue).Where(r => r != default).ToArray());
