@@ -16,6 +16,8 @@ namespace KmyKeiba.Models.Connection
 {
   internal class DownloaderModel : IDisposable
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     public static DownloaderModel Instance => _instance ??= new();
     private static DownloaderModel? _instance;
 
@@ -105,6 +107,8 @@ namespace KmyKeiba.Models.Connection
 
     private DownloaderModel()
     {
+      logger.Debug("ダウンロードモデルの初期化");
+
       this.StartYearSelection = Enumerable.Range(1986, DateTime.Now.Year - 1986 + 1).ToArray();
       this.StartMonthSelection = Enumerable.Range(1, 12).ToArray();
 
@@ -129,6 +133,8 @@ namespace KmyKeiba.Models.Connection
           {
             this.CanSaveOthers.Value = canSave;
           });
+
+          logger.Debug($"他のスレッドからDBに保存可能: {canSave}");
         }
       }
       this.LoadingProcess.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
@@ -144,6 +150,8 @@ namespace KmyKeiba.Models.Connection
 
     public async Task<bool> InitializeAsync()
     {
+      logger.Info("ダウンローダの初期処理開始");
+
       var downloader = this._downloader;
       var isFirst = !downloader.IsExistsDatabase;
 
@@ -159,6 +167,7 @@ namespace KmyKeiba.Models.Connection
         this.CentralDownloadedMonth.Value = central % 100;
         this.LocalDownloadedYear.Value = local / 100;
         this.LocalDownloadedMonth.Value = local % 100;
+        logger.Info($"設定 {nameof(SettingKey.LastDownloadCentralDate)}: {central}, {nameof(SettingKey.LastDownloadLocalDate)}: {local}");
 
         var isCentral = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsDownloadCentral);
         var isLocal = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsDownloadLocal);
@@ -168,6 +177,7 @@ namespace KmyKeiba.Models.Connection
         var isRTLocal = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsRTDownloadLocal);
         this.IsRTDownloadCentral.Value = isRTCentral != 0;
         this.IsRTDownloadLocal.Value = isRTLocal != 0;
+        logger.Info($"設定 {nameof(SettingKey.IsDownloadCentral)}: {isCentral}, {nameof(SettingKey.IsDownloadLocal)}: {isLocal} / {nameof(SettingKey.IsRTDownloadCentral)}: {isRTCentral}, {nameof(SettingKey.IsRTDownloadLocal)}: {isRTLocal}");
 
         this.IsRTDownloadCentralAfterThursdayOnly.Value = (await ConfigUtil.GetIntValueAsync(db, SettingKey.IsDownloadCentralOnThursdayAfterOnly)) != 0;
 
@@ -334,13 +344,18 @@ namespace KmyKeiba.Models.Connection
           }
           else if (today.DayOfWeek == DayOfWeek.Friday)
           {
+            // 金曜日初回起動時に通常データをダウンロードするので、木曜日のコメントは気にしなくていい
             await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(1));
             await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(2));
           }
           else if (today.DayOfWeek == DayOfWeek.Thursday)
           {
-            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(2));
-            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(3));
+            // 木曜日朝時点では土日のレース情報は配信されてこない
+            // また木曜日午後もRTでは配信されない様子
+            if (!this.IsDownloading.Value)
+            {
+              await this.DownloadAsync(DownloadLink.Central, today.Year, today.Month, today.Day);
+            }
           }
         }
 
