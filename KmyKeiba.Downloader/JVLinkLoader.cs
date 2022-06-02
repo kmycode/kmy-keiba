@@ -384,7 +384,9 @@ namespace KmyKeiba.Downloader
       timer.Start();
 
       this.Process = LoadProcessing.Writing;
-      Task.Delay(1000).Wait();    // トランザクションが始まるので、ここで待機しないとProgram.csからこの値をDBに保存できず、メインアプリにWritingが伝わらなくなる
+
+      // トランザクションが始まるので、ここで待機しないとProgram.csからこの値をDBに保存できず、メインアプリにWritingが伝わらなくなる
+      this.StartingTransaction?.Invoke(this, EventArgs.Empty);
 
       using var db = new MyContext();
 
@@ -826,6 +828,8 @@ namespace KmyKeiba.Downloader
       this.disposables.Dispose();
       logger.Info("接続は終了しました");
     }
+
+    public event EventHandler? StartingTransaction;
   }
 
   enum LoadProcessing

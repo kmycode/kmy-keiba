@@ -98,6 +98,18 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsTrainingError { get; } = new();
 
+    public bool IsChecked => this._status != MovieStatus.Unchecked;
+
+    public MovieStatus Status
+    {
+      get => this._status;
+      set
+      {
+        this._status = value;
+        this.IsTrainingError.Value = value == MovieStatus.Unavailable;
+      }
+    }
+
     public TrainingMovieInfo(uint dataId, bool isWoodtip, MovieStatus status)
     {
       this._id = dataId;
@@ -171,6 +183,7 @@ namespace KmyKeiba.Models.Connection
           }
 
           await db.SaveChangesAsync();
+          this._status = status;
         }
         catch
         {

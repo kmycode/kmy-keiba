@@ -344,10 +344,8 @@ namespace KmyKeiba.Downloader
         var loopCount = 0;
         isDbLooping = true;
 
-        while (!isLoaded)
+        void UpdateProcess()
         {
-          Console.Write($"\rDWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) SV [{loader.Saved.Value} / {loader.SaveSize.Value}] PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
-
           var p = loader.Process.ToString().ToLower();
           if (p != task.Result)
           {
@@ -355,6 +353,16 @@ namespace KmyKeiba.Downloader
             db.SaveChanges();
             logger.Info($"ダウンロード状態が {p} に移行しました");
           }
+        }
+
+        // トランザクションを開始する前に、データ保存中という情報をアプリに渡す
+        loader.StartingTransaction += (sender, e) => UpdateProcess();
+
+        while (!isLoaded)
+        {
+          Console.Write($"\rDWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) SV [{loader.Saved.Value} / {loader.SaveSize.Value}] PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
+
+          UpdateProcess();
 
           loopCount++;
           if (loopCount % 60 == 0)

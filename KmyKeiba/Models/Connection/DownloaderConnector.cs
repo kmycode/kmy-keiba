@@ -304,12 +304,6 @@ namespace KmyKeiba.Models.Connection
 
     public async Task UpdateMovieListAsync(string horseKey)
     {
-      if (this.IsBusy.Value)
-      {
-        logger.Warn("すでにダウンロード中です");
-        throw new InvalidOperationException();
-      }
-
       try
       {
         this.currentTask.Value = new DownloaderTaskData

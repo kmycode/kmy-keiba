@@ -54,7 +54,7 @@ namespace KmyKeiba.Models.Analysis
 
     public async Task UpdateTrainingListAsync()
     {
-      if (this.Trainings.Any(t => !t.Movie.IsTrainingError.Value))
+      if (this.Trainings.Any(t => !t.Movie.IsChecked) && DownloaderModel.Instance.CanSaveOthers.Value)
       {
         var horseKey = this.Trainings.First().HorseKey;
         try
@@ -75,7 +75,7 @@ namespace KmyKeiba.Models.Analysis
               .Join(this.Trainings, dt => dt.StartTime, t => t.StartTime, (dt, t) => new { Row = t, dt.MovieStatus, })
               .Where(i => i.MovieStatus != MovieStatus.Unchecked))
             {
-              item.Row.Movie.IsTrainingError.Value = item.MovieStatus != MovieStatus.Available;
+              item.Row.Movie.Status = item.MovieStatus;
             };
           });
         }
