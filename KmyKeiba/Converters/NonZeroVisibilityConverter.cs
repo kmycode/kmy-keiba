@@ -29,6 +29,14 @@ namespace KmyKeiba.Converters
       {
         return uiv == default ? Visibility.Collapsed : Visibility.Visible;
       }
+      if (value is double dv)
+      {
+        return dv == default ? Visibility.Collapsed : Visibility.Visible;
+      }
+      if (value is float fv)
+      {
+        return fv == default ? Visibility.Collapsed : Visibility.Visible;
+      }
       throw new NotImplementedException();
     }
 

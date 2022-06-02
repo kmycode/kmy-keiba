@@ -167,7 +167,8 @@
                 </StackPanel.Visibility>
                 <TextBlock Text="{Binding Data.ResultOrder}" Foreground="{Binding ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}" FontSize="16" Width="40"/>
                 <TextBlock Text="{Binding Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="55"/>
-                <TextBlock Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="55"/>
+                <TextBlock Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="55"
+                           Visibility="{Binding ResultTimeDeviationValue,Converter={StaticResource NonZeroVisibilityConv}}"/>
                 <Border Width="60">
                   <up:RunningStyleTip RunningStyle="{Binding Data.RunningStyle}" HorizontalAlignment="Right"/>
                 </Border>
