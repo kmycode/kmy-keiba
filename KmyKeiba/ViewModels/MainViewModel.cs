@@ -211,8 +211,8 @@ namespace KmyKeiba.ViewModels
 
     public ICommand ChangeActiveHorseCommand =>
       this._changeHorseNumberCommand ??=
-        new ReactiveCommand<short>().WithSubscribe((num) => this.model.Info.Value?.SetActiveHorse(num));
-    private ReactiveCommand<short>? _changeHorseNumberCommand;
+        new ReactiveCommand<uint>().WithSubscribe((id) => this.model.Info.Value?.SetActiveHorse(id));
+    private ReactiveCommand<uint>? _changeHorseNumberCommand;
 
     public ICommand UpdateScriptCommand =>
       this._updateScriptCommand ??=
