@@ -58,7 +58,7 @@ namespace KmyKeiba.Views.Parts
         if (this.Race.PrevRaceStartTime.Value != DateTime.MinValue)
         {
           var timeLength = this.Race.StartTime - this.Race.PrevRaceStartTime.Value;
-          this.TopChild.Height = timeLength.TotalMinutes * Definitions.RaceTimelineHeightPerMinutes;
+          this.TopChild.Height = Math.Max(0, timeLength.TotalMinutes) * Definitions.RaceTimelineHeightPerMinutes;
         }
         else
         {
