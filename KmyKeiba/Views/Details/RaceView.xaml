@@ -187,7 +187,7 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <RadioButton Command="{Binding DataContext.ChangeActiveHorseCommand,ElementName=Root}" CommandParameter="{Binding Data.Number}"
+                  <RadioButton Command="{Binding DataContext.ChangeActiveHorseCommand,ElementName=Root}" CommandParameter="{Binding Data.Id}"
                                Style="{StaticResource HalfToggleButtonDefault}"
                                GroupName="{Binding UniqueId,ElementName=Root}">
                     <Border>

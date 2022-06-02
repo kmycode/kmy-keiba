@@ -138,15 +138,15 @@ namespace KmyKeiba.Models.Race
         this.IsFirstLoadStarted.Value = true;
 
         // 現在のレースを更新した場合、必要な情報を記録する
-        var oldSelectedHorseNumber = 0;
+        var oldSelectedHorseId = 0u;
         {
           var oldInfo = this.Info.Value;
           if (oldInfo != null && oldInfo.Data.Key == key)
           {
             if (!this.IsSelectedAllHorses.Value)
             {
-              oldSelectedHorseNumber = oldInfo.ActiveHorse.Value?.Data.Number ?? 0;
-              logger.Info($"現在のレースの更新のようです。選択中馬番号: {oldSelectedHorseNumber}");
+              oldSelectedHorseId = oldInfo.ActiveHorse.Value?.Data.Id ?? 0u;
+              logger.Info($"現在のレースの更新のようです。選択中馬ID: {oldSelectedHorseId}");
             }
           }
         }
@@ -207,14 +207,18 @@ namespace KmyKeiba.Models.Race
         if (this.IsViewExpection.Value)
         {
           // レースの更新時に馬情報が空になるのを修正する
-          if (oldSelectedHorseNumber != 0)
+          if (oldSelectedHorseId != 0)
           {
-            race.SetActiveHorse(oldSelectedHorseNumber);
+            race.SetActiveHorse(oldSelectedHorseId);
           }
           else
           {
             this.IsSelectedAllHorses.Value = true;
           }
+        }
+        else
+        {
+          this.IsSelectedAllHorses.Value = true;
         }
         if (!race.HasResults.Value && this.IsViewResult.Value)
         {

@@ -11,7 +11,7 @@
         xmlns:um="clr-namespace:KmyKeiba.Views.Main"
         xmlns:ud="clr-namespace:KmyKeiba.Views.Dialogs"
         mc:Ignorable="d"
-        Title="KMY競馬" MinHeight="740" MinWidth="1300" Height="1000" Width="1700">
+        Title="KMY競馬" MinHeight="740" MinWidth="1300" Height="1000" Width="1700" WindowStartupLocation="CenterScreen">
   <i:Interaction.Behaviors>
     <b:OpenDialogBehavior Controller="{Binding Dialog}"/>
   </i:Interaction.Behaviors>

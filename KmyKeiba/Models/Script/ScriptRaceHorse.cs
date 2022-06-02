@@ -111,6 +111,9 @@ namespace KmyKeiba.Models.Script
     [JsonPropertyName("a3hTimeDeviationValue")]
     public double A3HTimeDeviationValue => this.IsTargetRace ? default : this._analyzer?.A3HResultTimeDeviationValue ?? default;
 
+    [JsonPropertyName("ua3hTimeDeviationValue")]
+    public double UntilA3HTimeDeviationValue => this.IsTargetRace ? default : this._analyzer?.UntilA3HResultTimeDeviationValue ?? default;
+
     [JsonPropertyName("race")]
     public ScriptRace? Race => this.IsTargetRace ? null : this._isRaceGettable ?
       new ScriptRace(this._analyzer!.Race, this._analyzer.CurrentRace?.TopHorses.ToArray()) : null;
@@ -199,10 +202,9 @@ namespace KmyKeiba.Models.Script
       return JsonSerializer.Serialize(names, ScriptManager.JsonOptions);
     }
 
-    [ScriptMember("getBloodHorseRacesAsync")]
-    public async Task<string> LoadBloodRacesAsync(string keys)
+    private BloodType KeysToBloodType(string keys)
     {
-      var type = keys switch
+      return keys switch
       {
         "f" => BloodType.Father,
         "ff" => BloodType.FatherFather,
@@ -220,8 +222,28 @@ namespace KmyKeiba.Models.Script
         "mmm" => BloodType.MotherMotherMother,
         _ => BloodType.Unknown,
       };
+    }
 
-      var analyzer = this._analyzer?.BloodSelectors?.GetSelector(type)?.BeginLoad(Enumerable.Empty<RaceHorseBloodTrendAnalysisSelector.Key>().ToArray(), 300, 0);
+    [ScriptMember("getBloodHorseRacesAsync")]
+    public async Task<string> LoadBloodRacesAsync(string typeCode)
+    {
+      var type = this.KeysToBloodType(typeCode);
+
+      var analyzer = this._analyzer?.BloodSelectors?.GetSelector(type)?.BeginLoad(Enumerable.Empty<RaceHorseBloodTrendAnalysisSelector.Key>().Append(RaceHorseBloodTrendAnalysisSelector.Key.BloodHorseSelf).ToArray(), 300, 0);
+      if (analyzer != null)
+      {
+        await analyzer.WaitAnalysisAsync();
+        return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRaceHorse(string.Empty, s)).ToArray(), ScriptManager.JsonOptions);
+      }
+      return "[]";
+    }
+
+    [ScriptMember("getSameBloodHorseRacesAsync")]
+    public async Task<string> LoadSameBloodRacesAsync(string typeCode, string keys, int count = 300, int offset = 0)
+    {
+      var type = this.KeysToBloodType(typeCode);
+
+      var analyzer = this._analyzer?.BloodSelectors?.GetSelector(type)?.BeginLoad(keys, count, offset);
       if (analyzer != null)
       {
         await analyzer.WaitAnalysisAsync();
@@ -260,6 +282,9 @@ namespace KmyKeiba.Models.Script
 
       [JsonPropertyName("a3hTimeDeviationValue")]
       public double A3HTimeDeviationValue => this._history.A3HTimeDeviationValue;
+
+      [JsonPropertyName("ua3hTimeDeviationValue")]
+      public double UntilA3HTimeDeviationValue => this._history.UntilA3HTimeDeviationValue;
 
       [JsonPropertyName("beforeRaces")]
       public ScriptRaceHorse[] BeforeRaces => this._history.BeforeRaces.Select(r => new ScriptRaceHorse(this._targetRaceKey, r)).ToArray();

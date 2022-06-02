@@ -671,6 +671,7 @@ namespace KmyKeiba.Models.Race
           }
         }
       }
+      await db.SaveChangesAsync();
 
       if (this.Tickets.Any())
       {
@@ -682,7 +683,8 @@ namespace KmyKeiba.Models.Race
         // しかしSortTicketsでソート対象がないとforeachが回らず呼び出されなくなる
         this.UpdateTotalMoney();
       }
-      await db.SaveChangesAsync();
+
+      this.UpdateIsSelected();
     }
 
     public async Task ClearTicketsAsync()

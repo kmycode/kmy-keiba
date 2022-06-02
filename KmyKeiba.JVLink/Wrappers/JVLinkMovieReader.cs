@@ -25,13 +25,13 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public string[] ReadKeys()
     {
-      throw new NotImplementedException("実装方法がわかりません");
+      // throw new NotImplementedException("実装方法がわかりません");
 
-      var size = 19;
+      var size = 18 + 1;
       var list = new List<string>();
 
       int result;
-      var buff = new string(Enumerable.Repeat(' ', size + 1).ToArray());
+      var buff = new string(Enumerable.Repeat(' ', size).ToArray());
 
       while ((result = this.link.MVRead(out buff, out size)) != 0)
       {

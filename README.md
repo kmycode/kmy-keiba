@@ -1,87 +1,92 @@
-# KMY���n
+# KMY競馬
 
-Windows�œ��삷�鋣�n���{���p�̃A�v���ł��BJRA-VAN�A�n�����nDATA�̃f�[�^���g�p���܂��B  
-�A�v���̐������A���p���@�ɂ��Ă�Wiki���Q�Ƃ��Ă��������B
+Windowsで動作する競馬情報閲覧用のアプリです。JRA-VAN、地方競馬DATAのデータを使用します。  
+アプリの説明書、利用方法についてはWikiを参照してください。
 
 <img src="https://github.com/kmycode/kmy-keiba/blob/develop/Assets/main.png" width="500"/>
 
-## �v���W�F�N�g
+## プロジェクト
 
-| �v���W�F�N�g�� | ���� |
+| プロジェクト名 | 説明 |
 | --- | --- |
-| `KmyKeiba` | ���C���A�v���B64bit�ł̃r���h��z�肵�Ă��܂� |
-| `KmyKeiba.Downloader` | ���n�f�[�^���_�E�����[�h����A�v���B<br>����̓n�[�h�R�[�f�B���O�ł��B�v���O�����R�[�h�����������Ȃ���g���Ă܂��B<br>��q�������ȏꍇ�������A32bit�Ńr���h���Ă������� |
-| `KmyKeiba.JVLink` | JV-LINK�A�n�����nDATA���f�[�^���_�E�����[�h���邽�߂̃v���O�����ł� |
-| `KmyKeiba.Data` | ���n�f�[�^�̌^��`���܂܂�܂��B�����ɂ���`MyContextBase`���p�������N���X�𗘗p���邱�ƂŁA�f�[�^�x�[�X�փA�N�Z�X�ł��܂� |
-| ����ȊO | ���̓����e�i���X���Ă��܂���B`Keras.NET`���g�p�����f�B�[�v���[�j���O�Ƃ��Ƃ��̃R�[�h�������Ă܂��B�~�����l�͓K���Ɏ����Ă��Ă��������B�T�|�[�g�͂��܂��� |
+| `KmyKeiba` | メインアプリ。64bitでのビルドを想定しています |
+| `KmyKeiba.Downloader` | 競馬データをダウンロードするアプリ。<br>現状はハードコーディングです。プログラムコードを書き換えながら使ってます。<br>後述する特殊な場合を除き、32bitでビルドしてください |
+| `KmyKeiba.JVLink` | JV-LINK、地方競馬DATAよりデータをダウンロードするためのプログラムです |
+| `KmyKeiba.Data` | 競馬データの型定義が含まれます。ここにある`MyContextBase`を継承したクラスを利用することで、データベースへアクセスできます |
+| それ以外 | 今はメンテナンスしていません。`Keras.NET`を使用したディープラーニングとかとかのコードが入ってます。欲しい人は適当に持ってってください。サポートはしません |
 
-## ����ɕK�v�Ȃ���
+## 動作に必要なもの
 
-���݃o�C�i���͔z�z���Ă��Ȃ��̂ŁA�r���h���Ȃ��ƋN���ł��Ȃ���Ԃł��B�i���Release���z�z�\��ł��j  
-�A�v�����̂��͖̂����ł����A���n�f�[�^����肷��ɂ͈ȉ��̗��p�L�[���K�{�ł��B
+現在バイナリは配布していないので、ビルドしないと起動できない状態です。（後日Releaseより配布予定です）  
+アプリそのものは無償ですが、競馬データを入手するには以下の利用キーが必須です。
 
-### ���p�L�[�i�L���j����уf�[�^�擾�̂��߂̃\�t�g
+### 利用キー（有償）およびデータ取得のためのソフト
 
-���n�f�[�^�̎擾�ɂ́A�ʓr�L���_�񂪕K�v�ł��B�i�����{�n���̏ꍇ�A������4000�~�j  
-���L�̕Е��܂��͗������_�񂵂Ȃ��ƁA���n�f�[�^���擾�ł����A������{�A�v���������p���������܂���B
+競馬データの取得には、別途有償契約が必要です。（中央＋地方の場合、毎月約4000円）  
+下記の片方または両方を契約しないと、競馬データが取得できず、事実上本アプリをご利用いただけません。
 
-�A�v���́A�K�v�Ȃ��̂������C���X�g�[�����������č����x������܂���B
+アプリは、必要なものだけをインストールいただいて差し支えありません。
 
-* [JRA-VAN�f�[�^���{���](https://jra-van.jp/dlb/)
-  * �Ή��A�v���F[JV-Link](https://jra-van.jp/dlb/) - �u������iJV-Link�j�v�^�u���_�E�����[�h�ł��܂�
-  * �������n�̃f�[�^�擾�ɕK�v�ł�
-  * �_���A���p�L�[���擾���Ă��������B�uJRA���[�V���O�r���A�[�v�͍��̂Ƃ���s�v�ł�
-* [�n�����nDATA](https://saikyo.k-ba.com/members/chihou/)
-  * �Ή��A�v���F[UmaConn](https://saikyo.k-ba.com/members/chihou/) - �_�E�����[�h�{�^�����_�E�����[�h�ł��܂�
-  * �n�����n�̃f�[�^�擾�ɕK�v�ł�
-  * �_���A���p�L�[���擾���Ă��������B���p�L�[�ȊO�ɂ������̍w���I�v�V����������܂����S�ĕs�v�ł�
+* [JRA-VANデータラボ会員](https://jra-van.jp/dlb/)
+  * 対応アプリ：[JV-Link](https://jra-van.jp/dlb/) - 「動作環境（JV-Link）」タブよりダウンロードできます
+  * 中央競馬のデータ取得に必要です
+  * 契約後、利用キーを取得してください
+* [地方競馬DATA](https://saikyo.k-ba.com/members/chihou/)
+  * 対応アプリ：[UmaConn](https://saikyo.k-ba.com/members/chihou/) - ダウンロードボタンよりダウンロードできます
+  * 地方競馬のデータ取得に必要です
+  * 契約後、利用キーを取得してください。利用キー以外にも多数の購入オプションがありますが全て不要です
 
-���p�L�[�̓f�[�^�x�[�X�C���X�g�[�����ɐݒ肪�\�ł��B
+利用キーはデータベースインストール時に設定が可能です。
 
-### �n���w���̂��߂̃\�t�g
+### レース・調教動画閲覧のためのソフト
 
-�{�A�v���𗘗p���Ď��ۂɔn�����w������ɂ́A�ʓr�ȉ��̃A�v���̃C���X�g�[�����K�v�ł��B
+中央競馬の全ての動画を見る場合は、上記とは別に[レーシングビューアー](https://prc.jp/jraracingviewer/index.html)の契約（毎月550円）が必要です。  
+地方競馬の場合、アプリ内の動画ボタンをクリックすると楽天競馬の動画サイトへジャンプしますが（別途契約不要）、直近１年間のレースしか閲覧できません。
 
-* [KSC�n���w���v���O�C��](http://keibasoft.com/jv/KSCTohyo.html)
-  * �������n�łƒn�����n�ł̂Q�ɕ�����Ă��܂��B�K�v�Ȃ��̂��_�E�����[�h���Ă�������
+### 馬券購入のためのソフト
 
-�_�E�����[�h������́A���ꂼ��̃A�v����IPAT���O�C�����A�y�V���n���O�C������o�^���Ă��������B
+本アプリを利用して実際に馬券を購入するには、別途以下のアプリのインストールが必要です。
 
-## �r���h
+* [KSC馬券購入プラグイン](http://keibasoft.com/jv/KSCTohyo.html)
+  * 中央競馬版と地方競馬版の２つに分かれています。必要なものをダウンロードしてください
 
-.NET 6.0��C# 10�ŊJ�����Ă��邽�߁AVisual Studio 2022�ȍ~���K�v�ł��BVS�C���X�g�[�����ɁA�f�X�N�g�b�v�A�v���Ƀ`�F�b�N�����Ă��������B
+ダウンロードした後は、それぞれのアプリでIPATログイン情報、楽天競馬ログイン情報を登録してください。
 
-### �r���h����ꍇ�̐��񎖍�
+## ビルド
 
-GitHub�ɂČ��J���Ă���\�[�X�R�[�h�ɂ́A�ȉ��̋@�\���܂܂�܂���B
+.NET 6.0とC# 10で開発しているため、Visual Studio 2022以降が必要です。VSインストール時に、デスクトップアプリにチェックを入れてください。
 
-- �^�C���΍��l�̌v�Z���W�b�N
-- KSC�n���w���v���O�C���Ƃ̘A�g���W�b�N
+### ビルドする場合の制約事項
 
-�\�[�X�R�[�h�����L�̎菇�ɏ]���ăr���h����ƁA�^�C���΍��l�E�n���w���@�\�͂����p�ɂȂ�܂���B�����͕ʓrRelease���z�z����o�C�i���ɂ͊܂܂�Ă��܂��B���炩���߂��������������BWiki�̃��C�Z���X�����ǂ݂ɂȂ��Ă��������B
+GitHubにて公開しているソースコードには、以下の機能が含まれません。
 
-### �r���h�ɕK�v�Ȃ���
+- タイム偏差値の計算ロジック
+- KSC馬券購入プラグインとの連携ロジック
 
-�A�v���̎��s�ł͕Е������ō\��Ȃ��̂ł����A�r���h����ꍇ�́A��L�uJV-Link�v�uUmaConn�v�̗������K�v�ł��B
+ソースコードを下記の手順に従ってビルドすると、タイム偏差値・馬券購入機能はご利用になれません。これらは別途Releaseより配布するバイナリには含まれています。あらかじめご了承ください。Wikiのライセンスもお読みになってください。
 
-�܂��A���̃��|�W�g���ł́A���쌠�̊֌W�Ō������Ă���t�@�C�������݂��Ă���A���ꂪ�Ȃ��ƃr���h�ł��܂���B  
-[Data Lab. SDK](https://jra-van.jp/dlb/sdv/sdk.html)���SDK�{�̂��_�E�����[�h���Ă��������BVer.4.6.0�ł́A�ȉ��̂悤�ȍ\���ɂȂ��Ă��܂��B
+### ビルドに必要なもの
+
+アプリの実行では片方だけで構わないのですが、ビルドする場合は、上記「JV-Link」「UmaConn」の両方が必要です。
+
+また、このリポジトリでは、著作権の関係で欠落しているファイルが存在しており、それがないとビルドできません。  
+[Data Lab. SDK](https://jra-van.jp/dlb/sdv/sdk.html)よりSDK本体をダウンロードしてください。Ver.4.6.0では、以下のような構成になっています。
 
 ```
-JV-Data�\����
+JV-Data構造体
 JV-Link
-�T���v���v���O����
-�h�L�������g
+サンプルプログラム
+ドキュメント
 ```
 
-���̂����uJV-Data�\���́v�t�H���_�̒��́uC#�Łv�Ɋ܂܂�� `JVData_Struct.cs` �t�@�C���� `structures.cs` �Ƀ��l�[���̂����A�ȉ��̃f�B���N�g���ɃR�s�[���Ă��������B  
-`JVLib` �t�H���_���Ȃ��ꍇ�͍쐬���Ă��������B
+このうち「JV-Data構造体」フォルダの中の「C#版」に含まれる `JVData_Struct.cs` ファイルを `structures.cs` にリネームのうえ、以下のディレクトリにコピーしてください。  
+`JVLib` フォルダがない場合は作成してください。
 
 ```
 KmyKeiba.JVLink/JVLib/structures.cs
 ```
 
-����ɁA `structures.cs` ���ȉ��̂悤�ɕҏW���Ă��������B
+さらに、 `structures.cs` を以下のように編集してください。
 
 ```c#
 using System.Text;
@@ -91,28 +96,28 @@ using System.Text;
 namespace KmyKeiba.JVLink.Wrappers.JVLib
 {
 
-    // <�����Ɍ��X��structures.cs�̓��e��}��>
+    // <ここに元々のstructures.csの内容を挿入>
 
-    // <JVData_Struct�̍ŏ��̍s��partial��ǉ����Ă�������>
+    // <JVData_Structの最初の行にpartialを追加してください>
     // public static partial class JVData_Struct
 
 }
 ```
 
-### �r���h�菇
+### ビルド手順
 
-�ȉ��̎菇�Ńr���h�E���s���Ă��������B
+以下の手順でビルド・実行してください。
 
 ```
 KmyKeiba.Downloader (x86) -> KmyKeiba (x64)
 ```
 
-�Ȃ�`DEBUG`�r���h�ŋN������ƁA�A�v�����s���ɂ�������̃R���\�[����ʂ��o�Ă��܂��B������`RELEASE`�r���h���邱�Ƃŗ}������܂����A�A�v���̃f�o�b�O������ꍇ�͂����߂��܂���B
+なお`DEBUG`ビルドで起動すると、アプリ実行中にたくさんのコンソール画面が出てきます。これらは`RELEASE`ビルドすることで抑制されますが、アプリのデバッグをする場合はお勧めしません。
 
-### `Add-Migration` �ɂ���
+### `Add-Migration` について
 
-���̃v���O������EntityFrameworkCore���g�p���Ă��܂��B`Add-Migration` �����s����Ƃ��ɂ́A�ȉ��̎菇���K�v�ł��B
+このプログラムはEntityFrameworkCoreを使用しています。`Add-Migration` を実行するときには、以下の手順が必要です。
 
-- �v���W�F�N�g�̃\�����[�V�����v���b�g�t�H�[����`x64`�ɂ��Ă�������
-- �p�b�P�[�W�}�l�[�W���[�R���\�[���A�X�^�[�g�A�b�v�v���W�F�N�g�A�������`KmyKeiba.Downloader`�ɐݒ肵�Ă�������
-- `Add-Migration`�̑O�ɁA`KmyKeiba`�i�A�v���{�́j��**���r���h**���Ă�������
+- プロジェクトのソリューションプラットフォームを`x64`にしてください
+- パッケージマネージャーコンソール、スタートアッププロジェクト、いずれも`KmyKeiba.Downloader`に設定してください
+- `Add-Migration`の前に、`KmyKeiba`（アプリ本体）を**リビルド**してください

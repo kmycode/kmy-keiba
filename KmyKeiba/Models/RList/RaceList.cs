@@ -94,16 +94,16 @@ namespace KmyKeiba.Models.RList
             // たまにバグで時刻がゼロになっていることがある（現在地方競馬のみで確認）
             if (items[i].StartTime.TimeOfDay == default)
             {
-              if (nextItem != null && prevItem != null && nextItem.StartTime.Date != default && prevItem.StartTime.Date != default)
+              if (nextItem != null && prevItem != null && nextItem.StartTime.TimeOfDay != default && prevItem.StartTime.TimeOfDay != default)
               {
                 var time = (nextItem.StartTime.TimeOfDay + prevItem.StartTime.TimeOfDay) / 2;
                 items[i].StartTime = new DateTime(nextItem.StartTime.Year, nextItem.StartTime.Month, nextItem.StartTime.Day, time.Hours, time.Minutes, time.Seconds);
               }
-              else if (nextItem != null && nextItem.StartTime.Date != default)
+              else if (nextItem != null && nextItem.StartTime.TimeOfDay != default)
               {
                 items[i].StartTime = nextItem.StartTime.AddMinutes(-40);
               }
-              else if (prevItem != null && prevItem.StartTime.Date != default)
+              else if (prevItem != null && prevItem.StartTime.TimeOfDay != default)
               {
                 items[i].StartTime = prevItem.StartTime.AddMinutes(40);
               }
@@ -111,7 +111,7 @@ namespace KmyKeiba.Models.RList
               {
                 // このユーザーはおそらくUmaConnを使用していない。
                 // UmaConnがなければ開始時刻の推定が不可能
-                items[i].StartTime = items[i].StartTime.AddHours(Definitions.RaceTimelineStartHour).AddMinutes(jvlinkLocalRaceCount * 60);
+                items[i].StartTime = items[i].StartTime.AddHours(Definitions.RaceTimelineStartHour + 2).AddMinutes(jvlinkLocalRaceCount * 60);
                 jvlinkLocalRaceCount++;
               }
             }

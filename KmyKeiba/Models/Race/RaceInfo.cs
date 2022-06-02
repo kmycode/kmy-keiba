@@ -235,23 +235,37 @@ namespace KmyKeiba.Models.Race
       }
     }
 
-    public void SetActiveHorse(int num)
+    public void SetActiveHorse(uint id)
     {
-      this.ActiveHorse.Value = this.Horses.FirstOrDefault(h => h.Data.Number == num);
-      logger.Debug($"馬番 {num} の馬 {this.ActiveHorse.Value?.Data.Name} を選択しました");
+      this.ActiveHorse.Value = this.Horses.FirstOrDefault(h => h.Data.Id == id);
+      logger.Debug($"ID {id} の馬 {this.ActiveHorse.Value?.Data.Name} を選択しました");
 
       // 遅延でデータ読み込み
-      if (this.ActiveHorse.Value?.BloodSelectors?.IsRequestedInitialization == true)
+      if (this.ActiveHorse.Value != null)
       {
         Task.Run(async () => {
-          using var db = new MyContext();
-          try
+          if (this.ActiveHorse.Value.BloodSelectors?.IsRequestedInitialization == true)
           {
-            await this.ActiveHorse.Value.BloodSelectors.InitializeBloodListAsync(db);
+            using var db = new MyContext();
+            try
+            {
+              await this.ActiveHorse.Value.BloodSelectors.InitializeBloodListAsync(db);
+            }
+            catch (Exception ex)
+            {
+              logger.Warn($"{this.ActiveHorse.Value.Data.Name} の血統情報がロードできませんでした", ex);
+            }
           }
-          catch (Exception ex)
+
+          var timeout = 0;
+          while (this.ActiveHorse.Value.Training.Value == null && timeout < 30_000)
           {
-            logger.Warn($"{this.ActiveHorse.Value.Data.Name} の血統情報がロードできませんでした", ex);
+            await Task.Delay(50);
+            timeout += 50;
+          }
+          if (this.ActiveHorse.Value.Training.Value != null)
+          {
+            await this.ActiveHorse.Value.Training.Value.UpdateTrainingListAsync();
           }
         });
       }
@@ -511,6 +525,8 @@ namespace KmyKeiba.Models.Race
             var timedvMin = horseInfos.Where(i => (i.History?.TimeDeviationValue ?? default) != default).OrderBy(i => i.History?.TimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.TimeDeviationValue;
             var a3htimedvMax = horseInfos.Where(i => (i.History?.A3HTimeDeviationValue ?? default) != default).OrderByDescending(i => i.History?.A3HTimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.A3HTimeDeviationValue;
             var a3htimedvMin = horseInfos.Where(i => (i.History?.A3HTimeDeviationValue ?? default) != default).OrderBy(i => i.History?.A3HTimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.A3HTimeDeviationValue;
+            var ua3htimedvMax = horseInfos.Where(i => (i.History?.UntilA3HTimeDeviationValue ?? default) != default).OrderByDescending(i => i.History?.UntilA3HTimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.UntilA3HTimeDeviationValue;
+            var ua3htimedvMin = horseInfos.Where(i => (i.History?.UntilA3HTimeDeviationValue ?? default) != default).OrderBy(i => i.History?.UntilA3HTimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.UntilA3HTimeDeviationValue;
             var riderPlaceRateMax = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderByDescending(i => i).Skip(2).FirstOrDefault();
             var riderPlaceRateMin = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderBy(i => i).Skip(2).FirstOrDefault();
             foreach (var horse in horseInfos)
@@ -524,6 +540,11 @@ namespace KmyKeiba.Models.Race
               {
                 horse.History.A3HTimeDVComparation = horse.History.A3HTimeDeviationValue + 2 >= a3htimedvMax ? ValueComparation.Good :
                   horse.History.A3HTimeDeviationValue - 2 <= a3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+              }
+              if (horse.History != null && ua3htimedvMax != null && ua3htimedvMin != null)
+              {
+                horse.History.UntilA3HTimeDVComparation = horse.History.UntilA3HTimeDeviationValue + 2 >= ua3htimedvMax ? ValueComparation.Good :
+                  horse.History.UntilA3HTimeDeviationValue - 2 <= ua3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
               }
               if (riderPlaceRateMax != 0)
               {

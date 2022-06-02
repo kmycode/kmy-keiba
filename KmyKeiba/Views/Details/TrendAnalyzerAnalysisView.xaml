@@ -28,6 +28,22 @@
         <RowDefinition Height="auto"/>
         <RowDefinition/>
       </Grid.RowDefinitions>
+      
+      <!--読み込み中-->
+      <Border Grid.RowSpan="3">
+        <Border.Visibility>
+          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+            <Binding Path="TrendAnalyzers.CurrentAnalyzer.Value.IsLoaded.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+            <Binding Path="TrendAnalyzers.CurrentAnalyzer.Value.IsLoading.Value" ElementName="Root"/>
+            <Binding Path="TrendAnalyzers.CurrentAnalyzer.Value" ElementName="Root" Converter="{StaticResource NonNullVisibilityConv}"/>
+          </MultiBinding>
+        </Border.Visibility>
+        <up:MyProgressBar HorizontalAlignment="Center" VerticalAlignment="Center">
+          <up:MyProgressBar.RenderTransform>
+            <TranslateTransform X="-60"/>
+          </up:MyProgressBar.RenderTransform>
+        </up:MyProgressBar>
+      </Border>
 
       <!--統計学的分析-->
       <Grid>
@@ -151,7 +167,8 @@
                 </StackPanel.Visibility>
                 <TextBlock Text="{Binding Data.ResultOrder}" Foreground="{Binding ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}" FontSize="16" Width="40"/>
                 <TextBlock Text="{Binding Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="55"/>
-                <TextBlock Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="55"/>
+                <TextBlock Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="55"
+                           Visibility="{Binding ResultTimeDeviationValue,Converter={StaticResource NonZeroVisibilityConv}}"/>
                 <Border Width="60">
                   <up:RunningStyleTip RunningStyle="{Binding Data.RunningStyle}" HorizontalAlignment="Right"/>
                 </Border>

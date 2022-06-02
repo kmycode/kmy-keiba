@@ -42,7 +42,7 @@ namespace KmyKeiba.Models.Analysis.Generic
               {
                 if (item == null) continue;
 
-                this._itemEvents.Add(item, item.IsChecked.Subscribe(isChecked =>
+                this._itemEvents.Add(item, item.IsChecked.Skip(1).Subscribe(isChecked =>
                 {
                   this.ChangedItemObservable.OnNext(item);
 

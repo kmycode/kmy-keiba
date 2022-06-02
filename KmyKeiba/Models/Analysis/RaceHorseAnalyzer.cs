@@ -78,6 +78,11 @@ namespace KmyKeiba.Models.Analysis
     public double ResultTimeDeviationValue { get; }
 
     /// <summary>
+    /// 後３より前のハロンタイム指数
+    /// </summary>
+    public double UntilA3HResultTimeDeviationValue { get; }
+
+    /// <summary>
     /// 後３ハロンタイム指数
     /// </summary>
     public double A3HResultTimeDeviationValue { get; }
@@ -133,6 +138,11 @@ namespace KmyKeiba.Models.Analysis
       public double A3HTimeDeviationValue { get; }
 
       /// <summary>
+      /// 後３ハロンまでのタイム指数
+      /// </summary>
+      public double UntilA3HTimeDeviationValue { get; }
+
+      /// <summary>
       /// タイム指数
       /// </summary>
       public double TimeDeviationValue { get; }
@@ -140,6 +150,8 @@ namespace KmyKeiba.Models.Analysis
       public ValueComparation TimeDVComparation { get; set; }
 
       public ValueComparation A3HTimeDVComparation { get; set; }
+
+      public ValueComparation UntilA3HTimeDVComparation { get; set; }
 
       /// <summary>
       /// 距離適性
@@ -159,17 +171,21 @@ namespace KmyKeiba.Models.Analysis
 
         if (this.BeforeRaces.Any())
         {
-          var targetRaces = this.BeforeRaces.Where(r => r.Data.ResultOrder > 0 && r.Data.AbnormalResult == RaceAbnormality.Unknown).Take(10).ToArray();
+          var targetRaces = this.BeforeRaces
+            .Where(r => r.Data.ResultOrder > 0 && r.Data.AbnormalResult == RaceAbnormality.Unknown)
+            .Where(r => race.Course <= RaceCourse.CentralMaxValue ? r.Race.Course <= RaceCourse.CentralMaxValue : r.Race.Course >= RaceCourse.LocalMinValue)
+            .Take(10)
+            .ToArray();
 
           var startTime = new DateTime(1980, 1, 1);
-          var statistic = new StatisticSingleArray(targetRaces.Select(r => r.ResultTimeDeviationValue).ToArray());
-          var statistica3h = new StatisticSingleArray(targetRaces.Select(r => r.A3HResultTimeDeviationValue).ToArray());
-          var datePoint = new StatisticSingleArray(targetRaces.Select(r => (r.Race.StartTime.Date - startTime).TotalDays).ToArray());
-          var st = new StatisticDoubleArray(datePoint, statistic);
+          var statistic = new StatisticSingleArray(targetRaces.Select(r => r.ResultTimeDeviationValue).Where(r => r != default).ToArray());
+          var statistica3h = new StatisticSingleArray(targetRaces.Select(r => r.A3HResultTimeDeviationValue).Where(r => r != default).ToArray());
+          var statisticau3h = new StatisticSingleArray(targetRaces.Select(r => r.UntilA3HResultTimeDeviationValue).Where(r => r != default).ToArray());
 
           //this.TimeDeviationValue = st.CalcRegressionValue((race.StartTime.Date - startTime).TotalDays);
           this.TimeDeviationValue = statistic.Median;
           this.A3HTimeDeviationValue = statistica3h.Median;
+          this.UntilA3HTimeDeviationValue = statisticau3h.Median;
 
           this.RunningStyle = targetRaces
             .OrderBy(r => r.Data.ResultOrder)
@@ -362,6 +378,7 @@ namespace KmyKeiba.Models.Analysis
       {
         this.ResultTimeDeviationValue = _timeDeviationValueCalculator.GetTimeDeviationValue(race, horse, raceStandardTime);
         this.A3HResultTimeDeviationValue = _timeDeviationValueCalculator.GetA3HTimeDeviationValue(race, horse, raceStandardTime);
+        this.UntilA3HResultTimeDeviationValue = _timeDeviationValueCalculator.GetUntilA3HTimeDeviationValue(race, horse, raceStandardTime);
       }
     }
 

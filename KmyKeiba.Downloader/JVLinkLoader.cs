@@ -285,13 +285,28 @@ namespace KmyKeiba.Downloader
 
       JVLinkReaderData data = new();
       var isLoaded = false;
+      var loadTimeout = 0;
       var loadTask = Task.Run(async () =>
       {
         while (!isLoaded)
         {
           await Task.Delay(80);
-          this.Loaded.Value = reader.ReadedCount;
-          this.LoadEntityCount.Value = reader.ReadedEntityCount;
+
+          if (this.Loaded.Value != reader.ReadedCount)
+          {
+            this.Loaded.Value = reader.ReadedCount;
+            this.LoadEntityCount.Value = reader.ReadedEntityCount;
+            loadTimeout = 0;
+          }
+          else
+          {
+            loadTimeout += 80;
+            if (loadTimeout >= 100_000)
+            {
+              await Program.RestartProgramAsync(false);
+              loadTimeout = 0;
+            }
+          }
 
           waitCount += 80;
           if (waitCount > 10_000)
@@ -325,24 +340,32 @@ namespace KmyKeiba.Downloader
       var isDone = false;
       _ = Task.Run(async () =>
       {
-        var loadStartTime = DateTime.Now;
-        logger.Info("ロード完了");
-
-        await LoadAfterAsync(data, isProcessing, isRealtime);
-        isDone = true;
-
-        if (!isDisposed)
+        try
         {
-          this.Process = LoadProcessing.Closing;
-          var d = (DateTime.Now - loadStartTime).TotalSeconds;
-          if (d < 0) d = 0;
-          await Task.Delay(TimeSpan.FromSeconds(System.Math.Max(30.0 - d, 0.1)));
+          var loadStartTime = DateTime.Now;
+          logger.Info("ロード完了");
+
+          await LoadAfterAsync(data, isProcessing, isRealtime);
+          isDone = true;
 
           if (!isDisposed)
           {
-            logger.Warn("接続のクローズが完了しないため、強制的に破棄します");
-            await Program.RestartProgramAsync(true);
+            this.Process = LoadProcessing.Closing;
+            var d = (DateTime.Now - loadStartTime).TotalSeconds;
+            if (d < 0) d = 0;
+            await Task.Delay(TimeSpan.FromSeconds(System.Math.Max(30.0 - d, 0.1)));
+
+            if (!isDisposed)
+            {
+              logger.Warn("接続のクローズが完了しないため、強制的に破棄します");
+              await Program.RestartProgramAsync(true);
+            }
           }
+        }
+        catch (Exception ex)
+        {
+          logger.Error("後処理の過程でエラーが発生", ex);
+          await Program.RestartProgramAsync(false);
         }
       });
 
@@ -384,7 +407,9 @@ namespace KmyKeiba.Downloader
       timer.Start();
 
       this.Process = LoadProcessing.Writing;
-      Task.Delay(1000).Wait();    // トランザクションが始まるので、ここで待機しないとProgram.csからこの値をDBに保存できず、メインアプリにWritingが伝わらなくなる
+
+      // トランザクションが始まるので、ここで待機しないとProgram.csからこの値をDBに保存できず、メインアプリにWritingが伝わらなくなる
+      this.StartingTransaction?.Invoke(this, EventArgs.Empty);
 
       using var db = new MyContext();
 
@@ -494,11 +519,10 @@ namespace KmyKeiba.Downloader
           }
           catch (SqliteException ex) when (ex.SqliteErrorCode == 5)  // file locked
           {
-            // TODO: log
             tryCount++;
             if (tryCount >= 30 * 60)
             {
-              logger.Error("トランザクション開始でエラー発生。プログラムをシャットダウンします", ex);
+              logger.Fatal("トランザクション開始でエラー発生。プログラムをシャットダウンします", ex);
               Program.Shutdown(DownloaderError.DatabaseTimeout);
             }
 
@@ -826,6 +850,8 @@ namespace KmyKeiba.Downloader
       this.disposables.Dispose();
       logger.Info("接続は終了しました");
     }
+
+    public event EventHandler? StartingTransaction;
   }
 
   enum LoadProcessing
