@@ -241,17 +241,31 @@ namespace KmyKeiba.Models.Race
       logger.Debug($"馬番 {num} の馬 {this.ActiveHorse.Value?.Data.Name} を選択しました");
 
       // 遅延でデータ読み込み
-      if (this.ActiveHorse.Value?.BloodSelectors?.IsRequestedInitialization == true)
+      if (this.ActiveHorse.Value != null)
       {
         Task.Run(async () => {
-          using var db = new MyContext();
-          try
+          if (this.ActiveHorse.Value.BloodSelectors?.IsRequestedInitialization == true)
           {
-            await this.ActiveHorse.Value.BloodSelectors.InitializeBloodListAsync(db);
+            using var db = new MyContext();
+            try
+            {
+              await this.ActiveHorse.Value.BloodSelectors.InitializeBloodListAsync(db);
+            }
+            catch (Exception ex)
+            {
+              logger.Warn($"{this.ActiveHorse.Value.Data.Name} の血統情報がロードできませんでした", ex);
+            }
           }
-          catch (Exception ex)
+
+          var timeout = 0;
+          while (this.ActiveHorse.Value.Training.Value == null && timeout < 30_000)
           {
-            logger.Warn($"{this.ActiveHorse.Value.Data.Name} の血統情報がロードできませんでした", ex);
+            await Task.Delay(50);
+            timeout += 50;
+          }
+          if (this.ActiveHorse.Value.Training.Value != null)
+          {
+            await this.ActiveHorse.Value.Training.Value.UpdateTrainingListAsync();
           }
         });
       }

@@ -302,6 +302,29 @@ namespace KmyKeiba.Models.Connection
       }
     }
 
+    public async Task UpdateMovieListAsync(string horseKey)
+    {
+      if (this.IsBusy.Value)
+      {
+        logger.Warn("すでにダウンロード中です");
+        throw new InvalidOperationException();
+      }
+
+      try
+      {
+        this.currentTask.Value = new DownloaderTaskData
+        {
+          Command = DownloaderCommand.OpenMovieList,
+          Parameter = horseKey,
+        };
+        await this.PublishTaskAsync(this.currentTask.Value);
+      }
+      finally
+      {
+        this.currentTask.Value = null;
+      }
+    }
+
     private async Task PublishTaskAsync(DownloaderTaskData task, Func<DownloaderTaskData, Task>? progressing = null)
     {
       using var db = new MyContext();

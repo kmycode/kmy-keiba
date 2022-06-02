@@ -11,12 +11,12 @@ namespace KmyKeiba.JVLink.Wrappers
   {
     public T Code { get; init; }
 
-    public JVLinkException(T code) : base()
+    public JVLinkException(T code) : base(code.ToString())
     {
       this.Code = code;
     }
 
-    public JVLinkException(T code, Exception inner) : base(string.Empty, inner)
+    public JVLinkException(T code, Exception inner) : base(code.ToString(), inner)
     {
       this.Code = code;
     }
