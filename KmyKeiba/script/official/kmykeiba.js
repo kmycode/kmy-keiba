@@ -548,6 +548,12 @@ export function RaceHorse(data, csraceobj) {
   // ※過去レースの上位5頭（RaceオブジェクトのtopHorses）からたどってきた場合、この値は設定されない
   this.a3hTimeDeviationValue = data.a3hTimeDeviationValue;
 
+  // 過去2年の同じ競馬場でのレースと比較した後3ハロンタイムに到達するまでの距離の偏差値（平均が50、標準偏差が10になるようにした値）
+  // ※予想対象レースでは、予想時点で過去レースであっても設定されない
+  // ※過去レースの上位5頭（RaceオブジェクトのtopHorses）からたどってきた場合、この値は設定されない
+  // ※距離が800メートル未満のレースでは設定されない
+  this.ua3hTimeDeviationValue = data.ua3hTimeDeviationValue;
+
   // この馬のレース情報。Race型のオブジェクトが返される
   // ※予想対象レースの場合は設定されない（データが冗長になるため）
   // ※getSimilarRacesAsync で取得したレースでは設定されない（循環参照になるため）
@@ -558,10 +564,11 @@ export function RaceHorse(data, csraceobj) {
   //
   // 【データ構造】
   // {
-  //    runningStyle:          過去10レースで最も多く使われた脚質
-  //    timeDeviationValue:    過去10レース結果のタイム偏差値の中央値
-  //    a3hTimeDeviationValue: 過去10レース結果の後3ハロンタイム偏差値の中央値
-  //    beforeRaces:           過去全レースデータのオブジェクトの配列（RaceHorse型）
+  //    runningStyle:           過去10レースで最も多く使われた脚質
+  //    timeDeviationValue:     過去10レース結果のタイム偏差値の中央値
+  //    a3hTimeDeviationValue:  過去10レース結果の後3ハロンタイム偏差値の中央値
+  //    ua3hTimeDeviationValue: 過去10レース結果の後3ハロンに到達するまでのタイム偏差値の中央値
+  //    beforeRaces:            過去全レースデータのオブジェクトの配列（RaceHorse型）
   // }
   this.history = data.history;
 }
@@ -629,7 +636,7 @@ RaceHorse.prototype.getTrainerSimilarRaceHorsesAsync = async function(keys, coun
 
 // 指定した血統馬の全レースを取得する
 //
-//   key: 以下のいずれかから指定する
+//   type: 以下のいずれかから指定する
 //          f     父
 //          ff    父父
 //          fff   父父父
@@ -647,11 +654,43 @@ RaceHorse.prototype.getTrainerSimilarRaceHorsesAsync = async function(keys, coun
 //
 // 結果は RaceHorse 型の配列
 // ※isTargetRace が false であれば、このメソッドは実行できない
-RaceHorse.prototype.getBloodHorseRaceHorsesAsync = async function(key) {
-  const json = await this._getObj().getBloodHorseRacesAsync(key);
+RaceHorse.prototype.getBloodHorseRaceHorsesAsync = async function(type) {
+  const json = await this._getObj().getBloodHorseRacesAsync(type);
   const data = JSON.parse(json);
   return data.map(d => new RaceHorse(d));
 }
+
+// 指定した血統馬と同じ間柄の馬の過去レースデータを取得する
+//
+//   type:  getBloodHorseRaceHorsesAsyncのtypeと同一
+//   keys:  以下の組み合わせを「|」で区切って指定する
+//          例えば「同じ競馬場＆距離」のレースを取得したい場合、「course|distance」を指定する
+//          NOTE: 何も指定しないと、読み込み時間が１分を超えることがある。何かを指定することを強く推奨
+//             course     同じ競馬場
+//             ground     同じ地面（芝、ダート）
+//             condition  同じ馬場状態
+//             weather    同じ天気
+//             name       同じレース名（地方競馬の協賛レースなどでは誤動作の場合あり。条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）
+//             subject    同じ条件（地方競馬では誤動作の場合あり）
+//             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
+//             season     同じ季節
+//             distance   前後100メートルの距離
+//             direction  同じ向き（右、左、直線）
+//             placebits  上位3着以内
+//             losed      着外
+//             age        同じ年齢
+//             grades     重賞
+//   count:  取得最大数
+//   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
+//
+// 結果は RaceHorse 型の配列
+// ※isTargetRace が false であれば、このメソッドは実行できない
+RaceHorse.prototype.getSameBloodHorseRaceHorsesAsync = async function(type, keys, count, offset) {
+  const json = await this._getObj().getSameBloodHorseRacesAsync(type, keys, count || 300, offset || 0);
+  const data = JSON.parse(json);
+  return data.map(d => new RaceHorse(d));
+}
+
 
 // 血統馬の名前を文字列の配列で取得する
 // 結果は「getBloodHorseRacesAsync」で示したのと同じ順番で返される

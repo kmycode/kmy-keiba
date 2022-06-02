@@ -74,15 +74,28 @@ namespace KmyKeiba
 #if !DEBUG
       MessageBox.Show("内部エラーが発生しました。\nアプリを終了します。");
 #endif
-      this._mutex.ReleaseMutex();
-      this._mutex.Dispose();
+      try
+      {
+        this._mutex.ReleaseMutex();
+        this._mutex.Dispose();
+      }
+      catch { }
+
+      Environment.Exit(-1);
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
       logger.Info("アプリ終了");
-      this._mutex.ReleaseMutex();
-      this._mutex.Dispose();
+      try
+      {
+        this._mutex.ReleaseMutex();
+        this._mutex.Dispose();
+      }
+      catch (Exception ex)
+      {
+        logger.Warn("Mutexの解放でエラーが発生しました", ex);
+      }
 
       base.OnExit(e);
     }

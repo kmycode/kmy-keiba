@@ -225,48 +225,62 @@ namespace KmyKeiba.Models.Analysis
       BloodHorseSelf,      // 血統馬自身を指定するために内部でAnalyzerを管理する便宜上のキー
 
       [Label("コース")]
+      [ScriptParameterKey("course")]
       SameCourse,
 
       [Label("地面")]
+      [ScriptParameterKey("ground")]
       SameGround,
 
       [Label("馬場状態")]
+      [ScriptParameterKey("condition")]
       SameCondition,
 
       [Label("天気")]
+      [ScriptParameterKey("weather")]
       SameWeather,
 
       [Label("条件")]
+      [ScriptParameterKey("subject")]
       SameSubject,
 
       [Label("格")]
+      [ScriptParameterKey("grade")]
       SameGrade,
 
       [Label("季節")]
+      [ScriptParameterKey("season")]
       [IgnoreKey]
       SameSeason,
 
       [Label("距離")]
+      [ScriptParameterKey("distance")]
       NearDistance,
 
       [Label("向き")]
+      [ScriptParameterKey("direction")]
       SameDirection,
 
       [Label("複勝")]
+      [ScriptParameterKey("placebits")]
       [GroupName("ResultOrder")]
       PlaceBets,
 
       [Label("着外")]
+      [ScriptParameterKey("losed")]
       [GroupName("ResultOrder")]
       Losed,
 
       [Label("間隔")]
+      [ScriptParameterKey("interval")]
       NearInterval,
 
       [Label("年齢")]
+      [ScriptParameterKey("age")]
       SameAge,
 
       [Label("重賞")]
+      [ScriptParameterKey("grades")]
       Grades,
     }
 
