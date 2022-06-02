@@ -25,9 +25,7 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<TimeSpan> SpeedAverage { get; } = new();
 
-    public ReactiveProperty<TimeSpan> SpeedMedian { get; } = new();
-
-    public ReactiveProperty<TimeSpan> SpeedDeviation { get; } = new();
+    public ReactiveProperty<double> DisturbanceRate { get; } = new();
 
     public ReactiveProperty<ResultOrderGradeMap> FrontRunnersGrade { get; } = new();
 
@@ -79,8 +77,7 @@ namespace KmyKeiba.Models.Analysis
       {
         // 分析
         this.SpeedAverage.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Average * this.Race.Distance);
-        this.SpeedMedian.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Median * this.Race.Distance);
-        this.SpeedDeviation.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Deviation * this.Race.Distance);
+        this.DisturbanceRate.Value = AnalysisUtil.CalcDisturbanceRate(source);
 
         var horses = source.Select(s => s.Data);
         this.FrontRunnersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.FrontRunner).ToArray());

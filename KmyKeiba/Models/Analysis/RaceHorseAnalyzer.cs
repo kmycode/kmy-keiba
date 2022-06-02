@@ -147,6 +147,11 @@ namespace KmyKeiba.Models.Analysis
       /// </summary>
       public double TimeDeviationValue { get; }
 
+      /// <summary>
+      /// 乱調度
+      /// </summary>
+      public double DisturbanceRate { get; }
+
       public ValueComparation TimeDVComparation { get; set; }
 
       public ValueComparation A3HTimeDVComparation { get; set; }
@@ -169,14 +174,14 @@ namespace KmyKeiba.Models.Analysis
         this.BeforeFiveRaces = this.BeforeRaces.Take(5).ToArray();
         this.Before15Races = this.BeforeRaces.Take(15).ToArray();
 
-        if (this.BeforeRaces.Any())
-        {
-          var targetRaces = this.BeforeRaces
-            .Where(r => r.Data.ResultOrder > 0 && r.Data.AbnormalResult == RaceAbnormality.Unknown)
-            .Where(r => race.Course <= RaceCourse.CentralMaxValue ? r.Race.Course <= RaceCourse.CentralMaxValue : r.Race.Course >= RaceCourse.LocalMinValue)
-            .Take(10)
-            .ToArray();
+        var targetRaces = this.BeforeRaces
+          .Where(r => r.Data.ResultOrder > 0 && r.Data.AbnormalResult == RaceAbnormality.Unknown)
+          .Where(r => race.Course <= RaceCourse.CentralMaxValue ? r.Race.Course <= RaceCourse.CentralMaxValue : r.Race.Course >= RaceCourse.LocalMinValue)
+          .Take(10)
+          .ToArray();
 
+        if (targetRaces.Any())
+        {
           var startTime = new DateTime(1980, 1, 1);
           var statistic = new StatisticSingleArray(targetRaces.Select(r => r.ResultTimeDeviationValue).Where(r => r != default).ToArray());
           var statistica3h = new StatisticSingleArray(targetRaces.Select(r => r.A3HResultTimeDeviationValue).Where(r => r != default).ToArray());
@@ -186,6 +191,7 @@ namespace KmyKeiba.Models.Analysis
           this.TimeDeviationValue = statistic.Median;
           this.A3HTimeDeviationValue = statistica3h.Median;
           this.UntilA3HTimeDeviationValue = statisticau3h.Median;
+          this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(raceHistory);
 
           this.RunningStyle = targetRaces
             .OrderBy(r => r.Data.ResultOrder)

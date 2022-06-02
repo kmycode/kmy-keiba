@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -129,6 +130,22 @@ namespace KmyKeiba.Models.Analysis
             .Select(rh => (double)rh.Popular * rh.Popular)
             .Append(0)    // Sum時の例外防止
             .Sum() / (1 * 1 + 2 * 2 + 3 * 3);
+    }
+
+    public static double CalcDisturbanceRate(IEnumerable<RaceHorseAnalyzer> horses)
+      => CalcDisturbanceRate(horses.Select(h => (h.Data.ResultOrder, h.Race.HorsesCount)).ToArray());
+
+    public static double CalcDisturbanceRate(IEnumerable<(RaceData Race, RaceHorseData Horse)> horses)
+      => CalcDisturbanceRate(horses.Select(h => (h.Horse.ResultOrder, h.Race.HorsesCount)).ToArray());
+
+    public static double CalcDisturbanceRate(IReadOnlyList<(short ResultOrder, short HorsesCount)> data)
+    {
+      logger.Debug($"馬の乱調度を計算 馬数: {data.Count()}");
+      var statistic = new StatisticSingleArray(data
+        .Where(d => d.HorsesCount > 1 && d.ResultOrder >= 1)
+        .Select(d => (double)(d.ResultOrder - 1) / (d.HorsesCount - 1))
+        .ToArray());
+      return statistic.Deviation * 100;
     }
 
     public static (int min, int max) GetIntervalRange(int interval)

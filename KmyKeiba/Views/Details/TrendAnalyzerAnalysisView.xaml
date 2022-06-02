@@ -76,10 +76,12 @@
             <Setter Property="TextAlignment" Value="Right"/>
           </Style>
         </Grid.Resources>
-        <TextBlock Grid.RowSpan="2" Style="{StaticResource Sub}"
-                   Text="平均タイム"/>
-        <TextBlock Grid.Column="1" Grid.RowSpan="2" Margin="4,0,0,0" FontSize="28" FontWeight="Bold"
+        <TextBlock Style="{StaticResource Sub}" Text="平均タイム" Margin="8,0,0,0"/>
+        <TextBlock Grid.Column="1" Margin="12,0,0,0" FontSize="22"
                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.SpeedAverage.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}"/>
+        <TextBlock Grid.Row="1" Style="{StaticResource Sub}" Text="乱調度" Margin="8,0,0,0"/>
+        <TextBlock Grid.Row="1" Grid.Column="1" Margin="12,0,0,0" FontSize="22"
+                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.DisturbanceRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
         <up:RunningStyleTip Grid.Column="2" Margin="48,0,0,0" Grid.Row="0" RunningStyle="FrontRunner"/>
         <TextBlock Grid.Column="3" Margin="4,0,0,0" Grid.Row="0" FontSize="22"
                         Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.FrontRunnersGrade.Value.AllCount,ElementName=Root}"/>
