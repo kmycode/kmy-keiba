@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
@@ -69,6 +70,7 @@ namespace KmyKeiba.ViewModels
     {
       logger.Debug("アプリ関係オブジェクトの生成開始");
 
+      //ReactivePropertyScheduler.SetDefault(DispatcherScheduler.Current);
       this.IsDialogOpen = this.CurrentDialog.Select(d => d != DialogType.Unknown).ToReactiveProperty().AddTo(this._disposables);
 
       // モデル同士のイベントをつなぐ

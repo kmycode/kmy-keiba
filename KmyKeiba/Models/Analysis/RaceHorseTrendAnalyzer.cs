@@ -56,8 +56,16 @@ namespace KmyKeiba.Models.Analysis
         return;
       }
       this.IsLoaded.Value = true;
+      this.IsLoading.Value = false;
 
-      this._source.AddRangeOnScheduler(source);
+      ThreadUtil.InvokeOnUiThread(() =>
+      {
+        foreach (var s in source)
+        {
+          this._source.Add(s);
+        }
+      });
+      //this._source.AddRangeOnScheduler(source);
 
       this.Analyze(source.ToArray());
     }

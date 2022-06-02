@@ -52,18 +52,11 @@ namespace KmyKeiba.Views.Details
 
     public Guid UniqueId2 { get; } = Guid.NewGuid();
 
+    public Guid UniqueId3 { get; } = Guid.NewGuid();
+
     public RaceExpectHorseView()
     {
       InitializeComponent();
-    }
-
-    private void BloodAnalysisButton_Click(object sender, RoutedEventArgs e)
-    {
-      var selector = this.RaceHorse?.BloodSelectors?.CurrentSelector.Value;
-      if (selector != null)
-      {
-        selector.BeginLoadWithExtraKey(RaceHorseBloodTrendAnalysisSelector.Key.BloodHorseSelf);
-      }
     }
   }
 }

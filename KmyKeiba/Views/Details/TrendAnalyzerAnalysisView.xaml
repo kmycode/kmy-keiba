@@ -28,6 +28,22 @@
         <RowDefinition Height="auto"/>
         <RowDefinition/>
       </Grid.RowDefinitions>
+      
+      <!--読み込み中-->
+      <Border Grid.RowSpan="3">
+        <Border.Visibility>
+          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+            <Binding Path="TrendAnalyzers.CurrentAnalyzer.Value.IsLoaded.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+            <Binding Path="TrendAnalyzers.CurrentAnalyzer.Value.IsLoading.Value" ElementName="Root"/>
+            <Binding Path="TrendAnalyzers.CurrentAnalyzer.Value" ElementName="Root" Converter="{StaticResource NonNullVisibilityConv}"/>
+          </MultiBinding>
+        </Border.Visibility>
+        <up:MyProgressBar HorizontalAlignment="Center" VerticalAlignment="Center">
+          <up:MyProgressBar.RenderTransform>
+            <TranslateTransform X="-60"/>
+          </up:MyProgressBar.RenderTransform>
+        </up:MyProgressBar>
+      </Border>
 
       <!--統計学的分析-->
       <Grid>

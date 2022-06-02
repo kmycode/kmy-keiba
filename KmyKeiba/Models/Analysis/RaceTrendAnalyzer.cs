@@ -79,6 +79,7 @@ namespace KmyKeiba.Models.Analysis
         return;
       }
       this.IsLoaded.Value = true;
+      this.IsLoading.Value = false;
 
       this._source.AddRangeOnScheduler(source);
 

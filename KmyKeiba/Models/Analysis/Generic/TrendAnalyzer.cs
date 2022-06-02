@@ -17,6 +17,8 @@ namespace KmyKeiba.Models.Analysis.Generic
     private readonly CompositeDisposable _disposables = new();
     private readonly List<Action> _postAnalysis = new();
 
+    public ReactiveProperty<bool> IsLoading { get; } = new();
+
     public ReactiveProperty<bool> IsLoaded { get; } = new();
 
     public ReactiveProperty<bool> IsAnalyzed { get; } = new();

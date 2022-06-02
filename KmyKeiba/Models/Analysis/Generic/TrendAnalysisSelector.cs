@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,6 +34,8 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public TrendAnalysisFilterItemCollection<KEY> Keys { get; }
 
+    public TrendAnalysisFilterItemCollection<KEY> IgnoreKeys { get; }
+
     protected Dictionary<IEnumerable<KEY>, A> Analyzers { get; } = new(new TrendAnalysisFilterItemCollection<KEY>.Comparer());
 
     public ReactiveProperty<A?> CurrentAnalyzer { get; } = new();
@@ -40,19 +43,21 @@ namespace KmyKeiba.Models.Analysis.Generic
     public TrendAnalysisSelector()
     {
       this.Keys = new TrendAnalysisFilterItemCollection<KEY>().AddTo(this._disposables);
+      this.IgnoreKeys = new TrendAnalysisFilterItemCollection<KEY>().AddTo(this._disposables);
       this.Initialize();
     }
 
     public TrendAnalysisSelector(IEnumerable<KEY> keys)
     {
       var type = typeof(KEY);
-      this.Keys = new TrendAnalysisFilterItemCollection<KEY>(keys
-        .Where(k => !type.GetField(k.ToString())!
+      var ignoreKeys = keys
+        .Where(k => type.GetField(k.ToString())!
                        .GetCustomAttributes(true)
                        .OfType<IgnoreKeyAttribute>()
-                       .Any()
-              ))
-        .AddTo(this._disposables);
+                       .Any());
+
+      this.Keys = new TrendAnalysisFilterItemCollection<KEY>(keys.Except(ignoreKeys)).AddTo(this._disposables);
+      this.IgnoreKeys = new TrendAnalysisFilterItemCollection<KEY>(ignoreKeys).AddTo(this._disposables);
       this.Initialize();
     }
 
@@ -62,15 +67,21 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     private void Initialize()
     {
-      this.Keys.ChangedItemObservable.Subscribe(i =>
-      {
-        this.TryUpdateExistingAnalyzer();
-      }).AddTo(this._disposables);
+      this.Keys.ChangedItemObservable
+        .Subscribe(i =>
+        {
+          this.TryUpdateExistingAnalyzer();
+        }).AddTo(this._disposables);
+      this.IgnoreKeys.ChangedItemObservable
+        .Subscribe(i =>
+        {
+          this.TryUpdateExistingAnalyzer();
+        }).AddTo(this._disposables);
     }
 
     private void TryUpdateExistingAnalyzer()
     {
-      var keys = this.Keys.GetActiveKeys();
+      var keys = this.Keys.GetActiveKeys().Concat(this.IgnoreKeys.GetActiveKeys()).ToArray();
       this.CurrentAnalyzer.Value = this.GetExistingAnalyzer(keys);
     }
 
@@ -90,14 +101,7 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public void BeginLoad()
     {
-      var currentKeys = this.Keys.GetActiveKeys();
-
-      this.CurrentAnalyzer.Value = this.BeginLoad(currentKeys, 300, 0);
-    }
-
-    public void BeginLoadWithExtraKey(KEY key)
-    {
-      var currentKeys = this.Keys.GetActiveKeys().Append(key).ToArray();
+      var currentKeys = this.Keys.GetActiveKeys().Concat(this.IgnoreKeys.GetActiveKeys()).ToArray();
 
       this.CurrentAnalyzer.Value = this.BeginLoad(currentKeys, 300, 0);
     }
@@ -107,10 +111,11 @@ namespace KmyKeiba.Models.Analysis.Generic
       // ここはUIスレッドでなければならない（ReactiveCollectionなどにスレッドが伝播しないので）
       var analyzer = this.GetExistingAnalyzer(keys);
 
-      if (analyzer.IsLoaded.Value)
+      if (analyzer.IsLoaded.Value || analyzer.IsLoading.Value)
       {
         return analyzer;
       }
+      analyzer.IsLoading.Value = true;
 
       _ = Task.Run(async () =>
       {
