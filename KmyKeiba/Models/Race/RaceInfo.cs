@@ -533,18 +533,18 @@ namespace KmyKeiba.Models.Race
             {
               if (horse.History != null && timedvMax != null && timedvMin != null)
               {
-                horse.History.TimeDVComparation = horse.History.TimeDeviationValue + 2 >= timedvMax ? ValueComparation.Good :
-                  horse.History.TimeDeviationValue - 2 <= timedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                horse.History.TimeDVComparation = horse.History.TimeDeviationValue + 0.5 >= timedvMax ? ValueComparation.Good :
+                  horse.History.TimeDeviationValue - 0.5 <= timedvMin ? ValueComparation.Bad : ValueComparation.Standard;
               }
               if (horse.History != null && a3htimedvMax != null && a3htimedvMin != null)
               {
-                horse.History.A3HTimeDVComparation = horse.History.A3HTimeDeviationValue + 2 >= a3htimedvMax ? ValueComparation.Good :
-                  horse.History.A3HTimeDeviationValue - 2 <= a3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                horse.History.A3HTimeDVComparation = horse.History.A3HTimeDeviationValue + 0.5 >= a3htimedvMax ? ValueComparation.Good :
+                  horse.History.A3HTimeDeviationValue - 0.5 <= a3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
               }
               if (horse.History != null && ua3htimedvMax != null && ua3htimedvMin != null)
               {
-                horse.History.UntilA3HTimeDVComparation = horse.History.UntilA3HTimeDeviationValue + 2 >= ua3htimedvMax ? ValueComparation.Good :
-                  horse.History.UntilA3HTimeDeviationValue - 2 <= ua3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                horse.History.UntilA3HTimeDVComparation = horse.History.UntilA3HTimeDeviationValue + 0.5 >= ua3htimedvMax ? ValueComparation.Good :
+                  horse.History.UntilA3HTimeDeviationValue - 0.5 <= ua3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
               }
               if (riderPlaceRateMax != 0)
               {
