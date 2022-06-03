@@ -321,12 +321,7 @@ namespace KmyKeiba.Models.Analysis
         }
       }).AddTo(this._disposables);
 
-      // 同系馬検索があまりに重いので、デフォルトでONにする
-      var sameCourse = this.Keys.FirstOrDefault(k => k.Key == Key.SameCourse);
-      if (sameCourse != null)
-      {
-        sameCourse.IsChecked.Value = true;
-      }
+      base.OnFinishedInitialization();
     }
 
     protected override RaceHorseBloodTrendAnalyzer GenerateAnalyzer()
