@@ -173,7 +173,7 @@ namespace KmyKeiba.Models.Race
           {
             if (race != null)
             {
-              this.RaceList.UpdatePayoff(race.Data.Key, income);
+              this.RaceList.UpdatePayoff(race.Data.Key, income, this.Info.Value.Payoff.PayMoneySum.Value > 0 || this.Info.Value.Payoff.ReturnMoneySum.Value > 0);
             }
           });
         }
@@ -187,11 +187,11 @@ namespace KmyKeiba.Models.Race
               if (tickets.Tickets.Any())
               {
                 var money = tickets.Tickets.Sum(t => t.Count.Value * t.Rows.Count * 100);
-                this.RaceList.UpdatePayoff(race.Data.Key, money * -1);
+                this.RaceList.UpdatePayoff(race.Data.Key, money * -1, true);
               }
               else
               {
-                this.RaceList.UpdatePayoff(race.Data.Key, 0);
+                this.RaceList.UpdatePayoff(race.Data.Key, 0, false);
               }
             };
 

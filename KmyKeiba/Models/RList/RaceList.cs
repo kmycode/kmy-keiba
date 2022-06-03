@@ -131,7 +131,7 @@ namespace KmyKeiba.Models.RList
               var ts = myTickets.Select(t => TicketItem.FromData(t, myHorses, null)).Where(t => t != null).Select(t => t!);
               if (ts.SelectMany(t => t.Rows).Any())
               {
-                item.SetIncome(ts.Sum(t => t.Count.Value * t.Rows.Count * -100));
+                item.SetIncome(ts.Sum(t => t.Count.Value * t.Rows.Count * -100), true);
               }
             }
 
@@ -150,12 +150,12 @@ namespace KmyKeiba.Models.RList
       });
     }
 
-    public void UpdatePayoff(string raceKey, int income)
+    public void UpdatePayoff(string raceKey, int income, bool isPaid)
     {
       var item = this.Courses.SelectMany(c => c.Races).FirstOrDefault(r => r.Key == raceKey);
       if (item != null)
       {
-        item.SetIncome(income);
+        item.SetIncome(income, isPaid);
       }
 
       this.UpdateCurrentDateIncomes();
@@ -192,7 +192,7 @@ namespace KmyKeiba.Models.RList
       payoff.UpdateTicketsData(tickets.Where(t => t != null).OfType<TicketItem>().ToArray(), horses);
 
       var money = payoff.Income.Value;
-      item.SetIncome(money);
+      item.SetIncome(money, payoff.PayMoneySum.Value > 0 || payoff.ReturnMoneySum.Value > 0);
       item.UpdateStatus();
 
       this.UpdateCurrentDateIncomes();
@@ -284,6 +284,8 @@ namespace KmyKeiba.Models.RList
 
     public ReactiveProperty<int> Money { get; } = new();
 
+    public ReactiveProperty<bool> IsPaid { get; } = new();
+
     public ReactiveProperty<ValueComparation> MoneyComparation { get; } = new();
 
     public ReactiveProperty<double> ViewTop { get; } = new();
@@ -311,9 +313,10 @@ namespace KmyKeiba.Models.RList
       }
     }
 
-    public void SetIncome(int money)
+    public void SetIncome(int money, bool isPaid)
     {
       this.Money.Value = money;
+      this.IsPaid.Value = isPaid;
 
       if (this._race.DataStatus >= RaceDataStatus.PreliminaryGrade3)
       {
