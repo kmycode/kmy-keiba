@@ -30,6 +30,11 @@ namespace KmyKeiba.JVLink.Entities
     public string SubName { get; set; } = string.Empty;
 
     /// <summary>
+    /// 特別競走番号
+    /// </summary>
+    public short GradeId { get; set; }
+
+    /// <summary>
     /// 競馬場
     /// </summary>
     public RaceCourse Course { get; set; }
@@ -192,6 +197,7 @@ namespace KmyKeiba.JVLink.Entities
 
       var subject = RaceSubject.FromJV(race);
 
+      short.TryParse(race.RaceInfo.TokuNum, out var gradeId);
       short.TryParse(race.id.RaceNum, out short courseRaceNum);
       short.TryParse(race.TorokuTosu, out short horsesCount);
       short.TryParse(race.Kyori, out short distance);
@@ -224,6 +230,7 @@ namespace KmyKeiba.JVLink.Entities
         Name = name,
         Name6Chars = name6,
         SubName = race.RaceInfo.Fukudai.Trim(),
+        GradeId = gradeId,
         Course = course,
         CourseType = race.CourseKubunCD.Trim(),
         TrackGround = trackGround,

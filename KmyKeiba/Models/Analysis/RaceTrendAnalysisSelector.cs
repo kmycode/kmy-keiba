@@ -129,7 +129,14 @@ namespace KmyKeiba.Models.Analysis
       }
       if (keys.Contains(Key.SameRaceName) && !string.IsNullOrWhiteSpace(this.Race.Name))
       {
-        query = query.Where(r => r.Name == this.Race.Name);
+        if (this.Race.GradeId == default)
+        {
+          query = query.Where(r => r.Name == this.Race.Name);
+        }
+        else
+        {
+          query = query.Where(r => r.Name == this.Race.Name || r.GradeId == this.Race.GradeId);
+        }
       }
       if (keys.Contains(Key.SameSubject))
       {

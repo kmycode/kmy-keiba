@@ -24,6 +24,8 @@ namespace KmyKeiba.Data.Db
     [StringLength(120)]
     public string SubName { get; set; } = string.Empty;
 
+    public short GradeId { get; set; }
+
     public RaceCourse Course { get; set; }
     
     [StringLength(4)]
@@ -112,6 +114,7 @@ namespace KmyKeiba.Data.Db
       this.Name6Chars = race.Name6Chars;
       this.SubName = race.SubName;
       this.SubjectName = race.Subject.Name;
+      this.GradeId = race.GradeId;
       this.Course = race.Course;
       this.CourseType = race.CourseType;
       this.TrackGround = race.TrackGround;
