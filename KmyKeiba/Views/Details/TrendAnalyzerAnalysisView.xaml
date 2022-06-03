@@ -36,6 +36,7 @@
             <Binding Path="TrendAnalyzers.CurrentAnalyzer.Value.IsLoaded.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
             <Binding Path="TrendAnalyzers.CurrentAnalyzer.Value.IsLoading.Value" ElementName="Root"/>
             <Binding Path="TrendAnalyzers.CurrentAnalyzer.Value" ElementName="Root" Converter="{StaticResource NonNullVisibilityConv}"/>
+            <Binding Path="TrendAnalyzers" ElementName="Root" Converter="{StaticResource NonNullVisibilityConv}"/>
           </MultiBinding>
         </Border.Visibility>
         <up:MyProgressBar HorizontalAlignment="Center" VerticalAlignment="Center">

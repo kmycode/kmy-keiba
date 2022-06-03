@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Models.Data;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Models.Data;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -77,6 +78,15 @@ namespace KmyKeiba.Models.Analysis.Generic
         {
           this.TryUpdateExistingAnalyzer();
         }).AddTo(this._disposables);
+    }
+
+    protected void OnFinishedInitialization()
+    {
+      // デフォルトのアナライザ
+      ThreadUtil.InvokeOnUiThread(() =>
+      {
+        this.TryUpdateExistingAnalyzer();
+      });
     }
 
     private void TryUpdateExistingAnalyzer()

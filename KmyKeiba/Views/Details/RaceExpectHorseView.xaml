@@ -202,10 +202,12 @@
             <Border Height="40">
               <RadioButton FontSize="18" Content="血統馬" GroupName="{Binding UniqueId3}" Style="{StaticResource ToggleButtonDefault}"
                            IsChecked="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value.IsSameChildren.Value,Mode=TwoWay,Converter={StaticResource NegativeConv}}"
-                           IsEnabled="{Binding RaceHorse.BloodSelectors.MenuItems.ActiveItem.Value.IsEnabled}"/>
+                           IsEnabled="{Binding RaceHorse.BloodSelectors.MenuItems.ActiveItem.Value.IsEnabled}"
+                           Visibility="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
             </Border>
             <Border Height="40" Grid.Column="1">
-              <RadioButton FontSize="18" Content="同系馬" GroupName="{Binding UniqueId3}" Style="{StaticResource ToggleButtonDefault}" IsChecked="True"/>
+              <RadioButton FontSize="18" Content="同系馬" GroupName="{Binding UniqueId3}" Style="{StaticResource ToggleButtonDefault}" IsChecked="True"
+                           Visibility="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
             </Border>
             <ItemsControl Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding RaceHorse.BloodSelectors.MenuItems}">
               <ItemsControl.ItemTemplate>

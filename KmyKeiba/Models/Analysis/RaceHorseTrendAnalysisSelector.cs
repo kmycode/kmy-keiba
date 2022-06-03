@@ -78,6 +78,8 @@ namespace KmyKeiba.Models.Analysis
     {
       this.Race = race;
       this.RaceHorse = horse;
+
+      base.OnFinishedInitialization();
     }
 
     protected override RaceHorseTrendAnalyzer GenerateAnalyzer()

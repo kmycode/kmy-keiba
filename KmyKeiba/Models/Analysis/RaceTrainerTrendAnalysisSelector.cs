@@ -82,6 +82,8 @@ namespace KmyKeiba.Models.Analysis
       {
         this.Keys.RemoveKey(Key.SameRaceName);
       }
+
+      base.OnFinishedInitialization();
     }
 
     protected override RaceTrainerTrendAnalyzer GenerateAnalyzer()

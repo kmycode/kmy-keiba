@@ -186,7 +186,8 @@ namespace KmyKeiba.Models.Analysis
         ThreadUtil.InvokeOnUiThread(() =>
         {
           this.MenuItems.AddRangeOnScheduler(items.OrderBy(i => i.Type));
-          var firstItem = items.FirstOrDefault(i => i.IsEnabled);
+
+          var firstItem = items.FirstOrDefault(i => i.Type == BloodType.MotherFather) ?? items.FirstOrDefault();
           if (firstItem != null)
           {
             firstItem.IsChecked.Value = true;
