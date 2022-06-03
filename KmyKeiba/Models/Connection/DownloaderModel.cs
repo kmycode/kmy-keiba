@@ -378,20 +378,23 @@ namespace KmyKeiba.Models.Connection
 
         async Task DownloadOddsOfCentralHolidaysAsync()
         {
-          // 地方と違って中央競馬は、必ずレース翌日にレース結果を蓄積系データとして提供するとは限らないらしい
-          // 翌日以降のレースデータも取得しておきたい
-          if (today.DayOfWeek == DayOfWeek.Saturday)
+          if (this.IsRTDownloadCentral.Value)
           {
-            logger.Debug("土曜日につき翌日のデータをダウンロード");
-            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(1));
-          }
-          else if (today.DayOfWeek == DayOfWeek.Friday)
-          {
-            // 重賞レースの前売りがある場合、オッズが更新されることがある
-            // （※前売りがあるのはG1の中でも一部で、年に数回程度）
-            logger.Debug("金曜日につき翌日以降のデータをダウンロード");
-            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(1));
-            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(2));
+            // 地方と違って中央競馬は、必ずレース翌日にレース結果を蓄積系データとして提供するとは限らないらしい
+            // 翌日以降のレースデータも取得しておきたい
+            if (today.DayOfWeek == DayOfWeek.Saturday)
+            {
+              logger.Debug("土曜日につき翌日のデータをダウンロード");
+              await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(1));
+            }
+            else if (today.DayOfWeek == DayOfWeek.Friday)
+            {
+              // 重賞レースの前売りがある場合、オッズが更新されることがある
+              // （※前売りがあるのはG1の中でも一部で、年に数回程度）
+              logger.Debug("金曜日につき翌日以降のデータをダウンロード");
+              await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(1));
+              await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(2));
+            }
           }
         }
 
