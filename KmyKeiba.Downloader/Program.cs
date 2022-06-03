@@ -4,6 +4,7 @@ using KmyKeiba.Downloader.Injection;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
 using KmyKeiba.Shared;
+using log4net.Repository.Hierarchy;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -37,6 +38,22 @@ namespace KmyKeiba.Downloader
       logger.Info("==                            ==");
       logger.Info("================================");
       logger.Info($"Version: {Constrants.ApplicationVersion}");
+
+#if !DEBUG
+      var rootLogger = ((Hierarchy)logger.Logger.Repository).Root;
+      if (File.Exists(Constrants.DebugFilePath))
+      {
+        rootLogger.Level = log4net.Core.Level.All;
+        logger.Info("ログレベル: All (デバッグファイルが見つかりました)");
+      }
+      else
+      {
+        rootLogger.Level = log4net.Core.Level.Info;
+        logger.Info("ログレベル: Info");
+      }
+#else
+      logger.Info("ログレベル: All");
+#endif
 
       Console.WriteLine("\n\n\n============= Start Program ==============\n");
 
