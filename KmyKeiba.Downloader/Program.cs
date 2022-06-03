@@ -415,7 +415,6 @@ namespace KmyKeiba.Downloader
           logger.Info("ダウンロードを開始します（セットアップ／通常）");
           LoadAsync(loader, task).Wait();
         }
-        isLoaded = true;
       }
       catch (Exception ex)
       {
@@ -424,6 +423,7 @@ namespace KmyKeiba.Downloader
       finally
       {
         loader.Dispose();
+        isLoaded = true;
       }
 
       while (isDbLooping)
