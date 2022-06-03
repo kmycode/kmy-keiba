@@ -255,6 +255,8 @@ namespace KmyKeiba.Models.Script
 
     protected virtual object Execute(RaceInfo race)
     {
+      DocumentLoader.Default.DiscardCachedDocuments();
+
       var script = File.ReadAllText("script/index.js");
       this.Engine.Script.OnInit = this.Engine.Evaluate(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
       return this.Engine.Invoke("OnInit");
@@ -345,6 +347,8 @@ namespace KmyKeiba.Models.Script
 
     private void Compile()
     {
+      DocumentLoader.Default.DiscardCachedDocuments();
+
       var script = File.ReadAllText("script/index.js");
       this._compiled = this.Engine.Compile(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
       this.Engine.Script.OnInit = this.Engine.Evaluate(this._compiled);
