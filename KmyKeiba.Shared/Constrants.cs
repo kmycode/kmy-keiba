@@ -15,6 +15,8 @@ namespace KmyKeiba.Shared
 
     public static readonly string ShutdownFilePath = Path.Combine(AppDataPath, "req_shutdown");
 
+    public static readonly string DebugFilePath = Path.Combine(AppDataPath, "debug");
+
     public const string ApplicationVersion = "1.0.0 rc";
   }
 }
