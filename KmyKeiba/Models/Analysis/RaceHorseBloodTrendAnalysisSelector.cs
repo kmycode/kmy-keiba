@@ -302,6 +302,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<bool> IsSameChildren { get; } = new(true);
 
+    protected override bool IsAutoLoad => this._allRaces != null;
+
     public RaceHorseBloodTrendAnalysisSelector(RaceHorseBloodTrendAnalysisSelectorMenu menu, RaceData race, RaceHorseData horse, string relativeKey, string relativeName, BloodType type, string bloodKey) : base(typeof(Key))
     {
       this.Menu = menu;

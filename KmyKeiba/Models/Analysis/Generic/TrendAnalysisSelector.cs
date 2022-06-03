@@ -41,6 +41,8 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public ReactiveProperty<A?> CurrentAnalyzer { get; } = new();
 
+    protected virtual bool IsAutoLoad => false;
+
     public TrendAnalysisSelector()
     {
       this.Keys = new TrendAnalysisFilterItemCollection<KEY>().AddTo(this._disposables);
@@ -93,6 +95,11 @@ namespace KmyKeiba.Models.Analysis.Generic
     {
       var keys = this.Keys.GetActiveKeys().Concat(this.IgnoreKeys.GetActiveKeys()).ToArray();
       this.CurrentAnalyzer.Value = this.GetExistingAnalyzer(keys);
+
+      if (this.IsAutoLoad)
+      {
+        this.BeginLoad(keys);
+      }
     }
 
     private A GetExistingAnalyzer(IReadOnlyList<KEY> keys)

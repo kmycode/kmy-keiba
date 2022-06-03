@@ -36,6 +36,8 @@ namespace KmyKeiba.Models.Analysis
 
     public double A3HResultTimeDeviationValue { get; }
 
+    public double UntilA3HResultTimeDeviationValue { get; }
+
     public RacePace Pace { get; }
 
     public RacePace A3HPace { get; }
@@ -70,6 +72,7 @@ namespace KmyKeiba.Models.Analysis
           this.TopHorse.A3HResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
         this.ResultTimeDeviationValue = this.TopHorse.ResultTimeDeviationValue;
         this.A3HResultTimeDeviationValue = this.TopHorse.A3HResultTimeDeviationValue;
+        this.UntilA3HResultTimeDeviationValue = this.TopHorse.UntilA3HResultTimeDeviationValue;
       }
     }
 

@@ -74,6 +74,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceHorseData RaceHorse { get; }
 
+    protected override bool IsAutoLoad => this._allRaces != null;
+
     public RaceHorseTrendAnalysisSelector(RaceData race, RaceHorseData horse) : base(typeof(Key))
     {
       this.Race = race;

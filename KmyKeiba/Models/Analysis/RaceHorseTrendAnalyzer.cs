@@ -27,6 +27,12 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<double> DisturbanceRate { get; } = new();
 
+    public ReactiveProperty<double> TimeDeviationValue { get; } = new();
+
+    public ReactiveProperty<double> A3HTimeDeviationValue { get; } = new();
+
+    public ReactiveProperty<double> UntilA3HTimeDeviationValue { get; } = new();
+
     public ReactiveProperty<ResultOrderGradeMap> FrontRunnersGrade { get; } = new();
 
     public ReactiveProperty<ResultOrderGradeMap> StalkersGrade { get; } = new();
@@ -84,6 +90,13 @@ namespace KmyKeiba.Models.Analysis
         this.StalkersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.Stalker).ToArray());
         this.SotpsGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.Sotp).ToArray());
         this.SaveRunnersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.SaveRunner).ToArray());
+
+        var timePoint = new StatisticSingleArray(source.Select(h => h.ResultTimeDeviationValue).Where(v => v != default).ToArray());
+        var a3htimePoint = new StatisticSingleArray(source.Select(h => h.A3HResultTimeDeviationValue).Where(v => v != default).ToArray());
+        var ua3htimePoint = new StatisticSingleArray(source.Select(h => h.UntilA3HResultTimeDeviationValue).Where(v => v != default).ToArray());
+        this.TimeDeviationValue.Value = timePoint.Median;
+        this.A3HTimeDeviationValue.Value = a3htimePoint.Median;
+        this.UntilA3HTimeDeviationValue.Value = ua3htimePoint.Median;
 
         var validRaces = source.Where(r => r.Data.ResultOrder != 0);
         var sourceArr = source.Select(s => s.Data).ToArray();
