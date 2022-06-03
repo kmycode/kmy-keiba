@@ -32,5 +32,6 @@ namespace KmyKeiba.Data.Db
     LastLaunchDate = 7,
     IsDownloadCentralOnThursdayAfterOnly = 8,
     LastUpdateStandardTimeYear = 9,
+    LastDownloadNormalDataHour = 10,
   }
 }
