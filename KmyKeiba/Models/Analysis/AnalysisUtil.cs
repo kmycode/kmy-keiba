@@ -20,7 +20,7 @@ namespace KmyKeiba.Models.Analysis
 
     public static async Task<RaceStandardTimeMasterData> GetRaceStandardTimeAsync(MyContext db, RaceData race)
     {
-      logger.Debug($"基準タイム取得 {race.Key}");
+      // logger.Debug($"基準タイム取得 {race.Key}");
 
       _standardData.TryGetValue(race.Course, out var list);
 
@@ -30,7 +30,7 @@ namespace KmyKeiba.Models.Analysis
           .Where(st => st.Course == race.Course && st.SampleCount > 0)
           .ToArrayAsync();
         _standardData[race.Course] = list;
-        logger.Info($"基準タイムキャッシュをDBから読み込みました 項目数: {list.Count}");
+        logger.Info($"基準タイム {race.Course} キャッシュをDBから読み込みました 項目数: {list.Count}");
       }
 
       var query = list
@@ -58,7 +58,7 @@ namespace KmyKeiba.Models.Analysis
         item = query.FirstOrDefault();
       }
 
-      logger.Info($"レース {race.Key} 基準タイムのサンプル数: {item?.SampleCount}");
+      // logger.Debug($"レース {race.Key} 基準タイムのサンプル数: {item?.SampleCount}");
       return item ?? new();
     }
 
@@ -70,7 +70,7 @@ namespace KmyKeiba.Models.Analysis
 
     public static async Task<RiderWinRateMasterData> GetRiderWinRateAsync(MyContext db, RaceData race, string riderCode)
     {
-      logger.Debug($"騎手の勝率情報 騎手コード: {riderCode}");
+      // logger.Debug($"騎手の勝率情報 騎手コード: {riderCode}");
 
       _riderWinRateData.TryGetValue(riderCode, out var list);
 
@@ -80,7 +80,7 @@ namespace KmyKeiba.Models.Analysis
           .Where(rw => rw.RiderCode == riderCode)
           .ToArrayAsync();
         _riderWinRateData[riderCode] = list;
-        logger.Info($"騎手勝率情報キャッシュをDBから読み込みました 項目数: {list.Count}");
+        logger.Info($"騎手 {riderCode} 勝率情報キャッシュをDBから読み込みました 項目数: {list.Count}");
       }
 
       var raceMonth = new DateOnly(race.StartTime.Year, race.StartTime.Month, 1);
@@ -113,7 +113,7 @@ namespace KmyKeiba.Models.Analysis
         return a;
       });
 
-      logger.Info($"騎手 {riderCode} 勝率情報のサンプル数: {item.AllTurfCount} / {item.AllDirtCount} / {item.AllTurfSteepsCount} / {item.AllDirtSteepsCount}");
+      // logger.Info($"騎手 {riderCode} 勝率情報のサンプル数: {item.AllTurfCount} / {item.AllDirtCount} / {item.AllTurfSteepsCount} / {item.AllDirtSteepsCount}");
       return item;
     }
 
@@ -125,7 +125,7 @@ namespace KmyKeiba.Models.Analysis
 
     public static double CalcRoughRate(IReadOnlyList<RaceHorseData> topHorses)
     {
-      logger.Debug($"レース荒れ度を計算 馬数: {topHorses.Count}");
+      // logger.Debug($"レース荒れ度を計算 馬数: {topHorses.Count}");
       return topHorses.Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 3)
             .Select(rh => (double)rh.Popular * rh.Popular)
             .Append(0)    // Sum時の例外防止
@@ -140,7 +140,7 @@ namespace KmyKeiba.Models.Analysis
 
     public static double CalcDisturbanceRate(IReadOnlyList<(short ResultOrder, short HorsesCount)> data)
     {
-      logger.Debug($"馬の乱調度を計算 馬数: {data.Count()}");
+      // logger.Debug($"馬の乱調度を計算 馬数: {data.Count()}");
       var statistic = new StatisticSingleArray(data
         .Where(d => d.HorsesCount > 1 && d.ResultOrder >= 1)
         .Select(d => (double)(d.ResultOrder - 1) / (d.HorsesCount - 1))
