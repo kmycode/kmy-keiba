@@ -170,14 +170,16 @@
                 </StackPanel.Visibility>
                 <TextBlock Text="{Binding Data.ResultOrder}" Foreground="{Binding ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}" FontSize="16" Width="40"/>
                 <TextBlock Text="{Binding Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="55"/>
-                <TextBlock Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="55"
-                           Visibility="{Binding ResultTimeDeviationValue,Converter={StaticResource NonZeroVisibilityConv}}"/>
+                <Border Width="55">
+                  <TextBlock Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="55"
+                             Visibility="{Binding ResultTimeDeviationValue,Converter={StaticResource NonZeroVisibilityConv}}"/>
+                </Border>
                 <Border Width="60">
                   <up:RunningStyleTip RunningStyle="{Binding Data.RunningStyle}" HorizontalAlignment="Right"/>
                 </Border>
                 <Border Width="150">
                   <up:CornerResultTip CornerGrades="{Binding CornerGrades}" FontSize="14" PartWidth="24" PartHeight="20" PartPadding="4"
-                                        HorizontalAlignment="Right" WithResult="False"/>
+                                      HorizontalAlignment="Right" WithResult="False"/>
                 </Border>
                 <TextBlock Text="{Binding Data.RiderName}" FontSize="14" Width="70"/>
               </StackPanel>
