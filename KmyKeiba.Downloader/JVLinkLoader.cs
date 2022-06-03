@@ -292,7 +292,7 @@ namespace KmyKeiba.Downloader
         {
           await Task.Delay(80);
 
-          if (this.Loaded.Value != reader.ReadedCount)
+          if (this.Loaded.Value != reader.ReadedCount || this.LoadEntityCount.Value != reader.ReadedEntityCount)
           {
             this.Loaded.Value = reader.ReadedCount;
             this.LoadEntityCount.Value = reader.ReadedEntityCount;
