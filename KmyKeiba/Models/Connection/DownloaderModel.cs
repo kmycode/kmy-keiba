@@ -511,7 +511,7 @@ namespace KmyKeiba.Models.Connection
           logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
           if (link.HasFlag(DownloadLink.Central))
           {
-            ShapeDatabaseModel.TrainRunningStyle(isForce: true);
+            ShapeDatabaseModel.TrainRunningStyle(isForce: !isRt);
           }
           ShapeDatabaseModel.StartRunningStylePredicting();
         }
