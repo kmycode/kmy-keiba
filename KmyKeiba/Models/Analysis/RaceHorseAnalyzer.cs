@@ -174,18 +174,12 @@ namespace KmyKeiba.Models.Analysis
         this.BeforeFiveRaces = this.BeforeRaces.Take(5).ToArray();
         this.Before15Races = this.BeforeRaces.Take(15).ToArray();
 
-        var targetRaces = this.BeforeRaces
-          .Where(r => r.Data.ResultOrder > 0 && r.Data.AbnormalResult == RaceAbnormality.Unknown)
-          .Where(r => race.Course <= RaceCourse.CentralMaxValue ? r.Race.Course <= RaceCourse.CentralMaxValue : r.Race.Course >= RaceCourse.LocalMinValue)
-          .Take(10)
-          .ToArray();
-
-        if (targetRaces.Any())
+        if (this.BeforeRaces.Any())
         {
           var startTime = new DateTime(1980, 1, 1);
-          var statistic = new StatisticSingleArray(targetRaces.Select(r => r.ResultTimeDeviationValue).Where(r => r != default).ToArray());
-          var statistica3h = new StatisticSingleArray(targetRaces.Select(r => r.A3HResultTimeDeviationValue).Where(r => r != default).ToArray());
-          var statisticau3h = new StatisticSingleArray(targetRaces.Select(r => r.UntilA3HResultTimeDeviationValue).Where(r => r != default).ToArray());
+          var statistic = new StatisticSingleArray(this.BeforeRaces.Select(r => r.ResultTimeDeviationValue).Where(r => r != default).ToArray());
+          var statistica3h = new StatisticSingleArray(this.BeforeRaces.Select(r => r.A3HResultTimeDeviationValue).Where(r => r != default).ToArray());
+          var statisticau3h = new StatisticSingleArray(this.BeforeRaces.Select(r => r.UntilA3HResultTimeDeviationValue).Where(r => r != default).ToArray());
 
           //this.TimeDeviationValue = st.CalcRegressionValue((race.StartTime.Date - startTime).TotalDays);
           this.TimeDeviationValue = statistic.Median;
@@ -193,31 +187,13 @@ namespace KmyKeiba.Models.Analysis
           this.UntilA3HTimeDeviationValue = statisticau3h.Median;
           this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(raceHistory);
 
-          this.RunningStyle = targetRaces
+          this.RunningStyle = this.BeforeRaces
             .OrderBy(r => r.Data.ResultOrder)
             .GroupBy(r => r.Data.RunningStyle)
             .OrderByDescending(g => g.Count())
             .Select(g => g.Key)
             .FirstOrDefault();
 
-          // 成績
-          this.AllGrade = new ResultOrderGradeMap(targetRaces.Select(r => r.Data).ToArray());
-          this.SameCourseGrade = new ResultOrderGradeMap(targetRaces
-            .Where(r => r.Race.Course == race.Course).Select(r => r.Data).ToArray());
-          this.SameGroundGrade = new ResultOrderGradeMap(targetRaces
-            .Where(r => r.Race.TrackGround == race.TrackGround).Select(r => r.Data).ToArray());
-          this.SameDistanceGrade = new ResultOrderGradeMap(targetRaces
-            .Where(r => r.Race.Distance / 100 == race.Distance / 100).Select(r => r.Data).ToArray());
-          this.SameDirectionGrade = new ResultOrderGradeMap(targetRaces
-            .Where(r => r.Race.TrackCornerDirection == race.TrackCornerDirection).Select(r => r.Data).ToArray());
-          this.SameConditionGrade = new ResultOrderGradeMap(targetRaces
-            .Where(r => r.Race.TrackCondition == race.TrackCondition).Select(r => r.Data).ToArray());
-          this.SameRiderGrade = new ResultOrderGradeMap(targetRaces
-            .Where(r => r.Data.RiderCode == horse.RiderCode).Select(r => r.Data).ToArray());
-        }
-
-        if (this.BeforeRaces.Any())
-        {
           // 距離適性
           this.SprinterGrade = new ResultOrderGradeMap(this.BeforeRaces
             .Where(r => r.Race.Distance < 1400).Select(r => r.Data).ToArray());
@@ -239,6 +215,21 @@ namespace KmyKeiba.Models.Analysis
             ranking.ElementAt(0).Key;
           this.SecondDistance = distances.Count(d => d.Value.LoseCount == d.Value.AllCount) >= 3 ? DistanceAptitude.Unknown :
             ranking.ElementAt(1).Key;
+
+          // 成績
+          this.AllGrade = new ResultOrderGradeMap(this.BeforeRaces.Select(r => r.Data).ToArray());
+          this.SameCourseGrade = new ResultOrderGradeMap(this.BeforeRaces
+            .Where(r => r.Race.Course == race.Course).Select(r => r.Data).ToArray());
+          this.SameGroundGrade = new ResultOrderGradeMap(this.BeforeRaces
+            .Where(r => r.Race.TrackGround == race.TrackGround).Select(r => r.Data).ToArray());
+          this.SameDistanceGrade = new ResultOrderGradeMap(this.BeforeRaces
+            .Where(r => r.Race.Distance / 100 == race.Distance / 100).Select(r => r.Data).ToArray());
+          this.SameDirectionGrade = new ResultOrderGradeMap(this.BeforeRaces
+            .Where(r => r.Race.TrackCornerDirection == race.TrackCornerDirection).Select(r => r.Data).ToArray());
+          this.SameConditionGrade = new ResultOrderGradeMap(this.BeforeRaces
+            .Where(r => r.Race.TrackCondition == race.TrackCondition).Select(r => r.Data).ToArray());
+          this.SameRiderGrade = new ResultOrderGradeMap(this.BeforeRaces
+            .Where(r => r.Data.RiderCode == horse.RiderCode).Select(r => r.Data).ToArray());
 
           // 競馬場ごとの成績
           this.CourseGrades.Add(new CourseHorseGrade(race.Distance, this.BeforeRaces));
