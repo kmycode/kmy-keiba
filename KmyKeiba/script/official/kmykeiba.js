@@ -561,6 +561,7 @@ export function RaceHorse(data, csraceobj) {
   this.race = data.race;
 
   // 過去レースの情報の入ったオブジェクト。予想対象レースの場合にのみ設定され、それ以外の場合はnullまたはundefinedになる
+  // 過去10レースよりも前の結果を参照した値を取得したいときは、現状ではhistory.beforeRacesから自分で計算する
   //
   // 【データ構造】
   // {
@@ -568,6 +569,7 @@ export function RaceHorse(data, csraceobj) {
   //    timeDeviationValue:     過去10レース結果のタイム偏差値の中央値
   //    a3hTimeDeviationValue:  過去10レース結果の後3ハロンタイム偏差値の中央値
   //    ua3hTimeDeviationValue: 過去10レース結果の後3ハロンに到達するまでのタイム偏差値の中央値
+  //    disturbanceRate         過去10レースの結果から算出した乱調度
   //    beforeRaces:            過去全レースデータのオブジェクトの配列（RaceHorse型）
   // }
   this.history = data.history;

@@ -174,20 +174,22 @@ namespace KmyKeiba.Models.Analysis
         this.BeforeFiveRaces = this.BeforeRaces.Take(5).ToArray();
         this.Before15Races = this.BeforeRaces.Take(15).ToArray();
 
-        if (this.BeforeRaces.Any())
+        if (this.BeforeRaces.Any(r => r.Data.ResultOrder > 0))
         {
+          var targetRaces = this.BeforeRaces.Where(r => r.Data.ResultOrder > 0).Take(10);
+
           var startTime = new DateTime(1980, 1, 1);
-          var statistic = new StatisticSingleArray(this.BeforeRaces.Select(r => r.ResultTimeDeviationValue).Where(r => r != default).ToArray());
-          var statistica3h = new StatisticSingleArray(this.BeforeRaces.Select(r => r.A3HResultTimeDeviationValue).Where(r => r != default).ToArray());
-          var statisticau3h = new StatisticSingleArray(this.BeforeRaces.Select(r => r.UntilA3HResultTimeDeviationValue).Where(r => r != default).ToArray());
+          var statistic = new StatisticSingleArray(targetRaces.Select(r => r.ResultTimeDeviationValue).Where(r => r != default).ToArray());
+          var statistica3h = new StatisticSingleArray(targetRaces.Select(r => r.A3HResultTimeDeviationValue).Where(r => r != default).ToArray());
+          var statisticau3h = new StatisticSingleArray(targetRaces.Select(r => r.UntilA3HResultTimeDeviationValue).Where(r => r != default).ToArray());
 
           //this.TimeDeviationValue = st.CalcRegressionValue((race.StartTime.Date - startTime).TotalDays);
           this.TimeDeviationValue = statistic.Median;
           this.A3HTimeDeviationValue = statistica3h.Median;
           this.UntilA3HTimeDeviationValue = statisticau3h.Median;
-          this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(raceHistory);
+          this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(targetRaces);
 
-          this.RunningStyle = this.BeforeRaces
+          this.RunningStyle = targetRaces
             .OrderBy(r => r.Data.ResultOrder)
             .GroupBy(r => r.Data.RunningStyle)
             .OrderByDescending(g => g.Count())
