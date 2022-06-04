@@ -22,6 +22,10 @@ namespace KmyKeiba.Models.Script
 
     public ReactiveProperty<DateTime> StartDate { get; } = new(DateTime.Today.AddMonths(-1));
 
+    public ReactiveProperty<DateTime> EndDate { get; } = new(DateTime.Today);
+
+    public ReactiveProperty<string> ThreadSize { get; } = new("2");
+
     public ReactiveProperty<bool> IsExecuting { get; } = new();
 
     public ReactiveProperty<bool> IsError { get; } = new();
@@ -45,7 +49,11 @@ namespace KmyKeiba.Models.Script
       this.IsError.Value = false;
       this.SumOfIncomes.Value = 0;
 
-      var divitions = 2;
+      short.TryParse(this.ThreadSize.Value, out var divitions);
+      if (divitions < 1)
+      {
+        divitions = 2;
+      }
 
       var engines = new List<EngineInfo>();
       try
@@ -64,8 +72,10 @@ namespace KmyKeiba.Models.Script
 
       using var db = new MyContext();
       var startTime = this.StartDate.Value;
-      var races = await db.Races!
-        .Where(r => r.StartTime >= startTime && r.DataStatus >= RaceDataStatus.PreliminaryGrade)
+      var endTime = this.EndDate.Value;
+      var query = db.Races!
+        .Where(r => r.StartTime >= startTime && r.StartTime <= endTime && r.DataStatus >= RaceDataStatus.PreliminaryGrade);
+      var races = await query
         .OrderBy(r => r.Course)
         .OrderBy(r => r.StartTime)
         .ToArrayAsync();
