@@ -80,12 +80,19 @@
             <TextBlock Grid.Column="1" Grid.Row="2" FontSize="24" Margin="0,8,0,0"
                        Text="{Binding RaceHorse.History.UntilA3HTimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"
                        Foreground="{Binding RaceHorse.History.UntilA3HTimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
+
             <TextBlock Grid.Column="2" Text="距離適性" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
             <TextBlock Grid.Column="3" FontSize="24"
                        Text="{Binding RaceHorse.History.BestDistance,ElementName=Root,Converter={StaticResource LabelConv}}"/>
             <TextBlock Grid.Column="2" Text="副距離適性" Grid.Row="1" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
             <TextBlock Grid.Column="3" Grid.Row="1" FontSize="24" Margin="0,8,0,0"
                        Text="{Binding RaceHorse.History.SecondDistance,ElementName=Root,Converter={StaticResource LabelConv}}"/>
+            <TextBlock Grid.Column="2" Grid.Row="2" Text="その他" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
+            <StackPanel Grid.Column="3" Grid.Row="2" Orientation="Horizontal">
+              <TextBlock FontSize="18" Visibility="{Binding RaceHorse.Data.IsBlinkers,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                         Text="ブリンカー" Margin="0,8,16,0"/>
+            </StackPanel>
+
             <TextBlock Grid.Column="4" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0">
               同距離・地面<LineBreak/>騎手複勝
             </TextBlock>
