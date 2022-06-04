@@ -11,6 +11,7 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="auto"/>
+      <RowDefinition Height="auto"/>
       <RowDefinition/>
       <RowDefinition Height="auto"/>
     </Grid.RowDefinitions>
@@ -69,7 +70,26 @@
                  FontSize="18" Margin="8,4" Foreground="{DynamicResource ErrorForeground}"/>
     </Border>
 
-    <ItemsControl Grid.Row="2" Style="{StaticResource TableList}" ScrollViewer.HorizontalScrollBarVisibility="Auto"
+    <StackPanel Orientation="Horizontal" Grid.Row="2">
+      <StackPanel.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource SubTextBlock}">
+          <Setter Property="FontSize" Value="16"/>
+          <Setter Property="TextAlignment" Value="Center"/>
+        </Style>
+      </StackPanel.Resources>
+      <TextBlock Width="60"/>
+      <TextBlock Width="130" Text="開始時刻"/>
+      <TextBlock Width="80" Text="競馬場"/>
+      <TextBlock Width="40" Text="R"/>
+      <TextBlock Width="80" Text="距離"/>
+      <TextBlock Width="220" Text="レース名"/>
+      <TextBlock Width="80" Text="購入"/>
+      <TextBlock Width="80" Text="払戻"/>
+      <TextBlock Width="80" Text="収支"/>
+      <TextBlock Width="120" Text="1～3着の印"/>
+    </StackPanel>
+
+    <ItemsControl Grid.Row="3" Style="{StaticResource TableList}" ScrollViewer.HorizontalScrollBarVisibility="Auto"
                   ItemsSource="{Binding ScriptBulk.Results,ElementName=Root}" Margin="0,0,0,8">
       <ItemsControl.Resources>
         <Style TargetType="Border" x:Key="Cell">
@@ -171,7 +191,7 @@
       </ItemsControl.ItemTemplate>
     </ItemsControl>
 
-    <Grid Grid.Row="3" Margin="0,0,0,16">
+    <Grid Grid.Row="4" Margin="0,0,0,16">
       <Button Content="閉じる" FontSize="16" Width="80" VerticalAlignment="Bottom" Command="{Binding CloseDialogCommand}"/>
     </Grid>
   </Grid>
