@@ -200,11 +200,17 @@ namespace KmyKeiba.Models.Race
     {
       ThreadUtil.InvokeOnUiThread(() =>
       {
-        this.Horses.AddRangeOnScheduler(horses.OrderBy(h => h.Data.Number));
-        this.HorsesResultOrdered.AddRangeOnScheduler(
-          horses.Where(h => h.Data.ResultOrder > 0).OrderBy(h => h.Data.ResultOrder).Concat(
-            horses.Where(h => h.Data.ResultOrder == 0 && h.Data.AbnormalResult != RaceAbnormality.Unknown).OrderBy(h => h.Data.Number).OrderBy(h => h.Data.AbnormalResult)));
+        foreach (var horse in horses.OrderBy(h => h.Data.Number))
+        {
+          this.Horses.Add(horse);
+        }
+        foreach (var horse in horses.Where(h => h.Data.ResultOrder > 0).OrderBy(h => h.Data.ResultOrder).Concat(
+            horses.Where(h => h.Data.ResultOrder == 0 && h.Data.AbnormalResult != RaceAbnormality.Unknown).OrderBy(h => h.Data.Number).OrderBy(h => h.Data.AbnormalResult)))
+        {
+          this.HorsesResultOrdered.Add(horse);
+        }
         this.RaceAnalyzer.Value = new RaceAnalyzer(this.Data, horses.Select(h => h.Data).ToArray(), standardTime);
+        this.RaceAnalyzer.Value.SetMatches(horses);
 
         this.HasResults.Value = this.Horses.Any(h => h.Data.ResultOrder > 0);
         this.HasHorses.Value = true;

@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Race;
+using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +43,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RacePace A3HPace { get; }
 
+    public ReactiveCollection<RaceHorseMatchResult> Matches { get; } = new();
+
     public RaceAnalyzer(RaceData race, IReadOnlyList<RaceHorseData> topHorses, RaceStandardTimeMasterData raceStandardTime)
     {
       var topHorse = topHorses.OrderBy(h => h.ResultOrder).FirstOrDefault(h => h.ResultOrder == 1) ?? new();
@@ -76,6 +79,32 @@ namespace KmyKeiba.Models.Analysis
       }
     }
 
+    public void SetMatches(IReadOnlyList<RaceHorseAnalyzer> sameRaceHorses)
+    {
+      if (sameRaceHorses.Count < 2)
+      {
+        return;
+      }
+
+      foreach (var raceData in sameRaceHorses
+        .SelectMany(h => h.History?.BeforeRaces ?? Enumerable.Empty<RaceHorseAnalyzer>())
+        .GroupBy(history => history.Race.Key)
+        .Where(h => h.ElementAtOrDefault(1) != null)
+        .Take(20))
+      {
+        var match = new RaceHorseMatchResult(raceData.First().Race);
+        foreach (var horse in sameRaceHorses.OrderBy(h => h.Data.Number))
+        {
+          var history = raceData.FirstOrDefault(h => h.Data.Key == horse.Data.Key);
+          match.Rows.Add(new RaceHorseMatchResult.Row
+          {
+            RaceHorse = history,
+          });
+        }
+        this.Matches.Add(match);
+      }
+    }
+
     public void Dispose()
     {
       this.TopHorse.Dispose();
@@ -83,6 +112,28 @@ namespace KmyKeiba.Models.Analysis
       {
         h.Dispose();
       }
+    }
+  }
+
+  public class RaceHorseMatchResult
+  {
+    public RaceData Race { get; }
+
+    public RaceSubjectInfo Subject { get; }
+
+    public ReactiveCollection<Row> Rows { get; } = new();
+
+    public RaceHorseMatchResult(RaceData race)
+    {
+      this.Race = race;
+      this.Subject = new RaceSubjectInfo(race);
+    }
+
+    public class Row
+    {
+      public bool HasResult => this.RaceHorse != null;
+
+      public RaceHorseAnalyzer? RaceHorse { get; init; }
     }
   }
 

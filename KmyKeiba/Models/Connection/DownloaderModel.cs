@@ -596,7 +596,8 @@ namespace KmyKeiba.Models.Connection
         await downloader.DownloadAsync(linkName, "race", startYear, startMonth, this.OnDownloadProgress, startDay);
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
 
-        await this.ProcessAsync(link, this.ProcessingStep, false, Connection.ProcessingStep.ExceptForMasterData, isFlagSetManually: true);
+        await this.ProcessAsync(link, this.ProcessingStep, false,
+          Connection.ProcessingStep.All & ~Connection.ProcessingStep.StandardTime, isFlagSetManually: true);
       }
       catch (DownloaderCommandException ex)
       {
@@ -882,6 +883,5 @@ namespace KmyKeiba.Models.Connection
     RaceSubjectInfos = 32,
 
     All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos,
-    ExceptForMasterData = InvalidData | RunningStyle | PreviousRaceDays | RaceSubjectInfos,
   }
 }

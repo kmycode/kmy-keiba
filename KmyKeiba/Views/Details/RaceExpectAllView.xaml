@@ -29,16 +29,19 @@
         <ColumnDefinition/>
         <ColumnDefinition/>
         <ColumnDefinition/>
+        <ColumnDefinition/>
       </Grid.ColumnDefinitions>
       <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="出走馬" Name="S_HorseList" IsChecked="True"/>
       <RadioButton Grid.Column="1" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="傾向" Name="S_RaceTrend"/>
       <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="オッズ一覧" Name="S_Odds"/>
+                   Content="対戦表" Name="S_Matches"/>
       <RadioButton Grid.Column="3" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="予想スクリプト" Name="S_Script"/>
+                   Content="オッズ一覧" Name="S_Odds"/>
       <RadioButton Grid.Column="4" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="予想スクリプト" Name="S_Script"/>
+      <RadioButton Grid.Column="5" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="馬券" Name="S_Tickets"/>
     </Grid>
 
@@ -234,6 +237,84 @@
           </ItemsControl>
         </Grid>
 
+      </Grid>
+
+      <!-- 対戦表 -->
+      <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Matches,Converter={StaticResource BooleanVisibilityConv}}">
+        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="auto"/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+
+            <!--見出し-->
+            <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}" Margin="156,0,0,0">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="52">
+                    <StackPanel HorizontalAlignment="Center">
+                      <TextBlock Text="{Binding Data.Number}" Foreground="{DynamicResource SubForeground}" FontSize="22" HorizontalAlignment="Center"/>
+                      <up:HorseMarkButton Horse="{Binding}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!--行-->
+            <ItemsControl Grid.Row="1" ItemsSource="{Binding Race.RaceAnalyzer.Value.Matches,ElementName=Root}" Style="{StaticResource TableList}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal">
+
+                    <!--レース名-->
+                    <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="156" Height="48">
+                      <Grid Margin="4,4">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="auto"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                          <RowDefinition/>
+                          <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Width="32" Height="20" FontSize="12"/>
+                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="{Binding Subject.DisplayName}" FontSize="15" Foreground="{DynamicResource BaseForeground}"/>
+                        <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
+                                   Foreground="{DynamicResource BaseForeground}" FontSize="14"/>
+                      </Grid>
+                    </Border>
+
+                    <!--対戦情報-->
+                    <ItemsControl ItemsSource="{Binding Rows}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Border Width="52" Height="48" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0,0,0,1">
+                            <Grid Visibility="{Binding HasResult,Converter={StaticResource BooleanVisibilityConv}}" VerticalAlignment="Center">
+                              <TextBlock Text="{Binding RaceHorse.Data.ResultOrder}" Foreground="{Binding RaceHorse.ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                                         FontSize="16" TextAlignment="Center"/>
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Grid>
+        </ScrollViewer>
       </Grid>
 
       <!-- オッズ -->
