@@ -64,6 +64,10 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<bool> CanSave => this.downloader.CanSaveOthers;
 
+    public ReactiveProperty<bool> IsModelError => this.model.IsError;
+
+    public ReactiveProperty<string> ModelErrorMessage => this.model.ErrorMessage;
+
     public string VersionNumber => Constrants.ApplicationVersion;
 
     public MainViewModel()

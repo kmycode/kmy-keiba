@@ -82,6 +82,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<bool> CanUpdate { get; } = new();
 
+    public ReactiveProperty<bool> IsWillTrendAnalyzersResetedOnUpdate { get; } = new();
+
     public ReactiveProperty<bool> CanBuy { get; } = new();
 
     public ReactiveProperty<TimeSpan> BuyLimit { get; } = new();
@@ -368,6 +370,7 @@ namespace KmyKeiba.Models.Race
           if (isUpdate)
           {
             this.CanUpdate.Value = isUpdate;
+            this.IsWillTrendAnalyzersResetedOnUpdate.Value = this.IsWillResetTrendAnalyzersDataOnUpdate(newData);
           }
 
           logger.Debug($"表示中のレース {this.Data.Key} の更新状態を確認しました。結果: {isUpdate}");
@@ -376,6 +379,47 @@ namespace KmyKeiba.Models.Race
       catch (Exception ex)
       {
         logger.Error($"{this.Data.Key} のレースの更新可能状態を確認できませんでした", ex);
+      }
+    }
+
+    private bool IsWillResetTrendAnalyzersDataOnUpdate(RaceData newData)
+    {
+      return !(newData.TrackWeather == this.Data.TrackWeather && newData.TrackCondition == this.Data.TrackCondition &&
+        newData.Distance == this.Data.Distance && newData.TrackGround == this.Data.TrackGround &&
+        newData.TrackOption == this.Data.TrackOption && newData.TrackCornerDirection == this.Data.TrackCornerDirection);
+    }
+
+    public void CopyTrendAnalyzersFrom(RaceInfo source)
+    {
+      if (!source.IsWillResetTrendAnalyzersDataOnUpdate(this.Data))
+      {
+        foreach (var horse in source.Horses.Join(this.Horses, h => h.Data.Id, h => h.Data.Id, (o, n) => new { Old = o, New = n, }))
+        {
+          if (horse.New.TrendAnalyzers != null && horse.Old.TrendAnalyzers != null)
+          {
+            horse.New.TrendAnalyzers.CopyFrom(horse.Old.TrendAnalyzers);
+          }
+          if (horse.New.RiderTrendAnalyzers != null && horse.Old.RiderTrendAnalyzers != null &&
+            horse.New.Data.RiderCode == horse.Old.Data.RiderCode)
+          {
+            horse.New.RiderTrendAnalyzers.CopyFrom(horse.Old.RiderTrendAnalyzers);
+          }
+          if (horse.New.TrainerTrendAnalyzers != null && horse.Old.TrainerTrendAnalyzers != null)
+          {
+            horse.New.TrainerTrendAnalyzers.CopyFrom(horse.Old.TrainerTrendAnalyzers);
+          }
+
+          if (horse.New.BloodSelectors != null && horse.Old.BloodSelectors != null)
+          {
+            foreach (var menuItem in horse.New.BloodSelectors.MenuItems
+              .Join(horse.Old.BloodSelectors.MenuItems, i => i.Type, i => i.Type, (o, n) => new { Old = o, New = n, }))
+            {
+              menuItem.New.Selector.CopyFrom(menuItem.Old.Selector);
+            }
+          }
+        }
+
+        logger.Info("更新前のTrendAnalyzersをコピーしました");
       }
     }
 

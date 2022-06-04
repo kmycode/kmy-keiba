@@ -175,6 +175,22 @@ namespace KmyKeiba.Models.Analysis.Generic
       return this.BeginLoad(keys, count, offset, isLoadSameHorses);
     }
 
+    public void CopyFrom(TrendAnalysisSelector<KEY, A> selector)
+    {
+      this.Analyzers.Clear();
+
+      foreach (var item in selector.Analyzers)
+      {
+        this.Analyzers.Add(item.Key, item.Value);
+      }
+
+      if (this.CurrentAnalyzer.Value != null)
+      {
+        this.CurrentAnalyzer.Value = null;
+        this.TryUpdateExistingAnalyzer();
+      }
+    }
+
     protected abstract A GenerateAnalyzer();
 
     protected virtual Task InitializeAnalyzerAsync(MyContext db, IEnumerable<KEY> keys, A analyzer, int count, int offset, bool isLoadSameHorses)

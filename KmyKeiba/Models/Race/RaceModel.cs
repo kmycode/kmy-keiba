@@ -40,6 +40,10 @@ namespace KmyKeiba.Models.Race
 
     public string FirstMessage { get; }
 
+    public ReactiveProperty<string> ErrorMessage { get; } = new();
+
+    public ReactiveProperty<bool> IsError { get; } = new();
+
     public RaceModel()
     {
       this.IsLoaded = this.Info
@@ -132,99 +136,126 @@ namespace KmyKeiba.Models.Race
     private void LoadCurrentRace(string? key = null)
     {
       logger.Info($"レース {key} のロードを開始します");
+      this.IsError.Value = false;
 
       Task.Run(async () =>
       {
-        this.IsFirstLoadStarted.Value = true;
-
-        // 現在のレースを更新した場合、必要な情報を記録する
-        var oldSelectedHorseId = 0u;
+        try
         {
+          this.IsFirstLoadStarted.Value = true;
+
+          // 現在のレースを更新した場合、必要な情報を記録する
+          var oldSelectedHorseId = 0u;
           var oldInfo = this.Info.Value;
-          if (oldInfo != null && oldInfo.Data.Key == key)
+          var isUpdateCurrentInfo = false;
           {
-            if (!this.IsSelectedAllHorses.Value)
+            if (oldInfo != null && oldInfo.Data.Key == key)
             {
-              oldSelectedHorseId = oldInfo.ActiveHorse.Value?.Data.Id ?? 0u;
-              logger.Info($"現在のレースの更新のようです。選択中馬ID: {oldSelectedHorseId}");
+              isUpdateCurrentInfo = true;
+
+              if (!this.IsSelectedAllHorses.Value)
+              {
+                oldSelectedHorseId = oldInfo.ActiveHorse.Value?.Data.Id ?? 0u;
+                logger.Info($"現在のレースの更新のようです。選択中馬ID: {oldSelectedHorseId}");
+              }
             }
           }
-        }
 
-        this.Info.Value?.Dispose();
-        this.ticketUpdated?.Dispose();
-        logger.Debug("旧オブジェクトの破棄完了");
+          this.ticketUpdated?.Dispose();
 
-        var raceKey = key ?? this.RaceKey.Value;
+          var raceKey = key ?? this.RaceKey.Value;
 
-        var race = await RaceInfo.FromKeyAsync(raceKey);
-        this.Info.Value = race;
+          var race = await RaceInfo.FromKeyAsync(raceKey);
+          this.Info.Value = race;
 
-        if (race == null)
-        {
-          logger.Warn($"ID {key} のレースが正常に読み込めませんでした");
-          return;
-        }
-
-        if (this.Info.Value?.Payoff != null)
-        {
-          // 払い戻し情報をもとに、払い戻し額をレースリストに表示する
-          this.ticketUpdated = this.Info.Value.Payoff.Income.SkipWhile(i => i == 0).Subscribe(income =>
+          if (race == null)
           {
-            if (race != null)
+            logger.Warn($"ID {key} のレースが正常に読み込めませんでした");
+            return;
+          }
+
+          if (this.Info.Value?.Payoff != null)
+          {
+            // 払い戻し情報をもとに、払い戻し額をレースリストに表示する
+            this.ticketUpdated = this.Info.Value.Payoff.Income.SkipWhile(i => i == 0).Subscribe(income =>
             {
-              this.RaceList.UpdatePayoff(race.Data.Key, income, this.Info.Value.Payoff.PayMoneySum.Value > 0 || this.Info.Value.Payoff.ReturnMoneySum.Value > 0);
+              if (race != null)
+              {
+                this.RaceList.UpdatePayoff(race.Data.Key, income, this.Info.Value.Payoff.PayMoneySum.Value > 0 || this.Info.Value.Payoff.ReturnMoneySum.Value > 0);
+              }
+            });
+          }
+          else
+          {
+            // レースリストには、購入した馬券の点数をそのまま表示する
+            race!.WaitTicketsAndCallback(tickets =>
+            {
+              Action act = () =>
+              {
+                if (tickets.Tickets.Any())
+                {
+                  var money = tickets.Tickets.Sum(t => t.Count.Value * t.Rows.Count * 100);
+                  this.RaceList.UpdatePayoff(race.Data.Key, money * -1, true);
+                }
+                else
+                {
+                  this.RaceList.UpdatePayoff(race.Data.Key, 0, false);
+                }
+              };
+
+              this.ticketUpdated = tickets.Tickets.CollectionChangedAsObservable()
+                .CombineLatest(Observable.FromEvent<EventHandler, EventArgs>(a => (s, e) => a(e), dele => tickets.Tickets.TicketCountChanged += dele, dele => tickets.Tickets.TicketCountChanged -= dele), (a, b) => true)
+                .Subscribe(_ => act());
+            });
+          }
+
+          await race.WaitHorsesSetupAsync();
+          logger.Info("すべての馬情報のロード完了を検出");
+
+          if (this.IsViewExpection.Value)
+          {
+            // レースの更新時に馬情報が空になるのを修正する
+            if (oldSelectedHorseId != 0)
+            {
+              race.SetActiveHorse(oldSelectedHorseId);
             }
-          });
-        }
-        else
-        {
-          // レースリストには、購入した馬券の点数をそのまま表示する
-          race!.WaitTicketsAndCallback(tickets =>
-          {
-            Action act = () =>
+            else
             {
-              if (tickets.Tickets.Any())
-              {
-                var money = tickets.Tickets.Sum(t => t.Count.Value * t.Rows.Count * 100);
-                this.RaceList.UpdatePayoff(race.Data.Key, money * -1, true);
-              }
-              else
-              {
-                this.RaceList.UpdatePayoff(race.Data.Key, 0, false);
-              }
-            };
-
-            this.ticketUpdated = tickets.Tickets.CollectionChangedAsObservable()
-              .CombineLatest(Observable.FromEvent<EventHandler, EventArgs>(a => (s, e) => a(e), dele => tickets.Tickets.TicketCountChanged += dele, dele => tickets.Tickets.TicketCountChanged -= dele), (a, b) => true)
-              .Subscribe(_ => act());
-          });
-        }
-
-        await race.WaitHorsesSetupAsync();
-        logger.Info("すべての馬情報のロード完了を検出");
-
-        if (this.IsViewExpection.Value)
-        {
-          // レースの更新時に馬情報が空になるのを修正する
-          if (oldSelectedHorseId != 0)
-          {
-            race.SetActiveHorse(oldSelectedHorseId);
+              this.IsSelectedAllHorses.Value = true;
+            }
           }
           else
           {
             this.IsSelectedAllHorses.Value = true;
           }
+          if (!race.HasResults.Value && this.IsViewResult.Value)
+          {
+            // 切り替える前のレースで結果を表示／新しく切り替わったレースに結果はないとき、表示を切り替える
+            this.IsViewExpection.Value = true;
+            this.IsViewResult.Value = false;
+          }
+
+          if (oldInfo != null)
+          {
+            if (isUpdateCurrentInfo)
+            {
+              race.CopyTrendAnalyzersFrom(oldInfo);
+            }
+            oldInfo.Dispose();
+            logger.Debug("旧オブジェクトの破棄完了");
+          }
         }
-        else
+        catch (Exception ex)
         {
-          this.IsSelectedAllHorses.Value = true;
-        }
-        if (!race.HasResults.Value && this.IsViewResult.Value)
-        {
-          // 切り替える前のレースで結果を表示／新しく切り替わったレースに結果はないとき、表示を切り替える
-          this.IsViewExpection.Value = true;
-          this.IsViewResult.Value = false;
+          logger.Error($"レースの {key} への切り替えでエラーが発生しました", ex);
+          this.IsError.Value = true;
+          this.ErrorMessage.Value = "レースの切り替えでエラーが発生しました";
+
+          if (this.Info.Value != null)
+          {
+            this.Info.Value.Dispose();
+            this.Info.Value = null;
+          }
         }
       });
     }

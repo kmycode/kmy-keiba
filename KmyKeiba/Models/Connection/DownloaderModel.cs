@@ -437,6 +437,7 @@ namespace KmyKeiba.Models.Connection
             {
               logger.Info("翌日以降の予定を更新");
               await DownloadPlanOfRacesAsync(today.Year, today.Month, today.Day);
+              lastDownloadNormalData = DateTime.Now;
             }
 
             // アプリ起動した後に中央競馬DLを有効にした場合
