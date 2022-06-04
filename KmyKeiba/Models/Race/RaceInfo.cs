@@ -82,6 +82,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<bool> CanUpdate { get; } = new();
 
+    public ReactiveProperty<bool> IsNewDataHasResults { get; } = new();
+
     public ReactiveProperty<bool> IsWillTrendAnalyzersResetedOnUpdate { get; } = new();
 
     public ReactiveProperty<bool> CanBuy { get; } = new();
@@ -371,6 +373,7 @@ namespace KmyKeiba.Models.Race
           {
             this.CanUpdate.Value = isUpdate;
             this.IsWillTrendAnalyzersResetedOnUpdate.Value = this.IsWillResetTrendAnalyzersDataOnUpdate(newData);
+            this.IsNewDataHasResults.Value = this.Data.DataStatus <= RaceDataStatus.Horses2 && newData.DataStatus >= RaceDataStatus.PreliminaryGrade3;
           }
 
           logger.Debug($"表示中のレース {this.Data.Key} の更新状態を確認しました。結果: {isUpdate}");
@@ -384,6 +387,7 @@ namespace KmyKeiba.Models.Race
 
     private bool IsWillResetTrendAnalyzersDataOnUpdate(RaceData newData)
     {
+      // 更新の時に傾向検索結果をリセットする必要があるか
       return !(newData.TrackWeather == this.Data.TrackWeather && newData.TrackCondition == this.Data.TrackCondition &&
         newData.Distance == this.Data.Distance && newData.TrackGround == this.Data.TrackGround &&
         newData.TrackOption == this.Data.TrackOption && newData.TrackCornerDirection == this.Data.TrackCornerDirection);
@@ -391,6 +395,8 @@ namespace KmyKeiba.Models.Race
 
     public void CopyTrendAnalyzersFrom(RaceInfo source)
     {
+      this.TrendAnalyzers.CopyFrom(source.TrendAnalyzers);
+
       if (!source.IsWillResetTrendAnalyzersDataOnUpdate(this.Data))
       {
         foreach (var horse in source.Horses.Join(this.Horses, h => h.Data.Id, h => h.Data.Id, (o, n) => new { Old = o, New = n, }))

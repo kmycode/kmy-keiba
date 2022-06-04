@@ -156,8 +156,9 @@
                     Command="{Binding UpdateRaceInfoCommand}" Padding="0,8">
               <StackPanel VerticalAlignment="Center">
                 <TextBlock FontSize="22" Text="更新する" HorizontalAlignment="Center"/>
-                <TextBlock FontSize="14" Text="傾向検索結果はリセットされます"
-                           Foreground="{DynamicResource SubForeground}"
+                <TextBlock FontSize="16" Text="レース結果が届きました" Foreground="{DynamicResource SubForeground}"
+                           Visibility="{Binding Race.IsNewDataHasResults.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+                <TextBlock FontSize="14" Text="傾向検索結果はリセットされます" Foreground="{DynamicResource BadForeground}"
                            Visibility="{Binding Race.IsWillTrendAnalyzersResetedOnUpdate.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
               </StackPanel>
             </Button>

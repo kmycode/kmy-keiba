@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,6 +54,8 @@ namespace KmyKeiba.Data.Db
 
     public string SubjectName { get; set; } = string.Empty;
 
+    public string SubjectDisplayInfo { get; set; } = string.Empty;
+
     public RaceGrade Grade { get; set; }
 
     public RaceSubjectType SubjectAge2 { get; set; }
@@ -69,39 +72,49 @@ namespace KmyKeiba.Data.Db
 
     public DateTime StartTime { get; set; }
 
+    public int CornerPositionInfos { get; set; }
+
     [StringLength(80)]
     public string Corner1Result { get; set; } = string.Empty;
 
-    public short Corner1Position { get; set; }
+    [NotMapped]
+    public short Corner1Position => (short)(this.CornerPositionInfos / 10_00_00_00 % 10);
 
-    public short Corner1Number { get; set; }
+    [NotMapped]
+    public short Corner1Number => (short)(this.CornerPositionInfos / 1_00_00_00 % 10);
 
     public TimeSpan Corner1LapTime { get; set; }
 
     [StringLength(80)]
     public string Corner2Result { get; set; } = string.Empty;
 
-    public short Corner2Position { get; set; }
+    [NotMapped]
+    public short Corner2Position => (short)(this.CornerPositionInfos / 10_00_00 % 10);
 
-    public short Corner2Number { get; set; }
+    [NotMapped]
+    public short Corner2Number => (short)(this.CornerPositionInfos / 1_00_00 % 10);
 
     public TimeSpan Corner2LapTime { get; set; }
 
     [StringLength(80)]
     public string Corner3Result { get; set; } = string.Empty;
 
-    public short Corner3Position { get; set; }
+    [NotMapped]
+    public short Corner3Position => (short)(this.CornerPositionInfos / 10_00 % 10);
 
-    public short Corner3Number { get; set; }
+    [NotMapped]
+    public short Corner3Number => (short)(this.CornerPositionInfos / 1_00 % 10);
 
     public TimeSpan Corner3LapTime { get; set; }
 
     [StringLength(80)]
     public string Corner4Result { get; set; } = string.Empty;
 
-    public short Corner4Position { get; set; }
+    [NotMapped]
+    public short Corner4Position => (short)(this.CornerPositionInfos / 10 % 10);
 
-    public short Corner4Number { get; set; }
+    [NotMapped]
+    public short Corner4Number => (short)(this.CornerPositionInfos / 1 % 10);
 
     public TimeSpan Corner4LapTime { get; set; }
 
@@ -125,21 +138,18 @@ namespace KmyKeiba.Data.Db
       this.CourseRaceNumber = race.CourseRaceNumber;
       this.HorsesCount = race.HorsesCount;
       this.StartTime = race.StartTime;
+      this.CornerPositionInfos =
+        race.Corner1Position * 10_00_00_00 + race.Corner1Number * 1_00_00_00 +
+        race.Corner2Position * 10_00_00 + race.Corner2Number * 1_00_00 +
+        race.Corner3Position * 10_00 + race.Corner3Number * 1_00 +
+        race.Corner4Position * 10 + race.Corner4Number * 1;
       this.Corner1Result = race.Corner1Result;
-      this.Corner1Position = race.Corner1Position;
-      this.Corner1Number = race.Corner1Number;
       this.Corner1LapTime = race.Corner1LapTime;
       this.Corner2Result = race.Corner2Result;
-      this.Corner2Position = race.Corner2Position;
-      this.Corner2Number = race.Corner2Number;
       this.Corner2LapTime = race.Corner2LapTime;
       this.Corner3Result = race.Corner3Result;
-      this.Corner3Position = race.Corner3Position;
-      this.Corner3Number = race.Corner3Number;
       this.Corner3LapTime = race.Corner3LapTime;
       this.Corner4Result = race.Corner4Result;
-      this.Corner4Position = race.Corner4Position;
-      this.Corner4Number = race.Corner4Number;
       this.Corner4LapTime = race.Corner4LapTime;
 
       // NVLink（地方競馬）でRealTimeデータを取得するときに欠損していることがある

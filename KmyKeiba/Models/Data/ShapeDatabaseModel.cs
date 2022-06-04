@@ -4,6 +4,7 @@ using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Connection;
+using KmyKeiba.Models.Race;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
@@ -536,6 +537,60 @@ namespace KmyKeiba.Models.Data
       }
 
       AnalysisUtil.ClearRiderWinRateCaches();
+    }
+
+    public static async Task SetRaceSubjectDisplayInfosAsync(DateOnly? startMonth = null, bool isForce = false, ReactiveProperty<bool>? isCanceled = null)
+    {
+      DateTime month;
+      if (startMonth != null)
+      {
+        month = new DateTime(startMonth.Value.Year, startMonth.Value.Month, 1);
+      }
+      else
+      {
+        month = new DateTime(1986, 1, 1);
+      }
+
+      using var db = new MyContext();
+      await db.TryBeginTransactionAsync();
+
+      var races = db.Races!.Where(r => r.StartTime >= month && r.Course >= RaceCourse.LocalMinValue);
+      if (!isForce)
+      {
+        races = races.Where(r => r.SubjectDisplayInfo == string.Empty);
+      }
+      races = races.OrderBy(r => r.StartTime);
+
+      var count = 0;
+
+      try
+      {
+        foreach (var race in races)
+        {
+          var subject = new RaceSubjectInfo(race);
+          race.SubjectDisplayInfo = $"{subject.Subject.DisplayClass}/{subject.Subject.SecondaryClass ?? string.Empty}/{subject.Subject.ClassName}";
+          count++;
+
+          if (count > 10000)
+          {
+            await db.SaveChangesAsync();
+            await db.CommitAsync();
+            count = 0;
+
+            if (isCanceled?.Value == true)
+            {
+              return;
+            }
+          }
+        }
+        await db.SaveChangesAsync();
+        await db.CommitAsync();
+      }
+      catch
+      {
+        // TODO: logs
+        return;
+      }
     }
   }
 }

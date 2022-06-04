@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
@@ -138,12 +139,19 @@ namespace KmyKeiba.Models.Analysis
       }
       if (keys.Contains(Key.SameSubject))
       {
-        query = query.Where(r => r.Race.SubjectName == this.Race.SubjectName &&
-                                 r.Race.SubjectAge2 == this.Race.SubjectAge2 &&
-                                 r.Race.SubjectAge3 == this.Race.SubjectAge3 &&
-                                 r.Race.SubjectAge4 == this.Race.SubjectAge4 &&
-                                 r.Race.SubjectAge5 == this.Race.SubjectAge5 &&
-                                 r.Race.SubjectAgeYounger == this.Race.SubjectAgeYounger);
+        if (this.Race.Course <= RaceCourse.CentralMaxValue)
+        {
+          query = query.Where(r => r.Race.SubjectName == this.Race.SubjectName &&
+                                   r.Race.SubjectAge2 == this.Race.SubjectAge2 &&
+                                   r.Race.SubjectAge3 == this.Race.SubjectAge3 &&
+                                   r.Race.SubjectAge4 == this.Race.SubjectAge4 &&
+                                   r.Race.SubjectAge5 == this.Race.SubjectAge5 &&
+                                   r.Race.SubjectAgeYounger == this.Race.SubjectAgeYounger);
+        }
+        else if (this.Race.Course >= RaceCourse.LocalMinValue && !string.IsNullOrEmpty(this.Race.SubjectDisplayInfo))
+        {
+          query = query.Where(r => r.Race.SubjectDisplayInfo == this.Race.SubjectDisplayInfo);
+        }
       }
       if (keys.Contains(Key.SameGrade))
       {

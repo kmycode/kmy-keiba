@@ -140,12 +140,19 @@ namespace KmyKeiba.Models.Analysis
       }
       if (keys.Contains(Key.SameSubject))
       {
-        query = query.Where(r => r.SubjectName == this.Race.SubjectName &&
-                                 r.SubjectAge2 == this.Race.SubjectAge2 &&
-                                 r.SubjectAge3 == this.Race.SubjectAge3 &&
-                                 r.SubjectAge4 == this.Race.SubjectAge4 &&
-                                 r.SubjectAge5 == this.Race.SubjectAge5 &&
-                                 r.SubjectAgeYounger == this.Race.SubjectAgeYounger);
+        if (this.Race.Course <= RaceCourse.CentralMaxValue)
+        {
+          query = query.Where(r => r.SubjectName == this.Race.SubjectName &&
+                                   r.SubjectAge2 == this.Race.SubjectAge2 &&
+                                   r.SubjectAge3 == this.Race.SubjectAge3 &&
+                                   r.SubjectAge4 == this.Race.SubjectAge4 &&
+                                   r.SubjectAge5 == this.Race.SubjectAge5 &&
+                                   r.SubjectAgeYounger == this.Race.SubjectAgeYounger);
+        }
+        else if (this.Race.Course >= RaceCourse.LocalMinValue && !string.IsNullOrEmpty(this.Race.SubjectDisplayInfo))
+        {
+          query = query.Where(r => r.SubjectDisplayInfo == this.Race.SubjectDisplayInfo);
+        }
       }
       if (keys.Contains(Key.SameGrade))
       {

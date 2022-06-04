@@ -531,6 +531,12 @@ namespace KmyKeiba.Models.Connection
           logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
           await ShapeDatabaseModel.SetRiderWinRatesAsync(isCanceled: this.IsCancelProcessing);
         }
+        if (steps.HasFlag(Connection.ProcessingStep.RaceSubjectInfos) && !this.IsCancelProcessing.Value)
+        {
+          step.Value = Connection.ProcessingStep.RaceSubjectInfos;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
+          await ShapeDatabaseModel.SetRaceSubjectDisplayInfosAsync(isCanceled: this.IsCancelProcessing);
+        }
 
         // 途中から再開できないものは最後に
         if (steps.HasFlag(Connection.ProcessingStep.StandardTime) && !this.IsCancelProcessing.Value)
@@ -635,9 +641,11 @@ namespace KmyKeiba.Models.Connection
 
         await this.ProcessAsync(link, this.RTProcessingStep, true, Connection.ProcessingStep.InvalidData | Connection.ProcessingStep.RunningStyle, isFlagSetManually: true);
         this.RTProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
-        await ShapeDatabaseModel.SetPreviousRaceDaysAsync(DateOnly.FromDateTime(DateTime.Today));
+        await ShapeDatabaseModel.SetPreviousRaceDaysAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
         this.RTProcessingStep.Value = Connection.ProcessingStep.RiderWinRates;
         await ShapeDatabaseModel.SetRiderWinRatesAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
+        this.RTProcessingStep.Value = Connection.ProcessingStep.RaceSubjectInfos;
+        await ShapeDatabaseModel.SetRaceSubjectDisplayInfosAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
       }
       catch (DownloaderCommandException ex)
@@ -870,7 +878,10 @@ namespace KmyKeiba.Models.Connection
     [Label("騎手の勝率を計算中")]
     RiderWinRates = 16,
 
-    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates,
-    ExceptForMasterData = InvalidData | RunningStyle | PreviousRaceDays,
+    [Label("地方競馬のレース条件を解析中")]
+    RaceSubjectInfos = 32,
+
+    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos,
+    ExceptForMasterData = InvalidData | RunningStyle | PreviousRaceDays | RaceSubjectInfos,
   }
 }
