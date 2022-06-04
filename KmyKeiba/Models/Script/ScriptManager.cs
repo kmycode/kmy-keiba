@@ -234,6 +234,10 @@ namespace KmyKeiba.Models.Script
 
     protected ScriptObjectContainer<ScriptSuggestion> SuggestionContainer { get; } = new();
 
+    protected ScriptObjectContainer<ScriptBulkConfig> BulkConfigContainer { get; } = new();
+
+    public ScriptBulkConfig BulkConfig => this.BulkConfigContainer.Item!;
+
     public ScriptEngineWrapper()
     {
       this.Engine = new V8ScriptEngine(V8ScriptEngineFlags.EnableDynamicModuleImports |
@@ -247,10 +251,12 @@ namespace KmyKeiba.Models.Script
       this.Engine.AddHostObject("__currentRace", this.RaceContainer);
       this.Engine.AddHostObject("__suggestion", this.SuggestionContainer);
       this.Engine.AddHostObject("__html", this.HtmlContainer);
+      this.Engine.AddHostObject("__bulk", this.BulkConfigContainer);
       this.Engine.AddHostObject("__fs", new NodeJSFileSystem());
       this.Engine.AddHostObject("__hostFuncs", new HostFunctions());
 
       this.HtmlContainer.SetItem(new ScriptHtml());
+      this.BulkConfigContainer.SetItem(new ScriptBulkConfig());
     }
 
     protected virtual object Execute(RaceInfo race)
@@ -411,5 +417,18 @@ namespace KmyKeiba.Models.Script
   </body>
 </html>";
     }
+  }
+
+  [NoDefaultScriptAccess]
+  public class ScriptBulkConfig
+  {
+    [ScriptMember("isCentral")]
+    public bool IsCentral { get; set; } = true;
+
+    [ScriptMember("isLocal")]
+    public bool IsLocal { get; set; } = true;
+
+    [ScriptMember("isBanei")]
+    public bool IsBanei { get; set; } = true;
   }
 }

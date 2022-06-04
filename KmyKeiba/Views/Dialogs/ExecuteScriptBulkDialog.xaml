@@ -117,6 +117,10 @@
                 <TextBlock Text="{Binding ErrorType.Value,Converter={StaticResource LabelConv}}" FontWeight="Bold" Foreground="{DynamicResource ErrorForeground}"
                            FontSize="16" Margin="12,0,0,0"/>
               </Border>
+              <Border Visibility="{Binding IsSkipped.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                <TextBlock Text="スキップされました" FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
+                           FontSize="16" Margin="12,0,0,0"/>
+              </Border>
               <StackPanel Orientation="Horizontal">
                 <StackPanel.Visibility>
                   <MultiBinding Converter="{StaticResource MultiBooleanConv}">
@@ -124,6 +128,21 @@
                     <Binding Path="IsError.Value" Converter="{StaticResource NegativeConv}"/>
                   </MultiBinding>
                 </StackPanel.Visibility>
+                <StackPanel.Resources>
+                  <Style TargetType="ContentControl" x:Key="HorseMarkDisplay">
+                    <Setter Property="LayoutTransform">
+                      <Setter.Value>
+                        <TransformGroup>
+                          <ScaleTransform ScaleX="0.4" ScaleY="0.4"/>
+                          <TranslateTransform X="4" Y="0"/>
+                        </TransformGroup>
+                      </Setter.Value>
+                    </Setter>
+                    <Setter Property="Height" Value="32"/>
+                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                  </Style>
+                </StackPanel.Resources>
                 <Border Width="80" Style="{StaticResource Cell}">
                   <TextBlock Text="{Binding PaidMoney.Value}" FontSize="16"/>
                 </Border>
@@ -132,6 +151,18 @@
                 </Border>
                 <Border Width="80" Style="{StaticResource Cell}">
                   <TextBlock Text="{Binding Income.Value}" FontSize="16" Foreground="{Binding IncomeComparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                </Border>
+                <Border Width="40" Style="{StaticResource Cell}" Padding="0">
+                  <ContentControl Template="{Binding FirstHorseMark.Value,Converter={StaticResource HorseMarkConv}}"
+                                  Style="{StaticResource HorseMarkDisplay}"/>
+                </Border>
+                <Border Width="40" Style="{StaticResource Cell}" Padding="0">
+                  <ContentControl Template="{Binding SecondHorseMark.Value,Converter={StaticResource HorseMarkConv}}"
+                                  Style="{StaticResource HorseMarkDisplay}"/>
+                </Border>
+                <Border Width="40" Style="{StaticResource Cell}" Padding="0">
+                  <ContentControl Template="{Binding ThirdHorseMark.Value,Converter={StaticResource HorseMarkConv}}"
+                                  Style="{StaticResource HorseMarkDisplay}"/>
                 </Border>
               </StackPanel>
             </Grid>

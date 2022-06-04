@@ -72,8 +72,9 @@ namespace KmyKeiba.Models.Script
 
       using var db = new MyContext();
       var startTime = this.StartDate.Value;
-      var endTime = this.EndDate.Value;
+      var endTime = this.EndDate.Value.AddDays(1);
       var query = db.Races!
+        .Where(r => r.Course < RaceCourse.Foreign)
         .Where(r => r.StartTime >= startTime && r.StartTime <= endTime && r.DataStatus >= RaceDataStatus.PreliminaryGrade);
       var races = await query
         .OrderBy(r => r.Course)
@@ -166,6 +167,22 @@ namespace KmyKeiba.Models.Script
               this.ProgressMax.Value.Value = this.Progress.Value.Value = 0;
             }
 
+            if (!this.Engine.BulkConfig.IsCentral && item.Race.Course <= RaceCourse.CentralMaxValue)
+            {
+              item.IsSkipped.Value = true;
+              continue;
+            }
+            if (!this.Engine.BulkConfig.IsLocal && item.Race.Course >= RaceCourse.LocalMinValue)
+            {
+              item.IsSkipped.Value = true;
+              continue;
+            }
+            if (!this.Engine.BulkConfig.IsBanei && item.Race.Course == RaceCourse.ObihiroBannei)
+            {
+              item.IsSkipped.Value = true;
+              continue;
+            }
+
             var info = await RaceInfo.FromKeyAsync(item.Race.Key);
             if (info != null)
             {
@@ -184,22 +201,38 @@ namespace KmyKeiba.Models.Script
                 item.IsError.Value = true;
                 item.ErrorType.Value = ScriptBulkErrorType.ScriptError;
               }
-              else if (info.Tickets.Value != null && info.Payoff != null)
+              else
               {
-                info.Payoff.UpdateTicketsData(result.Suggestion.Tickets
-                  .Select(t => TicketItem.FromData(t, info.Horses.Select(h => h.Data).ToArray(), info.Odds.Value))
-                  .Where(t => t != null)
-                  .Select(t => t!), info.Horses.Select(h => h.Data).ToArray());
-                item.PaidMoney.Value = info.Payoff.PayMoneySum.Value;
-                item.PayoffMoney.Value = info.Payoff.HitMoneySum.Value;
-                item.Income.Value = info.Payoff.Income.Value;
-                item.IncomeComparation.Value = item.Income.Value > 0 ? ValueComparation.Good :
-                  item.Income.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
-                item.IsCompleted.Value = true;
+                if (info.Tickets.Value != null && info.Payoff != null)
+                {
+                  info.Payoff.UpdateTicketsData(result.Suggestion.Tickets
+                    .Select(t => TicketItem.FromData(t, info.Horses.Select(h => h.Data).ToArray(), info.Odds.Value))
+                    .Where(t => t != null)
+                    .Select(t => t!), info.Horses.Select(h => h.Data).ToArray());
+                  item.PaidMoney.Value = info.Payoff.PayMoneySum.Value;
+                  item.PayoffMoney.Value = info.Payoff.HitMoneySum.Value;
+                  item.Income.Value = info.Payoff.Income.Value;
+                  item.IncomeComparation.Value = item.Income.Value > 0 ? ValueComparation.Good :
+                    item.Income.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
+                  item.IsCompleted.Value = true;
 
-                model.SumOfIncomes.Value += item.Income.Value;
-                model.IncomeComparation.Value = model.SumOfIncomes.Value > 0 ? ValueComparation.Good :
-                  model.SumOfIncomes.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
+                  model.SumOfIncomes.Value += item.Income.Value;
+                  model.IncomeComparation.Value = model.SumOfIncomes.Value > 0 ? ValueComparation.Good :
+                    model.SumOfIncomes.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
+                }
+
+                if (info.HasResults.Value && result.Suggestion.HasMarks.Value)
+                {
+                  var horseMarks = info.Horses
+                    .Join(result.Suggestion.Marks, h => h.Data.Number, s => s.HorseNumber, (h, s) => new { h.Data.ResultOrder, s.HorseNumber, s.Mark, })
+                    .ToArray();
+                  var first = horseMarks.FirstOrDefault(h => h.ResultOrder == 1)?.Mark ?? RaceHorseMark.Default;
+                  var second = horseMarks.FirstOrDefault(h => h.ResultOrder == 2)?.Mark ?? RaceHorseMark.Default;
+                  var third = horseMarks.FirstOrDefault(h => h.ResultOrder == 3)?.Mark ?? RaceHorseMark.Default;
+                  item.FirstHorseMark.Value = first;
+                  item.SecondHorseMark.Value = second;
+                  item.ThirdHorseMark.Value = third;
+                }
               }
             }
             else
@@ -261,11 +294,19 @@ namespace KmyKeiba.Models.Script
 
     public ReactiveProperty<ValueComparation> IncomeComparation { get; } = new();
 
+    public ReactiveProperty<RaceHorseMark> FirstHorseMark { get; } = new();
+
+    public ReactiveProperty<RaceHorseMark> SecondHorseMark { get; } = new();
+
+    public ReactiveProperty<RaceHorseMark> ThirdHorseMark { get; } = new();
+
     public ReactiveProperty<bool> IsExecuting { get; } = new();
 
     public ReactiveProperty<bool> IsError { get; } = new();
 
     public ReactiveProperty<bool> IsCompleted { get; } = new();
+
+    public ReactiveProperty<bool> IsSkipped { get; } = new();
 
     public ReactiveProperty<ScriptBulkErrorType> ErrorType { get; } = new();
 

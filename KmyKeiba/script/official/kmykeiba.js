@@ -35,6 +35,22 @@ KmyKeiba.setHead = function(text) {
   __html.item.head = text;
 }
 
+// 一括実行で中央競馬を予想するか。falseならスキップ
+KmyKeiba.setBulkCentral = function(value) {
+  __bulk.item.isCentral = value;
+}
+
+// 一括実行で地方競馬（帯広ばんえいを含む）を予想するか。falseならスキップ
+KmyKeiba.setBulkLocal = function(value) {
+  __bulk.item.isLocal = value;
+}
+
+// 一括実行で帯広ばんえい競馬を予想するか。falseならスキップ
+// なおこれがtrueでも、setBulkLocalにfalseを設定するとこっちの値は無効になる
+KmyKeiba.setBulkBanei = function(value) {
+  __bulk.item.isBanei = value;
+}
+
 KmyKeiba.__csDateTimeToDate = function(dateTime) {
   return new Date(dateTime);
 }
