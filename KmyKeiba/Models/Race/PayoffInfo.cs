@@ -123,10 +123,10 @@ namespace KmyKeiba.Models.Race
       this._tickets = tickets;
 
       tickets.Tickets.CollectionChangedAsObservable()
-        .CombineLatest(Observable.FromEvent<EventHandler, EventArgs>(
+        .Concat(Observable.FromEvent<EventHandler, EventArgs>(
             h => (s, e) => h(e),
             dele => tickets.Tickets.TicketCountChanged += dele,
-            dele => tickets.Tickets.TicketCountChanged -= dele), (a, b) => true)
+            dele => tickets.Tickets.TicketCountChanged -= dele))
         .Subscribe(_ => this.UpdateTicketsData(this._tickets.Tickets, horses))
         .AddTo(this._ticketsDisposables);
 
