@@ -467,6 +467,11 @@ namespace KmyKeiba.Models.Analysis
         new AsyncReactiveCommand<object>(this.Movie.IsMultiCamerasError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayMultiCamerasAsync());
     private AsyncReactiveCommand<object>? _playMultiCamerasCommand;
 
+    public ICommand OpenRaceWindowCommand =>
+      this._openRaceWindowCommand ??=
+        new ReactiveCommand<string>().WithSubscribe(key => OpenRaceRequest.Default.Request(key));
+    private ReactiveCommand<string>? _openRaceWindowCommand;
+
     private readonly CompositeDisposable _disposables = new();
 
     private async Task ChangeHorseMarkAsync(string marks)

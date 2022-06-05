@@ -128,6 +128,12 @@ namespace KmyKeiba.Models.Race
       });
     }
 
+    public void SetRaceKey(string key)
+    {
+      this.RaceKey.Value = key;
+      this.LoadCurrentRace();
+    }
+
     public void UpdateCurrentRace()
     {
       this.LoadCurrentRace(this.Info.Value?.Data.Key);

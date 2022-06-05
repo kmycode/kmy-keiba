@@ -14,6 +14,7 @@
         Title="KMY競馬" MinHeight="740" MinWidth="1300" Height="1000" Width="1700" WindowStartupLocation="CenterScreen">
   <i:Interaction.Behaviors>
     <b:OpenDialogBehavior Controller="{Binding Dialog}"/>
+    <b:OpenRaceWindowBehavior Controller="{Binding RaceWindow}"/>
   </i:Interaction.Behaviors>
   <Grid Style="{DynamicResource WindowTopPanel}">
     <Grid>

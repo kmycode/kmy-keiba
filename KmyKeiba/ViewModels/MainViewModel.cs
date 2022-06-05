@@ -22,37 +22,19 @@ using System.Windows.Input;
 
 namespace KmyKeiba.ViewModels
 {
-  internal class MainViewModel : INotifyPropertyChanged
+  internal class MainViewModel : RaceViewModelBase
   {
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
-    private readonly CompositeDisposable _disposables = new();
-    private readonly RaceModel model = new();
-    private readonly DownloaderModel downloader = DownloaderModel.Instance;
-
     public ScriptBulkModel ScriptBulk { get; } = new();
 
-    public DownloaderModel Downloader => this.downloader;
-
-    public ReactiveProperty<RaceInfo?> Race => this.model.Info;
-
     public RaceList RaceList => this.model.RaceList;
-
-    public ReactiveProperty<bool> IsLoaded => this.model.IsLoaded;
 
     public ReactiveProperty<bool> IsInitializationError => this.downloader.IsInitializationError;
 
     public ReactiveProperty<string> DownloaderErrorMessage => this.downloader.ErrorMessage;
 
     public ReactiveProperty<bool> IsInitialized => this.downloader.IsInitialized;
-
-    public ReactiveProperty<bool> IsFirstRaceLoadStarted => this.model.IsFirstLoadStarted;
-
-    public ReactiveProperty<bool> IsViewExpection => this.model.IsViewExpection;
-
-    public ReactiveProperty<bool> IsViewResult => this.model.IsViewResult;
-
-    public ReactiveProperty<bool> IsSelectedAllHorses => this.model.IsSelectedAllHorses;
 
     public string FirstMessage => this.model.FirstMessage;
 
@@ -62,11 +44,7 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<bool> IsDialogOpen { get; }
 
-    public ReactiveProperty<bool> CanSave => this.downloader.CanSaveOthers;
-
-    public ReactiveProperty<bool> IsModelError => this.model.IsError;
-
-    public ReactiveProperty<string> ModelErrorMessage => this.model.ErrorMessage;
+    public OpenRaceRequest RaceWindow => OpenRaceRequest.Default;
 
     public string VersionNumber => Constrants.ApplicationVersion;
 
@@ -120,6 +98,8 @@ namespace KmyKeiba.ViewModels
       logger.Debug("アプリ終了処理完了");
     }
 
+    #region MainCommands
+
     public ICommand OpenDownloadDialogCommand =>
       this._openDownloadDialogCommand ??=
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Download);
@@ -171,6 +151,8 @@ namespace KmyKeiba.ViewModels
       this._cancelScriptBulkCommand ??=
         new ReactiveCommand<object>().WithSubscribe(_ => this.ScriptBulk.Cancel());
     private ReactiveCommand<object>? _cancelScriptBulkCommand;
+
+    #endregion
 
     #region RaceList
 
@@ -301,10 +283,6 @@ namespace KmyKeiba.ViewModels
     private AsyncReactiveCommand<object>? _approveReplacingScriptTicketsCommand;
 
     #endregion
-
-#pragma warning disable CS0067
-    public event PropertyChangedEventHandler? PropertyChanged;
-#pragma warning restore CS0067
   }
 
   public enum DialogType

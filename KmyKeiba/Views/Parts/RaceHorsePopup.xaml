@@ -16,8 +16,9 @@
       <Grid.RowDefinitions>
         <RowDefinition Height="auto"/>
         <RowDefinition/>
+        <RowDefinition Height="auto"/>
       </Grid.RowDefinitions>
-      <StackPanel Margin="8,4" Grid.RowSpan="2">
+      <StackPanel Margin="8,4" Grid.RowSpan="3">
         <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" TextAlignment="Center" Margin="0,0,0,8">
           <Run Text="{Binding Horse.Race.StartTime,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd HH\\:mm}"/><LineBreak/>
           <Run Text="{Binding Horse.Race.Course,ElementName=Root,Converter={StaticResource CourseNameConv}}"/> <Run Text="{Binding Horse.Race.CourseRaceNumber,ElementName=Root}"/> R <Run Text="{Binding Horse.Data.Number,ElementName=Root}"/> 番
@@ -28,11 +29,13 @@
         <Button Content="パトロール" Command="{Binding Horse.PlayPatrolCommand,ElementName=Root}"/>
         <Button Content="マルチカメラ" Command="{Binding Horse.PlayMultiCamerasCommand,ElementName=Root}"/>
       </StackPanel>
-      <TextBlock Grid.Column="1" FontSize="18" Margin="4,8,0,8" Text="メモ" Foreground="{DynamicResource BaseForeground}"/>
-      <ScrollViewer Grid.Column="1" Grid.Row="1" Margin="8,4,0,0">
+      <TextBlock Grid.Column="1" FontSize="18" Margin="4,8,4,8" Text="メモ" Foreground="{DynamicResource BaseForeground}"/>
+      <ScrollViewer Grid.Column="1" Grid.Row="1" Margin="8,4,4,0">
         <TextBox Background="{DynamicResource BaseBackground}" Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource BaseForeground}"
                  IsReadOnly="{Binding Horse.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
       </ScrollViewer>
+      <Button Grid.Column="1" Grid.Row="2" Margin="8,4,4,4" Content="詳細" Command="{Binding Horse.OpenRaceWindowCommand,ElementName=Root}"
+              CommandParameter="{Binding Horse.Race.Key,ElementName=Root}"/>
     </Grid>
   </Border>
 </UserControl>
