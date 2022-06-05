@@ -285,22 +285,35 @@
                   <StackPanel Orientation="Horizontal">
 
                     <!--レース名-->
-                    <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="156" Height="48">
-                      <Grid Margin="4,4">
-                        <Grid.ColumnDefinitions>
-                          <ColumnDefinition Width="auto"/>
-                          <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                          <RowDefinition/>
-                          <RowDefinition/>
-                        </Grid.RowDefinitions>
-                        <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Width="32" Height="20" FontSize="12"/>
-                        <TextBlock Grid.Column="1" FontWeight="Bold" Text="{Binding Subject.DisplayName}" FontSize="15" Foreground="{DynamicResource BaseForeground}"/>
-                        <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
+                    <ToggleButton Name="Selection">
+                      <ToggleButton.Template>
+                        <ControlTemplate>
+                          <Grid>
+                            <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="156" Height="48">
+                              <Grid Margin="4,4">
+                                <Grid.ColumnDefinitions>
+                                  <ColumnDefinition Width="auto"/>
+                                  <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                  <RowDefinition/>
+                                  <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Width="32" Height="20" FontSize="12"/>
+                                <TextBlock Grid.Column="1" FontWeight="Bold" Text="{Binding Subject.DisplayName}" FontSize="15" Foreground="{DynamicResource BaseForeground}"/>
+                                <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
                                    Foreground="{DynamicResource BaseForeground}" FontSize="14"/>
-                      </Grid>
-                    </Border>
+                              </Grid>
+                            </Border>
+
+                            <Popup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
+                                   StaysOpen="False">
+                              <up:RacePopup Race="{Binding RaceAnalyzer}"/>
+                            </Popup>
+                          </Grid>
+                        </ControlTemplate>
+                      </ToggleButton.Template>
+                    </ToggleButton>
 
                     <!--対戦情報-->
                     <ItemsControl ItemsSource="{Binding Rows}">

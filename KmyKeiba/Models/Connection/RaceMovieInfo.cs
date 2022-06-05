@@ -18,6 +18,8 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsPaddockError { get; } = new();
 
+    public ReactiveProperty<bool> IsPaddockForceError { get; } = new();
+
     public ReactiveProperty<bool> IsPatrolError { get; } = new();
 
     public ReactiveProperty<bool> IsMultiCamerasError { get; } = new();
@@ -25,12 +27,38 @@ namespace KmyKeiba.Models.Connection
     public RaceMovieInfo(RaceData race)
     {
       this.Race = race;
+      var today = DateTime.Today;
+      var now = DateTime.Now;
+
+      if (race.StartTime > now)
+      {
+        this.IsPatrolError.Value = true;
+        this.IsMultiCamerasError.Value = true;
+        this.IsRaceError.Value = true;
+      }
+      if (race.StartTime.Date != today)
+      {
+        this.IsPaddockForceError.Value = true;
+      }
+
+      var nextMonday = race.StartTime.Date.AddHours(12);
+      while (nextMonday.DayOfWeek != DayOfWeek.Monday)
+      {
+        nextMonday = nextMonday.AddDays(1);
+      }
+      if (nextMonday > now)
+      {
+        this.IsPatrolError.Value = true;
+        this.IsMultiCamerasError.Value = true;
+      }
+
       if (race.Course >= RaceCourse.LocalMinValue)
       {
         this.IsPaddockError.Value = true;
+        this.IsPaddockForceError.Value = true;
         this.IsPatrolError.Value = true;
         this.IsMultiCamerasError.Value = true;
-        if (race.StartTime < DateTime.Now.AddMonths(-11) && (race.Grade == RaceGrade.Others || race.Grade == RaceGrade.Unknown))
+        if (race.StartTime < now.AddMonths(-11) && (race.Grade == RaceGrade.Others || race.Grade == RaceGrade.Unknown))
         {
           this.IsRaceError.Value = true;
         }
@@ -48,6 +76,11 @@ namespace KmyKeiba.Models.Connection
     }
 
     public async Task PlayPaddockAsync()
+    {
+      await this.PlayRaceAsync(MovieType.Paddock, this.IsPaddockError);
+    }
+
+    public async Task PlayPaddockForceAsync()
     {
       await this.PlayRaceAsync(MovieType.Paddock, this.IsPaddockError);
     }

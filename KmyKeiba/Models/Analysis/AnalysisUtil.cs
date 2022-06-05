@@ -18,6 +18,8 @@ namespace KmyKeiba.Models.Analysis
     private static readonly Dictionary<RaceCourse, IReadOnlyList<RaceStandardTimeMasterData>> _standardData = new();
     private static readonly Dictionary<string, IReadOnlyList<RiderWinRateMasterData>> _riderWinRateData = new();
 
+    public static RaceStandardTimeMasterData DefaultStandardTime { get; } = new();
+
     public static async Task<RaceStandardTimeMasterData> GetRaceStandardTimeAsync(MyContext db, RaceData race)
     {
       // logger.Debug($"基準タイム取得 {race.Key}");

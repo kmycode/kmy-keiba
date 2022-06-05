@@ -132,6 +132,11 @@ namespace KmyKeiba.Models.Analysis
         new AsyncReactiveCommand<object>(this.Movie.IsPaddockError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPaddockAsync());
     private AsyncReactiveCommand<object>? _playPaddockCommand;
 
+    public ICommand PlayPaddockForceCommand =>
+      this._playPaddockForceCommand ??=
+        new AsyncReactiveCommand<object>(this.Movie.IsPaddockForceError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPaddockForceAsync());
+    private AsyncReactiveCommand<object>? _playPaddockForceCommand;
+
     public ICommand PlayPatrolCommand =>
       this._playPatrolCommand ??=
         new AsyncReactiveCommand<object>(this.Movie.IsPatrolError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPatrolAsync());
@@ -152,7 +157,9 @@ namespace KmyKeiba.Models.Analysis
 
   public class RaceHorseMatchResult
   {
-    public RaceData Race { get; }
+    public RaceData Race => this.RaceAnalyzer.Data;
+
+    public RaceAnalyzer RaceAnalyzer { get; }
 
     public RaceSubjectInfo Subject { get; }
 
@@ -160,7 +167,7 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceHorseMatchResult(RaceData race)
     {
-      this.Race = race;
+      this.RaceAnalyzer = new RaceAnalyzer(race, Array.Empty<RaceHorseData>(), AnalysisUtil.DefaultStandardTime);
       this.Subject = new RaceSubjectInfo(race);
     }
 
