@@ -76,6 +76,26 @@ namespace KmyKeiba.Behaviors
 
     private void OpenRaceWindow(OpenRaceRequestEventArgs e)
     {
+      foreach (var existsWindow in this._windows)
+      {
+        existsWindow.TryGetTarget(out var win);
+        if (win?.DataContext is RaceWindowViewModel viewModel)
+        {
+          if (viewModel.Race.Value?.Data.Key == e.RaceKey)
+          {
+            try
+            {
+              win.Activate();
+            }
+            catch
+            {
+              // TODO: logs
+            }
+            return;
+          }
+        }
+      }
+
       var window = new RaceWindow
       {
         DataContext = new RaceWindowViewModel(e.RaceKey),
