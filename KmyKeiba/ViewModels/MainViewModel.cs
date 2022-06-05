@@ -28,6 +28,8 @@ namespace KmyKeiba.ViewModels
 
     public ScriptBulkModel ScriptBulk { get; } = new();
 
+    public bool IsMainWindow => true;
+
     public RaceList RaceList => this.model.RaceList;
 
     public ReactiveProperty<bool> IsInitializationError => this.downloader.IsInitializationError;

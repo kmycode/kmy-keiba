@@ -21,6 +21,8 @@
       <Grid.Resources>
         <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
       </Grid.Resources>
+      <Border Background="{DynamicResource GoodBackground}"
+              Visibility="{Binding IsMainWindow,Converter={StaticResource NegativeVisibilityConv}}"/>
 
       <Grid Grid.Row="0" Height="56">
         <Grid.ColumnDefinitions>

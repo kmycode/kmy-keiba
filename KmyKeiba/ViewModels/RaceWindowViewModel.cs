@@ -12,6 +12,9 @@ namespace KmyKeiba.ViewModels
   {
     public string FirstMessage => string.Empty;
 
+    public bool IsMainWindow => false;
+
+
     public RaceWindowViewModel(string key)
     {
       this.model.SetRaceKey(key);
