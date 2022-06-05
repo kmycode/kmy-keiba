@@ -442,6 +442,8 @@ namespace KmyKeiba.Models.Analysis
       }
     }
 
+    #region Command
+
     public ICommand SetMarkCommand =>
       this._setDoubleCircleMarkCommand ??=
         new AsyncReactiveCommand<string>(Connection.DownloaderModel.Instance.CanSaveOthers).WithSubscribe(p => this.ChangeHorseMarkAsync(p));
@@ -471,6 +473,8 @@ namespace KmyKeiba.Models.Analysis
       this._openRaceWindowCommand ??=
         new ReactiveCommand<string>().WithSubscribe(key => OpenRaceRequest.Default.Request(key));
     private ReactiveCommand<string>? _openRaceWindowCommand;
+
+    #endregion
 
     private readonly CompositeDisposable _disposables = new();
 

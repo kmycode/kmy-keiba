@@ -67,6 +67,9 @@
     <Compile Update="Views\Parts\RaceHorsePopup.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Parts\RacePopup.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Parts\RaceResultOrderGradeRow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -151,6 +154,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Parts\RaceHorsePopup.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\RacePopup.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Parts\RaceResultOrderGradeRow.xaml">
