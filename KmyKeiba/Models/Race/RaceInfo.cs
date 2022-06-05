@@ -396,7 +396,10 @@ namespace KmyKeiba.Models.Race
       // 更新の時に傾向検索結果をリセットする必要があるか
       return !(newData.TrackWeather == this.Data.TrackWeather && newData.TrackCondition == this.Data.TrackCondition &&
         newData.Distance == this.Data.Distance && newData.TrackGround == this.Data.TrackGround &&
-        newData.TrackOption == this.Data.TrackOption && newData.TrackCornerDirection == this.Data.TrackCornerDirection);
+        newData.TrackOption == this.Data.TrackOption && newData.TrackCornerDirection == this.Data.TrackCornerDirection &&
+        newData.SubjectAge2 == this.Data.SubjectAge2 && newData.SubjectAge3 == this.Data.SubjectAge3 &&
+        newData.SubjectAge4 == this.Data.SubjectAge4 && newData.SubjectAge5 == this.Data.SubjectAge5 &&
+        newData.SubjectAgeYounger == this.Data.SubjectAgeYounger && newData.SubjectName == this.Data.SubjectName);
     }
 
     public void CopyTrendAnalyzersFrom(RaceInfo source)
