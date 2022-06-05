@@ -18,7 +18,7 @@ namespace KmyKeiba.Downloader
     {
       //this.ConnectionString = "server=localhost;database=kmykeiba;uid=root;pwd=takaki;";
 
-      Directory.CreateDirectory(Constrants.AppDataPath);
+      Directory.CreateDirectory(Constrants.AppDataDir);
       this.ConnectionString = "Data Source=" + Constrants.DatabasePath;
     }
 

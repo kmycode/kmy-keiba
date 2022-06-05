@@ -24,6 +24,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KmyKeiba", "KmyKeiba\KmyKei
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "KmyKeiba.Shared", "KmyKeiba.Shared\KmyKeiba.Shared.shproj", "{485AC3AA-2254-4152-BF00-41A9AA418BFC}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "KmyKeiba.Setup", "KmyKeiba.Setup\KmyKeiba.Setup.vdproj", "{1BC5C3F8-0DBE-4BF0-BC0A-573B4AEBAC70}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		KmyKeiba.Shared\KmyKeiba.Shared.projitems*{485ac3aa-2254-4152-bf00-41a9aa418bfc}*SharedItemsImports = 13
@@ -85,6 +87,10 @@ Global
 		{F84FCA84-B68C-4CF3-94E2-48E65050FE37}.Release|x64.Build.0 = Release|x64
 		{F84FCA84-B68C-4CF3-94E2-48E65050FE37}.Release|x86.ActiveCfg = Release|x86
 		{F84FCA84-B68C-4CF3-94E2-48E65050FE37}.Release|x86.Build.0 = Release|x86
+		{1BC5C3F8-0DBE-4BF0-BC0A-573B4AEBAC70}.Debug|x64.ActiveCfg = Debug
+		{1BC5C3F8-0DBE-4BF0-BC0A-573B4AEBAC70}.Debug|x86.ActiveCfg = Debug
+		{1BC5C3F8-0DBE-4BF0-BC0A-573B4AEBAC70}.Release|x64.ActiveCfg = Release
+		{1BC5C3F8-0DBE-4BF0-BC0A-573B4AEBAC70}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

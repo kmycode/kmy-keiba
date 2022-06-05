@@ -943,7 +943,7 @@ namespace KmyKeiba.Downloader
 
       if (currentTask != null)
       {
-        var liveFileName = Path.Combine(Constrants.AppDataPath, "live");
+        var liveFileName = Path.Combine(Constrants.AppDataDir, "live");
         if (!File.Exists(liveFileName) || File.GetLastWriteTime(liveFileName) < DateTime.Now.AddMinutes(-5))
         {
           logger.Warn("ライブファイルが存在しないか、更新時刻を超過していたのでシャットダウンします");

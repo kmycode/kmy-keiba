@@ -50,7 +50,7 @@ namespace KmyKeiba.Models.Connection
       this.IsRTBusy = this.currentRTTask.Select(t => t != null).ToReactiveProperty().AddTo(this._disposables);
 
       // アプリが強制終了した場合に備え、ファイルの更新時刻を定期的にアップデートする
-      var liveFileName = Path.Combine(Constrants.AppDataPath, "live");
+      var liveFileName = Path.Combine(Constrants.AppDataDir, "live");
       File.WriteAllText(liveFileName, DateTime.Now.ToString());
       Observable.Interval(TimeSpan.FromSeconds(30)).Subscribe(_ =>
       {

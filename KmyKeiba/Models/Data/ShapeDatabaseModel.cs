@@ -5,6 +5,7 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Shared;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
@@ -40,9 +41,11 @@ namespace KmyKeiba.Models.Data
 
     public static void StartRunningStyleTraining(bool isForce = false)
     {
+      var mmlName = Constrants.RunningStyleTrainingFilePath;
+
       if (!isForce)
       {
-        if (File.Exists("runningstyleml.mml") && File.GetLastWriteTime("runningstyleml.mml") > DateTime.Now.AddHours(-48))
+        if (File.Exists(mmlName) && File.GetLastWriteTime(mmlName) > DateTime.Now.AddHours(-48))
         {
           return;
         }
@@ -54,12 +57,14 @@ namespace KmyKeiba.Models.Data
       rs.Training();
 
       logger.Debug("保存中...");
-      rs.SaveFile("runningstyleml.mml");
+      rs.SaveFile(mmlName);
     }
 
     public static void StartRunningStylePredicting()
     {
-      if (!File.Exists("runningstyleml.mml"))
+      var mmlName = Constrants.RunningStyleTrainingFilePath;
+
+      if (!File.Exists(mmlName))
       {
         return;
       }
@@ -67,7 +72,7 @@ namespace KmyKeiba.Models.Data
       var rs = new PredictRunningStyleModel();
 
       logger.Debug("ロード中...");
-      rs.OpenFile("runningstyleml.mml");
+      rs.OpenFile(mmlName);
 
       logger.Debug("予想中...");
       var done = -1;
