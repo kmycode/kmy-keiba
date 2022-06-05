@@ -85,6 +85,7 @@ namespace KmyKeiba.Behaviors
           {
             try
             {
+              viewModel.SetActiveHorse(e.HorseKey);
               win.Activate();
             }
             catch
@@ -98,7 +99,7 @@ namespace KmyKeiba.Behaviors
 
       var window = new RaceWindow
       {
-        DataContext = new RaceWindowViewModel(e.RaceKey),
+        DataContext = new RaceWindowViewModel(e.RaceKey, e.HorseKey),
       };
       window.Show();
 

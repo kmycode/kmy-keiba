@@ -87,6 +87,8 @@ namespace KmyKeiba.Models.Analysis
     /// </summary>
     public double A3HResultTimeDeviationValue { get; }
 
+    public ReactiveProperty<bool> IsActive { get; } = new();
+
     public RaceMovieInfo Movie => this._movie ??= new(this.Race);
     private RaceMovieInfo? _movie;
 
@@ -471,7 +473,7 @@ namespace KmyKeiba.Models.Analysis
 
     public ICommand OpenRaceWindowCommand =>
       this._openRaceWindowCommand ??=
-        new ReactiveCommand<string>().WithSubscribe(key => OpenRaceRequest.Default.Request(key));
+        new ReactiveCommand<string>().WithSubscribe(key => OpenRaceRequest.Default.Request(key, this.Data.Key));
     private ReactiveCommand<string>? _openRaceWindowCommand;
 
     #endregion

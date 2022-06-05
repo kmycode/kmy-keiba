@@ -139,6 +139,26 @@ namespace KmyKeiba.Models.Race
       this.LoadCurrentRace(this.Info.Value?.Data.Key);
     }
 
+    public async Task SetActiveHorseAsync(string horseKey)
+    {
+      if (string.IsNullOrEmpty(horseKey))
+      {
+        return;
+      }
+
+      while (this.Info.Value == null)
+      {
+        await Task.Delay(50);
+      }
+      await this.Info.Value.WaitHorsesSetupAsync();
+
+      var targetHorse = this.Info.Value.Horses.FirstOrDefault(h => h.Data.Key == horseKey);
+      if (targetHorse != null)
+      {
+        targetHorse.IsActive.Value = true;
+      }
+    }
+
     private void LoadCurrentRace(string? key = null)
     {
       logger.Info($"レース {key} のロードを開始します");

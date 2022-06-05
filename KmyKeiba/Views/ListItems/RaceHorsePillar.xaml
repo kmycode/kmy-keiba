@@ -16,7 +16,10 @@
       <ColumnDefinition Width="auto"/>
       <ColumnDefinition/>
     </Grid.ColumnDefinitions>
-    
+
+    <Border Background="{DynamicResource ActiveBackground}" Grid.ColumnSpan="2"
+            Visibility="{Binding Horse.IsActive.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+
     <!--枠色-->
     <Border Width="8" Background="{Binding Horse.Data.FrameNumber,ElementName=Root,Converter={StaticResource FrameNumberBrushConv}}"
             Margin="0,0,8,0"/>

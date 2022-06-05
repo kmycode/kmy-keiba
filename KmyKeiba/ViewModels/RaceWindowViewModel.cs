@@ -15,9 +15,15 @@ namespace KmyKeiba.ViewModels
     public bool IsMainWindow => false;
 
 
-    public RaceWindowViewModel(string key)
+    public RaceWindowViewModel(string key, string horseKey)
     {
       this.model.SetRaceKey(key);
+      this.SetActiveHorse(horseKey);
+    }
+
+    public void SetActiveHorse(string horseKey)
+    {
+      _ = this.model.SetActiveHorseAsync(horseKey);
     }
 
     public ICommand BuyCommand =>
