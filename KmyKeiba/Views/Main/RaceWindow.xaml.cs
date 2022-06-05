@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KmyKeiba.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,8 @@ namespace KmyKeiba.Views.Main
     public RaceWindow()
     {
       InitializeComponent();
+
+      this.Closing += (_, _) => ((RaceWindowViewModel)this.DataContext).Dispose();
     }
   }
 }

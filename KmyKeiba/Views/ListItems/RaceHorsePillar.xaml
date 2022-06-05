@@ -77,14 +77,16 @@
           <up:HorseMarkButton Horse="{Binding Horse,ElementName=Root}" Margin="8,0,0,0"/>
         </Grid>
         <Grid Grid.Column="3" Margin="8,0,0,0" Width="45">
-          <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-          </Grid.RowDefinitions>
-          <TextBlock Margin="8,0,0,0" FontSize="16" Text="{Binding Horse.Data.Odds,ElementName=Root,Converter={StaticResource DigitMinusConv}}"/>
-          <TextBlock Grid.Row="1" Margin="8,0,0,0" FontSize="14">
-            (<Run Text="{Binding Horse.Data.Popular,ElementName=Root}"/>人)
-          </TextBlock>
+          <Grid Visibility="{Binding Horse.Data.Popular,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}">
+            <Grid.RowDefinitions>
+              <RowDefinition/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock Margin="8,0,0,0" FontSize="16" Text="{Binding Horse.Data.Odds,ElementName=Root,Converter={StaticResource DigitMinusConv}}"/>
+            <TextBlock Grid.Row="1" Margin="8,0,0,0" FontSize="14">
+              (<Run Text="{Binding Horse.Data.Popular,ElementName=Root}"/>人)
+            </TextBlock>
+          </Grid>
         </Grid>
         <StackPanel Grid.Column="4" Margin="12,0,0,0" VerticalAlignment="Center">
           <up:RunningStyleTip RunningStyle="{Binding Horse.History.RunningStyle,ElementName=Root}"
@@ -106,10 +108,13 @@
             <TextBlock FontSize="16" Text="{Binding Horse.Data.Age,ElementName=Root}" Margin="0,0,2,0"/>
           </StackPanel>
         </Border>
-        <TextBlock Grid.Column="6" Margin="4,0,0,0" TextAlignment="Center" Width="40" FontSize="16">
-          <Run Text="{Binding Horse.Data.Weight,ElementName=Root}"/><LineBreak/>
-          <Run Text="(" FontSize="14"/><Run Text="{Binding Horse.Data.WeightDiff,ElementName=Root}" FontSize="14"/><Run Text=")" FontSize="14"/>
-        </TextBlock>
+        <Border Grid.Column="6" Margin="4,0,0,0" Width="40">
+          <TextBlock TextAlignment="Center" FontSize="16"
+                     Visibility="{Binding Horse.Data.Weight,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}">
+            <Run Text="{Binding Horse.Data.Weight,ElementName=Root}"/><LineBreak/>
+            <Run Text="(" FontSize="14"/><Run Text="{Binding Horse.Data.WeightDiff,ElementName=Root}" FontSize="14"/><Run Text=")" FontSize="14"/>
+          </TextBlock>
+        </Border>
         <Grid Grid.Column="7" Margin="12,0,0,0" VerticalAlignment="Center">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="60"/>
@@ -140,12 +145,14 @@
           <StackPanel Width="60" Margin="8,0,0,0">
             <TextBlock Text="T偏差値" Foreground="{DynamicResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
             <TextBlock Text="{Binding Horse.History.TimeDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
-                       Foreground="{Binding Horse.History.TimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                       Foreground="{Binding Horse.History.TimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
+                       Visibility="{Binding Horse.History.TimeDeviationValue,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
           </StackPanel>
           <StackPanel Width="60">
             <TextBlock Text="A3H偏" Foreground="{DynamicResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
             <TextBlock Text="{Binding Horse.History.A3HTimeDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
-                       Foreground="{Binding Horse.History.A3HTimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                       Foreground="{Binding Horse.History.A3HTimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
+                       Visibility="{Binding Horse.History.A3HTimeDeviationValue,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
           </StackPanel>
           <StackPanel Width="60">
             <TextBlock Text="騎手複勝" Foreground="{DynamicResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>

@@ -289,6 +289,7 @@ namespace KmyKeiba.Models.Race
     public void Dispose()
     {
       this._disposables.Dispose();
+      this.Info.Value?.Dispose();
       this.RaceList.Dispose();
     }
   }

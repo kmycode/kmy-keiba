@@ -36,8 +36,6 @@ namespace KmyKeiba.ViewModels
 
     public ICommand? UpdateRaceInfoCommand { get; }
 
-    public ICommand? UpdateRaceInfoCommand { get; }
-
     public ICommand? SetWeatherCommand { get; }
 
     public ICommand? SetConditionCommand { get; }

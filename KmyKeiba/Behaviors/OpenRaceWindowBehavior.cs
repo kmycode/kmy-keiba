@@ -76,6 +76,8 @@ namespace KmyKeiba.Behaviors
 
     private void OpenRaceWindow(OpenRaceRequestEventArgs e)
     {
+      var removeItems = new List<WeakReference<RaceWindow>>();
+
       foreach (var existsWindow in this._windows)
       {
         existsWindow.TryGetTarget(out var win);
@@ -86,15 +88,28 @@ namespace KmyKeiba.Behaviors
             try
             {
               viewModel.SetActiveHorse(e.HorseKey);
-              win.Activate();
+              if (win.IsVisible)
+              {
+                win.Activate();
+                return;
+              }
             }
             catch
             {
               // TODO: logs
             }
-            return;
+          }
+          if (!win.IsVisible)
+          {
+            win.Close();
+            removeItems.Add(existsWindow);
           }
         }
+      }
+
+      foreach (var item in removeItems)
+      {
+        this._windows.Remove(item);
       }
 
       var window = new RaceWindow

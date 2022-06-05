@@ -2,6 +2,7 @@
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -38,6 +39,11 @@ namespace KmyKeiba.ViewModels
     public ReactiveProperty<bool> IsModelError => this.model.IsError;
 
     public ReactiveProperty<string> ModelErrorMessage => this.model.ErrorMessage;
+
+    public RaceViewModelBase()
+    {
+      this.model.AddTo(this._disposables);
+    }
 
     public void Dispose()
     {

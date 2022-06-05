@@ -542,6 +542,7 @@ namespace KmyKeiba.Models.Race
           var horseKeys = horses.Select(h => h.Key).ToArray();
           var horseAllHistories = await db.RaceHorses!
             .Where(rh => horseKeys.Contains(rh.Key))
+            .Where(rh => rh.Key != "0000000000")
             .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, })
             .Where(d => d.Race.StartTime < race.StartTime)
             .OrderByDescending(d => d.Race.StartTime)
