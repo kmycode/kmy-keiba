@@ -28,7 +28,7 @@ namespace KmyKeiba.Models.Analysis
 
     public CheckableCollection<MenuItem> MenuItems { get; } = new();
 
-    public ReactiveProperty<RaceHorseBloodTrendAnalysisSelector?> CurrentSelector { get; }
+    public ReactiveProperty<RaceHorseBloodTrendAnalysisSelector?> CurrentSelector { get; } = new();
 
     public bool IsRequestedInitialization => this._bloodCode == null;
 
@@ -36,7 +36,23 @@ namespace KmyKeiba.Models.Analysis
     {
       this.Race = race;
       this.RaceHorse = horse;
-      this.CurrentSelector = this.MenuItems.ActiveItem.Select(i => i?.Selector).ToReactiveProperty().AddTo(this._disposables);
+
+      this.MenuItems.ActiveItem.Select(item => item?.Selector)
+        .Subscribe(selector =>
+        {
+          var old = this.CurrentSelector.Value;
+          if (old != null && selector != null)
+          {
+            // 絞り込み検索条件をコピーする
+            foreach (var menuItem in old.Keys.Join(selector.Keys, i => i.Key, i => i.Key, (o, n) => new { Old = o, New = n, }))
+            {
+              menuItem.New.IsChecked.Value = menuItem.Old.IsChecked.Value;
+            }
+          }
+
+          this.CurrentSelector.Value = selector;
+        })
+        .AddTo(this._disposables);
     }
 
     public void Dispose()
