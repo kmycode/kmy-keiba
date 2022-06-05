@@ -61,9 +61,9 @@
   <SolidColorBrush x:Key="BadBackground" Color="#5f2222"/>
   <SolidColorBrush x:Key="GoodForeground" Color="#99ff99"/>
   <SolidColorBrush x:Key="BadForeground" Color="#ff99cc"/>
-  <SolidColorBrush x:Key="FirstOrderBackground" Color="#454511"/>
-  <SolidColorBrush x:Key="SecondOrderBackground" Color="#11245d"/>
-  <SolidColorBrush x:Key="ThirdOrderBackground" Color="#451111"/>
+  <SolidColorBrush x:Key="FirstOrderBackground" Color="#50ffff99"/>
+  <SolidColorBrush x:Key="SecondOrderBackground" Color="#5044bbff"/>
+  <SolidColorBrush x:Key="ThirdOrderBackground" Color="#50ff9999"/>
 
   <SolidColorBrush x:Key="SingleTicketBackground" Color="#00596b"/>
   <SolidColorBrush x:Key="PlaceTicketBackground" Color="#840027"/>

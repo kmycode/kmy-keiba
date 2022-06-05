@@ -12,6 +12,8 @@ namespace KmyKeiba.ViewModels
 {
   internal class RaceWindowViewModel : RaceViewModelBase
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     public string FirstMessage => string.Empty;
 
     public bool IsMainWindow => false;
@@ -19,6 +21,7 @@ namespace KmyKeiba.ViewModels
 
     public RaceWindowViewModel(string key, string horseKey)
     {
+      logger.Debug($"レース {key} 馬 {horseKey} のビューモデルを作成");
       this.model.SetRaceKey(key);
       this.SetActiveHorse(horseKey);
     }

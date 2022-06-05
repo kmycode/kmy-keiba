@@ -12,6 +12,8 @@ namespace KmyKeiba.Downloader
 {
   public class MyContext : MyContextBase
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     public MyContext()
     {
       //this.ConnectionString = "server=localhost;database=kmykeiba;uid=root;pwd=takaki;";
@@ -41,10 +43,12 @@ namespace KmyKeiba.Downloader
         }
         catch (SqliteException ex) when (ex.SqliteErrorCode == 5)
         {
-          // TODO: log
+          logger.Warn("保存処理でエラー", ex);
+
           tryCount++;
           if (tryCount > 10 * 20 * 60)
           {
+            logger.Error("保存に失敗しました");
             throw ex;
           }
           await Task.Delay(100);

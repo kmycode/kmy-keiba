@@ -607,13 +607,14 @@ RaceHorse.prototype._getObj = function() {
 //             condition  同じ馬場状態
 //             weather    同じ天気
 //             name       同じレース名（地方競馬の協賛レースなどでは誤動作の場合あり。条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）
-//             subject    同じ条件（地方競馬では誤動作の場合あり）
+//             subject    同じ条件
 //             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
 //             month      同じ月
 //             distance   前後100メートルの距離
 //             direction  同じ向き（右、左、直線）
 //             placebits  上位3着以内
 //             losed      着外
+//             sex        同じ性別
 //   count:  取得最大数
 //   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
 //
@@ -634,13 +635,14 @@ RaceHorse.prototype.getRiderSimilarRaceHorsesAsync = async function(keys, count,
 //             condition  同じ馬場状態
 //             weather    同じ天気
 //             name       同じレース名（地方競馬の協賛レースなどでは誤動作の場合あり。条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）
-//             subject    同じ条件（地方競馬では誤動作の場合あり）
+//             subject    同じ条件
 //             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
 //             month      同じ月
 //             distance   前後100メートルの距離
 //             direction  同じ向き（右、左、直線）
 //             placebits  上位3着以内
 //             losed      着外
+//             sex        同じ性別
 //   count:  取得最大数
 //   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
 //
@@ -689,7 +691,7 @@ RaceHorse.prototype.getBloodHorseRaceHorsesAsync = async function(type) {
 //             condition  同じ馬場状態
 //             weather    同じ天気
 //             name       同じレース名（地方競馬の協賛レースなどでは誤動作の場合あり。条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）
-//             subject    同じ条件（地方競馬では誤動作の場合あり）
+//             subject    同じ条件
 //             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
 //             season     同じ季節
 //             distance   前後100メートルの距離

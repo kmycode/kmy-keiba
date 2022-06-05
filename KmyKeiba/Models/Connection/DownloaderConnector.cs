@@ -101,7 +101,7 @@ namespace KmyKeiba.Models.Connection
     {
       if (taskDataId == default)
       {
-        throw new ArgumentException();
+        throw new ArgumentException(nameof(taskDataId));
       }
 
       var tryCount = 0;
@@ -281,42 +281,22 @@ namespace KmyKeiba.Models.Connection
 
     public async Task OpenMovieAsync(MovieType type, DownloadLink link, string key)
     {
-      if (this.IsBusy.Value)
+      var task = new DownloaderTaskData
       {
-        logger.Warn("すでにダウンロード中です");
-        throw new InvalidOperationException();
-      }
-
-      try
-      {
-        this.currentTask.Value = new DownloaderTaskData
-        {
-          Command = DownloaderCommand.OpenMovie,
-          Parameter = key + "," + (short)type + "," + (link == DownloadLink.Central ? "central" : "local"),
-        };
-        await this.PublishTaskAsync(this.currentTask.Value);
-      }
-      finally
-      {
-        this.currentTask.Value = null;
-      }
+        Command = DownloaderCommand.OpenMovie,
+        Parameter = key + "," + (short)type + "," + (link == DownloadLink.Central ? "central" : "local"),
+      };
+      await this.PublishTaskAsync(task);
     }
 
     public async Task UpdateMovieListAsync(string horseKey)
     {
-      try
+      var task = new DownloaderTaskData
       {
-        this.currentTask.Value = new DownloaderTaskData
-        {
-          Command = DownloaderCommand.OpenMovieList,
-          Parameter = horseKey,
-        };
-        await this.PublishTaskAsync(this.currentTask.Value);
-      }
-      finally
-      {
-        this.currentTask.Value = null;
-      }
+        Command = DownloaderCommand.OpenMovieList,
+        Parameter = horseKey,
+      };
+      await this.PublishTaskAsync(task);
     }
 
     private async Task PublishTaskAsync(DownloaderTaskData task, Func<DownloaderTaskData, Task>? progressing = null)

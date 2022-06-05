@@ -208,6 +208,10 @@ namespace KmyKeiba.Downloader
         {
           try
           {
+            if (JVLinkObject.Central.Type == JVLinkObjectType.Unknown)
+            {
+              throw new InvalidOperationException("コンポーネントがインストールされていません");
+            }
             JVLinkObject.Central.OpenConfigWindow();
             SetTask(task, t => t.IsFinished = true);
           }
@@ -230,6 +234,10 @@ namespace KmyKeiba.Downloader
         {
           try
           {
+            if (JVLinkObject.Local.Type == JVLinkObjectType.Unknown)
+            {
+              throw new InvalidOperationException("コンポーネントがインストールされていません");
+            }
             JVLinkObject.Local.OpenConfigWindow();
             SetTask(task, t => t.IsFinished = true);
           }

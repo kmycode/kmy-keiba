@@ -16,6 +16,8 @@ namespace KmyKeiba.Models.Script
 {
   public class ScriptBulkModel
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private bool _isCanceled = false;
 
     public ReactiveCollection<ScriptResultItem> Results { get; } = new();
@@ -63,9 +65,9 @@ namespace KmyKeiba.Models.Script
           engines.Add(new EngineInfo(new CompiledScriptEngineWrapper()));
         }
       }
-      catch
+      catch (Exception ex)
       {
-        // TODO: logs
+        logger.Error("スクリプトエンジン生成でエラー", ex);
         this.IsError.Value = true;
         return;
       }
@@ -241,8 +243,9 @@ namespace KmyKeiba.Models.Script
               item.ErrorType.Value = ScriptBulkErrorType.NoRace;
             }
           }
-          catch
+          catch (Exception ex)
           {
+            logger.Error("スクリプト一括実行で例外", ex);
             item.IsError.Value = true;
             item.ErrorType.Value = ScriptBulkErrorType.AnyError;
           }

@@ -19,6 +19,8 @@ namespace KmyKeiba.Behaviors
 {
   class OpenRaceWindowBehavior : Behavior<MainWindow>
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private readonly List<OpenRaceRequestEventArgs> _stockEvents = new();
     private readonly List<WeakReference<RaceWindow>> _windows = new();
 
@@ -94,9 +96,9 @@ namespace KmyKeiba.Behaviors
                 return;
               }
             }
-            catch
+            catch (Exception ex)
             {
-              // TODO: logs
+              logger.Error($"レースウィンドウ (レース: {e.RaceKey}, 馬: {e.HorseKey}) 開くときにエラー", ex);
             }
           }
           if (!win.IsVisible)
@@ -134,7 +136,7 @@ namespace KmyKeiba.Behaviors
           }
           catch (Exception ex)
           {
-            // TODO: logger
+            logger.Warn("メインウィンドウ閉じる処理で例外", ex);
           }
         }
       }

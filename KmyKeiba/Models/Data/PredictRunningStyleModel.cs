@@ -10,6 +10,8 @@ namespace KmyKeiba.Models.Data
 {
   class PredictRunningStyleModel
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private readonly ClusteringModel ml = new();
 
     public ReactiveProperty<bool> IsProcessing { get; } = new();
@@ -32,9 +34,18 @@ namespace KmyKeiba.Models.Data
         this.ml.LoadFile(fileName);
         this.CanPredict.Value = this.ml.CanSave;
       }
-      catch
+      catch (Exception ex)
       {
+        logger.Warn("機械学習のファイルオープンでエラー", ex);
         this.IsError.Value = true;
+        try
+        {
+          System.IO.File.Delete(fileName);
+        }
+        catch (Exception ex2)
+        {
+          logger.Warn("学習ファイル削除でエラー", ex2);
+        }
       }
       finally
       {
@@ -51,8 +62,9 @@ namespace KmyKeiba.Models.Data
         this.IsProcessing.Value = true;
         this.ml.SaveFile(fileName);
       }
-      catch
+      catch (Exception ex)
       {
+        logger.Warn("機械学習のデータ保存でエラー", ex);
         this.IsError.Value = true;
       }
       finally
@@ -88,8 +100,9 @@ namespace KmyKeiba.Models.Data
         }
         this.CanPredict.Value = this.ml.CanSave;
       }
-      catch
+      catch (Exception ex)
       {
+        logger.Warn("機械学習のトレーニングでエラー", ex);
         this.IsError.Value = true;
       }
       finally
@@ -141,8 +154,9 @@ namespace KmyKeiba.Models.Data
         }
         this.CanPredict.Value = this.ml.CanSave;
       }
-      catch
+      catch (Exception ex)
       {
+        logger.Warn("機械学習の予測でエラー", ex);
         this.IsError.Value = true;
       }
       finally
@@ -175,8 +189,9 @@ namespace KmyKeiba.Models.Data
         }
         this.CanPredict.Value = this.ml.CanSave;
       }
-      catch
+      catch (Exception ex)
       {
+        logger.Error("機械学習結果のリセットでエラー", ex);
         this.IsError.Value = true;
       }
       finally

@@ -12,6 +12,8 @@ namespace KmyKeiba.Models.Connection
 {
   public class RaceMovieInfo
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     public RaceData Race { get; }
 
     public ReactiveProperty<bool> IsRaceError { get; } = new();
@@ -109,8 +111,9 @@ namespace KmyKeiba.Models.Connection
             UseShellExecute = true,
           });
         }
-        catch
+        catch (Exception ex)
         {
+          logger.Error($"レース {this.Race.Key} 動画再生でエラー", ex);
           this.IsRaceError.Value = true;
         }
       }
@@ -155,8 +158,9 @@ namespace KmyKeiba.Models.Connection
         }
         await DownloaderConnector.Instance.OpenMovieAsync(type, link, this.Race.Key);
       }
-      catch
+      catch (Exception ex)
       {
+        logger.Error($"レース動画再生でエラー key: {this.Race.Key}, type: {type}", ex);
         error.Value = true;
       }
     }
@@ -164,6 +168,8 @@ namespace KmyKeiba.Models.Connection
 
   public class TrainingMovieInfo
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private uint _id;
     private bool _isWoodtip;
     private MovieStatus _status;
@@ -220,9 +226,11 @@ namespace KmyKeiba.Models.Connection
       catch (InvalidOperationException)
       {
         // 別の調教動画を読み込み中にボタンを押したとき
+        logger.Warn($"調教動画 {key} を再生しようとしましたが、再生ボタン連打を検出したため動作はキャンセルされました");
       }
-      catch
+      catch (Exception ex)
       {
+        logger.Error($"調教動画 {key} 取得中にエラー", ex);
         this.IsTrainingError.Value = true;
       }
       finally
@@ -259,9 +267,9 @@ namespace KmyKeiba.Models.Connection
           await db.SaveChangesAsync();
           this._status = status;
         }
-        catch
+        catch (Exception ex)
         {
-          // TODO: log
+          logger.Error($"調教動画 {key} 再生で例外", ex);
         }
       }
     }

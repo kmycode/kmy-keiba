@@ -288,9 +288,11 @@ namespace KmyKeiba.Models.Race
 
     public void Dispose()
     {
+      logger.Info($"レース {this.RaceKey.Value} 保持中のモデルは破棄されます");
       this._disposables.Dispose();
       this.Info.Value?.Dispose();
       this.RaceList.Dispose();
+      logger.Debug("破棄が完了しました");
     }
   }
 }

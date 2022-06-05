@@ -18,6 +18,8 @@ namespace KmyKeiba.Models.Analysis
 {
   public class TrainingAnalyzer
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     public IReadOnlyList<TrainingRow> Trainings { get; }
 
     public TrainingAnalyzer(IReadOnlyList<TrainingData> trainings, IReadOnlyList<WoodtipTrainingData> woodtipTrainings)
@@ -79,9 +81,9 @@ namespace KmyKeiba.Models.Analysis
             };
           });
         }
-        catch
+        catch (Exception ex)
         {
-          // TODO: logs
+          logger.Error("調教リスト更新で例外", ex);
         }
       }
     }
