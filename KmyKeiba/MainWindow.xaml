@@ -43,6 +43,7 @@
               <ColumnDefinition/>
               <ColumnDefinition Width="auto"/>
               <ColumnDefinition Width="auto"/>
+              <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
               <Button Width="80" Height="50" FontSize="24" Padding="0" Content="DL" Command="{Binding OpenDownloadDialogCommand}"/>
@@ -94,13 +95,20 @@
             </StackPanel>
 
             <Button Grid.Column="1" Width="80" Height="50" Padding="0"
+                    Command="{Binding OpenCentralRaceLiveCommand}" Margin="0,0,8,0">
+              <TextBlock FontSize="16" TextAlignment="Center">
+                グリーン<LineBreak/>チャンネル
+              </TextBlock>
+            </Button>
+
+            <Button Grid.Column="2" Width="80" Height="50" Padding="0"
                     Command="{Binding OpenLocalRaceLiveCommand}" Margin="0,0,8,0">
               <TextBlock FontSize="16" TextAlignment="Center">
                 地方競馬<LineBreak/>ライブ
               </TextBlock>
             </Button>
 
-            <Button Grid.Column="2" Width="80" Height="50" FontSize="24" Padding="0" Content="Ver"
+            <Button Grid.Column="3" Width="80" Height="50" FontSize="24" Padding="0" Content="Ver"
                     Command="{Binding OpenVersionDialogCommand}" Margin="0,0,8,0"/>
           </Grid>
         </Border>

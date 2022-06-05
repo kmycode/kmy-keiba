@@ -122,6 +122,18 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Version);
     private ReactiveCommand? _openVersionDialogCommand;
 
+    public ICommand OpenCentralRaceLiveCommand =>
+      this._openCentralRaceLiveCommand ??=
+        new ReactiveCommand().WithSubscribe(() =>
+        {
+          System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+          {
+            UseShellExecute = true,
+            FileName = "https://sp.gch.jp/",
+          });
+        });
+    private ReactiveCommand? _openCentralRaceLiveCommand;
+
     public ICommand OpenLocalRaceLiveCommand =>
       this._openLocalRaceLiveCommand ??=
         new ReactiveCommand().WithSubscribe(() =>
@@ -197,16 +209,6 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(() => this.model.UpdateCurrentRace());
     private ReactiveCommand? _updateRaceInfoCommand;
 
-    public ICommand ChangeActiveHorseCommand =>
-      this._changeHorseNumberCommand ??=
-        new ReactiveCommand<uint>().WithSubscribe((id) => this.model.Info.Value?.SetActiveHorse(id));
-    private ReactiveCommand<uint>? _changeHorseNumberCommand;
-
-    public ICommand UpdateScriptCommand =>
-      this._updateScriptCommand ??=
-        new AsyncReactiveCommand().WithSubscribe(() => this.model.Info.Value != null ? this.model.Info.Value.Script.UpdateAsync() : Task.CompletedTask);
-    private AsyncReactiveCommand? _updateScriptCommand;
-
     public ICommand SetWeatherCommand =>
       this._setWeatherCommand ??=
         new AsyncReactiveCommand<string>(this.CanSave).WithSubscribe(p => this.model.Info.Value != null ? this.model.Info.Value.SetWeatherAsync(p) : Task.CompletedTask);
@@ -216,73 +218,6 @@ namespace KmyKeiba.ViewModels
       this._setConditionCommand ??=
         new AsyncReactiveCommand<string>(this.CanSave).WithSubscribe(p => this.model.Info.Value != null ? this.model.Info.Value.SetConditionAsync(p) : Task.CompletedTask);
     private AsyncReactiveCommand<string>? _setConditionCommand;
-
-    public ICommand SetTrioBlockCommand =>
-      this._setTrioBlockCommand ??=
-        new ReactiveCommand<OddsBlock<TrioOdds.OddsData>>().WithSubscribe(p =>
-        {
-          if (this.model.Info.Value?.Odds.Value != null)
-          {
-            this.model.Info.Value.Odds.Value!.CurrentTrios.Value = p;
-          }
-        });
-    private ReactiveCommand<OddsBlock<TrioOdds.OddsData>>? _setTrioBlockCommand;
-
-    public ICommand SetTrifectaBlockCommand =>
-      this._setTrifectaBlockCommand ??=
-        new ReactiveCommand<OddsBlock<TrifectaOdds.OddsData>>().WithSubscribe(p =>
-        {
-          if (this.model.Info.Value?.Odds.Value != null)
-          {
-            this.model.Info.Value.Odds.Value!.CurrentTrifectas.Value = p;
-          }
-        });
-    private ReactiveCommand<OddsBlock<TrifectaOdds.OddsData>>? _setTrifectaBlockCommand;
-
-    public ICommand SetTicketTypeCommand =>
-      this._setTicketTypeCommand ??=
-        new ReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.SetType(p));
-    private ReactiveCommand<string>? _setTicketTypeCommand;
-
-    public ICommand SetTicketFormTypeCommand =>
-      this._setTicketFormTypeCommand ??=
-        new ReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.SetFormType(p));
-    private ReactiveCommand<string>? _setTicketFormTypeCommand;
-
-    public ICommand BuyTicketCommand =>
-      this._buyTicketCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Tickets.Value != null ? this.model.Info.Value.Tickets.Value!.BuyAsync() : Task.CompletedTask);
-    private AsyncReactiveCommand<object>? _buyTicketCommand;
-
-    public ICommand RemoveTicketCommand =>
-      this._removeTicketCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Tickets.Value != null ? this.model.Info.Value.Tickets.Value!.RemoveTicketAsync() : Task.CompletedTask);
-    private AsyncReactiveCommand<object>? _removeTicketCommand;
-
-    public ICommand UpdateSelectedTicketsCommand =>
-      this._updateSelectedTicketsCommand ??=
-        new ReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.UpdateIsSelected());
-    private ReactiveCommand<object>? _updateSelectedTicketsCommand;
-
-    public ICommand UpdateSelectedTicketCountsCommand =>
-      this._updateSelectedTicketCountsCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.UpdateTicketCountAsync() ?? Task.CompletedTask);
-    private AsyncReactiveCommand<object>? _updateSelectedTicketCountsCommand;
-
-    public ICommand ApproveScriptMarksCommand =>
-      this._approveScriptMarksCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveMarksAsync() ?? Task.CompletedTask);
-    private AsyncReactiveCommand<object>? _approveScriptMarksCommand;
-
-    public ICommand ApproveScriptTicketsCommand =>
-      this._approveScriptTicketsCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveTicketsAsync() ?? Task.CompletedTask);
-    private AsyncReactiveCommand<object>? _approveScriptTicketsCommand;
-
-    public ICommand ApproveReplacingScriptTicketsCommand =>
-      this._approveReplacingScriptTicketsCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveReplacingTicketsAsync() ?? Task.CompletedTask);
-    private AsyncReactiveCommand<object>? _approveReplacingScriptTicketsCommand;
 
     #endregion
   }
