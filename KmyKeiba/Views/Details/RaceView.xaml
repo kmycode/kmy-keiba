@@ -202,6 +202,7 @@
                                GroupName="{Binding UniqueId,ElementName=Root}">
                     <Border>
                       <StackPanel Orientation="Horizontal">
+                        <Border Width="6" Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
                         <TextBlock FontSize="20" Text="{Binding Data.Number}" Width="30" TextAlignment="Right" Margin="0,0,4,0"/>
                         <ContentControl Template="{Binding Mark.Value,Converter={StaticResource HorseMarkConv}}">
                           <ContentControl.RenderTransform>

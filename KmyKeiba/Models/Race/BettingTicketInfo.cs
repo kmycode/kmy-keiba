@@ -57,11 +57,7 @@ namespace KmyKeiba.Models.Race
 
       var items = horses
         .OrderBy(h => h.Data.Number)
-        .Select(h => new BettingHorseItem(h)
-        {
-          HorseNumber = h.Data.Number,
-          Name = h.Data.Name,
-        }.AddTo(this._disposables));
+        .Select(h => new BettingHorseItem(h).AddTo(this._disposables));
       var frames = horses
         .GroupBy(h => h.Data.FrameNumber)
         .OrderBy(h => h.Key)
@@ -1619,9 +1615,13 @@ namespace KmyKeiba.Models.Race
 
   public class BettingHorseItem : IDisposable, IMultipleCheckableItem
   {
-    public short HorseNumber { get; init; }
+    public short HorseNumber { get; }
 
-    public string Name { get; init; } = string.Empty;
+    public short FrameNumber { get; }
+
+    public string Name { get; }
+
+    public ReactiveProperty<RaceHorseMark> Mark { get; }
 
     string IMultipleCheckableItem.GroupName => string.Empty;
 
@@ -1631,6 +1631,11 @@ namespace KmyKeiba.Models.Race
 
     public BettingHorseItem(RaceHorseAnalyzer horse)
     {
+      this.Name = horse.Data.Name;
+      this.HorseNumber = horse.Data.Number;
+      this.FrameNumber = horse.Data.FrameNumber;
+      this.Mark = horse.Mark;
+
       this.IsEnabled = horse.Mark
         .Select(m => m != RaceHorseMark.Deleted && horse.Data.AbnormalResult != RaceAbnormality.Scratched && horse.Data.AbnormalResult != RaceAbnormality.ExcludedByStarters)
         .ToReactiveProperty();

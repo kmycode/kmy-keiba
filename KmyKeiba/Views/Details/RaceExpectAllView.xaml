@@ -299,7 +299,7 @@
                                   <RowDefinition/>
                                   <RowDefinition/>
                                 </Grid.RowDefinitions>
-                                <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Width="32" Height="20" FontSize="12"/>
+                                <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Width="32" Height="20" FontSize="12" Margin="0,0,4,0"/>
                                 <TextBlock Grid.Column="1" FontWeight="Bold" Text="{Binding Subject.DisplayName}" FontSize="15" Foreground="{DynamicResource BaseForeground}"/>
                                 <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
                                    Foreground="{DynamicResource BaseForeground}" FontSize="14"/>
@@ -1015,21 +1015,41 @@
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition/>
           </Grid.ColumnDefinitions>
+          <Grid.Resources>
+            <DataTemplate x:Key="HorseNumberButton">
+              <ToggleButton IsChecked="{Binding IsChecked.Value}" IsEnabled="{Binding IsEnabled.Value}" Padding="0,8" Width="70">
+                <StackPanel Orientation="Horizontal">
+                  <ContentControl Template="{Binding Mark.Value,Converter={StaticResource HorseMarkConv}}" Width="32" Height="32" Padding="0">
+                    <ContentControl.LayoutTransform>
+                      <TransformGroup>
+                        <TranslateTransform X="0" Y="0"/>
+                        <ScaleTransform ScaleX="0.5" ScaleY="0.5"/>
+                      </TransformGroup>
+                    </ContentControl.LayoutTransform>
+                  </ContentControl>
+                  <TextBlock Text="{Binding HorseNumber}" FontSize="16" Width="22" TextAlignment="Center"/>
+                </StackPanel>
+              </ToggleButton>
+            </DataTemplate>
+            <DataTemplate x:Key="FrameNumberButton">
+              <ToggleButton IsChecked="{Binding IsChecked.Value}" IsEnabled="{Binding IsEnabled.Value}" Padding="0,8" Width="70">
+                <StackPanel Orientation="Horizontal">
+                  <Border Width="4" Background="{Binding FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
+                  <TextBlock Text="{Binding FrameNumber}" FontSize="16" Width="40" TextAlignment="Center"/>
+                </StackPanel>
+              </ToggleButton>
+            </DataTemplate>
+          </Grid.Resources>
           
           <!--馬の番号選択１-->
           <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers1,ElementName=Root}"
-                        Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource NegativeVisibilityConv}}">
+                        Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource NegativeVisibilityConv}}"
+                        ItemTemplate="{StaticResource HorseNumberButton}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <WrapPanel Orientation="Horizontal" Width="140"/>
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding HorseNumber}" FontSize="16"
-                              IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
           </ItemsControl>
           <!--馬の番号選択２-->
           <Border Grid.Column="1" Width="156"
@@ -1041,7 +1061,8 @@
                   <Binding Path="IsChecked" ElementName="STK_Formation"/>
                 </MultiBinding>
               </Border.Visibility>
-              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers2,ElementName=Root}" Margin="16,0,0,0">
+              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers2,ElementName=Root}" Margin="16,0,0,0"
+                            ItemTemplate="{StaticResource HorseNumberButton}">
                 <ItemsControl.Visibility>
                   <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
                     <Binding Path="IsChecked" ElementName="ST_Frame"/>
@@ -1057,12 +1078,6 @@
                     <WrapPanel Orientation="Horizontal" Width="140"/>
                   </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding HorseNumber}" FontSize="16"
-                                  IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
               </ItemsControl>
             </Border>
           </Border>
@@ -1074,7 +1089,8 @@
                   <Binding Path="IsChecked" ElementName="STK_Formation"/>
                 </MultiBinding>
               </Border.Visibility>
-              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers3,ElementName=Root}" Margin="16,0,0,0">
+              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers3,ElementName=Root}" Margin="16,0,0,0"
+                            ItemTemplate="{StaticResource HorseNumberButton}">
                 <ItemsControl.Visibility>
                   <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
                     <Binding Path="IsChecked" ElementName="ST_Trio"/>
@@ -1086,29 +1102,18 @@
                     <WrapPanel Orientation="Horizontal" Width="140"/>
                   </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding HorseNumber}" FontSize="16"
-                                  IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
               </ItemsControl>
             </Border>
           </Border>
 
           <ItemsControl ItemsSource="{Binding Race.Tickets.Value.FrameNumbers1,ElementName=Root}"
-                        Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource BooleanVisibilityConv}}">
+                        Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource BooleanVisibilityConv}}"
+                        ItemTemplate="{StaticResource FrameNumberButton}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <WrapPanel Orientation="Horizontal" Width="140"/>
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding FrameNumber}" FontSize="16"
-                              IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
           </ItemsControl>
           <Border Grid.Column="1" Width="156"
                   Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource BooleanVisibilityConv}}">
@@ -1118,18 +1123,13 @@
                   <Binding Path="IsChecked" ElementName="STK_Formation"/>
                 </MultiBinding>
               </Border.Visibility>
-              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.FrameNumbers2,ElementName=Root}" Margin="16,0,0,0">
+              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.FrameNumbers2,ElementName=Root}" Margin="16,0,0,0"
+                            ItemTemplate="{StaticResource FrameNumberButton}">
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
                     <WrapPanel Orientation="Horizontal" Width="140"/>
                   </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding FrameNumber}" FontSize="16"
-                                  IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
               </ItemsControl>
             </Border>
           </Border>
