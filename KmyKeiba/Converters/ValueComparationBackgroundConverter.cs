@@ -52,6 +52,7 @@ namespace KmyKeiba.Converters
     private static readonly Brush baseBrush = Application.Current.TryFindResource("BaseForeground") as Brush ?? Brushes.Red;
     private static readonly Brush goodBrush = Application.Current.TryFindResource("GoodForeground") as Brush ?? Brushes.Red;
     private static readonly Brush badBrush = Application.Current.TryFindResource("BadForeground") as Brush ?? Brushes.Blue;
+    private static readonly Brush warningBrush = Application.Current.TryFindResource("WarningForeground") as Brush ?? Brushes.Yellow;
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
@@ -61,6 +62,7 @@ namespace KmyKeiba.Converters
         {
           ValueComparation.Good => goodBrush,
           ValueComparation.Bad => badBrush,
+          ValueComparation.Warning => warningBrush,
           _ => baseBrush,
         };
       }

@@ -528,6 +528,7 @@ namespace KmyKeiba.Models.Analysis
     Standard,
     Good,
     Bad,
+    Warning,
   }
 
   public enum DistanceAptitude

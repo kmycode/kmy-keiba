@@ -625,6 +625,9 @@ namespace KmyKeiba.Models.Connection
         this.IsCancelProcessing.Value = false;
         this.ProcessingStep.Value = Connection.ProcessingStep.Unknown;
         this.LoadingProcess.Value = LoadingProcessValue.Unknown;
+
+        this.StartMonth.Value = startMonth;
+        this.StartYear.Value = startYear;
       }
 
       logger.Info("ダウンロード処理を終了します");
