@@ -38,6 +38,8 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<bool> IsInitialized => this.downloader.IsInitialized;
 
+    public ReactiveProperty<bool> IsLongDownloadMonth => this.downloader.IsLongDownloadMonth;
+
     public string FirstMessage => this.model.FirstMessage;
 
     public OpenDialogRequest Dialog { get; } = new();

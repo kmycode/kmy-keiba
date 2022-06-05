@@ -3,11 +3,14 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Connection;
+using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +20,8 @@ namespace KmyKeiba.Models.Analysis
 {
   public class RaceAnalyzer : IDisposable
   {
+    private readonly CompositeDisposable _disposables = new();
+
     public RaceData Data { get; }
 
     public RaceSubjectInfo Subject { get; }
@@ -46,6 +51,10 @@ namespace KmyKeiba.Models.Analysis
 
     public RacePace A3HPace { get; }
 
+    public ReactiveProperty<string> Memo { get; } = new();
+
+    public ReactiveProperty<bool> IsMemoSaving { get; } = new();
+
     public ReactiveCollection<RaceHorseMatchResult> Matches { get; } = new();
 
     public RaceMovieInfo Movie => this._movie ??= new(this.Data);
@@ -64,6 +73,25 @@ namespace KmyKeiba.Models.Analysis
         .Where(rs => rs != RunningStyle.Unknown)
         .ToArray();
       this.TopRunningStyle = this.RunningStyles.FirstOrDefault();
+
+      this.Memo.Value = race.Memo ?? string.Empty;
+      this.Memo.Skip(1).Subscribe(async m =>
+      {
+        if (this.IsMemoSaving.Value)
+        {
+          return;
+        }
+
+        this.IsMemoSaving.Value = true;
+
+        using var db = new MyContext();
+        db.Races!.Attach(this.Data);
+        this.Data.Memo = m;
+
+        await db.SaveChangesAsync();
+
+        this.IsMemoSaving.Value = false;
+      }).AddTo(this._disposables);
 
       this.RoughRate = AnalysisUtil.CalcRoughRate(topHorses);
 
@@ -113,6 +141,7 @@ namespace KmyKeiba.Models.Analysis
 
     public void Dispose()
     {
+      this._disposables.Dispose();
       this.TopHorse.Dispose();
       foreach (var h in this.TopHorses)
       {
@@ -124,27 +153,27 @@ namespace KmyKeiba.Models.Analysis
 
     public ICommand PlayRaceMovieCommand =>
       this._playRaceMovieCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsRaceError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayRaceAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsRaceError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayRaceAsync());
     private AsyncReactiveCommand<object>? _playRaceMovieCommand;
 
     public ICommand PlayPaddockCommand =>
       this._playPaddockCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsPaddockError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPaddockAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsPaddockError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayPaddockAsync());
     private AsyncReactiveCommand<object>? _playPaddockCommand;
 
     public ICommand PlayPaddockForceCommand =>
       this._playPaddockForceCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsPaddockForceError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPaddockForceAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsPaddockForceError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayPaddockForceAsync());
     private AsyncReactiveCommand<object>? _playPaddockForceCommand;
 
     public ICommand PlayPatrolCommand =>
       this._playPatrolCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsPatrolError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPatrolAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsPatrolError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayPatrolAsync());
     private AsyncReactiveCommand<object>? _playPatrolCommand;
 
     public ICommand PlayMultiCamerasCommand =>
       this._playMultiCamerasCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsMultiCamerasError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayMultiCamerasAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsMultiCamerasError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayMultiCamerasAsync());
     private AsyncReactiveCommand<object>? _playMultiCamerasCommand;
 
     public ICommand OpenRaceWindowCommand =>

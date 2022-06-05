@@ -38,7 +38,7 @@ namespace KmyKeiba.Models.Connection
         this.IsMultiCamerasError.Value = true;
         this.IsRaceError.Value = true;
       }
-      if (race.StartTime.Date != today)
+      if (race.StartTime.Date > today)
       {
         this.IsPaddockForceError.Value = true;
       }

@@ -73,6 +73,7 @@ namespace KmyKeiba.Downloader
         }
       }
       logger.Info($"コマンドラインパラメータ: {string.Join(',', args)}");
+      Console.WriteLine(string.Join(',', args));
 
       // JV-LinkのIDを設定
       var softwareId = InjectionManager.GetInstance<ICentralSoftwareIdGetter>(InjectionManager.CentralSoftwareIdGetter);

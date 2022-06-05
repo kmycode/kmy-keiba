@@ -41,6 +41,8 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsProcessing { get; } = new();
 
+    public ReactiveProperty<bool> IsLongDownloadMonth { get; } = new();
+
     public ReactiveProperty<bool> IsRTDownloading { get; } = new();
 
     public ReactiveProperty<bool> IsRTProcessing { get; } = new();
@@ -732,6 +734,8 @@ namespace KmyKeiba.Models.Connection
           using var db = new MyContext();
           await ConfigUtil.SetIntValueAsync(db, SettingKey.LastDownloadCentralDate, year * 100 + month);
           logger.Info($"{year}/{month:00} の中央競馬通常データダウンロード完了");
+
+          this.IsLongDownloadMonth.Value = year == 2002 && month == 12;
         }
         if (task.Parameter.Contains("local") && (this.LocalDownloadedMonth.Value != month || this.LocalDownloadedYear.Value != year))
         {
