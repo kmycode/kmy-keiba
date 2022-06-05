@@ -12,7 +12,7 @@ namespace KmyKeiba.Models.Connection
 {
   public class RaceMovieInfo
   {
-    public RaceData? Race { get; }
+    public RaceData Race { get; }
 
     public ReactiveProperty<bool> IsRaceError { get; } = new();
 
@@ -72,7 +72,48 @@ namespace KmyKeiba.Models.Connection
 
     public async Task PlayRaceAsync()
     {
-      await this.PlayRaceAsync(MovieType.Race, this.IsRaceError);
+      if (this.Race.Course <= RaceCourse.CentralMaxValue)
+      {
+        await this.PlayRaceAsync(MovieType.Race, this.IsRaceError);
+      }
+      else
+      {
+        // 地方競馬は楽天から
+        var courseCode = this.Race.Key.Substring(8, 2);
+        var rakutenCourseCode = courseCode switch
+        {
+          "45" => "2135",      // 川崎
+          "41" => "2015",      // 大井
+          "43" => "1914",      // 船橋
+          "42" => "1813",      // 浦和
+          "36" => "1106",      // 水沢
+          "30" => "3601",      // 門別
+          "83" => "0304",      // 帯広（ば）
+          "46" => "2218",      // 金沢
+          "47" => "2320",      // 笠松
+          "48" => "2433",      // 名古屋
+          "50" => "2726",      // 園田
+          "54" => "3129",      // 高知
+          "55" => "3230",      // 佐賀
+          "51" => "2826",      // 姫路
+          "35" => "1006",      // 盛岡
+          _ => string.Empty,
+        };
+        var rakutenKey = this.Race.Key.Substring(0, 8) + rakutenCourseCode + this.Race.Key.Substring(10);
+
+        try
+        {
+          System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+          {
+            FileName = "https://keiba.rakuten.co.jp/archivemovie/RACEID/" + rakutenKey,
+            UseShellExecute = true,
+          });
+        }
+        catch
+        {
+          this.IsRaceError.Value = true;
+        }
+      }
     }
 
     public async Task PlayPaddockAsync()
