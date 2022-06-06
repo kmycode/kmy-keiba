@@ -25,6 +25,8 @@ namespace KmyKeiba.JVLink.Wrappers
     JVLinkObjectType Type { get; }
 
     JVLinkReaderData Load(IEnumerable<string>? targetSpecs = null);
+
+    void StopLoading();
   }
 
   class EmptyJVLinkReader : IJVLinkReader
@@ -48,12 +50,17 @@ namespace KmyKeiba.JVLink.Wrappers
     {
       return new JVLinkReaderData();
     }
+
+    public void StopLoading()
+    {
+    }
   }
 
   class JVLinkReader : IJVLinkReader
   {
     private readonly IJVLinkObject link;
     private readonly bool isRealTime;
+    private bool isCanceled;
 
     public JVLinkObjectType Type => this.link.Type;
 
@@ -102,6 +109,11 @@ namespace KmyKeiba.JVLink.Wrappers
 
       while (true)
       {
+        if (this.isCanceled)
+        {
+          return data;
+        }
+
         var buff = Array.Empty<byte>();
         var result = this.link.Gets(ref buff, buffSize, out string fileName);
         if (result < -1)
@@ -446,6 +458,11 @@ namespace KmyKeiba.JVLink.Wrappers
       this.ReadedCount = this.ReadCount;
 
       return data;
+    }
+
+    public void StopLoading()
+    {
+      this.isCanceled = true;
     }
 
     public void Dispose()

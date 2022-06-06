@@ -16,6 +16,8 @@ namespace KmyKeiba.Data.Db
 
     public bool IsCanceled { get; set; }
 
+    public bool IsStarted { get; set; }
+
     public DownloaderError Error { get; set; }
 
     public string Result { get; set; } = string.Empty;
@@ -49,6 +51,9 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderCommand("movielist")]
     OpenMovieList = 8,
+
+    [DownloaderCommand("rthost")]
+    StartRealTimeHost = 9,
   }
 
   public enum DownloaderError : short

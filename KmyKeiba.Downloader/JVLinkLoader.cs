@@ -92,6 +92,8 @@ namespace KmyKeiba.Downloader
 
       await Task.Run(async () =>
       {
+        IJVLinkReader? reader = null;
+
         try
         {
           this.Process = LoadProcessing.Opening;
@@ -114,9 +116,10 @@ namespace KmyKeiba.Downloader
                 if (DateTime.Now - start > TimeSpan.FromSeconds(waitSeconds))
                 {
                   logger.Warn("接続オープンに失敗したので強制終了します");
-                  await Program.RestartProgramAsync(false);
+                  await Program.RestartProgramAsync(false, isForce: true);
                 }
-                Program.CheckShutdown();
+
+                Program.CheckShutdown(isForce: true);
               }
             });
 
@@ -128,7 +131,7 @@ namespace KmyKeiba.Downloader
           if (option != JVLinkOpenOption.RealTime)
           {
             logger.Info("接続オープン：セットアップまたは通常データ");
-            var reader = StartReadWithTimeout(() => link.StartRead(dataspec,
+            reader = StartReadWithTimeout(() => link.StartRead(dataspec,
                option,
                this.StartTime.Value,
                this.IsSetEndTime.Value ? this.EndTime.Value : null));
@@ -139,14 +142,14 @@ namespace KmyKeiba.Downloader
             if (raceKey == null)
             {
               logger.Info("接続オープン：日付");
-              var reader = StartReadWithTimeout(() => link.StartRead(dataspec,
+              reader = StartReadWithTimeout(() => link.StartRead(dataspec,
                  JVLinkOpenOption.RealTime, this.StartTime.Value.Date));
               await this.LoadAsync(reader, loadSpecs, false, true);
             }
             else
             {
               logger.Info("接続オープン：特定レース");
-              var reader = StartReadWithTimeout(() => link.StartRead(dataspec,
+              reader = StartReadWithTimeout(() => link.StartRead(dataspec,
                   JVLinkOpenOption.RealTime, raceKey));
               await this.LoadAsync(reader, loadSpecs, false, true);
             }
@@ -200,6 +203,15 @@ namespace KmyKeiba.Downloader
           logger.Error($"データ読み込みでエラーが発生 {ex.Code}", ex);
 
           _ = Program.RestartProgramAsync(false);
+        }
+        catch (TaskCanceledAndContinueProgramException)
+        {
+          logger.Warn("タスクはキャンセルされました");
+          if (reader != null)
+          {
+            this.DisposeLink(reader, null);
+          }
+          return;
         }
         catch (Exception ex)
         {
@@ -281,39 +293,51 @@ namespace KmyKeiba.Downloader
       logger.Info("ダウンロードが完了しました");
 
       waitCount = 0;
-      var isDisposed = false;
 
       JVLinkReaderData data = new();
       var isLoaded = false;
+      var isLoadCanceled = false;
       var loadTimeout = 0;
       var loadTask = Task.Run(async () =>
       {
-        while (!isLoaded)
+        try
         {
-          await Task.Delay(80);
+          while (!isLoaded)
+          {
+            await Task.Delay(80);
 
-          if (this.Loaded.Value != reader.ReadedCount || this.LoadEntityCount.Value != reader.ReadedEntityCount)
-          {
-            this.Loaded.Value = reader.ReadedCount;
-            this.LoadEntityCount.Value = reader.ReadedEntityCount;
-            loadTimeout = 0;
-          }
-          else
-          {
-            loadTimeout += 80;
-            if (loadTimeout >= 100_000)
+            if (this.Loaded.Value != reader.ReadedCount || this.LoadEntityCount.Value != reader.ReadedEntityCount)
             {
-              await Program.RestartProgramAsync(false);
+              this.Loaded.Value = reader.ReadedCount;
+              this.LoadEntityCount.Value = reader.ReadedEntityCount;
               loadTimeout = 0;
             }
-          }
+            else
+            {
+              loadTimeout += 80;
+              if (loadTimeout >= 100_000)
+              {
+                await Program.RestartProgramAsync(false);
+                loadTimeout = 0;
+              }
+            }
 
-          waitCount += 80;
-          if (waitCount > 10_000)
-          {
-            Program.CheckShutdown();
-            waitCount = 0;
+            waitCount += 80;
+            if (waitCount > 10_000)
+            {
+              Program.CheckShutdown();
+              waitCount = 0;
+            }
           }
+        }
+        catch (TaskCanceledAndContinueProgramException)
+        {
+          isLoadCanceled = true;
+          reader.StopLoading();
+        }
+        catch (Exception ex)
+        {
+          logger.Error("ロード監視でエラー発生");
         }
       });
 
@@ -336,16 +360,38 @@ namespace KmyKeiba.Downloader
       isLoaded = true;
       Program.CheckShutdown();
 
-      // readerのDisposeが完了しない場合がある
-      var isDone = false;
-      _ = Task.Run(async () =>
+      if (isLoadCanceled)
       {
-        try
+        this.DisposeLink(reader, null);
+      }
+      else
+      {
+        this.DisposeLink(reader, async () =>
         {
           var loadStartTime = DateTime.Now;
           logger.Info("ロード完了");
 
           await LoadAfterAsync(data, isProcessing, isRealtime);
+        });
+      }
+    }
+
+
+    private void DisposeLink(IJVLinkReader reader, Func<Task>? processingAsync)
+    {
+      // readerのDisposeが完了しない場合がある
+      var isDone = false;
+      var isDisposed = false;
+      _ = Task.Run(async () =>
+      {
+        try
+        {
+          var loadStartTime = DateTime.Now;
+
+          if (processingAsync != null)
+          {
+            await processingAsync();
+          }
           isDone = true;
 
           if (!isDisposed)
@@ -358,7 +404,7 @@ namespace KmyKeiba.Downloader
             if (!isDisposed)
             {
               logger.Warn("接続のクローズが完了しないため、強制的に破棄します");
-              await Program.RestartProgramAsync(true);
+              await Program.RestartProgramAsync(true, true);
             }
           }
         }
@@ -381,7 +427,7 @@ namespace KmyKeiba.Downloader
       // ロード処理を待機。終わるまで制御を戻さない
       while (!isDone)
       {
-        await Task.Delay(100);
+        Task.Delay(100).Wait();
       }
       logger.Info("ロード処理が正常に完了しました");
     }
