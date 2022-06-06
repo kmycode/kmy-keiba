@@ -61,7 +61,7 @@ namespace KmyKeiba.Downloader
       {
         object oldArgs = args;
 
-        //args = new[] { "dwrt", "75", };
+        //args = new[] { "dwrt", "31", };
         //args = new[] { "movie", "1266", };
         //args = new[] { "kill", "2960" };
         //args = new[] { "download", "5" };
@@ -223,7 +223,7 @@ namespace KmyKeiba.Downloader
               t.Result = ex.GetType().Name + "/" + ex.Message;
             });
           }
-          KillMe();
+          KillMe(isForce: true);
         }
       }
       else if (command == DownloaderCommand.OpenMovie.GetCommandText())
@@ -263,7 +263,6 @@ namespace KmyKeiba.Downloader
           // 切り捨てる
           logger.Warn($"プロセス {beforeProcessNumber} のキルに失敗しました", ex);
           Console.WriteLine(ex.Message);
-          Console.ReadKey();
         }
       }
       else

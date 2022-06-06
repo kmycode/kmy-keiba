@@ -77,11 +77,11 @@ namespace KmyKeiba.Downloader
       }
     }
 
-    private static void KillMe()
+    private static void KillMe(bool isForce = false)
     {
       logger.Info("自殺を開始します");
 
-      if (!isHost && (currentTask == null || !currentTask.Parameter.Contains("local")))
+      if (!isHost && !isForce && (currentTask == null || !currentTask.Parameter.Contains("local")))
       {
         logger.Info("中央競馬：正常終了");
         Environment.Exit(0);

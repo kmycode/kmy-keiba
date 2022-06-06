@@ -380,7 +380,7 @@ namespace KmyKeiba.Downloader
             dataspecs[i],
             JVLinkOpenOption.RealTime,
             raceKey: useKey,
-            startTime: null,
+            startTime: start,
             endTime: null,
             loadSpecs: null);
 
