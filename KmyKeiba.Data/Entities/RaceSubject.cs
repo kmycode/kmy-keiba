@@ -15,6 +15,8 @@ namespace KmyKeiba.JVLink.Entities
   {
     public string Name { get; init; } = string.Empty;
 
+    public string RaceName { get; init; } = string.Empty;
+
     public int Money { get; private set; }
 
     public RaceMoneySubject MoneySubject { get; private set; }
@@ -221,18 +223,18 @@ namespace KmyKeiba.JVLink.Entities
     {
       var subject = new RaceSubject
       {
+        RaceName = raceName,
         Name = text,
       };
 
 #pragma warning disable CA1416 // プラットフォームの互換性を検証
       text = Microsoft.VisualBasic.Strings.StrConv(text, Microsoft.VisualBasic.VbStrConv.Narrow)!;
+      raceName = Microsoft.VisualBasic.Strings.StrConv(raceName, Microsoft.VisualBasic.VbStrConv.Narrow)!;
 #pragma warning restore CA1416 // プラットフォームの互換性を検証
 
-      var reg = new Regex(@"(((?<age>\d)歳\s*)*)(?<class>[A-Z])-*(?<number>\d*)\s*-*(?<group>[一二三四五六七八九\d]*)\s*((?<classsub>以上|未満|以下)*)");
-      var match = reg.Match(text);
-      for (; match.Success; match = match.NextMatch())
+      static RaceClass StringToClass(string text)
       {
-        var cls = match.Groups["class"].Value switch
+        return text switch
         {
           "A" => RaceClass.ClassA,
           "B" => RaceClass.ClassB,
@@ -240,6 +242,13 @@ namespace KmyKeiba.JVLink.Entities
           "D" => RaceClass.ClassD,
           _ => RaceClass.Unknown,
         };
+      }
+
+      var reg = new Regex(@"(((?<age>\d)歳\s*)*)(?<class>[A-Z])-*(?<number>\d*)\s*-*(?<group>[一二三四五六七八九\d]*)\s*((?<classsub>以上|未満|以下)*)");
+      var match = reg.Match(text);
+      for (; match.Success; match = match.NextMatch())
+      {
+        var cls = StringToClass(match.Groups["class"].Value);
 
         var grp = match.Groups["group"].Value switch
         {
@@ -308,7 +317,7 @@ namespace KmyKeiba.JVLink.Entities
         }
       }
 
-      bool TryMatch(Regex reg, string str)
+      bool TryMatchAge(Regex reg, string str)
       {
         match = reg.Match(str);
         if (match.Success)
@@ -326,9 +335,9 @@ namespace KmyKeiba.JVLink.Entities
 
         reg = new Regex(@"(?<age>\d)歳");
 
-        if (!TryMatch(reg, text))
+        if (!TryMatchAge(reg, text))
         {
-          TryMatch(reg, raceName);
+          TryMatchAge(reg, raceName);
         }
       }
       else if (text.Contains("未勝利") || text.Contains("認未勝") || raceName.Contains("未勝利") || raceName.Contains("認未勝"))
@@ -337,9 +346,9 @@ namespace KmyKeiba.JVLink.Entities
 
         reg = new Regex(@"(?<age>\d)歳");
 
-        if (!TryMatch(reg, text))
+        if (!TryMatchAge(reg, text))
         {
-          TryMatch(reg, raceName);
+          TryMatchAge(reg, raceName);
         }
       }
       else if (text.Contains("OP") || raceName.Contains("OP"))
@@ -348,18 +357,35 @@ namespace KmyKeiba.JVLink.Entities
 
         reg = new Regex(@"(?<age>\d)歳");
 
-        if (!TryMatch(reg, text))
+        if (!TryMatchAge(reg, text))
         {
-          TryMatch(reg, raceName);
+          TryMatchAge(reg, raceName);
         }
       }
       else if (!subject.Items.Any())
       {
         reg = new Regex(@"(?<age>\d+)歳");
 
-        if (!TryMatch(reg, text))
+        if (!TryMatchAge(reg, text))
         {
-          TryMatch(reg, raceName);
+          TryMatchAge(reg, raceName);
+        }
+      }
+
+      if (!subject.Items.Any())
+      {
+        // 笠松でこんなタイトルがある
+        // マッチングを「?級」と一般化するのは、協賛レースに引っ掛かる可能性もあり避ける
+        reg = new Regex(@"(?<class>[A-Z])級(ｻﾊﾞｲﾊﾞﾙ|ｾﾚｸｼｮﾝ)");
+
+        match = reg.Match(raceName);
+        if (match.Success)
+        {
+          var cls = StringToClass(match.Groups["class"].Value);
+          subject.Items.Add(new DataItem
+          {
+            Class = cls,
+          });
         }
       }
 

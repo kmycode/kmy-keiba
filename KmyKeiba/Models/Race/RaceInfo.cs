@@ -82,6 +82,10 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<bool> CanUpdate { get; } = new();
 
+    public ReactiveProperty<bool> IsNewDataHasResults { get; } = new();
+
+    public ReactiveProperty<bool> IsWillTrendAnalyzersResetedOnUpdate { get; } = new();
+
     public ReactiveProperty<bool> CanBuy { get; } = new();
 
     public ReactiveProperty<TimeSpan> BuyLimit { get; } = new();
@@ -196,11 +200,17 @@ namespace KmyKeiba.Models.Race
     {
       ThreadUtil.InvokeOnUiThread(() =>
       {
-        this.Horses.AddRangeOnScheduler(horses.OrderBy(h => h.Data.Number));
-        this.HorsesResultOrdered.AddRangeOnScheduler(
-          horses.Where(h => h.Data.ResultOrder > 0).OrderBy(h => h.Data.ResultOrder).Concat(
-            horses.Where(h => h.Data.ResultOrder == 0 && h.Data.AbnormalResult != RaceAbnormality.Unknown).OrderBy(h => h.Data.Number).OrderBy(h => h.Data.AbnormalResult)));
+        foreach (var horse in horses.OrderBy(h => h.Data.Number))
+        {
+          this.Horses.Add(horse);
+        }
+        foreach (var horse in horses.Where(h => h.Data.ResultOrder > 0).OrderBy(h => h.Data.ResultOrder).Concat(
+            horses.Where(h => h.Data.ResultOrder == 0 && h.Data.AbnormalResult != RaceAbnormality.Unknown).OrderBy(h => h.Data.Number).OrderBy(h => h.Data.AbnormalResult)))
+        {
+          this.HorsesResultOrdered.Add(horse);
+        }
         this.RaceAnalyzer.Value = new RaceAnalyzer(this.Data, horses.Select(h => h.Data).ToArray(), standardTime);
+        this.RaceAnalyzer.Value.SetMatches(horses);
 
         this.HasResults.Value = this.Horses.Any(h => h.Data.ResultOrder > 0);
         this.HasHorses.Value = true;
@@ -368,6 +378,8 @@ namespace KmyKeiba.Models.Race
           if (isUpdate)
           {
             this.CanUpdate.Value = isUpdate;
+            this.IsWillTrendAnalyzersResetedOnUpdate.Value = this.IsWillResetTrendAnalyzersDataOnUpdate(newData);
+            this.IsNewDataHasResults.Value = this.Data.DataStatus <= RaceDataStatus.Horses2 && newData.DataStatus >= RaceDataStatus.PreliminaryGrade3;
           }
 
           logger.Debug($"表示中のレース {this.Data.Key} の更新状態を確認しました。結果: {isUpdate}");
@@ -376,6 +388,53 @@ namespace KmyKeiba.Models.Race
       catch (Exception ex)
       {
         logger.Error($"{this.Data.Key} のレースの更新可能状態を確認できませんでした", ex);
+      }
+    }
+
+    private bool IsWillResetTrendAnalyzersDataOnUpdate(RaceData newData)
+    {
+      // 更新の時に傾向検索結果をリセットする必要があるか
+      return !(newData.TrackWeather == this.Data.TrackWeather && newData.TrackCondition == this.Data.TrackCondition &&
+        newData.Distance == this.Data.Distance && newData.TrackGround == this.Data.TrackGround &&
+        newData.TrackOption == this.Data.TrackOption && newData.TrackCornerDirection == this.Data.TrackCornerDirection &&
+        newData.SubjectAge2 == this.Data.SubjectAge2 && newData.SubjectAge3 == this.Data.SubjectAge3 &&
+        newData.SubjectAge4 == this.Data.SubjectAge4 && newData.SubjectAge5 == this.Data.SubjectAge5 &&
+        newData.SubjectAgeYounger == this.Data.SubjectAgeYounger && newData.SubjectName == this.Data.SubjectName);
+    }
+
+    public void CopyTrendAnalyzersFrom(RaceInfo source)
+    {
+      this.TrendAnalyzers.CopyFrom(source.TrendAnalyzers);
+
+      if (!source.IsWillResetTrendAnalyzersDataOnUpdate(this.Data))
+      {
+        foreach (var horse in source.Horses.Join(this.Horses, h => h.Data.Id, h => h.Data.Id, (o, n) => new { Old = o, New = n, }))
+        {
+          if (horse.New.TrendAnalyzers != null && horse.Old.TrendAnalyzers != null)
+          {
+            horse.New.TrendAnalyzers.CopyFrom(horse.Old.TrendAnalyzers);
+          }
+          if (horse.New.RiderTrendAnalyzers != null && horse.Old.RiderTrendAnalyzers != null &&
+            horse.New.Data.RiderCode == horse.Old.Data.RiderCode)
+          {
+            horse.New.RiderTrendAnalyzers.CopyFrom(horse.Old.RiderTrendAnalyzers);
+          }
+          if (horse.New.TrainerTrendAnalyzers != null && horse.Old.TrainerTrendAnalyzers != null)
+          {
+            horse.New.TrainerTrendAnalyzers.CopyFrom(horse.Old.TrainerTrendAnalyzers);
+          }
+
+          if (horse.New.BloodSelectors != null && horse.Old.BloodSelectors != null)
+          {
+            foreach (var menuItem in horse.New.BloodSelectors.MenuItems
+              .Join(horse.Old.BloodSelectors.MenuItems, i => i.Type, i => i.Type, (o, n) => new { Old = o, New = n, }))
+            {
+              menuItem.New.Selector.CopyFrom(menuItem.Old.Selector);
+            }
+          }
+        }
+
+        logger.Info("更新前のTrendAnalyzersをコピーしました");
       }
     }
 
@@ -483,6 +542,7 @@ namespace KmyKeiba.Models.Race
           var horseKeys = horses.Select(h => h.Key).ToArray();
           var horseAllHistories = await db.RaceHorses!
             .Where(rh => horseKeys.Contains(rh.Key))
+            .Where(rh => rh.Key != "0000000000")
             .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, })
             .Where(d => d.Race.StartTime < race.StartTime)
             .OrderByDescending(d => d.Race.StartTime)
@@ -533,18 +593,18 @@ namespace KmyKeiba.Models.Race
             {
               if (horse.History != null && timedvMax != null && timedvMin != null)
               {
-                horse.History.TimeDVComparation = horse.History.TimeDeviationValue + 2 >= timedvMax ? ValueComparation.Good :
-                  horse.History.TimeDeviationValue - 2 <= timedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                horse.History.TimeDVComparation = horse.History.TimeDeviationValue + 0.5 >= timedvMax ? ValueComparation.Good :
+                  horse.History.TimeDeviationValue - 0.5 <= timedvMin ? ValueComparation.Bad : ValueComparation.Standard;
               }
               if (horse.History != null && a3htimedvMax != null && a3htimedvMin != null)
               {
-                horse.History.A3HTimeDVComparation = horse.History.A3HTimeDeviationValue + 2 >= a3htimedvMax ? ValueComparation.Good :
-                  horse.History.A3HTimeDeviationValue - 2 <= a3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                horse.History.A3HTimeDVComparation = horse.History.A3HTimeDeviationValue + 0.5 >= a3htimedvMax ? ValueComparation.Good :
+                  horse.History.A3HTimeDeviationValue - 0.5 <= a3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
               }
               if (horse.History != null && ua3htimedvMax != null && ua3htimedvMin != null)
               {
-                horse.History.UntilA3HTimeDVComparation = horse.History.UntilA3HTimeDeviationValue + 2 >= ua3htimedvMax ? ValueComparation.Good :
-                  horse.History.UntilA3HTimeDeviationValue - 2 <= ua3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                horse.History.UntilA3HTimeDVComparation = horse.History.UntilA3HTimeDeviationValue + 0.5 >= ua3htimedvMax ? ValueComparation.Good :
+                  horse.History.UntilA3HTimeDeviationValue - 0.5 <= ua3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
               }
               if (riderPlaceRateMax != 0)
               {

@@ -25,9 +25,13 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<TimeSpan> SpeedAverage { get; } = new();
 
-    public ReactiveProperty<TimeSpan> SpeedMedian { get; } = new();
+    public ReactiveProperty<double> DisturbanceRate { get; } = new();
 
-    public ReactiveProperty<TimeSpan> SpeedDeviation { get; } = new();
+    public ReactiveProperty<double> TimeDeviationValue { get; } = new();
+
+    public ReactiveProperty<double> A3HTimeDeviationValue { get; } = new();
+
+    public ReactiveProperty<double> UntilA3HTimeDeviationValue { get; } = new();
 
     public ReactiveProperty<ResultOrderGradeMap> FrontRunnersGrade { get; } = new();
 
@@ -79,14 +83,20 @@ namespace KmyKeiba.Models.Analysis
       {
         // 分析
         this.SpeedAverage.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Average * this.Race.Distance);
-        this.SpeedMedian.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Median * this.Race.Distance);
-        this.SpeedDeviation.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Deviation * this.Race.Distance);
+        this.DisturbanceRate.Value = AnalysisUtil.CalcDisturbanceRate(source);
 
         var horses = source.Select(s => s.Data);
         this.FrontRunnersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.FrontRunner).ToArray());
         this.StalkersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.Stalker).ToArray());
         this.SotpsGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.Sotp).ToArray());
         this.SaveRunnersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.SaveRunner).ToArray());
+
+        var timePoint = new StatisticSingleArray(source.Select(h => h.ResultTimeDeviationValue).Where(v => v != default).ToArray());
+        var a3htimePoint = new StatisticSingleArray(source.Select(h => h.A3HResultTimeDeviationValue).Where(v => v != default).ToArray());
+        var ua3htimePoint = new StatisticSingleArray(source.Select(h => h.UntilA3HResultTimeDeviationValue).Where(v => v != default).ToArray());
+        this.TimeDeviationValue.Value = timePoint.Median;
+        this.A3HTimeDeviationValue.Value = a3htimePoint.Median;
+        this.UntilA3HTimeDeviationValue.Value = ua3htimePoint.Median;
 
         var validRaces = source.Where(r => r.Data.ResultOrder != 0);
         var sourceArr = source.Select(s => s.Data).ToArray();

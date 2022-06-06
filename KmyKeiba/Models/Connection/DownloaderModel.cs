@@ -186,6 +186,7 @@ namespace KmyKeiba.Models.Connection
         var centralDownloadedMonth = (this.IsDownloadCentral.Value && this.CentralDownloadedYear.Value != default) ? this.CentralDownloadedMonth.Value : default ;
         var localDownloadedYear = (this.IsDownloadLocal.Value && this.LocalDownloadedYear.Value != default) ? this.LocalDownloadedYear.Value : default;
         var localDownloadedMonth = (this.IsDownloadLocal.Value && this.LocalDownloadedYear.Value != default) ? this.LocalDownloadedMonth.Value : default;
+        logger.Debug($"保存されていたデータ: 中央競馬DL年月: {centralDownloadedYear * 100 + centralDownloadedMonth}, 地方競馬DL年月: {localDownloadedYear * 100 + localDownloadedMonth}");
         if (centralDownloadedYear != default && localDownloadedYear != default)
         {
           if (centralDownloadedYear < localDownloadedYear)
@@ -219,20 +220,25 @@ namespace KmyKeiba.Models.Connection
           this.StartYear.Value = 2000;
           this.StartMonth.Value = 1;
         }
+        logger.Debug($"画面に反映するデータ: 中央競馬DL年月: {centralDownloadedYear * 100 + centralDownloadedMonth}, 地方競馬DL年月: {localDownloadedYear * 100 + localDownloadedMonth}");
+        logger.Info("初期化完了、最新データのダウンロードを開始");
 
         // 最新情報をダウンロードする
         this.StartRTDownloadLoop();
       }
       catch (DownloaderCommandException ex)
       {
-        // TODO: logs
+        logger.Fatal("初期化でダウンローダとの連携時にエラーが発生", ex);
         this.IsInitializationError.Value = true;
         this.ErrorMessage.Value = !string.IsNullOrEmpty(ex.Message) ? ex.Message : ex.Error.GetErrorText();
         isFirst = false;
       }
-      catch
+      catch (Exception ex)
       {
-        // TODO: logs
+        logger.Fatal("初期化で想定外のエラーが発生", ex);
+        this.IsInitializationError.Value = true;
+        this.ErrorMessage.Value = "予期しないエラーが発生しました";
+        isFirst = false;
       }
 
       return isFirst;
@@ -240,6 +246,8 @@ namespace KmyKeiba.Models.Connection
 
     private void StartRTDownloadLoop()
     {
+      var today = DateOnly.FromDateTime(DateTime.Today);
+
       async Task DownloadRTAsync(DateOnly date)
       {
         if (this.IsRTDownloadCentral.Value)
@@ -253,18 +261,55 @@ namespace KmyKeiba.Models.Connection
           }
           if (isDownload)
           {
+            logger.Info($"中央競馬の最新情報取得を開始 木～月のみ更新: {isDownloadAfterThursday}");
             await this.DownloadRTAsync(DownloadLink.Central, date);
           }
         }
         if (this.IsRTDownloadLocal.Value)
         {
+          logger.Info("地方競馬の最新情報取得を開始");
           await this.DownloadRTAsync(DownloadLink.Local, date);
+        }
+      }
+
+      async Task DownloadPlanOfRacesAsync(int year, int month, int day)
+      {
+        // 自動更新用のフラグでセットアップデータを落としてるが、これでよい
+        // （自動更新したいデータが１週間より前のものだとRTからダウンロードできなくなるので）
+        if (this.IsRTDownloadCentral.Value)
+        {
+          logger.Info($"中央競馬の標準データ更新を開始 {year}/{month}/{day}");
+          await this.DownloadAsync(DownloadLink.Central, year, month, day);
+        }
+        if (this.IsRTDownloadLocal.Value)
+        {
+          logger.Info($"地方競馬の標準データ更新を開始 {year}/{month}/{day}");
+          await this.DownloadAsync(DownloadLink.Local, year, month, day);
+        }
+      }
+
+      async Task DownloadHolidayResultsAsync()
+      {
+        if (this.IsRTDownloadCentral.Value)
+        {
+          // 日曜日や月曜日午前は、土日のレース結果などをRTでしか提供していない様子
+          if (today.DayOfWeek == DayOfWeek.Sunday)
+          {
+            logger.Info("土曜日の中央競馬の結果を取得");
+            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(-1));
+          }
+          else if (today.DayOfWeek == DayOfWeek.Monday)
+          {
+            logger.Info("土日の中央競馬の結果を取得");
+            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(-2));
+            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(-1));
+          }
         }
       }
 
       Task.Run(async () =>
       {
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var lastDownloadNormalData = DateTime.MinValue;
 
         var lastLaunchDay = 0;
         var year = 0;
@@ -281,6 +326,7 @@ namespace KmyKeiba.Models.Connection
 
           lastStandardTimeUpdatedYear = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastUpdateStandardTimeYear);
         }
+        logger.Info($"最後に標準タイムを更新した年: {lastStandardTimeUpdatedYear}");
 
         // 最初に最終起動からの差分を落とす
         // （真っ先にやらないと、ユーザーが先に過去データダウンロードを開始する可能性あり）
@@ -291,70 +337,63 @@ namespace KmyKeiba.Models.Connection
           if (lastLaunchDay != default)
           {
             var lastLaunch = new DateOnly(year, month, day);
+            logger.Info($"最終起動日: {lastLaunch:yyyy/MM/dd}");
 
             var minDate = today.AddMonths(-3);
             if (lastLaunch < minDate)
             {
               lastLaunch = minDate;
+              logger.Info($"最終更新日が３か月より前だったので調整します {lastLaunch:yyyy/MM/dd}");
             }
 
-            // １日に２回以上前日のデータを落とす必要はない
+            // 毎日初回起動時に必ずダウンロードする
             if (lastLaunch != today)
             {
-              // 自動更新用のフラグでセットアップデータを落としてるが、これでよい
-              // （自動更新したいデータが１週間より前のものだとRTからダウンロードできなくなるので）
-              if (this.IsRTDownloadCentral.Value)
-              {
-                await this.DownloadAsync(DownloadLink.Central, year, month, day);
-              }
-              if (this.IsRTDownloadLocal.Value)
-              {
-                await this.DownloadAsync(DownloadLink.Local, year, month, day);
-              }
+              await DownloadPlanOfRacesAsync(year, month, day);
+              lastDownloadNormalData = DateTime.Now;
+            }
+            else
+            {
+              var hour = await ConfigUtil.GetIntValueAsync(SettingKey.LastDownloadNormalDataHour);
+              lastDownloadNormalData = DateTime.Today.AddHours(hour);
             }
           }
 
-          await ConfigUtil.SetIntValueAsync(SettingKey.LastLaunchDate, today.Year * 10000 + today.Month * 100 + today.Day);
+          var newLastLaunchDate = today.Year * 10000 + today.Month * 100 + today.Day;
+          var newNormalDataHour = DateTime.Now.Hour;
+          await ConfigUtil.SetIntValueAsync(SettingKey.LastLaunchDate, newLastLaunchDate);
+          await ConfigUtil.SetIntValueAsync(SettingKey.LastDownloadNormalDataHour, newNormalDataHour);
+          logger.Debug($"設定を保存: 最終起動: {newLastLaunchDate}, 標準データ取得時: {newNormalDataHour}");
 
           // 年を跨ぐ場合は基準タイムの更新も行う
           if (lastStandardTimeUpdatedYear != today.Year)
           {
+            logger.Info($"標準タイムを再計算します");
             await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.StandardTime);
           }
 
+          logger.Info("初期ダウンロード完了");
           this._isInitializationDownloading = false;
         });
 
-        async Task CheckCentralHolidaysAsync()
+        async Task DownloadOddsOfCentralHolidaysAsync()
         {
-          // 地方と違って中央競馬は、必ずレース翌日にレース結果を蓄積系データとして提供するとは限らないらしい
-          // 翌日以降のレースデータも取得しておきたい
-          if (today.DayOfWeek == DayOfWeek.Sunday)
+          if (this.IsRTDownloadCentral.Value)
           {
-            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(-1));
-          }
-          else if (today.DayOfWeek == DayOfWeek.Monday)
-          {
-            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(-2));
-            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(-1));
-          }
-          else if (today.DayOfWeek == DayOfWeek.Saturday)
-          {
-            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(1));
-          }
-          else if (today.DayOfWeek == DayOfWeek.Friday)
-          {
-            // 金曜日初回起動時に通常データをダウンロードするので、木曜日のコメントは気にしなくていい
-            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(1));
-            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(2));
-          }
-          else if (today.DayOfWeek == DayOfWeek.Thursday)
-          {
-            // 木曜日朝時点では土日のレース情報は配信されてこない
-            // また木曜日午後もRTでは配信されない様子
-            if (!this.IsDownloading.Value)
+            // 地方と違って中央競馬は、必ずレース翌日にレース結果を蓄積系データとして提供するとは限らないらしい
+            // 翌日以降のレースデータも取得しておきたい
+            if (today.DayOfWeek == DayOfWeek.Saturday)
             {
-              await this.DownloadAsync(DownloadLink.Central, today.Year, today.Month, today.Day);
+              logger.Debug("土曜日につき翌日のデータをダウンロード");
+              await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(1));
+            }
+            else if (today.DayOfWeek == DayOfWeek.Friday)
+            {
+              // 重賞レースの前売りがある場合、オッズが更新されることがある
+              // （※前売りがあるのはG1の中でも一部で、年に数回程度）
+              logger.Debug("金曜日につき翌日以降のデータをダウンロード");
+              await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(1));
+              await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(2));
             }
           }
         }
@@ -364,7 +403,8 @@ namespace KmyKeiba.Models.Connection
         {
           if (lastLaunchDay == default || new DateOnly(year, month, day) < today)
           {
-            await CheckCentralHolidaysAsync();
+            await DownloadOddsOfCentralHolidaysAsync();
+            await DownloadHolidayResultsAsync();
           }
           isCentralChecked = true;
         }
@@ -375,23 +415,43 @@ namespace KmyKeiba.Models.Connection
 
           try
           {
-            var today2 = DateOnly.FromDateTime(now);
+            // アプリ起動中に日付を跨いだ場合
+            var currentDay = DateOnly.FromDateTime(DateTime.Today);
+            if (today != currentDay)
+            {
+              logger.Info("アプリ起動中に日付変更");
+              today = currentDay;
+              await DownloadHolidayResultsAsync();
+            }
 
+            // メインのダウンロード処理
             if (this.CanSaveOthers.Value)
             {
-              await DownloadRTAsync(today2);
+              logger.Info("最新情報取得を開始");
+              await DownloadRTAsync(today);
+              await DownloadOddsOfCentralHolidaysAsync();
+            }
+
+            // レース予定データはRTではなくこっちにあるみたい。定期的にチェックする
+            if (lastDownloadNormalData.AddMinutes(120) < now)
+            {
+              logger.Info("翌日以降の予定を更新");
+              await DownloadPlanOfRacesAsync(today.Year, today.Month, today.Day);
+              lastDownloadNormalData = DateTime.Now;
             }
 
             // アプリ起動した後に中央競馬DLを有効にした場合
+            // 地方競馬の場合、前日の結果がRTにしかないということはなさそう？
             if (!isCentralChecked && this.IsRTDownloadCentral.Value && !this.IsRTDownloading.Value)
             {
-              await CheckCentralHolidaysAsync();
+              logger.Info("中央競馬DLが有効になったので前日の結果を取得");
+              await DownloadHolidayResultsAsync();
               isCentralChecked = true;
             }
           }
-          catch
+          catch (Exception ex)
           {
-            // TODO: logs
+            logger.Error("最新情報ダウンロード中にエラーが発生しました", ex);
           }
 
           while ((DateTime.Now - now).TotalMinutes < 5)
@@ -409,6 +469,7 @@ namespace KmyKeiba.Models.Connection
       {
         if (this.IsBuildMasterData.Value)
         {
+          logger.Info("マスターデータ更新を開始");
           await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.All);
         }
         else
@@ -416,6 +477,8 @@ namespace KmyKeiba.Models.Connection
           var link = (DownloadLink)0;
           if (this.IsDownloadCentral.Value) link |= DownloadLink.Central;
           if (this.IsDownloadLocal.Value) link |= DownloadLink.Local;
+
+          logger.Info($"セットアップデータダウンロードを開始 リンク: {link}");
           await this.DownloadAsync(link);
         }
       });
@@ -443,32 +506,43 @@ namespace KmyKeiba.Models.Connection
         if (steps.HasFlag(Connection.ProcessingStep.InvalidData))
         {
           step.Value = Connection.ProcessingStep.InvalidData;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}");
           await ShapeDatabaseModel.RemoveInvalidDataAsync();
         }
         if (steps.HasFlag(Connection.ProcessingStep.RunningStyle) && !this.IsCancelProcessing.Value)
         {
           step.Value = Connection.ProcessingStep.RunningStyle;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
           if (link.HasFlag(DownloadLink.Central))
           {
-            ShapeDatabaseModel.TrainRunningStyle(isForce: true);
+            ShapeDatabaseModel.TrainRunningStyle(isForce: !isRt);
           }
           ShapeDatabaseModel.StartRunningStylePredicting();
         }
         if (steps.HasFlag(Connection.ProcessingStep.PreviousRaceDays) && !this.IsCancelProcessing.Value)
         {
           step.Value = Connection.ProcessingStep.PreviousRaceDays;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
           await ShapeDatabaseModel.SetPreviousRaceDaysAsync(isCanceled: this.IsCancelProcessing);
         }
         if (steps.HasFlag(Connection.ProcessingStep.RiderWinRates) && !this.IsCancelProcessing.Value)
         {
           step.Value = Connection.ProcessingStep.RiderWinRates;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
           await ShapeDatabaseModel.SetRiderWinRatesAsync(isCanceled: this.IsCancelProcessing);
+        }
+        if (steps.HasFlag(Connection.ProcessingStep.RaceSubjectInfos) && !this.IsCancelProcessing.Value)
+        {
+          step.Value = Connection.ProcessingStep.RaceSubjectInfos;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
+          await ShapeDatabaseModel.SetRaceSubjectDisplayInfosAsync(isCanceled: this.IsCancelProcessing);
         }
 
         // 途中から再開できないものは最後に
         if (steps.HasFlag(Connection.ProcessingStep.StandardTime) && !this.IsCancelProcessing.Value)
         {
           step.Value = Connection.ProcessingStep.StandardTime;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
           await ShapeDatabaseModel.MakeStandardTimeMasterDataAsync(1990, isCanceled: this.IsCancelProcessing);
           await ConfigUtil.SetIntValueAsync(SettingKey.LastUpdateStandardTimeYear, DateTime.Today.Year);
         }
@@ -492,6 +566,7 @@ namespace KmyKeiba.Models.Connection
         }
         step.Value = Connection.ProcessingStep.Unknown;
         this.IsCancelProcessing.Value = false;
+        logger.Info($"後処理完了 リンク: {link}, isRT: {isRt}");
       }
     }
 
@@ -521,7 +596,8 @@ namespace KmyKeiba.Models.Connection
         await downloader.DownloadAsync(linkName, "race", startYear, startMonth, this.OnDownloadProgress, startDay);
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
 
-        await this.ProcessAsync(link, this.ProcessingStep, false, Connection.ProcessingStep.ExceptForMasterData, isFlagSetManually: true);
+        await this.ProcessAsync(link, this.ProcessingStep, false,
+          Connection.ProcessingStep.All & ~Connection.ProcessingStep.StandardTime, isFlagSetManually: true);
       }
       catch (DownloaderCommandException ex)
       {
@@ -566,9 +642,11 @@ namespace KmyKeiba.Models.Connection
 
         await this.ProcessAsync(link, this.RTProcessingStep, true, Connection.ProcessingStep.InvalidData | Connection.ProcessingStep.RunningStyle, isFlagSetManually: true);
         this.RTProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
-        await ShapeDatabaseModel.SetPreviousRaceDaysAsync(DateOnly.FromDateTime(DateTime.Today));
+        await ShapeDatabaseModel.SetPreviousRaceDaysAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
         this.RTProcessingStep.Value = Connection.ProcessingStep.RiderWinRates;
         await ShapeDatabaseModel.SetRiderWinRatesAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
+        this.RTProcessingStep.Value = Connection.ProcessingStep.RaceSubjectInfos;
+        await ShapeDatabaseModel.SetRaceSubjectDisplayInfosAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
       }
       catch (DownloaderCommandException ex)
@@ -801,7 +879,9 @@ namespace KmyKeiba.Models.Connection
     [Label("騎手の勝率を計算中")]
     RiderWinRates = 16,
 
-    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates,
-    ExceptForMasterData = InvalidData | RunningStyle | PreviousRaceDays,
+    [Label("地方競馬のレース条件を解析中")]
+    RaceSubjectInfos = 32,
+
+    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos,
   }
 }

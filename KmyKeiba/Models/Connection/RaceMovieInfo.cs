@@ -12,11 +12,13 @@ namespace KmyKeiba.Models.Connection
 {
   public class RaceMovieInfo
   {
-    public RaceData? Race { get; }
+    public RaceData Race { get; }
 
     public ReactiveProperty<bool> IsRaceError { get; } = new();
 
     public ReactiveProperty<bool> IsPaddockError { get; } = new();
+
+    public ReactiveProperty<bool> IsPaddockForceError { get; } = new();
 
     public ReactiveProperty<bool> IsPatrolError { get; } = new();
 
@@ -25,12 +27,38 @@ namespace KmyKeiba.Models.Connection
     public RaceMovieInfo(RaceData race)
     {
       this.Race = race;
+      var today = DateTime.Today;
+      var now = DateTime.Now;
+
+      if (race.StartTime > now)
+      {
+        this.IsPatrolError.Value = true;
+        this.IsMultiCamerasError.Value = true;
+        this.IsRaceError.Value = true;
+      }
+      if (race.StartTime.Date != today)
+      {
+        this.IsPaddockForceError.Value = true;
+      }
+
+      var nextMonday = race.StartTime.Date.AddHours(12);
+      while (nextMonday.DayOfWeek != DayOfWeek.Monday)
+      {
+        nextMonday = nextMonday.AddDays(1);
+      }
+      if (nextMonday > now)
+      {
+        this.IsPatrolError.Value = true;
+        this.IsMultiCamerasError.Value = true;
+      }
+
       if (race.Course >= RaceCourse.LocalMinValue)
       {
         this.IsPaddockError.Value = true;
+        this.IsPaddockForceError.Value = true;
         this.IsPatrolError.Value = true;
         this.IsMultiCamerasError.Value = true;
-        if (race.StartTime < DateTime.Now.AddMonths(-11) && (race.Grade == RaceGrade.Others || race.Grade == RaceGrade.Unknown))
+        if (race.StartTime < now.AddMonths(-11) && (race.Grade == RaceGrade.Others || race.Grade == RaceGrade.Unknown))
         {
           this.IsRaceError.Value = true;
         }
@@ -44,10 +72,56 @@ namespace KmyKeiba.Models.Connection
 
     public async Task PlayRaceAsync()
     {
-      await this.PlayRaceAsync(MovieType.Race, this.IsRaceError);
+      if (this.Race.Course <= RaceCourse.CentralMaxValue)
+      {
+        await this.PlayRaceAsync(MovieType.Race, this.IsRaceError);
+      }
+      else
+      {
+        // 地方競馬は楽天から
+        var courseCode = this.Race.Key.Substring(8, 2);
+        var rakutenCourseCode = courseCode switch
+        {
+          "45" => "2135",      // 川崎
+          "41" => "2015",      // 大井
+          "43" => "1914",      // 船橋
+          "42" => "1813",      // 浦和
+          "36" => "1106",      // 水沢
+          "30" => "3601",      // 門別
+          "83" => "0304",      // 帯広（ば）
+          "46" => "2218",      // 金沢
+          "47" => "2320",      // 笠松
+          "48" => "2433",      // 名古屋
+          "50" => "2726",      // 園田
+          "54" => "3129",      // 高知
+          "55" => "3230",      // 佐賀
+          "51" => "2826",      // 姫路
+          "35" => "1006",      // 盛岡
+          _ => string.Empty,
+        };
+        var rakutenKey = this.Race.Key.Substring(0, 8) + rakutenCourseCode + this.Race.Key.Substring(10);
+
+        try
+        {
+          System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+          {
+            FileName = "https://keiba.rakuten.co.jp/archivemovie/RACEID/" + rakutenKey,
+            UseShellExecute = true,
+          });
+        }
+        catch
+        {
+          this.IsRaceError.Value = true;
+        }
+      }
     }
 
     public async Task PlayPaddockAsync()
+    {
+      await this.PlayRaceAsync(MovieType.Paddock, this.IsPaddockError);
+    }
+
+    public async Task PlayPaddockForceAsync()
     {
       await this.PlayRaceAsync(MovieType.Paddock, this.IsPaddockError);
     }

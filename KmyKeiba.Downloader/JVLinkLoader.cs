@@ -292,7 +292,7 @@ namespace KmyKeiba.Downloader
         {
           await Task.Delay(80);
 
-          if (this.Loaded.Value != reader.ReadedCount)
+          if (this.Loaded.Value != reader.ReadedCount || this.LoadEntityCount.Value != reader.ReadedEntityCount)
           {
             this.Loaded.Value = reader.ReadedCount;
             this.LoadEntityCount.Value = reader.ReadedEntityCount;
@@ -724,6 +724,29 @@ namespace KmyKeiba.Downloader
           await db.SaveChangesAsync();
         }
 
+        // コース
+        {
+          logger.Info($"コース変更を設定します {data.RaceCourseChanges.Count}");
+          foreach (var st in data.RaceCourseChanges)
+          {
+            var race = await db.Races!
+              .FirstOrDefaultAsync((h) => h.Key == st.RaceKey);
+            if (race != null)
+            {
+              race.TrackGround = st.TrackGround;
+              race.TrackCornerDirection = st.TrackCornerDirection;
+              race.TrackType = st.TrackType;
+              race.TrackOption = st.TrackOption;
+            }
+
+            this.Processed.Value++;
+            Program.CheckShutdown(db);
+          }
+
+          await AddDataAsync(data.RaceCourseChanges.Select(c => RaceChangeData.GetData(c)));
+          await db.SaveChangesAsync();
+        }
+
         // 天候、馬場
         {
           logger.Info($"天気、馬場を設定します {data.CourseWeatherConditions.Count}");
@@ -737,15 +760,18 @@ namespace KmyKeiba.Downloader
               if (weather.Weather != RaceCourseWeather.Unknown)
               {
                 race.TrackWeather = weather.Weather;
+                race.IsWeatherSetManually = false;
               }
               if (race.TrackGround == TrackGround.Turf && weather.TurfCondition != RaceCourseCondition.Unknown)
               {
                 race.TrackCondition = weather.TurfCondition;
+                race.IsConditionSetManually = false;
               }
               else if ((race.TrackGround == TrackGround.Dirt || race.TrackGround == TrackGround.TurfToDirt || race.TrackGround == TrackGround.Sand) &&
                 weather.DirtCondition != RaceCourseCondition.Unknown)
               {
                 race.TrackCondition = weather.DirtCondition;
+                race.IsConditionSetManually = false;
               }
             }
 
@@ -816,29 +842,6 @@ namespace KmyKeiba.Downloader
           }
 
           await AddDataAsync(data.RaceStartTimeChanges.Select(c => RaceChangeData.GetData(c)));
-          await db.SaveChangesAsync();
-        }
-
-        // コース
-        {
-          logger.Info($"コース変更を設定します {data.RaceCourseChanges.Count}");
-          foreach (var st in data.RaceCourseChanges)
-          {
-            var race = await db.Races!
-              .FirstOrDefaultAsync((h) => h.Key == st.RaceKey);
-            if (race != null)
-            {
-              race.TrackGround = st.TrackGround;
-              race.TrackCornerDirection = st.TrackCornerDirection;
-              race.TrackType = st.TrackType;
-              race.TrackOption = st.TrackOption;
-            }
-
-            this.Processed.Value++;
-            Program.CheckShutdown(db);
-          }
-
-          await AddDataAsync(data.RaceCourseChanges.Select(c => RaceChangeData.GetData(c)));
           await db.SaveChangesAsync();
         }
       }

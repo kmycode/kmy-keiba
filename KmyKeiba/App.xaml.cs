@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Shared;
+using log4net.Repository.Hierarchy;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -37,6 +38,22 @@ namespace KmyKeiba
       logger.Info("==                            ==");
       logger.Info("================================");
       logger.Info($"Version: {Constrants.ApplicationVersion}");
+
+#if !DEBUG
+      var rootLogger = ((Hierarchy)logger.Logger.Repository).Root;
+      if (File.Exists(Constrants.DebugFilePath))
+      {
+        rootLogger.Level = log4net.Core.Level.All;
+        logger.Info("ログレベル: All (デバッグファイルが見つかりました)");
+      }
+      else
+      {
+        rootLogger.Level = log4net.Core.Level.Info;
+        logger.Info("ログレベル: Info");
+      }
+#else
+      logger.Info("ログレベル: All");
+#endif
 
       //ミューテックスの所有権を要求する
       this._mutex = new Mutex(false, "KMY_Keiba");

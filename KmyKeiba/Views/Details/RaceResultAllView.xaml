@@ -72,6 +72,7 @@
             <Grid.ColumnDefinitions>
               <ColumnDefinition/>
               <ColumnDefinition/>
+              <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
               <RowDefinition/>
@@ -83,12 +84,26 @@
                 <Setter Property="HorizontalAlignment" Value="Center"/>
               </Style>
             </Grid.Resources>
-            <TextBlock Grid.Row="0" Grid.Column="0" FontSize="16" Text="１着のタイム指数" Foreground="{DynamicResource SubForeground}"/>
+            <TextBlock Grid.Row="0" Grid.Column="0" FontSize="16" Text="１着のタイム偏差値" Foreground="{DynamicResource SubForeground}"/>
             <TextBlock Grid.Row="1" Grid.Column="0" FontSize="32" Text="{Binding Race.RaceAnalyzer.Value.ResultTimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F2}"/>
             <TextBlock Grid.Row="2" Grid.Column="0" FontSize="18" Text="{Binding Race.RaceAnalyzer.Value.Pace,ElementName=Root,Converter={StaticResource LabelConv}}"/>
-            <TextBlock Grid.Row="0" Grid.Column="1" FontSize="16" Text="１着の後３ハロンタイム指数" Foreground="{DynamicResource SubForeground}"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" FontSize="16" Text="１着の後３ハロンタイム偏差値" Foreground="{DynamicResource SubForeground}"/>
             <TextBlock Grid.Row="1" Grid.Column="1" FontSize="32" Text="{Binding Race.RaceAnalyzer.Value.A3HResultTimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F2}"/>
             <TextBlock Grid.Row="2" Grid.Column="1" FontSize="18" Text="{Binding Race.RaceAnalyzer.Value.A3HPace,ElementName=Root,Converter={StaticResource LabelConv}}"/>
+            <Grid Grid.RowSpan="3" Grid.Column="2">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+              </Grid.RowDefinitions>
+              <Button Grid.Row="0" Grid.Column="0" Content="レース映像" FontSize="16" Command="{Binding Race.RaceAnalyzer.Value.PlayRaceMovieCommand,ElementName=Root}"/>
+              <Button Grid.Row="0" Grid.Column="1" Content="パトロール映像" FontSize="16" Command="{Binding Race.RaceAnalyzer.Value.PlayPatrolCommand,ElementName=Root}"/>
+              <Button Grid.Row="1" Grid.Column="0" Content="パドック映像" FontSize="16" Command="{Binding Race.RaceAnalyzer.Value.PlayPaddockCommand,ElementName=Root}"/>
+              <Button Grid.Row="1" Grid.Column="1" Content="マルチカメラ映像" FontSize="16" Command="{Binding Race.RaceAnalyzer.Value.PlayMultiCamerasCommand,ElementName=Root}"/>
+            </Grid>
           </Grid>
           <ItemsControl ItemsSource="{Binding Race.Corners,ElementName=Root}">
             <ItemsControl.ItemsPanel>

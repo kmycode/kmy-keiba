@@ -16,7 +16,10 @@
       <ColumnDefinition Width="auto"/>
       <ColumnDefinition/>
     </Grid.ColumnDefinitions>
-    
+
+    <Border Background="{DynamicResource ActiveBackground}" Grid.ColumnSpan="2"
+            Visibility="{Binding Horse.IsActive.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+
     <!--枠色-->
     <Border Width="8" Background="{Binding Horse.Data.FrameNumber,ElementName=Root,Converter={StaticResource FrameNumberBrushConv}}"
             Margin="0,0,8,0"/>
@@ -47,12 +50,6 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="TextAlignment" Value="Right"/>
           </Style>
-          <Style TargetType="Button" x:Key="MarkButton" BasedOn="{StaticResource ButtonDefault}">
-            <Setter Property="Width" Value="36"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
-          </Style>
           <TransformGroup x:Key="MarkTransform">
             <ScaleTransform ScaleX="0.7" ScaleY="0.7"/>
             <TranslateTransform X="5" Y="5"/>
@@ -77,50 +74,19 @@
           <ContentControl Template="{Binding Horse.Mark.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource HorseMarkConv}}" RenderTransform="{StaticResource MarkTransform}"/>
         </Grid>
         <Grid Grid.Column="2" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
-          <Grid.Resources>
-            <Style TargetType="Button" BasedOn="{StaticResource MarkButton}"/>
-          </Grid.Resources>
-          <ToggleButton Grid.Column="2" Name="MarkButton" Margin="8,0,0,0" Width="36" Height="36" Padding="0">
-            <ContentControl Template="{Binding Horse.Mark.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource HorseMarkConv}}" RenderTransform="{StaticResource MarkTransform}"/>
-          </ToggleButton>
-          <Popup Name="MarkPopup" Grid.Column="2" Width="254" Height="38" IsOpen="{Binding IsChecked,ElementName=MarkButton,Mode=TwoWay}" StaysOpen="False"
-                 PlacementTarget="{Binding ElementName=MarkButton}" Placement="Right" Margin="4,0,0,0">
-            <Grid Background="{DynamicResource BaseBorderBrush}">
-              <StackPanel Orientation="Horizontal" Margin="1">
-                <Button Command="{Binding Horse.SetMarkCommand,ElementName=Root}" CommandParameter="0">
-                  <ContentControl Template="{StaticResource MarkDefault}" RenderTransform="{StaticResource MarkTransform}"/>
-                </Button>
-                <Button Command="{Binding Horse.SetMarkCommand,ElementName=Root}" CommandParameter="1">
-                  <ContentControl Template="{StaticResource MarkDoubleCircle}" RenderTransform="{StaticResource MarkTransform}"/>
-                </Button>
-                <Button Command="{Binding Horse.SetMarkCommand,ElementName=Root}" CommandParameter="2">
-                  <ContentControl Template="{StaticResource MarkCircle}" RenderTransform="{StaticResource MarkTransform}"/>
-                </Button>
-                <Button Command="{Binding Horse.SetMarkCommand,ElementName=Root}" CommandParameter="3">
-                  <ContentControl Template="{StaticResource MarkFilledTriangle}" RenderTransform="{StaticResource MarkTransform}"/>
-                </Button>
-                <Button Command="{Binding Horse.SetMarkCommand,ElementName=Root}" CommandParameter="4">
-                  <ContentControl Template="{StaticResource MarkTriangle}" RenderTransform="{StaticResource MarkTransform}"/>
-                </Button>
-                <Button Command="{Binding Horse.SetMarkCommand,ElementName=Root}" CommandParameter="5">
-                  <ContentControl Template="{StaticResource MarkStar}" RenderTransform="{StaticResource MarkTransform}"/>
-                </Button>
-                <Button Command="{Binding Horse.SetMarkCommand,ElementName=Root}" CommandParameter="6">
-                  <ContentControl Template="{StaticResource MarkDeleted}" RenderTransform="{StaticResource MarkTransform}"/>
-                </Button>
-              </StackPanel>
-            </Grid>
-          </Popup>
+          <up:HorseMarkButton Horse="{Binding Horse,ElementName=Root}" Margin="8,0,0,0"/>
         </Grid>
         <Grid Grid.Column="3" Margin="8,0,0,0" Width="45">
-          <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-          </Grid.RowDefinitions>
-          <TextBlock Margin="8,0,0,0" FontSize="16" Text="{Binding Horse.Data.Odds,ElementName=Root,Converter={StaticResource DigitMinusConv}}"/>
-          <TextBlock Grid.Row="1" Margin="8,0,0,0" FontSize="14">
-            (<Run Text="{Binding Horse.Data.Popular,ElementName=Root}"/>人)
-          </TextBlock>
+          <Grid Visibility="{Binding Horse.Data.Popular,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}">
+            <Grid.RowDefinitions>
+              <RowDefinition/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock Margin="8,0,0,0" FontSize="16" Text="{Binding Horse.Data.Odds,ElementName=Root,Converter={StaticResource DigitMinusConv}}"/>
+            <TextBlock Grid.Row="1" Margin="8,0,0,0" FontSize="14">
+              (<Run Text="{Binding Horse.Data.Popular,ElementName=Root}"/>人)
+            </TextBlock>
+          </Grid>
         </Grid>
         <StackPanel Grid.Column="4" Margin="12,0,0,0" VerticalAlignment="Center">
           <up:RunningStyleTip RunningStyle="{Binding Horse.History.RunningStyle,ElementName=Root}"
@@ -142,10 +108,13 @@
             <TextBlock FontSize="16" Text="{Binding Horse.Data.Age,ElementName=Root}" Margin="0,0,2,0"/>
           </StackPanel>
         </Border>
-        <TextBlock Grid.Column="6" Margin="4,0,0,0" TextAlignment="Center" Width="40" FontSize="16">
-          <Run Text="{Binding Horse.Data.Weight,ElementName=Root}"/><LineBreak/>
-          <Run Text="(" FontSize="14"/><Run Text="{Binding Horse.Data.WeightDiff,ElementName=Root}" FontSize="14"/><Run Text=")" FontSize="14"/>
-        </TextBlock>
+        <Border Grid.Column="6" Margin="4,0,0,0" Width="40">
+          <TextBlock TextAlignment="Center" FontSize="16"
+                     Visibility="{Binding Horse.Data.Weight,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}">
+            <Run Text="{Binding Horse.Data.Weight,ElementName=Root}"/><LineBreak/>
+            <Run Text="(" FontSize="14"/><Run Text="{Binding Horse.Data.WeightDiff,ElementName=Root}" FontSize="14"/><Run Text=")" FontSize="14"/>
+          </TextBlock>
+        </Border>
         <Grid Grid.Column="7" Margin="12,0,0,0" VerticalAlignment="Center">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="60"/>
@@ -176,12 +145,14 @@
           <StackPanel Width="60" Margin="8,0,0,0">
             <TextBlock Text="T偏差値" Foreground="{DynamicResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
             <TextBlock Text="{Binding Horse.History.TimeDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
-                       Foreground="{Binding Horse.History.TimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                       Foreground="{Binding Horse.History.TimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
+                       Visibility="{Binding Horse.History.TimeDeviationValue,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
           </StackPanel>
           <StackPanel Width="60">
             <TextBlock Text="A3H偏" Foreground="{DynamicResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
             <TextBlock Text="{Binding Horse.History.A3HTimeDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
-                       Foreground="{Binding Horse.History.A3HTimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                       Foreground="{Binding Horse.History.A3HTimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
+                       Visibility="{Binding Horse.History.A3HTimeDeviationValue,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
           </StackPanel>
           <StackPanel Width="60">
             <TextBlock Text="騎手複勝" Foreground="{DynamicResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
@@ -277,35 +248,7 @@
                   </ToggleButton.Template>
                 </ToggleButton>
                 <Popup IsOpen="{Binding IsChecked,ElementName=PastRace,Mode=TwoWay}" StaysOpen="False">
-                  <Border Width="400" Height="170" Background="{DynamicResource BaseBackground}"
-                          BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
-                    <Grid>
-                      <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                      </Grid.ColumnDefinitions>
-                      <Grid.RowDefinitions>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition/>
-                      </Grid.RowDefinitions>
-                      <StackPanel Margin="8,4" Grid.RowSpan="2">
-                        <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" TextAlignment="Center" Margin="0,0,0,8">
-                          <Run Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd HH\\:mm}"/><LineBreak/>
-                          <Run Text="{Binding Race.Course,Converter={StaticResource CourseNameConv}}"/> <Run Text="{Binding Race.CourseRaceNumber}"/> R <Run Text="{Binding Data.Number}"/> 番
-                        </TextBlock>
-                        <Border Height="4" Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
-                        <Button Content="動画を見る" Command="{Binding PlayRaceMovieCommand}"/>
-                        <Button Content="パドック" Command="{Binding PlayPaddockCommand}"/>
-                        <Button Content="パトロール" Command="{Binding PlayPatrolCommand}"/>
-                        <Button Content="マルチカメラ" Command="{Binding PlayMultiCamerasCommand}"/>
-                      </StackPanel>
-                      <TextBlock Grid.Column="1" FontSize="18" Margin="4,8,0,8" Text="メモ" Foreground="{DynamicResource BaseForeground}"/>
-                      <ScrollViewer Grid.Column="1" Grid.Row="1" Margin="8,4,0,0">
-                        <TextBox Background="{DynamicResource BaseBackground}" Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource BaseForeground}"
-                                 IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}"/>
-                      </ScrollViewer>
-                    </Grid>
-                  </Border>
+                  <up:RaceHorsePopup Horse="{Binding}"/>
                 </Popup>
               </Grid>
             </DataTemplate>

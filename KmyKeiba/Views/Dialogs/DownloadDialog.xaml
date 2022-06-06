@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-  <Grid Width="600" Height="540" Background="{DynamicResource BaseBackground}">
+  <Grid Width="600" Height="570" Background="{DynamicResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition/>
@@ -105,7 +105,8 @@
       処理はバックグラウンドで実行されます。問題が発生した場合は、画面下部に表示されます。<LineBreak/>
       処理中に表示したレースデータの一部が破損・欠損したように見えることがありますが、<LineBreak/>異常ではありません。<LineBreak/>
       処理中にアプリを終了しても、次回起動時に本画面より月単位で途中から再開できます。<LineBreak/>
-      <Run FontWeight="Bold" Foreground="{DynamicResource BadForeground}" Text="データ保存中は、印付けや購入など一部操作ができなくなります。"/>
+      <Run FontWeight="Bold" Foreground="{DynamicResource BadForeground}" Text="データ保存中は、印付けや購入など一部操作ができなくなります。"/><LineBreak/>
+      途中で中央競馬セットアップダイアログが<Run FontWeight="Bold" Text="２回以上"/>出ることがあります。
     </TextBlock>
     <Grid Grid.Row="4" Margin="0,0,0,16">
       <Grid.ColumnDefinitions>

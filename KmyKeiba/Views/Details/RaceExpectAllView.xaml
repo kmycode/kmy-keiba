@@ -29,16 +29,19 @@
         <ColumnDefinition/>
         <ColumnDefinition/>
         <ColumnDefinition/>
+        <ColumnDefinition/>
       </Grid.ColumnDefinitions>
       <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="出走馬" Name="S_HorseList" IsChecked="True"/>
       <RadioButton Grid.Column="1" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="傾向" Name="S_RaceTrend"/>
       <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="オッズ一覧" Name="S_Odds"/>
+                   Content="対戦表" Name="S_Matches"/>
       <RadioButton Grid.Column="3" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="予想スクリプト" Name="S_Script"/>
+                   Content="オッズ一覧" Name="S_Odds"/>
       <RadioButton Grid.Column="4" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="予想スクリプト" Name="S_Script"/>
+      <RadioButton Grid.Column="5" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="馬券" Name="S_Tickets"/>
     </Grid>
 
@@ -80,6 +83,22 @@
             <RowDefinition/>
           </Grid.RowDefinitions>
 
+          <!--読み込み中-->
+          <Border Grid.RowSpan="3">
+            <Border.Visibility>
+              <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                <Binding Path="Race.TrendAnalyzers.CurrentAnalyzer.Value.IsLoaded.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                <Binding Path="Race.TrendAnalyzers.CurrentAnalyzer.Value.IsLoading.Value" ElementName="Root"/>
+                <Binding Path="Race.TrendAnalyzers.CurrentAnalyzer.Value" ElementName="Root" Converter="{StaticResource NonNullVisibilityConv}"/>
+              </MultiBinding>
+            </Border.Visibility>
+            <up:MyProgressBar HorizontalAlignment="Center" VerticalAlignment="Center">
+              <up:MyProgressBar.RenderTransform>
+                <TranslateTransform X="-60"/>
+              </up:MyProgressBar.RenderTransform>
+            </up:MyProgressBar>
+          </Border>
+
           <!--統計学的分析-->
           <Grid>
             <Grid.ColumnDefinitions>
@@ -100,6 +119,8 @@
             <Grid.RowDefinitions>
               <RowDefinition/>
               <RowDefinition/>
+              <RowDefinition/>
+              <RowDefinition/>
             </Grid.RowDefinitions>
             <Grid.Resources>
               <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
@@ -112,45 +133,60 @@
               </Style>
             </Grid.Resources>
             <TextBlock Grid.RowSpan="2" Style="{StaticResource Sub}"
-                        Text="平均タイム"/>
-            <TextBlock Grid.Column="1" Grid.RowSpan="2" Margin="4,0,0,0" FontSize="28" FontWeight="Bold"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SpeedAverage.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}"/>
-            <up:RunningStyleTip Grid.Column="2" Margin="48,0,0,0" Grid.Row="0" RunningStyle="FrontRunner"/>
-            <TextBlock Grid.Column="3" Margin="4,0,0,0" Grid.Row="0" FontSize="22"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.FrontRunnersCount.Value,ElementName=Root}"/>
-            <TextBlock Grid.Column="4" Margin="12,0,0,0" Grid.Row="0" FontSize="16">
-                        (<Run Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.FrontRunnersPlaceBitsRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
+                       Text="平均タイム"/>
+            <TextBlock Grid.Column="1" Grid.RowSpan="2" Margin="4,0,0,0" FontSize="28" FontWeight="Bold" Width="70"
+                       Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SpeedAverage.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}"/>
+
+            <up:RunningStyleTip Grid.Column="2" Margin="36,0,0,0" Grid.Row="0" RunningStyle="FrontRunner"/>
+            <TextBlock Grid.Column="3" Margin="4,0,0,0" Grid.Row="0" FontSize="22" Width="52" TextAlignment="Right"
+                       Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.FrontRunnersCount.Value,ElementName=Root}"/>
+            <TextBlock Grid.Column="4" Margin="12,0,0,0" Grid.Row="0" FontSize="16" Width="64">
+                       (<Run Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.FrontRunnersPlaceBitsRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
             </TextBlock>
-            <up:RunningStyleTip Grid.Column="2" Margin="48,0,0,0" Grid.Row="1" RunningStyle="Stalker"/>
-            <TextBlock Grid.Column="3" Margin="4,0,0,0" Grid.Row="1" FontSize="22"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.StalkersCount.Value,ElementName=Root}"/>
-            <TextBlock Grid.Column="4" Margin="12,0,0,0" Grid.Row="1" FontSize="16">
-                        (<Run Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.StalkersPlaceBitsRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
+            <up:RunningStyleTip Grid.Column="2" Margin="36,0,0,0" Grid.Row="1" RunningStyle="Stalker"/>
+            <TextBlock Grid.Column="3" Margin="4,0,0,0" Grid.Row="1" FontSize="22" Width="52" TextAlignment="Right"
+                       Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.StalkersCount.Value,ElementName=Root}"/>
+            <TextBlock Grid.Column="4" Margin="12,0,0,0" Grid.Row="1" FontSize="16" Width="64">
+                       (<Run Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.StalkersPlaceBitsRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
             </TextBlock>
-            <up:RunningStyleTip Grid.Column="5" Margin="24,0,0,0" Grid.Row="0" RunningStyle="Sotp"/>
-            <TextBlock Grid.Column="6" Margin="4,0,0,0" Grid.Row="0" FontSize="22"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SotpsCount.Value,ElementName=Root}"/>
-            <TextBlock Grid.Column="7" Margin="12,0,0,0" Grid.Row="0" FontSize="16">
-                        (<Run Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SotpsPlaceBitsRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
+            <up:RunningStyleTip Grid.Column="2" Margin="36,0,0,0" Grid.Row="2" RunningStyle="Sotp"/>
+            <TextBlock Grid.Column="3" Margin="4,0,0,0" Grid.Row="2" FontSize="22" Width="52" TextAlignment="Right"
+                       Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SotpsCount.Value,ElementName=Root}"/>
+            <TextBlock Grid.Column="4" Margin="12,0,0,0" Grid.Row="2" FontSize="16" Width="64">
+                       (<Run Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SotpsPlaceBitsRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
             </TextBlock>
-            <up:RunningStyleTip Grid.Column="5" Margin="24,0,0,0" Grid.Row="1" RunningStyle="SaveRunner"/>
-            <TextBlock Grid.Column="6" Margin="4,0,0,0" Grid.Row="1" FontSize="22"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SaveRunnersCount.Value,ElementName=Root}"/>
-            <TextBlock Grid.Column="7" Margin="12,0,0,0" Grid.Row="1" FontSize="16">
-                        (<Run Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SaveRunnersPlaceBitsRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
+            <up:RunningStyleTip Grid.Column="2" Margin="36,0,0,0" Grid.Row="3" RunningStyle="SaveRunner"/>
+            <TextBlock Grid.Column="3" Margin="4,0,0,0" Grid.Row="3" FontSize="22" Width="52" TextAlignment="Right"
+                       Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SaveRunnersCount.Value,ElementName=Root}"/>
+            <TextBlock Grid.Column="4" Margin="12,0,0,0" Grid.Row="3" FontSize="16" Width="64">
+                       (<Run Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.SaveRunnersPlaceBitsRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
             </TextBlock>
-            <TextBlock Grid.Column="8" Margin="48,0,0,0" Grid.Row="0" Style="{StaticResource Sub}"
-                        Text="荒れ中央値"/>
-            <TextBlock Grid.Column="9" Margin="4,0,0,0" Grid.Row="0" FontSize="22"
-                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.RoughMedian.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
-            <TextBlock Grid.Column="10" Margin="24,0,0,0" Style="{StaticResource Sub}"
-                   Text="内枠複勝"/>
-            <TextBlock Grid.Column="11" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
-                   Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.InsideFramePlaceBitsRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
-            <TextBlock Grid.Column="10" Grid.Row="1" Margin="24,0,0,0" Style="{StaticResource Sub}"
-                   Text="外枠複勝"/>
-            <TextBlock Grid.Column="11" Grid.Row="1" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
-                   Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.OutsideFramePlaceBitsRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
+            
+            <TextBlock Grid.Column="5" Margin="48,0,0,0" Grid.Row="0" Style="{StaticResource Sub}"
+                       Text="荒れ度"/>
+            <TextBlock Grid.Column="6" Margin="4,0,0,0" Grid.Row="0" FontSize="22" TextAlignment="Right" Width="80"
+                       Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.RoughMedian.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+            <TextBlock Grid.Column="5" Grid.Row="1" Margin="24,0,0,0" Style="{StaticResource Sub}"
+                       Text="内枠複勝"/>
+            <TextBlock Grid.Column="6" Grid.Row="1" Margin="4,0,0,0" FontSize="22" Width="80" TextAlignment="Right"
+                       Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.InsideFramePlaceBitsRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
+            <TextBlock Grid.Column="5" Grid.Row="2" Margin="24,0,0,0" Style="{StaticResource Sub}"
+                       Text="外枠複勝"/>
+            <TextBlock Grid.Column="6" Grid.Row="2" Margin="4,0,0,0" FontSize="22" Width="80" TextAlignment="Right"
+                       Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.OutsideFramePlaceBitsRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
+
+            <TextBlock Grid.Column="7" Margin="48,0,0,0" Style="{StaticResource Sub}"
+                       Text="タイム偏差値"/>
+            <TextBlock Grid.Column="8" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
+                       Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.TimeDeviationValue.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+            <TextBlock Grid.Column="7" Grid.Row="1" Margin="48,0,0,0" Style="{StaticResource Sub}"
+                       Text="A3HT偏差値"/>
+            <TextBlock Grid.Column="8" Grid.Row="1" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
+                       Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.A3HTimeDeviationValue.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+            <TextBlock Grid.Column="7" Grid.Row="2" Margin="48,0,0,0" Style="{StaticResource Sub}"
+                       Text="UA3HT偏差値"/>
+            <TextBlock Grid.Column="8" Grid.Row="2" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
+                       Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.UntilA3HTimeDeviationValue.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
           </Grid>
 
           <!--過去レースの一覧-->
@@ -171,36 +207,138 @@
                         Style="{StaticResource TableList}">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                  <StackPanel.Resources>
-                    <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
-                      <Setter Property="TextAlignment" Value="Right"/>
-                    </Style>
-                  </StackPanel.Resources>
-                  <up:RaceSubjectIcon Subject="{Binding Subject.Subject}"
-                                      FontSize="14" Width="40" Margin="0,0,4,0"/>
-                  <TextBlock Text="{Binding Subject.DisplayName}" TextAlignment="Left"
-                          FontSize="16" FontWeight="Bold" Width="180"/>
-                  <TextBlock Text="{Binding Data.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
-                  <TextBlock Text="{Binding Data.Course,Converter={StaticResource CourseNameConv}}" FontSize="16" Width="70"/>
-                  <Border Width="30">
-                    <up:CourseSimpleImageView Race="{Binding Data}" HorizontalAlignment="Right"/>
-                  </Border>
-                  <TextBlock Text="{Binding Data.Distance}" FontSize="14" Width="36" TextAlignment="Right"/>
-                  <StackPanel Orientation="Horizontal" Visibility="{Binding TopHorse.Data.ResultOrder,Converter={StaticResource NonZeroVisibilityConv}}">
-                    <TextBlock Text="{Binding TopHorse.Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="60"/>
-                    <TextBlock Text="{Binding TopHorse.ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
-                    <Border Width="60">
-                      <up:RunningStyleTip RunningStyle="{Binding TopRunningStyle}" HorizontalAlignment="Right"/>
-                    </Border>
-                    <TextBlock Text="{Binding RoughRate,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
-                  </StackPanel>
-                </StackPanel>
+                <ToggleButton Name="Selection">
+                  <ToggleButton.Template>
+                    <ControlTemplate>
+                      <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <StackPanel.Resources>
+                          <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                            <Setter Property="TextAlignment" Value="Right"/>
+                          </Style>
+                        </StackPanel.Resources>
+                        <up:RaceSubjectIcon Subject="{Binding Subject.Subject}"
+                                            FontSize="14" Width="40" Margin="0,0,4,0"/>
+                        <TextBlock Text="{Binding Subject.DisplayName}" TextAlignment="Left"
+                                   FontSize="16" FontWeight="Bold" Width="180"/>
+                        <TextBlock Text="{Binding Data.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
+                        <TextBlock Text="{Binding Data.Course,Converter={StaticResource CourseNameConv}}" FontSize="16" Width="70"/>
+                        <Border Width="30">
+                          <up:CourseSimpleImageView Race="{Binding Data}" HorizontalAlignment="Right"/>
+                        </Border>
+                        <TextBlock Text="{Binding Data.Distance}" FontSize="14" Width="36" TextAlignment="Right"/>
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding TopHorse.Data.ResultOrder,Converter={StaticResource NonZeroVisibilityConv}}">
+                          <TextBlock Text="{Binding TopHorse.Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="60"/>
+                          <TextBlock Text="{Binding TopHorse.ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
+                          <Border Width="60">
+                            <up:RunningStyleTip RunningStyle="{Binding TopRunningStyle}" HorizontalAlignment="Right"/>
+                          </Border>
+                          <TextBlock Text="{Binding RoughRate,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
+                        </StackPanel>
+
+                        <Popup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
+                               StaysOpen="False">
+                          <up:RacePopup Race="{Binding}"/>
+                        </Popup>
+                      </StackPanel>
+                    </ControlTemplate>
+                  </ToggleButton.Template>
+                </ToggleButton>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
         </Grid>
 
+      </Grid>
+
+      <!-- 対戦表 -->
+      <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Matches,Converter={StaticResource BooleanVisibilityConv}}">
+        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="auto"/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+
+            <!--見出し-->
+            <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}" Margin="156,0,0,0">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="52">
+                    <StackPanel HorizontalAlignment="Center">
+                      <TextBlock Text="{Binding Data.Number}" Foreground="{DynamicResource SubForeground}" FontSize="22" HorizontalAlignment="Center"/>
+                      <up:HorseMarkButton Horse="{Binding}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!--行-->
+            <ItemsControl Grid.Row="1" ItemsSource="{Binding Race.RaceAnalyzer.Value.Matches,ElementName=Root}" Style="{StaticResource TableList}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal">
+
+                    <!--レース名-->
+                    <ToggleButton Name="Selection">
+                      <ToggleButton.Template>
+                        <ControlTemplate>
+                          <Grid>
+                            <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="156" Height="48">
+                              <Grid Margin="4,4">
+                                <Grid.ColumnDefinitions>
+                                  <ColumnDefinition Width="auto"/>
+                                  <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                  <RowDefinition/>
+                                  <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Width="32" Height="20" FontSize="12" Margin="0,0,4,0"/>
+                                <TextBlock Grid.Column="1" FontWeight="Bold" Text="{Binding Subject.DisplayName}" FontSize="15" Foreground="{DynamicResource BaseForeground}"/>
+                                <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
+                                   Foreground="{DynamicResource BaseForeground}" FontSize="14"/>
+                              </Grid>
+                            </Border>
+
+                            <Popup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
+                                   StaysOpen="False">
+                              <up:RacePopup Race="{Binding RaceAnalyzer}"/>
+                            </Popup>
+                          </Grid>
+                        </ControlTemplate>
+                      </ToggleButton.Template>
+                    </ToggleButton>
+
+                    <!--対戦情報-->
+                    <ItemsControl ItemsSource="{Binding Rows}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Border Width="52" Height="48" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0,0,0,1">
+                            <Grid Visibility="{Binding HasResult,Converter={StaticResource BooleanVisibilityConv}}" VerticalAlignment="Center">
+                              <TextBlock Text="{Binding RaceHorse.Data.ResultOrder}" Foreground="{Binding RaceHorse.ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                                         FontSize="16" TextAlignment="Center"/>
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Grid>
+        </ScrollViewer>
       </Grid>
 
       <!-- オッズ -->
@@ -877,21 +1015,41 @@
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition/>
           </Grid.ColumnDefinitions>
+          <Grid.Resources>
+            <DataTemplate x:Key="HorseNumberButton">
+              <ToggleButton IsChecked="{Binding IsChecked.Value}" IsEnabled="{Binding IsEnabled.Value}" Padding="0,8" Width="70">
+                <StackPanel Orientation="Horizontal">
+                  <ContentControl Template="{Binding Mark.Value,Converter={StaticResource HorseMarkConv}}" Width="32" Height="32" Padding="0">
+                    <ContentControl.LayoutTransform>
+                      <TransformGroup>
+                        <TranslateTransform X="0" Y="0"/>
+                        <ScaleTransform ScaleX="0.5" ScaleY="0.5"/>
+                      </TransformGroup>
+                    </ContentControl.LayoutTransform>
+                  </ContentControl>
+                  <TextBlock Text="{Binding HorseNumber}" FontSize="16" Width="22" TextAlignment="Center"/>
+                </StackPanel>
+              </ToggleButton>
+            </DataTemplate>
+            <DataTemplate x:Key="FrameNumberButton">
+              <ToggleButton IsChecked="{Binding IsChecked.Value}" IsEnabled="{Binding IsEnabled.Value}" Padding="0,8" Width="70">
+                <StackPanel Orientation="Horizontal">
+                  <Border Width="4" Background="{Binding FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
+                  <TextBlock Text="{Binding FrameNumber}" FontSize="16" Width="40" TextAlignment="Center"/>
+                </StackPanel>
+              </ToggleButton>
+            </DataTemplate>
+          </Grid.Resources>
           
           <!--馬の番号選択１-->
           <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers1,ElementName=Root}"
-                        Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource NegativeVisibilityConv}}">
+                        Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource NegativeVisibilityConv}}"
+                        ItemTemplate="{StaticResource HorseNumberButton}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <WrapPanel Orientation="Horizontal" Width="140"/>
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding HorseNumber}" FontSize="16"
-                              IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
           </ItemsControl>
           <!--馬の番号選択２-->
           <Border Grid.Column="1" Width="156"
@@ -903,7 +1061,8 @@
                   <Binding Path="IsChecked" ElementName="STK_Formation"/>
                 </MultiBinding>
               </Border.Visibility>
-              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers2,ElementName=Root}" Margin="16,0,0,0">
+              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers2,ElementName=Root}" Margin="16,0,0,0"
+                            ItemTemplate="{StaticResource HorseNumberButton}">
                 <ItemsControl.Visibility>
                   <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
                     <Binding Path="IsChecked" ElementName="ST_Frame"/>
@@ -919,12 +1078,6 @@
                     <WrapPanel Orientation="Horizontal" Width="140"/>
                   </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding HorseNumber}" FontSize="16"
-                                  IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
               </ItemsControl>
             </Border>
           </Border>
@@ -936,7 +1089,8 @@
                   <Binding Path="IsChecked" ElementName="STK_Formation"/>
                 </MultiBinding>
               </Border.Visibility>
-              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers3,ElementName=Root}" Margin="16,0,0,0">
+              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.Numbers3,ElementName=Root}" Margin="16,0,0,0"
+                            ItemTemplate="{StaticResource HorseNumberButton}">
                 <ItemsControl.Visibility>
                   <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
                     <Binding Path="IsChecked" ElementName="ST_Trio"/>
@@ -948,29 +1102,18 @@
                     <WrapPanel Orientation="Horizontal" Width="140"/>
                   </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding HorseNumber}" FontSize="16"
-                                  IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
               </ItemsControl>
             </Border>
           </Border>
 
           <ItemsControl ItemsSource="{Binding Race.Tickets.Value.FrameNumbers1,ElementName=Root}"
-                        Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource BooleanVisibilityConv}}">
+                        Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource BooleanVisibilityConv}}"
+                        ItemTemplate="{StaticResource FrameNumberButton}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
                 <WrapPanel Orientation="Horizontal" Width="140"/>
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding FrameNumber}" FontSize="16"
-                              IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
           </ItemsControl>
           <Border Grid.Column="1" Width="156"
                   Visibility="{Binding IsChecked,ElementName=ST_Frame,Converter={StaticResource BooleanVisibilityConv}}">
@@ -980,18 +1123,13 @@
                   <Binding Path="IsChecked" ElementName="STK_Formation"/>
                 </MultiBinding>
               </Border.Visibility>
-              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.FrameNumbers2,ElementName=Root}" Margin="16,0,0,0">
+              <ItemsControl ItemsSource="{Binding Race.Tickets.Value.FrameNumbers2,ElementName=Root}" Margin="16,0,0,0"
+                            ItemTemplate="{StaticResource FrameNumberButton}">
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
                     <WrapPanel Orientation="Horizontal" Width="140"/>
                   </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <ToggleButton IsChecked="{Binding IsChecked.Value}" Content="{Binding FrameNumber}" FontSize="16"
-                                  IsEnabled="{Binding IsEnabled.Value}" Width="70"/>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
               </ItemsControl>
             </Border>
           </Border>

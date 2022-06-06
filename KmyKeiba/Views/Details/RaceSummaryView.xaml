@@ -27,13 +27,31 @@
 
       <!-- コースの情報 -->
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
-        
-        <!-- イメージ（概略図） -->
-        <skia:SKElement VerticalAlignment="Top">
-          <i:Interaction.Behaviors>
-            <b:DisplayImageBehavior Image="{Binding Race.CourseSummaryImage,ElementName=Root}"/>
-          </i:Interaction.Behaviors>
-        </skia:SKElement>
+
+        <StackPanel>
+          <!-- イメージ（概略図） -->
+          <skia:SKElement VerticalAlignment="Top">
+            <i:Interaction.Behaviors>
+              <b:DisplayImageBehavior Image="{Binding Race.CourseSummaryImage,ElementName=Root}"/>
+            </i:Interaction.Behaviors>
+          </skia:SKElement>
+
+          <Button Command="{Binding Race.RaceAnalyzer.Value.PlayPaddockForceCommand,ElementName=Root}" Padding="4,8"
+                  Margin="0,48" Width="300">
+            <Button.Visibility>
+              <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                <Binding Path="Race.RaceAnalyzer.Value.Movie.IsPaddockForceError.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                <Binding Path="Race.IsLoadCompleted.Value" ElementName="Root"/>
+              </MultiBinding>
+            </Button.Visibility>
+            <StackPanel>
+              <TextBlock FontSize="20" Text="パドック映像" HorizontalAlignment="Center"/>
+              <TextBlock FontSize="14" Foreground="{DynamicResource SubForeground}"
+                         Text="取得できませんでした。後でもう一度お試しください" HorizontalAlignment="Center"
+                         Visibility="{Binding Race.RaceAnalyzer.Value.Movie.IsPaddockError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+            </StackPanel>
+          </Button>
+        </StackPanel>
         
         <!-- コース詳細情報 -->
         <StackPanel Orientation="Vertical" Width="490" Margin="26,0,0,0">
@@ -95,7 +113,7 @@
               <RadioButton GroupName="{Binding UniqueId2,ElementName=Root}" Command="{Binding SetConditionCommand}" CommandParameter="4" IsChecked="{Binding Race.Condition.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource EqualConv},ConverterParameter=Soft}" Content="不良"/>
             </StackPanel>
           </StackPanel>
-          
+
           <!--レースの変更情報-->
           <ItemsControl ItemsSource="{Binding Race.Changes,ElementName=Root}" Margin="0,24,0,0">
             <ItemsControl.ItemTemplate>

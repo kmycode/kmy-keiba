@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Models.Data;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Models.Data;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -40,6 +41,8 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public ReactiveProperty<A?> CurrentAnalyzer { get; } = new();
 
+    protected virtual bool IsAutoLoad => false;
+
     public TrendAnalysisSelector()
     {
       this.Keys = new TrendAnalysisFilterItemCollection<KEY>().AddTo(this._disposables);
@@ -79,10 +82,24 @@ namespace KmyKeiba.Models.Analysis.Generic
         }).AddTo(this._disposables);
     }
 
+    protected void OnFinishedInitialization()
+    {
+      // デフォルトのアナライザ
+      ThreadUtil.InvokeOnUiThread(() =>
+      {
+        this.TryUpdateExistingAnalyzer();
+      });
+    }
+
     private void TryUpdateExistingAnalyzer()
     {
       var keys = this.Keys.GetActiveKeys().Concat(this.IgnoreKeys.GetActiveKeys()).ToArray();
       this.CurrentAnalyzer.Value = this.GetExistingAnalyzer(keys);
+
+      if (this.IsAutoLoad)
+      {
+        this.BeginLoad(keys);
+      }
     }
 
     private A GetExistingAnalyzer(IReadOnlyList<KEY> keys)
@@ -156,6 +173,22 @@ namespace KmyKeiba.Models.Analysis.Generic
       }
 
       return this.BeginLoad(keys, count, offset, isLoadSameHorses);
+    }
+
+    public void CopyFrom(TrendAnalysisSelector<KEY, A> selector)
+    {
+      this.Analyzers.Clear();
+
+      foreach (var item in selector.Analyzers)
+      {
+        this.Analyzers.Add(item.Key, item.Value);
+      }
+
+      if (this.CurrentAnalyzer.Value != null)
+      {
+        this.CurrentAnalyzer.Value = null;
+        this.TryUpdateExistingAnalyzer();
+      }
     }
 
     protected abstract A GenerateAnalyzer();

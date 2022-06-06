@@ -11,6 +11,7 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="auto"/>
+      <RowDefinition Height="auto"/>
       <RowDefinition/>
       <RowDefinition Height="auto"/>
     </Grid.RowDefinitions>
@@ -29,6 +30,12 @@
           収入合計：　<Run Text="{Binding ScriptBulk.SumOfIncomes.Value,ElementName=Root}" FontSize="24" FontWeight="Bold"
                Foreground="{Binding ScriptBulk.IncomeComparation.Value,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>　円
         </TextBlock>
+        <TextBlock Text="同時実行" Margin="0,0,4,0" FontSize="16" Foreground="{DynamicResource SubForeground}"
+                   VerticalAlignment="Center" Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+        <TextBox Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
+                 Text="{Binding ScriptBulk.ThreadSize.Value,ElementName=Root,Mode=TwoWay}" FontSize="20" Width="40"
+                 VerticalAlignment="Center" TextAlignment="Center" Margin="0,0,32,0"
+                 Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <ToggleButton Content="開始日付" Name="StartDateToggle" FontSize="16" Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <Popup Placement="Bottom" PlacementTarget="{Binding ElementName=StartDateToggle}"
                Width="200" Height="170" IsOpen="{Binding IsChecked,ElementName=StartDateToggle}" StaysOpen="False">
@@ -39,6 +46,17 @@
           </Grid>
         </Popup>
         <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="{Binding ScriptBulk.StartDate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
+                   VerticalAlignment="Center" Margin="8,0,24,0"/>
+        <ToggleButton Content="終了日付" Name="EndDateToggle" FontSize="16" Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+        <Popup Placement="Bottom" PlacementTarget="{Binding ElementName=EndDateToggle}"
+               Width="200" Height="170" IsOpen="{Binding IsChecked,ElementName=EndDateToggle}" StaysOpen="False">
+          <Grid Background="{DynamicResource BaseBackground}">
+            <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
+              <Calendar SelectedDate="{Binding ScriptBulk.EndDate.Value,ElementName=Root,Mode=TwoWay}"/>
+            </Border>
+          </Grid>
+        </Popup>
+        <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="{Binding ScriptBulk.EndDate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
                    VerticalAlignment="Center" Margin="8,0,24,0"/>
         <Button FontSize="20" Content="開始" Command="{Binding ExecuteScriptBulkCommand}" Width="120"
                 Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
@@ -52,7 +70,26 @@
                  FontSize="18" Margin="8,4" Foreground="{DynamicResource ErrorForeground}"/>
     </Border>
 
-    <ItemsControl Grid.Row="2" Style="{StaticResource TableList}" ScrollViewer.HorizontalScrollBarVisibility="Auto"
+    <StackPanel Orientation="Horizontal" Grid.Row="2">
+      <StackPanel.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource SubTextBlock}">
+          <Setter Property="FontSize" Value="16"/>
+          <Setter Property="TextAlignment" Value="Center"/>
+        </Style>
+      </StackPanel.Resources>
+      <TextBlock Width="60"/>
+      <TextBlock Width="130" Text="開始時刻"/>
+      <TextBlock Width="80" Text="競馬場"/>
+      <TextBlock Width="40" Text="R"/>
+      <TextBlock Width="80" Text="距離"/>
+      <TextBlock Width="220" Text="レース名"/>
+      <TextBlock Width="80" Text="購入"/>
+      <TextBlock Width="80" Text="払戻"/>
+      <TextBlock Width="80" Text="収支"/>
+      <TextBlock Width="120" Text="1～3着の印"/>
+    </StackPanel>
+
+    <ItemsControl Grid.Row="3" Style="{StaticResource TableList}" ScrollViewer.HorizontalScrollBarVisibility="Auto"
                   ItemsSource="{Binding ScriptBulk.Results,ElementName=Root}" Margin="0,0,0,8">
       <ItemsControl.Resources>
         <Style TargetType="Border" x:Key="Cell">
@@ -100,6 +137,10 @@
                 <TextBlock Text="{Binding ErrorType.Value,Converter={StaticResource LabelConv}}" FontWeight="Bold" Foreground="{DynamicResource ErrorForeground}"
                            FontSize="16" Margin="12,0,0,0"/>
               </Border>
+              <Border Visibility="{Binding IsSkipped.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                <TextBlock Text="スキップされました" FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
+                           FontSize="16" Margin="12,0,0,0"/>
+              </Border>
               <StackPanel Orientation="Horizontal">
                 <StackPanel.Visibility>
                   <MultiBinding Converter="{StaticResource MultiBooleanConv}">
@@ -107,6 +148,21 @@
                     <Binding Path="IsError.Value" Converter="{StaticResource NegativeConv}"/>
                   </MultiBinding>
                 </StackPanel.Visibility>
+                <StackPanel.Resources>
+                  <Style TargetType="ContentControl" x:Key="HorseMarkDisplay">
+                    <Setter Property="LayoutTransform">
+                      <Setter.Value>
+                        <TransformGroup>
+                          <ScaleTransform ScaleX="0.4" ScaleY="0.4"/>
+                          <TranslateTransform X="4" Y="0"/>
+                        </TransformGroup>
+                      </Setter.Value>
+                    </Setter>
+                    <Setter Property="Height" Value="32"/>
+                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                  </Style>
+                </StackPanel.Resources>
                 <Border Width="80" Style="{StaticResource Cell}">
                   <TextBlock Text="{Binding PaidMoney.Value}" FontSize="16"/>
                 </Border>
@@ -116,6 +172,18 @@
                 <Border Width="80" Style="{StaticResource Cell}">
                   <TextBlock Text="{Binding Income.Value}" FontSize="16" Foreground="{Binding IncomeComparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
                 </Border>
+                <Border Width="40" Style="{StaticResource Cell}" Padding="0">
+                  <ContentControl Template="{Binding FirstHorseMark.Value,Converter={StaticResource HorseMarkConv}}"
+                                  Style="{StaticResource HorseMarkDisplay}"/>
+                </Border>
+                <Border Width="40" Style="{StaticResource Cell}" Padding="0">
+                  <ContentControl Template="{Binding SecondHorseMark.Value,Converter={StaticResource HorseMarkConv}}"
+                                  Style="{StaticResource HorseMarkDisplay}"/>
+                </Border>
+                <Border Width="40" Style="{StaticResource Cell}" Padding="0">
+                  <ContentControl Template="{Binding ThirdHorseMark.Value,Converter={StaticResource HorseMarkConv}}"
+                                  Style="{StaticResource HorseMarkDisplay}"/>
+                </Border>
               </StackPanel>
             </Grid>
           </StackPanel>
@@ -123,7 +191,7 @@
       </ItemsControl.ItemTemplate>
     </ItemsControl>
 
-    <Grid Grid.Row="3" Margin="0,0,0,16">
+    <Grid Grid.Row="4" Margin="0,0,0,16">
       <Button Content="閉じる" FontSize="16" Width="80" VerticalAlignment="Bottom" Command="{Binding CloseDialogCommand}"/>
     </Grid>
   </Grid>

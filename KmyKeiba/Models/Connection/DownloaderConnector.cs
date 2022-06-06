@@ -411,7 +411,7 @@ namespace KmyKeiba.Models.Connection
   {
     public DownloaderError Error { get; }
 
-    public DownloaderCommandException(DownloaderError error)
+    public DownloaderCommandException(DownloaderError error) : base("ダウンローダとの連携でエラーが発生しました。エラーコード=" + error)
     {
       this.Error = error;
     }

@@ -86,7 +86,7 @@ namespace KmyKeiba.Data.Db
       this._transaction = await this.Database.BeginTransactionAsync();
     }
 
-    public async Task TryBeginTransactionAsync ()
+    public async Task TryBeginTransactionAsync()
     {
       var tryCount = 0;
       var isSucceed = false;

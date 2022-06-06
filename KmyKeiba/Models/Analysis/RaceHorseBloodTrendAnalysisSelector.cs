@@ -28,7 +28,7 @@ namespace KmyKeiba.Models.Analysis
 
     public CheckableCollection<MenuItem> MenuItems { get; } = new();
 
-    public ReactiveProperty<RaceHorseBloodTrendAnalysisSelector?> CurrentSelector { get; }
+    public ReactiveProperty<RaceHorseBloodTrendAnalysisSelector?> CurrentSelector { get; } = new();
 
     public bool IsRequestedInitialization => this._bloodCode == null;
 
@@ -36,7 +36,23 @@ namespace KmyKeiba.Models.Analysis
     {
       this.Race = race;
       this.RaceHorse = horse;
-      this.CurrentSelector = this.MenuItems.ActiveItem.Select(i => i?.Selector).ToReactiveProperty().AddTo(this._disposables);
+
+      this.MenuItems.ActiveItem.Select(item => item?.Selector)
+        .Subscribe(selector =>
+        {
+          var old = this.CurrentSelector.Value;
+          if (old != null && selector != null)
+          {
+            // 絞り込み検索条件をコピーする
+            foreach (var menuItem in old.Keys.Join(selector.Keys, i => i.Key, i => i.Key, (o, n) => new { Old = o, New = n, }))
+            {
+              menuItem.New.IsChecked.Value = menuItem.Old.IsChecked.Value;
+            }
+          }
+
+          this.CurrentSelector.Value = selector;
+        })
+        .AddTo(this._disposables);
     }
 
     public void Dispose()
@@ -186,7 +202,8 @@ namespace KmyKeiba.Models.Analysis
         ThreadUtil.InvokeOnUiThread(() =>
         {
           this.MenuItems.AddRangeOnScheduler(items.OrderBy(i => i.Type));
-          var firstItem = items.FirstOrDefault(i => i.IsEnabled);
+
+          var firstItem = items.FirstOrDefault(i => i.Type == BloodType.MotherFather) ?? items.FirstOrDefault();
           if (firstItem != null)
           {
             firstItem.IsChecked.Value = true;
@@ -301,6 +318,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<bool> IsSameChildren { get; } = new(true);
 
+    protected override bool IsAutoLoad => this._allRaces != null;
+
     public RaceHorseBloodTrendAnalysisSelector(RaceHorseBloodTrendAnalysisSelectorMenu menu, RaceData race, RaceHorseData horse, string relativeKey, string relativeName, BloodType type, string bloodKey) : base(typeof(Key))
     {
       this.Menu = menu;
@@ -320,12 +339,7 @@ namespace KmyKeiba.Models.Analysis
         }
       }).AddTo(this._disposables);
 
-      // 同系馬検索があまりに重いので、デフォルトでONにする
-      var sameCourse = this.Keys.FirstOrDefault(k => k.Key == Key.SameCourse);
-      if (sameCourse != null)
-      {
-        sameCourse.IsChecked.Value = true;
-      }
+      base.OnFinishedInitialization();
     }
 
     protected override RaceHorseBloodTrendAnalyzer GenerateAnalyzer()

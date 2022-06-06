@@ -4,6 +4,7 @@ using KmyKeiba.Downloader.Injection;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
 using KmyKeiba.Shared;
+using log4net.Repository.Hierarchy;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -18,6 +19,7 @@ namespace KmyKeiba.Downloader
     private static string selfPath = string.Empty;
     private static DownloaderTaskData? currentTask;
     private static int retryDownloadCount;
+    private static bool isCheckShutdown = true;
 
     [STAThread]
     public static void Main(string[] args)
@@ -38,6 +40,22 @@ namespace KmyKeiba.Downloader
       logger.Info("================================");
       logger.Info($"Version: {Constrants.ApplicationVersion}");
 
+#if !DEBUG
+      var rootLogger = ((Hierarchy)logger.Logger.Repository).Root;
+      if (File.Exists(Constrants.DebugFilePath))
+      {
+        rootLogger.Level = log4net.Core.Level.All;
+        logger.Info("ログレベル: All (デバッグファイルが見つかりました)");
+      }
+      else
+      {
+        rootLogger.Level = log4net.Core.Level.Info;
+        logger.Info("ログレベル: Info");
+      }
+#else
+      logger.Info("ログレベル: All");
+#endif
+
       Console.WriteLine("\n\n\n============= Start Program ==============\n");
 
       if (args.FirstOrDefault() != "kill")
@@ -46,9 +64,11 @@ namespace KmyKeiba.Downloader
 
         //args = new[] { "movie", "1266", };
         //args = new[] { "kill", "2960" };
+        //args = new[] { "download", "5" };
 
         if ((object)args != oldArgs)
         {
+          isCheckShutdown = false;
           logger.Info($"下記のパラメータはデバッグのために隠蔽されました: {string.Join(',', oldArgs)}");
         }
       }
@@ -338,21 +358,18 @@ namespace KmyKeiba.Downloader
 
       Task.Run(() =>
       {
-        using var db = new MyContext();
-        db.DownloaderTasks!.Attach(task);
-
         var loopCount = 0;
         isDbLooping = true;
 
-        void UpdateProcess(MyContext? myDb = null)
+        void UpdateProcess()
         {
-          myDb ??= db;
-
           var p = loader.Process.ToString().ToLower();
           if (p != task.Result)
           {
-            task.Result = p;
-            myDb.SaveChanges();
+            SetTask(task, t =>
+            {
+              t.Result = p;
+            });
             logger.Info($"ダウンロード状態が {p} に移行しました");
           }
         }
@@ -360,9 +377,13 @@ namespace KmyKeiba.Downloader
         // トランザクションを開始する前に、データ保存中という情報をアプリに渡す
         loader.StartingTransaction += (sender, e) =>
         {
-          // 以下のループ処理と処理が重なって例外になることがあるので、専用のMyContextを新しく作る
-          using var myDb = new MyContext();
-          UpdateProcess(myDb);
+          UpdateProcess();
+
+          if (!isRealTime)
+          {
+            // SaveChangesが終わる前にトランザクション始まる？
+            Task.Delay(1000).Wait();
+          }
         };
 
         while (!isLoaded)
@@ -380,8 +401,13 @@ namespace KmyKeiba.Downloader
           Task.Delay(800).Wait();
         }
 
-        task.IsFinished = true;
-        db.SaveChanges();
+        if (!task.IsFinished)
+        {
+          using var db = new MyContext();
+          db.DownloaderTasks!.Attach(task);
+          task.IsFinished = true;
+          db.SaveChanges();
+        }
 
         isDbLooping = false;
       });
@@ -398,7 +424,6 @@ namespace KmyKeiba.Downloader
           logger.Info("ダウンロードを開始します（セットアップ／通常）");
           LoadAsync(loader, task).Wait();
         }
-        isLoaded = true;
       }
       catch (Exception ex)
       {
@@ -407,6 +432,7 @@ namespace KmyKeiba.Downloader
       finally
       {
         loader.Dispose();
+        isLoaded = true;
       }
 
       while (isDbLooping)
@@ -526,6 +552,8 @@ namespace KmyKeiba.Downloader
             startTime: start,
             endTime: start.AddMonths(1),
             loadSpecs: specs2);
+
+          mode = "race";
 
           Console.WriteLine();
           Console.WriteLine();
@@ -890,6 +918,11 @@ namespace KmyKeiba.Downloader
 
     public static void CheckShutdown(MyContext? db = null)
     {
+      if (!isCheckShutdown)
+      {
+        return;
+      }
+
       var isDispose = db == null;
 
       if (File.Exists(Constrants.ShutdownFilePath))

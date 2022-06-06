@@ -9,11 +9,11 @@ namespace KmyKeiba.Models.Injection
 {
   public interface ITimeDeviationValueCalculator
   {
-    double GetTimeDeviationValue(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData standardTime);
+    Task<double> GetTimeDeviationValueAsync(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData standardTime);
 
-    double GetA3HTimeDeviationValue(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData standardTime);
+    Task<double> GetA3HTimeDeviationValueAsync(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData standardTime);
 
-    double GetUntilA3HTimeDeviationValue(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData standardTime);
+    Task<double> GetUntilA3HTimeDeviationValueAsync(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData standardTime);
   }
 
   public interface IBuyer

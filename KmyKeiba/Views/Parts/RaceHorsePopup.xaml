@@ -1,0 +1,41 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Parts.RaceHorsePopup"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KmyKeiba.Views.Parts"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800" Name="Root">
+  <Border Width="400" Height="170" Background="{DynamicResource BaseBackground}"
+          BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+      </Grid.ColumnDefinitions>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="auto"/>
+        <RowDefinition/>
+        <RowDefinition Height="auto"/>
+      </Grid.RowDefinitions>
+      <StackPanel Margin="8,4" Grid.RowSpan="3">
+        <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" TextAlignment="Center" Margin="0,0,0,8">
+          <Run Text="{Binding Horse.Race.StartTime,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd HH\\:mm}"/><LineBreak/>
+          <Run Text="{Binding Horse.Race.Course,ElementName=Root,Converter={StaticResource CourseNameConv}}"/> <Run Text="{Binding Horse.Race.CourseRaceNumber,ElementName=Root}"/> R <Run Text="{Binding Horse.Data.Number,ElementName=Root}"/> 番
+        </TextBlock>
+        <Border Height="4" Background="{Binding Horse.Data.FrameNumber,ElementName=Root,Converter={StaticResource FrameNumberBrushConv}}"/>
+        <Button Content="動画を見る" Command="{Binding Horse.PlayRaceMovieCommand,ElementName=Root}"/>
+        <Button Content="パドック" Command="{Binding Horse.PlayPaddockCommand,ElementName=Root}"/>
+        <Button Content="パトロール" Command="{Binding Horse.PlayPatrolCommand,ElementName=Root}"/>
+        <Button Content="マルチカメラ" Command="{Binding Horse.PlayMultiCamerasCommand,ElementName=Root}"/>
+      </StackPanel>
+      <TextBlock Grid.Column="1" FontSize="18" Margin="4,8,4,8" Text="{Binding Horse.Data.Name,ElementName=Root}" TextAlignment="Left" Foreground="{DynamicResource BaseForeground}"/>
+      <ScrollViewer Grid.Column="1" Grid.Row="1" Margin="8,4,4,0">
+        <TextBox Background="{DynamicResource BaseBackground}" Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource BaseForeground}"
+                 IsReadOnly="{Binding Horse.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+      </ScrollViewer>
+      <Button Grid.Column="1" Grid.Row="2" Margin="8,4,4,4" Content="詳細" Command="{Binding Horse.OpenRaceWindowCommand,ElementName=Root}"
+              CommandParameter="{Binding Horse.Race.Key,ElementName=Root}"/>
+    </Grid>
+  </Border>
+</UserControl>

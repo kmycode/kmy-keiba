@@ -49,6 +49,12 @@
     <Compile Update="Views\Main\RaceListView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Main\RaceWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\HorseMarkButton.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Parts\MyProgressBar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -56,6 +62,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Parts\RaceCourseTimelineItem.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\RaceHorsePopup.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\RacePopup.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Parts\RaceResultOrderGradeRow.xaml.cs">
@@ -126,6 +138,12 @@
     <Page Update="Views\Main\RaceListView.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Views\Main\RaceWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\HorseMarkButton.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\Parts\MyProgressBar.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -133,6 +151,12 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Parts\RaceCourseTimelineItem.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\RaceHorsePopup.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\RacePopup.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Parts\RaceResultOrderGradeRow.xaml">

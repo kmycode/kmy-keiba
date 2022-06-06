@@ -21,6 +21,8 @@
       <Grid.Resources>
         <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
       </Grid.Resources>
+      <Border Background="{DynamicResource GoodBackground}"
+              Visibility="{Binding IsMainWindow,Converter={StaticResource NegativeVisibilityConv}}"/>
 
       <Grid Grid.Row="0" Height="56">
         <Grid.ColumnDefinitions>
@@ -152,8 +154,16 @@
                     Margin="0,16" Height="56" Background="{DynamicResource GoodBackground}">
               <TextBlock Text="更新可" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"/>
             </Border>
-            <Button FontSize="22" Visibility="{Binding Race.CanUpdate.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
-                    Content="更新する" Command="{Binding UpdateRaceInfoCommand}"/>
+            <Button Visibility="{Binding Race.CanUpdate.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                    Command="{Binding UpdateRaceInfoCommand}" Padding="0,8">
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock FontSize="22" Text="更新する" HorizontalAlignment="Center"/>
+                <TextBlock FontSize="16" Text="レース結果が届きました" Foreground="{DynamicResource SubForeground}"
+                           Visibility="{Binding Race.IsNewDataHasResults.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+                <TextBlock FontSize="14" Text="傾向検索結果はリセットされます" Foreground="{DynamicResource BadForeground}"
+                           Visibility="{Binding Race.IsWillTrendAnalyzersResetedOnUpdate.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+              </StackPanel>
+            </Button>
 
             <!--投票-->
             <StackPanel Orientation="Horizontal" Visibility="{Binding Race.IsBeforeLimitTime.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}" Margin="0,12,0,0"
@@ -192,6 +202,7 @@
                                GroupName="{Binding UniqueId,ElementName=Root}">
                     <Border>
                       <StackPanel Orientation="Horizontal">
+                        <Border Width="6" Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
                         <TextBlock FontSize="20" Text="{Binding Data.Number}" Width="30" TextAlignment="Right" Margin="0,0,4,0"/>
                         <ContentControl Template="{Binding Mark.Value,Converter={StaticResource HorseMarkConv}}">
                           <ContentControl.RenderTransform>
@@ -298,6 +309,11 @@
         <TextBlock FontSize="32" Style="{StaticResource SubTextBlock}" Text="{Binding FirstMessage}"
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
       </Border>
+    </Grid>
+
+    <Grid Visibility="{Binding IsModelError.Value,Converter={StaticResource BooleanVisibilityConv}}">
+      <TextBlock FontSize="48" Foreground="{DynamicResource ErrorForeground}"
+                 Text="{Binding ModelErrorMessage.Value}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
   </Grid>
 </UserControl>

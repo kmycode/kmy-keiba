@@ -2,12 +2,16 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Math;
+using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
+using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace KmyKeiba.Models.Analysis
 {
@@ -36,9 +40,16 @@ namespace KmyKeiba.Models.Analysis
 
     public double A3HResultTimeDeviationValue { get; }
 
+    public double UntilA3HResultTimeDeviationValue { get; }
+
     public RacePace Pace { get; }
 
     public RacePace A3HPace { get; }
+
+    public ReactiveCollection<RaceHorseMatchResult> Matches { get; } = new();
+
+    public RaceMovieInfo Movie => this._movie ??= new(this.Data);
+    private RaceMovieInfo? _movie;
 
     public RaceAnalyzer(RaceData race, IReadOnlyList<RaceHorseData> topHorses, RaceStandardTimeMasterData raceStandardTime)
     {
@@ -70,6 +81,33 @@ namespace KmyKeiba.Models.Analysis
           this.TopHorse.A3HResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
         this.ResultTimeDeviationValue = this.TopHorse.ResultTimeDeviationValue;
         this.A3HResultTimeDeviationValue = this.TopHorse.A3HResultTimeDeviationValue;
+        this.UntilA3HResultTimeDeviationValue = this.TopHorse.UntilA3HResultTimeDeviationValue;
+      }
+    }
+
+    public void SetMatches(IReadOnlyList<RaceHorseAnalyzer> sameRaceHorses)
+    {
+      if (sameRaceHorses.Count < 2)
+      {
+        return;
+      }
+
+      foreach (var raceData in sameRaceHorses
+        .SelectMany(h => h.History?.BeforeRaces ?? Enumerable.Empty<RaceHorseAnalyzer>())
+        .GroupBy(history => history.Race.Key)
+        .Where(h => h.ElementAtOrDefault(1) != null)
+        .Take(20))
+      {
+        var match = new RaceHorseMatchResult(raceData.First().Race);
+        foreach (var horse in sameRaceHorses.OrderBy(h => h.Data.Number))
+        {
+          var history = raceData.FirstOrDefault(h => h.Data.Key == horse.Data.Key);
+          match.Rows.Add(new RaceHorseMatchResult.Row
+          {
+            RaceHorse = history,
+          });
+        }
+        this.Matches.Add(match);
       }
     }
 
@@ -80,6 +118,64 @@ namespace KmyKeiba.Models.Analysis
       {
         h.Dispose();
       }
+    }
+
+    #region Command
+
+    public ICommand PlayRaceMovieCommand =>
+      this._playRaceMovieCommand ??=
+        new AsyncReactiveCommand<object>(this.Movie.IsRaceError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayRaceAsync());
+    private AsyncReactiveCommand<object>? _playRaceMovieCommand;
+
+    public ICommand PlayPaddockCommand =>
+      this._playPaddockCommand ??=
+        new AsyncReactiveCommand<object>(this.Movie.IsPaddockError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPaddockAsync());
+    private AsyncReactiveCommand<object>? _playPaddockCommand;
+
+    public ICommand PlayPaddockForceCommand =>
+      this._playPaddockForceCommand ??=
+        new AsyncReactiveCommand<object>(this.Movie.IsPaddockForceError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPaddockForceAsync());
+    private AsyncReactiveCommand<object>? _playPaddockForceCommand;
+
+    public ICommand PlayPatrolCommand =>
+      this._playPatrolCommand ??=
+        new AsyncReactiveCommand<object>(this.Movie.IsPatrolError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPatrolAsync());
+    private AsyncReactiveCommand<object>? _playPatrolCommand;
+
+    public ICommand PlayMultiCamerasCommand =>
+      this._playMultiCamerasCommand ??=
+        new AsyncReactiveCommand<object>(this.Movie.IsMultiCamerasError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayMultiCamerasAsync());
+    private AsyncReactiveCommand<object>? _playMultiCamerasCommand;
+
+    public ICommand OpenRaceWindowCommand =>
+      this._openRaceWindowCommand ??=
+        new ReactiveCommand<string>().WithSubscribe(key => OpenRaceRequest.Default.Request(key));
+    private ReactiveCommand<string>? _openRaceWindowCommand;
+
+    #endregion
+  }
+
+  public class RaceHorseMatchResult
+  {
+    public RaceData Race => this.RaceAnalyzer.Data;
+
+    public RaceAnalyzer RaceAnalyzer { get; }
+
+    public RaceSubjectInfo Subject { get; }
+
+    public ReactiveCollection<Row> Rows { get; } = new();
+
+    public RaceHorseMatchResult(RaceData race)
+    {
+      this.RaceAnalyzer = new RaceAnalyzer(race, Array.Empty<RaceHorseData>(), AnalysisUtil.DefaultStandardTime);
+      this.Subject = new RaceSubjectInfo(race);
+    }
+
+    public class Row
+    {
+      public bool HasResult => this.RaceHorse != null;
+
+      public RaceHorseAnalyzer? RaceHorse { get; init; }
     }
   }
 

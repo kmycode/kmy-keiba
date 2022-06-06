@@ -234,6 +234,10 @@ namespace KmyKeiba.Models.Script
 
     protected ScriptObjectContainer<ScriptSuggestion> SuggestionContainer { get; } = new();
 
+    protected ScriptObjectContainer<ScriptBulkConfig> BulkConfigContainer { get; } = new();
+
+    public ScriptBulkConfig BulkConfig => this.BulkConfigContainer.Item!;
+
     public ScriptEngineWrapper()
     {
       this.Engine = new V8ScriptEngine(V8ScriptEngineFlags.EnableDynamicModuleImports |
@@ -247,14 +251,18 @@ namespace KmyKeiba.Models.Script
       this.Engine.AddHostObject("__currentRace", this.RaceContainer);
       this.Engine.AddHostObject("__suggestion", this.SuggestionContainer);
       this.Engine.AddHostObject("__html", this.HtmlContainer);
+      this.Engine.AddHostObject("__bulk", this.BulkConfigContainer);
       this.Engine.AddHostObject("__fs", new NodeJSFileSystem());
       this.Engine.AddHostObject("__hostFuncs", new HostFunctions());
 
       this.HtmlContainer.SetItem(new ScriptHtml());
+      this.BulkConfigContainer.SetItem(new ScriptBulkConfig());
     }
 
     protected virtual object Execute(RaceInfo race)
     {
+      DocumentLoader.Default.DiscardCachedDocuments();
+
       var script = File.ReadAllText("script/index.js");
       this.Engine.Script.OnInit = this.Engine.Evaluate(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
       return this.Engine.Invoke("OnInit");
@@ -345,6 +353,8 @@ namespace KmyKeiba.Models.Script
 
     private void Compile()
     {
+      DocumentLoader.Default.DiscardCachedDocuments();
+
       var script = File.ReadAllText("script/index.js");
       this._compiled = this.Engine.Compile(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
       this.Engine.Script.OnInit = this.Engine.Evaluate(this._compiled);
@@ -407,5 +417,18 @@ namespace KmyKeiba.Models.Script
   </body>
 </html>";
     }
+  }
+
+  [NoDefaultScriptAccess]
+  public class ScriptBulkConfig
+  {
+    [ScriptMember("isCentral")]
+    public bool IsCentral { get; set; } = true;
+
+    [ScriptMember("isLocal")]
+    public bool IsLocal { get; set; } = true;
+
+    [ScriptMember("isBanei")]
+    public bool IsBanei { get; set; } = true;
   }
 }

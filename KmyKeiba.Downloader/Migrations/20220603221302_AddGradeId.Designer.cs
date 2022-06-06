@@ -3,6 +3,7 @@ using System;
 using KmyKeiba.Downloader;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KmyKeiba.Downloader.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20220603221302_AddGradeId")]
+    partial class AddGradeId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.5");
@@ -596,6 +598,12 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<TimeSpan>("Corner1LapTime")
                         .HasColumnType("TEXT");
 
+                    b.Property<short>("Corner1Number")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Corner1Position")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Corner1Result")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -603,6 +611,12 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.Property<TimeSpan>("Corner2LapTime")
                         .HasColumnType("TEXT");
+
+                    b.Property<short>("Corner2Number")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Corner2Position")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Corner2Result")
                         .IsRequired()
@@ -612,6 +626,12 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<TimeSpan>("Corner3LapTime")
                         .HasColumnType("TEXT");
 
+                    b.Property<short>("Corner3Number")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Corner3Position")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Corner3Result")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -620,13 +640,16 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<TimeSpan>("Corner4LapTime")
                         .HasColumnType("TEXT");
 
+                    b.Property<short>("Corner4Number")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Corner4Position")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Corner4Result")
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("CornerPositionInfos")
-                        .HasColumnType("INTEGER");
 
                     b.Property<short>("Course")
                         .HasColumnType("INTEGER");
@@ -700,10 +723,6 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.Property<int>("SubjectAgeYounger")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("SubjectDisplayInfo")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("SubjectName")
                         .IsRequired()
