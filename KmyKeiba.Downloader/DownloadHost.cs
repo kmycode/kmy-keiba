@@ -35,6 +35,7 @@ namespace KmyKeiba.Downloader
       }
       File.WriteAllText(Constrants.RTHostFilePath, Process.GetCurrentProcess().Id.ToString());
 
+      logger.Info("ホストプロセスを開始します");
       isHost = true;
       HostAsync().Wait();
     }
@@ -43,27 +44,67 @@ namespace KmyKeiba.Downloader
     {
       while (true)
       {
-        using var db = new MyContext();
-        var task = await db.DownloaderTasks!.FirstOrDefaultAsync(t => !t.IsStarted);
-
-        if (task != null)
+        try
         {
-          logger.Info($"新しいタスク {task.Id} を検出");
-          Console.WriteLine($"タスク {task.Id} を開始します\n");
+          using var db = new MyContext();
+          var task = await db.DownloaderTasks!.FirstOrDefaultAsync(t => !t.IsStarted);
 
-          task.IsStarted = true;
-          await db.SaveChangesAsync();
-
-          if (task.Command == DownloaderCommand.DownloadRealTimeData)
+          if (task != null)
           {
-            currentTask = task;
-            StartLoad(task, true);
-          }
-        }
+            logger.Info($"新しいタスク {task.Id} を検出");
+            Console.WriteLine($"タスク {task.Id} を開始します\n");
 
-        CheckShutdown(db, isForce: true);
-        Console.WriteLine("[HOST] Waitint new tasks... ");
-        await Task.Delay(1000);
+            async Task SetAsCurrentTaskAsync()
+            {
+              task.IsStarted = true;
+              task.ProcessId = Process.GetCurrentProcess().Id;
+              await db.SaveChangesAsync();
+              currentTask = task;
+            }
+
+            if (task.Command == DownloaderCommand.DownloadRealTimeData)
+            {
+              await SetAsCurrentTaskAsync();
+              StartLoad(task, true);
+            }
+          }
+
+          await CheckCurrentTasksAsync(db);
+
+          CheckShutdown(db, isForce: true);
+          Console.WriteLine("[HOST] Waitint new tasks... ");
+          await Task.Delay(1000);
+        }
+        catch (Exception ex)
+        {
+          logger.Error("ホストプロセスでエラーが発生しました", ex);
+        }
+      }
+    }
+
+    private static async Task CheckCurrentTasksAsync(MyContext db)
+    {
+      var tasks = await db.DownloaderTasks!.Where(t => !t.IsFinished && t.ProcessId != default).ToArrayAsync();
+
+      var isSave = false;
+      foreach (var task in tasks)
+      {
+        try
+        {
+          // プロセスが存在しなければ例外
+          Process.GetProcessById(task.ProcessId);
+        }
+        catch
+        {
+          task.IsCanceled = true;
+          task.Error = DownloaderError.ApplicationRuntimeError;
+          isSave = true;
+          logger.Warn($"タスク {task.Id} は、担当プロセス {task.ProcessId} が見つからないのでキャンセルしました");
+        }
+      }
+      if (isSave)
+      {
+        await db.SaveChangesAsync();
       }
     }
   }

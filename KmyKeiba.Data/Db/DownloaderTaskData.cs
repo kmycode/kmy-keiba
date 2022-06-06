@@ -18,6 +18,8 @@ namespace KmyKeiba.Data.Db
 
     public bool IsStarted { get; set; }
 
+    public int ProcessId { get; set; }
+
     public DownloaderError Error { get; set; }
 
     public string Result { get; set; } = string.Empty;

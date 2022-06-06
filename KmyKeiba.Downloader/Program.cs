@@ -151,7 +151,7 @@ namespace KmyKeiba.Downloader
         var task = GetTask(args[1], DownloaderCommand.DownloadSetup);
         if (task != null)
         {
-          currentTask = task;
+          SetCurrentTask(task);
           StartLoad(task);
           KillMe();
         }
@@ -348,6 +348,12 @@ namespace KmyKeiba.Downloader
       {
         logger.Error("タスクへのデータ書き込みに失敗しました", ex);
       }
+    }
+
+    private static void SetCurrentTask(DownloaderTaskData task)
+    {
+      currentTask = task;
+      SetTask(task, t => t.ProcessId = Process.GetCurrentProcess().Id);
     }
 
     private static void OpenMovie()

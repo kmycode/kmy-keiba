@@ -105,6 +105,8 @@ namespace KmyKeiba.Models.Connection
       }
 
       var tryCount = 0;
+      var loopStart = DateTime.Now;
+      var isProcessStarted = false;
       while (true)
       {
         try
@@ -127,6 +129,18 @@ namespace KmyKeiba.Models.Connection
             }
             else
             {
+              if (!isProcessStarted && loopStart.AddMinutes(10) < DateTime.Now)
+              {
+                if (item.ProcessId == default)
+                {
+                  item.IsCanceled = true;
+                  item.Error = DownloaderError.ConnectionTimeout;
+                  await db.SaveChangesAsync();
+                  logger.Warn($"タスク {taskDataId} がタイムアウトしました。プロセスが割り当てられていません");
+                  return item;
+                }
+                isProcessStarted = true;
+              }
               if (processing != null)
               {
                 await processing(item);
