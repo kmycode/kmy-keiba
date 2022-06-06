@@ -248,7 +248,11 @@ namespace KmyKeiba.Models.Script
         V8ScriptEngineFlags.EnableDateTimeConversion);
 
       this.Engine.DocumentSettings.AccessFlags |= DocumentAccessFlags.EnableAllLoading | DocumentAccessFlags.EnforceRelativePrefix;
+#if DEBUG
       this.Engine.DocumentSettings.SearchPath = Path.Combine(Directory.GetCurrentDirectory(), "script");
+#else
+      this.Engine.DocumentSettings.SearchPath = Constrants.ScriptDir;
+#endif
 
       this.Engine.AddHostObject("__currentRace", this.RaceContainer);
       this.Engine.AddHostObject("__suggestion", this.SuggestionContainer);
