@@ -70,6 +70,12 @@ namespace KmyKeiba.Models.Analysis
 
     public bool IsAbnormalResult => this.Data.AbnormalResult != RaceAbnormality.Unknown;
 
+    public TimeSpan UntilA3HResultTime { get; }
+
+    public ValueComparation ResultTimeDVComparation { get; set; }
+
+    public ValueComparation ResultA3HTimeDVComparation { get; set; }
+
     public double ResultTimePerMeter { get; }
 
     /// <summary>
@@ -307,6 +313,10 @@ namespace KmyKeiba.Models.Analysis
       this.ResultTimePerMeter = (double)horse.ResultTime.TotalSeconds / race.Distance;
       this.ResultOrderComparation = horse.ResultOrder >= 1 && horse.ResultOrder <= 3 ? ValueComparation.Good :
         horse.ResultOrder >= 8 || horse.ResultOrder >= race.HorsesCount * 0.7f ? ValueComparation.Bad : ValueComparation.Standard;
+      if (race.Distance >= 800)
+      {
+        this.UntilA3HResultTime = (horse.ResultTime - horse.AfterThirdHalongTime) / (race.Distance - 600);
+      }
 
       this.Memo.Skip(1).Subscribe(async m =>
       {

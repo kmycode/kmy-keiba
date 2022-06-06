@@ -170,5 +170,25 @@ namespace KmyKeiba.Models.Analysis
       }
       return (min, max);
     }
+
+    public static ValueComparation CompareValue(double value, double good, double bad)
+    {
+      var comp = value >= good ? ValueComparation.Good : value <= bad ? ValueComparation.Bad : ValueComparation.Standard;
+      if (good < bad)
+      {
+        comp = comp == ValueComparation.Good ? ValueComparation.Bad : comp == ValueComparation.Bad ? ValueComparation.Good : ValueComparation.Standard;
+      }
+      return comp;
+    }
+
+    public static ValueComparation CompareValue(float value, float good, float bad)
+    {
+      var comp = value >= good ? ValueComparation.Good : value <= bad ? ValueComparation.Bad : ValueComparation.Standard;
+      if (good < bad)
+      {
+        comp = comp == ValueComparation.Good ? ValueComparation.Bad : comp == ValueComparation.Bad ? ValueComparation.Good : ValueComparation.Standard;
+      }
+      return comp;
+    }
   }
 }
