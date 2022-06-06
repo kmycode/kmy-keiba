@@ -271,7 +271,8 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="52">
-                    <StackPanel HorizontalAlignment="Center">
+                    <StackPanel HorizontalAlignment="Stretch">
+                      <Border Height="4" Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
                       <TextBlock Text="{Binding Data.Number}" Foreground="{DynamicResource SubForeground}" FontSize="22" HorizontalAlignment="Center"/>
                       <up:HorseMarkButton Horse="{Binding}" HorizontalAlignment="Center"/>
                     </StackPanel>
