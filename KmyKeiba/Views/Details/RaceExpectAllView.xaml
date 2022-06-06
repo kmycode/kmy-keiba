@@ -254,15 +254,15 @@
 
       <!-- 対戦表 -->
       <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Matches,Converter={StaticResource BooleanVisibilityConv}}">
-        <ScrollViewer VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="auto"/>
-              <RowDefinition/>
-            </Grid.RowDefinitions>
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition/>
+          </Grid.RowDefinitions>
 
-            <!--見出し-->
-            <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}" Margin="156,0,0,0">
+          <!--見出し-->
+          <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Name="TableHeader">
+            <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}" Margin="156,0,40,0">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <StackPanel Orientation="Horizontal"/>
@@ -279,68 +279,72 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+          </ScrollViewer>
 
-            <!--行-->
-            <ItemsControl Grid.Row="1" ItemsSource="{Binding Race.RaceAnalyzer.Value.Matches,ElementName=Root}" Style="{StaticResource TableList}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <StackPanel Orientation="Horizontal">
+          <!--行-->
+          <ItemsControl Grid.Row="1" ItemsSource="{Binding Race.RaceAnalyzer.Value.Matches,ElementName=Root}" Style="{StaticResource TableList}"
+                        ScrollViewer.HorizontalScrollBarVisibility="Auto">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal">
 
-                    <!--レース名-->
-                    <ToggleButton Name="Selection" Style="{StaticResource ListItemToggle}">
-                      <ToggleButton.Template>
-                        <ControlTemplate>
-                          <Grid Background="{TemplateBinding Background}">
-                            <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="156" Height="48">
-                              <Grid Margin="4,4">
-                                <Grid.ColumnDefinitions>
-                                  <ColumnDefinition Width="auto"/>
-                                  <ColumnDefinition/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                  <RowDefinition/>
-                                  <RowDefinition/>
-                                </Grid.RowDefinitions>
-                                <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Width="32" Height="20" FontSize="12" Margin="0,0,4,0"/>
-                                <TextBlock Grid.Column="1" FontWeight="Bold" Text="{Binding Subject.DisplayName}" FontSize="15" Foreground="{DynamicResource BaseForeground}"/>
-                                <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
-                                   Foreground="{DynamicResource BaseForeground}" FontSize="14"/>
-                              </Grid>
-                            </Border>
-
-                            <Popup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
-                                   StaysOpen="False">
-                              <up:RacePopup Race="{Binding RaceAnalyzer}"/>
-                            </Popup>
-                          </Grid>
-                        </ControlTemplate>
-                      </ToggleButton.Template>
-                    </ToggleButton>
-
-                    <!--対戦情報-->
-                    <ItemsControl ItemsSource="{Binding Rows}">
-                      <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                          <StackPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                      </ItemsControl.ItemsPanel>
-                      <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                          <Border Width="52" Height="48" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0,0,0,1">
-                            <Grid Visibility="{Binding HasResult,Converter={StaticResource BooleanVisibilityConv}}" VerticalAlignment="Center">
-                              <TextBlock Text="{Binding RaceHorse.Data.ResultOrder}" Foreground="{Binding RaceHorse.ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}"
-                                         FontSize="16" TextAlignment="Center"/>
+                  <!--レース名-->
+                  <ToggleButton Name="Selection" Style="{StaticResource ListItemToggle}">
+                    <ToggleButton.Template>
+                      <ControlTemplate>
+                        <Grid Background="{TemplateBinding Background}">
+                          <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="156" Height="48">
+                            <Grid Margin="4,4">
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition/>
+                              </Grid.ColumnDefinitions>
+                              <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                              </Grid.RowDefinitions>
+                              <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Width="32" Height="20" FontSize="12" Margin="0,0,4,0"/>
+                              <TextBlock Grid.Column="1" FontWeight="Bold" Text="{Binding Subject.DisplayName}" FontSize="15" Foreground="{DynamicResource BaseForeground}"/>
+                              <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
+                                  Foreground="{DynamicResource BaseForeground}" FontSize="14"/>
                             </Grid>
                           </Border>
-                        </DataTemplate>
-                      </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                  </StackPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </Grid>
-        </ScrollViewer>
+
+                          <Popup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
+                                  StaysOpen="False">
+                            <up:RacePopup Race="{Binding RaceAnalyzer}"/>
+                          </Popup>
+                        </Grid>
+                      </ControlTemplate>
+                    </ToggleButton.Template>
+                  </ToggleButton>
+
+                  <!--対戦情報-->
+                  <ItemsControl ItemsSource="{Binding Rows}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Width="52" Height="48" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0,0,0,1">
+                          <Grid Visibility="{Binding HasResult,Converter={StaticResource BooleanVisibilityConv}}" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding RaceHorse.Data.ResultOrder}" Foreground="{Binding RaceHorse.ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                                        FontSize="16" TextAlignment="Center"/>
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+            <i:Interaction.Behaviors>
+              <b:SyncScrollOffsetBehavior TargetElement="{Binding ElementName=TableHeader}"/>
+            </i:Interaction.Behaviors>
+          </ItemsControl>
+        </Grid>
       </Grid>
 
       <!-- オッズ -->
