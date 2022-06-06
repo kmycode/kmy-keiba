@@ -139,6 +139,14 @@ namespace KmyKeiba.Models.Race
       this.LoadCurrentRace(this.Info.Value?.Data.Key);
     }
 
+    public async Task SetActiveHorsesAsync(IEnumerable<string> horseKeys)
+    {
+      foreach (var key in horseKeys)
+      {
+        await this.SetActiveHorseAsync(key);
+      }
+    }
+
     public async Task SetActiveHorseAsync(string horseKey)
     {
       if (string.IsNullOrEmpty(horseKey))

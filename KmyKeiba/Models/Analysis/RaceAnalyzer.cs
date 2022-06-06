@@ -21,6 +21,7 @@ namespace KmyKeiba.Models.Analysis
   public class RaceAnalyzer : IDisposable
   {
     private readonly CompositeDisposable _disposables = new();
+    private RaceHorseMatchResult? _matchResult;
 
     public RaceData Data { get; }
 
@@ -127,6 +128,7 @@ namespace KmyKeiba.Models.Analysis
         .Take(20))
       {
         var match = new RaceHorseMatchResult(raceData.First().Race);
+        match.RaceAnalyzer._matchResult = match;
         foreach (var horse in sameRaceHorses.OrderBy(h => h.Data.Number))
         {
           var history = raceData.FirstOrDefault(h => h.Data.Key == horse.Data.Key);
@@ -149,7 +151,7 @@ namespace KmyKeiba.Models.Analysis
       }
     }
 
-    #region Command
+    #region Commands
 
     public ICommand PlayRaceMovieCommand =>
       this._playRaceMovieCommand ??=
@@ -178,7 +180,18 @@ namespace KmyKeiba.Models.Analysis
 
     public ICommand OpenRaceWindowCommand =>
       this._openRaceWindowCommand ??=
-        new ReactiveCommand<string>().WithSubscribe(key => OpenRaceRequest.Default.Request(key));
+        new ReactiveCommand<string>().WithSubscribe(key =>
+        {
+          if (this._matchResult != null)
+          {
+            OpenRaceRequest.Default.Request(key, this._matchResult.Rows
+              .Where(r => r.RaceHorse != null).Select(r => r.RaceHorse!.Data.Key).ToArray());
+          }
+          else
+          {
+            OpenRaceRequest.Default.Request(key);
+          }
+        });
     private ReactiveCommand<string>? _openRaceWindowCommand;
 
     #endregion

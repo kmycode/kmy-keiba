@@ -89,7 +89,7 @@ namespace KmyKeiba.Behaviors
           {
             try
             {
-              viewModel.SetActiveHorse(e.HorseKey);
+              viewModel.SetActiveHorses(e.HorseKeys);
               if (win.IsVisible)
               {
                 win.Activate();
@@ -98,7 +98,7 @@ namespace KmyKeiba.Behaviors
             }
             catch (Exception ex)
             {
-              logger.Error($"レースウィンドウ (レース: {e.RaceKey}, 馬: {e.HorseKey}) 開くときにエラー", ex);
+              logger.Error($"レースウィンドウ (レース: {e.RaceKey}, 馬: {string.Join(',', e.HorseKeys)}) 開くときにエラー", ex);
             }
           }
           if (!win.IsVisible)
@@ -116,7 +116,7 @@ namespace KmyKeiba.Behaviors
 
       var window = new RaceWindow
       {
-        DataContext = new RaceWindowViewModel(e.RaceKey, e.HorseKey),
+        DataContext = new RaceWindowViewModel(e.RaceKey, e.HorseKeys),
       };
       window.Show();
 

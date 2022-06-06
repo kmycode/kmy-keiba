@@ -19,16 +19,16 @@ namespace KmyKeiba.ViewModels
     public bool IsMainWindow => false;
 
 
-    public RaceWindowViewModel(string key, string horseKey)
+    public RaceWindowViewModel(string key, IReadOnlyList<string> horseKeys)
     {
-      logger.Debug($"レース {key} 馬 {horseKey} のビューモデルを作成");
+      logger.Debug($"レース {key} 馬 {string.Join(',', horseKeys)} のビューモデルを作成");
       this.model.SetRaceKey(key);
-      this.SetActiveHorse(horseKey);
+      this.SetActiveHorses(horseKeys);
     }
 
-    public void SetActiveHorse(string horseKey)
+    public void SetActiveHorses(IReadOnlyList<string> horseKeys)
     {
-      _ = this.model.SetActiveHorseAsync(horseKey);
+      _ = this.model.SetActiveHorsesAsync(horseKeys);
     }
 
     public ICommand BuyCommand =>
