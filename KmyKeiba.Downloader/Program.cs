@@ -242,7 +242,7 @@ namespace KmyKeiba.Downloader
         if (task != null)
         {
           currentTask = task;
-          CreateTrainingMovieList();
+          UpdateTrainingMovieList();
           KillMe();
         }
       }
@@ -401,7 +401,7 @@ namespace KmyKeiba.Downloader
         {
           t.IsFinished = true;
           t.Result = JVLinkException.GetAttribute(ex.Code).Message;
-          t.Error = DownloaderError.TargetsNotExists;
+          t.Error = ex.Code.ToDownloaderError();
         });
       }
       catch (Exception ex)
@@ -410,7 +410,7 @@ namespace KmyKeiba.Downloader
       }
     }
 
-    private static void CreateTrainingMovieList()
+    private static void UpdateTrainingMovieList()
     {
       var task = currentTask;
       if (task == null)
@@ -478,7 +478,7 @@ namespace KmyKeiba.Downloader
       catch (JVLinkException<JVLinkMovieResult> ex)
       {
         logger.Error($"動画リストダウンロードでエラーが発生しました {ex.Code}", ex);
-        task.Error = DownloaderError.ApplicationRuntimeError;
+        task.Error = ex.Code.ToDownloaderError();
         task.Result = ex.Message;
       }
       catch (Exception ex)
@@ -500,11 +500,13 @@ namespace KmyKeiba.Downloader
       return result switch
       {
         JVLinkMovieResult.ServerError => DownloaderError.ServerError,
+        JVLinkMovieResult.InvalidServerResponse => DownloaderError.ServerError,
         JVLinkMovieResult.AuthenticationError => DownloaderError.AuthenticationError,
         JVLinkMovieResult.InternalError => DownloaderError.ServerError,
         JVLinkMovieResult.InvalidKey => DownloaderError.LicenceKeyExpired,
         JVLinkMovieResult.InMaintance => DownloaderError.InMaintance,
         JVLinkMovieResult.NotFound => DownloaderError.TargetsNotExists,
+        JVLinkMovieResult.RacingViewerNotAvailable => DownloaderError.RacingViewerNotAvailable,
         JVLinkMovieResult.Succeed => DownloaderError.Succeed,
         _ => DownloaderError.ApplicationRuntimeError,
       };

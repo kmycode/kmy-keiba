@@ -186,6 +186,10 @@ namespace KmyKeiba.Downloader
           {
             Program.Shutdown(DownloaderError.InMaintance);
           }
+          else if (ex.Code == JVLinkLoadResult.InvalidServerResponse)
+          {
+            Program.Shutdown(DownloaderError.ServerError);
+          }
           else if (ex.Code == JVLinkLoadResult.InvalidDataspec || ex.Code == JVLinkLoadResult.InvalidDatespecAndOption ||
             ex.Code == JVLinkLoadResult.InvalidFromTime || ex.Code == JVLinkLoadResult.InvalidKey ||
             ex.Code == JVLinkLoadResult.InvalidOption || ex.Code == JVLinkLoadResult.InvalidRegistry ||

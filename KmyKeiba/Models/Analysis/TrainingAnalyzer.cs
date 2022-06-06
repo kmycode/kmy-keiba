@@ -56,36 +56,7 @@ namespace KmyKeiba.Models.Analysis
 
     public async Task UpdateTrainingListAsync()
     {
-      if (this.Trainings.Any(t => !t.Movie.IsChecked) && DownloaderModel.Instance.CanSaveOthers.Value)
-      {
-        var horseKey = this.Trainings.First().HorseKey;
-        try
-        {
-          await DownloaderConnector.Instance.UpdateMovieListAsync(horseKey);
-
-          using var db = new MyContext();
-          var trainings = await db.Trainings!
-            .Where(t => t.HorseKey == horseKey)
-            .Select(t => new { t.StartTime, t.MovieStatus, })
-            .Concat(db.WoodtipTrainings!
-              .Where(t => t.HorseKey == horseKey)
-              .Select(t => new { t.StartTime, t.MovieStatus, }))
-            .ToArrayAsync();
-          ThreadUtil.InvokeOnUiThread(() =>
-          {
-            foreach (var item in trainings
-              .Join(this.Trainings, dt => dt.StartTime, t => t.StartTime, (dt, t) => new { Row = t, dt.MovieStatus, })
-              .Where(i => i.MovieStatus != MovieStatus.Unchecked))
-            {
-              item.Row.Movie.Status = item.MovieStatus;
-            };
-          });
-        }
-        catch (Exception ex)
-        {
-          logger.Error("調教リスト更新で例外", ex);
-        }
-      }
+      await TrainingMovieInfo.UpdateTrainingListAsync(this.Trainings);
     }
 
     public class TrainingRow
