@@ -593,7 +593,7 @@ namespace KmyKeiba.Models.Race
             {
               if (horse.History != null)
               {
-                if (horse.History.BeforeRaces.Where(r => r.Data.ResultOrder > 0).Take(10)
+                if (horse.History.BeforeRaces.Where(r => r.Data.ResultTime.TotalSeconds > 0).Take(10)
                   .Count(r => r.Race.TrackGround != race.TrackGround || r.Race.TrackType != race.TrackType || Math.Abs(r.Race.Distance - race.Distance) >= 400) >= 4)
                 {
                   // 条件の大きく異なるレース

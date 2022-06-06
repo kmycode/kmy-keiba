@@ -176,9 +176,11 @@ namespace KmyKeiba.Models.Analysis
         this.BeforeFiveRaces = this.BeforeRaces.Take(5).ToArray();
         this.Before15Races = this.BeforeRaces.Take(15).ToArray();
 
-        if (this.BeforeRaces.Any(r => r.Data.ResultOrder > 0))
+        // 着順で比較すると、JV-Linkしか使ってない状態で地方競馬のデータも混ざってしまう
+        // （JVLinkにおける地方競馬のデータは、時間など大半のデータがゼロになっている）
+        if (this.BeforeRaces.Any(r => r.Data.ResultTime.TotalSeconds > 0))
         {
-          var targetRaces = this.BeforeRaces.Where(r => r.Data.ResultOrder > 0).Take(10);
+          var targetRaces = this.BeforeRaces.Where(r => r.Data.ResultTime.TotalSeconds > 0).Take(10);
 
           var startTime = new DateTime(1980, 1, 1);
           var statistic = new StatisticSingleArray(targetRaces.Select(r => r.ResultTimeDeviationValue).Where(r => r != default).ToArray());
