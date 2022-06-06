@@ -157,6 +157,11 @@ namespace KmyKeiba.Downloader
         logger.Error($"リンクの指定が誤りです {parameters[2]}");
         return;
       }
+      if (link.Type == JVLinkObjectType.Unknown || link.IsError)
+      {
+        Shutdown(DownloaderError.NotInstalledCom);
+        return;
+      }
 
       var specs1 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "JC", "HC", "WC", "HR", };
       var specs2 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", };
@@ -269,6 +274,11 @@ namespace KmyKeiba.Downloader
         task.IsFinished = true;
         await db.SaveChangesAsync();
         logger.Error($"リンクの指定が誤りです {parameters[2]}");
+        return;
+      }
+      if (link.Type == JVLinkObjectType.Unknown || link.IsError)
+      {
+        Shutdown(DownloaderError.NotInstalledCom);
         return;
       }
 
