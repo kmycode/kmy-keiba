@@ -103,6 +103,8 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> CanSaveOthers { get; } = new();
 
+    public ReactiveProperty<bool> CanCancel { get; } = new();
+
     public ReactiveProperty<StatusFeeling> DownloadingStatus { get; }
 
     public ReactiveProperty<StatusFeeling> RTDownloadingStatus { get; }
@@ -127,16 +129,18 @@ namespace KmyKeiba.Models.Connection
       void UpdateCanSave()
       {
         var canSave = this.DownloadingStatus.Value != StatusFeeling.Bad && this.RTDownloadingStatus.Value != StatusFeeling.Bad;
-        if (this.CanSaveOthers.Value != canSave)
+        var canCancel = canSave || this.IsProcessing.Value;
+        if (this.CanSaveOthers.Value != canSave || this.CanCancel.Value != canCancel)
         {
           // このプロパティはViewModel内のReactiveCommandのCanExecuteにも使われる
           // この場合、UIスレッドから書き換えないとエラーになるっぽい
           ThreadUtil.InvokeOnUiThread(() =>
           {
             this.CanSaveOthers.Value = canSave;
+            this.CanCancel.Value = canCancel;
           });
 
-          logger.Debug($"他のスレッドからDBに保存可能: {canSave}");
+          logger.Debug($"他のスレッドからDBに保存可能: {canSave}, キャンセル可能: {canCancel}");
         }
       }
       this.LoadingProcess.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
