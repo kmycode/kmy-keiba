@@ -335,7 +335,9 @@ namespace KmyKeiba.Models.Connection
             };
           });
         }
-        catch (DownloaderCommandException ex) when (ex.Error == DownloaderError.RacingViewerNotAvailable)
+        catch (DownloaderCommandException ex) when (ex.Error == DownloaderError.RacingViewerNotAvailable ||
+          ex.Error == DownloaderError.ServerError ||
+          ex.Error == DownloaderError.InMaintance)
         {
           logger.Warn("レーシングビューアーが有効ではありません");
           MovieInfo.IsRacingViewerAvailable = false;

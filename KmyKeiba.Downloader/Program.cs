@@ -63,7 +63,7 @@ namespace KmyKeiba.Downloader
 
         //args = new[] { "dwrt", "31", };
         //args = new[] { "movie", "1266", };
-        //args = new[] { "kill", "2960" };
+        //args = new[] { "movielist", "94" };
         //args = new[] { "download", "5" };
 
         if ((object)args != oldArgs)
@@ -434,6 +434,7 @@ namespace KmyKeiba.Downloader
       logger.Info($"キー: {horseKey} の調教動画一覧を取得します");
 
       using var db = new MyContext();
+      db.DownloaderTasks!.Attach(task);
 
       try
       {
@@ -485,8 +486,6 @@ namespace KmyKeiba.Downloader
       {
         logger.Error("動画リストダウンロードでエラーが発生しました", ex);
       }
-
-      db.DownloaderTasks!.Attach(task);
 
       task.IsFinished = true;
       db.SaveChanges();
