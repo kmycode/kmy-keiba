@@ -298,6 +298,18 @@ namespace KmyKeiba.Models.Connection
 
     public static async Task UpdateTrainingListAsync(IReadOnlyList<TrainingRow> trainingList)
     {
+      if (!MovieInfo.IsRacingViewerAvailable)
+      {
+        ThreadUtil.InvokeOnUiThread(() =>
+        {
+          foreach (var item in trainingList)
+          {
+            item.Movie.Status = MovieStatus.Unavailable;
+          }
+        });
+        return;
+      }
+
       if (trainingList.Any(t => !t.Movie.IsChecked) && DownloaderModel.Instance.CanSaveOthers.Value)
       {
         var horseKey = trainingList.First().HorseKey;

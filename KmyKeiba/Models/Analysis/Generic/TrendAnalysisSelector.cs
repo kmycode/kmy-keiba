@@ -233,6 +233,17 @@ namespace KmyKeiba.Models.Analysis.Generic
       return false;
     }
 
+    public bool SetChecked(KEY key, bool isChecked)
+    {
+      var item = this.Where(i => i.Key?.Equals(key) ?? false);
+      if (item.Any())
+      {
+        item.First().IsChecked.Value = isChecked;
+        return true;
+      }
+      return false;
+    }
+
     public void RemoveKey(KEY key)
     {
       var i = -1;

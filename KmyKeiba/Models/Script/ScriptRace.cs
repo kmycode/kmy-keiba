@@ -119,6 +119,18 @@ namespace KmyKeiba.Models.Script
       return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRace(s.Data, s.TopHorses)).ToArray(), ScriptManager.JsonOptions);
     }
 
+    [ScriptMember("getSimilarRaceHorsesAsync")]
+    public async Task<string> LoadHorseTrendRacesAsync(string keys, int count = 500, int offset = 0)
+    {
+      var analyzer = this._race.WinnerTrendAnalyzers.BeginLoad(keys, count, offset, true);
+      if (analyzer != null)
+      {
+        await analyzer.WaitAnalysisAsync();
+        return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRaceHorse(string.Empty, s)).ToArray(), ScriptManager.JsonOptions);
+      }
+      return "[]";
+    }
+
     [ScriptMember("getFrameNumberOdds")]
     public string GetFrameNumberOdds()
     {

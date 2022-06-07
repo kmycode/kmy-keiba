@@ -30,18 +30,21 @@
         <ColumnDefinition/>
         <ColumnDefinition/>
         <ColumnDefinition/>
+        <ColumnDefinition/>
       </Grid.ColumnDefinitions>
       <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="出走馬" Name="S_HorseList" IsChecked="True"/>
       <RadioButton Grid.Column="1" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="傾向" Name="S_RaceTrend"/>
       <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="対戦表" Name="S_Matches"/>
+                   Content="傾向（馬）" Name="S_RaceHorseTrend"/>
       <RadioButton Grid.Column="3" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="オッズ一覧" Name="S_Odds"/>
+                   Content="対戦表" Name="S_Matches"/>
       <RadioButton Grid.Column="4" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="予想スクリプト" Name="S_Script"/>
+                   Content="オッズ一覧" Name="S_Odds"/>
       <RadioButton Grid.Column="5" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="予想スクリプト" Name="S_Script"/>
+      <RadioButton Grid.Column="6" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="馬券" Name="S_Tickets"/>
     </Grid>
 
@@ -250,6 +253,52 @@
           </ItemsControl>
         </Grid>
 
+      </Grid>
+
+      <!-- 傾向（馬） -->
+      <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_RaceHorseTrend,Converter={StaticResource BooleanVisibilityConv}}">
+        <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" TrendAnalyzers="{Binding Race.WinnerTrendAnalyzers,ElementName=Root}">
+          <uc:TrendAnalyzerAnalysisView.MenuContent>
+            <StackPanel DataContext="{Binding RelativeSource={RelativeSource FindAncestor,AncestorType=local:RaceExpectAllView}}">
+              <StackPanel.Resources>
+                <Style TargetType="ToggleButton" BasedOn="{StaticResource ToggleButtonDefault}">
+                  <Setter Property="FontSize" Value="14"/>
+                </Style>
+              </StackPanel.Resources>
+              <TextBlock Margin="0,32,0,0" FontSize="20" Text="性別"/>
+              <Grid Margin="0,8,0,0">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <ToggleButton Grid.Column="0" Content="牡" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsMale.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="1" Content="牝" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsFemale.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="2" Content="騙" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsCastrated.Value,Mode=TwoWay}"/>
+              </Grid>
+              <TextBlock Margin="0,16,0,0" FontSize="20" Text="出走間隔"/>
+              <Grid Margin="0,8,0,0">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                  <RowDefinition/>
+                  <RowDefinition/>
+                  <RowDefinition/>
+                </Grid.RowDefinitions>
+                <ToggleButton Grid.Column="0" Grid.Row="0" Content="-15" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsInterval_1_15.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="1" Grid.Row="0" Content="-30" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsInterval_16_30.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="2" Grid.Row="0" Content="-60" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsInterval_31_60.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="0" Grid.Row="1" Content="-90" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsInterval_61_90.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="1" Grid.Row="1" Content="-150" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsInterval_91_150.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="2" Grid.Row="1" Content="-300" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsInterval_151_300.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="0" Grid.Row="2" Content="301-" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsInterval_301_.Value,Mode=TwoWay}"/>
+              </Grid>
+            </StackPanel>
+          </uc:TrendAnalyzerAnalysisView.MenuContent>
+        </uc:TrendAnalyzerAnalysisView>
       </Grid>
 
       <!-- 対戦表 -->

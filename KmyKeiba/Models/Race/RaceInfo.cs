@@ -56,6 +56,8 @@ namespace KmyKeiba.Models.Race
 
     public RaceTrendAnalysisSelector TrendAnalyzers { get; }
 
+    public RaceWinnerHorseTrendAnalysisSelector WinnerTrendAnalyzers { get; }
+
     public ReactiveCollection<RaceHorseAnalyzer> Horses { get; } = new();
 
     public ReactiveCollection<RaceHorseAnalyzer> HorsesResultOrdered { get; } = new();
@@ -133,6 +135,7 @@ namespace KmyKeiba.Models.Race
       }
 
       this.TrendAnalyzers = new RaceTrendAnalysisSelector(race);
+      this.WinnerTrendAnalyzers = new RaceWinnerHorseTrendAnalysisSelector(race);
       this.CourseSummaryImage.Race = race;
 
       var buyLimitTime = this.Data.StartTime.AddMinutes(-2);
