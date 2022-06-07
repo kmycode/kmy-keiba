@@ -1,4 +1,4 @@
-﻿using KmyKeiba.Models.Race;
+﻿using KmyKeiba.Models.Race.Tickets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
