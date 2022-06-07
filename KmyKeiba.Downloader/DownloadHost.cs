@@ -47,19 +47,20 @@ namespace KmyKeiba.Downloader
         try
         {
           using var db = new MyContext();
-          var task = await db.DownloaderTasks!.FirstOrDefaultAsync(t => !t.IsStarted);
+          var task = await db.DownloaderTasks!.FirstOrDefaultAsync(t => t.Command == DownloaderCommand.DownloadRealTimeData &&
+          !t.IsStarted && !t.IsCanceled && !t.IsFinished);
 
           if (task != null)
           {
-            logger.Info($"新しいタスク {task.Id} を検出");
-            Console.WriteLine($"タスク {task.Id} を開始します\n");
-
             async Task SetAsCurrentTaskAsync()
             {
               task.IsStarted = true;
-              task.ProcessId = Process.GetCurrentProcess().Id;
+              task.ProcessId = Environment.ProcessId;
               await db.SaveChangesAsync();
               currentTask = task;
+
+              logger.Info($"新しいタスク {task.Id} を検出");
+              Console.WriteLine($"タスク {task.Id} を開始します\n");
             }
 
             if (task.Command == DownloaderCommand.DownloadRealTimeData)
@@ -72,7 +73,7 @@ namespace KmyKeiba.Downloader
           await CheckCurrentTasksAsync(db);
 
           CheckShutdown(db, isForce: true);
-          Console.WriteLine("[HOST] Waitint new tasks... ");
+          Console.WriteLine("[HOST] Waiting new tasks... ");
           await Task.Delay(1000);
         }
         catch (Exception ex)
