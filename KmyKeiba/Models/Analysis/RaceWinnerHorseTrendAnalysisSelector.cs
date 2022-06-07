@@ -261,11 +261,11 @@ namespace KmyKeiba.Models.Analysis
       }
       if (keys.Contains(Key.Outside))
       {
-        query = query.Where(r => r.RaceHorse.Number >= r.Race.HorsesCount * 2 / 3);
+        query = query.Where(r => r.RaceHorse.Number >= r.Race.HorsesCount * 2 / 3f);
       }
       if (keys.Contains(Key.Inside))
       {
-        query = query.Where(r => r.RaceHorse.Number <= r.Race.HorsesCount / 3);
+        query = query.Where(r => r.RaceHorse.Number <= r.Race.HorsesCount / 3f);
       }
 
       var sexes = new List<HorseSex>();
