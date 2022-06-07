@@ -26,7 +26,7 @@ namespace KmyKeiba
 
     public App()
     {
-      Directory.CreateDirectory(Constrants.AppDataPath);
+      Directory.CreateDirectory(Constrants.AppDataDir);
 
       var selfPath = Assembly.GetEntryAssembly()?.Location ?? string.Empty;
       var selfPathDir = Path.GetDirectoryName(selfPath) ?? "./";
@@ -63,7 +63,7 @@ namespace KmyKeiba
         {
           logger.Fatal("アプリの多重起動が検出されました。終了します");
           MessageBox.Show("本アプリは多重起動に対応していません。\n処理を終了します。");
-          Environment.Exit(-1);
+          Application.Current.Shutdown(-1);
           return;
         }
       }

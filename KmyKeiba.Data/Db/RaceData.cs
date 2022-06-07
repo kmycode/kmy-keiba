@@ -118,6 +118,8 @@ namespace KmyKeiba.Data.Db
 
     public TimeSpan Corner4LapTime { get; set; }
 
+    public string? Memo { get; set; }
+
     public override void SetEntity(Race race)
     {
       this.Key = race.Key;

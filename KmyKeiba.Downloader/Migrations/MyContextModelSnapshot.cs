@@ -180,12 +180,18 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<bool>("IsFinished")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsStarted")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("LastModified")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Parameter")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("ProcessId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Result")
                         .IsRequired()
@@ -666,6 +672,9 @@ namespace KmyKeiba.Downloader.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Memo")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")

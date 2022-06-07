@@ -41,6 +41,8 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsProcessing { get; } = new();
 
+    public ReactiveProperty<bool> IsLongDownloadMonth { get; } = new();
+
     public ReactiveProperty<bool> IsRTDownloading { get; } = new();
 
     public ReactiveProperty<bool> IsRTProcessing { get; } = new();
@@ -101,6 +103,8 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> CanSaveOthers { get; } = new();
 
+    public ReactiveProperty<bool> CanCancel { get; } = new();
+
     public ReactiveProperty<StatusFeeling> DownloadingStatus { get; }
 
     public ReactiveProperty<StatusFeeling> RTDownloadingStatus { get; }
@@ -125,16 +129,18 @@ namespace KmyKeiba.Models.Connection
       void UpdateCanSave()
       {
         var canSave = this.DownloadingStatus.Value != StatusFeeling.Bad && this.RTDownloadingStatus.Value != StatusFeeling.Bad;
-        if (this.CanSaveOthers.Value != canSave)
+        var canCancel = canSave || this.IsProcessing.Value;
+        if (this.CanSaveOthers.Value != canSave || this.CanCancel.Value != canCancel)
         {
           // このプロパティはViewModel内のReactiveCommandのCanExecuteにも使われる
           // この場合、UIスレッドから書き換えないとエラーになるっぽい
           ThreadUtil.InvokeOnUiThread(() =>
           {
             this.CanSaveOthers.Value = canSave;
+            this.CanCancel.Value = canCancel;
           });
 
-          logger.Debug($"他のスレッドからDBに保存可能: {canSave}");
+          logger.Debug($"他のスレッドからDBに保存可能: {canSave}, キャンセル可能: {canCancel}");
         }
       }
       this.LoadingProcess.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
@@ -433,7 +439,7 @@ namespace KmyKeiba.Models.Connection
             }
 
             // レース予定データはRTではなくこっちにあるみたい。定期的にチェックする
-            if (lastDownloadNormalData.AddMinutes(120) < now)
+            if (lastDownloadNormalData.AddMinutes(120) < now && !this.IsDownloading.Value)
             {
               logger.Info("翌日以降の予定を更新");
               await DownloadPlanOfRacesAsync(today.Year, today.Month, today.Day);
@@ -572,6 +578,9 @@ namespace KmyKeiba.Models.Connection
 
     private async Task DownloadAsync(DownloadLink link, int year = 0, int month = 0, int startDay = 0)
     {
+      logger.Info($"通常データのダウンロードを開始します リンク: {link}");
+      logger.Debug($"現在のダウンロード状態: {this.IsDownloading.Value}");
+
       if (link == DownloadLink.Both)
       {
         await this.DownloadAsync(DownloadLink.Central, year, month, startDay);
@@ -589,6 +598,7 @@ namespace KmyKeiba.Models.Connection
       if (year == 0) startYear = this.StartYear.Value;
       var startMonth = month;
       if (month == 0) startMonth = this.StartMonth.Value;
+      logger.Info($"開始年月: {startYear}/{startMonth}");
 
       try
       {
@@ -596,16 +606,19 @@ namespace KmyKeiba.Models.Connection
         await downloader.DownloadAsync(linkName, "race", startYear, startMonth, this.OnDownloadProgress, startDay);
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
 
+        logger.Info("通常データのダウンロード完了。後処理に移行します");
         await this.ProcessAsync(link, this.ProcessingStep, false,
           Connection.ProcessingStep.All & ~Connection.ProcessingStep.StandardTime, isFlagSetManually: true);
       }
       catch (DownloaderCommandException ex)
       {
+        logger.Error("通常データのダウンロードに失敗しました。ダウンローダがエラーを返しました", ex);
         this.ErrorMessage.Value = ex.Error.GetErrorText();
         this.IsError.Value = true;
       }
       catch (Exception ex)
       {
+        logger.Error("通常データのダウンロードに失敗しました", ex);
         this.ErrorMessage.Value = ex.Message;
         this.IsError.Value = true;
       }
@@ -616,11 +629,19 @@ namespace KmyKeiba.Models.Connection
         this.IsCancelProcessing.Value = false;
         this.ProcessingStep.Value = Connection.ProcessingStep.Unknown;
         this.LoadingProcess.Value = LoadingProcessValue.Unknown;
+
+        this.StartMonth.Value = startMonth;
+        this.StartYear.Value = startYear;
       }
+
+      logger.Info("ダウンロード処理を終了します");
     }
 
     private async Task DownloadRTAsync(DownloadLink link, DateOnly date)
     {
+      logger.Info($"RTデータのダウンロードを開始します リンク: {link}");
+      logger.Debug($"現在のダウンロード状態: {this.IsRTDownloading.Value}");
+
       if (link == DownloadLink.Both)
       {
         await this.DownloadRTAsync(DownloadLink.Central, date);
@@ -634,28 +655,40 @@ namespace KmyKeiba.Models.Connection
 
       var downloader = this._downloader;
       var linkName = link == DownloadLink.Central ? "central" : "local";
+      logger.Info($"開始年月: {date:yyyy/MM/dd}");
 
       try
       {
         await downloader.DownloadRTAsync(linkName, date, this.OnRTDownloadProgress);
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
 
+        logger.Info("RTデータのダウンロード完了。後処理に移行します");
         await this.ProcessAsync(link, this.RTProcessingStep, true, Connection.ProcessingStep.InvalidData | Connection.ProcessingStep.RunningStyle, isFlagSetManually: true);
+
         this.RTProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
+        logger.Info($"RTダウンロード/後処理進捗変更: {this.RTProcessingStep.Value}, リンク: {link}");
         await ShapeDatabaseModel.SetPreviousRaceDaysAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
+
         this.RTProcessingStep.Value = Connection.ProcessingStep.RiderWinRates;
+        logger.Info($"RTダウンロード/後処理進捗変更: {this.RTProcessingStep.Value}, リンク: {link}");
         await ShapeDatabaseModel.SetRiderWinRatesAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
+
         this.RTProcessingStep.Value = Connection.ProcessingStep.RaceSubjectInfos;
+        logger.Info($"RTダウンロード/後処理進捗変更: {this.RTProcessingStep.Value}, リンク: {link}");
         await ShapeDatabaseModel.SetRaceSubjectDisplayInfosAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
+
+        logger.Debug("RT後処理完了");
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
       }
       catch (DownloaderCommandException ex)
       {
+        logger.Error("RTデータのダウンロードに失敗しました。ダウンローダがエラーを返しました", ex);
         this.RTErrorMessage.Value = ex.Error.GetErrorText();
         this.IsRTError.Value = true;
       }
       catch (Exception ex)
       {
+        logger.Error("通常データのダウンロードに失敗しました", ex);
         this.RTErrorMessage.Value = ex.Message;
         this.IsRTError.Value = true;
       }
@@ -667,6 +700,8 @@ namespace KmyKeiba.Models.Connection
         this.RTProcessingStep.Value = Connection.ProcessingStep.Unknown;
         this.RTLoadingProcess.Value = LoadingProcessValue.Unknown;
       }
+
+      logger.Info("ダウンロード処理を終了します");
     }
 
     private async Task OnDownloadProgress(DownloaderTaskData task)
@@ -705,6 +740,9 @@ namespace KmyKeiba.Models.Connection
           this.CentralDownloadedYear.Value = year;
           using var db = new MyContext();
           await ConfigUtil.SetIntValueAsync(db, SettingKey.LastDownloadCentralDate, year * 100 + month);
+          logger.Info($"{year}/{month:00} の中央競馬通常データダウンロード完了");
+
+          this.IsLongDownloadMonth.Value = year == 2002 && month == 12;
         }
         if (task.Parameter.Contains("local") && (this.LocalDownloadedMonth.Value != month || this.LocalDownloadedYear.Value != year))
         {
@@ -712,6 +750,7 @@ namespace KmyKeiba.Models.Connection
           this.LocalDownloadedYear.Value = year;
           using var db = new MyContext();
           await ConfigUtil.SetIntValueAsync(db, SettingKey.LastDownloadLocalDate, year * 100 + month);
+          logger.Info($"{year}/{month:00} の地方競馬通常データダウンロード完了");
         }
       }
     }
@@ -748,11 +787,13 @@ namespace KmyKeiba.Models.Connection
     {
       await this._downloader.CancelCurrentTaskAsync();
       this.IsCancelProcessing.Value = true;
+      logger.Warn("ダウンロードが中止されました");
     }
 
     public async Task OpenJvlinkConfigAsync()
     {
       this.IsError.Value = false;
+      logger.Info("JVLink設定を開きます");
 
       try
       {
@@ -760,6 +801,7 @@ namespace KmyKeiba.Models.Connection
       }
       catch (Exception ex)
       {
+        logger.Error("JVLink設定を開こうとしましたがエラーが発生しました", ex);
         this.IsError.Value = true;
         this.ErrorMessage.Value = ex.Message;
       }
@@ -768,6 +810,7 @@ namespace KmyKeiba.Models.Connection
     public async Task OpenNvlinkConfigAsync()
     {
       this.IsError.Value = false;
+      logger.Info("NVLink設定を開きます");
 
       try
       {
@@ -775,6 +818,7 @@ namespace KmyKeiba.Models.Connection
       }
       catch (Exception ex)
       {
+        logger.Error("NVLink設定を開こうとしましたがエラーが発生しました", ex);
         this.IsError.Value = true;
         this.ErrorMessage.Value = ex.Message;
       }
@@ -784,6 +828,7 @@ namespace KmyKeiba.Models.Connection
     {
       this._disposables.Dispose();
       this._downloader.Dispose();
+      logger.Debug("ダウンローダのオブジェクト破棄");
     }
 
     public event EventHandler? RacesUpdated;

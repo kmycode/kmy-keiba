@@ -56,6 +56,8 @@ namespace KmyKeiba.Models.Race
 
     public RaceTrendAnalysisSelector TrendAnalyzers { get; }
 
+    public RaceWinnerHorseTrendAnalysisSelector WinnerTrendAnalyzers { get; }
+
     public ReactiveCollection<RaceHorseAnalyzer> Horses { get; } = new();
 
     public ReactiveCollection<RaceHorseAnalyzer> HorsesResultOrdered { get; } = new();
@@ -133,6 +135,7 @@ namespace KmyKeiba.Models.Race
       }
 
       this.TrendAnalyzers = new RaceTrendAnalysisSelector(race);
+      this.WinnerTrendAnalyzers = new RaceWinnerHorseTrendAnalysisSelector(race);
       this.CourseSummaryImage.Race = race;
 
       var buyLimitTime = this.Data.StartTime.AddMinutes(-2);
@@ -591,20 +594,32 @@ namespace KmyKeiba.Models.Race
             var riderPlaceRateMin = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderBy(i => i).Skip(2).FirstOrDefault();
             foreach (var horse in horseInfos)
             {
-              if (horse.History != null && timedvMax != null && timedvMin != null)
+              if (horse.History != null)
               {
-                horse.History.TimeDVComparation = horse.History.TimeDeviationValue + 0.5 >= timedvMax ? ValueComparation.Good :
-                  horse.History.TimeDeviationValue - 0.5 <= timedvMin ? ValueComparation.Bad : ValueComparation.Standard;
-              }
-              if (horse.History != null && a3htimedvMax != null && a3htimedvMin != null)
-              {
-                horse.History.A3HTimeDVComparation = horse.History.A3HTimeDeviationValue + 0.5 >= a3htimedvMax ? ValueComparation.Good :
-                  horse.History.A3HTimeDeviationValue - 0.5 <= a3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
-              }
-              if (horse.History != null && ua3htimedvMax != null && ua3htimedvMin != null)
-              {
-                horse.History.UntilA3HTimeDVComparation = horse.History.UntilA3HTimeDeviationValue + 0.5 >= ua3htimedvMax ? ValueComparation.Good :
-                  horse.History.UntilA3HTimeDeviationValue - 0.5 <= ua3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                if (horse.History.BeforeRaces.Where(r => r.Data.ResultTime.TotalSeconds > 0).Take(10)
+                  .Count(r => r.Race.TrackGround != race.TrackGround || r.Race.TrackType != race.TrackType || Math.Abs(r.Race.Distance - race.Distance) >= 400) >= 4)
+                {
+                  // 条件の大きく異なるレース
+                  horse.History.TimeDVComparation = horse.History.A3HTimeDVComparation = horse.History.UntilA3HTimeDVComparation = ValueComparation.Warning;
+                }
+                else
+                {
+                  if (timedvMax != null && timedvMin != null)
+                  {
+                    horse.History.TimeDVComparation = horse.History.TimeDeviationValue + 0.5 >= timedvMax ? ValueComparation.Good :
+                      horse.History.TimeDeviationValue - 0.5 <= timedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                  }
+                  if (a3htimedvMax != null && a3htimedvMin != null)
+                  {
+                    horse.History.A3HTimeDVComparation = horse.History.A3HTimeDeviationValue + 0.5 >= a3htimedvMax ? ValueComparation.Good :
+                      horse.History.A3HTimeDeviationValue - 0.5 <= a3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                  }
+                  if (ua3htimedvMax != null && ua3htimedvMin != null)
+                  {
+                    horse.History.UntilA3HTimeDVComparation = horse.History.UntilA3HTimeDeviationValue + 0.5 >= ua3htimedvMax ? ValueComparation.Good :
+                      horse.History.UntilA3HTimeDeviationValue - 0.5 <= ua3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                  }
+                }
               }
               if (riderPlaceRateMax != 0)
               {

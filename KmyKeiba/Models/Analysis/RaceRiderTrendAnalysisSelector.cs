@@ -65,6 +65,14 @@ namespace KmyKeiba.Models.Analysis
       [ScriptParameterKey("losed")]
       [GroupName("ResultOrder")]
       Losed,
+
+      [Label("性")]
+      [ScriptParameterKey("sex")]
+      Sex,
+
+      [Label("同内外")]
+      [ScriptParameterKey("outsideOrInside")]
+      SameOutsideOrInside,
     }
 
     public override string Name => this.RaceHorse.RiderName;
@@ -164,6 +172,25 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.Losed))
       {
         query = query.Where(r => r.RaceHorse.ResultOrder > 5);
+      }
+      if (keys.Contains(Key.Sex))
+      {
+        query = query.Where(r => r.RaceHorse.Sex == this.RaceHorse.Sex);
+      }
+      if (keys.Contains(Key.SameOutsideOrInside))
+      {
+        if (this.RaceHorse.Number <= this.Race.HorsesCount / 3)
+        {
+          query = query.Where(r => r.RaceHorse.Number <= r.Race.HorsesCount / 3);
+        }
+        else if (this.RaceHorse.Number >= this.Race.HorsesCount * 2 / 3)
+        {
+          query = query.Where(r => r.RaceHorse.Number >= r.Race.HorsesCount * 2 / 3);
+        }
+        else
+        {
+          query = query.Where(r => r.RaceHorse.Number >= r.Race.HorsesCount / 3 && r.RaceHorse.Number <= r.Race.HorsesCount * 2 / 3);
+        }
       }
 
       var races = await query

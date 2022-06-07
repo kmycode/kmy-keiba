@@ -90,6 +90,9 @@
     </Style.Triggers>
   </Style>
   <Style TargetType="ToggleButton" BasedOn="{StaticResource ToggleButtonDefault}"/>
+  <Style TargetType="ToggleButton" x:Key="ListItemToggle" BasedOn="{StaticResource ToggleButtonDefault}">
+    <Setter Property="Background" Value="{x:Null}"/>
+  </Style>
   <Style TargetType="ToggleButton" x:Key="TabBar" BasedOn="{StaticResource ToggleButtonDefault}">
     <Setter Property="Background" Value="Transparent"/>
     <Setter Property="HorizontalAlignment" Value="Stretch"/>

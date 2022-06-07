@@ -16,6 +16,10 @@ namespace KmyKeiba.Data.Db
 
     public bool IsCanceled { get; set; }
 
+    public bool IsStarted { get; set; }
+
+    public int ProcessId { get; set; }
+
     public DownloaderError Error { get; set; }
 
     public string Result { get; set; } = string.Empty;
@@ -49,6 +53,9 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderCommand("movielist")]
     OpenMovieList = 8,
+
+    [DownloaderCommand("rthost")]
+    StartRealTimeHost = 9,
   }
 
   public enum DownloaderError : short
@@ -100,11 +107,14 @@ namespace KmyKeiba.Data.Db
     [DownloaderError("ダウンロード対象が存在しません")]
     TargetsNotExists = 15,
 
-    [DownloaderError("サーバーエラーです。インターネットに接続されていない可能性があります")]
+    [DownloaderError("サーバーエラー。インターネット未接続かメンテナンスの可能性があります")]
     ServerError = 16,
 
     [DownloaderError("認証で問題が発生しました")]
     AuthenticationError = 17,
+
+    [DownloaderError("レーシングビューアー連携機能が有効ではありません")]
+    RacingViewerNotAvailable = 18,
   }
 
   internal class DownloaderCommandAttribute : Attribute

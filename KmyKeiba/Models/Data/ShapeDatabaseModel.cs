@@ -5,6 +5,7 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Shared;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
@@ -19,7 +20,7 @@ namespace KmyKeiba.Models.Data
 {
   internal class ShapeDatabaseModel
   {
-    // TODO: Console.Write to logs
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
     public static async Task RemoveInvalidDataAsync()
     {
@@ -40,9 +41,11 @@ namespace KmyKeiba.Models.Data
 
     public static void StartRunningStyleTraining(bool isForce = false)
     {
+      var mmlName = Constrants.RunningStyleTrainingFilePath;
+
       if (!isForce)
       {
-        if (File.Exists("runningstyleml.mml") && File.GetLastWriteTime("runningstyleml.mml") > DateTime.Now.AddHours(-48))
+        if (File.Exists(mmlName) && File.GetLastWriteTime(mmlName) > DateTime.Now.AddHours(-48))
         {
           return;
         }
@@ -50,33 +53,35 @@ namespace KmyKeiba.Models.Data
 
       var rs = new PredictRunningStyleModel();
 
-      Console.WriteLine("トレーニング中...");
+      logger.Debug("トレーニング中...");
       rs.Training();
 
-      Console.WriteLine("保存中...");
-      rs.SaveFile("runningstyleml.mml");
+      logger.Debug("保存中...");
+      rs.SaveFile(mmlName);
     }
 
     public static void StartRunningStylePredicting()
     {
-      if (!File.Exists("runningstyleml.mml"))
+      var mmlName = Constrants.RunningStyleTrainingFilePath;
+
+      if (!File.Exists(mmlName))
       {
         return;
       }
 
       var rs = new PredictRunningStyleModel();
 
-      Console.WriteLine("ロード中...");
-      rs.OpenFile("runningstyleml.mml");
+      logger.Debug("ロード中...");
+      rs.OpenFile(mmlName);
 
-      Console.WriteLine("予想中...");
+      logger.Debug("予想中...");
       var done = -1;
       var sum = 0;
       while (done != 0)
       {
         done = rs.PredictAsync(10_0000).Result;
         sum += done;
-        Console.WriteLine($"{sum} 完了");
+        logger.Debug($"{sum} 完了");
       }
     }
 
@@ -88,7 +93,7 @@ namespace KmyKeiba.Models.Data
         await MakeStandardTimeMasterDataAsync(startYear, DownloadLink.Local);
       }
 
-      Console.WriteLine("マスターデータ作成中...");
+      logger.Debug("基準タイムマスターデータ作成中...");
 
       try
       {
@@ -130,7 +135,7 @@ namespace KmyKeiba.Models.Data
             var startTime = new DateTime(year, 1, 1);
             var endTime = new DateTime(year + 2, 1, 1);
 
-            Console.WriteLine($"[{year}] {course.GetName()}");
+            logger.Debug($"[{year}] {course.GetName()}");
 
             // 中央競馬のデータに地方重賞出場する地方馬の過去成績がいくつか紛れてる
             // それが１つでもあると、中央からしばらく後に地方のデータ取得した後に支障が発生したりする
@@ -282,9 +287,9 @@ namespace KmyKeiba.Models.Data
         // キャッシュをクリア
         AnalysisUtil.ClearStandardTimeCaches();
       }
-      catch
+      catch (Exception ex)
       {
-        // TODO: logs
+        logger.Error("基準タイム更新中にエラーが発生", ex);
       }
     }
 
@@ -370,14 +375,14 @@ namespace KmyKeiba.Models.Data
             await db.CommitAsync();
             prevCommitCount = count;
           }
-          Console.Write($"\r完了: {count}");
+          logger.Debug($"馬のInterval日数計算完了: {count}");
 
           targets = await allTargets.Take(96).ToArrayAsync();
         }
       }
-      catch
+      catch (Exception ex)
       {
-        // TODO: logs
+        logger.Error("馬データ成型中にエラー", ex);
       }
     }
 
@@ -531,9 +536,9 @@ namespace KmyKeiba.Models.Data
           await db.CommitAsync();
         }
       }
-      catch
+      catch (Exception ex)
       {
-        // TODO: logs
+        logger.Error("騎手勝率計算中にエラー", ex);
       }
 
       AnalysisUtil.ClearRiderWinRateCaches();
@@ -586,10 +591,9 @@ namespace KmyKeiba.Models.Data
         await db.SaveChangesAsync();
         await db.CommitAsync();
       }
-      catch
+      catch (Exception ex)
       {
-        // TODO: logs
-        return;
+        logger.Error("レースの条件解析中にエラー", ex);
       }
     }
   }

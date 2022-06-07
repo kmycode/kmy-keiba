@@ -126,7 +126,13 @@
           </ItemsControl>
         </StackPanel>
       </StackPanel>
-      
+
+      <TextBox Grid.Row="2" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+               TextWrapping="Wrap" AcceptsReturn="True" Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
+               FontSize="16" MinHeight="200" MaxHeight="200" Width="800" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto"
+               IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}" Margin="0,32,0,16"
+               Text="{Binding Race.RaceAnalyzer.Value.Memo.Value,ElementName=Root,Mode=TwoWay}"/>
+
       <!--ローディング-->
       <Border Grid.Row="2" Margin="0,56,0,0" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
         <TextBlock Text="詳細情報をロード中です。しばらくお待ちください..." FontSize="36" Foreground="{DynamicResource SubForeground}"

@@ -2,6 +2,7 @@
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Models.Script.NodeJSCompat;
+using KmyKeiba.Shared;
 using Microsoft.ClearScript;
 using Microsoft.ClearScript.JavaScript;
 using Microsoft.ClearScript.V8;
@@ -111,11 +112,12 @@ namespace KmyKeiba.Models.Script
         _outputNum++;
         //if (_outputNum == 1)
         {
-          if (!Directory.Exists("script/tmp"))
+          var tmpDir = Path.Combine(Constrants.ScriptDir, "tmp");
+          if (!Directory.Exists(tmpDir))
           {
-            Directory.CreateDirectory("script/tmp");
+            Directory.CreateDirectory(tmpDir);
           }
-          File.WriteAllText($"script/tmp/output-{_outputNum}.html", result.Html.ToString());
+          File.WriteAllText(Path.Combine(tmpDir, $"output-{_outputNum}.html"), result.Html.ToString());
           this.Controller.Navigate($"localfolder://cefsharp/tmp/output-{_outputNum}.html");
         }
         /*
@@ -246,7 +248,11 @@ namespace KmyKeiba.Models.Script
         V8ScriptEngineFlags.EnableDateTimeConversion);
 
       this.Engine.DocumentSettings.AccessFlags |= DocumentAccessFlags.EnableAllLoading | DocumentAccessFlags.EnforceRelativePrefix;
+#if DEBUG
       this.Engine.DocumentSettings.SearchPath = Path.Combine(Directory.GetCurrentDirectory(), "script");
+#else
+      this.Engine.DocumentSettings.SearchPath = Constrants.ScriptDir;
+#endif
 
       this.Engine.AddHostObject("__currentRace", this.RaceContainer);
       this.Engine.AddHostObject("__suggestion", this.SuggestionContainer);
@@ -263,7 +269,7 @@ namespace KmyKeiba.Models.Script
     {
       DocumentLoader.Default.DiscardCachedDocuments();
 
-      var script = File.ReadAllText("script/index.js");
+      var script = File.ReadAllText(Path.Combine(Constrants.ScriptDir, "index.js"));
       this.Engine.Script.OnInit = this.Engine.Evaluate(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
       return this.Engine.Invoke("OnInit");
     }
@@ -355,7 +361,7 @@ namespace KmyKeiba.Models.Script
     {
       DocumentLoader.Default.DiscardCachedDocuments();
 
-      var script = File.ReadAllText("script/index.js");
+      var script = File.ReadAllText(Path.Combine(Constrants.ScriptDir, "index.js"));
       this._compiled = this.Engine.Compile(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
       this.Engine.Script.OnInit = this.Engine.Evaluate(this._compiled);
     }

@@ -18,3 +18,5 @@ KmyKeiba.Old/obj/
 dist/
 KmyKeiba/Models/Injection/Private/
 KmyKeiba.Downloader/Injection/Private/
+KmyKeiba.Setup/Debug/
+KmyKeiba.Setup/Release/

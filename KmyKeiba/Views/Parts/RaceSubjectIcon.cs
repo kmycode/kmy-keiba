@@ -91,7 +91,10 @@ namespace KmyKeiba.Views.Parts
         this.subBorder.Background = this.GetBrush(string.Empty);
       }
 
-      this.LayoutUpdated -= RaceSubjectIcon_LayoutUpdated;
+      if (!double.IsNaN(this.ActualHeight) && this.ActualHeight > 0)
+      {
+        this.LayoutUpdated -= RaceSubjectIcon_LayoutUpdated;
+      }
     }
 
     private void Update()

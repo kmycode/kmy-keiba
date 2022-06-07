@@ -65,6 +65,10 @@ namespace KmyKeiba.Models.Analysis
       [ScriptParameterKey("losed")]
       [GroupName("ResultOrder")]
       Losed,
+
+      [Label("性")]
+      [ScriptParameterKey("sex")]
+      Sex,
     }
 
     public override string Name => this.RaceHorse.TrainerName;
@@ -158,6 +162,10 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.Losed))
       {
         query = query.Where(r => r.RaceHorse.ResultOrder > 5);
+      }
+      if (keys.Contains(Key.Sex))
+      {
+        query = query.Where(r => r.RaceHorse.Sex == this.RaceHorse.Sex);
       }
 
       var races = await query

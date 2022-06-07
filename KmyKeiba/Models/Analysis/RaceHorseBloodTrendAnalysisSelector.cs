@@ -236,6 +236,8 @@ namespace KmyKeiba.Models.Analysis
 
   public class RaceHorseBloodTrendAnalysisSelector : TrendAnalysisSelector<RaceHorseBloodTrendAnalysisSelector.Key, RaceHorseBloodTrendAnalyzer>
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     public enum Key
     {
       [IgnoreKey]
@@ -540,9 +542,12 @@ namespace KmyKeiba.Models.Analysis
         }
         analyzer.SetSource(list);
       }
-      catch
+      catch (Exception ex)
       {
+        logger.Error($"血統馬 {this._bloodKey}/{this.Type} のレース取得でエラー", ex);
+        this.IsError.Value = true;
 
+        throw new Exception("血統馬の解析中にエラーが発生しました", ex);
       }
     }
 

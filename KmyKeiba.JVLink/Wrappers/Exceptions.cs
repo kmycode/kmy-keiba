@@ -221,6 +221,9 @@ namespace KmyKeiba.JVLink.Wrappers
     [JVLinkCode("利用キーが設定されていません")]
     LicenceKeyNotSet = -303,
 
+    [JVLinkCode("レーシングビューアー連携機能は有効ではありません")]
+    RacingViewerNotAvailable = -304,
+
     [JVLinkCode("内部エラー")]
     InternalError = -401,
 

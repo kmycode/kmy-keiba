@@ -11,6 +11,8 @@ namespace KmyKeiba.Data.Db
 {
   public abstract class MyContextBase : DbContext
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     public DbSet<SystemData>? SystemData { get; set; }
 
     #region Data
@@ -99,7 +101,8 @@ namespace KmyKeiba.Data.Db
         }
         catch (Exception ex) when (ex.Message.Contains('5') && ex.Message.ToLower().Contains("sqlite") && ex.Message.Contains("lock"))
         {
-          // TODO: logs
+          logger.Warn("トランザクション試行失敗", ex);
+
           tryCount++;
           if (tryCount >= 30 * 60)
           {

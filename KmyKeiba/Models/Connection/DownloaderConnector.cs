@@ -50,7 +50,7 @@ namespace KmyKeiba.Models.Connection
       this.IsRTBusy = this.currentRTTask.Select(t => t != null).ToReactiveProperty().AddTo(this._disposables);
 
       // アプリが強制終了した場合に備え、ファイルの更新時刻を定期的にアップデートする
-      var liveFileName = Path.Combine(Constrants.AppDataPath, "live");
+      var liveFileName = Path.Combine(Constrants.AppDataDir, "live");
       File.WriteAllText(liveFileName, DateTime.Now.ToString());
       Observable.Interval(TimeSpan.FromSeconds(30)).Subscribe(_ =>
       {
@@ -101,10 +101,12 @@ namespace KmyKeiba.Models.Connection
     {
       if (taskDataId == default)
       {
-        throw new ArgumentException();
+        throw new ArgumentException(nameof(taskDataId));
       }
 
       var tryCount = 0;
+      var loopStart = DateTime.Now;
+      var isProcessStarted = false;
       while (true)
       {
         try
@@ -127,6 +129,18 @@ namespace KmyKeiba.Models.Connection
             }
             else
             {
+              if (!isProcessStarted && loopStart.AddMinutes(10) < DateTime.Now)
+              {
+                if (item.ProcessId == default)
+                {
+                  item.IsCanceled = true;
+                  item.Error = DownloaderError.ConnectionTimeout;
+                  await db.SaveChangesAsync();
+                  logger.Warn($"タスク {taskDataId} がタイムアウトしました。プロセスが割り当てられていません");
+                  return item;
+                }
+                isProcessStarted = true;
+              }
               if (processing != null)
               {
                 await processing(item);
@@ -281,42 +295,22 @@ namespace KmyKeiba.Models.Connection
 
     public async Task OpenMovieAsync(MovieType type, DownloadLink link, string key)
     {
-      if (this.IsBusy.Value)
+      var task = new DownloaderTaskData
       {
-        logger.Warn("すでにダウンロード中です");
-        throw new InvalidOperationException();
-      }
-
-      try
-      {
-        this.currentTask.Value = new DownloaderTaskData
-        {
-          Command = DownloaderCommand.OpenMovie,
-          Parameter = key + "," + (short)type + "," + (link == DownloadLink.Central ? "central" : "local"),
-        };
-        await this.PublishTaskAsync(this.currentTask.Value);
-      }
-      finally
-      {
-        this.currentTask.Value = null;
-      }
+        Command = DownloaderCommand.OpenMovie,
+        Parameter = key + "," + (short)type + "," + (link == DownloadLink.Central ? "central" : "local"),
+      };
+      await this.PublishTaskAsync(task);
     }
 
     public async Task UpdateMovieListAsync(string horseKey)
     {
-      try
+      var task = new DownloaderTaskData
       {
-        this.currentTask.Value = new DownloaderTaskData
-        {
-          Command = DownloaderCommand.OpenMovieList,
-          Parameter = horseKey,
-        };
-        await this.PublishTaskAsync(this.currentTask.Value);
-      }
-      finally
-      {
-        this.currentTask.Value = null;
-      }
+        Command = DownloaderCommand.OpenMovieList,
+        Parameter = horseKey,
+      };
+      await this.PublishTaskAsync(task);
     }
 
     private async Task PublishTaskAsync(DownloaderTaskData task, Func<DownloaderTaskData, Task>? progressing = null)

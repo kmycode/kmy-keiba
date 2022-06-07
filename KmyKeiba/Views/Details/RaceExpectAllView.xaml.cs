@@ -2,8 +2,10 @@
 using CefSharp.SchemeHandler;
 using CefSharp.Wpf;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Shared;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,7 +49,11 @@ namespace KmyKeiba.Views.Details
 
     static RaceExpectAllView()
     {
-      System.IO.File.WriteAllText("script/dummy.html", string.Empty);
+      if (!Directory.Exists(Constrants.ScriptDir))
+      {
+        Directory.CreateDirectory(Constrants.ScriptDir);
+      }
+      File.WriteAllText(System.IO.Path.Combine(Constrants.ScriptDir, "dummy.html"), string.Empty);
 
       var settings = new CefSettings();
       settings.RegisterScheme(new CefCustomScheme
@@ -55,7 +61,7 @@ namespace KmyKeiba.Views.Details
         SchemeName = "localfolder",
         DomainName = "cefsharp",
         SchemeHandlerFactory = new FolderSchemeHandlerFactory(
-          rootFolder: System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "script"),
+          rootFolder: Constrants.ScriptDir,
           hostName: "cefsharp"
         ),
       });

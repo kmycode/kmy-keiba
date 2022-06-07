@@ -16,6 +16,8 @@ namespace KmyKeiba.ViewModels
 {
   internal class RaceViewModelBase : INotifyPropertyChanged, IDisposable
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     protected readonly CompositeDisposable _disposables = new();
     protected readonly RaceModel model = new();
     protected readonly DownloaderModel downloader = DownloaderModel.Instance;
@@ -47,7 +49,23 @@ namespace KmyKeiba.ViewModels
 
     public void Dispose()
     {
-      this._disposables.Dispose();
+      try
+      {
+        this._disposables.Dispose();
+      }
+      catch (Exception ex)
+      {
+        try
+        {
+          logger.Warn($"レース {this.Race.Value?.Data.Key} を保持するビューモデルの破棄に失敗", ex);
+        }
+        catch (Exception ex2)
+        {
+          // 破棄済のReactivePropertyのプロパティを参照するときに例外を出すかもしれないので（※出さない）
+          logger.Warn($"レースを保持するビューモデルの破棄に失敗", ex);
+          logger.Warn($"保持するレースのデータ参照に失敗", ex2);
+        }
+      }
     }
 
     public ICommand ChangeActiveHorseCommand =>

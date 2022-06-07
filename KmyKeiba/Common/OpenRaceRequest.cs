@@ -21,24 +21,35 @@ namespace KmyKeiba.Common
     {
       this.Requested?.Invoke(this, new OpenRaceRequestEventArgs(key, horseKey));
     }
+
+    public void Request(string key, IReadOnlyList<string> horseKeys)
+    {
+      this.Requested?.Invoke(this, new OpenRaceRequestEventArgs(key, horseKeys));
+    }
   }
 
   public class OpenRaceRequestEventArgs : EventArgs
   {
     public string RaceKey { get; }
 
-    public string HorseKey { get; }
+    public IReadOnlyList<string> HorseKeys { get; }
 
     public OpenRaceRequestEventArgs(string key)
     {
       this.RaceKey = key;
-      this.HorseKey = string.Empty;
+      this.HorseKeys = Array.Empty<string>();
     }
 
     public OpenRaceRequestEventArgs(string key, string horseKey)
     {
       this.RaceKey = key;
-      this.HorseKey = horseKey;
+      this.HorseKeys = new[] { horseKey, };
+    }
+
+    public OpenRaceRequestEventArgs(string key, IReadOnlyList<string> horseKeys)
+    {
+      this.RaceKey = key;
+      this.HorseKeys = horseKeys;
     }
   }
 }

@@ -139,6 +139,14 @@ namespace KmyKeiba.Models.Race
       this.LoadCurrentRace(this.Info.Value?.Data.Key);
     }
 
+    public async Task SetActiveHorsesAsync(IEnumerable<string> horseKeys)
+    {
+      foreach (var key in horseKeys)
+      {
+        await this.SetActiveHorseAsync(key);
+      }
+    }
+
     public async Task SetActiveHorseAsync(string horseKey)
     {
       if (string.IsNullOrEmpty(horseKey))
@@ -288,9 +296,11 @@ namespace KmyKeiba.Models.Race
 
     public void Dispose()
     {
+      logger.Info($"レース {this.RaceKey.Value} 保持中のモデルは破棄されます");
       this._disposables.Dispose();
       this.Info.Value?.Dispose();
       this.RaceList.Dispose();
+      logger.Debug("破棄が完了しました");
     }
   }
 }

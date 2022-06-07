@@ -27,6 +27,8 @@ namespace KmyKeiba.Models.Analysis.Generic
   public abstract class TrendAnalysisSelector<KEY, A> : ITrendAnalysisSelector, IDisposable
     where A : TrendAnalyzer where KEY : Enum, IComparable
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private readonly CompositeDisposable _disposables = new();
 
     public abstract string Name { get; }
@@ -40,6 +42,8 @@ namespace KmyKeiba.Models.Analysis.Generic
     protected Dictionary<IEnumerable<KEY>, A> Analyzers { get; } = new(new TrendAnalysisFilterItemCollection<KEY>.Comparer());
 
     public ReactiveProperty<A?> CurrentAnalyzer { get; } = new();
+
+    public ReactiveProperty<bool> IsError { get; } = new();
 
     protected virtual bool IsAutoLoad => false;
 
@@ -84,7 +88,7 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     protected void OnFinishedInitialization()
     {
-      // デフォルトのアナライザ
+      // 傾向画面開いたときに最初に表示される、デフォルトのアナライザ
       ThreadUtil.InvokeOnUiThread(() =>
       {
         this.TryUpdateExistingAnalyzer();
@@ -125,6 +129,8 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public A BeginLoad(IReadOnlyList<KEY> keys, int count, int offset, bool isLoadSameHorses = true)
     {
+      this.IsError.Value = false;
+
       // ここはUIスレッドでなければならない（ReactiveCollectionなどにスレッドが伝播しないので）
       var analyzer = this.GetExistingAnalyzer(keys);
 
@@ -142,9 +148,10 @@ namespace KmyKeiba.Models.Analysis.Generic
           using var db = new MyContext();
           await this.InitializeAnalyzerAsync(db, keys, analyzer, count, offset, isLoadSameHorses);
         }
-        catch
+        catch (Exception ex)
         {
-          // TODO Log
+          logger.Error($"解析中にエラー　キー: {string.Join(',', keys)}, アナライザ: {analyzer.GetType().Name}, count: {count}, offset: {offset}, isLoadSameHorses: {isLoadSameHorses}", ex);
+          this.IsError.Value = true;
         }
       });
 
@@ -222,6 +229,17 @@ namespace KmyKeiba.Models.Analysis.Generic
       if (item.Any())
       {
         return item.First().IsChecked.Value;
+      }
+      return false;
+    }
+
+    public bool SetChecked(KEY key, bool isChecked)
+    {
+      var item = this.Where(i => i.Key?.Equals(key) ?? false);
+      if (item.Any())
+      {
+        item.First().IsChecked.Value = isChecked;
+        return true;
       }
       return false;
     }

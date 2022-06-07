@@ -70,6 +70,12 @@ namespace KmyKeiba.Models.Analysis
 
     public bool IsAbnormalResult => this.Data.AbnormalResult != RaceAbnormality.Unknown;
 
+    public TimeSpan UntilA3HResultTime { get; }
+
+    public ValueComparation ResultTimeDVComparation { get; set; }
+
+    public ValueComparation ResultA3HTimeDVComparation { get; set; }
+
     public double ResultTimePerMeter { get; }
 
     /// <summary>
@@ -176,9 +182,11 @@ namespace KmyKeiba.Models.Analysis
         this.BeforeFiveRaces = this.BeforeRaces.Take(5).ToArray();
         this.Before15Races = this.BeforeRaces.Take(15).ToArray();
 
-        if (this.BeforeRaces.Any(r => r.Data.ResultOrder > 0))
+        // 着順で比較すると、JV-Linkしか使ってない状態で地方競馬のデータも混ざってしまう
+        // （JVLinkにおける地方競馬のデータは、時間など大半のデータがゼロになっている）
+        if (this.BeforeRaces.Any(r => r.Data.ResultTime.TotalSeconds > 0))
         {
-          var targetRaces = this.BeforeRaces.Where(r => r.Data.ResultOrder > 0).Take(10);
+          var targetRaces = this.BeforeRaces.Where(r => r.Data.ResultTime.TotalSeconds > 0).Take(10);
 
           var startTime = new DateTime(1980, 1, 1);
           var statistic = new StatisticSingleArray(targetRaces.Select(r => r.ResultTimeDeviationValue).Where(r => r != default).ToArray());
@@ -305,6 +313,10 @@ namespace KmyKeiba.Models.Analysis
       this.ResultTimePerMeter = (double)horse.ResultTime.TotalSeconds / race.Distance;
       this.ResultOrderComparation = horse.ResultOrder >= 1 && horse.ResultOrder <= 3 ? ValueComparation.Good :
         horse.ResultOrder >= 8 || horse.ResultOrder >= race.HorsesCount * 0.7f ? ValueComparation.Bad : ValueComparation.Standard;
+      if (race.Distance >= 800)
+      {
+        this.UntilA3HResultTime = (horse.ResultTime - horse.AfterThirdHalongTime) / (race.Distance - 600);
+      }
 
       this.Memo.Skip(1).Subscribe(async m =>
       {
@@ -453,22 +465,22 @@ namespace KmyKeiba.Models.Analysis
 
     public ICommand PlayRaceMovieCommand =>
       this._playRaceMovieCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsRaceError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayRaceAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsRaceError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayRaceAsync());
     private AsyncReactiveCommand<object>? _playRaceMovieCommand;
 
     public ICommand PlayPaddockCommand =>
       this._playPaddockCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsPaddockError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPaddockAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsPaddockError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayPaddockAsync());
     private AsyncReactiveCommand<object>? _playPaddockCommand;
 
     public ICommand PlayPatrolCommand =>
       this._playPatrolCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsPatrolError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPatrolAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsPatrolError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayPatrolAsync());
     private AsyncReactiveCommand<object>? _playPatrolCommand;
 
     public ICommand PlayMultiCamerasCommand =>
       this._playMultiCamerasCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsMultiCamerasError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayMultiCamerasAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsMultiCamerasError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayMultiCamerasAsync());
     private AsyncReactiveCommand<object>? _playMultiCamerasCommand;
 
     public ICommand OpenRaceWindowCommand =>
@@ -528,6 +540,7 @@ namespace KmyKeiba.Models.Analysis
     Standard,
     Good,
     Bad,
+    Warning,
   }
 
   public enum DistanceAptitude

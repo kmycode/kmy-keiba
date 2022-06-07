@@ -95,6 +95,10 @@
             <TranslateTransform X="210"/>
           </up:MyProgressBar.RenderTransform>
         </up:MyProgressBar>
+        <TextBlock Foreground="{DynamicResource SubForeground}" Margin="0,16,0,0" FontSize="16" TextAlignment="Center"
+                   Visibility="{Binding IsLongDownloadMonth.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          この月は処理に非常に時間がかかります。<LineBreak/>焦らずお待ちください...
+        </TextBlock>
       </StackPanel>
     </Grid>
     <Border Grid.Row="2" Height="60" Margin="0,0,0,16">

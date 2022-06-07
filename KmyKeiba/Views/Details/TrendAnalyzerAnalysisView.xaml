@@ -45,6 +45,10 @@
           </up:MyProgressBar.RenderTransform>
         </up:MyProgressBar>
       </Border>
+      <Border Grid.RowSpan="3" Visibility="{Binding TrendAnalyzers.IsError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource ErrorForeground}"
+                   FontSize="32" Text="傾向解析中にエラーが発生しました"/>
+      </Border>
 
       <!--統計学的分析-->
       <Grid>
@@ -81,144 +85,171 @@
         </Grid.Resources>
         <TextBlock Style="{StaticResource Sub}" Text="平均タイム" Margin="8,0,0,0"/>
         <TextBlock Grid.Column="1" Margin="12,0,0,0" FontSize="22" Width="60"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.SpeedAverage.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}"/>
- 
+                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.SpeedAverage.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}"/>
+
         <!--脚質-->
         <up:RunningStyleTip Grid.Column="2" Margin="36,0,0,0" Grid.Row="0" RunningStyle="FrontRunner"/>
         <TextBlock Grid.Column="3" Margin="4,0,0,0" Grid.Row="0" FontSize="22" Width="52" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.FrontRunnersGrade.Value.AllCount,ElementName=Root}"/>
+                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.FrontRunnersGrade.Value.AllCount,ElementName=Root}"/>
         <TextBlock Grid.Column="4" Margin="12,0,0,0" Grid.Row="0" FontSize="16" Width="64">
-                   (<Run Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.FrontRunnersGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
+                    (<Run Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.FrontRunnersGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
         </TextBlock>
         <up:RunningStyleTip Grid.Column="2" Margin="36,0,0,0" Grid.Row="1" RunningStyle="Stalker"/>
         <TextBlock Grid.Column="3" Margin="4,0,0,0" Grid.Row="1" FontSize="22" Width="52" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.StalkersGrade.Value.AllCount,ElementName=Root}"/>
+                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.StalkersGrade.Value.AllCount,ElementName=Root}"/>
         <TextBlock Grid.Column="4" Margin="12,0,0,0" Grid.Row="1" FontSize="16" Width="64">
-                   (<Run Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.StalkersGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
+                    (<Run Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.StalkersGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
         </TextBlock>
         <up:RunningStyleTip Grid.Column="2" Margin="36,0,0,0" Grid.Row="2" RunningStyle="Sotp"/>
         <TextBlock Grid.Column="3" Margin="4,0,0,0" Grid.Row="2" FontSize="22" Width="52" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.SotpsGrade.Value.AllCount,ElementName=Root}"/>
+                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.SotpsGrade.Value.AllCount,ElementName=Root}"/>
         <TextBlock Grid.Column="4" Margin="12,0,0,0" Grid.Row="2" FontSize="16" Width="64">
-                   (<Run Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.SotpsGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
+                    (<Run Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.SotpsGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
         </TextBlock>
         <up:RunningStyleTip Grid.Column="2" Margin="36,0,0,0" Grid.Row="3" RunningStyle="SaveRunner"/>
         <TextBlock Grid.Column="3" Margin="4,0,0,0" Grid.Row="3" FontSize="22" Width="52" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.SaveRunnersGrade.Value.AllCount,ElementName=Root}"/>
+                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.SaveRunnersGrade.Value.AllCount,ElementName=Root}"/>
         <TextBlock Grid.Column="4" Margin="12,0,0,0" Grid.Row="3" FontSize="16" Width="64">
-                   (<Run Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.SaveRunnersGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
+                    (<Run Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.SaveRunnersGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1,Mode=OneWay}"/>)
         </TextBlock>
-        
+
         <TextBlock Grid.Column="5" Margin="48,0,0,0" Style="{StaticResource Sub}"
-                   Text="勝率"/>
+                    Text="勝率"/>
         <TextBlock Grid.Column="6" Margin="4,0,0,0" FontSize="22" Width="80" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.AllGrade.Value.WinRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
+                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.AllGrade.Value.WinRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
         <TextBlock Grid.Column="5" Grid.Row="1" Margin="48,0,0,0" Style="{StaticResource Sub}"
-                   Text="複勝率"/>
+                    Text="複勝率"/>
         <TextBlock Grid.Column="6" Grid.Row="1" Margin="4,0,0,0" FontSize="22" Width="80" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.AllGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
+                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.AllGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
         <TextBlock Grid.Column="5" Grid.Row="2" Margin="24,0,0,0" Style="{StaticResource Sub}"
-                   Text="内枠複勝"/>
+                    Text="内枠複勝"/>
         <TextBlock Grid.Column="6" Grid.Row="2" Margin="4,0,0,0" FontSize="22" Width="80" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.InsideFrameGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
+                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.InsideFrameGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
         <TextBlock Grid.Column="5" Grid.Row="3" Margin="24,0,0,0" Style="{StaticResource Sub}"
-                   Text="外枠複勝"/>
+                    Text="外枠複勝"/>
         <TextBlock Grid.Column="6" Grid.Row="4" Margin="4,0,0,0" FontSize="22" Width="80" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.OutsideFrameGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
+                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.OutsideFrameGrade.Value.PlacingBetsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
 
         <TextBlock Grid.Column="7" Margin="48,0,0,0" Style="{StaticResource Sub}"
-                   Text="タイム偏差値"/>
+                    Text="タイム偏差値"/>
         <TextBlock Grid.Column="8" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.TimeDeviationValue.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.TimeDeviationValue.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
         <TextBlock Grid.Column="7" Grid.Row="1" Margin="48,0,0,0" Style="{StaticResource Sub}"
-                   Text="A3HT偏差値"/>
+                    Text="A3HT偏差値"/>
         <TextBlock Grid.Column="8" Grid.Row="1" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.A3HTimeDeviationValue.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.A3HTimeDeviationValue.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
         <TextBlock Grid.Column="7" Grid.Row="2" Margin="48,0,0,0" Style="{StaticResource Sub}"
-                   Text="UA3HT偏差値"/>
+                    Text="UA3HT偏差値"/>
         <TextBlock Grid.Column="8" Grid.Row="2" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.UntilA3HTimeDeviationValue.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.UntilA3HTimeDeviationValue.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
         <TextBlock Grid.Column="7" Grid.Row="3" Style="{StaticResource Sub}" Text="乱調度" Margin="48,0,0,0"/>
         <TextBlock Grid.Column="8" Grid.Row="3" Margin="4,0,0,0" FontSize="22" TextAlignment="Right"
-                   Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.DisturbanceRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+                    Text="{Binding TrendAnalyzers.CurrentAnalyzer.Value.DisturbanceRate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
       </Grid>
 
       <!--過去レースの一覧-->
-      <StackPanel Orientation="Horizontal" Margin="0,16,0,8" Grid.Row="1">
-        <StackPanel.Resources>
-          <Style TargetType="TextBlock" BasedOn="{StaticResource TableListHeaderItem}"/>
-        </StackPanel.Resources>
-        <TextBlock Text="" Width="44"/>
-        <TextBlock Text="レース名" Width="180" TextAlignment="Left"/>
-        <TextBlock Text="日付" Width="80"/>
-        <TextBlock Text="コース" Width="136"/>
-        <TextBlock Text="着順" Width="40"/>
-        <TextBlock Text="タイム" Width="55"/>
-        <TextBlock Text="T偏" Width="55"/>
-        <TextBlock Text="脚質" Width="60"/>
-        <TextBlock Text="コーナー順位" Width="150"/>
-        <TextBlock Text="騎手" Width="70"/>
-      </StackPanel>
+      <ScrollViewer Margin="0,16,0,0" Grid.Row="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Name="TableHeader">
+        <StackPanel Orientation="Horizontal">
+          <StackPanel.Resources>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource TableListHeaderItem}"/>
+          </StackPanel.Resources>
+          <TextBlock Text="" Width="44"/>
+          <TextBlock Text="レース名" Width="180" TextAlignment="Left"/>
+          <TextBlock Text="日付" Width="80"/>
+          <TextBlock Text="コース" Width="136"/>
+          <TextBlock Text="人気" Width="40"/>
+          <TextBlock Text="着順" Width="40"/>
+          <TextBlock Text="タイム" Width="55"/>
+          <TextBlock Text="T偏" Width="48"/>
+          <TextBlock Text="脚質" Width="56"/>
+          <TextBlock Text="コーナー順位" Width="150"/>
+          <TextBlock Text="騎手" Width="70"/>
+          <TextBlock Text="A3HT" Width="55"/>
+          <TextBlock Text="AT偏" Width="48"/>
+          <TextBlock Text="UA3HT" Width="55"/>
+          <TextBlock Text="UT偏" Width="48"/>
+          <!--ScrollBar Width-->
+          <Border Width="40"/>
+        </StackPanel>
+      </ScrollViewer>
       <ItemsControl Grid.Row="2" ItemsSource="{Binding TrendAnalyzers.CurrentAnalyzer.Value.Source,ElementName=Root}"
-                        Style="{StaticResource TableList}">
+                    Style="{StaticResource TableList}" ScrollViewer.HorizontalScrollBarVisibility="Auto">
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <ToggleButton Name="Selection">
+            <ToggleButton Name="Selection" Style="{StaticResource ListItemToggle}">
               <ToggleButton.Template>
                 <ControlTemplate>
-                  <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                    <StackPanel.Resources>
-                      <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
-                        <Setter Property="TextAlignment" Value="Right"/>
-                      </Style>
-                    </StackPanel.Resources>
-                    <up:RaceSubjectIcon Subject="{Binding Subject.Subject}"
-                                            FontSize="14" Width="40" Margin="0,0,4,0"/>
-                    <TextBlock Text="{Binding Subject.DisplayName}" TextAlignment="Left"
-                                FontSize="16" FontWeight="Bold" Width="180"/>
-                    <TextBlock Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
-                    <TextBlock Text="{Binding Data.Course,Converter={StaticResource CourseNameConv}}" FontSize="16" Width="70"/>
-                    <Border Width="30">
-                      <up:CourseSimpleImageView Race="{Binding Race}" HorizontalAlignment="Right"/>
-                    </Border>
-                    <TextBlock Text="{Binding Race.Distance}" FontSize="14" Width="36" TextAlignment="Right"/>
-                    <StackPanel Orientation="Horizontal">
-                      <StackPanel.Visibility>
-                        <MultiBinding Converter="{StaticResource MultiBooleanConv}">
-                          <Binding Path="IsAbnormalResult" Converter="{StaticResource NegativeVisibilityConv}"/>
-                          <Binding Path="Data.ResultOrder" Converter="{StaticResource NonZeroVisibilityConv}"/>
-                        </MultiBinding>
-                      </StackPanel.Visibility>
-                      <TextBlock Text="{Binding Data.ResultOrder}" Foreground="{Binding ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}" FontSize="16" Width="40"/>
-                      <TextBlock Text="{Binding Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="55"/>
-                      <Border Width="55">
-                        <TextBlock Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="55"
-                                   Visibility="{Binding ResultTimeDeviationValue,Converter={StaticResource NonZeroVisibilityConv}}"/>
+                  <Border Background="{TemplateBinding Background}">
+                    <StackPanel Orientation="Horizontal" Margin="0,4">
+                      <StackPanel.Resources>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                          <Setter Property="TextAlignment" Value="Right"/>
+                        </Style>
+                      </StackPanel.Resources>
+                      <up:RaceSubjectIcon Subject="{Binding Subject.Subject}"
+                                              FontSize="14" Width="40" Margin="0,0,4,0"/>
+                      <TextBlock Text="{Binding Subject.DisplayName}" TextAlignment="Left"
+                                  FontSize="16" FontWeight="Bold" Width="180"/>
+                      <TextBlock Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
+                      <TextBlock Text="{Binding Data.Course,Converter={StaticResource CourseNameConv}}" FontSize="16" Width="70"/>
+                      <Border Width="30">
+                        <up:CourseSimpleImageView Race="{Binding Race}" HorizontalAlignment="Right"/>
                       </Border>
-                      <Border Width="60">
-                        <up:RunningStyleTip RunningStyle="{Binding Data.RunningStyle}" HorizontalAlignment="Right"/>
-                      </Border>
-                      <Border Width="150">
-                        <up:CornerResultTip CornerGrades="{Binding CornerGrades}" FontSize="14" PartWidth="24" PartHeight="20" PartPadding="4"
-                                            HorizontalAlignment="Right" WithResult="False"/>
-                      </Border>
-                      <TextBlock Text="{Binding Data.RiderName}" FontSize="14" Width="70"/>
-                    </StackPanel>
-                    <TextBlock Text="{Binding Data.AbnormalResult,Converter={StaticResource EnumsConv}}"
-                               Foreground="{DynamicResource BadForeground}" FontSize="16" FontWeight="Bold"
-                               Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}"
-                               Margin="24,0,0,0"/>
+                      <TextBlock Text="{Binding Race.Distance}" FontSize="14" Width="36" TextAlignment="Right"/>
+                      <StackPanel Orientation="Horizontal">
+                        <StackPanel.Visibility>
+                          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                            <Binding Path="IsAbnormalResult" Converter="{StaticResource NegativeVisibilityConv}"/>
+                            <Binding Path="Data.ResultOrder" Converter="{StaticResource NonZeroVisibilityConv}"/>
+                          </MultiBinding>
+                        </StackPanel.Visibility>
+                        <TextBlock Text="{Binding Data.Popular}" FontSize="16" Width="40"/>
+                        <TextBlock Text="{Binding Data.ResultOrder}" Foreground="{Binding ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}" FontSize="16" Width="40"/>
+                        <TextBlock Text="{Binding Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="55"/>
+                        <Border Width="48">
+                          <TextBlock Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}" FontSize="16"
+                                     Visibility="{Binding ResultTimeDeviationValue,Converter={StaticResource NonZeroVisibilityConv}}"
+                                     Foreground="{Binding ResultTimeDVComparation,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                        </Border>
+                        <Border Width="56">
+                          <up:RunningStyleTip RunningStyle="{Binding Data.RunningStyle}" HorizontalAlignment="Right"/>
+                        </Border>
+                        <Border Width="150">
+                          <up:CornerResultTip CornerGrades="{Binding CornerGrades}" FontSize="14" PartWidth="24" PartHeight="20" PartPadding="4"
+                                              HorizontalAlignment="Right" WithResult="False"/>
+                        </Border>
+                        <TextBlock Text="{Binding Data.RiderName}" FontSize="14" Width="70"/>
+                        <TextBlock Text="{Binding Data.AfterThirdHalongTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="55"/>
+                        <Border Width="48">
+                          <TextBlock Text="{Binding A3HResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}" FontSize="16"
+                                     Visibility="{Binding A3HResultTimeDeviationValue,Converter={StaticResource NonZeroVisibilityConv}}"
+                                     Foreground="{Binding ResultA3HTimeDVComparation,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                        </Border>
+                        <TextBlock Text="{Binding UntilA3HResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="55"/>
+                        <Border Width="48">
+                          <TextBlock Text="{Binding UntilA3HResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}" FontSize="16"
+                                     Visibility="{Binding UntilA3HResultTimeDeviationValue,Converter={StaticResource NonZeroVisibilityConv}}"/>
+                        </Border>
+                      </StackPanel>
+                      <TextBlock Text="{Binding Data.AbnormalResult,Converter={StaticResource EnumsConv}}"
+                                 Foreground="{DynamicResource BadForeground}" FontSize="16" FontWeight="Bold"
+                                 Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}"
+                                 Margin="24,0,0,0"/>
 
-                    <Popup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
-                           StaysOpen="False">
-                      <up:RaceHorsePopup Horse="{Binding}"/>
-                    </Popup>
-                  </StackPanel>
+                      <Popup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
+                             StaysOpen="False">
+                        <up:RaceHorsePopup Horse="{Binding}"/>
+                      </Popup>
+                    </StackPanel>
+                  </Border>
                 </ControlTemplate>
               </ToggleButton.Template>
             </ToggleButton>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
+        <i:Interaction.Behaviors>
+          <b:SyncScrollOffsetBehavior TargetElement="{Binding ElementName=TableHeader}"/>
+        </i:Interaction.Behaviors>
       </ItemsControl>
     </Grid>
 

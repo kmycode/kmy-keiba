@@ -38,6 +38,8 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<bool> IsInitialized => this.downloader.IsInitialized;
 
+    public ReactiveProperty<bool> IsLongDownloadMonth => this.downloader.IsLongDownloadMonth;
+
     public string FirstMessage => this.model.FirstMessage;
 
     public OpenDialogRequest Dialog { get; } = new();
@@ -197,7 +199,7 @@ namespace KmyKeiba.ViewModels
 
     public ICommand CancelDownloadCommand =>
       this._cancelDownloadCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(async p => await this.downloader.CancelDownloadAsync());
+        new AsyncReactiveCommand<object>(this.downloader.CanCancel).WithSubscribe(async p => await this.downloader.CancelDownloadAsync());
     private AsyncReactiveCommand<object>? _cancelDownloadCommand;
 
     #endregion

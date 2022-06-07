@@ -18,6 +18,8 @@ namespace KmyKeiba.Models.Analysis
 {
   public class TrainingAnalyzer
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     public IReadOnlyList<TrainingRow> Trainings { get; }
 
     public TrainingAnalyzer(IReadOnlyList<TrainingData> trainings, IReadOnlyList<WoodtipTrainingData> woodtipTrainings)
@@ -54,36 +56,7 @@ namespace KmyKeiba.Models.Analysis
 
     public async Task UpdateTrainingListAsync()
     {
-      if (this.Trainings.Any(t => !t.Movie.IsChecked) && DownloaderModel.Instance.CanSaveOthers.Value)
-      {
-        var horseKey = this.Trainings.First().HorseKey;
-        try
-        {
-          await DownloaderConnector.Instance.UpdateMovieListAsync(horseKey);
-
-          using var db = new MyContext();
-          var trainings = await db.Trainings!
-            .Where(t => t.HorseKey == horseKey)
-            .Select(t => new { t.StartTime, t.MovieStatus, })
-            .Concat(db.WoodtipTrainings!
-              .Where(t => t.HorseKey == horseKey)
-              .Select(t => new { t.StartTime, t.MovieStatus, }))
-            .ToArrayAsync();
-          ThreadUtil.InvokeOnUiThread(() =>
-          {
-            foreach (var item in trainings
-              .Join(this.Trainings, dt => dt.StartTime, t => t.StartTime, (dt, t) => new { Row = t, dt.MovieStatus, })
-              .Where(i => i.MovieStatus != MovieStatus.Unchecked))
-            {
-              item.Row.Movie.Status = item.MovieStatus;
-            };
-          });
-        }
-        catch
-        {
-          // TODO: logs
-        }
-      }
+      await TrainingMovieInfo.UpdateTrainingListAsync(this.Trainings);
     }
 
     public class TrainingRow
