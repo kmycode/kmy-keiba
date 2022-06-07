@@ -179,17 +179,17 @@ namespace KmyKeiba.Models.Analysis
       }
       if (keys.Contains(Key.SameOutsideOrInside))
       {
-        if (this.RaceHorse.Number <= this.Race.HorsesCount / 3)
+        if (this.RaceHorse.Number <= this.Race.HorsesCount / 3.0f)
         {
-          query = query.Where(r => r.RaceHorse.Number <= r.Race.HorsesCount / 3);
+          query = query.Where(r => r.RaceHorse.Number <= r.Race.HorsesCount / 3.0f);
         }
-        else if (this.RaceHorse.Number >= this.Race.HorsesCount * 2 / 3)
+        else if (this.RaceHorse.Number >= this.Race.HorsesCount * 2 / 3.0f)
         {
-          query = query.Where(r => r.RaceHorse.Number >= r.Race.HorsesCount * 2 / 3);
+          query = query.Where(r => r.RaceHorse.Number >= r.Race.HorsesCount * 2 / 3.0f);
         }
         else
         {
-          query = query.Where(r => r.RaceHorse.Number >= r.Race.HorsesCount / 3 && r.RaceHorse.Number <= r.Race.HorsesCount * 2 / 3);
+          query = query.Where(r => r.RaceHorse.Number >= r.Race.HorsesCount / 3.0f && r.RaceHorse.Number <= r.Race.HorsesCount * 2 / 3);
         }
       }
 
