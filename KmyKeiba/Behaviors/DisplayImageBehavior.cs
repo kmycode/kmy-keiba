@@ -42,9 +42,30 @@ namespace KmyKeiba.Behaviors
       set { SetValue(ImageProperty, value); }
     }
 
+    private double dpiWidthFactor;
+    private double dpiHeightFactor;
+
+    private void UpdateDpi()
+    {
+      var mainWindow = Application.Current.MainWindow;
+      var mainWindowPresentationSource = PresentationSource.FromVisual(mainWindow);
+      if (mainWindowPresentationSource != null)
+      {
+        Matrix m = mainWindowPresentationSource.CompositionTarget.TransformToDevice;
+        if (m.M11 != this.dpiWidthFactor || m.M22 != this.dpiHeightFactor)
+        {
+          this.dpiWidthFactor = m.M11;
+          this.dpiHeightFactor = m.M22;
+
+          this.AssociatedObject.RenderTransform = new ScaleTransform(dpiWidthFactor, dpiHeightFactor);
+        }
+      }
+    }
+
     protected override void OnAttached()
     {
       base.OnAttached();
+      this.UpdateDpi();
 
       // これがないとなぜか描画更新されない（StackPanelとかで）
       this.AssociatedObject.MinWidth = 1;
@@ -81,6 +102,7 @@ namespace KmyKeiba.Behaviors
       }
 
       this.Image?.OnPaint(e.Surface);
+      this.UpdateDpi();
     }
   }
 }
