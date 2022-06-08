@@ -12,6 +12,8 @@ namespace KmyKeiba.Shared
 
     public const string TimeDeviationValueCalculator = "KmyKeiba.Models.Injection.Private.TimeDeviationValueCalculator";
 
+    public const string InternalDataGenerator = "KmyKeiba.Models.Injection.Private.InternalDataGenerator";
+
     public const string Buyer = "KmyKeiba.Models.Injection.Private.KscBuyer";
 
     public const string CentralSoftwareIdGetter = "KmyKeiba.Downloader.Injection.Private.CentralSoftwareIdGetter";

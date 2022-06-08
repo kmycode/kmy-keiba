@@ -16,6 +16,12 @@ namespace KmyKeiba.Models.Injection
     Task<double> GetUntilA3HTimeDeviationValueAsync(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData standardTime);
   }
 
+  public interface IInternalDataGenerator
+  {
+    public Task GenerateBaseStandardTimeDataAsync();
+  }
+
+
   public interface IBuyer
   {
     string GetPurchaseLabel(RaceData race);
