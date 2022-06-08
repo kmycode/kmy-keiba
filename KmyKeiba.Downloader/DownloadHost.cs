@@ -108,6 +108,38 @@ namespace KmyKeiba.Downloader
         await db.SaveChangesAsync();
       }
     }
+
+    private static void KillHost()
+    {
+      if (currentTask == null)
+      {
+        return;
+      }
+
+      if (File.Exists(Constrants.RTHostFilePath))
+      {
+        var processIdStr = File.ReadAllText(Constrants.RTHostFilePath).Trim();
+        int.TryParse(processIdStr, out var processId);
+
+        try
+        {
+          var oldHost = Process.GetProcessById(processId);
+          if (oldHost.MainModule?.ModuleName?.Contains("KmyKeiba.Downloader") == true)
+          {
+            oldHost.Kill();
+          }
+        }
+        catch
+        {
+          logger.Warn($"前回のホストプログラム {processId} の起動を検出できませんでした");
+        }
+      }
+
+      SetTask(currentTask, t =>
+      {
+        t.IsFinished = true;
+      });
+    }
   }
 
   internal class TaskCanceledAndContinueProgramException : Exception

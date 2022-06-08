@@ -28,10 +28,17 @@ namespace KmyKeiba.Downloader
           var p = loader.Process.ToString().ToLower();
           if (p != task.Result)
           {
-            SetTask(task, t =>
+            try
             {
-              t.Result = p;
-            });
+              SetTask(task, t =>
+              {
+                t.Result = p;
+              });
+            }
+            catch (Exception ex)
+            {
+              logger.Warn("ダウンロード状態のタスクへの書き込みでエラー", ex);
+            }
             logger.Info($"ダウンロード状態が {p} に移行しました");
           }
         }
@@ -65,10 +72,14 @@ namespace KmyKeiba.Downloader
 
         if (!task.IsFinished)
         {
-          using var db = new MyContext();
-          db.DownloaderTasks!.Attach(task);
-          task.IsFinished = true;
-          db.SaveChanges();
+          try
+          {
+            SetTask(task, t => t.IsFinished = true);
+          }
+          catch (Exception ex)
+          {
+            logger.Error("タスクへの完了報告書き込みに失敗", ex);
+          }
         }
 
         isDbLooping = false;

@@ -246,6 +246,16 @@ namespace KmyKeiba.Downloader
           KillMe();
         }
       }
+      else if (command == DownloaderCommand.KillRealTimeHost.GetCommandText())
+      {
+        var task = GetTask(args[1], DownloaderCommand.KillRealTimeHost);
+        if (task != null)
+        {
+          currentTask = task;
+          KillHost();
+          KillMe();
+        }
+      }
       else if (command == "kill")
       {
         _ = int.TryParse(args[1], out var beforeProcessNumber);
