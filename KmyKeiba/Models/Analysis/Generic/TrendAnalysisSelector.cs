@@ -106,18 +106,27 @@ namespace KmyKeiba.Models.Analysis.Generic
       }
     }
 
-    private A GetExistingAnalyzer(IReadOnlyList<KEY> keys)
+    private A GetExistingAnalyzer(IReadOnlyList<KEY> keys, bool isSandbox = false)
     {
-      //var existsAnalyzer = this.Analyzers.FirstOrDefault(a => a.Key.SequenceEqual(keys)).Value;
-      this.Analyzers.TryGetValue(keys, out var existsAnalyzer);
-      if (existsAnalyzer != null)
+      if (!isSandbox)
       {
-        return existsAnalyzer;
-      }
+        //var existsAnalyzer = this.Analyzers.FirstOrDefault(a => a.Key.SequenceEqual(keys)).Value;
+        this.Analyzers.TryGetValue(keys, out var existsAnalyzer);
+        if (existsAnalyzer != null)
+        {
+          return existsAnalyzer;
+        }
 
-      var analyzer = this.GenerateAnalyzer().AddTo(this._disposables);
-      this.Analyzers[keys] = analyzer;
-      return analyzer;
+        var analyzer = this.GenerateAnalyzer().AddTo(this._disposables);
+        this.Analyzers[keys] = analyzer;
+        return analyzer;
+      }
+      else
+      {
+        // スクリプト用のサンドボックス
+        var analyzer = this.GenerateAnalyzer().AddTo(this._disposables);
+        return analyzer;
+      }
     }
 
     public void BeginLoad()
@@ -127,12 +136,12 @@ namespace KmyKeiba.Models.Analysis.Generic
       this.CurrentAnalyzer.Value = this.BeginLoad(currentKeys, 300, 0);
     }
 
-    public A BeginLoad(IReadOnlyList<KEY> keys, int count, int offset, bool isLoadSameHorses = true)
+    public A BeginLoad(IReadOnlyList<KEY> keys, int count, int offset, bool isLoadSameHorses = true, bool isSandbox = false)
     {
       this.IsError.Value = false;
 
       // ここはUIスレッドでなければならない（ReactiveCollectionなどにスレッドが伝播しないので）
-      var analyzer = this.GetExistingAnalyzer(keys);
+      var analyzer = this.GetExistingAnalyzer(keys, isSandbox);
 
       if (analyzer.IsLoaded.Value || analyzer.IsLoading.Value)
       {
@@ -163,7 +172,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       return this.BeginLoad(keys, 300, 0);
     }
 
-    public A BeginLoad(string scriptParams, int count, int offset, bool isLoadSameHorses = true)
+    public A BeginLoadByScript(string scriptParams, int count, int offset, bool isLoadSameHorses = true)
     {
       var pairs = Enum.GetValues(typeof(KEY)).OfType<KEY>().Select(k =>
         new { Key = k, ScriptParameter = typeof(KEY).GetField(k.ToString())!.GetCustomAttributes(true).OfType<ScriptParameterKeyAttribute>().FirstOrDefault()?.Key ?? string.Empty, })
@@ -179,7 +188,7 @@ namespace KmyKeiba.Models.Analysis.Generic
         }
       }
 
-      return this.BeginLoad(keys, count, offset, isLoadSameHorses);
+      return this.BeginLoad(keys, count, offset, isLoadSameHorses, isSandbox: true);
     }
 
     public void CopyFrom(TrendAnalysisSelector<KEY, A> selector)

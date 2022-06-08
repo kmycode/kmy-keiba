@@ -138,7 +138,7 @@ namespace KmyKeiba.Models.Script
     [ScriptMember("getRiderSimilarRacesAsync")]
     public async Task<string> LoadRiderTrendRacesAsync(string keys, int count = 300, int offset = 0)
     {
-      var analyzer = this._analyzer?.RiderTrendAnalyzers?.BeginLoad(keys, count, offset, true);
+      var analyzer = this._analyzer?.RiderTrendAnalyzers?.BeginLoadByScript(keys, count, offset, true);
       if (analyzer != null)
       {
         await analyzer.WaitAnalysisAsync();
@@ -150,7 +150,7 @@ namespace KmyKeiba.Models.Script
     [ScriptMember("getTrainerSimilarRacesAsync")]
     public async Task<string> LoadTrainerTrendRacesAsync(string keys, int count = 300, int offset = 0)
     {
-      var analyzer = this._analyzer?.TrainerTrendAnalyzers?.BeginLoad(keys, count, offset);
+      var analyzer = this._analyzer?.TrainerTrendAnalyzers?.BeginLoadByScript(keys, count, offset);
       if (analyzer != null)
       {
         await analyzer.WaitAnalysisAsync();
@@ -243,7 +243,7 @@ namespace KmyKeiba.Models.Script
     {
       var type = this.KeysToBloodType(typeCode);
 
-      var analyzer = this._analyzer?.BloodSelectors?.GetSelector(type)?.BeginLoad(keys, count, offset);
+      var analyzer = this._analyzer?.BloodSelectors?.GetSelector(type)?.BeginLoadByScript(keys, count, offset);
       if (analyzer != null)
       {
         await analyzer.WaitAnalysisAsync();
