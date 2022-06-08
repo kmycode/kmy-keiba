@@ -293,10 +293,14 @@ namespace KmyKeiba.Models.Data
       }
     }
 
-    public static async Task SetPreviousRaceDaysAsync(DateOnly? date = null, ReactiveProperty<bool>? isCanceled = null)
+    public static async Task SetPreviousRaceDaysAsync(DateOnly? date = null, ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
     {
       var count = 0;
       var prevCommitCount = 0;
+
+      progress ??= new();
+      progressMax ??= new();
+      progress.Value = progressMax.Value = 0;
 
       using var db = new MyContext();
 
@@ -313,6 +317,7 @@ namespace KmyKeiba.Models.Data
         var str = d.ToString("yyyyMMdd");
         query = query.Where(rh => rh.RaceKey.StartsWith(str));
       }
+      progressMax.Value = await query.CountAsync();
 
       var allTargets = query
         .GroupBy(rh => rh.Key)
@@ -361,6 +366,7 @@ namespace KmyKeiba.Models.Data
               count++;
             }
           }
+          progress.Value = count;
 
           await db.SaveChangesAsync();
 
