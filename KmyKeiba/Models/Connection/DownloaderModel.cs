@@ -551,7 +551,17 @@ namespace KmyKeiba.Models.Connection
         {
           step.Value = Connection.ProcessingStep.RiderWinRates;
           logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
-          await ShapeDatabaseModel.SetRiderWinRatesAsync(isCanceled: this.IsCancelProcessing);
+          try
+          {
+            this.HasProcessingProgress.Value = true;
+            await ShapeDatabaseModel.SetRiderWinRatesAsync(isCanceled: this.IsCancelProcessing,
+              progress: this.ProcessingProgress, progressMax: this.ProcessingProgressMax);
+          }
+          // catch は不要
+          finally
+          {
+            this.HasProcessingProgress.Value = false;
+          }
         }
         if (steps.HasFlag(Connection.ProcessingStep.RaceSubjectInfos) && !this.IsCancelProcessing.Value)
         {
@@ -565,8 +575,17 @@ namespace KmyKeiba.Models.Connection
         {
           step.Value = Connection.ProcessingStep.StandardTime;
           logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
-          await ShapeDatabaseModel.MakeStandardTimeMasterDataAsync(1990, isCanceled: this.IsCancelProcessing);
-          await ConfigUtil.SetIntValueAsync(SettingKey.LastUpdateStandardTimeYear, DateTime.Today.Year);
+          try
+          {
+            this.HasProcessingProgress.Value = true;
+            await ShapeDatabaseModel.MakeStandardTimeMasterDataAsync(1990, isCanceled: this.IsCancelProcessing,
+              progressMax: this.ProcessingProgressMax, progress: this.ProcessingProgress);
+            await ConfigUtil.SetIntValueAsync(SettingKey.LastUpdateStandardTimeYear, DateTime.Today.Year);
+          }
+          finally
+          {
+            this.HasProcessingProgress.Value = false;
+          }
         }
 
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);

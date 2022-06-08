@@ -85,7 +85,7 @@ namespace KmyKeiba.Models.Data
       }
     }
 
-    public static async Task MakeStandardTimeMasterDataAsync(int startYear, DownloadLink link = DownloadLink.Both, ReactiveProperty<bool>? isCanceled = null)
+    public static async Task MakeStandardTimeMasterDataAsync(int startYear, DownloadLink link = DownloadLink.Both, ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
     {
       if (link == DownloadLink.Both)
       {
@@ -94,6 +94,10 @@ namespace KmyKeiba.Models.Data
       }
 
       logger.Debug("基準タイムマスターデータ作成中...");
+
+      progress ??= new();
+      progressMax ??= new();
+      progress.Value = progressMax.Value = 0;
 
       try
       {
@@ -105,6 +109,8 @@ namespace KmyKeiba.Models.Data
         var types = new[] { TrackType.Flat, TrackType.Steeplechase, };
         var conditions = new[] { RaceCourseCondition.Unknown, RaceCourseCondition.Standard, RaceCourseCondition.Good, RaceCourseCondition.Soft, RaceCourseCondition.Yielding, };
         var distances = new[] { 0, 1000, 1400, 1800, 2200, 2800, 10000, };
+
+        progressMax.Value = 98;
 
         for (var i = 1; i < 99; i++)
         {
@@ -282,6 +288,8 @@ namespace KmyKeiba.Models.Data
 
           // コースごと
           await db.CommitAsync();
+
+          progress.Value = i;
         }
 
         // キャッシュをクリア
@@ -392,7 +400,7 @@ namespace KmyKeiba.Models.Data
       }
     }
 
-    public static async Task SetRiderWinRatesAsync(DateOnly? startMonth = null, ReactiveProperty<bool>? isCanceled = null)
+    public static async Task SetRiderWinRatesAsync(DateOnly? startMonth = null, ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
     {
       DateOnly month;
       if (startMonth != null)
@@ -404,6 +412,10 @@ namespace KmyKeiba.Models.Data
         month = new DateOnly(1986, 1, 1);
       }
 
+      progress ??= new();
+      progressMax ??= new();
+      progress.Value = progressMax.Value = 0;
+
       using var db = new MyContext();
 
       // 通常のクエリは３分まで
@@ -414,6 +426,7 @@ namespace KmyKeiba.Models.Data
       var query = db.RaceHorses!
         .Where(rh => rh.ResultOrder > 0)
         .Where(rh => rh.Key != "0000000000" && rh.Key != "" && rh.RaceKey != "" && rh.RiderCode != "00000");
+      progressMax.Value = await query.CountAsync();
 
       var today = DateOnly.FromDateTime(DateTime.Today);
       var lastMonth = new DateOnly(today.Year, today.Month, 1).AddDays(-1);  // 先月末
@@ -527,6 +540,7 @@ namespace KmyKeiba.Models.Data
               {
                 horse.Horse.IsContainsRiderWinRate = true;
               }
+              progress.Value += riderGrades.Length;
             }
 
             await db.SaveChangesAsync();
