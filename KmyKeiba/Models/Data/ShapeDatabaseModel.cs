@@ -381,7 +381,7 @@ namespace KmyKeiba.Models.Data
             await db.CommitAsync();
             prevCommitCount = count;
           }
-          logger.Debug($"馬のInterval日数計算完了: {count}");
+          logger.Debug($"馬のInterval日数計算完了: {count} / {progressMax.Value}");
 
           targets = await allTargets.Take(96).ToArrayAsync();
         }
