@@ -2,18 +2,16 @@
 using KmyKeiba.JVLink.Wrappers;
 using KmyKeiba.Data.Db;
 using Microsoft.EntityFrameworkCore;
-using Reactive.Bindings;
-using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using System.Reactive.Disposables;
+using Reactive.Bindings;
 
 namespace KmyKeiba.Downloader
 {

@@ -397,7 +397,7 @@ namespace KmyKeiba.Downloader
           await db.SaveChangesAsync();
           CheckShutdown(db);
 
-          await loader.LoadAsync(link,
+          loader.StartLoad(link,
             dataspecs[i],
             JVLinkOpenOption.RealTime,
             raceKey: useKey,
