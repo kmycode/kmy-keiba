@@ -276,6 +276,17 @@
                 <ToggleButton Grid.Column="1" Content="牝" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsFemale.Value,Mode=TwoWay}"/>
                 <ToggleButton Grid.Column="2" Content="騙" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsCastrated.Value,Mode=TwoWay}"/>
               </Grid>
+              <TextBlock Margin="0,16,0,0" FontSize="20" Text="枠"/>
+              <Grid Margin="0,8,0,0">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <ToggleButton Grid.Column="0" Content="外" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsFrame_Outside.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="1" Content="中" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsFrame_Intermediate.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="2" Content="内" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsFrame_Inside.Value,Mode=TwoWay}"/>
+              </Grid>
               <TextBlock Margin="0,16,0,0" FontSize="20" Text="出走間隔"/>
               <Grid Margin="0,8,0,0">
                 <Grid.ColumnDefinitions>
@@ -295,6 +306,26 @@
                 <ToggleButton Grid.Column="1" Grid.Row="1" Content="-150" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsInterval_91_150.Value,Mode=TwoWay}"/>
                 <ToggleButton Grid.Column="2" Grid.Row="1" Content="-300" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsInterval_151_300.Value,Mode=TwoWay}"/>
                 <ToggleButton Grid.Column="0" Grid.Row="2" Content="301-" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsInterval_301_.Value,Mode=TwoWay}"/>
+              </Grid>
+              <TextBlock Margin="0,16,0,0" FontSize="20" Text="年齢"/>
+              <Grid Margin="0,8,0,0">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                  <RowDefinition/>
+                  <RowDefinition/>
+                </Grid.RowDefinitions>
+                <ToggleButton Grid.Column="0" Grid.Row="0" Content="2" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsAge_2.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="1" Grid.Row="0" Content="3" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsAge_3.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="2" Grid.Row="0" Content="4" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsAge_4.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="3" Grid.Row="0" Content="5" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsAge_5.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="0" Grid.Row="1" Content="6" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsAge_6.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="1" Grid.Row="1" Content="7" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsAge_7.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="2" Grid.Row="1" Content="8-" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsAge_8_.Value,Mode=TwoWay}"/>
               </Grid>
             </StackPanel>
           </uc:TrendAnalyzerAnalysisView.MenuContent>

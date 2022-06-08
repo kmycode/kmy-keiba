@@ -117,23 +117,24 @@ namespace KmyKeiba.Models.Analysis
     {
     }
 
+    protected void SetTimeDeviationValueComparations(IReadOnlyList<RaceHorseAnalyzer> source, int level)
+    {
+      // タイム偏差値に色を付ける
+      var timeMax = source.Select(s => s.ResultTimeDeviationValue).OrderByDescending(s => s).ElementAtOrDefault(level) - 1;
+      var timeMin = source.Select(s => s.ResultTimeDeviationValue).OrderBy(s => s).ElementAtOrDefault(level) + 1;
+      var a3hTimeMax = source.Select(s => s.A3HResultTimeDeviationValue).OrderByDescending(s => s).ElementAtOrDefault(level) - 1;
+      var a3hTimeMin = source.Select(s => s.A3HResultTimeDeviationValue).OrderBy(s => s).ElementAtOrDefault(level) + 1;
+      foreach (var horse in source)
+      {
+        horse.ResultTimeDVComparation = AnalysisUtil.CompareValue(horse.ResultTimeDeviationValue, timeMax, timeMin);
+        horse.ResultA3HTimeDVComparation = AnalysisUtil.CompareValue(horse.A3HResultTimeDeviationValue, a3hTimeMax, a3hTimeMin);
+      }
+    }
+
     protected override void Analyze(IReadOnlyList<RaceHorseAnalyzer> source)
     {
       base.Analyze(source);
-
-      // タイム偏差値に色を付ける
-      var timeMax = source.Select(s => s.ResultTimeDeviationValue).OrderByDescending(s => s).ElementAtOrDefault(4) - 1;
-      var timeMin = source.Select(s => s.ResultTimeDeviationValue).OrderBy(s => s).ElementAtOrDefault(4) + 1;
-      var a3hTimeMax = source.Select(s => s.A3HResultTimeDeviationValue).OrderByDescending(s => s).ElementAtOrDefault(4) - 1;
-      var a3hTimeMin = source.Select(s => s.A3HResultTimeDeviationValue).OrderBy(s => s).ElementAtOrDefault(4) + 1;
-      foreach (var horse in source)
-      {
-        if (horse.ResultTimeDeviationValue >= timeMax)
-        {
-          horse.ResultTimeDVComparation = AnalysisUtil.CompareValue(horse.ResultTimeDeviationValue, timeMax, timeMin);
-          horse.ResultA3HTimeDVComparation = AnalysisUtil.CompareValue(horse.A3HResultTimeDeviationValue, a3hTimeMax, a3hTimeMin);
-        }
-      }
+      this.SetTimeDeviationValueComparations(source, 2);
     }
   }
 
@@ -142,5 +143,12 @@ namespace KmyKeiba.Models.Analysis
     public RaceHorseBloodTrendAnalyzer(RaceData race, RaceHorseData horse) : base(race, horse)
     {
     }
+
+    protected override void Analyze(IReadOnlyList<RaceHorseAnalyzer> source)
+    {
+      base.Analyze(source);
+      this.SetTimeDeviationValueComparations(source, 4);
+    }
+
   }
 }

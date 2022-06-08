@@ -679,8 +679,8 @@ namespace KmyKeiba.JVLink.Entities
     [RaceCourseInfo(RaceCourseType.Foreign, "バーレーン", Key = "N2")]
     Bahrain = 1062,
 
-    LocalMinValue = 30,
-    CentralMaxValue = 29,
+    LocalMinValue = 29,  // ほんとは30だけど便宜上
+    CentralMaxValue = 28,
   }
 
   public enum TrackGround : short

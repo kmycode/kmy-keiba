@@ -114,7 +114,7 @@ namespace KmyKeiba.Models.Script
     [ScriptMember("getSimilarRacesAsync")]
     public async Task<string> LoadTrendRacesAsync(string keys, int count = 300, int offset = 0)
     {
-      var analyzer = this._race.TrendAnalyzers.BeginLoad(keys, count, offset);
+      var analyzer = this._race.TrendAnalyzers.BeginLoadByScript(keys, count, offset);
       await analyzer.WaitAnalysisAsync();
       return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRace(s.Data, s.TopHorses)).ToArray(), ScriptManager.JsonOptions);
     }
@@ -122,7 +122,7 @@ namespace KmyKeiba.Models.Script
     [ScriptMember("getSimilarRaceHorsesAsync")]
     public async Task<string> LoadHorseTrendRacesAsync(string keys, int count = 500, int offset = 0)
     {
-      var analyzer = this._race.WinnerTrendAnalyzers.BeginLoad(keys, count, offset, true);
+      var analyzer = this._race.WinnerTrendAnalyzers.BeginLoadByScript(keys, count, offset, true);
       if (analyzer != null)
       {
         await analyzer.WaitAnalysisAsync();

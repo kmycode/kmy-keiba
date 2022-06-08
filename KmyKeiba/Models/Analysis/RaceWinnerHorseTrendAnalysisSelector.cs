@@ -70,15 +70,45 @@ namespace KmyKeiba.Models.Analysis
       [GroupName("ResultOrder")]
       Losed,
 
-      [Label("内枠")]
+      [IgnoreKey]
       [ScriptParameterKey("inside")]
-      [GroupName("Frame")]
       Inside,
 
-      [Label("外枠")]
+      [IgnoreKey]
+      [ScriptParameterKey("intermediate")]
+      Intermediate,
+
+      [IgnoreKey]
       [ScriptParameterKey("outside")]
-      [GroupName("Frame")]
       Outside,
+
+      [ScriptParameterKey("age_2")]
+      [IgnoreKey]
+      Age_2,
+
+      [ScriptParameterKey("age_3")]
+      [IgnoreKey]
+      Age_3,
+
+      [ScriptParameterKey("age_4")]
+      [IgnoreKey]
+      Age_4,
+
+      [ScriptParameterKey("age_5")]
+      [IgnoreKey]
+      Age_5,
+
+      [ScriptParameterKey("age_6")]
+      [IgnoreKey]
+      Age_6,
+
+      [ScriptParameterKey("age_7")]
+      [IgnoreKey]
+      Age_7,
+
+      [ScriptParameterKey("age_8_")]
+      [IgnoreKey]
+      Age_8_,
 
       [ScriptParameterKey("sex_male")]
       [IgnoreKey]
@@ -149,6 +179,26 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<bool> IsInterval_301_ { get; } = new();
 
+    public ReactiveProperty<bool> IsAge_2 { get; } = new();
+
+    public ReactiveProperty<bool> IsAge_3 { get; } = new();
+
+    public ReactiveProperty<bool> IsAge_4 { get; } = new();
+
+    public ReactiveProperty<bool> IsAge_5 { get; } = new();
+
+    public ReactiveProperty<bool> IsAge_6 { get; } = new();
+
+    public ReactiveProperty<bool> IsAge_7 { get; } = new();
+
+    public ReactiveProperty<bool> IsAge_8_ { get; } = new();
+
+    public ReactiveProperty<bool> IsFrame_Inside { get; } = new();
+
+    public ReactiveProperty<bool> IsFrame_Intermediate { get; } = new();
+
+    public ReactiveProperty<bool> IsFrame_Outside { get; } = new();
+
     public RaceWinnerHorseTrendAnalysisSelector(RaceData race) : base(typeof(Key))
     {
       this.Race = race;
@@ -166,6 +216,18 @@ namespace KmyKeiba.Models.Analysis
       this.IsInterval_151_300.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Interval_151_300, v)).AddTo(this._disposables);
       this.IsInterval_301_.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Interval_301_, v)).AddTo(this._disposables);
 
+      this.IsAge_2.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Age_2, v)).AddTo(this._disposables);
+      this.IsAge_3.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Age_3, v)).AddTo(this._disposables);
+      this.IsAge_4.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Age_4, v)).AddTo(this._disposables);
+      this.IsAge_5.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Age_5, v)).AddTo(this._disposables);
+      this.IsAge_6.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Age_6, v)).AddTo(this._disposables);
+      this.IsAge_7.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Age_7, v)).AddTo(this._disposables);
+      this.IsAge_8_.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Age_8_, v)).AddTo(this._disposables);
+
+      this.IsFrame_Inside.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Inside, v)).AddTo(this._disposables);
+      this.IsFrame_Intermediate.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Intermediate, v)).AddTo(this._disposables);
+      this.IsFrame_Outside.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Outside, v)).AddTo(this._disposables);
+
       base.OnFinishedInitialization();
     }
 
@@ -177,6 +239,7 @@ namespace KmyKeiba.Models.Analysis
     protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceWinnerHorseTrendAnalyzer analyzer, int count = 500, int offset = 0, bool isLoadSameHorses = false)
     {
       var query = db.RaceHorses!
+        .Where(rh => rh.DataStatus >= RaceDataStatus.PreliminaryGrade)
         .Join(db.Races!.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType),
           rh => rh.RaceKey, r => r.Key, (rh, r) => new { RaceHorse = rh, Race = r, });
 
@@ -259,13 +322,64 @@ namespace KmyKeiba.Models.Analysis
       {
         query = query.Where(r => r.RaceHorse.ResultOrder > 5);
       }
+
+      var frames = new List<int>();
       if (keys.Contains(Key.Outside))
       {
-        query = query.Where(r => r.RaceHorse.Number >= r.Race.HorsesCount * 2 / 3f);
+        frames.Add(3);
+      }
+      if (keys.Contains(Key.Intermediate))
+      {
+        frames.Add(2);
       }
       if (keys.Contains(Key.Inside))
       {
-        query = query.Where(r => r.RaceHorse.Number <= r.Race.HorsesCount / 3f);
+        frames.Add(1);
+      }
+      if (frames.Any())
+      {
+        query = query.Where(r => frames.Contains((int)(r.RaceHorse.Number / (float)r.Race.HorsesCount * 3) + 1));
+      }
+
+      var ages = new List<short>();
+      if (keys.Contains(Key.Age_2))
+      {
+        ages.Add(2);
+      }
+      if (keys.Contains(Key.Age_3))
+      {
+        ages.Add(3);
+      }
+      if (keys.Contains(Key.Age_4))
+      {
+        ages.Add(4);
+      }
+      if (keys.Contains(Key.Age_5))
+      {
+        ages.Add(5);
+      }
+      if (keys.Contains(Key.Age_6))
+      {
+        ages.Add(6);
+      }
+      if (keys.Contains(Key.Age_7))
+      {
+        ages.Add(7);
+      }
+      if (keys.Contains(Key.Age_8_))
+      {
+        ages.Add(8);
+      }
+      if (ages.Any())
+      {
+        if (ages.Contains(8))
+        {
+          query = query.Where(r => ages.Contains(r.RaceHorse.Age) || r.RaceHorse.Age >= 9);
+        }
+        else
+        {
+          query = query.Where(r => ages.Contains(r.RaceHorse.Age));
+        }
       }
 
       var sexes = new List<HorseSex>();

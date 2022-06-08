@@ -29,6 +29,6 @@ namespace KmyKeiba.Shared
 
     public static readonly string RunningStyleTrainingFilePath = Path.Combine(AppDataDir, "runningstyle.mml");
 
-    public const string ApplicationVersion = "1.1.2.1";
+    public const string ApplicationVersion = "1.2.0";
   }
 }
