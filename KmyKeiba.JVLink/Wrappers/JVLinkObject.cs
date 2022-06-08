@@ -24,6 +24,11 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public JVLinkObjectType Type { get; }
 
+    public int MainWindowHandle
+    {
+      set => this.link.MainWindowHandle = value;
+    }
+
     private JVLinkObject(JVLinkObjectType type)
     {
       this.Type = type;

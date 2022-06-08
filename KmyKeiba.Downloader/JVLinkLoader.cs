@@ -2,18 +2,16 @@
 using KmyKeiba.JVLink.Wrappers;
 using KmyKeiba.Data.Db;
 using Microsoft.EntityFrameworkCore;
-using Reactive.Bindings;
-using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using System.Reactive.Disposables;
+using Reactive.Bindings;
 
 namespace KmyKeiba.Downloader
 {
@@ -26,54 +24,54 @@ namespace KmyKeiba.Downloader
 
     public LoadProcessing Process { get; set; }
 
-    public ReactiveProperty<DateTime> StartTime { get; } = new(DateTime.Today);
+    private DateTime StartTime { get; set; } = DateTime.Today;
 
-    public ReactiveProperty<DateTime> EndTime { get; } = new(DateTime.Today);
+    private DateTime EndTime { get; set; } = DateTime.Today;
 
-    public ReactiveProperty<bool> IsSetEndTime { get; } = new(false);
+    private bool IsSetEndTime { get; set; }
 
-    public ReactiveProperty<int> Downloaded { get; } = new(0);
+    public int Downloaded { get; set; }
 
-    public ReactiveProperty<int> DownloadSize { get; } = new(1);
+    public int DownloadSize { get; set; } = 1;
 
-    public ReactiveProperty<int> Loaded { get; } = new(0);
+    public int Loaded { get; set; }
 
-    public ReactiveProperty<int> LoadSize { get; } = new(1);
+    public int LoadSize { get; set; } = 1;
 
-    public ReactiveProperty<int> LoadEntityCount { get; } = new(0);
+    public int LoadEntityCount { get; set; }
 
-    public ReactiveProperty<int> Saved { get; } = new(0);
+    public int Saved { get; set; }
 
-    public ReactiveProperty<int> SaveSize { get; } = new(1);
+    public int SaveSize { get; set; } = 1;
 
-    public ReactiveProperty<int> Processed { get; } = new(0);
+    public int Processed { get; set; }
 
-    public ReactiveProperty<int> ProcessSize { get; } = new(1);
+    public int ProcessSize { get; set; } = 1;
 
-    public async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey,
+    public void StartLoad(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey,
       DateTime? startTime, DateTime? endTime, IEnumerable<string>? loadSpecs = null)
     {
       if (startTime != null)
       {
-        this.StartTime.Value = (DateTime)startTime;
+        this.StartTime = (DateTime)startTime;
       }
       if (endTime != null)
       {
-        this.EndTime.Value = (DateTime)endTime;
-        this.IsSetEndTime.Value = true;
+        this.EndTime = (DateTime)endTime;
+        this.IsSetEndTime = true;
       }
       else
       {
-        this.IsSetEndTime.Value = false;
+        this.IsSetEndTime = false;
       }
 
-      logger.Info($"ロード開始 [{this.StartTime.Value} - {this.EndTime.Value}]");
-      logger.Info($"終了日時の指定状態：{this.IsSetEndTime.Value}");
+      logger.Info($"ロード開始 [{this.StartTime} - {this.EndTime}]");
+      logger.Info($"終了日時の指定状態：{this.IsSetEndTime}");
 
-      await this.LoadAsync(link, dataspec, option, raceKey, loadSpecs: loadSpecs);
+      this.StartLoad(link, dataspec, option, raceKey, loadSpecs: loadSpecs);
     }
 
-    private async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey = null, IEnumerable<string>? loadSpecs = null)
+    private void StartLoad(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey = null, IEnumerable<string>? loadSpecs = null)
     {
       this.ResetProgresses();
 
@@ -90,159 +88,165 @@ namespace KmyKeiba.Downloader
         logger.Info("specs: 制限なし");
       }
 
-      await Task.Run(async () =>
+      IJVLinkReader? reader = null;
+
+      try
       {
-        IJVLinkReader? reader = null;
+        this.Process = LoadProcessing.Opening;
 
-        try
+        IJVLinkReader StartReadWithTimeout(Func<IJVLinkReader> reader)
         {
-          this.Process = LoadProcessing.Opening;
+          var isSucceed = false;
+          var start = DateTime.Now;
 
-          IJVLinkReader StartReadWithTimeout(Func<IJVLinkReader> reader)
+          var waitSeconds = link.Type == JVLinkObjectType.Local ?
+            (DateTime.Now - this.StartTime).TotalDays / 365 * 60 + 60 :  // 1年あたり60秒
+            60;
+
+          Task.Run(async () =>
           {
-            var isSucceed = false;
-            var start = DateTime.Now;
-
-            var waitSeconds = link.Type == JVLinkObjectType.Local ?
-              (DateTime.Now - this.StartTime.Value).TotalDays / 365 * 60 + 60 :  // 1年あたり60秒
-              60;
-
-            Task.Run(async () =>
+            while (!isSucceed)
             {
-              while (!isSucceed)
+              await Task.Delay(1000);
+
+              if (DateTime.Now - start > TimeSpan.FromSeconds(waitSeconds))
               {
-                await Task.Delay(1000);
-
-                if (DateTime.Now - start > TimeSpan.FromSeconds(waitSeconds))
-                {
-                  logger.Warn("接続オープンに失敗したので強制終了します");
-                  await Program.RestartProgramAsync(false, isForce: true);
-                }
-
-                Program.CheckShutdown(isForce: true);
+                logger.Warn("接続オープンに失敗したので強制終了します");
+                await Program.RestartProgramAsync(false, isForce: true);
               }
-            });
 
-            var result = reader();
-            isSucceed = true;
-            return result;
-          }
+              Program.CheckShutdown(isForce: true);
+            }
+          });
 
-          if (option != JVLinkOpenOption.RealTime)
+          var result = reader();
+          isSucceed = true;
+
+          // このタイミングでJRA-VANからのお知らせが表示されることがある
+          if (link.Type == JVLinkObjectType.Central)
           {
-            logger.Info("接続オープン：セットアップまたは通常データ");
+            var oldProcess = this.Process;
+            this.Process = LoadProcessing.CheckingJraVanNews;
+            Program.CheckJraVanNews();
+            this.Process = oldProcess;
+          }
+          return result;
+        }
+
+        if (option != JVLinkOpenOption.RealTime)
+        {
+          logger.Info("接続オープン：セットアップまたは通常データ");
+          reader = StartReadWithTimeout(() => link.StartRead(dataspec,
+              option,
+              this.StartTime,
+              this.IsSetEndTime ? this.EndTime : null));
+          this.StartLoad(reader, loadSpecs, true, false);
+        }
+        else
+        {
+          if (raceKey == null)
+          {
+            logger.Info("接続オープン：日付");
             reader = StartReadWithTimeout(() => link.StartRead(dataspec,
-               option,
-               this.StartTime.Value,
-               this.IsSetEndTime.Value ? this.EndTime.Value : null));
-            await this.LoadAsync(reader, loadSpecs, true, false);
+                JVLinkOpenOption.RealTime, this.StartTime.Date));
+            this.StartLoad(reader, loadSpecs, false, true);
           }
           else
           {
-            if (raceKey == null)
-            {
-              logger.Info("接続オープン：日付");
-              reader = StartReadWithTimeout(() => link.StartRead(dataspec,
-                 JVLinkOpenOption.RealTime, this.StartTime.Value.Date));
-              await this.LoadAsync(reader, loadSpecs, false, true);
-            }
-            else
-            {
-              logger.Info("接続オープン：特定レース");
-              reader = StartReadWithTimeout(() => link.StartRead(dataspec,
-                  JVLinkOpenOption.RealTime, raceKey));
-              await this.LoadAsync(reader, loadSpecs, false, true);
-            }
-          }
-
-          logger.Info("ロードが完了しました");
-        }
-        catch (JVLinkException<JVLinkLoadResult> ex)
-        {
-          logger.Error($"ロードでエラーが発生 {ex.Code}", ex);
-
-          if (ex.Code == JVLinkLoadResult.AlreadyOpen)
-          {
-            alreadyOpenCount++;
-            if (alreadyOpenCount >= 10)
-            {
-              alreadyOpenCount = 0;
-              link.Dispose();
-            }
-          }
-          if (ex.Code == JVLinkLoadResult.SetupCanceled)
-          {
-            Program.Shutdown(DownloaderError.SetupDialogCanceled);
-          }
-          else if (ex.Code == JVLinkLoadResult.LicenceKeyExpired)
-          {
-            Program.Shutdown(DownloaderError.LicenceKeyExpired);
-          }
-          else if (ex.Code == JVLinkLoadResult.LicenceKeyNotSet)
-          {
-            Program.Shutdown(DownloaderError.LicenceKeyNotSet);
-          }
-          else if (ex.Code == JVLinkLoadResult.InMaintance)
-          {
-            Program.Shutdown(DownloaderError.InMaintance);
-          }
-          else if (ex.Code == JVLinkLoadResult.InvalidServerResponse)
-          {
-            Program.Shutdown(DownloaderError.ServerError);
-          }
-          else if (ex.Code == JVLinkLoadResult.InvalidDataspec || ex.Code == JVLinkLoadResult.InvalidDatespecAndOption ||
-            ex.Code == JVLinkLoadResult.InvalidFromTime || ex.Code == JVLinkLoadResult.InvalidKey ||
-            ex.Code == JVLinkLoadResult.InvalidOption || ex.Code == JVLinkLoadResult.InvalidRegistry ||
-            ex.Code == JVLinkLoadResult.InvalidServerApplication)
-          {
-            Program.Shutdown(DownloaderError.ApplicationError);
-          }
-          else
-          {
-            _ = Program.RestartProgramAsync(false);
+            logger.Info("接続オープン：特定レース");
+            reader = StartReadWithTimeout(() => link.StartRead(dataspec,
+                JVLinkOpenOption.RealTime, raceKey));
+            this.StartLoad(reader, loadSpecs, false, true);
           }
         }
-        catch (JVLinkException<JVLinkReadResult> ex)
-        {
-          logger.Error($"データ読み込みでエラーが発生 {ex.Code}", ex);
 
+        logger.Info("ロードが完了しました");
+      }
+      catch (JVLinkException<JVLinkLoadResult> ex)
+      {
+        logger.Error($"ロードでエラーが発生 {ex.Code}", ex);
+
+        if (ex.Code == JVLinkLoadResult.AlreadyOpen)
+        {
+          alreadyOpenCount++;
+          if (alreadyOpenCount >= 10)
+          {
+            alreadyOpenCount = 0;
+            link.Dispose();
+          }
+        }
+        if (ex.Code == JVLinkLoadResult.SetupCanceled)
+        {
+          Program.Shutdown(DownloaderError.SetupDialogCanceled);
+        }
+        else if (ex.Code == JVLinkLoadResult.LicenceKeyExpired)
+        {
+          Program.Shutdown(DownloaderError.LicenceKeyExpired);
+        }
+        else if (ex.Code == JVLinkLoadResult.LicenceKeyNotSet)
+        {
+          Program.Shutdown(DownloaderError.LicenceKeyNotSet);
+        }
+        else if (ex.Code == JVLinkLoadResult.InMaintance)
+        {
+          Program.Shutdown(DownloaderError.InMaintance);
+        }
+        else if (ex.Code == JVLinkLoadResult.InvalidServerResponse)
+        {
+          Program.Shutdown(DownloaderError.ServerError);
+        }
+        else if (ex.Code == JVLinkLoadResult.InvalidDataspec || ex.Code == JVLinkLoadResult.InvalidDatespecAndOption ||
+          ex.Code == JVLinkLoadResult.InvalidFromTime || ex.Code == JVLinkLoadResult.InvalidKey ||
+          ex.Code == JVLinkLoadResult.InvalidOption || ex.Code == JVLinkLoadResult.InvalidRegistry ||
+          ex.Code == JVLinkLoadResult.InvalidServerApplication)
+        {
+          Program.Shutdown(DownloaderError.ApplicationError);
+        }
+        else
+        {
           _ = Program.RestartProgramAsync(false);
         }
-        catch (TaskCanceledAndContinueProgramException)
-        {
-          logger.Warn("タスクはキャンセルされました");
-          if (reader != null)
-          {
-            this.DisposeLink(reader, null);
-          }
-          return;
-        }
-        catch (Exception ex)
-        {
-          logger.Error("不明なエラーが発生", ex);
+      }
+      catch (JVLinkException<JVLinkReadResult> ex)
+      {
+        logger.Error($"データ読み込みでエラーが発生 {ex.Code}", ex);
 
-          _ = Program.RestartProgramAsync(false);
+        _ = Program.RestartProgramAsync(false);
+      }
+      catch (TaskCanceledAndContinueProgramException)
+      {
+        logger.Warn("タスクはキャンセルされました");
+        if (reader != null)
+        {
+          this.DisposeLink(reader, null);
         }
-      });
+        return;
+      }
+      catch (Exception ex)
+      {
+        logger.Error("不明なエラーが発生", ex);
+
+        _ = Program.RestartProgramAsync(false);
+      }
     }
 
     private void ResetProgresses()
     {
-      this.LoadSize.Value = 1;
-      this.Loaded.Value = 0;
-      this.SaveSize.Value = 1;
-      this.Saved.Value = 0;
-      this.DownloadSize.Value = 1;
-      this.Downloaded.Value = 0;
-      this.ProcessSize.Value = 1;
-      this.Processed.Value = 0;
+      this.LoadSize = 1;
+      this.Loaded = 0;
+      this.SaveSize = 1;
+      this.Saved = 0;
+      this.DownloadSize = 1;
+      this.Downloaded = 0;
+      this.ProcessSize = 1;
+      this.Processed = 0;
     }
 
-    private async Task LoadAsync(IJVLinkReader reader, IEnumerable<string>? loadSpecs, bool isProcessing, bool isRealtime)
+    private void StartLoad(IJVLinkReader reader, IEnumerable<string>? loadSpecs, bool isProcessing, bool isRealtime)
     {
       this.ResetProgresses();
 
-      this.DownloadSize.Value = reader.DownloadCount;
+      this.DownloadSize = reader.DownloadCount;
       logger.Info($"必要なダウンロード数: {reader.DownloadCount}");
       this.Process = LoadProcessing.Downloading;
 
@@ -251,9 +255,9 @@ namespace KmyKeiba.Downloader
       var stayCount = 0;
 
       // ダウンロードはリンク上で非同期で行われるため、待機処理をここに入れる
-      while (this.DownloadSize.Value > this.Downloaded.Value)
+      while (this.DownloadSize > this.Downloaded)
       {
-        this.Downloaded.Value = reader.DownloadedCount;
+        this.Downloaded = reader.DownloadedCount;
         Task.Delay(80).Wait();
 
         waitCount += 80;
@@ -310,10 +314,10 @@ namespace KmyKeiba.Downloader
           {
             await Task.Delay(80);
 
-            if (this.Loaded.Value != reader.ReadedCount || this.LoadEntityCount.Value != reader.ReadedEntityCount)
+            if (this.Loaded != reader.ReadedCount || this.LoadEntityCount != reader.ReadedEntityCount)
             {
-              this.Loaded.Value = reader.ReadedCount;
-              this.LoadEntityCount.Value = reader.ReadedEntityCount;
+              this.Loaded = reader.ReadedCount;
+              this.LoadEntityCount = reader.ReadedEntityCount;
               loadTimeout = 0;
             }
             else
@@ -341,7 +345,7 @@ namespace KmyKeiba.Downloader
         }
         catch (Exception ex)
         {
-          logger.Error("ロード監視でエラー発生");
+          logger.Error("ロード監視でエラー発生", ex);
         }
       });
 
@@ -349,7 +353,7 @@ namespace KmyKeiba.Downloader
       // {
       // }
 
-      this.LoadSize.Value = reader.ReadCount;
+      this.LoadSize = reader.ReadCount;
       logger.Info($"データのロードを開始します　ロード数: {reader.ReadCount}");
       this.Process = LoadProcessing.Loading;
       try
@@ -439,17 +443,17 @@ namespace KmyKeiba.Downloader
     private async Task LoadAfterAsync(JVLinkReaderData data, bool isProcessing, bool isRealtime)
     {
       var saved = 0;
-      this.SaveSize.Value = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count
+      this.SaveSize = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count
         + data.FrameNumberOdds.Count + data.QuinellaOdds.Count + data.QuinellaPlaceOdds.Count +
          data.TrifectaOdds.Count + data.TrioOdds.Count + data.BornHorses.Count +
         data.Refunds.Count + data.Trainings.Count + data.WoodtipTrainings.Count + data.Horses.Count + data.HorseBloods.Count;
-      logger.Info($"保存数: {this.SaveSize.Value}");
+      logger.Info($"保存数: {this.SaveSize}");
 
       var timer = new ReactiveTimer(TimeSpan.FromMilliseconds(80));
       timer.Subscribe((t) =>
       {
-        this.Saved.Value = saved;
-        if (saved >= this.SaveSize.Value)
+        this.Saved = saved;
+        if (saved >= this.SaveSize)
         {
           timer.Dispose();
         }
@@ -682,9 +686,9 @@ namespace KmyKeiba.Downloader
       await db.CommitAsync();
 
       // 保存後のデータに他のデータを追加する
-      this.ProcessSize.Value = 0;
-      this.Processed.Value = 0;
-      this.ProcessSize.Value += data.SingleAndDoubleWinOdds.Count;
+      this.ProcessSize = 0;
+      this.Processed = 0;
+      this.ProcessSize += data.SingleAndDoubleWinOdds.Count;
       this.Process = LoadProcessing.Processing;
 
       // 単勝オッズを設定する
@@ -711,7 +715,7 @@ namespace KmyKeiba.Downloader
             }
           }
 
-          this.Processed.Value++;
+          this.Processed++;
           Program.CheckShutdown(db);
         }
 
@@ -720,12 +724,12 @@ namespace KmyKeiba.Downloader
 
       if (isRealtime)
       {
-        this.ProcessSize.Value += data.HorseWeights.Count;
-        this.ProcessSize.Value += data.CourseWeatherConditions.Count;
-        this.ProcessSize.Value += data.HorseAbnormalities.Count;
-        this.ProcessSize.Value += data.HorseRiderChanges.Count;
-        this.ProcessSize.Value += data.RaceStartTimeChanges.Count;
-        this.ProcessSize.Value += data.RaceCourseChanges.Count;
+        this.ProcessSize += data.HorseWeights.Count;
+        this.ProcessSize += data.CourseWeatherConditions.Count;
+        this.ProcessSize += data.HorseAbnormalities.Count;
+        this.ProcessSize += data.HorseRiderChanges.Count;
+        this.ProcessSize += data.RaceStartTimeChanges.Count;
+        this.ProcessSize += data.RaceCourseChanges.Count;
 
         // 古いデータは削除
         var today = DateTime.Today;
@@ -766,7 +770,7 @@ namespace KmyKeiba.Downloader
               info.Horse.WeightDiff = info.Info.WeightDiff;
             }
 
-            this.Processed.Value++;
+            this.Processed++;
             Program.CheckShutdown(db);
           }
 
@@ -789,7 +793,7 @@ namespace KmyKeiba.Downloader
               race.TrackOption = st.TrackOption;
             }
 
-            this.Processed.Value++;
+            this.Processed++;
             Program.CheckShutdown(db);
           }
 
@@ -825,7 +829,7 @@ namespace KmyKeiba.Downloader
               }
             }
 
-            this.Processed.Value++;
+            this.Processed++;
             Program.CheckShutdown(db);
           }
 
@@ -845,7 +849,7 @@ namespace KmyKeiba.Downloader
               horse.AbnormalResult = ab.AbnormalResult;
             }
 
-            this.Processed.Value++;
+            this.Processed++;
             Program.CheckShutdown(db);
           }
 
@@ -867,7 +871,7 @@ namespace KmyKeiba.Downloader
               horse.RiderWeight = ab.RiderWeight;
             }
 
-            this.Processed.Value++;
+            this.Processed++;
             Program.CheckShutdown(db);
           }
 
@@ -887,7 +891,7 @@ namespace KmyKeiba.Downloader
               race.StartTime = new DateTime(race.StartTime.Year, race.StartTime.Month, race.StartTime.Day, st.StartTime.Hour, st.StartTime.Minute, 0);
             }
 
-            this.Processed.Value++;
+            this.Processed++;
             Program.CheckShutdown(db);
           }
 
@@ -916,5 +920,6 @@ namespace KmyKeiba.Downloader
     Writing,
     Processing,
     Closing,
+    CheckingJraVanNews,
   }
 }

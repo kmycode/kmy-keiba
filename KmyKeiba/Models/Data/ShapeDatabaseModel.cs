@@ -426,7 +426,7 @@ namespace KmyKeiba.Models.Data
       var query = db.RaceHorses!
         .Where(rh => rh.ResultOrder > 0)
         .Where(rh => rh.Key != "0000000000" && rh.Key != "" && rh.RaceKey != "" && rh.RiderCode != "00000");
-      progressMax.Value = await query.CountAsync();
+      progressMax.Value = await query.CountAsync(rh => !rh.IsContainsRiderWinRate);
 
       var today = DateOnly.FromDateTime(DateTime.Today);
       var lastMonth = new DateOnly(today.Year, today.Month, 1).AddDays(-1);  // 先月末
@@ -536,11 +536,16 @@ namespace KmyKeiba.Models.Data
                 data.ThirdDirtSteepsCount = (short)grades.Count(r => r.ResultOrder == 3);
               }
 
+              var changedCount = 0;
               foreach (var horse in riderGrades)
               {
-                horse.Horse.IsContainsRiderWinRate = true;
+                if (!horse.Horse.IsContainsRiderWinRate)
+                {
+                  changedCount++;
+                  horse.Horse.IsContainsRiderWinRate = true;
+                }
               }
-              progress.Value += riderGrades.Length;
+              progress.Value += changedCount;
             }
 
             await db.SaveChangesAsync();

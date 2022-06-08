@@ -57,14 +57,14 @@ namespace KmyKeiba.Downloader
 
         while (!isLoaded)
         {
-          Console.Write($"\rDWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) SV [{loader.Saved.Value} / {loader.SaveSize.Value}] PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
+          Console.Write($"\rDWN [{loader.Downloaded} / {loader.DownloadSize}] LD [{loader.Loaded} / {loader.LoadSize}] ENT({loader.LoadEntityCount}) SV [{loader.Saved} / {loader.SaveSize}] PC [{loader.Processed} / {loader.ProcessSize}]");
 
           UpdateProcess();
 
           loopCount++;
           if (loopCount % 60 == 0)
           {
-            logger.Info($"DWN [{loader.Downloaded.Value} / {loader.DownloadSize.Value}] LD [{loader.Loaded.Value} / {loader.LoadSize.Value}] ENT({loader.LoadEntityCount.Value}) SV [{loader.Saved.Value} / {loader.SaveSize.Value}] PC [{loader.Processed.Value} / {loader.ProcessSize.Value}]");
+            logger.Info($"DWN [{loader.Downloaded} / {loader.DownloadSize}] LD [{loader.Loaded} / {loader.LoadSize}] ENT({loader.LoadEntityCount}) SV [{loader.Saved} / {loader.SaveSize}] PC [{loader.Processed} / {loader.ProcessSize}]");
           }
 
           Task.Delay(800).Wait();
@@ -218,7 +218,7 @@ namespace KmyKeiba.Downloader
             await db.SaveChangesAsync();
             Console.WriteLine("race");
             logger.Info("レースのダウンロードを開始します");
-            await loader.LoadAsync(link,
+            loader.StartLoad(link,
               dataspec1,
               option,
               raceKey: null,
@@ -232,7 +232,7 @@ namespace KmyKeiba.Downloader
           await db.SaveChangesAsync();
           Console.WriteLine("\nodds");
           logger.Info("オッズのダウンロードを開始します");
-          await loader.LoadAsync(link,
+          loader.StartLoad(link,
             dataspec2,
             option,
             raceKey: null,
@@ -397,7 +397,7 @@ namespace KmyKeiba.Downloader
           await db.SaveChangesAsync();
           CheckShutdown(db);
 
-          await loader.LoadAsync(link,
+          loader.StartLoad(link,
             dataspecs[i],
             JVLinkOpenOption.RealTime,
             raceKey: useKey,
