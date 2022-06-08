@@ -177,6 +177,7 @@ namespace KmyKeiba.Models.Analysis
     protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceWinnerHorseTrendAnalyzer analyzer, int count = 500, int offset = 0, bool isLoadSameHorses = false)
     {
       var query = db.RaceHorses!
+        .Where(rh => rh.DataStatus >= RaceDataStatus.PreliminaryGrade)
         .Join(db.Races!.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType),
           rh => rh.RaceKey, r => r.Key, (rh, r) => new { RaceHorse = rh, Race = r, });
 
