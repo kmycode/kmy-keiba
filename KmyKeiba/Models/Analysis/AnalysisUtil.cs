@@ -20,18 +20,27 @@ namespace KmyKeiba.Models.Analysis
 
     public static RaceStandardTimeMasterData DefaultStandardTime { get; } = new();
 
-    public static async Task<RaceStandardTimeMasterData> GetRaceStandardTimeAsync(MyContext db, RaceData race)
+    public static async Task<RaceStandardTimeMasterData> GetRaceStandardTimeAsync(MyContext? db, RaceData race, Dictionary<RaceCourse, IReadOnlyList<RaceStandardTimeMasterData>>? cache = null)
     {
       // logger.Debug($"基準タイム取得 {race.Key}");
 
-      _standardData.TryGetValue(race.Course, out var list);
+      if (db == null && cache == null)
+      {
+        throw new ArgumentException("db");
+      }
+      var standardData = cache ?? _standardData;
+      standardData.TryGetValue(race.Course, out var list);
 
       if (list == null)
       {
+        if (cache != null || db == null)
+        {
+          return DefaultStandardTime;
+        }
         list = await db.RaceStandardTimes!
           .Where(st => st.Course == race.Course && st.SampleCount > 0)
           .ToArrayAsync();
-        _standardData[race.Course] = list;
+        standardData[race.Course] = list;
         logger.Info($"基準タイム {race.Course} キャッシュをDBから読み込みました 項目数: {list.Count}");
       }
 
@@ -171,10 +180,10 @@ namespace KmyKeiba.Models.Analysis
       return (min, max);
     }
 
-    public static ValueComparation CompareValue(double value, double good, double bad)
+    public static ValueComparation CompareValue(double value, double good, double bad, bool isReverse = false)
     {
       var comp = value >= good ? ValueComparation.Good : value <= bad ? ValueComparation.Bad : ValueComparation.Standard;
-      if (good < bad)
+      if (isReverse)
       {
         comp = comp == ValueComparation.Good ? ValueComparation.Bad : comp == ValueComparation.Bad ? ValueComparation.Good : ValueComparation.Standard;
       }
