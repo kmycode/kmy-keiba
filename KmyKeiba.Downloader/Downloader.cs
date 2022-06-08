@@ -218,7 +218,7 @@ namespace KmyKeiba.Downloader
             await db.SaveChangesAsync();
             Console.WriteLine("race");
             logger.Info("レースのダウンロードを開始します");
-            await loader.LoadAsync(link,
+            loader.StartLoad(link,
               dataspec1,
               option,
               raceKey: null,
@@ -232,7 +232,7 @@ namespace KmyKeiba.Downloader
           await db.SaveChangesAsync();
           Console.WriteLine("\nodds");
           logger.Info("オッズのダウンロードを開始します");
-          await loader.LoadAsync(link,
+          loader.StartLoad(link,
             dataspec2,
             option,
             raceKey: null,

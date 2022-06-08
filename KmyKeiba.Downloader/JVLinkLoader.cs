@@ -50,7 +50,7 @@ namespace KmyKeiba.Downloader
 
     public int ProcessSize { get; set; } = 1;
 
-    public async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey,
+    public void StartLoad(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey,
       DateTime? startTime, DateTime? endTime, IEnumerable<string>? loadSpecs = null)
     {
       if (startTime != null)
@@ -70,10 +70,10 @@ namespace KmyKeiba.Downloader
       logger.Info($"ロード開始 [{this.StartTime} - {this.EndTime}]");
       logger.Info($"終了日時の指定状態：{this.IsSetEndTime}");
 
-      await this.LoadAsync(link, dataspec, option, raceKey, loadSpecs: loadSpecs);
+      this.StartLoad(link, dataspec, option, raceKey, loadSpecs: loadSpecs);
     }
 
-    private async Task LoadAsync(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey = null, IEnumerable<string>? loadSpecs = null)
+    private void StartLoad(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey = null, IEnumerable<string>? loadSpecs = null)
     {
       this.ResetProgresses();
 
@@ -142,7 +142,7 @@ namespace KmyKeiba.Downloader
               option,
               this.StartTime,
               this.IsSetEndTime ? this.EndTime : null));
-          await this.LoadAsync(reader, loadSpecs, true, false);
+          this.StartLoad(reader, loadSpecs, true, false);
         }
         else
         {
@@ -151,14 +151,14 @@ namespace KmyKeiba.Downloader
             logger.Info("接続オープン：日付");
             reader = StartReadWithTimeout(() => link.StartRead(dataspec,
                 JVLinkOpenOption.RealTime, this.StartTime.Date));
-            await this.LoadAsync(reader, loadSpecs, false, true);
+            this.StartLoad(reader, loadSpecs, false, true);
           }
           else
           {
             logger.Info("接続オープン：特定レース");
             reader = StartReadWithTimeout(() => link.StartRead(dataspec,
                 JVLinkOpenOption.RealTime, raceKey));
-            await this.LoadAsync(reader, loadSpecs, false, true);
+            this.StartLoad(reader, loadSpecs, false, true);
           }
         }
 
@@ -244,7 +244,7 @@ namespace KmyKeiba.Downloader
       this.Processed = 0;
     }
 
-    private async Task LoadAsync(IJVLinkReader reader, IEnumerable<string>? loadSpecs, bool isProcessing, bool isRealtime)
+    private void StartLoad(IJVLinkReader reader, IEnumerable<string>? loadSpecs, bool isProcessing, bool isRealtime)
     {
       this.ResetProgresses();
 
@@ -347,7 +347,7 @@ namespace KmyKeiba.Downloader
         }
         catch (Exception ex)
         {
-          logger.Error("ロード監視でエラー発生");
+          logger.Error("ロード監視でエラー発生", ex);
         }
       });
 
