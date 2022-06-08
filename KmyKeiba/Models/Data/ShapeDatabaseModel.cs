@@ -89,8 +89,8 @@ namespace KmyKeiba.Models.Data
     {
       if (link == DownloadLink.Both)
       {
-        await MakeStandardTimeMasterDataAsync(startYear, DownloadLink.Central);
-        await MakeStandardTimeMasterDataAsync(startYear, DownloadLink.Local);
+        await MakeStandardTimeMasterDataAsync(startYear, DownloadLink.Central, isCanceled, progress, progressMax);
+        await MakeStandardTimeMasterDataAsync(startYear, DownloadLink.Local, isCanceled, progress, progressMax);
       }
 
       logger.Debug("基準タイムマスターデータ作成中...");
