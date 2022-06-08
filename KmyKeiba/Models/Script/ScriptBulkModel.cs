@@ -4,6 +4,7 @@ using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.Tickets;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using System;

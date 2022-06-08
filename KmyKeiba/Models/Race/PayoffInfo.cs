@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Race.Tickets;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;

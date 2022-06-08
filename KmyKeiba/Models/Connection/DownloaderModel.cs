@@ -101,6 +101,12 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<ProcessingStep> RTProcessingStep { get; } = new();
 
+    public ReactiveProperty<int> ProcessingProgressMax { get; } = new();
+
+    public ReactiveProperty<int> ProcessingProgress { get; } = new();
+
+    public ReactiveProperty<bool> HasProcessingProgress { get; } = new();
+
     public ReactiveProperty<bool> CanSaveOthers { get; } = new();
 
     public ReactiveProperty<bool> CanCancel { get; } = new();
@@ -529,7 +535,17 @@ namespace KmyKeiba.Models.Connection
         {
           step.Value = Connection.ProcessingStep.PreviousRaceDays;
           logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
-          await ShapeDatabaseModel.SetPreviousRaceDaysAsync(isCanceled: this.IsCancelProcessing);
+          try
+          {
+            this.HasProcessingProgress.Value = true;
+            await ShapeDatabaseModel.SetPreviousRaceDaysAsync(isCanceled: this.IsCancelProcessing,
+              progress: this.ProcessingProgress, progressMax: this.ProcessingProgressMax);
+          }
+          // catch は不要
+          finally
+          {
+            this.HasProcessingProgress.Value = false;
+          }
         }
         if (steps.HasFlag(Connection.ProcessingStep.RiderWinRates) && !this.IsCancelProcessing.Value)
         {

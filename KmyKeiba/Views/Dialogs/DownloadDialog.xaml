@@ -99,6 +99,10 @@
                    Visibility="{Binding IsLongDownloadMonth.Value,Converter={StaticResource BooleanVisibilityConv}}">
           この月は処理に非常に時間がかかります。<LineBreak/>焦らずお待ちください...
         </TextBlock>
+        <TextBlock Foreground="{DynamicResource SubForeground}" Margin="0,16,0,0" FontSize="16" TextAlignment="Center"
+                   Visibility="{Binding Downloader.HasProcessingProgress.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          [ <Run Text="{Binding Downloader.ProcessingProgress.Value}"/> / <Run Text="{Binding Downloader.ProcessingProgressMax.Value}"/> ]
+        </TextBlock>
       </StackPanel>
     </Grid>
     <Border Grid.Row="2" Height="60" Margin="0,0,0,16">

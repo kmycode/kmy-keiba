@@ -15,6 +15,10 @@ namespace KmyKeiba.Shared
       Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "KMYsofts", "KMYKeiba", "script");
 
+    public static readonly string AppDir = Path.Combine(
+      Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "KMYsofts", "KMYKeiba", "App");
+
     public static readonly string DatabasePath = Path.Combine(AppDataDir, "maindata.sqlite3");
 
     public static readonly string ShutdownFilePath = Path.Combine(AppDataDir, "req_shutdown");
@@ -25,6 +29,6 @@ namespace KmyKeiba.Shared
 
     public static readonly string RunningStyleTrainingFilePath = Path.Combine(AppDataDir, "runningstyle.mml");
 
-    public const string ApplicationVersion = "1.1.2";
+    public const string ApplicationVersion = "1.1.2.1";
   }
 }

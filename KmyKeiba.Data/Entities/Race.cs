@@ -613,30 +613,71 @@ namespace KmyKeiba.JVLink.Entities
     [RaceCourseInfo(RaceCourseType.Foreign, "スロバキア", Key = "I8")]
     Slovakia = 1040,
 
-    /*
-エクアドル
-ギリシャ
-マレーシア
-メキシコ
-モロッコ
-パキスタン
-ポーランド
-パラグアイ
-サウジアラビア
-キプロス
-タイ
-ウクライナ
-ベネズエラ
-ユーゴスラビア
-デンマーク
-シンガポール
-マカオ
-オーストリア
-ヨルダン
-カタール
-東ドイツ
-バーレーン
-    */
+    [RaceCourseInfo(RaceCourseType.Foreign, "エクアドル", Key = "J0")]
+    Ecuador = 1041,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "ギリシャ", Key = "J2")]
+    Greece = 1042,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "マレーシア", Key = "J4")]
+    Malaysia = 1043,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "メキシコ", Key = "J6")]
+    Mexico = 1044,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "モロッコ", Key = "J8")]
+    Morocco = 1045,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "パキスタン", Key = "K0")]
+    Pakistan = 1046,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "ポーランド", Key = "K2")]
+    Poland = 1047,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "パラグアイ", Key = "K4")]
+    Paraguay = 1048,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "サウジアラビア", Key = "K6")]
+    SaudiArabia = 1049,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "キプロス", Key = "K8")]
+    Cyprus = 1050,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "タイ", Key = "L0")]
+    Thailand = 1051,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "ウクライナ", Key = "L2")]
+    Ukraine = 1052,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "ベネズエラ", Key = "L4")]
+    Venezuela = 1053,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "ユーゴスラビア", Key = "L6")]
+    Yugoslavia = 1054,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "デンマーク", Key = "L8")]
+    Denmark = 1055,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "シンガポール", Key = "M0")]
+    Singapore = 1056,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "マカオ", Key = "M2")]
+    Macau = 1057,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "オーストリア", Key = "M4")]
+    Austria = 1058,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "ヨルダン", Key = "M6")]
+    Jordan = 1059,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "カタール", Key = "M8")]
+    Qatar = 1060,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "東ドイツ", Key = "N0")]
+    EastGermany = 1061,
+
+    [RaceCourseInfo(RaceCourseType.Foreign, "バーレーン", Key = "N2")]
+    Bahrain = 1062,
 
     LocalMinValue = 30,
     CentralMaxValue = 29,

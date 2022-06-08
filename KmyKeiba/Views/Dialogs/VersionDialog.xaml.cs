@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,14 +16,23 @@ using System.Windows.Shapes;
 
 namespace KmyKeiba.Views.Dialogs
 {
-    /// <summary>
-    /// VersionDialog.xaml の相互作用ロジック
-    /// </summary>
-    public partial class VersionDialog : UserControl
+  /// <summary>
+  /// VersionDialog.xaml の相互作用ロジック
+  /// </summary>
+  public partial class VersionDialog : UserControl
+  {
+    public VersionDialog()
     {
-        public VersionDialog()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
+
+    private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+    {
+      Process.Start(new ProcessStartInfo
+      {
+        UseShellExecute = true,
+        FileName = e.Uri.ToString(),
+      });
+    }
+  }
 }

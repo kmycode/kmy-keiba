@@ -7,6 +7,7 @@ using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
 using KmyKeiba.Models.Injection;
+using KmyKeiba.Models.Race.Tickets;
 using KmyKeiba.Models.Script;
 using KmyKeiba.Shared;
 using Microsoft.EntityFrameworkCore;

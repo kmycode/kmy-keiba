@@ -1,7 +1,9 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
+using KmyKeiba.Models.Injection;
 using KmyKeiba.Models.RList;
+using KmyKeiba.Shared;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -86,6 +88,15 @@ namespace KmyKeiba.Models.Race
         try
         {
           await this.RaceList.UpdateListAsync();
+
+#if DEBUG
+          // UmaConnしか使ってない人用に中央競馬の一部のデータを埋め込み
+          var dataGenerator = InjectionManager.GetInstance<IInternalDataGenerator>(InjectionManager.InternalDataGenerator);
+          if (dataGenerator != null)
+          {
+            await dataGenerator.GenerateBaseStandardTimeDataAsync();
+          }
+#endif
         }
         catch (Exception ex)
         {
