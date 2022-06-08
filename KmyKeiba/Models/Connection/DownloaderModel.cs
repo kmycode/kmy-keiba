@@ -757,6 +757,7 @@ namespace KmyKeiba.Models.Connection
         "writing" => LoadingProcessValue.Writing,
         "processing" => LoadingProcessValue.Processing,
         "closing" => LoadingProcessValue.Closing,
+        "checkingjravannews" => LoadingProcessValue.CheckingJraVanNews,
         _ => LoadingProcessValue.Unknown,
       };
       this.DownloadingType.Value = mode switch
@@ -812,6 +813,7 @@ namespace KmyKeiba.Models.Connection
         "writing" => LoadingProcessValue.Writing,
         "processing" => LoadingProcessValue.Processing,
         "closing" => LoadingProcessValue.Closing,
+        "checkingjravannews" => LoadingProcessValue.CheckingJraVanNews,
         _ => LoadingProcessValue.Unknown,
       };
 
@@ -911,6 +913,9 @@ namespace KmyKeiba.Models.Connection
 
     [Label("接続クローズ中")]
     Closing,
+
+    [Label("JRA-VANからのお知らせが表示されています")]
+    CheckingJraVanNews,
   }
 
   enum DownloadMode

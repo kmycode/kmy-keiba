@@ -12,6 +12,8 @@ namespace KmyKeiba.JVLink.Wrappers
 
     JVLinkObjectType Type { get; }
 
+    int MainWindowHandle { set; }
+
     int Init();
 
     int SetUIProperties();
@@ -62,6 +64,8 @@ namespace KmyKeiba.JVLink.Wrappers
       bool IJVLinkObject.IsOpen { get; set; }
 
       public JVLinkObjectType Type => JVLinkObjectType.Unknown;
+
+      public int MainWindowHandle { get; set; }
 
       public void Cancel()
       {
@@ -145,6 +149,11 @@ namespace KmyKeiba.JVLink.Wrappers
 
       public JVLinkObjectType Type => JVLinkObjectType.Central;
 
+      public int MainWindowHandle
+      {
+        set => this.link.ParentHWnd = value;
+      }
+
       bool IJVLinkObject.IsOpen { get; set; }
 
       public int Init() => this.link.JVInit(JVLinkObject.CentralInitializationKey);
@@ -204,6 +213,11 @@ namespace KmyKeiba.JVLink.Wrappers
       private readonly NVDTLabLib.NVLink link = new();
 
       public JVLinkObjectType Type => JVLinkObjectType.Local;
+
+      public int MainWindowHandle
+      {
+        set => this.link.ParentHWnd = value;
+      }
 
       bool IJVLinkObject.IsOpen { get; set; }
 

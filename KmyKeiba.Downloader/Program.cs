@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace KmyKeiba.Downloader
 {
@@ -25,9 +26,6 @@ namespace KmyKeiba.Downloader
     {
       selfPath = Assembly.GetEntryAssembly()?.Location.Replace("Downloader.dll", "Downloader.exe") ?? string.Empty;
       var selfPathDir = Path.GetDirectoryName(selfPath) ?? "./";
-
-      //CreateTrainingMovieList();
-      //return;
 
       log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo(Path.Combine(selfPathDir, "log4net.config")));
       log4net.GlobalContext.Properties["pid"] = System.Diagnostics.Process.GetCurrentProcess().Id;
@@ -64,7 +62,7 @@ namespace KmyKeiba.Downloader
         //args = new[] { "dwrt", "31", };
         //args = new[] { "movie", "1266", };
         //args = new[] { "movielist", "94" };
-        //args = new[] { "download", "5" };
+        //args = new[] { "download", "368" };
 
         if ((object)args != oldArgs)
         {
@@ -366,139 +364,58 @@ namespace KmyKeiba.Downloader
       SetTask(task, t => t.ProcessId = Process.GetCurrentProcess().Id);
     }
 
-    private static void OpenMovie()
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool IsWindowVisible(IntPtr hWnd);
+
+    public static bool IsShowJraVanNews(ref IntPtr handle)
     {
-      var task = currentTask;
-      if (task == null)
+      /*
+      var processes = Process.GetProcesses();
+      foreach (var process in processes.Where(p => !string.IsNullOrEmpty(p.MainWindowTitle)))
       {
-        logger.Warn("動画再生のタスクが見つかりませんでした");
-        return;
-      }
-
-      logger.Info($"動画再生を開始します。パラメータ: {task.Parameter}");
-
-      var p = task.Parameter.Split(',');
-      if (p.Length < 3)
-      {
-        logger.Error("パラメータの数が足りません");
-        return;
-      }
-      var raceKey = p[0];
-      var typeStr = p[1];
-      var linkName = p[2];
-
-      var link = linkName == "central" ? JVLinkObject.Central : JVLinkObject.Local;
-      short.TryParse(typeStr, out var type);
-
-      try
-      {
-        logger.Info($"動画再生をリンクに問い合わせます {type} / {raceKey}");
-
-        link.PlayMovie((JVLinkMovieType)type, raceKey);
-        SetTask(task, t =>
+        if (process.MainWindowTitle.Contains("JRA-VANからのお知らせ"))
         {
-          t.IsFinished = true;
-          t.Result = "ok";
-        });
-
-        logger.Info("動画再生に成功しました");
+          var isVisibility = IsWindowVisible(process.MainWindowHandle);
+          if (isVisibility)
+          {
+            handle = process.MainWindowHandle;
+          }
+          return isVisibility;
+        }
       }
-      catch (JVLinkException<JVLinkMovieResult> ex)
+      */
+      var mainWnd = Process.GetCurrentProcess().MainWindowHandle;
+      if (mainWnd != IntPtr.Zero && IsWindowVisible(mainWnd))
       {
-        logger.Error($"動画再生に失敗しました {ex.Code}", ex);
-
-        SetTask(task, t =>
-        {
-          t.IsFinished = true;
-          t.Result = JVLinkException.GetAttribute(ex.Code).Message;
-          t.Error = ex.Code.ToDownloaderError();
-        });
+        handle = mainWnd;
+        return true;
       }
-      catch (Exception ex)
-      {
-        logger.Error("動画再生でエラーが発生しました", ex);
-      }
+      return false;
     }
 
-    private static void UpdateTrainingMovieList()
+    public static void CheckJraVanNews()
     {
-      var task = currentTask;
-      if (task == null)
+      var isFirst = true;
+      IntPtr handle = default;
+      while (IsShowJraVanNews(ref handle))
       {
-        return;
-      }
-
-      var p = task.Parameter.Split(',');
-      if (p.Length < 1)
-      {
-        SetTask(task, t =>
+        if (isFirst)
         {
-          t.Error = DownloaderError.ApplicationError;
-          t.IsFinished = true;
-        });
-        logger.Error("タスクのパラメータが足りません");
-        return;
-      }
-
-      var horseKey = p[0];
-      logger.Info($"キー: {horseKey} の調教動画一覧を取得します");
-
-      using var db = new MyContext();
-      db.DownloaderTasks!.Attach(task);
-
-      try
-      {
-        IEnumerable<DateOnly> list;
-
-        try
-        {
-          var link = JVLinkObject.Central;
-          using var reader = link.OpenMovie(JVLinkTrainingMovieType.Horse, horseKey);
-          list = reader.ReadKeys()
-            .Select(k =>
-            {
-              var dateStr = k[..8];
-              short.TryParse(k.Substring(0, 4), out var year);
-              short.TryParse(k.Substring(4, 2), out var month);
-              short.TryParse(k.Substring(6, 2), out var day);
-              return new DateOnly(year, month, day);
-            }).ToArray();
-          logger.Info($"動画の数: {list.Count()}");
-        }
-        catch (JVLinkException<JVLinkMovieResult> ex) when (ex.Code == JVLinkMovieResult.NotFound)
-        {
-          // 動画の数はゼロということ
-          list = Enumerable.Empty<DateOnly>();
-          logger.Info($"動画の数: {list.Count()}");
+          logger.Warn("JRA-VANからのお知らせを検出");
+          isFirst = false;
         }
 
-        var trainings = db.Trainings!.Where(t => t.HorseKey == horseKey).ToArray();
-        var woodTrainings = db.WoodtipTrainings!.Where(t => t.HorseKey == horseKey).ToArray();
-        foreach (var data in trainings)
-        {
-          data.MovieStatus = list.Any(i => i.Year == data.StartTime.Year && i.Month == data.StartTime.Month && i.Day == data.StartTime.Day)
-            ? MovieStatus.Available : MovieStatus.Unavailable;
-        }
-        foreach (var data in woodTrainings)
-        {
-          data.MovieStatus = list.Any(i => i.Year == data.StartTime.Year && i.Month == data.StartTime.Month && i.Day == data.StartTime.Day)
-            ? MovieStatus.Available : MovieStatus.Unavailable;
-        }
-        db.SaveChanges();
-      }
-      catch (JVLinkException<JVLinkMovieResult> ex)
-      {
-        logger.Error($"動画リストダウンロードでエラーが発生しました {ex.Code}", ex);
-        task.Error = ex.Code.ToDownloaderError();
-        task.Result = ex.Message;
-      }
-      catch (Exception ex)
-      {
-        logger.Error("動画リストダウンロードでエラーが発生しました", ex);
-      }
+        var form = new BlockingForm(handle);
+        JVLinkObject.Central.MainWindowHandle = (int)form.Handle;
+        Application.Run(form);
 
-      task.IsFinished = true;
-      db.SaveChanges();
+        Task.Delay(1000).Wait();
+      }
+      if (!isFirst)
+      {
+        logger.Warn("お知らせを閉じました");
+      }
     }
   }
 
