@@ -125,6 +125,14 @@ namespace KmyKeiba.Data.Db
       this.Key = race.Key;
       this.LastModified = race.LastModified;
       this.DataStatus = race.DataStatus;
+
+      if (!string.IsNullOrEmpty(this.SubjectDisplayInfo))
+      {
+        if (this.Name != race.Name || this.SubName != race.SubName || this.SubjectName != race.Subject.Name)
+        {
+          this.SubjectDisplayInfo = string.Empty;
+        }
+      }
       this.Name = race.Name;
       this.Name6Chars = race.Name6Chars;
       this.SubName = race.SubName;
