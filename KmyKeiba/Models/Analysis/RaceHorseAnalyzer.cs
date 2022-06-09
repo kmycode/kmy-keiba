@@ -614,6 +614,8 @@ namespace KmyKeiba.Models.Analysis
 
     public TimeSpan ShortestTime { get; }
 
+    public TimeSpan ShortestTimeNormalized { get; }
+
     public RaceData? ShortestTimeRace { get; }
 
     public RaceHorseData? ShortestTimeRaceHorse { get; }
@@ -645,6 +647,7 @@ namespace KmyKeiba.Models.Analysis
           .OrderBy(s => s.ComparationValue)
           .First().Data;
         this.ShortestTime = shortestTime.Data.ResultTime;
+        this.ShortestTimeNormalized = shortestTime.Data.ResultTime / shortestTime.Race.Distance * distance;
         this.ShortestTimeRace = shortestTime.Race;
         this.ShortestTimeRaceHorse = shortestTime.Data;
         this.ShortestTimeRaceSubject = shortestTime.Subject;
