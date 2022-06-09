@@ -503,19 +503,34 @@ namespace KmyKeiba.Downloader
           .Join(entities, (d) => dataId(d), (e) => entityId(e), (d, e) => new { Data = d, Entity = e, })
           .OrderBy((i) => (short)i.Entity.DataStatus))
         {
-          if (item.Data.DataStatus <= item.Entity.DataStatus || item.Data.LastModified <= item.Entity.LastModified)
+          if (item.Data.DataStatus == item.Entity.DataStatus)
           {
-            if (item.Entity.DataStatus == RaceDataStatus.Local && item.Data.DataStatus <= RaceDataStatus.Canceled)
+            if (item.Data.LastModified <= item.Entity.LastModified)
             {
-              // 地方重賞などについて、JV-LinkではDataStatusをLocalに設定しているが、UmaConnでは通常レースと同様に1～9の値を設定している
-              // JV-Linkから来るデータは開始時刻など一部情報が欠損しているが、UmaConnから来る情報はそれがない。よってJV-Linkの情報をとばす
-              // 条件分岐の際は、中央競馬のみを落とす場合／先に中央を落として後日地方を追加で落とす場合も考慮する
-            }
-            else
-            {
+              // オッズなどが更新されたかもしれない
+              // （地方競馬では更新時刻は常に０時０分０秒になるから、毎回コピーしないといけない）
               item.Data.SetEntity(item.Entity);
             }
           }
+          else
+          {
+            if (item.Data.DataStatus == RaceDataStatus.Local)
+            {
+              // すでに存在しているデータが、JV-Linkによる不完全な地方競馬データ
+              item.Data.SetEntity(item.Entity);
+            }
+            else if (item.Entity.DataStatus == RaceDataStatus.Local)
+            {
+              // すでにUmaConnから完全なデータを落としていて、そのあとJV-Linkの不完全なデータが来た場合、何もしない
+              // （JV-Linkのデータは更新時刻がレースの数日後とかになってるので注意）
+            }
+            else if (item.Data.DataStatus < item.Entity.DataStatus)
+            {
+              // レースの情報更新
+              item.Data.SetEntity(item.Entity);
+            }
+          }
+
           copyed.Remove(item.Entity);
           changed++;
 
