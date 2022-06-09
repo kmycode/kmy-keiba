@@ -576,7 +576,7 @@ namespace KmyKeiba.Models.Race
 
             horseInfos.Add(new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate)
             {
-              TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse),
+              TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse, histories),
               RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(race, horse),
               TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
               BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),

@@ -85,6 +85,12 @@ namespace KmyKeiba.Models.Analysis
       base.OnFinishedInitialization();
     }
 
+    public RaceHorseTrendAnalysisSelector(RaceData race, RaceHorseData horse, IReadOnlyList<RaceHorseAnalyzer> source) : this(race, horse)
+    {
+      this._allRaces = source;
+      this.BeginLoad();
+    }
+
     protected override RaceHorseTrendAnalyzer GenerateAnalyzer()
     {
       return new RaceHorseTrendAnalyzer(this.Race, this.RaceHorse);
