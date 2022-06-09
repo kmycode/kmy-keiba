@@ -718,16 +718,50 @@ namespace KmyKeiba.Models.Race.Tickets
         return;
       }
 
+      foreach (var ticket in targetTickets.Where(t => !t.IsAllRowsChecked.Value))
+      {
+        var broken = ticket.Break();
+
+      }
+
       using var db = new MyContext();
+      var isBroken = false;
 
       foreach (var ticket in targetTickets)
       {
-        db.Tickets!.Attach(ticket.Data);
-        ticket.Data.Count = count;
-        ticket.Count.Value = count;
+        if (ticket.IsAllRowsChecked.Value)
+        {
+          db.Tickets!.Attach(ticket.Data);
+          ticket.Data.Count = count;
+          ticket.Count.Value = count;
+        }
+        else
+        {
+          var broken = ticket.Break();
+          foreach (var t in broken.Where(b => b.IsChecked.Value))
+          {
+            t.Data.Count = count;
+            t.Count.Value = count;
+          }
+
+          this.Tickets.Remove(ticket);
+          db.Tickets!.Remove(ticket.Data);
+
+          foreach (var t in broken)
+          {
+            this.Tickets.Add(t);
+          }
+          await db.Tickets!.AddRangeAsync(broken.Select(b => b.Data));
+
+          isBroken = true;
+        }
       }
 
       await db.SaveChangesAsync();
+      if (isBroken)
+      {
+        this.SortTickets();
+      }
     }
   }
 }
