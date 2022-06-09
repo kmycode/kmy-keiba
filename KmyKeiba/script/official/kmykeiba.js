@@ -355,7 +355,7 @@ Race.prototype.getHorses = function() {
 Race.prototype.getSimilarRacesAsync = async function(keys, count, offset) {
   const json = await this._obj.getSimilarRacesAsync(keys, count || 300, offset || 0);
   const data = JSON.parse(json);
-  return data.map(d => new Race(d, this._obj));
+  return data.map(d => new Race(d));
 }
 
 // 今回のレースと類似点のある過去レースデータに出場した馬一覧を取得する
@@ -372,10 +372,11 @@ Race.prototype.getSimilarRacesAsync = async function(keys, count, offset) {
 //             month      同じ月
 //             distance   前後100メートルの距離
 //             direction  同じ向き（右、左、直線）
-//             placebits
-//             losed
-//             inside
-//             outside
+//             placebits  複勝
+//             losed      着外
+//             inside     内枠
+//             intermediate中枠
+//             outside    外枠
 //             sex_male
 //             sex_female
 //             sex_castrated
@@ -394,7 +395,7 @@ Race.prototype.getSimilarRacesAsync = async function(keys, count, offset) {
 Race.prototype.getSimilarRaceHorsesAsync = async function (keys, count, offset) {
     const json = await this._obj.getSimilarRaceHorsesAsync(keys, count || 300, offset || 0);
     const data = JSON.parse(json);
-    return data.map(d => new Race(d, this._obj));
+    return data.map(d => new RaceHorse(d));
 }
 
 // 以下はオッズ取得関数が並んでいるが、
