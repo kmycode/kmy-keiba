@@ -249,7 +249,10 @@ namespace KmyKeiba.Models.Race
               };
 
               this.ticketUpdated = tickets.Tickets.CollectionChangedAsObservable()
-                .CombineLatest(Observable.FromEvent<EventHandler, EventArgs>(a => (s, e) => a(e), dele => tickets.Tickets.TicketCountChanged += dele, dele => tickets.Tickets.TicketCountChanged -= dele), (a, b) => true)
+                .Concat(Observable.FromEvent<EventHandler, EventArgs>(
+                  a => (s, e) => a(e),
+                  dele => tickets.Tickets.TicketCountChanged += dele,
+                  dele => tickets.Tickets.TicketCountChanged -= dele))
                 .Subscribe(_ => act());
             });
           }

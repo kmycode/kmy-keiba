@@ -315,7 +315,7 @@ namespace KmyKeiba.Models.Analysis
         horse.ResultOrder >= 8 || horse.ResultOrder >= race.HorsesCount * 0.7f ? ValueComparation.Bad : ValueComparation.Standard;
       if (race.Distance >= 800)
       {
-        this.UntilA3HResultTime = (horse.ResultTime - horse.AfterThirdHalongTime) / (race.Distance - 600);
+        this.UntilA3HResultTime = horse.ResultTime - horse.AfterThirdHalongTime;
       }
 
       this.Memo.Skip(1).Subscribe(async m =>
