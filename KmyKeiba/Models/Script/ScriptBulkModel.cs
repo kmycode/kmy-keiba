@@ -186,7 +186,7 @@ namespace KmyKeiba.Models.Script
               continue;
             }
 
-            var info = await RaceInfo.FromKeyAsync(item.Race.Key);
+            using var info = await RaceInfo.FromKeyAsync(item.Race.Key);
             if (info != null)
             {
               while (!info.IsLoadCompleted.Value)
