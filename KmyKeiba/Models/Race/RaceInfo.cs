@@ -409,6 +409,7 @@ namespace KmyKeiba.Models.Race
     public void CopyTrendAnalyzersFrom(RaceInfo source)
     {
       this.TrendAnalyzers.CopyFrom(source.TrendAnalyzers);
+      this.WinnerTrendAnalyzers.CopyFrom(source.WinnerTrendAnalyzers);
 
       if (!source.IsWillResetTrendAnalyzersDataOnUpdate(this.Data))
       {
