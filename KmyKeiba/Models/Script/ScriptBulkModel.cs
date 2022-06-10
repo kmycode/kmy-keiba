@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace KmyKeiba.Models.Script
 {
@@ -186,7 +187,7 @@ namespace KmyKeiba.Models.Script
               continue;
             }
 
-            var info = await RaceInfo.FromKeyAsync(item.Race.Key);
+            using var info = await RaceInfo.FromKeyAsync(item.Race.Key);
             if (info != null)
             {
               while (!info.IsLoadCompleted.Value)
@@ -322,6 +323,11 @@ namespace KmyKeiba.Models.Script
       this.Race = race;
       this._subject = new RaceSubjectInfo(race);
     }
+
+    public ICommand OpenRaceWindowCommand =>
+      this._openRaceWindowCommand ??=
+        new ReactiveCommand().WithSubscribe(() => OpenRaceRequest.Default.Request(this.Race.Key));
+    private ReactiveCommand? _openRaceWindowCommand;
   }
 
   public enum ScriptBulkErrorType

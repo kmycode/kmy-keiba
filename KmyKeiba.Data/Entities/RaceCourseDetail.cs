@@ -480,6 +480,12 @@ namespace KmyKeiba.JVLink.Entities
       },
       new()
       {
+        // 大井は、外のときは「外」、内のときは「不明Unknown」で送られてくる様子
+        Course = RaceCourse.Oi, Direction = TrackCornerDirection.Right,
+        Length = 1400, LastStraightLineLength = 286,
+      },
+      new()
+      {
         Course = RaceCourse.Oi, Option = TrackOption.Outside, Direction = TrackCornerDirection.Left,
         Length = 1600, LastStraightLineLength = 300,
       },

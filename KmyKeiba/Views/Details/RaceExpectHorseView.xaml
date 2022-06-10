@@ -119,7 +119,8 @@
               <TextBlock Width="60" Text="場名" TextAlignment="Left"/>
               <TextBlock Width="156" Text="成績" TextAlignment="Center"/>
               <TextBlock Width="60" Text="距離" TextAlignment="Center"/>
-              <TextBlock Width="80" Text="持ち時計"/>
+              <TextBlock Width="60" Text="持ち時計"/>
+              <TextBlock Width="80" Text="距離換算"/>
               <TextBlock Width="60" Text="T偏"/>
               <TextBlock Width="60" Text="TOP偏"/>
               <TextBlock Width="40" Text="着順"/>
@@ -153,7 +154,8 @@
                             <TextBlock Text="{Binding ShortestTimeRace.Distance}" FontSize="14" TextAlignment="Left" Margin="2,0,0,0"/>
                           </StackPanel>
                         </Border>
-                        <TextBlock Width="80" Text="{Binding ShortestTimeRaceHorse.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss}" FontSize="24"/>
+                        <TextBlock Width="60" Text="{Binding ShortestTime,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss}"/>
+                        <TextBlock Width="80" Text="{Binding ShortestTimeNormalized,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss}" FontSize="24"/>
                         <TextBlock Width="60" Text="{Binding ShortestTimeRaceHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
                         <TextBlock Width="60" Text="{Binding ShortestTimeRaceTopHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
                         <TextBlock Width="40" Text="{Binding ShortestTimeRaceHorse.ResultOrder}"/>

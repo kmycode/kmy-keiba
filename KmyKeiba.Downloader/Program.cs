@@ -368,7 +368,7 @@ namespace KmyKeiba.Downloader
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool IsWindowVisible(IntPtr hWnd);
 
-    public static bool IsShowJraVanNews(ref IntPtr handle)
+    public static bool IsShowJraVanNews(ref IntPtr handle, ref string title)
     {
       /*
       var processes = Process.GetProcesses();
@@ -385,10 +385,12 @@ namespace KmyKeiba.Downloader
         }
       }
       */
-      var mainWnd = Process.GetCurrentProcess().MainWindowHandle;
-      if (mainWnd != IntPtr.Zero && IsWindowVisible(mainWnd))
+      var process = Process.GetCurrentProcess();
+      var mainWnd = process.MainWindowHandle;
+      if (mainWnd != IntPtr.Zero && IsWindowVisible(mainWnd) && !string.IsNullOrEmpty(process.MainWindowTitle))
       {
         handle = mainWnd;
+        title = process.MainWindowTitle;
         return true;
       }
       return false;
@@ -398,11 +400,12 @@ namespace KmyKeiba.Downloader
     {
       var isFirst = true;
       IntPtr handle = default;
-      while (IsShowJraVanNews(ref handle))
+      var title = string.Empty;
+      while (IsShowJraVanNews(ref handle, ref title))
       {
         if (isFirst)
         {
-          logger.Warn("JRA-VANからのお知らせを検出");
+          logger.Warn($"JRA-VANからのお知らせを検出 タイトル:{title} ハンドル:{handle}");
           isFirst = false;
         }
 

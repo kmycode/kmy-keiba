@@ -126,9 +126,15 @@ namespace KmyKeiba.Downloader
           if (link.Type == JVLinkObjectType.Central)
           {
             var oldProcess = this.Process;
-            this.Process = LoadProcessing.CheckingJraVanNews;
-            Program.CheckJraVanNews();
-            this.Process = oldProcess;
+            try
+            {
+              this.Process = LoadProcessing.CheckingJraVanNews;
+              Program.CheckJraVanNews();
+            }
+            finally
+            {
+              this.Process = oldProcess;
+            }
           }
           return result;
         }

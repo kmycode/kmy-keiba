@@ -200,6 +200,13 @@ namespace KmyKeiba.Models.Analysis.Generic
         this.Analyzers.Add(item.Key, item.Value);
       }
 
+      foreach (var key in this.Keys
+        .Concat(this.IgnoreKeys)
+        .Join(selector.Keys.Concat(selector.IgnoreKeys), k => k.Key, k => k.Key, (n, o) => new { New = n, Old = o, }))
+      {
+        key.New.IsChecked.Value = key.Old.IsChecked.Value;
+      }
+
       if (this.CurrentAnalyzer.Value != null)
       {
         this.CurrentAnalyzer.Value = null;
