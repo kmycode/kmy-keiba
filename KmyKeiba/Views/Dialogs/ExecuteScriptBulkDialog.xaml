@@ -99,94 +99,100 @@
       </ItemsControl.Resources>
       <ItemsControl.ItemTemplate>
         <DataTemplate>
-          <StackPanel Orientation="Horizontal">
-            <StackPanel.Resources>
-              <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
-                <Setter Property="FontSize" Value="16"/>
-                <Setter Property="Margin" Value="8,2"/>
-                <Setter Property="HorizontalAlignment" Value="Center"/>
-              </Style>
-            </StackPanel.Resources>
-            <up:RaceSubjectIcon Subject="{Binding Subject}" FontSize="12" Width="60"/>
-            <Border Width="130" Style="{StaticResource Cell}">
-              <TextBlock Text="{Binding StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd HH:mm}"/>
-            </Border>
-            <Border Width="80" Style="{StaticResource Cell}">
-              <TextBlock Text="{Binding Course,Converter={StaticResource CourseNameConv}}"/>
-            </Border>
-            <Border Width="40" Style="{StaticResource Cell}">
-              <TextBlock Text="{Binding Race.CourseRaceNumber}"/>
-            </Border>
-            <Border Width="80" Style="{StaticResource Cell}">
-              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <up:CourseSimpleImageView Race="{Binding Race}"/>
-                <TextBlock Text="{Binding Race.Distance}" FontSize="14"/>
-              </StackPanel>
-            </Border>
-            <Border Width="220" Style="{StaticResource Cell}">
-              <TextBlock Text="{Binding Name}" HorizontalAlignment="Left"/>
-            </Border>
-            <Grid>
-              <Border Visibility="{Binding IsExecuting.Value,Converter={StaticResource BooleanVisibilityConv}}">
-                <TextBlock FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
-                           FontSize="16" Margin="48,0,0,0">
-                  実行中...　( <Run Text="{Binding HandlerEngine.Value.Progress.Value.Value}"/> / <Run Text="{Binding HandlerEngine.Value.ProgressMax.Value.Value}"/> )
-                </TextBlock>
-              </Border>
-              <Border Visibility="{Binding IsError.Value,Converter={StaticResource BooleanVisibilityConv}}">
-                <TextBlock Text="{Binding ErrorType.Value,Converter={StaticResource LabelConv}}" FontWeight="Bold" Foreground="{DynamicResource ErrorForeground}"
-                           FontSize="16" Margin="12,0,0,0"/>
-              </Border>
-              <Border Visibility="{Binding IsSkipped.Value,Converter={StaticResource BooleanVisibilityConv}}">
-                <TextBlock Text="スキップされました" FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
-                           FontSize="16" Margin="12,0,0,0"/>
-              </Border>
-              <StackPanel Orientation="Horizontal">
-                <StackPanel.Visibility>
-                  <MultiBinding Converter="{StaticResource MultiBooleanConv}">
-                    <Binding Path="IsCompleted.Value"/>
-                    <Binding Path="IsError.Value" Converter="{StaticResource NegativeConv}"/>
-                  </MultiBinding>
-                </StackPanel.Visibility>
-                <StackPanel.Resources>
-                  <Style TargetType="ContentControl" x:Key="HorseMarkDisplay">
-                    <Setter Property="LayoutTransform">
-                      <Setter.Value>
-                        <TransformGroup>
-                          <ScaleTransform ScaleX="0.4" ScaleY="0.4"/>
-                          <TranslateTransform X="4" Y="0"/>
-                        </TransformGroup>
-                      </Setter.Value>
-                    </Setter>
-                    <Setter Property="Height" Value="32"/>
-                    <Setter Property="HorizontalAlignment" Value="Center"/>
-                    <Setter Property="VerticalAlignment" Value="Center"/>
-                  </Style>
-                </StackPanel.Resources>
-                <Border Width="80" Style="{StaticResource Cell}">
-                  <TextBlock Text="{Binding PaidMoney.Value}" FontSize="16"/>
-                </Border>
-                <Border Width="80" Style="{StaticResource Cell}">
-                  <TextBlock Text="{Binding PayoffMoney.Value}" FontSize="16"/>
-                </Border>
-                <Border Width="80" Style="{StaticResource Cell}">
-                  <TextBlock Text="{Binding Income.Value}" FontSize="16" Foreground="{Binding IncomeComparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
-                </Border>
-                <Border Width="40" Style="{StaticResource Cell}" Padding="0">
-                  <ContentControl Template="{Binding FirstHorseMark.Value,Converter={StaticResource HorseMarkConv}}"
-                                  Style="{StaticResource HorseMarkDisplay}"/>
-                </Border>
-                <Border Width="40" Style="{StaticResource Cell}" Padding="0">
-                  <ContentControl Template="{Binding SecondHorseMark.Value,Converter={StaticResource HorseMarkConv}}"
-                                  Style="{StaticResource HorseMarkDisplay}"/>
-                </Border>
-                <Border Width="40" Style="{StaticResource Cell}" Padding="0">
-                  <ContentControl Template="{Binding ThirdHorseMark.Value,Converter={StaticResource HorseMarkConv}}"
-                                  Style="{StaticResource HorseMarkDisplay}"/>
-                </Border>
-              </StackPanel>
-            </Grid>
-          </StackPanel>
+          <Button Style="{StaticResource ListItemButton}" Command="{Binding OpenRaceWindowCommand}">
+            <Button.Template>
+              <ControlTemplate>
+                <StackPanel Orientation="Horizontal" Background="{TemplateBinding Background}">
+                  <StackPanel.Resources>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                      <Setter Property="FontSize" Value="16"/>
+                      <Setter Property="Margin" Value="8,2"/>
+                      <Setter Property="HorizontalAlignment" Value="Center"/>
+                    </Style>
+                  </StackPanel.Resources>
+                  <up:RaceSubjectIcon Subject="{Binding Subject}" FontSize="12" Width="60"/>
+                  <Border Width="130" Style="{StaticResource Cell}">
+                    <TextBlock Text="{Binding StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd HH:mm}"/>
+                  </Border>
+                  <Border Width="80" Style="{StaticResource Cell}">
+                    <TextBlock Text="{Binding Course,Converter={StaticResource CourseNameConv}}"/>
+                  </Border>
+                  <Border Width="40" Style="{StaticResource Cell}">
+                    <TextBlock Text="{Binding Race.CourseRaceNumber}"/>
+                  </Border>
+                  <Border Width="80" Style="{StaticResource Cell}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                      <up:CourseSimpleImageView Race="{Binding Race}"/>
+                      <TextBlock Text="{Binding Race.Distance}" FontSize="14"/>
+                    </StackPanel>
+                  </Border>
+                  <Border Width="220" Style="{StaticResource Cell}">
+                    <TextBlock Text="{Binding Name}" HorizontalAlignment="Left"/>
+                  </Border>
+                  <Grid>
+                    <Border Visibility="{Binding IsExecuting.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                      <TextBlock FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
+                             FontSize="16" Margin="48,0,0,0">
+                    実行中...　( <Run Text="{Binding HandlerEngine.Value.Progress.Value.Value}"/> / <Run Text="{Binding HandlerEngine.Value.ProgressMax.Value.Value}"/> )
+                      </TextBlock>
+                    </Border>
+                    <Border Visibility="{Binding IsError.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                      <TextBlock Text="{Binding ErrorType.Value,Converter={StaticResource LabelConv}}" FontWeight="Bold" Foreground="{DynamicResource ErrorForeground}"
+                             FontSize="16" Margin="12,0,0,0"/>
+                    </Border>
+                    <Border Visibility="{Binding IsSkipped.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                      <TextBlock Text="スキップされました" FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
+                             FontSize="16" Margin="12,0,0,0"/>
+                    </Border>
+                    <StackPanel Orientation="Horizontal">
+                      <StackPanel.Visibility>
+                        <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                          <Binding Path="IsCompleted.Value"/>
+                          <Binding Path="IsError.Value" Converter="{StaticResource NegativeConv}"/>
+                        </MultiBinding>
+                      </StackPanel.Visibility>
+                      <StackPanel.Resources>
+                        <Style TargetType="ContentControl" x:Key="HorseMarkDisplay">
+                          <Setter Property="LayoutTransform">
+                            <Setter.Value>
+                              <TransformGroup>
+                                <ScaleTransform ScaleX="0.4" ScaleY="0.4"/>
+                                <TranslateTransform X="4" Y="0"/>
+                              </TransformGroup>
+                            </Setter.Value>
+                          </Setter>
+                          <Setter Property="Height" Value="32"/>
+                          <Setter Property="HorizontalAlignment" Value="Center"/>
+                          <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                      </StackPanel.Resources>
+                      <Border Width="80" Style="{StaticResource Cell}">
+                        <TextBlock Text="{Binding PaidMoney.Value}" FontSize="16"/>
+                      </Border>
+                      <Border Width="80" Style="{StaticResource Cell}">
+                        <TextBlock Text="{Binding PayoffMoney.Value}" FontSize="16"/>
+                      </Border>
+                      <Border Width="80" Style="{StaticResource Cell}">
+                        <TextBlock Text="{Binding Income.Value}" FontSize="16" Foreground="{Binding IncomeComparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                      </Border>
+                      <Border Width="40" Style="{StaticResource Cell}" Padding="0">
+                        <ContentControl Template="{Binding FirstHorseMark.Value,Converter={StaticResource HorseMarkConv}}"
+                                    Style="{StaticResource HorseMarkDisplay}"/>
+                      </Border>
+                      <Border Width="40" Style="{StaticResource Cell}" Padding="0">
+                        <ContentControl Template="{Binding SecondHorseMark.Value,Converter={StaticResource HorseMarkConv}}"
+                                    Style="{StaticResource HorseMarkDisplay}"/>
+                      </Border>
+                      <Border Width="40" Style="{StaticResource Cell}" Padding="0">
+                        <ContentControl Template="{Binding ThirdHorseMark.Value,Converter={StaticResource HorseMarkConv}}"
+                                    Style="{StaticResource HorseMarkDisplay}"/>
+                      </Border>
+                    </StackPanel>
+                  </Grid>
+                </StackPanel>
+              </ControlTemplate>
+            </Button.Template>
+          </Button>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
