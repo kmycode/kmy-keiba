@@ -405,7 +405,7 @@ namespace KmyKeiba.Downloader
       {
         if (isFirst)
         {
-          logger.Warn($"JRA-VANからのお知らせを検出 タイトル:{title}");
+          logger.Warn($"JRA-VANからのお知らせを検出 タイトル:{title} ハンドル:{handle}");
           isFirst = false;
         }
 

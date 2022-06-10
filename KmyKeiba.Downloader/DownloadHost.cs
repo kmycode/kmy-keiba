@@ -37,26 +37,26 @@ namespace KmyKeiba.Downloader
 
       logger.Info("ホストプロセスを開始します");
       isHost = true;
-      HostAsync().Wait();
+      HostAsync();
     }
 
-    private static async Task HostAsync()
+    private static void HostAsync()
     {
       while (true)
       {
         try
         {
           using var db = new MyContext();
-          var task = await db.DownloaderTasks!.FirstOrDefaultAsync(t => t.Command == DownloaderCommand.DownloadRealTimeData &&
+          var task = db.DownloaderTasks!.FirstOrDefault(t => t.Command == DownloaderCommand.DownloadRealTimeData &&
           !t.IsStarted && !t.IsCanceled && !t.IsFinished);
 
           if (task != null)
           {
-            async Task SetAsCurrentTaskAsync()
+            void SetAsCurrentTask()
             {
               task.IsStarted = true;
               task.ProcessId = Environment.ProcessId;
-              await db.SaveChangesAsync();
+              db.SaveChanges();
               currentTask = task;
 
               logger.Info($"新しいタスク {task.Id} を検出");
@@ -65,16 +65,16 @@ namespace KmyKeiba.Downloader
 
             if (task.Command == DownloaderCommand.DownloadRealTimeData)
             {
-              await SetAsCurrentTaskAsync();
+              SetAsCurrentTask();
               StartLoad(task, true);
             }
           }
 
-          await CheckCurrentTasksAsync(db);
+          CheckCurrentTasks(db);
 
           CheckShutdown(db, isForce: true);
           Console.WriteLine("[HOST] Waiting new tasks... ");
-          await Task.Delay(1000);
+          Task.Delay(1000).Wait();
         }
         catch (Exception ex)
         {
@@ -83,9 +83,9 @@ namespace KmyKeiba.Downloader
       }
     }
 
-    private static async Task CheckCurrentTasksAsync(MyContext db)
+    private static void CheckCurrentTasks(MyContext db)
     {
-      var tasks = await db.DownloaderTasks!.Where(t => !t.IsFinished && t.ProcessId != default).ToArrayAsync();
+      var tasks = db.DownloaderTasks!.Where(t => !t.IsFinished && t.ProcessId != default).ToArray();
 
       var isSave = false;
       foreach (var task in tasks)
@@ -105,7 +105,7 @@ namespace KmyKeiba.Downloader
       }
       if (isSave)
       {
-        await db.SaveChangesAsync();
+        db.SaveChanges();
       }
     }
 
