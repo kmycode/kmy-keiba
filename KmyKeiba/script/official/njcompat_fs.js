@@ -4,7 +4,9 @@
 //
 // fs             open(path), mkdir(path)
 // FileHandle     readFile(), readFileSync(), writeFile(string), writeFileSync(string)
-//                createReadStream(), createWriteStream()
+//
+// ※以下は未テストです。おそらくバイナリ配列の受け渡し処理がうまくいかず動作しないはずです
+// FileHandle     createReadStream(), createWriteStream()
 // Stream         on(eventName, action)    eventNameはdata、endのみ対応
 //                once(eventName, action), pipe(stream), write(byte[]), end()
 //
