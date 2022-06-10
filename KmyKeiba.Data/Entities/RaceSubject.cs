@@ -86,6 +86,11 @@ namespace KmyKeiba.JVLink.Entities
               return RaceSubjectType.Open;
             }
 
+            if (displayClass is RaceClass.Age && maxClass == RaceClass.Money)
+            {
+              return RaceClass.Money;
+            }
+
             return null;
           }
 
@@ -299,7 +304,12 @@ namespace KmyKeiba.JVLink.Entities
       {
         if (match.Groups["moneysub"].Value == "以上")
         {
-          match = match.NextMatch();
+          // 「以上」としか書かれてないことがある（大井など）
+          var nextMatch = match.NextMatch();
+          if (nextMatch.Success)
+          {
+            match = match.NextMatch();
+          }
         }
 
         if (match.Success)
