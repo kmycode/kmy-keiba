@@ -350,7 +350,8 @@ namespace KmyKeiba.Models.Race
             newData.CourseType != this.Data.CourseType ||
             newData.TrackOption != this.Data.TrackOption ||
             newData.TrackCornerDirection != this.Data.TrackCornerDirection ||
-            newData.StartTime != this.Data.StartTime;
+            newData.StartTime != this.Data.StartTime ||
+            newData.Corner4Result != this.Data.Corner4Result;
           logger.Debug($"レース基本情報を確認: {isUpdate}");
 
           if (!isUpdate)
