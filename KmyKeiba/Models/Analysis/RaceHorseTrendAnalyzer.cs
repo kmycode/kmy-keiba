@@ -119,6 +119,11 @@ namespace KmyKeiba.Models.Analysis
 
     protected void SetTimeDeviationValueComparations(IReadOnlyList<RaceHorseAnalyzer> source, int level)
     {
+      if (source.Any(s => s.ResultTimeDVComparation != ValueComparation.Unknown))
+      {
+        return;
+      }
+
       // タイム偏差値に色を付ける
       var timeMax = source.Select(s => s.ResultTimeDeviationValue).OrderByDescending(s => s).ElementAtOrDefault(level) - 1;
       var timeMin = source.Select(s => s.ResultTimeDeviationValue).OrderBy(s => s).ElementAtOrDefault(level) + 1;
