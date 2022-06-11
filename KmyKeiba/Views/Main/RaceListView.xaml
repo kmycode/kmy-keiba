@@ -16,7 +16,7 @@
       <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
     </Grid.Resources>
 
-    <Grid>
+    <Grid Width="300" HorizontalAlignment="Left">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition/>
