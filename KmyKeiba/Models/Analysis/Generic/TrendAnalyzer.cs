@@ -23,7 +23,9 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public ReactiveProperty<bool> IsAnalyzed { get; } = new();
 
-    protected TrendAnalyzer()
+    public int SizeMax { get; }
+
+    protected TrendAnalyzer(int sizeMax)
     {
       this.IsAnalyzed.Subscribe(a =>
       {
@@ -33,6 +35,8 @@ namespace KmyKeiba.Models.Analysis.Generic
         }
         this._postAnalysis.Clear();
       });
+
+      this.SizeMax = sizeMax;
     }
 
     public void PostAnalysis(Action action)

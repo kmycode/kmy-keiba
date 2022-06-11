@@ -91,12 +91,12 @@ namespace KmyKeiba.Models.Analysis
       this.BeginLoad();
     }
 
-    protected override RaceHorseTrendAnalyzer GenerateAnalyzer()
+    protected override RaceHorseTrendAnalyzer GenerateAnalyzer(int sizeMax)
     {
-      return new RaceHorseTrendAnalyzer(this.Race, this.RaceHorse);
+      return new RaceHorseTrendAnalyzer(sizeMax, this.Race, this.RaceHorse);
     }
 
-    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseTrendAnalyzer analyzer, int count, int offset, bool isLoadSameHorses)
+    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseTrendAnalyzer analyzer, int sizeMax, int offset, bool isLoadSameHorses)
     {
       // WARNING: 全体の総数が多くないと予想されるのでここでDBからすべて取得し、配分している
       //          間違ってもこれをこのまま他のSelectorクラスにコピペしないように

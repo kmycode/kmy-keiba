@@ -47,7 +47,7 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<ResultOrderGradeMap> OutsideFrameGrade { get; } = new();
 
-    public RaceHorseTrendAnalyzerBase(RaceData race, RaceHorseData horse)
+    public RaceHorseTrendAnalyzerBase(int sizeMax, RaceData race, RaceHorseData horse) : base(sizeMax)
     {
       this.Race = race;
       this.RaceHorse = horse;
@@ -113,7 +113,7 @@ namespace KmyKeiba.Models.Analysis
 
   public class RaceHorseTrendAnalyzer : RaceHorseTrendAnalyzerBase
   {
-    public RaceHorseTrendAnalyzer(RaceData race, RaceHorseData horse) : base(race, horse)
+    public RaceHorseTrendAnalyzer(int sizeMax, RaceData race, RaceHorseData horse) : base(sizeMax, race, horse)
     {
     }
 
@@ -140,7 +140,7 @@ namespace KmyKeiba.Models.Analysis
 
   public class RaceHorseBloodTrendAnalyzer : RaceHorseTrendAnalyzer
   {
-    public RaceHorseBloodTrendAnalyzer(RaceData race, RaceHorseData horse) : base(race, horse)
+    public RaceHorseBloodTrendAnalyzer(int sizeMax, RaceData race, RaceHorseData horse) : base(sizeMax, race, horse)
     {
     }
 

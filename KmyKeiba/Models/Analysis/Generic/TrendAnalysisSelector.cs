@@ -17,11 +17,34 @@ namespace KmyKeiba.Models.Analysis.Generic
 {
   public interface ITrendAnalysisSelector
   {
-    public IEnumerable Filters { get; }
+    IEnumerable Filters { get; }
 
-    public string Name { get; }
+    string Name { get; }
+
+    ReactiveProperty<bool> IsError { get; }
+
+    ReactiveProperty<int> SizeMax { get; }
+
+    ReactiveProperty<string> SizeMaxInput { get; }
+
+    ReactiveProperty<bool> CanAnalysis { get; }
 
     void BeginLoad();
+  }
+
+  internal static class TrendAnalysisSelector
+  {
+    public static ReactiveProperty<int> SizeMax { get; } = new(1000);
+    public static ReactiveProperty<string> SizeMaxInput { get; } = new(SizeMax.Value.ToString());
+
+    static TrendAnalysisSelector()
+    {
+      SizeMaxInput.Subscribe(s =>
+      {
+        int.TryParse(s, out var sizeMax);
+        SizeMax.Value = sizeMax;
+      });
+    }
   }
 
   public abstract class TrendAnalysisSelector<KEY, A> : ITrendAnalysisSelector, IDisposable
@@ -45,17 +68,31 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public ReactiveProperty<bool> IsError { get; } = new();
 
+    public ReactiveProperty<int> SizeMax => TrendAnalysisSelector.SizeMax;
+
+    public ReactiveProperty<string> SizeMaxInput => TrendAnalysisSelector.SizeMaxInput;
+
+    public ReactiveProperty<bool> CanAnalysis { get; }
+
+    public ReactiveProperty<bool> IsSizeChanged { get; }
+
     protected virtual bool IsAutoLoad => false;
 
-    public TrendAnalysisSelector()
+    public TrendAnalysisSelector(): this(Enumerable.Empty<KEY>())
     {
-      this.Keys = new TrendAnalysisFilterItemCollection<KEY>().AddTo(this._disposables);
-      this.IgnoreKeys = new TrendAnalysisFilterItemCollection<KEY>().AddTo(this._disposables);
-      this.Initialize();
     }
 
     public TrendAnalysisSelector(IEnumerable<KEY> keys)
     {
+      this.CanAnalysis = this.SizeMax
+        .Select(s => s > 0)
+        .ToReactiveProperty()
+        .AddTo(this._disposables);
+      this.IsSizeChanged = this.SizeMax
+        .CombineLatest(this.CurrentAnalyzer, (sizeMax, current) => (current?.SizeMax ?? sizeMax) < sizeMax)
+        .ToReactiveProperty()
+        .AddTo(this._disposables);
+
       var type = typeof(KEY);
       var ignoreKeys = keys
         .Where(k => type.GetField(k.ToString())!
@@ -98,7 +135,7 @@ namespace KmyKeiba.Models.Analysis.Generic
     private void TryUpdateExistingAnalyzer()
     {
       var keys = this.Keys.GetActiveKeys().Concat(this.IgnoreKeys.GetActiveKeys()).ToArray();
-      this.CurrentAnalyzer.Value = this.GetExistingAnalyzer(keys);
+      this.CurrentAnalyzer.Value = this.GetExistingAnalyzer(keys, this.SizeMax.Value);
 
       if (this.IsAutoLoad)
       {
@@ -106,7 +143,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       }
     }
 
-    private A GetExistingAnalyzer(IReadOnlyList<KEY> keys, bool isSandbox = false)
+    private A GetExistingAnalyzer(IReadOnlyList<KEY> keys, int count, bool isSandbox = false)
     {
       if (!isSandbox)
       {
@@ -114,17 +151,27 @@ namespace KmyKeiba.Models.Analysis.Generic
         this.Analyzers.TryGetValue(keys, out var existsAnalyzer);
         if (existsAnalyzer != null)
         {
-          return existsAnalyzer;
+          if (existsAnalyzer.SizeMax >= this.SizeMax.Value)
+          {
+            return existsAnalyzer;
+          }
+          else
+          {
+            // 取得件数を変更して最初から取り直す
+            this.Analyzers.Remove(keys);
+            this._disposables.Remove(existsAnalyzer);
+            existsAnalyzer.Dispose();
+          }
         }
 
-        var analyzer = this.GenerateAnalyzer().AddTo(this._disposables);
+        var analyzer = this.GenerateAnalyzer(count).AddTo(this._disposables);
         this.Analyzers[keys] = analyzer;
         return analyzer;
       }
       else
       {
         // スクリプト用のサンドボックス
-        var analyzer = this.GenerateAnalyzer().AddTo(this._disposables);
+        var analyzer = this.GenerateAnalyzer(count).AddTo(this._disposables);
         return analyzer;
       }
     }
@@ -133,7 +180,7 @@ namespace KmyKeiba.Models.Analysis.Generic
     {
       var currentKeys = this.Keys.GetActiveKeys().Concat(this.IgnoreKeys.GetActiveKeys()).ToArray();
 
-      this.CurrentAnalyzer.Value = this.BeginLoad(currentKeys, 300, 0);
+      this.CurrentAnalyzer.Value = this.BeginLoad(currentKeys, this.SizeMax.Value, 0);
     }
 
     public A BeginLoad(IReadOnlyList<KEY> keys, int count, int offset, bool isLoadSameHorses = true, bool isSandbox = false)
@@ -141,7 +188,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       this.IsError.Value = false;
 
       // ここはUIスレッドでなければならない（ReactiveCollectionなどにスレッドが伝播しないので）
-      var analyzer = this.GetExistingAnalyzer(keys, isSandbox);
+      var analyzer = this.GetExistingAnalyzer(keys, count, isSandbox);
 
       if (analyzer.IsLoaded.Value || analyzer.IsLoading.Value)
       {
@@ -214,9 +261,9 @@ namespace KmyKeiba.Models.Analysis.Generic
       }
     }
 
-    protected abstract A GenerateAnalyzer();
+    protected abstract A GenerateAnalyzer(int sizeMax);
 
-    protected virtual Task InitializeAnalyzerAsync(MyContext db, IEnumerable<KEY> keys, A analyzer, int count, int offset, bool isLoadSameHorses)
+    protected virtual Task InitializeAnalyzerAsync(MyContext db, IEnumerable<KEY> keys, A analyzer, int sizeMax, int offset, bool isLoadSameHorses)
     {
       return Task.CompletedTask;
     }

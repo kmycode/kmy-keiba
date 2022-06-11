@@ -69,7 +69,7 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<double> RoughDeviation { get; } = new();
 
-    public RaceTrendAnalyzer(RaceData race)
+    public RaceTrendAnalyzer(int sizeMax, RaceData race) : base(sizeMax)
     {
       this.Race = race;
     }

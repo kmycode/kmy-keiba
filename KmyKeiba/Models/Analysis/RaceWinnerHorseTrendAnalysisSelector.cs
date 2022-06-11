@@ -231,12 +231,12 @@ namespace KmyKeiba.Models.Analysis
       base.OnFinishedInitialization();
     }
 
-    protected override RaceWinnerHorseTrendAnalyzer GenerateAnalyzer()
+    protected override RaceWinnerHorseTrendAnalyzer GenerateAnalyzer(int sizeMax)
     {
-      return new RaceWinnerHorseTrendAnalyzer(this.Race, new RaceHorseData());
+      return new RaceWinnerHorseTrendAnalyzer(sizeMax, this.Race, new RaceHorseData());
     }
 
-    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceWinnerHorseTrendAnalyzer analyzer, int count = 500, int offset = 0, bool isLoadSameHorses = false)
+    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceWinnerHorseTrendAnalyzer analyzer, int sizeMax, int offset = 0, bool isLoadSameHorses = false)
     {
       var query = db.RaceHorses!
         .Where(rh => rh.DataStatus >= RaceDataStatus.PreliminaryGrade)
@@ -459,7 +459,7 @@ namespace KmyKeiba.Models.Analysis
       var races = await query
         .OrderByDescending(r => r.Race.StartTime)
         .Skip(offset)
-        .Take(count)
+        .Take(sizeMax)
         .ToArrayAsync();
       var raceKeys = races.Select(r => r.Race.Key).ToArray();
       var raceHorses = Array.Empty<RaceHorseData>();

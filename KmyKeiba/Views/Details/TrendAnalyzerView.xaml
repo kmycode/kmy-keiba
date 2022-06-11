@@ -14,6 +14,7 @@
         <RowDefinition Height="auto"/>
         <RowDefinition Height="auto"/>
         <RowDefinition/>
+        <RowDefinition Height="auto"/>
       </Grid.RowDefinitions>
 
       <Border Background="{DynamicResource MoreThinBaseBackground}" Margin="0,0,0,8" Width="180">
@@ -44,8 +45,9 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
-      <Border Grid.Row="2" Height="40" Margin="0,8,0,0">
-        <Button Height="40" FontSize="18" Content="分析する" Click="AnalysisButton_Click">
+      <Grid Grid.Row="2" Height="40" Margin="0,8,0,0">
+        <Button FontSize="18" Content="分析する" Click="AnalysisButton_Click"
+                IsEnabled="{Binding Selector.CanAnalysis.Value,ElementName=Root}">
           <Button.Visibility>
             <MultiBinding Converter="{StaticResource MultiBooleanConv}">
               <Binding Path="Selector.CurrentAnalyzer.Value.IsLoaded.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
@@ -54,11 +56,23 @@
             </MultiBinding>
           </Button.Visibility>
         </Button>
-      </Border>
+        <Button FontSize="18" Content="分析する" Click="AnalysisButton_Click"
+                IsEnabled="{Binding Selector.CanAnalysis.Value,ElementName=Root}" Visibility="{Binding Selector.IsSizeChanged.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+      </Grid>
 
       <ScrollViewer Grid.Row="3">
         <ContentControl Content="{Binding MenuContent,ElementName=Root}"/>
       </ScrollViewer>
+
+      <Grid Grid.Row="4" Height="32" Margin="0,8,0,4">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="0.4*"/>
+          <ColumnDefinition Width="0.6*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="16" Text="取得数" VerticalAlignment="Center"/>
+        <TextBox Grid.Column="1" Foreground="{DynamicResource BaseForeground}" Background="{DynamicResource BaseBackground}"
+                 FontSize="16" TextAlignment="Center" Text="{Binding Selector.SizeMaxInput.Value,ElementName=Root,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+      </Grid>
     </Grid>
   </Grid>
 </UserControl>

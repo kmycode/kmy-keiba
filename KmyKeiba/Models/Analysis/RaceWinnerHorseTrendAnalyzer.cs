@@ -9,7 +9,7 @@ namespace KmyKeiba.Models.Analysis
 {
   public class RaceWinnerHorseTrendAnalyzer : RaceHorseTrendAnalyzerBase
   {
-    public RaceWinnerHorseTrendAnalyzer(RaceData race, RaceHorseData horse) : base(race, horse)
+    public RaceWinnerHorseTrendAnalyzer(int sizeMax, RaceData race, RaceHorseData horse) : base(sizeMax, race, horse)
     {
     }
   }
