@@ -83,7 +83,7 @@
             </ItemsControl.ItemTemplate>
           </ItemsControl>
           <TextBlock FontSize="20" Margin="0,12,0,0">
-            <Run Text="{Binding Race.Data.StartTime,ElementName=Root,StringFormat=MM月dd日 HH時mm分}"/>発走
+            <Run Text="{Binding Race.Data.StartTime,ElementName=Root,StringFormat=M月d日}" FontSize="16"/> <Run Text="{Binding Race.Data.StartTime.Hour,ElementName=Root,Mode=OneWay}" FontSize="28"/>時<Run Text="{Binding Race.Data.StartTime.Minute,ElementName=Root,Mode=OneWay,StringFormat=00}" FontSize="28"/>分
             <Run Text="{Binding Race.Weather.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
             <Run Text="{Binding Race.Condition.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
           </TextBlock>
