@@ -287,6 +287,19 @@
                 <ToggleButton Grid.Column="1" Content="中" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsFrame_Intermediate.Value,Mode=TwoWay}"/>
                 <ToggleButton Grid.Column="2" Content="内" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsFrame_Inside.Value,Mode=TwoWay}"/>
               </Grid>
+              <TextBlock Margin="0,16,0,0" FontSize="20" Text="脚質"/>
+              <Grid Margin="0,8,0,0">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <ToggleButton Grid.Column="0" Content="逃" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsRS_FrontRunner.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="1" Content="先" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsRS_Stalker.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="2" Content="差" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsRS_Sotp.Value,Mode=TwoWay}"/>
+                <ToggleButton Grid.Column="3" Content="追" IsChecked="{Binding Race.WinnerTrendAnalyzers.IsRS_SaveRunner.Value,Mode=TwoWay}"/>
+              </Grid>
               <TextBlock Margin="0,16,0,0" FontSize="20" Text="出走間隔"/>
               <Grid Margin="0,8,0,0">
                 <Grid.ColumnDefinitions>

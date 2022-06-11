@@ -149,6 +149,22 @@ namespace KmyKeiba.Models.Analysis
       [ScriptParameterKey("interval_301_")]
       [IgnoreKey]
       Interval_301_,
+
+      [ScriptParameterKey("rs_frontrunner")]
+      [IgnoreKey]
+      RS_FrontRunner,
+
+      [ScriptParameterKey("rs_stalker")]
+      [IgnoreKey]
+      RS_Stalker,
+
+      [ScriptParameterKey("rs_sotp")]
+      [IgnoreKey]
+      RS_Sotp,
+
+      [ScriptParameterKey("rs_saverunner")]
+      [IgnoreKey]
+      RS_SaveRunner,
     }
 
     private readonly CompositeDisposable _disposables = new();
@@ -199,6 +215,14 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<bool> IsFrame_Outside { get; } = new();
 
+    public ReactiveProperty<bool> IsRS_SaveRunner { get; } = new();
+
+    public ReactiveProperty<bool> IsRS_Stalker { get; } = new();
+
+    public ReactiveProperty<bool> IsRS_Sotp { get; } = new();
+
+    public ReactiveProperty<bool> IsRS_FrontRunner { get; } = new();
+
     public RaceWinnerHorseTrendAnalysisSelector(RaceData race) : base(typeof(Key))
     {
       this.Race = race;
@@ -227,6 +251,11 @@ namespace KmyKeiba.Models.Analysis
       this.IsFrame_Inside.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Inside, v)).AddTo(this._disposables);
       this.IsFrame_Intermediate.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Intermediate, v)).AddTo(this._disposables);
       this.IsFrame_Outside.Subscribe(v => this.IgnoreKeys.SetChecked(Key.Outside, v)).AddTo(this._disposables);
+
+      this.IsRS_FrontRunner.Subscribe(v => this.IgnoreKeys.SetChecked(Key.RS_FrontRunner, v)).AddTo(this._disposables);
+      this.IsRS_Stalker.Subscribe(v => this.IgnoreKeys.SetChecked(Key.RS_Stalker, v)).AddTo(this._disposables);
+      this.IsRS_Sotp.Subscribe(v => this.IgnoreKeys.SetChecked(Key.RS_Sotp, v)).AddTo(this._disposables);
+      this.IsRS_SaveRunner.Subscribe(v => this.IgnoreKeys.SetChecked(Key.RS_SaveRunner, v)).AddTo(this._disposables);
 
       base.OnFinishedInitialization();
     }
@@ -321,6 +350,28 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.Losed))
       {
         query = query.Where(r => r.RaceHorse.ResultOrder > 5);
+      }
+
+      var rss = new List<RunningStyle>();
+      if (keys.Contains(Key.RS_FrontRunner))
+      {
+        rss.Add(RunningStyle.FrontRunner);
+      }
+      if (keys.Contains(Key.RS_Stalker))
+      {
+        rss.Add(RunningStyle.Stalker);
+      }
+      if (keys.Contains(Key.RS_Sotp))
+      {
+        rss.Add(RunningStyle.Sotp);
+      }
+      if (keys.Contains(Key.RS_SaveRunner))
+      {
+        rss.Add(RunningStyle.SaveRunner);
+      }
+      if (rss.Any())
+      {
+        query = query.Where(r => rss.Contains(r.RaceHorse.RunningStyle));
       }
 
       var frames = new List<int>();
