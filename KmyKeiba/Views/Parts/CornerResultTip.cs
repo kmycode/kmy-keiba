@@ -55,6 +55,7 @@ namespace KmyKeiba.Views.Parts
       get { return (bool)GetValue(WithResultProperty); }
       set { SetValue(WithResultProperty, value); }
     }
+
     public static readonly DependencyProperty FontSizeProperty
       = DependencyProperty.Register(
         nameof(FontSize),

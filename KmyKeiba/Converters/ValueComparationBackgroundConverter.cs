@@ -38,6 +38,15 @@ namespace KmyKeiba.Converters
           _ => Brushes.Transparent,
         };
       }
+      if (value is CornerGradeType cgt)
+      {
+        return cgt switch
+        {
+          CornerGradeType.Good => goodBrush,
+          CornerGradeType.Bad => badBrush,
+          _ => Brushes.Transparent,
+        };
+      }
       return string.Empty;
     }
 

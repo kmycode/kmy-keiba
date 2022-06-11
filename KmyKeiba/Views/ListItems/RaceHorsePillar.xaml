@@ -28,7 +28,7 @@
     <Border Grid.Column="1" Background="{DynamicResource BadBackground}"
             Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
 
-    <StackPanel Margin="0,8" Grid.Column="1" Opacity="{Binding Horse.Data.AbnormalResult,ElementName=Root,Converter={StaticResource AbnormalResultOpacityConv}}">
+    <StackPanel Margin="0,6" Grid.Column="1" Opacity="{Binding Horse.Data.AbnormalResult,ElementName=Root,Converter={StaticResource AbnormalResultOpacityConv}}">
 
       <!--基本情報-->
       <Grid Margin="0,2,0,4">
@@ -203,7 +203,7 @@
                         <StackPanel Orientation="Horizontal" Margin="2">
 
                           <!--レース成績-->
-                          <StackPanel Width="154" Height="60" Background="{Binding Data.ResultOrder,Converter={StaticResource OrderBackgroundConv}}">
+                          <StackPanel Width="154" Height="62" Background="{Binding Data.ResultOrder,Converter={StaticResource OrderBackgroundConv}}">
                             <StackPanel.Resources>
                               <Style TargetType="TextBlock" BasedOn="{StaticResource SubTextBlock}">
                                 <Setter Property="Foreground" Value="#dddddd"/>
@@ -219,12 +219,23 @@
                                 </FrameworkElement.LayoutTransform>
                               </up:RunningStyleTip>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                              <up:CornerResultTip CornerGrades="{Binding CornerGrades}" FontSize="13"
-                                                  PartWidth="20" PartHeight="20" Visibility="{Binding IsAbnormalResult,Converter={StaticResource NegativeVisibilityConv}}"/>
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding IsAbnormalResult,Converter={StaticResource NegativeVisibilityConv}}">
+                              <up:CornerResultTip CornerGrades="{Binding CornerGrades}" FontSize="12" WithResult="False" Width="90"
+                                                  PartWidth="16" PartHeight="18" PartPadding="0"/>
+                              <Border Width="22" Height="22" Background="{Binding ResultOrderComparationWithLastCorner,Converter={StaticResource ValueComparationBackgroundConv}}"
+                                      BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0.7">
+                                <TextBlock FontSize="16" Text="{Binding Data.ResultOrder}" TextAlignment="Center">
+                                  <TextBlock.RenderTransform>
+                                    <TranslateTransform Y="-2"/>
+                                  </TextBlock.RenderTransform>
+                                </TextBlock>
+                              </Border>
+                              <TextBlock TextAlignment="Right" Width="40" FontSize="14" Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"
+                                         Foreground="{Binding ResultTimeDVComparation,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}">
                               <TextBlock FontSize="14" Foreground="{DynamicResource BadForeground}" FontWeight="Bold"
-                                         Text="{Binding Data.AbnormalResult,Converter={StaticResource EnumsConv}}"
-                                         Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}"/>
+                                         Text="{Binding Data.AbnormalResult,Converter={StaticResource EnumsConv}}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
                               <up:CourseSimpleImageView Race="{Binding Race}"/>

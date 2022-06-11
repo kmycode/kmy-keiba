@@ -68,6 +68,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ValueComparation ResultOrderComparation { get; }
 
+    public CornerGradeType ResultOrderComparationWithLastCorner { get; }
+
     public bool IsAbnormalResult => this.Data.AbnormalResult != RaceAbnormality.Unknown;
 
     public TimeSpan UntilA3HResultTime { get; }
@@ -385,6 +387,7 @@ namespace KmyKeiba.Models.Analysis
         });
       }
       this.CornerGrades = corners;
+      this.ResultOrderComparationWithLastCorner = corners.LastOrDefault().Type;
     }
 
     public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData? raceStandardTime)
@@ -537,6 +540,7 @@ namespace KmyKeiba.Models.Analysis
   // 数字が少ないほどよい、という場合もあるのでHigh、Lowにはしない
   public enum ValueComparation
   {
+    Unknown,
     Standard,
     Good,
     Bad,
