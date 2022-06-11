@@ -556,12 +556,16 @@ namespace KmyKeiba.Models.Race
           var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race);
           logger.Debug($"馬の過去レースの総数: {horseAllHistories.Length}");
 
+          // 時系列オッズ
+          var oddsTimeline = await db.SingleOddsTimelines!.Where(o => o.RaceKey == race.Key).ToArrayAsync();
+          logger.Info($"時系列オッズ {oddsTimeline.Length}件");
+
           // 各馬の情報
           var horseInfos = new List<RaceHorseAnalyzer>();
           var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
           var horseHistorySameHorses = await db.RaceHorses!
-            .Where(h => h.ResultOrder >= 1 && h.ResultOrder <= 5)
             .Where(h => horseHistoryKeys.Contains(h.RaceKey))
+            .Where(h => h.ResultOrder >= 1 && h.ResultOrder <= 5)
             .ToArrayAsync();
           logger.Debug($"馬の過去レースの同走馬数: {horseHistorySameHorses.Length}");
           foreach (var horse in horses)
@@ -576,13 +580,16 @@ namespace KmyKeiba.Models.Race
 
             var riderWinRate = await AnalysisUtil.GetRiderWinRateAsync(db, race, horse.RiderCode);
 
-            horseInfos.Add(new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate)
+            var analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate)
             {
               TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse, histories),
               RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(race, horse),
               TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
               BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
-            });
+            };
+            analyzer.SetOddsTimeline(oddsTimeline);
+
+            horseInfos.Add(analyzer);
             logger.Debug($"馬 {horse.Name} の情報を登録");
           }
           {

@@ -263,6 +263,17 @@ namespace KmyKeiba.Models.Script
       return "[]";
     }
 
+    [ScriptMember("getOddsTimeline")]
+    public string GetOddsTimeline()
+    {
+      var timeline = this._analyzer?.OddsTimeline.Select(o => new ScriptOddsTimelineItem(o)).ToArray();
+      if (timeline != null)
+      {
+        return JsonSerializer.Serialize(timeline, ScriptManager.JsonOptions);
+      }
+      return "[]";
+    }
+
     [ScriptMember("getJson")]
     public string ToJson()
     {

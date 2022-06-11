@@ -309,6 +309,7 @@ namespace KmyKeiba.Downloader
         JVLinkDataspec.RB30,
         JVLinkDataspec.RB11,
         JVLinkDataspec.RB14,
+        JVLinkDataspec.RB41,
       };
       int.TryParse(spec, out var startIndex);
       if (startIndex == default || startIndex > dataspecs.Length)
@@ -321,6 +322,7 @@ namespace KmyKeiba.Downloader
       }
 
       var start = new DateTime(year, month, day);
+      var today = DateTime.Today;
 
       int.TryParse(skip, out var skipCount);
       var query = db.Races!
@@ -337,16 +339,34 @@ namespace KmyKeiba.Downloader
         return;
       }
 
+      var raceKeys = races.Select(r => r.Key).ToArray();
+      var oddsTImeline = await db.SingleOddsTimelines!
+        .Where(r => raceKeys.Contains(r.RaceKey))
+        .ToArrayAsync();
+
       races = races.Where(r =>
       {
         if (type == "central")
         {
-          // 中央レースと地方重賞とか
-          var result = r.Course <= RaceCourse.CentralMaxValue || r.Grade == RaceGrade.LocalGrade1 || r.Grade == RaceGrade.LocalGrade2 || r.Grade == RaceGrade.LocalGrade3 || r.Grade == RaceGrade.LocalNoNamedGrade;
-          if (result)
+          if (r.StartTime.Date == today)
+          {
+            return true;
+          }
+          if (today.DayOfWeek == DayOfWeek.Saturday && r.StartTime.DayOfWeek == DayOfWeek.Sunday)
+          {
+            // 日曜日のレースは土曜日発売
+            return true;
+          }
+
+          bool result;
+          if (r.Course <= RaceCourse.CentralMaxValue)
           {
             // 馬券が金曜日日販売になるのは一部のG1レースのみ
-            result = r.Grade == RaceGrade.Grade1 || r.Grade == RaceGrade.Grade2 || r.Grade == RaceGrade.Grade3 || r.StartTime.Date == start;
+            result = r.Grade == RaceGrade.Grade1 || r.Grade == RaceGrade.Grade2 || r.Grade == RaceGrade.Grade3;
+          }
+          else
+          {
+            result = r.Grade == RaceGrade.LocalGrade1 || r.Grade == RaceGrade.LocalGrade2 || r.Grade == RaceGrade.LocalGrade3 || r.Grade == RaceGrade.LocalNoNamedGrade;
           }
           return result;
         }
@@ -388,6 +408,15 @@ namespace KmyKeiba.Downloader
           {
             // オッズは各レースごとに落とすから時間がかかる
             if (race.DataStatus >= RaceDataStatus.PreliminaryGrade3)
+            {
+              continue;
+            }
+          }
+          else if (dataspecs[i] == JVLinkDataspec.RB41)
+          {
+            var now = DateTime.Now;
+            var latestTimeline = oddsTImeline.Where(o => o.RaceKey == race.Key).OrderByDescending(o => o.Time).FirstOrDefault();
+            if (!(race.StartTime > now || latestTimeline == null || latestTimeline.Time < now.AddMinutes(-7)))
             {
               continue;
             }

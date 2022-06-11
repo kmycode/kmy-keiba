@@ -802,6 +802,7 @@ namespace KmyKeiba.Models.Connection
         "3" => DownloadingDataspec.RB30,
         "4" => DownloadingDataspec.RB11,
         "5" => DownloadingDataspec.RB14,
+        "6" => DownloadingDataspec.RB41,
         _ => DownloadingDataspec.Unknown,
       };
 
@@ -942,6 +943,9 @@ namespace KmyKeiba.Models.Connection
 
     [Label("変更情報")]
     RB14,
+
+    [Label("時系列オッズ")]
+    RB41,
   }
 
   [Flags]

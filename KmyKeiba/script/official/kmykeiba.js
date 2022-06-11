@@ -776,3 +776,16 @@ RaceHorse.prototype.getTrainings = function() {
   const data = JSON.parse(json);
   return data;
 }
+
+// 時系列オッズを取得する
+// 結果は以下のオブジェクトの配列になる
+//
+// {
+//    time:     時刻
+//    odds:     単勝オッズ
+// }
+RaceHorse.prototype.getOddsTimeline = function () {
+    const json = this._getObj().getOddsTimeline();
+    const data = JSON.parse(json);
+    return data;
+}
