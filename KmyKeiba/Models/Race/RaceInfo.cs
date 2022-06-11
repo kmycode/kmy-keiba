@@ -408,11 +408,11 @@ namespace KmyKeiba.Models.Race
 
     public void CopyTrendAnalyzersFrom(RaceInfo source)
     {
-      this.TrendAnalyzers.CopyFrom(source.TrendAnalyzers);
-      this.WinnerTrendAnalyzers.CopyFrom(source.WinnerTrendAnalyzers);
-
       if (!source.IsWillResetTrendAnalyzersDataOnUpdate(this.Data))
       {
+        this.TrendAnalyzers.CopyFrom(source.TrendAnalyzers);
+        this.WinnerTrendAnalyzers.CopyFrom(source.WinnerTrendAnalyzers);
+
         foreach (var horse in source.Horses.Join(this.Horses, h => h.Data.Id, h => h.Data.Id, (o, n) => new { Old = o, New = n, }))
         {
           if (horse.New.TrendAnalyzers != null && horse.Old.TrendAnalyzers != null)
