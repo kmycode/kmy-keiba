@@ -68,6 +68,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ValueComparation ResultOrderComparation { get; }
 
+    public CornerGradeType ResultOrderComparationWithLastCorner { get; }
+
     public bool IsAbnormalResult => this.Data.AbnormalResult != RaceAbnormality.Unknown;
 
     public TimeSpan UntilA3HResultTime { get; }
@@ -94,6 +96,12 @@ namespace KmyKeiba.Models.Analysis
     public double A3HResultTimeDeviationValue { get; }
 
     public ReactiveProperty<bool> IsActive { get; } = new();
+
+    public ReactiveCollection<OddsTimelineItem> OddsTimeline { get; } = new();
+
+    public ReactiveCollection<OddsTimelineItem> OddsTimelineLatestItems { get; } = new();
+
+    public bool IsOddsTimelineAvailable => this.OddsTimelineLatestItems.Any();
 
     public RaceMovieInfo Movie => this._movie ??= new(this.Race);
     private RaceMovieInfo? _movie;
@@ -385,6 +393,7 @@ namespace KmyKeiba.Models.Analysis
         });
       }
       this.CornerGrades = corners;
+      this.ResultOrderComparationWithLastCorner = corners.LastOrDefault().Type;
     }
 
     public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData? raceStandardTime)
@@ -508,6 +517,38 @@ namespace KmyKeiba.Models.Analysis
       this.Mark.Value = this.Data.Mark = mark;
     }
 
+    public void SetOddsTimeline(IEnumerable<SingleOddsTimeline> timeline)
+    {
+      var prevTime = 60;
+
+      foreach (var data in timeline.OrderBy(t => t.Time))
+      {
+        var odds = data.GetSingleOdds();
+        var item = new OddsTimelineItem(this.Race, data, odds.ElementAtOrDefault(this.Data.Number - 1));
+        this.OddsTimeline.Add(item);
+
+        if (data.Time >= this.Race.StartTime.AddMinutes(-60) && data.Time <= this.Race.StartTime.AddMinutes(5))
+        {
+          if (item.LeftTime.Minutes <= prevTime ||
+            (this.Race.Course <= RaceCourse.CentralMaxValue && prevTime <= 10) || prevTime <= 4) // 地方競馬は１分に１回送ってくる
+          {
+            this.OddsTimelineLatestItems.Add(item);
+            prevTime -= 5;
+          }
+        }
+      }
+
+      if (this.OddsTimelineLatestItems.Skip(3).Any())
+      {
+        var oddsMax = this.OddsTimelineLatestItems.OrderByDescending(o => o.Odds).ElementAtOrDefault(1)?.Odds ?? default;
+        var oddsMin = this.OddsTimelineLatestItems.OrderBy(o => o.Odds).ElementAtOrDefault(1)?.Odds ?? default;
+        foreach (var item in this.OddsTimelineLatestItems)
+        {
+          item.SingleOddsComparation = AnalysisUtil.CompareValue(item.Odds, oddsMin, oddsMax, true);
+        }
+      }
+    }
+
     public void Dispose()
     {
       this._disposables.Dispose();
@@ -537,6 +578,7 @@ namespace KmyKeiba.Models.Analysis
   // 数字が少ないほどよい、という場合もあるのでHigh、Lowにはしない
   public enum ValueComparation
   {
+    Unknown,
     Standard,
     Good,
     Bad,
@@ -659,6 +701,24 @@ namespace KmyKeiba.Models.Analysis
 
     public CourseHorseGrade(short distance, IReadOnlyList<RaceHorseAnalyzer> source) : this(RaceCourse.All, distance, source)
     {
+    }
+  }
+
+  public class OddsTimelineItem
+  {
+    public TimeSpan LeftTime { get; }
+
+    public DateTime Time { get; }
+
+    public short Odds { get; }
+
+    public ValueComparation SingleOddsComparation { get; set; }
+
+    public OddsTimelineItem(RaceData race, SingleOddsTimeline item, short singleOdds)
+    {
+      this.Odds = singleOdds;
+      this.LeftTime = race.StartTime - item.Time;
+      this.Time = item.Time;
     }
   }
 }

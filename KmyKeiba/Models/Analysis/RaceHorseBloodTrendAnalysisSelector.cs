@@ -344,16 +344,16 @@ namespace KmyKeiba.Models.Analysis
       base.OnFinishedInitialization();
     }
 
-    protected override RaceHorseBloodTrendAnalyzer GenerateAnalyzer()
+    protected override RaceHorseBloodTrendAnalyzer GenerateAnalyzer(int sizeMax)
     {
-      return new RaceHorseBloodTrendAnalyzer(this.Race, this.RaceHorse);
+      return new RaceHorseBloodTrendAnalyzer(sizeMax, this.Race, this.RaceHorse);
     }
 
-    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseBloodTrendAnalyzer analyzer, int count, int offset, bool isLoadSameHorses)
+    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseBloodTrendAnalyzer analyzer, int sizeMax, int offset, bool isLoadSameHorses)
     {
       if (keys.Contains(Key.BloodHorseSelf))
       {
-        await this.InitializeBloodAnalyzerAsync(db, keys, analyzer, count, offset, isLoadSameHorses);
+        await this.InitializeBloodAnalyzerAsync(db, keys, analyzer, sizeMax, offset, isLoadSameHorses);
         return;
       }
 
@@ -519,7 +519,7 @@ namespace KmyKeiba.Models.Analysis
         var races = await r2 //.Concat(r1)
           .OrderByDescending(r => r.Race.StartTime)
           .Skip(offset)
-          .Take(count)
+          .Take(sizeMax)
           .ToArrayAsync();
         var raceHorses = Array.Empty<RaceHorseData>();
         if (isLoadSameHorses)

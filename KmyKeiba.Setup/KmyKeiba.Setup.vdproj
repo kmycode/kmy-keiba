@@ -376,12 +376,6 @@
         "Entry"
         {
         "MsmKey" = "8:_2C5A6F668F0357A5D4408D8ABF9221B6"
-        "OwnerKey" = "8:_66AC142E0ABB44938DC9DFA0F61794BE"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_2C5A6F668F0357A5D4408D8ABF9221B6"
         "OwnerKey" = "8:_F2689ECF49DE49CAA25FEC80FEB9CD21"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -551,12 +545,6 @@
         {
         "MsmKey" = "8:_3B034A7305FA38576B466AAEE47E910F"
         "OwnerKey" = "8:_06615601846744D890FA2F107F1AEC71"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_3B034A7305FA38576B466AAEE47E910F"
-        "OwnerKey" = "8:_66AC142E0ABB44938DC9DFA0F61794BE"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1012,12 +1000,6 @@
         "Entry"
         {
         "MsmKey" = "8:_6180B653FD42CAFF81F8B212D842F2AF"
-        "OwnerKey" = "8:_66AC142E0ABB44938DC9DFA0F61794BE"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_6180B653FD42CAFF81F8B212D842F2AF"
         "OwnerKey" = "8:_D72AE56B675B474784FBC310746109A7"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1103,12 +1085,6 @@
         {
         "MsmKey" = "8:_63EBDCC9418A4F84869E75619BAA6B3D"
         "OwnerKey" = "8:_06615601846744D890FA2F107F1AEC71"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_63EBDCC9418A4F84869E75619BAA6B3D"
-        "OwnerKey" = "8:_66AC142E0ABB44938DC9DFA0F61794BE"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -2734,12 +2710,6 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_66AC142E0ABB44938DC9DFA0F61794BE"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_FE22D92EE8C981710445AD4C73E7B0BF"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -3031,6 +3001,12 @@
         "OwnerKey" = "8:_00349DD3038140FEB583161B69309B7B"
         "MsmSig" = "8:_UNDEFINED"
         }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_66AC142E0ABB44938DC9DFA0F61794BE"
+        "MsmSig" = "8:_UNDEFINED"
+        }
     }
     "Configurations"
     {
@@ -3126,7 +3102,7 @@
                 {
                 "Name" = "8:.NET Core"
                 "Message" = "8:[VSDNETCOREMSG]"
-                "FrameworkVersion" = "8:6.0       "
+                "FrameworkVersion" = "8:6.0         "
                 "AllowLaterVersions" = "11:FALSE"
                 "InstallUrl" = "8:https://dotnet.microsoft.com/download/dotnet-core/[NetCoreVerMajorDotMinor]"
                 "IsNETCore" = "11:TRUE"
@@ -3529,7 +3505,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=1.5.0.0, Culture=neutral, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
                     "_0DE5948B8B144D90AAEB705FDBC9E3EC"
@@ -4409,7 +4385,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.JVLink, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.JVLink, Version=1.5.0.0, Culture=neutral, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
                     "_36B170CDE6D9A6B642C60BE931C3284C"
@@ -5156,7 +5132,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=1.5.0.0, Culture=neutral, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
                     "_5CB31FF75211872D1B4FEED265A1573E"
@@ -5444,7 +5420,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba, Version=1.3.0.0, Culture=neutral, processorArchitecture=AMD64"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba, Version=1.5.0.0, Culture=neutral, processorArchitecture=AMD64"
                 "ScatterAssemblies"
                 {
                     "_6890ADF7995B4C56B5B8227009938BC4"
@@ -5996,7 +5972,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.Downloader, Version=1.3.0.0, Culture=neutral, processorArchitecture=x86"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.Downloader, Version=1.5.0.0, Culture=neutral, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
                     "_74DA06997610480B96D8DBEEEC4AD8CE"
@@ -8244,7 +8220,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=1.5.0.0, Culture=neutral, processorArchitecture=AMD64"
                 "ScatterAssemblies"
                 {
                     "_CF603FEA7D9345759B8ECFF7331C4660"
@@ -9730,15 +9706,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:KMY競馬"
-        "ProductCode" = "8:{A27AEFBE-B5E4-46F1-BC1F-090226C89636}"
-        "PackageCode" = "8:{B64986A2-AAAF-499B-A386-92E719FC358C}"
+        "ProductCode" = "8:{9CFE41F7-8EAC-4C68-95BB-B1581FE47671}"
+        "PackageCode" = "8:{680D0246-1F23-45B1-B7B3-F160612EC0D3}"
         "UpgradeCode" = "8:{C4229F39-C86E-4932-846F-5AAB816B4C5C}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.3.0"
+        "ProductVersion" = "8:1.5.0"
         "Manufacturer" = "8:KMYsofts"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"

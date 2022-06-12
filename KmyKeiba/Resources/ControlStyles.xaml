@@ -96,6 +96,15 @@
   <Style TargetType="ToggleButton" x:Key="ListItemToggle" BasedOn="{StaticResource ToggleButtonDefault}">
     <Setter Property="Background" Value="{x:Null}"/>
   </Style>
+  <Style TargetType="ToggleButton" x:Key="ListItemToggleNotDisabled" BasedOn="{StaticResource ListItemToggle}">
+    <Style.Triggers>
+      <Trigger Property="IsEnabled" Value="False">
+        <Setter Property="Background" Value="{x:Null}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BaseForeground}"/>
+        <Setter Property="Opacity" Value="1"/>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
   <Style TargetType="ToggleButton" x:Key="TabBar" BasedOn="{StaticResource ToggleButtonDefault}">
     <Setter Property="Background" Value="Transparent"/>
     <Setter Property="HorizontalAlignment" Value="Stretch"/>

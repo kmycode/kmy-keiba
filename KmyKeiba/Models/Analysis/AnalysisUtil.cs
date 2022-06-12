@@ -182,12 +182,14 @@ namespace KmyKeiba.Models.Analysis
 
     public static ValueComparation CompareValue(double value, double good, double bad, bool isReverse = false)
     {
-      var comp = value >= good ? ValueComparation.Good : value <= bad ? ValueComparation.Bad : ValueComparation.Standard;
       if (isReverse)
       {
-        comp = comp == ValueComparation.Good ? ValueComparation.Bad : comp == ValueComparation.Bad ? ValueComparation.Good : ValueComparation.Standard;
+        return value <= good ? ValueComparation.Good : value >= bad ? ValueComparation.Bad : ValueComparation.Standard;
       }
-      return comp;
+      else
+      {
+        return value >= good ? ValueComparation.Good : value <= bad ? ValueComparation.Bad : ValueComparation.Standard;
+      }
     }
 
     public static ValueComparation CompareValue(float value, float good, float bad)

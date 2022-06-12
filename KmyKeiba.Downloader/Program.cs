@@ -53,6 +53,8 @@ namespace KmyKeiba.Downloader
       logger.Info("ログレベル: All");
 #endif
 
+      Application.EnableVisualStyles();
+
       Console.WriteLine("\n\n\n============= Start Program ==============\n");
 
       if (args.FirstOrDefault() != "kill")

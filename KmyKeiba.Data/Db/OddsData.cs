@@ -15,69 +15,53 @@ namespace KmyKeiba.Data.Db
     [StringLength(20)]
     public string RaceKey { get; set; } = string.Empty;
     public DateTime Time { get; set; }
-    public short Odds1 { get; set; }
-    public short Odds2 { get; set; }
-    public short Odds3 { get; set; }
-    public short Odds4 { get; set; }
-    public short Odds5 { get; set; }
-    public short Odds6 { get; set; }
-    public short Odds7 { get; set; }
-    public short Odds8 { get; set; }
-    public short Odds9 { get; set; }
-    public short Odds10 { get; set; }
-    public short Odds11 { get; set; }
-    public short Odds12 { get; set; }
-    public short Odds13 { get; set; }
-    public short Odds14 { get; set; }
-    public short Odds15 { get; set; }
-    public short Odds16 { get; set; }
-    public short Odds17 { get; set; }
-    public short Odds18 { get; set; }
-    public short Odds19 { get; set; }
-    public short Odds20 { get; set; }
-    public short Odds21 { get; set; }
-    public short Odds22 { get; set; }
-    public short Odds23 { get; set; }
-    public short Odds24 { get; set; }
-    public short Odds25 { get; set; }
-    public short Odds26 { get; set; }
-    public short Odds27 { get; set; }
-    public short Odds28 { get; set; }
+    public byte[] SingleOddsRaw { get; set; } = Array.Empty<byte>();
+    public byte[] PlaceOddsRaw { get; set; } = Array.Empty<byte>();
+
+    private short[]? _singleOddsCache;
+
+    public short[] GetSingleOdds()
+    {
+      if (this._singleOddsCache == null)
+      {
+        var list = new short[this.SingleOddsRaw.Length / 2];
+        for (var i = 0; i < this.SingleOddsRaw.Length / 2; i++)
+        {
+          var odds = this.SingleOddsRaw[i * 2] << 8 | this.SingleOddsRaw[i * 2 + 1];
+          list[i] = (short)odds;
+        }
+        this._singleOddsCache = list;
+      }
+
+      return this._singleOddsCache;
+    }
+
+    private void SetOddsRaw(SingleAndDoubleWinOdds odds)
+    {
+      var entities = odds.Odds
+        .OrderBy(o => o.HorseNumber)
+        .ToArray();
+      var raw = new byte[entities.Length * 2];
+      var placeRaw = new byte[entities.Length * 4];
+      for (var i = 0; i < entities.Length; i++)
+      {
+        raw[i * 2] = (byte)(entities[i].Odds >> 8 & 255);
+        raw[i * 2 + 1] = (byte)(entities[i].Odds & 255);
+        placeRaw[i * 4] = (byte)(entities[i].PlaceOddsMax >> 8 & 255);
+        placeRaw[i * 4 + 1] = (byte)(entities[i].PlaceOddsMax & 255);
+        placeRaw[i * 4 + 2] = (byte)(entities[i].PlaceOddsMin >> 8 & 255);
+        placeRaw[i * 4 + 3] = (byte)(entities[i].PlaceOddsMin & 255);
+      }
+      this.SingleOddsRaw = raw;
+      this.PlaceOddsRaw = placeRaw;
+    }
 
     public override void SetEntity(SingleAndDoubleWinOdds race)
     {
       this.LastModified = race.LastModified;
       this.DataStatus = race.DataStatus;
       this.RaceKey = race.RaceKey;
-      this.Time = race.Time;
-      this.Odds1 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 1).Odds;
-      this.Odds2 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 2).Odds;
-      this.Odds3 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 3).Odds;
-      this.Odds4 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 4).Odds;
-      this.Odds5 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 5).Odds;
-      this.Odds6 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 6).Odds;
-      this.Odds7 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 7).Odds;
-      this.Odds8 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 8).Odds;
-      this.Odds9 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 9).Odds;
-      this.Odds10 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 10).Odds;
-      this.Odds11 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 11).Odds;
-      this.Odds12 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 12).Odds;
-      this.Odds13 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 13).Odds;
-      this.Odds14 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 14).Odds;
-      this.Odds15 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 15).Odds;
-      this.Odds16 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 16).Odds;
-      this.Odds17 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 17).Odds;
-      this.Odds18 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 18).Odds;
-      this.Odds19 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 19).Odds;
-      this.Odds20 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 20).Odds;
-      this.Odds21 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 21).Odds;
-      this.Odds22 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 22).Odds;
-      this.Odds23 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 23).Odds;
-      this.Odds24 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 24).Odds;
-      this.Odds25 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 25).Odds;
-      this.Odds26 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 26).Odds;
-      this.Odds27 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 27).Odds;
-      this.Odds28 = race.Odds.FirstOrDefault((r) => r.HorseNumber == 28).Odds;
+      this.Time = race.Time;this.SetOddsRaw(race);
     }
 
     public override bool IsEquals(DataBase<SingleAndDoubleWinOdds> b)

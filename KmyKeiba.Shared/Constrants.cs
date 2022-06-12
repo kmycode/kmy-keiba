@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
 
 namespace KmyKeiba.Shared
 {
@@ -29,6 +30,6 @@ namespace KmyKeiba.Shared
 
     public static readonly string RunningStyleTrainingFilePath = Path.Combine(AppDataDir, "runningstyle.mml");
 
-    public const string ApplicationVersion = "1.3.0";
+    public static readonly string ApplicationVersion = Assembly.GetExecutingAssembly().GetName().Version!.ToString();
   }
 }

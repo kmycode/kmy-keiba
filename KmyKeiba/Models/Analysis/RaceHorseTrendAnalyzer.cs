@@ -47,7 +47,7 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<ResultOrderGradeMap> OutsideFrameGrade { get; } = new();
 
-    public RaceHorseTrendAnalyzerBase(RaceData race, RaceHorseData horse)
+    public RaceHorseTrendAnalyzerBase(int sizeMax, RaceData race, RaceHorseData horse) : base(sizeMax)
     {
       this.Race = race;
       this.RaceHorse = horse;
@@ -113,12 +113,17 @@ namespace KmyKeiba.Models.Analysis
 
   public class RaceHorseTrendAnalyzer : RaceHorseTrendAnalyzerBase
   {
-    public RaceHorseTrendAnalyzer(RaceData race, RaceHorseData horse) : base(race, horse)
+    public RaceHorseTrendAnalyzer(int sizeMax, RaceData race, RaceHorseData horse) : base(sizeMax, race, horse)
     {
     }
 
     protected void SetTimeDeviationValueComparations(IReadOnlyList<RaceHorseAnalyzer> source, int level)
     {
+      if (source.Any(s => s.ResultTimeDVComparation != ValueComparation.Unknown))
+      {
+        return;
+      }
+
       // タイム偏差値に色を付ける
       var timeMax = source.Select(s => s.ResultTimeDeviationValue).OrderByDescending(s => s).ElementAtOrDefault(level) - 1;
       var timeMin = source.Select(s => s.ResultTimeDeviationValue).OrderBy(s => s).ElementAtOrDefault(level) + 1;
@@ -140,7 +145,7 @@ namespace KmyKeiba.Models.Analysis
 
   public class RaceHorseBloodTrendAnalyzer : RaceHorseTrendAnalyzer
   {
-    public RaceHorseBloodTrendAnalyzer(RaceData race, RaceHorseData horse) : base(race, horse)
+    public RaceHorseBloodTrendAnalyzer(int sizeMax, RaceData race, RaceHorseData horse) : base(sizeMax, race, horse)
     {
     }
 
