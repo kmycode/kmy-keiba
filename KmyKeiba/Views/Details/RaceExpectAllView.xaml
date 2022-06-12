@@ -230,13 +230,19 @@
                             <up:CourseSimpleImageView Race="{Binding Data}" HorizontalAlignment="Right"/>
                           </Border>
                           <TextBlock Text="{Binding Data.Distance}" FontSize="14" Width="36" TextAlignment="Right"/>
-                          <StackPanel Orientation="Horizontal" Visibility="{Binding TopHorse.Data.ResultOrder,Converter={StaticResource NonZeroVisibilityConv}}">
+                          <StackPanel Orientation="Horizontal" Visibility="{Binding IsRaceCanceled,Converter={StaticResource NegativeVisibilityConv}}">
                             <TextBlock Text="{Binding TopHorse.Data.ResultTime,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}" FontSize="16" Width="60"/>
                             <TextBlock Text="{Binding TopHorse.ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}" FontSize="16" Width="55"/>
                             <Border Width="60">
                               <up:RunningStyleTip RunningStyle="{Binding TopRunningStyle}" HorizontalAlignment="Right"/>
                             </Border>
                             <TextBlock Text="{Binding RoughRate,Converter={StaticResource StringFormatConv},ConverterParameter=F2}" FontSize="16" Width="70"/>
+                          </StackPanel>
+                          <StackPanel Orientation="Horizontal" Visibility="{Binding IsRaceCanceled,Converter={StaticResource BooleanVisibilityConv}}">
+                            <TextBlock Text="レース中止"
+                                       Foreground="{DynamicResource BadForeground}" FontSize="16" FontWeight="Bold"
+                                       Visibility="{Binding IsRaceCanceled,Converter={StaticResource BooleanVisibilityConv}}"
+                                       Margin="24,0,0,0"/>
                           </StackPanel>
 
                           <Popup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"

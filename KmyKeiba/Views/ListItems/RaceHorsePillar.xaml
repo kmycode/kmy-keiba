@@ -252,7 +252,13 @@
                                 </FrameworkElement.LayoutTransform>
                               </up:RunningStyleTip>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Visibility="{Binding IsAbnormalResult,Converter={StaticResource NegativeVisibilityConv}}">
+                            <StackPanel Orientation="Horizontal">
+                              <StackPanel.Visibility>
+                                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                                  <Binding Path="IsAbnormalResult" Converter="{StaticResource NegativeConv}"/>
+                                  <Binding Path="IsRaceCanceled" Converter="{StaticResource NegativeConv}"/>
+                                </MultiBinding>
+                              </StackPanel.Visibility>
                               <up:CornerResultTip CornerGrades="{Binding CornerGrades}" FontSize="12" WithResult="False" Width="90"
                                                   PartWidth="16" PartHeight="18" PartPadding="0"/>
                               <Border Width="22" Height="22" Background="{Binding ResultOrderComparationWithLastCorner,Converter={StaticResource ValueComparationBackgroundConv}}"
@@ -264,11 +270,16 @@
                                 </TextBlock>
                               </Border>
                               <TextBlock TextAlignment="Right" Width="40" FontSize="14" Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"
-                                         Foreground="{Binding ResultTimeDVComparation,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                                         Foreground="{Binding ResultTimeDVComparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                                         Visibility="{Binding ResultTimeDeviationValue,Converter={StaticResource NonZeroVisibilityConv}}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}">
                               <TextBlock FontSize="14" Foreground="{DynamicResource BadForeground}" FontWeight="Bold"
                                          Text="{Binding Data.AbnormalResult,Converter={StaticResource EnumsConv}}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding IsRaceCanceled,Converter={StaticResource BooleanVisibilityConv}}">
+                              <TextBlock FontSize="14" Foreground="{DynamicResource BadForeground}" FontWeight="Bold"
+                                         Text="レース中止"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
                               <up:CourseSimpleImageView Race="{Binding Race}"/>

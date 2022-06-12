@@ -200,6 +200,7 @@
                         <StackPanel.Visibility>
                           <MultiBinding Converter="{StaticResource MultiBooleanConv}">
                             <Binding Path="IsAbnormalResult" Converter="{StaticResource NegativeVisibilityConv}"/>
+                            <Binding Path="IsRaceCanceled" Converter="{StaticResource NegativeVisibilityConv}"/>
                             <Binding Path="Data.ResultOrder" Converter="{StaticResource NonZeroVisibilityConv}"/>
                           </MultiBinding>
                         </StackPanel.Visibility>
@@ -234,6 +235,10 @@
                       <TextBlock Text="{Binding Data.AbnormalResult,Converter={StaticResource EnumsConv}}"
                                  Foreground="{DynamicResource BadForeground}" FontSize="16" FontWeight="Bold"
                                  Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}"
+                                 Margin="24,0,0,0"/>
+                      <TextBlock Text="レース中止"
+                                 Foreground="{DynamicResource BadForeground}" FontSize="16" FontWeight="Bold"
+                                 Visibility="{Binding IsRaceCanceled,Converter={StaticResource BooleanVisibilityConv}}"
                                  Margin="24,0,0,0"/>
 
                       <Popup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"

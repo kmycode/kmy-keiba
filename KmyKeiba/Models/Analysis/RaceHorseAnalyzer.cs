@@ -72,6 +72,8 @@ namespace KmyKeiba.Models.Analysis
 
     public bool IsAbnormalResult => this.Data.AbnormalResult != RaceAbnormality.Unknown;
 
+    public bool IsRaceCanceled => this.Race.DataStatus == RaceDataStatus.Canceled;
+
     public TimeSpan UntilA3HResultTime { get; }
 
     public ValueComparation ResultTimeDVComparation { get; set; }

@@ -27,6 +27,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceSubjectInfo Subject { get; }
 
+    public bool IsRaceCanceled => this.Data.DataStatus == RaceDataStatus.Canceled;
+
     public RaceHorseData? TopHorseData => this.TopHorse.Data;
 
     public RaceHorseAnalyzer TopHorse { get; } = RaceHorseAnalyzer.Empty;
