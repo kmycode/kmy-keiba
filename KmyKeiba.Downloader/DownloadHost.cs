@@ -98,6 +98,7 @@ namespace KmyKeiba.Downloader
         catch
         {
           task.IsCanceled = true;
+          task.IsFinished = true;
           task.Error = DownloaderError.ApplicationRuntimeError;
           isSave = true;
           logger.Warn($"タスク {task.Id} は、担当プロセス {task.ProcessId} が見つからないのでキャンセルしました");
