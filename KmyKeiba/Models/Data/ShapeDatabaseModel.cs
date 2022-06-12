@@ -423,13 +423,22 @@ namespace KmyKeiba.Models.Data
       await db.TryBeginTransactionAsync();
       //await db.BeginTransactionAsync();
 
+      // 指定したKeyのレースが存在しない場合があるので、Joinで存在確認する
       var query = db.RaceHorses!
         .Where(rh => rh.ResultOrder > 0)
-        .Where(rh => rh.Key != "0000000000" && rh.Key != "" && rh.RaceKey != "" && rh.RiderCode != "00000");
-      progressMax.Value = await query.CountAsync(rh => !rh.IsContainsRiderWinRate);
+        .Where(rh => rh.Key != "0000000000" && rh.Key != "" && rh.RaceKey != "" && rh.RiderCode != "00000")
+        .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => rh);
 
       var today = DateOnly.FromDateTime(DateTime.Today);
-      var lastMonth = new DateOnly(today.Year, today.Month, 1).AddDays(-1);  // 先月末
+      var lastMonth = new DateOnly(today.Year, today.Month, 1).AddDays(-1);  // 先月末。今月のデータはとらない
+
+      // 今月のデータはとらないことに留意して、利用するデータの存在を確認する
+      var lastMonthStarts = lastMonth.AddDays(1).ToString("yyyyMM");
+      progressMax.Value = await query.CountAsync(rh => !rh.IsContainsRiderWinRate && !rh.RaceKey.StartsWith(lastMonthStarts));
+      if (progressMax.Value <= 0)
+      {
+        return;
+      }
 
       var distances = new short[] { 0, 1000, 1400, 1800, 2200, 2800, 10000, };
 
@@ -446,7 +455,7 @@ namespace KmyKeiba.Models.Data
               var yearAllTargets = query
                 .Where(rh => rh.RaceKey.StartsWith(yearStr) && !rh.IsContainsRiderWinRate);
 
-              if (yearAllTargets.Any())
+              if (await yearAllTargets.AnyAsync())
               {
                 break;
               }
@@ -462,10 +471,8 @@ namespace KmyKeiba.Models.Data
 
           var monthStr = month.ToString("yyyyMM");
 
-          // 指定したKeyのレースが存在しない場合があるので、Joinで存在確認する
           var allTargets = query
-            .Where(rh => rh.RaceKey.StartsWith(monthStr) && !rh.IsContainsRiderWinRate)
-            .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => rh);
+            .Where(rh => rh.RaceKey.StartsWith(monthStr) && !rh.IsContainsRiderWinRate);
           var allRiderCodes = allTargets
             .GroupBy(rh => rh.RiderCode)
             .Select(g => g.Key);
