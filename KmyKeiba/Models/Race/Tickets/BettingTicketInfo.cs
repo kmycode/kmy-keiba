@@ -729,7 +729,7 @@ namespace KmyKeiba.Models.Race.Tickets
 
       foreach (var ticket in targetTickets)
       {
-        if (ticket.IsAllRowsChecked.Value)
+        if (ticket.Rows.Count == 1 || ticket.IsAllRowsChecked.Value)
         {
           db.Tickets!.Attach(ticket.Data);
           ticket.Data.Count = count;
