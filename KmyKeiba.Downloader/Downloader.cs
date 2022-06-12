@@ -416,7 +416,7 @@ namespace KmyKeiba.Downloader
           {
             var now = DateTime.Now;
             var latestTimeline = oddsTImeline.Where(o => o.RaceKey == race.Key).OrderByDescending(o => o.Time).FirstOrDefault();
-            if (!(race.StartTime > now || latestTimeline == null || latestTimeline.Time < now.AddMinutes(-7)))
+            if (!(latestTimeline == null || (race.Course <= RaceCourse.CentralMaxValue ? latestTimeline.Time < race.StartTime : latestTimeline.Time < race.StartTime.AddMinutes(-1))))
             {
               continue;
             }

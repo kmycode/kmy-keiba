@@ -80,7 +80,7 @@
                       IsEnabled="{Binding Horse.IsOddsTimelineAvailable,ElementName=Root}" Name="OddsToggle">
           <ToggleButton.Template>
             <ControlTemplate>
-              <Grid Visibility="{Binding Horse.Data.Popular,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"
+              <Grid Visibility="{Binding Horse.Data.Odds,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"
                     Background="{TemplateBinding Background}">
                 <Grid.RowDefinitions>
                   <RowDefinition/>
@@ -92,7 +92,7 @@
                 </TextBlock>
                 <Popup IsOpen="{Binding IsChecked,ElementName=OddsToggle}" StaysOpen="False"
                        PlacementTarget="{Binding ElementName=OddsToggle}">
-                  <Border Background="{DynamicResource BaseBackground}" Width="296" Height="180"
+                  <Border Background="{DynamicResource BaseBackground}" Width="296" Height="206"
                           BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
                     <Grid>
                       <ItemsControl ItemsSource="{Binding Horse.OddsTimelineLatestItems,RelativeSource={RelativeSource AncestorType={x:Type local:RaceHorsePillar}}}" Margin="8,4">
@@ -104,7 +104,8 @@
                         <ItemsControl.ItemTemplate>
                           <DataTemplate>
                             <StackPanel Orientation="Horizontal" Width="140">
-                              <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="14" Width="60" TextAlignment="Right">
+                              <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="14" Width="60" TextAlignment="Right"
+                                         VerticalAlignment="Bottom">
                                 <Run Text="{Binding LeftTime.TotalMinutes,Mode=OneWay,Converter={StaticResource StringFormatConv},ConverterParameter=F0}"/>分前
                               </TextBlock>
                               <TextBlock Foreground="{Binding SingleOddsComparation,Converter={StaticResource ValueComparationForegroundConv}}" FontSize="16" Width="60" TextAlignment="Right"

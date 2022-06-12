@@ -18,15 +18,22 @@ namespace KmyKeiba.Data.Db
     public byte[] SingleOddsRaw { get; set; } = Array.Empty<byte>();
     public byte[] PlaceOddsRaw { get; set; } = Array.Empty<byte>();
 
+    private short[]? _singleOddsCache;
+
     public short[] GetSingleOdds()
     {
-      var list = new short[this.SingleOddsRaw.Length / 2];
-      for (var i = 0; i < this.SingleOddsRaw.Length / 2; i++)
+      if (this._singleOddsCache == null)
       {
-        var odds = this.SingleOddsRaw[i * 2] << 8 | this.SingleOddsRaw[i * 2 + 1];
-        list[i] = (short)odds;
+        var list = new short[this.SingleOddsRaw.Length / 2];
+        for (var i = 0; i < this.SingleOddsRaw.Length / 2; i++)
+        {
+          var odds = this.SingleOddsRaw[i * 2] << 8 | this.SingleOddsRaw[i * 2 + 1];
+          list[i] = (short)odds;
+        }
+        this._singleOddsCache = list;
       }
-      return list;
+
+      return this._singleOddsCache;
     }
 
     private void SetOddsRaw(SingleAndDoubleWinOdds odds)

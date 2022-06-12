@@ -21,6 +21,7 @@ namespace KmyKeiba.Downloader
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
     private readonly CompositeDisposable disposables = new();
+    private JVLinkDataspec _specs;
 
     public LoadProcessing Process { get; set; }
 
@@ -74,6 +75,7 @@ namespace KmyKeiba.Downloader
     private void StartLoad(JVLinkObject link, JVLinkDataspec dataspec, JVLinkOpenOption option, string? raceKey = null, IEnumerable<string>? loadSpecs = null)
     {
       this.ResetProgresses();
+      this._specs = dataspec;
 
       logger.Info($"ロードを開始します {link.Type}");
       logger.Info($"dataspec: {dataspec}");
@@ -712,18 +714,20 @@ namespace KmyKeiba.Downloader
       this.ProcessSize += data.SingleAndDoubleWinOdds.Count;
       this.Process = LoadProcessing.Processing;
 
-      // 単勝オッズを設定する
+      // 単勝オッズを設定する（時系列オッズでない場合）
+      if (!this._specs.HasFlag(JVLinkDataspec.RB41) && data.SingleAndDoubleWinOdds.Any())
       {
         var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.Value.RaceKey).ToArray();
         var oddsRaceHorses = await db.RaceHorses!
-          .Where((r) => oddsRaceKeys.Contains(r.RaceKey))
-          .ToArrayAsync();
+          .Where((r) => oddsRaceKeys.Contains(r.RaceKey) && r.DataStatus < RaceDataStatus.PreliminaryGrade3)
+          .ToListAsync();
 
         logger.Info($"単勝・複勝オッズの各馬への設定を開始します {data.SingleAndDoubleWinOdds.Count}");
-        foreach (var odds in data.SingleAndDoubleWinOdds)
+        foreach (var odds in data.SingleAndDoubleWinOdds.OrderByDescending(o => o.Value.Time))
         {
           var horses = oddsRaceHorses
-            .Where((h) => h.RaceKey == odds.Value.RaceKey);
+            .Where((h) => h.RaceKey == odds.Value.RaceKey)
+            .ToArray();
           foreach (var horse in horses)
           {
             var o = odds.Value.Odds.FirstOrDefault((oo) => oo.HorseNumber == horse.Number);
@@ -734,6 +738,12 @@ namespace KmyKeiba.Downloader
               horse.PlaceOddsMax = (short)o.PlaceOddsMax;
               horse.PlaceOddsMin = (short)o.PlaceOddsMin;
             }
+            oddsRaceHorses.Remove(horse);
+          }
+
+          if (!oddsRaceHorses.Any())
+          {
+            break;
           }
 
           this.Processed++;
@@ -756,6 +766,8 @@ namespace KmyKeiba.Downloader
         var today = DateTime.Today;
         var olds = db.RaceChanges!.Where(c => c.LastModified < today);
         db.RaceChanges!.RemoveRange(olds);
+        var olds2 = db.SingleOddsTimelines!.Where(t => t.Time < today);
+        db.SingleOddsTimelines!.RemoveRange(olds2);
         await db.SaveChangesAsync();
 
         async Task AddDataAsync(IEnumerable<RaceChangeData> data)

@@ -519,15 +519,22 @@ namespace KmyKeiba.Models.Analysis
 
     public void SetOddsTimeline(IEnumerable<SingleOddsTimeline> timeline)
     {
+      var prevTime = 60;
+
       foreach (var data in timeline.OrderBy(t => t.Time))
       {
         var odds = data.GetSingleOdds();
         var item = new OddsTimelineItem(this.Race, data, odds.ElementAtOrDefault(this.Data.Number - 1));
         this.OddsTimeline.Add(item);
 
-        if (data.Time >= this.Race.StartTime.AddMinutes(-60))
+        if (data.Time >= this.Race.StartTime.AddMinutes(-60) && data.Time <= this.Race.StartTime.AddMinutes(5))
         {
-          this.OddsTimelineLatestItems.Add(item);
+          if (item.LeftTime.Minutes <= prevTime ||
+            (this.Race.Course <= RaceCourse.CentralMaxValue && prevTime <= 10) || prevTime <= 4) // 地方競馬は１分に１回送ってくる
+          {
+            this.OddsTimelineLatestItems.Add(item);
+            prevTime -= 5;
+          }
         }
       }
 
@@ -537,7 +544,7 @@ namespace KmyKeiba.Models.Analysis
         var oddsMin = this.OddsTimelineLatestItems.OrderBy(o => o.Odds).ElementAtOrDefault(1)?.Odds ?? default;
         foreach (var item in this.OddsTimelineLatestItems)
         {
-          item.SingleOddsComparation = AnalysisUtil.CompareValue(item.Odds, oddsMax, oddsMin, true);
+          item.SingleOddsComparation = AnalysisUtil.CompareValue(item.Odds, oddsMin, oddsMax, true);
         }
       }
     }
