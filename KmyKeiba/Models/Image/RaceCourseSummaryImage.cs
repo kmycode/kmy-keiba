@@ -42,6 +42,12 @@ namespace KmyKeiba.Models.Image
         return;
       }
 
+      var cornerDirection = this.Race.TrackCornerDirection;
+      if (this.Race.Course == RaceCourse.ObihiroBannei)
+      {
+        cornerDirection = TrackCornerDirection.Straight;
+      }
+
       var bitmap = new SKBitmap((int)this.Width, (int)this.Height);
       using var canvas = new SKCanvas(bitmap);
 
@@ -156,7 +162,7 @@ namespace KmyKeiba.Models.Image
       {
         var point = CalcSlopPosition(x, y, width, height, pos);
 
-        if (this.Race?.TrackCornerDirection == TrackCornerDirection.Right)
+        if (cornerDirection == TrackCornerDirection.Left)
         {
           // 右回りで２・３コーナー間の直線の場合、矢印が進行方向と逆の順番になり紛らわしくなる
           if (pos == CoursePosition.First)
@@ -206,7 +212,7 @@ namespace KmyKeiba.Models.Image
       }
 
       var courseInfos = RaceCourses.TryGetCourses(this.Race);
-      if (this.Race.TrackCornerDirection != TrackCornerDirection.Straight)
+      if (cornerDirection != TrackCornerDirection.Straight)
       {
         DrawTrack(0, 0, this.Width, this.Height, outTrack);
 
@@ -272,7 +278,8 @@ namespace KmyKeiba.Models.Image
       var arrowTopBottomX = this.Width / 2 - 50;
       var arrowTopX = this.Width / 2 - 60;
       var arrowY = this.Height - strokeWidth * 8;
-      if (this.Race.TrackCornerDirection == TrackCornerDirection.Right)
+      if (cornerDirection == TrackCornerDirection.Left ||
+        (this.Race.Course == RaceCourse.Niigata && cornerDirection == TrackCornerDirection.Straight))
       {
         arrowTopBottomX = this.Width / 2 + 50;
         arrowTopX = this.Width / 2 + 60;
