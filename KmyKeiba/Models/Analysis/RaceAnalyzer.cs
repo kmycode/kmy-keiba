@@ -125,6 +125,7 @@ namespace KmyKeiba.Models.Analysis
 
       foreach (var raceData in sameRaceHorses
         .SelectMany(h => h.History?.BeforeRaces ?? Enumerable.Empty<RaceHorseAnalyzer>())
+        .Where(h => h.Race.DataStatus != RaceDataStatus.Canceled && !h.IsAbnormalResult)
         .GroupBy(history => history.Race.Key)
         .Where(h => h.ElementAtOrDefault(1) != null)
         .Take(20))
