@@ -202,11 +202,17 @@ namespace KmyKeiba.Models.Analysis
           var statistic = new StatisticSingleArray(targetRaces.Select(r => r.ResultTimeDeviationValue).Where(r => r != default).ToArray());
           var statistica3h = new StatisticSingleArray(targetRaces.Select(r => r.A3HResultTimeDeviationValue).Where(r => r != default).ToArray());
           var statisticau3h = new StatisticSingleArray(targetRaces.Select(r => r.UntilA3HResultTimeDeviationValue).Where(r => r != default).ToArray());
+          var date = new StatisticSingleArray(Enumerable.Range(1, targetRaces.Count()).Select(v => (double)v).ToArray());
+          var points = new StatisticDoubleArray(date, statistic);
+          var pointsa3h = new StatisticDoubleArray(date, statistica3h);
+          var pointsua3h = new StatisticDoubleArray(date, statisticau3h);
 
           //this.TimeDeviationValue = st.CalcRegressionValue((race.StartTime.Date - startTime).TotalDays);
-          this.TimeDeviationValue = statistic.Median;
-          this.A3HTimeDeviationValue = statistica3h.Median;
-          this.UntilA3HTimeDeviationValue = statisticau3h.Median;
+          var predictValue = 0;
+          var single = targetRaces.Count() == 1 ? targetRaces.First() : null;
+          this.TimeDeviationValue = single?.ResultTimeDeviationValue ?? points.CalcRegressionValue(predictValue);
+          this.A3HTimeDeviationValue = single?.A3HResultTimeDeviationValue ?? pointsa3h.CalcRegressionValue(predictValue);
+          this.UntilA3HTimeDeviationValue = single?.UntilA3HResultTimeDeviationValue ?? pointsua3h.CalcRegressionValue(predictValue);
           this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(targetRaces);
 
           this.RunningStyle = targetRaces
