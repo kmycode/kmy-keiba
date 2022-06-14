@@ -124,7 +124,8 @@
             </Button>
 
             <Button Grid.Column="3" Width="80" Height="50" FontSize="24" Padding="0" Content="Ver"
-                    Command="{Binding OpenVersionDialogCommand}" Margin="0,0,8,0"/>
+                    Command="{Binding OpenVersionDialogCommand}" Margin="0,0,8,0"
+                    Foreground="{Binding Update.UpdatingFeeling.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
           </Grid>
         </Border>
       </Grid>
