@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
              d:DesignHeight="550" d:DesignWidth="800">
-  <Grid Width="600" Height="520" Background="{DynamicResource BaseBackground}">
+  <Grid Width="600" Height="580" Background="{DynamicResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="auto"/>
@@ -49,8 +49,8 @@
           <Run Text="{Binding Downloader.RTDownloadingLink.Value,Converter={StaticResource LabelConv}}"/> <Run Text="{Binding Downloader.RTLoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
         </TextBlock>
         <TextBlock Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16" FontSize="20" TextAlignment="Center"
-                   Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}">
-          <Run Text="{Binding Downloader.ProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
+                   Visibility="{Binding Downloader.IsRTProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <Run Text="{Binding Downloader.RTProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
         </TextBlock>
         <up:MyProgressBar>
           <up:MyProgressBar.RenderTransform>
