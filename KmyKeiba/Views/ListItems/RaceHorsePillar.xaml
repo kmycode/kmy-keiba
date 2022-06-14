@@ -58,18 +58,27 @@
 
         <TextBlock Grid.Column="0" FontSize="20" TextAlignment="Center" Width="24"
                     Text="{Binding Horse.Data.Number,ElementName=Root}"/>
-        <Grid Grid.Column="1" Margin="16,0,0,0" Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
+        <Grid Grid.Column="1" Margin="16,0,0,0">
           <ToggleButton Name="HorseDetailParent" Style="{StaticResource ListItemToggle}">
             <ToggleButton.Template>
               <ControlTemplate>
-                <Border Background="{TemplateBinding Background}" Width="180">
-                  <StackPanel Orientation="Horizontal">
-                    <TextBlock FontSize="24" FontWeight="Bold" TextAlignment="Left" VerticalAlignment="Center"
-                               Text="{Binding Horse.Data.Name,ElementName=Root}"/>
-                    <Ellipse Width="8" Height="8" Fill="{DynamicResource NoticeForeground}" Margin="4,0,0,0" VerticalAlignment="Center"
-                             Visibility="{Binding Horse.Memo.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"/>
+                <Grid Background="{TemplateBinding Background}" Width="180">
+                  <StackPanel VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                      <TextBlock FontSize="24" FontWeight="Bold" TextAlignment="Left" VerticalAlignment="Center"
+                                 Text="{Binding Horse.Data.Name,ElementName=Root}"
+                                 Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+                      <TextBlock FontSize="24" FontWeight="Bold" TextAlignment="Left" VerticalAlignment="Center"
+                                 Text="{Binding Horse.Data.Name,ElementName=Root}" Foreground="{DynamicResource SubForeground}"
+                                 Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+                      <Ellipse Width="8" Height="8" Fill="{DynamicResource NoticeForeground}" Margin="4,0,0,0" VerticalAlignment="Center"
+                               Visibility="{Binding Horse.Memo.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"/>
+                    </StackPanel>
+                    <TextBlock FontSize="16" Text="{Binding Horse.Data.AbnormalResult,ElementName=Root,Converter={StaticResource EnumsConv}}"
+                               Foreground="{DynamicResource BadForeground}" FontWeight="Bold"
+                               Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </StackPanel>
-                </Border>
+                </Grid>
               </ControlTemplate>
             </ToggleButton.Template>
           </ToggleButton>
@@ -84,18 +93,17 @@
                 </Grid.RowDefinitions>
                 <TextBox Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
                          FontSize="16" Margin="4" Text="{Binding Horse.Memo.Value,ElementName=Root,Mode=TwoWay}"
-                         AcceptsReturn="True"/>
+                         AcceptsReturn="True">
+                  <TextBox.IsReadOnly>
+                    <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+                      <Binding Path="Horse.CanSave.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                      <Binding Path="Horse.IsMemoSaving.Value" ElementName="Root"/>
+                    </MultiBinding>
+                  </TextBox.IsReadOnly>
+                </TextBox>
               </Grid>
             </Border>
           </Popup>
-        </Grid>
-        <Grid Grid.Column="1" Margin="16,0,0,0" Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
-          <StackPanel VerticalAlignment="Center">
-            <TextBlock FontSize="24" FontWeight="Bold" Width="180" TextAlignment="Left"
-                       Text="{Binding Horse.Data.Name,ElementName=Root}" Foreground="{DynamicResource SubForeground}"/>
-            <TextBlock FontSize="16" Text="{Binding Horse.Data.AbnormalResult,ElementName=Root,Converter={StaticResource EnumsConv}}"
-                       Foreground="{DynamicResource BadForeground}" FontWeight="Bold"/>
-          </StackPanel>
         </Grid>
         <Grid Grid.Column="2" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
           <ContentControl Template="{Binding Horse.Mark.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource HorseMarkConv}}" RenderTransform="{StaticResource MarkTransform}"/>

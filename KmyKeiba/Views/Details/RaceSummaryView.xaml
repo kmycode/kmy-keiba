@@ -130,8 +130,14 @@
       <TextBox Grid.Row="2" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
                TextWrapping="Wrap" AcceptsReturn="True" Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
                FontSize="16" MinHeight="200" MaxHeight="200" Width="800" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto"
-               IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}" Margin="0,32,0,16"
-               Text="{Binding Race.RaceAnalyzer.Value.Memo.Value,ElementName=Root,Mode=TwoWay}"/>
+               Margin="0,32,0,16" Text="{Binding Race.RaceAnalyzer.Value.Memo.Value,ElementName=Root,Mode=TwoWay}">
+        <TextBox.IsReadOnly>
+          <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+            <Binding Path="Race.RaceAnalyzer.Value.CanSave.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+            <Binding Path="Race.RaceAnalyzer.Value.IsMemoSaving.Value" ElementName="Root"/>
+          </MultiBinding>
+        </TextBox.IsReadOnly>
+      </TextBox>
 
       <!--ローディング-->
       <Border Grid.Row="2" Margin="0,56,0,0" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">

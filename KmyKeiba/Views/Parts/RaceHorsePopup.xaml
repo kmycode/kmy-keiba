@@ -36,7 +36,7 @@
           <TextBox.IsReadOnly>
             <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
               <Binding Path="Horse.CanSave.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
-              <Binding Path="Horse.IsMemoSaving.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="Horse.IsMemoSaving.Value" ElementName="Root"/>
             </MultiBinding>
           </TextBox.IsReadOnly>
         </TextBox>
