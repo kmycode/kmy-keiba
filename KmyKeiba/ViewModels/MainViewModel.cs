@@ -157,6 +157,11 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Unknown);
     private ReactiveCommand? _closeDialogCommand;
 
+    public ICommand UpdateRtDataForceCommand =>
+      this._updateRtDataForceCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.downloader.UpdateRtDataForce());
+    private ReactiveCommand? _updateRtDataForceCommand;
+
     public ICommand BuyCommand =>
       this._buyCommand ??=
         new AsyncReactiveCommand<object>().WithSubscribe(_ => this.Race.Value?.BuyAsync() ?? Task.CompletedTask);

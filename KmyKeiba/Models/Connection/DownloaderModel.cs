@@ -21,6 +21,7 @@ namespace KmyKeiba.Models.Connection
     public static DownloaderModel Instance => _instance ??= new();
     private static DownloaderModel? _instance;
 
+    private bool _isUpdateRtForce = false;
     private readonly CompositeDisposable _disposables = new();
     private readonly DownloaderConnector _downloader = DownloaderConnector.Instance;
     public ReactiveProperty<bool> IsCancelProcessing { get; } = new();
@@ -114,6 +115,10 @@ namespace KmyKeiba.Models.Connection
     public ReactiveProperty<StatusFeeling> DownloadingStatus { get; }
 
     public ReactiveProperty<StatusFeeling> RTDownloadingStatus { get; }
+
+    public ReactiveProperty<int> NextRTUpdateSeconds { get; } = new();
+
+    public ReactiveProperty<bool> IsWaitingNextRTUpdate { get; } = new();
 
     private DownloaderModel()
     {
@@ -465,12 +470,19 @@ namespace KmyKeiba.Models.Connection
           {
             logger.Error("最新情報ダウンロード中にエラーが発生しました", ex);
           }
+          finally
+          {
+            this._isUpdateRtForce = false;
+          }
 
-          while ((DateTime.Now - now).TotalMinutes < 5)
+          this.IsWaitingNextRTUpdate.Value = true;
+          while ((DateTime.Now - now).TotalMinutes < 5 && !this._isUpdateRtForce)
           {
             // ５分に１回ずつ更新する
+            this.NextRTUpdateSeconds.Value = 60 * 5 - (int)(DateTime.Now - now).TotalSeconds;
             await Task.Delay(1000);
           }
+          this.IsWaitingNextRTUpdate.Value = false;
         }
       });
     }
@@ -860,6 +872,11 @@ namespace KmyKeiba.Models.Connection
         this.IsError.Value = true;
         this.ErrorMessage.Value = ex.Message;
       }
+    }
+
+    public void UpdateRtDataForce()
+    {
+      this._isUpdateRtForce = true;
     }
 
     public void Dispose()
