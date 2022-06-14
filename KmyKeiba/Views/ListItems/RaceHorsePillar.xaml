@@ -83,7 +83,8 @@
                   <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <TextBox Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
-                         FontSize="16" Margin="4" Text="{Binding Horse.Memo.Value,ElementName=Root,Mode=TwoWay}"/>
+                         FontSize="16" Margin="4" Text="{Binding Horse.Memo.Value,ElementName=Root,Mode=TwoWay}"
+                         AcceptsReturn="True"/>
               </Grid>
             </Border>
           </Popup>

@@ -32,7 +32,8 @@
       <TextBlock Grid.Column="1" FontSize="18" Margin="4,8,4,4" Text="{Binding Horse.Data.Name,ElementName=Root}" TextAlignment="Left" Foreground="{DynamicResource BaseForeground}"/>
       <ScrollViewer Grid.Column="1" Grid.Row="1" Margin="8,4,4,0">
         <TextBox Background="{DynamicResource BaseBackground}" Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource BaseForeground}"
-                 IsReadOnly="{Binding Horse.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+                 IsReadOnly="{Binding Horse.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"
+                 AcceptsReturn="True"/>
       </ScrollViewer>
       <Button Grid.Column="1" Grid.Row="2" Margin="8,4,4,4" Content="詳細" Command="{Binding Horse.OpenRaceWindowCommand,ElementName=Root}"
               CommandParameter="{Binding Horse.Race.Key,ElementName=Root}"/>
