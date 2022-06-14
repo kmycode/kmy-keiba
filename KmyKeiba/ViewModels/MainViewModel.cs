@@ -42,6 +42,8 @@ namespace KmyKeiba.ViewModels
 
     public string FirstMessage => this.model.FirstMessage;
 
+    public UpdateChecker Update { get; } = new();
+
     public OpenDialogRequest Dialog { get; } = new();
 
     public ReactiveProperty<DialogType> CurrentDialog { get; } = new();
@@ -94,6 +96,8 @@ namespace KmyKeiba.ViewModels
           logger.Debug("初めての利用のようです。初期画面を表示します");
           this.CurrentDialog.Value = DialogType.Download;
         }
+
+        await this.Update.CheckAsync();
       });
 
       logger.Debug("ビューモデルの初期化完了");
