@@ -15,6 +15,7 @@
   <i:Interaction.Behaviors>
     <b:OpenDialogBehavior Controller="{Binding Dialog}"/>
     <b:OpenRaceWindowBehavior Controller="{Binding RaceWindow}"/>
+    <b:OpenErrorSavingMemoDialogBehavior Controller="{Binding ErrorSavingMemo}"/>
   </i:Interaction.Behaviors>
   <Grid Style="{DynamicResource WindowTopPanel}">
     <Grid>
@@ -157,6 +158,12 @@
               Background="{DynamicResource BaseBackground}"
               Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=Version}">
         <ud:VersionDialog/>
+      </Border>
+      <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="2"
+              Padding="24,8" HorizontalAlignment="Center" VerticalAlignment="Center"
+              Background="{DynamicResource BaseBackground}"
+              Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=ErrorSavingMemo}">
+        <ud:ErrorSavingMemoDialog/>
       </Border>
       <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="2"
               Padding="24,8" Margin="48,60"

@@ -22,6 +22,8 @@ namespace KmyKeiba.Models.Analysis
 {
   public class RaceHorseAnalyzer : IDisposable
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private static ITimeDeviationValueCalculator? _timeDeviationValueCalculator = InjectionManager.GetInstance<ITimeDeviationValueCalculator>(InjectionManager.TimeDeviationValueCalculator);
 
     public static RaceHorseAnalyzer Empty { get; } = new(new RaceData(), new RaceHorseData());
@@ -325,7 +327,6 @@ namespace KmyKeiba.Models.Analysis
       this.Data = horse;
       this.Subject = new RaceSubjectInfo(race);
       this.Mark.Value = horse.Mark;
-      this.Memo.Value = horse.Memo ?? string.Empty;
       this.ResultTimePerMeter = (double)horse.ResultTime.TotalSeconds / race.Distance;
       this.ResultOrderComparation = horse.ResultOrder >= 1 && horse.ResultOrder <= 3 ? ValueComparation.Good :
         horse.ResultOrder >= 8 || horse.ResultOrder >= race.HorsesCount * 0.7f ? ValueComparation.Bad : ValueComparation.Standard;
@@ -334,23 +335,12 @@ namespace KmyKeiba.Models.Analysis
         this.UntilA3HResultTime = horse.ResultTime - horse.AfterThirdHalongTime;
       }
 
-      this.Memo.Skip(1).Subscribe(async m =>
+      this.Memo.Value = horse.Memo ?? string.Empty;
+      AnalysisUtil.SetMemoEvents(() => this.Data.Memo ?? string.Empty, (db, m) =>
       {
-        if (this.IsMemoSaving.Value)
-        {
-          return;
-        }
-
-        this.IsMemoSaving.Value = true;
-
-        using var db = new MyContext();
         db.RaceHorses!.Attach(this.Data);
         this.Data.Memo = m;
-
-        await db.SaveChangesAsync();
-
-        this.IsMemoSaving.Value = false;
-      }).AddTo(this._disposables);
+      }, this.Memo, this.IsMemoSaving).AddTo(this._disposables);
 
       // コーナーの成績
       static CornerGradeType GetCornerGradeType(short order, short beforeOrder)

@@ -50,6 +50,10 @@ namespace KmyKeiba.ViewModels
 
     public OpenRaceRequest RaceWindow => OpenRaceRequest.Default;
 
+    public OpenErrorSavingMemoRequest ErrorSavingMemo => OpenErrorSavingMemoRequest.Default;
+
+    public ReactiveProperty<string> ErrorSavingMemoText { get; } = new();
+
     public string VersionNumber => Constrants.ApplicationVersion;
 
     public MainViewModel()
@@ -231,5 +235,6 @@ namespace KmyKeiba.ViewModels
     RTDownload,
     ScriptBulk,
     Version,
+    ErrorSavingMemo,
   }
 }

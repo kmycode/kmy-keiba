@@ -28,11 +28,17 @@ namespace KmyKeiba.Models.Data
       optionsBuilder.UseSqlite(this.ConnectionString);
     }
 
-    public async Task<int> SaveChangesAsync()
+    public async Task<int> SaveChangesAsync(int timeout = 0)
     {
       var isSucceed = false;
       var result = 0;
       var tryCount = 0;
+
+      if (timeout == 0)
+      {
+        timeout = 1000 * 20 * 60;
+      }
+
       while (!isSucceed)
       {
         try
@@ -44,8 +50,8 @@ namespace KmyKeiba.Models.Data
         {
           logger.Warn("保存でエラー", ex);
 
-          tryCount++;
-          if (tryCount > 10 * 20 * 60)
+          tryCount += 100;
+          if (tryCount > timeout)
           {
             logger.Error("保存に失敗しました");
             throw ex;

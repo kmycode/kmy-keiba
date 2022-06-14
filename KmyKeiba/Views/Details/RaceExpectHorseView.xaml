@@ -175,7 +175,14 @@
           <TextBlock Text="メモ" FontWeight="Bold" FontSize="24" Margin="8,24,0,8"/>
           <TextBox TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" MinHeight="100" Margin="16,0"
                    Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}" FontSize="16"
-                   Text="{Binding RaceHorse.Memo.Value,ElementName=Root}" IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}"/>
+                   Text="{Binding RaceHorse.Memo.Value,ElementName=Root}">
+            <TextBox.IsReadOnly>
+              <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+                <Binding Path="CanSave.Value" Converter="{StaticResource NegativeConv}"/>
+                <Binding Path="RaceHorse.IsMemoSaving.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+              </MultiBinding>
+            </TextBox.IsReadOnly>
+          </TextBox>
         </StackPanel>
       </ScrollViewer>
     </Grid>

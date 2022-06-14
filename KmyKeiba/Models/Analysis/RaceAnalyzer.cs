@@ -80,23 +80,11 @@ namespace KmyKeiba.Models.Analysis
       this.TopRunningStyle = this.RunningStyles.FirstOrDefault();
 
       this.Memo.Value = race.Memo ?? string.Empty;
-      this.Memo.Skip(1).Subscribe(async m =>
+      AnalysisUtil.SetMemoEvents(() => this.Data.Memo ?? string.Empty, (db, m) =>
       {
-        if (this.IsMemoSaving.Value)
-        {
-          return;
-        }
-
-        this.IsMemoSaving.Value = true;
-
-        using var db = new MyContext();
         db.Races!.Attach(this.Data);
         this.Data.Memo = m;
-
-        await db.SaveChangesAsync();
-
-        this.IsMemoSaving.Value = false;
-      }).AddTo(this._disposables);
+      }, this.Memo, this.IsMemoSaving).AddTo(this._disposables);
 
       this.RoughRate = AnalysisUtil.CalcRoughRate(topHorses);
 
