@@ -65,6 +65,10 @@ namespace KmyKeiba.Models.Analysis
       [Label("間隔")]
       [ScriptParameterKey("interval")]
       NearInterval,
+
+      [Label("騎手")]
+      [ScriptParameterKey("rider")]
+      SameRider,
     }
 
     private IReadOnlyList<RaceHorseAnalyzer>? _allRaces;
@@ -179,6 +183,10 @@ namespace KmyKeiba.Models.Analysis
       {
         var (min, max) = AnalysisUtil.GetIntervalRange(this.RaceHorse.PreviousRaceDays);
         query = query.Where(r => r.Data.PreviousRaceDays >= min && r.Data.PreviousRaceDays <= max);
+      }
+      if (keys.Contains(Key.SameRider))
+      {
+        query = query.Where(r => r.Data.RiderCode == this.RaceHorse.RiderCode);
       }
 
       analyzer.SetSource(query);

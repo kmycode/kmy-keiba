@@ -28,6 +28,10 @@
         <Button Content="パトロール" Command="{Binding Race.PlayPatrolCommand,ElementName=Root}"/>
         <Button Content="マルチカメラ" Command="{Binding Race.PlayMultiCamerasCommand,ElementName=Root}"/>
       </StackPanel>
+      <ScrollViewer Grid.Column="1" Grid.Row="1" Margin="8,4,4,0">
+        <TextBox Background="{DynamicResource BaseBackground}" Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource BaseForeground}"
+                 IsReadOnly="{Binding Race.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+      </ScrollViewer>
       <Button Grid.Column="1" Grid.Row="2" Margin="8,4,4,4" Content="詳細" Command="{Binding Race.OpenRaceWindowCommand,ElementName=Root}"
               CommandParameter="{Binding Race.Data.Key,ElementName=Root}"/>
     </Grid>

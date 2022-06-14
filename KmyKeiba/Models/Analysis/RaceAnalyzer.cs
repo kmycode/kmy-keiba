@@ -58,6 +58,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<bool> IsMemoSaving { get; } = new();
 
+    public ReactiveProperty<bool> CanSave => DownloaderModel.Instance.CanSaveOthers;
+
     public ReactiveCollection<RaceHorseMatchResult> Matches { get; } = new();
 
     public RaceMovieInfo Movie => this._movie ??= new(this.Data);
