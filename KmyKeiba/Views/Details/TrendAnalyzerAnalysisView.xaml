@@ -249,10 +249,10 @@
                                  Visibility="{Binding IsRaceCanceled,Converter={StaticResource BooleanVisibilityConv}}"
                                  Margin="24,0,0,0"/>
 
-                      <Popup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
-                             StaysOpen="False">
+                      <up:ImePopup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
+                                   StaysOpen="False">
                         <up:RaceHorsePopup Horse="{Binding}"/>
-                      </Popup>
+                      </up:ImePopup>
                     </StackPanel>
                   </Border>
                 </ControlTemplate>

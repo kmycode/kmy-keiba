@@ -253,10 +253,10 @@
                                        Margin="24,0,0,0"/>
                           </StackPanel>
 
-                          <Popup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
-                                 StaysOpen="False">
+                          <up:ImePopup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
+                                       StaysOpen="False">
                             <up:RacePopup Race="{Binding}"/>
-                          </Popup>
+                          </up:ImePopup>
                         </StackPanel>
                       </Border>
                     </ControlTemplate>
@@ -418,10 +418,10 @@
                             </Grid>
                           </Border>
 
-                          <Popup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
-                                  StaysOpen="False">
+                          <up:ImePopup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
+                                       StaysOpen="False">
                             <up:RacePopup Race="{Binding RaceAnalyzer}"/>
-                          </Popup>
+                          </up:ImePopup>
                         </Grid>
                       </ControlTemplate>
                     </ToggleButton.Template>
