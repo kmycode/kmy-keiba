@@ -25,28 +25,31 @@ namespace KmyKeiba.Views.Main
     {
       InitializeComponent();
 
-      this.LayoutUpdated += (sender, e) =>
-      {
-        try
-        {
-          this.GetWindow().StateChanged += (sender, e) =>
-          {
-            var state = ((Window)sender!).WindowState;
-            if (state == WindowState.Maximized)
-            {
-              this.MaximumButton.Visibility = Visibility.Collapsed;
-              this.NormalButton.Visibility = Visibility.Visible;
-            }
-            else if (state == WindowState.Normal)
-            {
-              this.MaximumButton.Visibility = Visibility.Visible;
-              this.NormalButton.Visibility = Visibility.Collapsed;
-            }
-          };
-        }
-        catch { }
-      };
+      this.LayoutUpdated += this.WindowMenu_LayoutUpdated;
       this.NormalButton.Visibility = Visibility.Collapsed;
+    }
+
+    private void WindowMenu_LayoutUpdated(object? sender, EventArgs e)
+    {
+      try
+      {
+        this.GetWindow().StateChanged += (sender, e) =>
+        {
+          var state = ((Window)sender!).WindowState;
+          if (state == WindowState.Maximized)
+          {
+            this.MaximumButton.Visibility = Visibility.Collapsed;
+            this.NormalButton.Visibility = Visibility.Visible;
+          }
+          else if (state == WindowState.Normal)
+          {
+            this.MaximumButton.Visibility = Visibility.Visible;
+            this.NormalButton.Visibility = Visibility.Collapsed;
+          }
+        };
+        this.LayoutUpdated -= this.WindowMenu_LayoutUpdated;
+      }
+      catch { }
     }
 
     private void CloseButton_Click(object sender, RoutedEventArgs e)
