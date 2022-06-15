@@ -29,7 +29,7 @@
         <Button Content="マルチカメラ" Command="{Binding Race.PlayMultiCamerasCommand,ElementName=Root}"/>
       </StackPanel>
       <ScrollViewer Grid.Column="1" Grid.Row="1" Margin="8,4,4,0">
-        <TextBox Background="{DynamicResource BaseBackground}" Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource BaseForeground}"
+        <TextBox Background="{DynamicResource BaseBackground}" Text="{Binding Race.Memo.Value,ElementName=Root,Mode=TwoWay}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource BaseForeground}"
                  AcceptsReturn="True">
           <TextBox.IsReadOnly>
             <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
