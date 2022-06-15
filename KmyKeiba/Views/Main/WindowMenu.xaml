@@ -79,7 +79,7 @@
         </ControlTemplate>
       </Button.Template>
     </Button>
-    <Button Width="72" Cursor="Hand" WindowChrome.IsHitTestVisibleInChrome="True"
+    <Button Width="72" Height="48" VerticalAlignment="Top" Cursor="Hand" WindowChrome.IsHitTestVisibleInChrome="True"
             Click="CloseButton_Click">
       <Button.Style>
         <Style TargetType="Button">
