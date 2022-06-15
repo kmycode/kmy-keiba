@@ -23,7 +23,7 @@
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition Width="auto"/>
       </Grid.ColumnDefinitions>
-      <Button Content="＜" Command="{Binding MoveToPrevDayCommand}"/>
+      <Button Content="＜" Command="{Binding MoveToPrevDayCommand}" WindowChrome.IsHitTestVisibleInChrome="True"/>
       <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Center">
         <StackPanel VerticalAlignment="Center">
           <TextBlock FontSize="22" Text="{Binding RaceList.Date.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
@@ -34,13 +34,14 @@
             </TextBlock>
           </Border>
         </StackPanel>
-        <ToggleButton Grid.Column="2" Name="CalendarButton" Width="50" Height="30" Content="選択" Padding="0" Margin="8,0,8,0" FontSize="16"/>
+        <ToggleButton Grid.Column="2" Name="CalendarButton" Width="50" Height="30" Content="選択" Padding="0" Margin="8,0,8,0" FontSize="16"
+                      WindowChrome.IsHitTestVisibleInChrome="True"/>
         <Popup PlacementTarget="{Binding ElementName=CalendarButton}" Placement="Bottom" IsOpen="{Binding IsChecked,ElementName=CalendarButton}"
                StaysOpen="False">
           <Calendar SelectedDate="{Binding RaceList.Date.Value,Mode=TwoWay,ElementName=Root}"/>
         </Popup>
       </StackPanel>
-      <Button Content="＞" Grid.Column="3" Command="{Binding MoveToNextDayCommand}"/>
+      <Button Content="＞" Grid.Column="3" Command="{Binding MoveToNextDayCommand}" WindowChrome.IsHitTestVisibleInChrome="True"/>
     </Grid>
     
     <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto">

@@ -4,12 +4,17 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:uc="clr-namespace:KmyKeiba.Views.Details"
+        xmlns:um="clr-namespace:KmyKeiba.Views.Main"
         xmlns:local="clr-namespace:KmyKeiba.Views.Main"
-        mc:Ignorable="d"
+        mc:Ignorable="d" Style="{StaticResource DefaultWindowStyle}"
         Title="{Binding Race.Value.Subject.DisplayName}" Height="800" Width="1400">
-  <Grid Style="{DynamicResource WindowTopPanel}">
-    <uc:RaceView Race="{Binding Race.Value}" Visibility="{Binding Race.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
-    <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center"
-               Text="レースが読み込めませんでした" Visibility="{Binding IsModelError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-  </Grid>
+  <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
+    <Grid Style="{DynamicResource WindowTopPanel}">
+      <uc:RaceView Race="{Binding Race.Value}" Visibility="{Binding Race.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
+      <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Text="レースが読み込めませんでした" Visibility="{Binding IsModelError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+
+      <um:WindowMenu HorizontalAlignment="Right" VerticalAlignment="Top"/>
+    </Grid>
+  </Border>
 </Window>

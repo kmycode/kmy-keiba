@@ -25,7 +25,7 @@
         </TextBlock>
         <TextBlock FontSize="36" Margin="0,16,0,8">Ver. <Run Text="{Binding VersionNumber,Mode=OneTime}"/></TextBlock>
         <TextBlock FontSize="16" Margin="0,0,0,4" Visibility="{Binding Update.IsCheckError.Value,Converter={StaticResource BooleanVisibilityConv}}" Foreground="{DynamicResource ErrorForeground}">バージョンチェック中にエラーが発生しました</TextBlock>
-        <TextBlock FontSize="16" Margin="0,0,0,32" Visibility="{Binding Update.CanUpdate.Value,Converter={StaticResource NegativeVisibilityConv}}">このバージョンは最新です</TextBlock>
+        <TextBlock FontSize="16" Margin="0,0,0,32" Foreground="{DynamicResource SubForeground}" Visibility="{Binding Update.CanUpdate.Value,Converter={StaticResource NegativeVisibilityConv}}">このバージョンは最新です</TextBlock>
         <TextBlock FontSize="16" Margin="0,0,0,32" Visibility="{Binding Update.CanUpdate.Value,Converter={StaticResource BooleanVisibilityConv}}" Foreground="{DynamicResource WarningForeground}">
           最新バージョン <Run Text="{Binding Update.NewestVersionName.Value}"/> が利用可能です　<Hyperlink NavigateUri="https://github.com/kmycode/kmy-keiba/releases" RequestNavigate="Hyperlink_RequestNavigate" Foreground="{DynamicResource BaseForeground}">ダウンロード</Hyperlink>
         </TextBlock>

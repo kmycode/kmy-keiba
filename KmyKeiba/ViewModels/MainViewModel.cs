@@ -56,8 +56,6 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<string> ErrorSavingMemoText { get; } = new();
 
-    public string VersionNumber => Constrants.ApplicationVersion;
-
     public MainViewModel()
     {
       logger.Debug("アプリ関係オブジェクトの生成開始");
