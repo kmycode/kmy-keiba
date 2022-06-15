@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KmyKeiba.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -38,6 +39,32 @@ namespace KmyKeiba.Views.Parts
           SetActiveWindow(hwndSource.Handle);
         }
       }
+    }
+
+    public ImePopup()
+    {
+      this.Opened += this.ImePopup_Opened;
+    }
+
+    private void ImePopup_Opened(object? sender, EventArgs e)
+    {
+      this.Opened -= this.ImePopup_Opened;
+      this.Closed += this.ImePopup_Closed;
+
+      OpenRaceRequest.Default.Requested += this.Default_Requested;
+    }
+
+    private void Default_Requested(object? sender, OpenRaceRequestEventArgs e)
+    {
+      this.IsOpen = false;
+    }
+
+    private void ImePopup_Closed(object? sender, EventArgs e)
+    {
+      this.Opened += this.ImePopup_Opened;
+      this.Closed -= this.ImePopup_Closed;
+
+      OpenRaceRequest.Default.Requested -= this.Default_Requested;
     }
   }
 }
