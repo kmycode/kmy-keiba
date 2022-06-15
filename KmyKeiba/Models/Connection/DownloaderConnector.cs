@@ -152,6 +152,11 @@ namespace KmyKeiba.Models.Connection
             throw new NullReferenceException();
           }
         }
+        catch (NullReferenceException ex)
+        {
+          logger.Error($"タスク {taskDataId} が検出できませんでした", ex);
+          throw new DownloaderCommandException(DownloaderError.ApplicationRuntimeError);
+        }
         catch (Exception ex)
         {
           logger.Warn($"タスク {taskDataId} の待ち処理で例外が発生しました", ex);
@@ -315,9 +320,11 @@ namespace KmyKeiba.Models.Connection
 
     private async Task PublishTaskAsync(DownloaderTaskData task, Func<DownloaderTaskData, Task>? progressing = null)
     {
-      using var db = new MyContext();
-      await db.DownloaderTasks!.AddAsync(task);
-      await db.SaveChangesAsync();
+      using (var db = new MyContext())
+      {
+        await db.DownloaderTasks!.AddAsync(task);
+        await db.SaveChangesAsync();
+      }
 
       logger.Info($"タスク発行 ID: {task.Id}, コマンド: {task.Command}, パラメータ: {task.Parameter}");
 

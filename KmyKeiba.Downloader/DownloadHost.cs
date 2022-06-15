@@ -48,7 +48,7 @@ namespace KmyKeiba.Downloader
         {
           using var db = new MyContext();
           var task = db.DownloaderTasks!.FirstOrDefault(t => t.Command == DownloaderCommand.DownloadRealTimeData &&
-          !t.IsStarted && !t.IsCanceled && !t.IsFinished);
+            !t.IsStarted && !t.IsCanceled && !t.IsFinished);
 
           if (task != null)
           {
