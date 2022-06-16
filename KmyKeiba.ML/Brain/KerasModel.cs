@@ -33,73 +33,103 @@ namespace KmyKeiba.ML.Brain
 
     public void SaveFile(string fileName)
     {
-      this._model.Save(fileName);
-      File.WriteAllText(fileName + "/epochs.data", @$"epochs={this._epochs}");
+      try
+      {
+        this._model.Save(fileName);
+        File.WriteAllText(fileName + "/epochs.data", @$"epochs={this._epochs}");
+      }
+      catch (Exception ex)
+      {
+        Program.Error("機械学習ファイル保存でエラー: " + ex.Message);
+      }
     }
 
     public void LoadFile() => this.LoadFile(Path.Combine(Constrants.MLDir, this._layer.Name));
 
     public void LoadFile(string fileName)
     {
-      var customObjects = new Dictionary<string, PyObject>();
-      if (OptimizerManager.Radam != null)
+      try
       {
-        customObjects.Add("RAdam", (PyObject)OptimizerManager.Radam.RAdam());
+        var customObjects = new Dictionary<string, PyObject>();
+        if (OptimizerManager.Radam != null)
+        {
+          customObjects.Add("RAdam", (PyObject)OptimizerManager.Radam.RAdam());
+        }
+
+        var loaded_model = Sequential.LoadModel(fileName, customObjects);
+        this._model = loaded_model;
+
+        var raw = File.ReadAllLines(fileName + "/epochs.data");
+        var data = raw.Select((d) => d.Split("=")).ToDictionary((d) => d[0], (d) => d[1]);
+        this._epochs = int.Parse(data["epochs"]);
       }
-
-      var loaded_model = Sequential.LoadModel(fileName, customObjects);
-      this._model = loaded_model;
-
-      var raw = File.ReadAllLines(fileName + "/epochs.data");
-      var data = raw.Select((d) => d.Split("=")).ToDictionary((d) => d[0], (d) => d[1]);
-      this._epochs = int.Parse(data["epochs"]);
+      catch (Exception ex)
+      {
+        Program.Error("機械学習ファイルロードでエラー: " + ex.Message);
+      }
     }
 
     private void Training(float[,] source, float[] results)
     {
-      if (this._layer.IsContinuous && Directory.Exists(Path.Combine(Constrants.MLDir, this._layer.Name)))
+      try
       {
-        this.LoadFile();
-      }
-
-      NDarray x = np.array(source);
-      NDarray y = np.array(results);
-
-      if (this._layer.Type == "reguressor")
-      {
-        var estimator = new KerasReguressor(this._model, epochs: this._layer.Epochs + this._epochs, initial_epoch: this._epochs, batch_size: this._layer.BatchSize);
-        var history = estimator.Fit(x, y);
-        this._epochs += history.Epoch.Length;
-      }
-      else
-      {
-        var history = this._model.Fit(x, y, batch_size: this._layer.BatchSize, epochs: this._layer.Epochs + this._epochs, initial_epoch: this._epochs, verbose: this._layer.Verbose, callbacks: new Callback[]
+        if (this._layer.IsContinuous && Directory.Exists(Path.Combine(Constrants.MLDir, this._layer.Name)))
         {
+          this.LoadFile();
+        }
+
+        NDarray x = np.array(source);
+        NDarray y = np.array(results);
+
+        if (this._layer.Type == "reguressor")
+        {
+          var estimator = new KerasReguressor(this._model, epochs: this._layer.Epochs + this._epochs, initial_epoch: this._epochs, batch_size: this._layer.BatchSize);
+          var history = estimator.Fit(x, y);
+          this._epochs += history.Epoch.Length;
+        }
+        else
+        {
+          var history = this._model.Fit(x, y, batch_size: this._layer.BatchSize, epochs: this._layer.Epochs + this._epochs, initial_epoch: this._epochs, verbose: this._layer.Verbose, callbacks: new Callback[]
+          {
           new EarlyStopping(monitor: "loss"),
-        });
-        this._epochs += history.Epoch.Length;
+          });
+          this._epochs += history.Epoch.Length;
+        }
+      }
+      catch (Exception ex)
+      {
+        Program.Error("トレーニングでエラー: " + ex.Message);
       }
     }
 
     public float[] Predict(float[,] data)
     {
-      if (this._model == null)
+      try
       {
-        return Array.Empty<float>();
+        if (this._model == null)
+        {
+          return Array.Empty<float>();
+        }
+
+        var result = this._model.Predict(np.array(data), batch_size: 1, verbose: 0);
+        var resultArray = result.GetData<float>();
+
+        if (!string.IsNullOrEmpty(this._layer.DotFileName) && this._layer.Labels.Any())
+        {
+          var tree = new TreeAnalyticsModel(8);
+          tree.AddData(data, resultArray);
+          tree.Fit();
+          tree.ExportAsDot(Path.Combine(Constrants.MLDir, this._layer.DotFileName), this._layer.Labels);
+        }
+
+        return resultArray;
+      }
+      catch (Exception ex)
+      {
+        Program.Error("予測でエラー: " + ex.Message);
       }
 
-      var result = this._model.Predict(np.array(data), batch_size: 1, verbose: 0);
-      var resultArray = result.GetData<float>();
-
-      if (!string.IsNullOrEmpty(this._layer.DotFileName) && this._layer.Labels.Any())
-      {
-        var tree = new TreeAnalyticsModel(8);
-        tree.AddData(data, resultArray);
-        tree.Fit();
-        tree.ExportAsDot(Path.Combine(Constrants.MLDir, this._layer.DotFileName), this._layer.Labels);
-      }
-
-      return resultArray;
+      return Array.Empty<float>();
     }
 
     public static async Task FromSourceAsync()
@@ -110,15 +140,15 @@ namespace KmyKeiba.ML.Brain
 
       if (!File.Exists(rawFile))
       {
-        Program.Error("No raw file");
+        Program.Error("学習データが見つかりません");
       }
       if (!File.Exists(rawResultFile))
       {
-        Program.Error("No raw result file");
+        Program.Error("教師データが見つかりません");
       }
       if (!File.Exists(layerFile))
       {
-        Program.Error("No layer script");
+        Program.Error("設定スクリプトが見つかりません");
       }
 
       var script = new ScriptRunner();
@@ -126,7 +156,7 @@ namespace KmyKeiba.ML.Brain
 
       if (result.Layer == null || result.IsError)
       {
-        Program.Error("Script Error: " + result.ErrorMessage);
+        Program.Error("設定スクリプトエラー: " + result.ErrorMessage);
       }
 
       var raws = File.ReadLines(rawFile);
@@ -154,11 +184,11 @@ namespace KmyKeiba.ML.Brain
 
       if (!File.Exists(rawFile))
       {
-        Program.Error("No raw file");
+        Program.Error("予測データが見つかりません");
       }
       if (!File.Exists(layerFile))
       {
-        Program.Error("No layer script");
+        Program.Error("設定スクリプトが見つかりません");
       }
 
       var script = new ScriptRunner();
@@ -166,7 +196,7 @@ namespace KmyKeiba.ML.Brain
 
       if (result.Layer == null || result.IsError)
       {
-        Program.Error("Script Error: " + result.ErrorMessage);
+        Program.Error("設定スクリプトエラー: " + result.ErrorMessage);
       }
 
       var model = new KerasModel(result.Layer!);

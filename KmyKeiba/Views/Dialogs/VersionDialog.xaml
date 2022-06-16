@@ -32,6 +32,7 @@
         <TextBlock FontSize="24" Margin="0,0,0,12">オープンソース</TextBlock>
         <TextBlock Margin="8,0,0,0">
           CefSharp.Wpf.NETCore<LineBreak/>
+          Keras.NET<LineBreak/>
           Microsoft.ClearScript<LineBreak/>
           Microsoft.EntityFrameworkCore<LineBreak/>
           Microsoft.EntityFrameworkCore.Design<LineBreak/>

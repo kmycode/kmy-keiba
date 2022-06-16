@@ -82,7 +82,9 @@ namespace KmyKeiba.Models.Script
     public async Task<string> PredictAsync(bool isConsole)
     {
       var resultFile = Path.Combine(Constrants.MLDir, "predictresults.txt");
+      var errorFile = Path.Combine(Constrants.MLDir, "error.txt");
       File.Delete(resultFile);
+      File.Delete(errorFile);
 
       File.WriteAllLines(Path.Combine(Constrants.MLDir, "predicts.txt"), this._rows.Select(r => string.Join(',', r)));
       await Process.Start(new ProcessStartInfo
@@ -92,7 +94,11 @@ namespace KmyKeiba.Models.Script
         CreateNoWindow = !isConsole,
       })!.WaitForExitAsync();
 
-      if (File.Exists(resultFile))
+      if (File.Exists(errorFile))
+      {
+        throw new Exception("機械学習利用中にエラーが発生しました: " + File.ReadAllText(errorFile));
+      }
+      else if (File.Exists(resultFile))
       {
         var results = File.ReadAllLines(resultFile).Select(r =>
         {

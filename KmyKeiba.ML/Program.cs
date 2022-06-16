@@ -58,10 +58,11 @@ namespace Kmykeiba.ML
 
     public static void Error(string text)
     {
+      File.WriteAllText(Path.Combine(Constrants.MLDir, "error.txt"), text);
       Console.WriteLine(text);
-      Console.ReadKey();
+      //Console.ReadKey();
       PythonEngine.Shutdown();
-      Environment.Exit(-1);
+      Environment.Exit(-2);
     }
   }
 }

@@ -94,11 +94,8 @@ MLPrediction.addRow = function(data) {
   __mlp.item.addRow(JSON.stringify(data));
 }
 
-MLPrediction.predictAsync = async function(isConsole) {
-  if (isConsole === undefined) {
-    isConsole = true;
-  }
-  return JSON.parse(await __mlp.item.predictAsync(isConsole));
+MLPrediction.predictAsync = async function() {
+  return JSON.parse(await __mlp.item.predictAsync(false));
 }
 
 
