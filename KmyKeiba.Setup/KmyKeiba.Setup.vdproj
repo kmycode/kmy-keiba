@@ -1611,6 +1611,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_92AB83D3D8D94E978B04445E5D2D4E1C"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_92C761533349606DDA8B14D61969A009"
         "OwnerKey" = "8:_CCBF800A2B0B427397AAE6A5D96AD173"
         "MsmSig" = "8:_UNDEFINED"
@@ -6790,6 +6796,26 @@
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_6415338005AE42058FF808F426F55581"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_92AB83D3D8D94E978B04445E5D2D4E1C"
+            {
+            "SourcePath" = "8:..\\dist\\x64\\Release\\script\\index_sample_ml.js"
+            "TargetName" = "8:index_sample_ml.js"
+            "Tag" = "8:"
+            "Folder" = "8:_89FEA2B86EA74E939E347C3E6D6D4220"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"

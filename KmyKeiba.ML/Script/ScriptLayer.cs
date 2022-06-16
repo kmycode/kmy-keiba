@@ -37,6 +37,9 @@ namespace KmyKeiba.ML.Script
     [ScriptMember("epochs")]
     public int Epochs { get; set; } = 10;
 
+    [ScriptMember("isContinuous")]
+    public bool IsContinuous { get; set; }
+
     [ScriptMember("batchSize")]
     public int BatchSize { get; set; } = 2;
 

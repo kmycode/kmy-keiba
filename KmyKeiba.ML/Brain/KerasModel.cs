@@ -57,20 +57,27 @@ namespace KmyKeiba.ML.Brain
 
     private void Training(float[,] source, float[] results)
     {
+      if (this._layer.IsContinuous && Directory.Exists(Path.Combine(Constrants.MLDir, this._layer.Name)))
+      {
+        this.LoadFile();
+      }
+
       NDarray x = np.array(source);
       NDarray y = np.array(results);
 
       if (this._layer.Type == "reguressor")
       {
-        var estimator = new KerasReguressor(this._model, epochs: this._layer.Epochs, batch_size: this._layer.BatchSize);
-        estimator.Fit(x, y);
+        var estimator = new KerasReguressor(this._model, epochs: this._layer.Epochs + this._epochs, initial_epoch: this._epochs, batch_size: this._layer.BatchSize);
+        var history = estimator.Fit(x, y);
+        this._epochs += history.Epoch.Length;
       }
       else
       {
-        this._model.Fit(x, y, batch_size: this._layer.BatchSize, epochs: this._layer.Epochs, verbose: this._layer.Verbose, callbacks: new Callback[]
+        var history = this._model.Fit(x, y, batch_size: this._layer.BatchSize, epochs: this._layer.Epochs + this._epochs, initial_epoch: this._epochs, verbose: this._layer.Verbose, callbacks: new Callback[]
         {
           new EarlyStopping(monitor: "loss"),
         });
+        this._epochs += history.Epoch.Length;
       }
     }
 

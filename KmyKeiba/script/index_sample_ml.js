@@ -10,11 +10,18 @@ import * as fs from 'official/njcompat_fs.js';
   const race = KmyKeiba.getTargetRaceWithResults();
   const horses = race.getHorses();
 
+  // ばんえいではタイム偏差値が計算されないのでスキップする
+  if (race.course === 83) {
+    KmyKeiba.setBulkBanei(false);
+    return;
+  }
+
   for (const horse of horses) {
     // 学習データまたは予測データを作成する
     // mlTrainingもmlPredictionも同じaddRowメソッドを持っているので大丈夫
     ml.addRow([
       horse.history.timeDeviationValue / 150,
+      horse.history.a3hTimeDeviationValue / 150,
       horse.history.runningStyle / 4,
     ], horse.place <= 3 ? 1 : 0);
   }
