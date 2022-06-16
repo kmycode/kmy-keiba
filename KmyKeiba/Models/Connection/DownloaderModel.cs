@@ -289,20 +289,39 @@ namespace KmyKeiba.Models.Connection
         }
       }
 
-      async Task DownloadPlanOfRacesAsync(int year, int month, int day)
+      async Task<bool> DownloadPlanOfRacesAsync(int year, int month, int day)
       {
         // 自動更新用のフラグでセットアップデータを落としてるが、これでよい
         // （自動更新したいデータが１週間より前のものだとRTからダウンロードできなくなるので）
+        var isSucceed = true;
         if (this.IsRTDownloadCentral.Value)
         {
           logger.Info($"中央競馬の標準データ更新を開始 {year}/{month}/{day}");
           await this.DownloadAsync(DownloadLink.Central, year, month, day);
+          if (this.IsError.Value)
+          {
+            isSucceed = false;
+          }
         }
         if (this.IsRTDownloadLocal.Value)
         {
           logger.Info($"地方競馬の標準データ更新を開始 {year}/{month}/{day}");
           await this.DownloadAsync(DownloadLink.Local, year, month, day);
+          if (this.IsError.Value)
+          {
+            isSucceed = false;
+          }
         }
+        if (isSucceed)
+        {
+          var newLastLaunchDate = today.Year * 10000 + today.Month * 100 + today.Day;
+          var newNormalDataHour = DateTime.Now.Hour;
+          await ConfigUtil.SetIntValueAsync(SettingKey.LastLaunchDate, newLastLaunchDate);
+          await ConfigUtil.SetIntValueAsync(SettingKey.LastDownloadNormalDataHour, newNormalDataHour);
+          logger.Debug($"設定を保存: 最終起動: {newLastLaunchDate}, 標準データ取得時: {newNormalDataHour}");
+        }
+
+        return isSucceed;
       }
 
       async Task DownloadHolidayResultsAsync()
@@ -350,7 +369,6 @@ namespace KmyKeiba.Models.Connection
         _ = Task.Run(async () =>
         {
           this._isInitializationDownloading = true;
-          var isSucceed = true;
 
           if (lastLaunchDay != default)
           {
@@ -368,10 +386,6 @@ namespace KmyKeiba.Models.Connection
             if (lastLaunch != today)
             {
               await DownloadPlanOfRacesAsync(year, month, day);
-              if (!this.IsError.Value)
-              {
-                isSucceed = false;
-              }
               lastDownloadNormalData = DateTime.Now;
             }
             else
@@ -379,15 +393,6 @@ namespace KmyKeiba.Models.Connection
               var hour = await ConfigUtil.GetIntValueAsync(SettingKey.LastDownloadNormalDataHour);
               lastDownloadNormalData = DateTime.Today.AddHours(hour);
             }
-          }
-
-          if (isSucceed)
-          {
-            var newLastLaunchDate = today.Year * 10000 + today.Month * 100 + today.Day;
-            var newNormalDataHour = DateTime.Now.Hour;
-            await ConfigUtil.SetIntValueAsync(SettingKey.LastLaunchDate, newLastLaunchDate);
-            await ConfigUtil.SetIntValueAsync(SettingKey.LastDownloadNormalDataHour, newNormalDataHour);
-            logger.Debug($"設定を保存: 最終起動: {newLastLaunchDate}, 標準データ取得時: {newNormalDataHour}");
           }
 
           // 年を跨ぐ場合は基準タイムの更新も行う
@@ -461,8 +466,11 @@ namespace KmyKeiba.Models.Connection
             if (lastDownloadNormalData.AddMinutes(120) < now && !this.IsDownloading.Value)
             {
               logger.Info("翌日以降の予定を更新");
-              await DownloadPlanOfRacesAsync(today.Year, today.Month, today.Day);
-              lastDownloadNormalData = DateTime.Now;
+              var isSucceed = await DownloadPlanOfRacesAsync(today.Year, today.Month, today.Day);
+              if (isSucceed)
+              {
+                lastDownloadNormalData = DateTime.Now;
+              }
             }
 
             // アプリ起動した後に中央競馬DLを有効にした場合
