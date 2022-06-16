@@ -142,6 +142,19 @@ namespace KmyKeiba.ML.Script
       this._layers.Add(new Masking((float)value));
     }
 
+    [ScriptMember("batchNormalization")]
+    public void BatchNormalization()
+    {
+      if (this._firstLayer == null)
+      {
+        this._firstLayer = shape => new BatchNormalization(input_shape: new Shape(shape));
+      }
+      else
+      {
+        this._layers.Add(new BatchNormalization());
+      }
+    }
+
     public void SetModel(Sequential model, int shapeLength)
     {
       if (this._firstLayer != null)
