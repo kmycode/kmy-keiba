@@ -27,6 +27,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceSubjectInfo Subject { get; }
 
+    public bool IsRaceCanceled => this.Data.DataStatus == RaceDataStatus.Canceled;
+
     public RaceHorseData? TopHorseData => this.TopHorse.Data;
 
     public RaceHorseAnalyzer TopHorse { get; } = RaceHorseAnalyzer.Empty;
@@ -56,6 +58,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<bool> IsMemoSaving { get; } = new();
 
+    public ReactiveProperty<bool> CanSave => DownloaderModel.Instance.CanSaveOthers;
+
     public ReactiveCollection<RaceHorseMatchResult> Matches { get; } = new();
 
     public RaceMovieInfo Movie => this._movie ??= new(this.Data);
@@ -76,23 +80,11 @@ namespace KmyKeiba.Models.Analysis
       this.TopRunningStyle = this.RunningStyles.FirstOrDefault();
 
       this.Memo.Value = race.Memo ?? string.Empty;
-      this.Memo.Skip(1).Subscribe(async m =>
+      AnalysisUtil.SetMemoEvents(() => this.Data.Memo ?? string.Empty, (db, m) =>
       {
-        if (this.IsMemoSaving.Value)
-        {
-          return;
-        }
-
-        this.IsMemoSaving.Value = true;
-
-        using var db = new MyContext();
         db.Races!.Attach(this.Data);
         this.Data.Memo = m;
-
-        await db.SaveChangesAsync();
-
-        this.IsMemoSaving.Value = false;
-      }).AddTo(this._disposables);
+      }, this.Memo, this.IsMemoSaving).AddTo(this._disposables);
 
       this.RoughRate = AnalysisUtil.CalcRoughRate(topHorses);
 
@@ -123,6 +115,7 @@ namespace KmyKeiba.Models.Analysis
 
       foreach (var raceData in sameRaceHorses
         .SelectMany(h => h.History?.BeforeRaces ?? Enumerable.Empty<RaceHorseAnalyzer>())
+        .Where(h => h.Race.DataStatus != RaceDataStatus.Canceled && !h.IsAbnormalResult)
         .GroupBy(history => history.Race.Key)
         .Where(h => h.ElementAtOrDefault(1) != null)
         .Take(20))

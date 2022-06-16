@@ -48,7 +48,7 @@ namespace KmyKeiba.Downloader
         {
           using var db = new MyContext();
           var task = db.DownloaderTasks!.FirstOrDefault(t => t.Command == DownloaderCommand.DownloadRealTimeData &&
-          !t.IsStarted && !t.IsCanceled && !t.IsFinished);
+            !t.IsStarted && !t.IsCanceled && !t.IsFinished);
 
           if (task != null)
           {
@@ -98,6 +98,7 @@ namespace KmyKeiba.Downloader
         catch
         {
           task.IsCanceled = true;
+          task.IsFinished = true;
           task.Error = DownloaderError.ApplicationRuntimeError;
           isSave = true;
           logger.Warn($"タスク {task.Id} は、担当プロセス {task.ProcessId} が見つからないのでキャンセルしました");

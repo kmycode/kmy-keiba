@@ -37,25 +37,25 @@
                  VerticalAlignment="Center" TextAlignment="Center" Margin="0,0,32,0"
                  Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <ToggleButton Content="開始日付" Name="StartDateToggle" FontSize="16" Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
-        <Popup Placement="Bottom" PlacementTarget="{Binding ElementName=StartDateToggle}"
-               Width="200" Height="170" IsOpen="{Binding IsChecked,ElementName=StartDateToggle}" StaysOpen="False">
+        <up:ImePopup Placement="Bottom" PlacementTarget="{Binding ElementName=StartDateToggle}"
+                     Width="200" Height="170" IsOpen="{Binding IsChecked,ElementName=StartDateToggle}" StaysOpen="False">
           <Grid Background="{DynamicResource BaseBackground}">
             <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
               <Calendar SelectedDate="{Binding ScriptBulk.StartDate.Value,ElementName=Root,Mode=TwoWay}"/>
             </Border>
           </Grid>
-        </Popup>
+        </up:ImePopup>
         <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="{Binding ScriptBulk.StartDate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
                    VerticalAlignment="Center" Margin="8,0,24,0"/>
         <ToggleButton Content="終了日付" Name="EndDateToggle" FontSize="16" Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
-        <Popup Placement="Bottom" PlacementTarget="{Binding ElementName=EndDateToggle}"
-               Width="200" Height="170" IsOpen="{Binding IsChecked,ElementName=EndDateToggle}" StaysOpen="False">
+        <up:ImePopup Placement="Bottom" PlacementTarget="{Binding ElementName=EndDateToggle}"
+                     Width="200" Height="170" IsOpen="{Binding IsChecked,ElementName=EndDateToggle}" StaysOpen="False">
           <Grid Background="{DynamicResource BaseBackground}">
             <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
               <Calendar SelectedDate="{Binding ScriptBulk.EndDate.Value,ElementName=Root,Mode=TwoWay}"/>
             </Border>
           </Grid>
-        </Popup>
+        </up:ImePopup>
         <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="{Binding ScriptBulk.EndDate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
                    VerticalAlignment="Center" Margin="8,0,24,0"/>
         <Button FontSize="20" Content="開始" Command="{Binding ExecuteScriptBulkCommand}" Width="120"
@@ -142,6 +142,10 @@
                     </Border>
                     <Border Visibility="{Binding IsSkipped.Value,Converter={StaticResource BooleanVisibilityConv}}">
                       <TextBlock Text="スキップされました" FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
+                             FontSize="16" Margin="12,0,0,0"/>
+                    </Border>
+                    <Border Visibility="{Binding IsResultRead.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                      <TextBlock Text="結果が取得されたため馬券購入をスキップしました" FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
                              FontSize="16" Margin="12,0,0,0"/>
                     </Border>
                     <StackPanel Orientation="Horizontal">

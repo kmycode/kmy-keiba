@@ -42,6 +42,8 @@ namespace KmyKeiba.ViewModels
 
     public string FirstMessage => this.model.FirstMessage;
 
+    public UpdateChecker Update { get; } = new();
+
     public OpenDialogRequest Dialog { get; } = new();
 
     public ReactiveProperty<DialogType> CurrentDialog { get; } = new();
@@ -50,7 +52,9 @@ namespace KmyKeiba.ViewModels
 
     public OpenRaceRequest RaceWindow => OpenRaceRequest.Default;
 
-    public string VersionNumber => Constrants.ApplicationVersion;
+    public OpenErrorSavingMemoRequest ErrorSavingMemo => OpenErrorSavingMemoRequest.Default;
+
+    public ReactiveProperty<string> ErrorSavingMemoText { get; } = new();
 
     public MainViewModel()
     {
@@ -81,6 +85,7 @@ namespace KmyKeiba.ViewModels
       // TODO: いずれModelにうつす
       ThemeUtil.Current = ApplicationTheme.Dark;
 
+      ScriptManager.Initialize();
       Task.Run(async () =>
       {
         var isFirst = await this.downloader.InitializeAsync();
@@ -90,6 +95,8 @@ namespace KmyKeiba.ViewModels
           logger.Debug("初めての利用のようです。初期画面を表示します");
           this.CurrentDialog.Value = DialogType.Download;
         }
+
+        await this.Update.CheckAsync();
       });
 
       logger.Debug("ビューモデルの初期化完了");
@@ -152,6 +159,11 @@ namespace KmyKeiba.ViewModels
       this._closeDialogCommand ??=
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Unknown);
     private ReactiveCommand? _closeDialogCommand;
+
+    public ICommand UpdateRtDataForceCommand =>
+      this._updateRtDataForceCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.downloader.UpdateRtDataForce());
+    private ReactiveCommand? _updateRtDataForceCommand;
 
     public ICommand BuyCommand =>
       this._buyCommand ??=
@@ -231,5 +243,6 @@ namespace KmyKeiba.ViewModels
     RTDownload,
     ScriptBulk,
     Version,
+    ErrorSavingMemo,
   }
 }

@@ -34,6 +34,9 @@
     <Compile Update="Views\Dialogs\DownloadDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Dialogs\ErrorSavingMemoDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Dialogs\ExecuteScriptBulkDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -50,6 +53,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Main\RaceWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Main\WindowMenu.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Parts\HorseMarkButton.xaml.cs">
@@ -123,6 +129,9 @@
     <Page Update="Views\Dialogs\DownloadDialog.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Views\Dialogs\ErrorSavingMemoDialog.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\Dialogs\ExecuteScriptBulkDialog.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -139,6 +148,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Main\RaceWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Main\WindowMenu.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Parts\HorseMarkButton.xaml">

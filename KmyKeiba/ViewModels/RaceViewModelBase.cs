@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Shared;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -41,6 +42,8 @@ namespace KmyKeiba.ViewModels
     public ReactiveProperty<bool> IsModelError => this.model.IsError;
 
     public ReactiveProperty<string> ModelErrorMessage => this.model.ErrorMessage;
+
+    public string VersionNumber => Constrants.ApplicationVersion;
 
     public RaceViewModelBase()
     {

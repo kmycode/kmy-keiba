@@ -58,17 +58,52 @@
 
         <TextBlock Grid.Column="0" FontSize="20" TextAlignment="Center" Width="24"
                     Text="{Binding Horse.Data.Number,ElementName=Root}"/>
-        <Grid Grid.Column="1" Margin="16,0,0,0" Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
-          <TextBlock FontSize="24" FontWeight="Bold" Width="180" TextAlignment="Left"
-                     Text="{Binding Horse.Data.Name,ElementName=Root}"/>
-        </Grid>
-        <Grid Grid.Column="1" Margin="16,0,0,0" Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
-          <StackPanel VerticalAlignment="Center">
-            <TextBlock FontSize="24" FontWeight="Bold" Width="180" TextAlignment="Left"
-                       Text="{Binding Horse.Data.Name,ElementName=Root}" Foreground="{DynamicResource SubForeground}"/>
-            <TextBlock FontSize="16" Text="{Binding Horse.Data.AbnormalResult,ElementName=Root,Converter={StaticResource EnumsConv}}"
-                       Foreground="{DynamicResource BadForeground}" FontWeight="Bold"/>
-          </StackPanel>
+        <Grid Grid.Column="1" Margin="16,0,0,0">
+          <ToggleButton Name="HorseDetailParent" Style="{StaticResource ListItemToggle}">
+            <ToggleButton.Template>
+              <ControlTemplate>
+                <Grid Background="{TemplateBinding Background}" Width="180">
+                  <StackPanel VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                      <TextBlock FontSize="24" FontWeight="Bold" TextAlignment="Left" VerticalAlignment="Center"
+                                 Text="{Binding Horse.Data.Name,ElementName=Root}"
+                                 Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+                      <TextBlock FontSize="24" FontWeight="Bold" TextAlignment="Left" VerticalAlignment="Center"
+                                 Text="{Binding Horse.Data.Name,ElementName=Root}" Foreground="{DynamicResource SubForeground}"
+                                 Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+                      <Ellipse Width="8" Height="8" Fill="{DynamicResource NoticeForeground}" Margin="4,0,0,0" VerticalAlignment="Center"
+                               Visibility="{Binding Horse.Memo.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"/>
+                    </StackPanel>
+                    <TextBlock FontSize="16" Text="{Binding Horse.Data.AbnormalResult,ElementName=Root,Converter={StaticResource EnumsConv}}"
+                               Foreground="{DynamicResource BadForeground}" FontWeight="Bold"
+                               Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+                  </StackPanel>
+                </Grid>
+              </ControlTemplate>
+            </ToggleButton.Template>
+          </ToggleButton>
+          <up:ImePopup PlacementTarget="{Binding ElementName=HorseDetailParent}" StaysOpen="False"
+                       IsOpen="{Binding IsChecked,ElementName=HorseDetailParent,Mode=TwoWay}">
+            <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1"
+                    Width="300" Height="150">
+              <Grid>
+                <Grid.RowDefinitions>
+                  <RowDefinition/>
+                  <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <TextBox Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
+                         FontSize="16" Margin="4" Text="{Binding Horse.Memo.Value,ElementName=Root,Mode=TwoWay}"
+                         AcceptsReturn="True">
+                  <TextBox.IsReadOnly>
+                    <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+                      <Binding Path="Horse.CanSave.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                      <Binding Path="Horse.IsMemoSaving.Value" ElementName="Root"/>
+                    </MultiBinding>
+                  </TextBox.IsReadOnly>
+                </TextBox>
+              </Grid>
+            </Border>
+          </up:ImePopup>
         </Grid>
         <Grid Grid.Column="2" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
           <ContentControl Template="{Binding Horse.Mark.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource HorseMarkConv}}" RenderTransform="{StaticResource MarkTransform}"/>
@@ -90,8 +125,8 @@
                 <TextBlock Grid.Row="1" Margin="8,0,0,0" FontSize="14">
                   (<Run Text="{Binding Horse.Data.Popular,ElementName=Root}"/>人)
                 </TextBlock>
-                <Popup IsOpen="{Binding IsChecked,ElementName=OddsToggle}" StaysOpen="False"
-                       PlacementTarget="{Binding ElementName=OddsToggle}">
+                <up:ImePopup IsOpen="{Binding IsChecked,ElementName=OddsToggle}" StaysOpen="False"
+                             PlacementTarget="{Binding ElementName=OddsToggle}">
                   <Border Background="{DynamicResource BaseBackground}" Width="296" Height="206"
                           BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
                     <Grid>
@@ -116,7 +151,7 @@
                       </ItemsControl>
                     </Grid>
                   </Border>
-                </Popup>
+                </up:ImePopup>
               </Grid>
             </ControlTemplate>
           </ToggleButton.Template>
@@ -252,7 +287,13 @@
                                 </FrameworkElement.LayoutTransform>
                               </up:RunningStyleTip>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Visibility="{Binding IsAbnormalResult,Converter={StaticResource NegativeVisibilityConv}}">
+                            <StackPanel Orientation="Horizontal">
+                              <StackPanel.Visibility>
+                                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                                  <Binding Path="IsAbnormalResult" Converter="{StaticResource NegativeConv}"/>
+                                  <Binding Path="IsRaceCanceled" Converter="{StaticResource NegativeConv}"/>
+                                </MultiBinding>
+                              </StackPanel.Visibility>
                               <up:CornerResultTip CornerGrades="{Binding CornerGrades}" FontSize="12" WithResult="False" Width="90"
                                                   PartWidth="16" PartHeight="18" PartPadding="0"/>
                               <Border Width="22" Height="22" Background="{Binding ResultOrderComparationWithLastCorner,Converter={StaticResource ValueComparationBackgroundConv}}"
@@ -264,18 +305,25 @@
                                 </TextBlock>
                               </Border>
                               <TextBlock TextAlignment="Right" Width="40" FontSize="14" Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"
-                                         Foreground="{Binding ResultTimeDVComparation,Converter={StaticResource ValueComparationForegroundConv}}"/>
+                                         Foreground="{Binding ResultTimeDVComparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                                         Visibility="{Binding ResultTimeDeviationValue,Converter={StaticResource NonZeroVisibilityConv}}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}">
                               <TextBlock FontSize="14" Foreground="{DynamicResource BadForeground}" FontWeight="Bold"
                                          Text="{Binding Data.AbnormalResult,Converter={StaticResource EnumsConv}}"/>
                             </StackPanel>
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding IsRaceCanceled,Converter={StaticResource BooleanVisibilityConv}}">
+                              <TextBlock FontSize="14" Foreground="{DynamicResource BadForeground}" FontWeight="Bold"
+                                         Text="レース中止"/>
+                            </StackPanel>
                             <StackPanel Orientation="Horizontal">
-                              <up:CourseSimpleImageView Race="{Binding Race}"/>
-                              <TextBlock FontSize="14" Text="{Binding Race.Distance}" Width="40" TextAlignment="Center"/>
-                              <TextBlock FontSize="12" Text="{Binding Data.RiderName}" Width="60" VerticalAlignment="Center"/>
+                              <up:CourseSimpleImageView Race="{Binding Race}" Width="16"/>
+                              <TextBlock FontSize="14" Text="{Binding Race.Distance}" Width="36" TextAlignment="Center"/>
+                              <TextBlock FontSize="12" Text="{Binding Data.RiderName}" Width="56" VerticalAlignment="Center"/>
                               <TextBlock FontSize="14" Text="{Binding Race.TrackWeather,Converter={StaticResource TrackConv}}"/>
                               <TextBlock FontSize="14" Text="{Binding Race.TrackCondition,Converter={StaticResource TrackConv}}"/>
+                              <Ellipse Width="8" Height="8" Fill="{DynamicResource NoticeForeground}" Margin="2,0,0,0"
+                                       Visibility="{Binding Memo.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
                             </StackPanel>
                           </StackPanel>
 
@@ -293,9 +341,9 @@
                     </ControlTemplate>
                   </ToggleButton.Template>
                 </ToggleButton>
-                <Popup IsOpen="{Binding IsChecked,ElementName=PastRace,Mode=TwoWay}" StaysOpen="False">
+                <up:ImePopup IsOpen="{Binding IsChecked,ElementName=PastRace,Mode=TwoWay}" StaysOpen="False">
                   <up:RaceHorsePopup Horse="{Binding}"/>
-                </Popup>
+                </up:ImePopup>
               </Grid>
             </DataTemplate>
           </ItemsControl.ItemTemplate>

@@ -66,6 +66,14 @@ namespace KmyKeiba.Models.Script
 
     public ReactiveProperty<ReactiveProperty<int>?> ProgressMax { get; } = new();
 
+    public static void Initialize()
+    {
+      if (!Directory.Exists(Constrants.MLDir))
+      {
+        Directory.CreateDirectory(Constrants.MLDir);
+      }
+    }
+
     private ScriptManager(RaceInfo race)
     {
       this.RaceReference = new WeakReference<RaceInfo>(race);
@@ -234,11 +242,21 @@ namespace KmyKeiba.Models.Script
 
     protected ScriptObjectContainer<ScriptCurrentRace> RaceContainer { get; } = new();
 
+    protected ScriptObjectContainer<ScriptCurrentRace> RaceContainerWithResults { get; } = new();
+
+    public bool IsReadResults => this.RaceContainerWithResults.IsRead;
+
     protected ScriptObjectContainer<ScriptSuggestion> SuggestionContainer { get; } = new();
 
     protected ScriptObjectContainer<ScriptBulkConfig> BulkConfigContainer { get; } = new();
 
+    protected ScriptObjectContainer<ScriptML> MLContainer { get; } = new();
+
+    protected ScriptObjectContainer<ScriptMLPrediction> MLPredictionContainer { get; } = new();
+
     public ScriptBulkConfig BulkConfig => this.BulkConfigContainer.Item!;
+
+    public ScriptML ML => this.MLContainer.Item!;
 
     public ScriptEngineWrapper()
     {
@@ -255,14 +273,19 @@ namespace KmyKeiba.Models.Script
 #endif
 
       this.Engine.AddHostObject("__currentRace", this.RaceContainer);
+      this.Engine.AddHostObject("__currentRaceWithResults", this.RaceContainerWithResults);
       this.Engine.AddHostObject("__suggestion", this.SuggestionContainer);
       this.Engine.AddHostObject("__html", this.HtmlContainer);
       this.Engine.AddHostObject("__bulk", this.BulkConfigContainer);
+      this.Engine.AddHostObject("__ml", this.MLContainer);
+      this.Engine.AddHostObject("__mlp", this.MLPredictionContainer);
       this.Engine.AddHostObject("__fs", new NodeJSFileSystem());
       this.Engine.AddHostObject("__hostFuncs", new HostFunctions());
 
       this.HtmlContainer.SetItem(new ScriptHtml());
       this.BulkConfigContainer.SetItem(new ScriptBulkConfig());
+      this.MLContainer.SetItem(new ScriptML());
+      this.MLPredictionContainer.SetItem(new ScriptMLPrediction());
     }
 
     protected virtual object Execute(RaceInfo race)
@@ -279,7 +302,9 @@ namespace KmyKeiba.Models.Script
       var isError = false;
       var errorMessage = string.Empty;
 
-      this.RaceContainer.SetItem(new ScriptCurrentRace(race));
+      var currentRace = new ScriptCurrentRace(race);
+      this.RaceContainer.SetItem(currentRace);
+      this.RaceContainerWithResults.SetItem(currentRace);
       this.SuggestionContainer.SetItem(new ScriptSuggestion(race.Data.Key));
 
       try
@@ -354,6 +379,7 @@ namespace KmyKeiba.Models.Script
         this.Compile();
       }
 
+      this.RaceContainerWithResults.SetItem(new ScriptCurrentRaceWithResults(race));
       return this.Engine.Invoke("OnInit");
     }
 
@@ -377,11 +403,26 @@ namespace KmyKeiba.Models.Script
   public class ScriptObjectContainer<T> where T : class
   {
     [ScriptMember("item")]
-    public T? Item { get; private set; }
+    public T? Item
+    {
+      get
+      {
+        this.IsRead = true;
+        return this._item;
+      }
+      private set
+      {
+        this._item = value;
+      }
+    }
+    private T? _item;
+
+    public bool IsRead { get; private set; }
 
     public void SetItem(T race)
     {
       this.Item = race;
+      this.IsRead = false;
     }
   }
 
@@ -436,5 +477,14 @@ namespace KmyKeiba.Models.Script
 
     [ScriptMember("isBanei")]
     public bool IsBanei { get; set; } = true;
+
+    [ScriptMember("isBulk")]
+    public bool IsBulk => this._isBulk;
+
+    private bool _isBulk;
+    public void SetBulk(bool value)
+    {
+      this._isBulk = value;
+    }
   }
 }

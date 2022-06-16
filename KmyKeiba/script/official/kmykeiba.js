@@ -23,6 +23,13 @@ KmyKeiba.getTargetRace = function() {
   return new Race(data, __currentRace.item);
 }
 
+// 予想対象レースを取得する
+KmyKeiba.getTargetRaceWithResults = function () {
+    const json = __currentRaceWithResults.item.getJson();
+    const data = JSON.parse(json);
+    return new Race(data, __currentRaceWithResults.item);
+}
+
 KmyKeiba.getProgress = function() {
   return Progress;
 }
@@ -33,6 +40,10 @@ KmyKeiba.getSuggestion = function() {
 
 KmyKeiba.setHead = function(text) {
   __html.item.head = text;
+}
+
+KmyKeiba.isBulk = function () {
+  return __bulk.item.isBulk;
 }
 
 // 一括実行で中央競馬を予想するか。falseならスキップ
@@ -51,8 +62,40 @@ KmyKeiba.setBulkBanei = function(value) {
   __bulk.item.isBanei = value;
 }
 
+KmyKeiba.mlTraining = function() {
+  return MLTraining;
+}
+
+KmyKeiba.mlPrediction = function() {
+  return MLPrediction;
+}
+
 KmyKeiba.__csDateTimeToDate = function(dateTime) {
   return new Date(dateTime);
+}
+
+
+function MLTraining() {
+}
+
+MLTraining.addRow = function(data, result) {
+  __ml.item.addRow(JSON.stringify(data), result);
+}
+
+MLTraining.predictAsync = async function() {
+  // dummy
+  return [];
+}
+
+function MLPrediction() {
+}
+
+MLPrediction.addRow = function(data) {
+  __mlp.item.addRow(JSON.stringify(data));
+}
+
+MLPrediction.predictAsync = async function() {
+  return JSON.parse(await __mlp.item.predictAsync(false));
 }
 
 

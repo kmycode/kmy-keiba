@@ -207,6 +207,7 @@ namespace KmyKeiba.Data.Db
       this.TrainerName = entity.TrainerName;
       this.OwnerCode = entity.OwnerCode;
       this.OwnerName = entity.OwnerName;
+      this.IsBlinkers = entity.IsBlinkers;
       this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
       this.AbnormalResult = entity.AbnormalResult;
       this.UniformFormat = entity.UniformFormat;

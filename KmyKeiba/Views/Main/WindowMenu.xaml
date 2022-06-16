@@ -1,0 +1,104 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Main.WindowMenu"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KmyKeiba.Views.Main"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+  <StackPanel Orientation="Horizontal" Height="56" Background="{DynamicResource BaseBackground}">
+    <StackPanel.Resources>
+      <Color x:Key="CloseButtonColor" R="0xcc" G="0x30" B="0x30"/>
+    </StackPanel.Resources>
+    <Border Margin="8" VerticalAlignment="Center" Background="{DynamicResource TableListFocusedRowBackground}">
+      <TextBlock FontSize="18" FontWeight="Bold" VerticalAlignment="Center"
+                 Margin="12,4">
+        KMY競馬 <Run Text="{Binding VersionNumber,Mode=OneTime}" Foreground="{DynamicResource SubForeground}"/>
+      </TextBlock>
+    </Border>
+    <Button Width="48" Height="48" VerticalAlignment="Top" Cursor="Hand" WindowChrome.IsHitTestVisibleInChrome="True"
+            Click="MinButton_Click">
+      <Button.Style>
+        <Style TargetType="Button">
+          <Setter Property="Background" Value="{DynamicResource BaseBackground}"/>
+          <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter Property="Background" Value="{DynamicResource HoverBackground}"/>
+            </Trigger>
+          </Style.Triggers>
+        </Style>
+      </Button.Style>
+      <Button.Template>
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}">
+            <TextBlock Text="＿" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       FontSize="16" Foreground="{DynamicResource BaseForeground}"/>
+          </Border>
+        </ControlTemplate>
+      </Button.Template>
+    </Button>
+    <Button Width="48" Height="48" VerticalAlignment="Top" Cursor="Hand" WindowChrome.IsHitTestVisibleInChrome="True"
+            Click="NormalButton_Click" x:Name="NormalButton">
+      <Button.Style>
+        <Style TargetType="Button">
+          <Setter Property="Background" Value="{DynamicResource BaseBackground}"/>
+          <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter Property="Background" Value="{DynamicResource HoverBackground}"/>
+            </Trigger>
+          </Style.Triggers>
+        </Style>
+      </Button.Style>
+      <Button.Template>
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}">
+            <TextBlock Text="❐" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       FontSize="16" Foreground="{DynamicResource BaseForeground}"/>
+          </Border>
+        </ControlTemplate>
+      </Button.Template>
+    </Button>
+    <Button Width="48" Height="48" VerticalAlignment="Top" Cursor="Hand" WindowChrome.IsHitTestVisibleInChrome="True"
+            Click="MaxButton_Click" x:Name="MaximumButton">
+      <Button.Style>
+        <Style TargetType="Button">
+          <Setter Property="Background" Value="{DynamicResource BaseBackground}"/>
+          <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter Property="Background" Value="{DynamicResource HoverBackground}"/>
+            </Trigger>
+          </Style.Triggers>
+        </Style>
+      </Button.Style>
+      <Button.Template>
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}">
+            <TextBlock Text="▢" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       FontSize="16" Foreground="{DynamicResource BaseForeground}"/>
+          </Border>
+        </ControlTemplate>
+      </Button.Template>
+    </Button>
+    <Button Width="72" Height="48" VerticalAlignment="Top" Cursor="Hand" WindowChrome.IsHitTestVisibleInChrome="True"
+            Click="CloseButton_Click">
+      <Button.Style>
+        <Style TargetType="Button">
+          <Setter Property="Background" Value="{DynamicResource BaseBackground}"/>
+          <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter Property="Background" Value="#cc3030"/>
+            </Trigger>
+          </Style.Triggers>
+        </Style>
+      </Button.Style>
+      <Button.Template>
+        <ControlTemplate>
+          <Border Cursor="Hand" Background="{TemplateBinding Background}">
+            <TextBlock Text="✕" FontSize="24" Foreground="{DynamicResource BaseForeground}"
+                       VerticalAlignment="Center" TextAlignment="Center" IsHitTestVisible="False"/>
+          </Border>
+        </ControlTemplate>
+      </Button.Template>
+    </Button>
+  </StackPanel>
+</UserControl>

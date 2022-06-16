@@ -159,4 +159,18 @@
       </Setter.Value>
     </Setter>
   </Style>
+
+  <Style TargetType="{x:Type Window}" x:Key="DefaultWindowStyle">
+    <Setter Property="WindowChrome.WindowChrome">
+      <Setter.Value>
+        <WindowChrome CornerRadius="3" GlassFrameThickness="1" ResizeBorderThickness="8" UseAeroCaptionButtons="False" CaptionHeight="48" />
+      </Setter.Value>
+    </Setter>
+    <Setter Property="SnapsToDevicePixels" Value="True"/>
+    <Setter Property="UseLayoutRounding" Value="True"/>
+    <Setter Property="Background" Value="#FF494949"/>
+    <Setter Property="BorderBrush" Value="#FF14A9FF"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="Foreground" Value="White"/>
+  </Style>
 </ResourceDictionary>

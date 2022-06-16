@@ -24,15 +24,18 @@
   <u:RHColor x:Key="BrowserBackgroundColor" Red="3" Green="3" Blue="3"/>
   <u:RHColor x:Key="BrowserForegroundColor" Red="240" Green="240" Blue="240"/>
 
+  <Color x:Key="MoreThinBaseBackgroundColor" R="0x30" G="0x30" B="0x30"/>
+
   <SolidColorBrush x:Key="BaseBackground" Color="#030303"/>
   <SolidColorBrush x:Key="ThinBaseBackground" Color="#202020"/>
-  <SolidColorBrush x:Key="MoreThinBaseBackground" Color="#303030"/>
+  <SolidColorBrush x:Key="MoreThinBaseBackground" Color="{DynamicResource MoreThinBaseBackgroundColor}"/>
   <SolidColorBrush x:Key="ActiveBackground" Color="#404055"/>
   <SolidColorBrush x:Key="BaseForeground" Color="#f0f0f0"/>
   <SolidColorBrush x:Key="BaseBorderBrush" Color="#cccccc"/>
   <SolidColorBrush x:Key="SubForeground" Color="#b0b0b0"/>
   <SolidColorBrush x:Key="ThinSubForeground" Color="#808080"/>
   <SolidColorBrush x:Key="ErrorForeground" Color="#ff9090"/>
+  <SolidColorBrush x:Key="NoticeForeground" Color="#ff3088"/>
   <SolidColorBrush x:Key="HorseMarkForeground" Color="#ffcccc"/>
   <SolidColorBrush x:Key="HorseMarkDeletedForeground" Color="#aaaaff"/>
   <SolidColorBrush x:Key="ProgressBarForeground" Color="#a0c0f0"/>

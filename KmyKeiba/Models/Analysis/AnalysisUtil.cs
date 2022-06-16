@@ -1,11 +1,14 @@
-﻿using KmyKeiba.Data.Db;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
+using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -200,6 +203,45 @@ namespace KmyKeiba.Models.Analysis
         comp = comp == ValueComparation.Good ? ValueComparation.Bad : comp == ValueComparation.Bad ? ValueComparation.Good : ValueComparation.Standard;
       }
       return comp;
+    }
+
+    public static IDisposable SetMemoEvents(Func<string> getDataMemo, Action<MyContext, string> setDbMemo, ReactiveProperty<string> memo, ReactiveProperty<bool> isSaving)
+    {
+      return memo.Skip(1).Where(m => m != getDataMemo()).Subscribe(m =>
+      {
+        _ = Task.Run(async () =>
+        {
+          if (isSaving.Value)
+          {
+            return;
+          }
+          isSaving.Value = true;
+
+          try
+          {
+            using var db = new MyContext();
+            /*
+            db.RaceHorses!.Attach(data);
+            data.Memo = m;
+            */
+            setDbMemo(db, m);
+
+            await db.SaveChangesAsync(timeout: 5_000);
+          }
+          catch (Exception ex)
+          {
+            logger.Error($"メモ保存中にエラー: {m}", ex);
+            OpenErrorSavingMemoRequest.Default.Request(m);
+
+            // Dispose後に例外発生する可能性のあるコードはここへ
+            memo.Value = getDataMemo();
+          }
+          finally
+          {
+            isSaving.Value = false;
+          }
+        });
+      });
     }
   }
 }

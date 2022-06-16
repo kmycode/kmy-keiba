@@ -81,6 +81,7 @@ namespace KmyKeiba.Converters
         {
           StatusFeeling.Good => goodBrush,
           StatusFeeling.Bad => badBrush,
+          StatusFeeling.Warning => warningBrush,
           _ => baseBrush,
         };
       }

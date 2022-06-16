@@ -129,6 +129,10 @@ namespace KmyKeiba.Models.Connection
             }
             else
             {
+              if (item.ProcessId != default)
+              {
+                isProcessStarted = true;
+              }
               if (!isProcessStarted && loopStart.AddMinutes(10) < DateTime.Now)
               {
                 if (item.ProcessId == default)
@@ -139,7 +143,6 @@ namespace KmyKeiba.Models.Connection
                   logger.Warn($"タスク {taskDataId} がタイムアウトしました。プロセスが割り当てられていません");
                   return item;
                 }
-                isProcessStarted = true;
               }
               if (processing != null)
               {
@@ -151,6 +154,11 @@ namespace KmyKeiba.Models.Connection
           {
             throw new NullReferenceException();
           }
+        }
+        catch (NullReferenceException ex)
+        {
+          logger.Error($"タスク {taskDataId} が検出できませんでした", ex);
+          throw new DownloaderCommandException(DownloaderError.ApplicationRuntimeError);
         }
         catch (Exception ex)
         {
@@ -315,9 +323,11 @@ namespace KmyKeiba.Models.Connection
 
     private async Task PublishTaskAsync(DownloaderTaskData task, Func<DownloaderTaskData, Task>? progressing = null)
     {
-      using var db = new MyContext();
-      await db.DownloaderTasks!.AddAsync(task);
-      await db.SaveChangesAsync();
+      using (var db = new MyContext())
+      {
+        await db.DownloaderTasks!.AddAsync(task);
+        await db.SaveChangesAsync();
+      }
 
       logger.Info($"タスク発行 ID: {task.Id}, コマンド: {task.Command}, パラメータ: {task.Parameter}");
 

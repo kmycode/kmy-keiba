@@ -156,7 +156,7 @@
           <TextBlock Text="" Width="44"/>
           <TextBlock Text="レース名" Width="180" TextAlignment="Left"/>
           <TextBlock Text="日付" Width="80"/>
-          <TextBlock Text="コース" Width="136"/>
+          <TextBlock Text="コース" Width="116"/>
           <TextBlock Text="人気" Width="40"/>
           <TextBlock Text="着順" Width="40"/>
           <TextBlock Text="タイム" Width="55"/>
@@ -188,11 +188,19 @@
                       </StackPanel.Resources>
                       <up:RaceSubjectIcon Subject="{Binding Subject.Subject}"
                                               FontSize="14" Width="40" Margin="0,0,4,0"/>
-                      <TextBlock Text="{Binding Subject.DisplayName}" TextAlignment="Left"
-                                  FontSize="16" FontWeight="Bold" Width="180"/>
+                      <Grid Width="180">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition/>
+                          <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Subject.DisplayName}" TextAlignment="Left"
+                                    FontSize="16" FontWeight="Bold"/>
+                        <Ellipse Grid.Column="1" Width="8" Height="8" Fill="{DynamicResource NoticeForeground}" Margin="4,0,0,0" VerticalAlignment="Center"
+                                 Visibility="{Binding Memo.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
+                      </Grid>
                       <TextBlock Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
-                      <TextBlock Text="{Binding Data.Course,Converter={StaticResource CourseNameConv}}" FontSize="16" Width="70"/>
-                      <Border Width="30">
+                      <TextBlock Text="{Binding Data.Course,Converter={StaticResource CourseNameConv}}" FontSize="14" Width="56"/>
+                      <Border Width="24">
                         <up:CourseSimpleImageView Race="{Binding Race}" HorizontalAlignment="Right"/>
                       </Border>
                       <TextBlock Text="{Binding Race.Distance}" FontSize="14" Width="36" TextAlignment="Right"/>
@@ -200,6 +208,7 @@
                         <StackPanel.Visibility>
                           <MultiBinding Converter="{StaticResource MultiBooleanConv}">
                             <Binding Path="IsAbnormalResult" Converter="{StaticResource NegativeVisibilityConv}"/>
+                            <Binding Path="IsRaceCanceled" Converter="{StaticResource NegativeVisibilityConv}"/>
                             <Binding Path="Data.ResultOrder" Converter="{StaticResource NonZeroVisibilityConv}"/>
                           </MultiBinding>
                         </StackPanel.Visibility>
@@ -235,11 +244,15 @@
                                  Foreground="{DynamicResource BadForeground}" FontSize="16" FontWeight="Bold"
                                  Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}"
                                  Margin="24,0,0,0"/>
+                      <TextBlock Text="レース中止"
+                                 Foreground="{DynamicResource BadForeground}" FontSize="16" FontWeight="Bold"
+                                 Visibility="{Binding IsRaceCanceled,Converter={StaticResource BooleanVisibilityConv}}"
+                                 Margin="24,0,0,0"/>
 
-                      <Popup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
-                             StaysOpen="False">
+                      <up:ImePopup PlacementTarget="{Binding ElementName=Selection}" IsOpen="{Binding IsChecked,ElementName=Selection}"
+                                   StaysOpen="False">
                         <up:RaceHorsePopup Horse="{Binding}"/>
-                      </Popup>
+                      </up:ImePopup>
                     </StackPanel>
                   </Border>
                 </ControlTemplate>

@@ -21,6 +21,7 @@ namespace KmyKeiba.Models.Connection
     public static DownloaderModel Instance => _instance ??= new();
     private static DownloaderModel? _instance;
 
+    private bool _isUpdateRtForce = false;
     private readonly CompositeDisposable _disposables = new();
     private readonly DownloaderConnector _downloader = DownloaderConnector.Instance;
     public ReactiveProperty<bool> IsCancelProcessing { get; } = new();
@@ -114,6 +115,10 @@ namespace KmyKeiba.Models.Connection
     public ReactiveProperty<StatusFeeling> DownloadingStatus { get; }
 
     public ReactiveProperty<StatusFeeling> RTDownloadingStatus { get; }
+
+    public ReactiveProperty<int> NextRTUpdateSeconds { get; } = new();
+
+    public ReactiveProperty<bool> IsWaitingNextRTUpdate { get; } = new();
 
     private DownloaderModel()
     {
@@ -284,20 +289,39 @@ namespace KmyKeiba.Models.Connection
         }
       }
 
-      async Task DownloadPlanOfRacesAsync(int year, int month, int day)
+      async Task<bool> DownloadPlanOfRacesAsync(int year, int month, int day)
       {
         // 自動更新用のフラグでセットアップデータを落としてるが、これでよい
         // （自動更新したいデータが１週間より前のものだとRTからダウンロードできなくなるので）
+        var isSucceed = true;
         if (this.IsRTDownloadCentral.Value)
         {
           logger.Info($"中央競馬の標準データ更新を開始 {year}/{month}/{day}");
           await this.DownloadAsync(DownloadLink.Central, year, month, day);
+          if (this.IsError.Value)
+          {
+            isSucceed = false;
+          }
         }
         if (this.IsRTDownloadLocal.Value)
         {
           logger.Info($"地方競馬の標準データ更新を開始 {year}/{month}/{day}");
           await this.DownloadAsync(DownloadLink.Local, year, month, day);
+          if (this.IsError.Value)
+          {
+            isSucceed = false;
+          }
         }
+        if (isSucceed)
+        {
+          var newLastLaunchDate = today.Year * 10000 + today.Month * 100 + today.Day;
+          var newNormalDataHour = DateTime.Now.Hour;
+          await ConfigUtil.SetIntValueAsync(SettingKey.LastLaunchDate, newLastLaunchDate);
+          await ConfigUtil.SetIntValueAsync(SettingKey.LastDownloadNormalDataHour, newNormalDataHour);
+          logger.Debug($"設定を保存: 最終起動: {newLastLaunchDate}, 標準データ取得時: {newNormalDataHour}");
+        }
+
+        return isSucceed;
       }
 
       async Task DownloadHolidayResultsAsync()
@@ -371,12 +395,6 @@ namespace KmyKeiba.Models.Connection
             }
           }
 
-          var newLastLaunchDate = today.Year * 10000 + today.Month * 100 + today.Day;
-          var newNormalDataHour = DateTime.Now.Hour;
-          await ConfigUtil.SetIntValueAsync(SettingKey.LastLaunchDate, newLastLaunchDate);
-          await ConfigUtil.SetIntValueAsync(SettingKey.LastDownloadNormalDataHour, newNormalDataHour);
-          logger.Debug($"設定を保存: 最終起動: {newLastLaunchDate}, 標準データ取得時: {newNormalDataHour}");
-
           // 年を跨ぐ場合は基準タイムの更新も行う
           if (lastStandardTimeUpdatedYear != today.Year)
           {
@@ -448,8 +466,11 @@ namespace KmyKeiba.Models.Connection
             if (lastDownloadNormalData.AddMinutes(120) < now && !this.IsDownloading.Value)
             {
               logger.Info("翌日以降の予定を更新");
-              await DownloadPlanOfRacesAsync(today.Year, today.Month, today.Day);
-              lastDownloadNormalData = DateTime.Now;
+              var isSucceed = await DownloadPlanOfRacesAsync(today.Year, today.Month, today.Day);
+              if (isSucceed)
+              {
+                lastDownloadNormalData = DateTime.Now;
+              }
             }
 
             // アプリ起動した後に中央競馬DLを有効にした場合
@@ -465,12 +486,19 @@ namespace KmyKeiba.Models.Connection
           {
             logger.Error("最新情報ダウンロード中にエラーが発生しました", ex);
           }
+          finally
+          {
+            this._isUpdateRtForce = false;
+          }
 
-          while ((DateTime.Now - now).TotalMinutes < 5)
+          this.IsWaitingNextRTUpdate.Value = true;
+          while ((DateTime.Now - now).TotalMinutes < 5 && !this._isUpdateRtForce)
           {
             // ５分に１回ずつ更新する
+            this.NextRTUpdateSeconds.Value = 60 * 5 - (int)(DateTime.Now - now).TotalSeconds;
             await Task.Delay(1000);
           }
+          this.IsWaitingNextRTUpdate.Value = false;
         }
       });
     }
@@ -860,6 +888,11 @@ namespace KmyKeiba.Models.Connection
         this.IsError.Value = true;
         this.ErrorMessage.Value = ex.Message;
       }
+    }
+
+    public void UpdateRtDataForce()
+    {
+      this._isUpdateRtForce = true;
     }
 
     public void Dispose()
