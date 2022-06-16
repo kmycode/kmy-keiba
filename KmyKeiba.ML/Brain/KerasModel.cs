@@ -62,12 +62,12 @@ namespace KmyKeiba.ML.Brain
 
       if (this._layer.Type == "reguressor")
       {
-        var estimator = new KerasReguressor(this._model, epochs: 10, batch_size: 2);
+        var estimator = new KerasReguressor(this._model, epochs: this._layer.Epochs, batch_size: this._layer.BatchSize);
         estimator.Fit(x, y);
       }
       else
       {
-        this._model.Fit(x, y, batch_size: 2, epochs: 1000, verbose: 1, callbacks: new Callback[]
+        this._model.Fit(x, y, batch_size: this._layer.BatchSize, epochs: this._layer.Epochs, verbose: this._layer.Verbose, callbacks: new Callback[]
         {
           new EarlyStopping(monitor: "loss"),
         });

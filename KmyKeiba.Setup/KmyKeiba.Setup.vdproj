@@ -1467,12 +1467,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_8177C2CD3EDE4754BADB02FEDD8117FD"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_8204980461C646D18880689D5E280D15"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -1774,6 +1768,12 @@
         "Entry"
         {
         "MsmKey" = "8:_9E568E4443CF4A7CBA79BDD7456E5617"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_9F7C8A1C7C7A4E6CB6B85935034BECC5"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -6243,26 +6243,6 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8177C2CD3EDE4754BADB02FEDD8117FD"
-            {
-            "SourcePath" = "8:..\\dist\\x64\\Release\\script\\mlconfigure.js"
-            "TargetName" = "8:mlconfigure.js"
-            "Tag" = "8:"
-            "Folder" = "8:_89FEA2B86EA74E939E347C3E6D6D4220"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_8204980461C646D18880689D5E280D15"
             {
             "AssemblyRegister" = "3:1"
@@ -7147,6 +7127,26 @@
             "TargetName" = "8:e_sqlite3.dll"
             "Tag" = "8:"
             "Folder" = "8:_5645139431684E8DB06477EA8599A985"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9F7C8A1C7C7A4E6CB6B85935034BECC5"
+            {
+            "SourcePath" = "8:..\\dist\\x64\\Release\\script\\mlconfigure_sample.js"
+            "TargetName" = "8:mlconfigure_sample.js"
+            "Tag" = "8:"
+            "Folder" = "8:_89FEA2B86EA74E939E347C3E6D6D4220"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"

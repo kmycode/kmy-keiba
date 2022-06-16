@@ -34,6 +34,15 @@ namespace KmyKeiba.ML.Script
     [ScriptMember("type")]
     public string Type { get; set; } = "binary";
 
+    [ScriptMember("epochs")]
+    public int Epochs { get; set; } = 10;
+
+    [ScriptMember("batchSize")]
+    public int BatchSize { get; set; } = 2;
+
+    [ScriptMember("verbose")]
+    public int Verbose { get; set; } = 1;
+
     [ScriptMember("dotFileName")]
     public string DotFileName { get; set; } = string.Empty;
 
@@ -84,6 +93,50 @@ namespace KmyKeiba.ML.Script
       {
         this._layers.Add(new Dense(units, activation: activation));
       }
+    }
+
+    [ScriptMember("activation")]
+    public void Activation(string activation)
+    {
+      if (this._firstLayer == null)
+      {
+        this._firstLayer = shape => new Activation(activation, input_shape: new Shape(shape));
+      }
+      else
+      {
+        this._layers.Add(new Activation(activation));
+      }
+    }
+
+    [ScriptMember("dropout")]
+    public void Dropout(double rate, int? seed = null)
+    {
+      this._layers.Add(new Dropout(rate, seed: seed));
+    }
+
+    [ScriptMember("flatten")]
+    public void Flatten(string format)
+    {
+      this._layers.Add(new Flatten(format));
+    }
+
+    [ScriptMember("activityRegularization")]
+    public void ActivityRegularization(double l1, double l2)
+    {
+      if (this._firstLayer == null)
+      {
+        this._firstLayer = shape => new ActivityRegularization((float)l1, (float)l2, input_shape: new Shape(shape));
+      }
+      else
+      {
+        this._layers.Add(new ActivityRegularization((float)l1, (float)l2));
+      }
+    }
+
+    [ScriptMember("masking")]
+    public void Masking(double value)
+    {
+      this._layers.Add(new Masking((float)value));
     }
 
     public void SetModel(Sequential model, int shapeLength)
