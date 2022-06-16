@@ -187,6 +187,8 @@ namespace KmyKeiba.Downloader
           using var db = new MyContext();
           db.DownloaderTasks!.Attach(currentTask);
           currentTask.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
+          currentTask.IsStarted = false;
+          currentTask.ProcessId = default;
           await db.SaveChangesAsync();
           logger.Info(currentTask.Parameter);
           CheckShutdown(db);
@@ -211,6 +213,8 @@ namespace KmyKeiba.Downloader
         using var db = new MyContext();
         db.DownloaderTasks!.Attach(currentTask);
         currentTask.Parameter = $"{parameters[0]},{parameters[1]},{kind},{skip + 1},{string.Join(',', parameters.Skip(4))}";
+        currentTask.IsStarted = false;
+        currentTask.ProcessId = default;
         await db.SaveChangesAsync();
         logger.Info(currentTask.Parameter);
         CheckShutdown(db);

@@ -350,6 +350,7 @@ namespace KmyKeiba.Models.Connection
         _ = Task.Run(async () =>
         {
           this._isInitializationDownloading = true;
+          var isSucceed = true;
 
           if (lastLaunchDay != default)
           {
@@ -367,6 +368,10 @@ namespace KmyKeiba.Models.Connection
             if (lastLaunch != today)
             {
               await DownloadPlanOfRacesAsync(year, month, day);
+              if (!this.IsError.Value)
+              {
+                isSucceed = false;
+              }
               lastDownloadNormalData = DateTime.Now;
             }
             else
@@ -376,11 +381,14 @@ namespace KmyKeiba.Models.Connection
             }
           }
 
-          var newLastLaunchDate = today.Year * 10000 + today.Month * 100 + today.Day;
-          var newNormalDataHour = DateTime.Now.Hour;
-          await ConfigUtil.SetIntValueAsync(SettingKey.LastLaunchDate, newLastLaunchDate);
-          await ConfigUtil.SetIntValueAsync(SettingKey.LastDownloadNormalDataHour, newNormalDataHour);
-          logger.Debug($"設定を保存: 最終起動: {newLastLaunchDate}, 標準データ取得時: {newNormalDataHour}");
+          if (isSucceed)
+          {
+            var newLastLaunchDate = today.Year * 10000 + today.Month * 100 + today.Day;
+            var newNormalDataHour = DateTime.Now.Hour;
+            await ConfigUtil.SetIntValueAsync(SettingKey.LastLaunchDate, newLastLaunchDate);
+            await ConfigUtil.SetIntValueAsync(SettingKey.LastDownloadNormalDataHour, newNormalDataHour);
+            logger.Debug($"設定を保存: 最終起動: {newLastLaunchDate}, 標準データ取得時: {newNormalDataHour}");
+          }
 
           // 年を跨ぐ場合は基準タイムの更新も行う
           if (lastStandardTimeUpdatedYear != today.Year)

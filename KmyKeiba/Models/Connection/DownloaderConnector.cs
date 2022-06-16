@@ -129,6 +129,10 @@ namespace KmyKeiba.Models.Connection
             }
             else
             {
+              if (item.ProcessId != default)
+              {
+                isProcessStarted = true;
+              }
               if (!isProcessStarted && loopStart.AddMinutes(10) < DateTime.Now)
               {
                 if (item.ProcessId == default)
@@ -139,7 +143,6 @@ namespace KmyKeiba.Models.Connection
                   logger.Warn($"タスク {taskDataId} がタイムアウトしました。プロセスが割り当てられていません");
                   return item;
                 }
-                isProcessStarted = true;
               }
               if (processing != null)
               {
