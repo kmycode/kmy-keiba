@@ -1,6 +1,10 @@
 
 (function () {
+
+  // 学習に名前をつける
   keras.name = 'hello';
+
+  // 学習の設定
   keras.optimizer = 'sgd';
   keras.loss = 'binary_crossentropy';
 
@@ -8,6 +12,9 @@
   keras.epochs = 10;
   keras.batchSize = 2;
   keras.verbose = 1;
+
+  // 前回学習したモデルにさらにデータを追加する場合はこれのコメントを外す
+  //keras.isContinuous = true;
 
   // 回帰分析をしたい場合はこれのコメントを外す
   //keras.type = 'reguressor';
@@ -25,6 +32,6 @@
   //   activityRegularization(l1, l2)
   //   masking(value)
   keras.layers.dense(32, 'relu');
-  keras.layers.dense(64, 'relu');
+  keras.layers.dropout(0.2);
   keras.layers.dense(1, 'sigmoid');
 });
