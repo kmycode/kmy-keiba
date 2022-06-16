@@ -119,7 +119,7 @@ namespace KmyKeiba.Models.Script
       new ScriptRace(this._analyzer!.Race, this._analyzer.CurrentRace?.TopHorses.ToArray()) : null;
 
     [JsonPropertyName("history")]
-    public ScriptHistory? History => (this._analyzer?.History != null && this.IsTargetRace) ? new ScriptHistory(this._targetRaceKey, this._analyzer.History) : null;
+    public ScriptHistory? History => this._analyzer?.History != null ? new ScriptHistory(this._targetRaceKey, this._analyzer.History) : null;
 
     public ScriptRaceHorse(string targetRaceKey, RaceHorseAnalyzer horse, bool isRaceGettable = true)
     {

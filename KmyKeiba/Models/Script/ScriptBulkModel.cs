@@ -5,10 +5,13 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Models.Race.Tickets;
+using KmyKeiba.Shared;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -103,6 +106,8 @@ namespace KmyKeiba.Models.Script
       for (var s = 0; s < divitions; s++)
       {
         var engine = engines[s];
+        engine.Engine.BulkConfig.SetBulk(true);
+
         var t = s;
         _ = Task.Run(async () =>
         {
@@ -118,13 +123,33 @@ namespace KmyKeiba.Models.Script
         await Task.Delay(1000);
       }
 
-      this.IsExecuting.Value = false;
-      this._isCanceled = false;
-
+      ScriptML? ml = null;
       foreach (var engine in engines)
       {
+        if (ml == null)
+        {
+          ml = engine.Engine.ML;
+        }
+        else
+        {
+          ml.Merge(engine.Engine.ML);
+        }
+
         engine.Dispose();
       }
+
+      if (!this._isCanceled && ml != null && ml.HasTrainingData)
+      {
+        ml.SaveTrainingFile(Path.Combine(Constrants.MLDir, "source.txt"), Path.Combine(Constrants.MLDir, "results.txt"));
+        await Process.Start(new ProcessStartInfo
+        {
+          FileName = "./KmyKeiba.ML.exe",
+          Arguments = "training",
+        })!.WaitForExitAsync();
+      }
+
+      this.IsExecuting.Value = false;
+      this._isCanceled = false;
     }
 
     public void Cancel()
@@ -207,35 +232,42 @@ namespace KmyKeiba.Models.Script
               }
               else
               {
-                if (info.Tickets.Value != null && info.Payoff != null)
+                if (!this.Engine.IsReadResults)
                 {
-                  info.Payoff.UpdateTicketsData(result.Suggestion.Tickets
-                    .Select(t => TicketItem.FromData(t, info.Horses.Select(h => h.Data).ToArray(), info.Odds.Value))
-                    .Where(t => t != null)
-                    .Select(t => t!), info.Horses.Select(h => h.Data).ToArray());
-                  item.PaidMoney.Value = info.Payoff.PayMoneySum.Value;
-                  item.PayoffMoney.Value = info.Payoff.HitMoneySum.Value;
-                  item.Income.Value = info.Payoff.Income.Value;
-                  item.IncomeComparation.Value = item.Income.Value > 0 ? ValueComparation.Good :
-                    item.Income.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
-                  item.IsCompleted.Value = true;
+                  if (info.Tickets.Value != null && info.Payoff != null)
+                  {
+                    info.Payoff.UpdateTicketsData(result.Suggestion.Tickets
+                      .Select(t => TicketItem.FromData(t, info.Horses.Select(h => h.Data).ToArray(), info.Odds.Value))
+                      .Where(t => t != null)
+                      .Select(t => t!), info.Horses.Select(h => h.Data).ToArray());
+                    item.PaidMoney.Value = info.Payoff.PayMoneySum.Value;
+                    item.PayoffMoney.Value = info.Payoff.HitMoneySum.Value;
+                    item.Income.Value = info.Payoff.Income.Value;
+                    item.IncomeComparation.Value = item.Income.Value > 0 ? ValueComparation.Good :
+                      item.Income.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
+                    item.IsCompleted.Value = true;
 
-                  model.SumOfIncomes.Value += item.Income.Value;
-                  model.IncomeComparation.Value = model.SumOfIncomes.Value > 0 ? ValueComparation.Good :
-                    model.SumOfIncomes.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
+                    model.SumOfIncomes.Value += item.Income.Value;
+                    model.IncomeComparation.Value = model.SumOfIncomes.Value > 0 ? ValueComparation.Good :
+                      model.SumOfIncomes.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
+                  }
+
+                  if (info.HasResults.Value && result.Suggestion.HasMarks.Value)
+                  {
+                    var horseMarks = info.Horses
+                      .Join(result.Suggestion.Marks, h => h.Data.Number, s => s.HorseNumber, (h, s) => new { h.Data.ResultOrder, s.HorseNumber, s.Mark, })
+                      .ToArray();
+                    var first = horseMarks.FirstOrDefault(h => h.ResultOrder == 1)?.Mark ?? RaceHorseMark.Default;
+                    var second = horseMarks.FirstOrDefault(h => h.ResultOrder == 2)?.Mark ?? RaceHorseMark.Default;
+                    var third = horseMarks.FirstOrDefault(h => h.ResultOrder == 3)?.Mark ?? RaceHorseMark.Default;
+                    item.FirstHorseMark.Value = first;
+                    item.SecondHorseMark.Value = second;
+                    item.ThirdHorseMark.Value = third;
+                  }
                 }
-
-                if (info.HasResults.Value && result.Suggestion.HasMarks.Value)
+                else
                 {
-                  var horseMarks = info.Horses
-                    .Join(result.Suggestion.Marks, h => h.Data.Number, s => s.HorseNumber, (h, s) => new { h.Data.ResultOrder, s.HorseNumber, s.Mark, })
-                    .ToArray();
-                  var first = horseMarks.FirstOrDefault(h => h.ResultOrder == 1)?.Mark ?? RaceHorseMark.Default;
-                  var second = horseMarks.FirstOrDefault(h => h.ResultOrder == 2)?.Mark ?? RaceHorseMark.Default;
-                  var third = horseMarks.FirstOrDefault(h => h.ResultOrder == 3)?.Mark ?? RaceHorseMark.Default;
-                  item.FirstHorseMark.Value = first;
-                  item.SecondHorseMark.Value = second;
-                  item.ThirdHorseMark.Value = third;
+                  item.IsResultRead.Value = true;
                 }
               }
             }
@@ -312,6 +344,8 @@ namespace KmyKeiba.Models.Script
     public ReactiveProperty<bool> IsCompleted { get; } = new();
 
     public ReactiveProperty<bool> IsSkipped { get; } = new();
+
+    public ReactiveProperty<bool> IsResultRead { get; } = new();
 
     public ReactiveProperty<ScriptBulkErrorType> ErrorType { get; } = new();
 

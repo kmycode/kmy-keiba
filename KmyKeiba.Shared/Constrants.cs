@@ -20,6 +20,10 @@ namespace KmyKeiba.Shared
       Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "KMYsofts", "KMYKeiba", "App");
 
+    public static readonly string MLDir = Path.Combine(
+      Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "KMYsofts", "KMYKeiba", "ml");
+
     public static readonly string DatabasePath = Path.Combine(AppDataDir, "maindata.sqlite3");
 
     public static readonly string ShutdownFilePath = Path.Combine(AppDataDir, "req_shutdown");

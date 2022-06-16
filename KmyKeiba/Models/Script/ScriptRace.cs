@@ -17,7 +17,7 @@ namespace KmyKeiba.Models.Script
   [NoDefaultScriptAccess]
   public class ScriptCurrentRace
   {
-    private readonly RaceInfo _race;
+    protected readonly RaceInfo _race;
 
     [JsonPropertyName("name")]
     public string Name => this._race.Data.Name;
@@ -87,7 +87,7 @@ namespace KmyKeiba.Models.Script
 
     [JsonIgnore]
     [ScriptMember("horses")]
-    public string Horses => JsonSerializer.Serialize(this._race.Horses.Select(h => new ScriptRaceHorse(this._race.Data.Key, h)), ScriptManager.JsonOptions);
+    public virtual string Horses => JsonSerializer.Serialize(this._race.Horses.Select(h => new ScriptRaceHorse(this._race.Data.Key, h)), ScriptManager.JsonOptions);
 
     public ScriptCurrentRace(RaceInfo race)
     {
@@ -95,7 +95,7 @@ namespace KmyKeiba.Models.Script
     }
 
     [ScriptMember("getHorse")]
-    public ScriptRaceHorse? GetHorse(short horseNum)
+    public virtual ScriptRaceHorse? GetHorse(short horseNum)
     {
       var horse = this._race.Horses.FirstOrDefault(h => h.Data.Number == horseNum);
       if (horse != null)
@@ -189,6 +189,52 @@ namespace KmyKeiba.Models.Script
     public string ToJson()
     {
       return JsonSerializer.Serialize(this, ScriptManager.JsonOptions);
+    }
+  }
+
+  public class ScriptCurrentRaceWithResults : ScriptCurrentRace
+  {
+    [JsonPropertyName("cornerRanking1")]
+    public string CornerRanking1 => this._race.Data.Corner1Result;
+
+    [JsonPropertyName("cornerLapTime1")]
+    public short CornerLapTime1 => (short)(this._race.Data.Corner1LapTime.TotalSeconds * 10);
+
+    [JsonPropertyName("cornerRanking2")]
+    public string CornerRanking2 => this._race.Data.Corner2Result;
+
+    [JsonPropertyName("cornerLapTime2")]
+    public short CornerLapTime2 => (short)(this._race.Data.Corner2LapTime.TotalSeconds * 10);
+
+    [JsonPropertyName("cornerRanking3")]
+    public string CornerRanking3 => this._race.Data.Corner3Result;
+
+    [JsonPropertyName("cornerLapTime3")]
+    public short CornerLapTime3 => (short)(this._race.Data.Corner3LapTime.TotalSeconds * 10);
+
+    [JsonPropertyName("cornerRanking4")]
+    public string CornerRanking4 => this._race.Data.Corner4Result;
+
+    [JsonPropertyName("cornerLapTime4")]
+    public short CornerLapTime4 => (short)(this._race.Data.Corner4LapTime.TotalSeconds * 10);
+
+    [JsonIgnore]
+    [ScriptMember("horses")]
+    public override string Horses => JsonSerializer.Serialize(this._race.Horses.Select(h => new ScriptRaceHorse(string.Empty, h)), ScriptManager.JsonOptions);
+
+    public ScriptCurrentRaceWithResults(RaceInfo race) : base(race)
+    {
+    }
+
+    [ScriptMember("getHorse")]
+    public override ScriptRaceHorse? GetHorse(short horseNum)
+    {
+      var horse = this._race.Horses.FirstOrDefault(h => h.Data.Number == horseNum);
+      if (horse != null)
+      {
+        return new ScriptRaceHorse(string.Empty, horse);
+      }
+      return null;
     }
   }
 

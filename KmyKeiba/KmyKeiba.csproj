@@ -46,6 +46,9 @@
     <None Update="script\index_sample.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="script\mlconfigure.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="script\official\kmykeiba.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

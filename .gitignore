@@ -20,3 +20,6 @@ KmyKeiba/Models/Injection/Private/
 KmyKeiba.Downloader/Injection/Private/
 KmyKeiba.Setup/Debug/
 KmyKeiba.Setup/Release/
+KmyKeiba.ML/bin/
+KmyKeiba.ML/obj/
+KmyKeiba.ML/python38.dll

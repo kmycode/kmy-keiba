@@ -144,6 +144,10 @@
                       <TextBlock Text="スキップされました" FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
                              FontSize="16" Margin="12,0,0,0"/>
                     </Border>
+                    <Border Visibility="{Binding IsResultRead.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                      <TextBlock Text="結果が取得されたため馬券購入をスキップしました" FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
+                             FontSize="16" Margin="12,0,0,0"/>
+                    </Border>
                     <StackPanel Orientation="Horizontal">
                       <StackPanel.Visibility>
                         <MultiBinding Converter="{StaticResource MultiBooleanConv}">
