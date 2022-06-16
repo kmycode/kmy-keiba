@@ -85,6 +85,7 @@ namespace KmyKeiba.ViewModels
       // TODO: いずれModelにうつす
       ThemeUtil.Current = ApplicationTheme.Dark;
 
+      ScriptManager.Initialize();
       Task.Run(async () =>
       {
         var isFirst = await this.downloader.InitializeAsync();

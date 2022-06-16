@@ -66,6 +66,14 @@ namespace KmyKeiba.Models.Script
 
     public ReactiveProperty<ReactiveProperty<int>?> ProgressMax { get; } = new();
 
+    public static void Initialize()
+    {
+      if (!Directory.Exists(Constrants.MLDir))
+      {
+        Directory.CreateDirectory(Constrants.MLDir);
+      }
+    }
+
     private ScriptManager(RaceInfo race)
     {
       this.RaceReference = new WeakReference<RaceInfo>(race);
