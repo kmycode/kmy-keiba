@@ -183,6 +183,38 @@ namespace KmyKeiba.Models.Analysis
       return (min, max);
     }
 
+    public static (int min, int max) GetOddsRange(int odds)
+    {
+      if (odds <= 0)
+      {
+        return default;
+      }
+
+      int min, max;
+      if (odds < 60)
+      {
+        min = odds / 10 * 10;
+        max = min + 10;
+      }
+      else if (odds < 200)
+      {
+        min = odds / 20 * 20;
+        max = min + 20;
+      }
+      else if (odds < 1000)
+      {
+        min = odds / 100 * 100;
+        max = min + 100;
+      }
+      else
+      {
+        min = odds / 1000 * 1000;
+        max = min + 1000;
+      }
+
+      return (min, max);
+    }
+
     public static ValueComparation CompareValue(double value, double good, double bad, bool isReverse = false)
     {
       if (isReverse)

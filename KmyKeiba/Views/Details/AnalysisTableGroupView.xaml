@@ -40,30 +40,37 @@
 
       <!--見出し-->
       <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Name="TableHeader">
-        <ItemsControl ItemsSource="{Binding TableGroup.ActiveTable.Value.Horses,ElementName=Root}" Margin="156,0,40,0">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <StackPanel Orientation="Horizontal"/>
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="80">
-                <StackPanel HorizontalAlignment="Stretch">
-                  <Border Height="4" Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
-                  <TextBlock Text="{Binding Data.Number}" Foreground="{DynamicResource SubForeground}" FontSize="22" HorizontalAlignment="Center"/>
-                  <up:HorseMarkButton Horse="{Binding}" HorizontalAlignment="Center"/>
-                </StackPanel>
-              </Border>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="156"/>
+            <ColumnDefinition/>
+          </Grid.ColumnDefinitions>
+
+          <ItemsControl Grid.Column="1" ItemsSource="{Binding TableGroup.ActiveTable.Value.Horses,ElementName=Root}" Margin="0,0,40,0">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="80">
+                  <StackPanel HorizontalAlignment="Stretch">
+                    <Border Height="4" Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
+                    <TextBlock Text="{Binding Data.Number}" Foreground="{DynamicResource SubForeground}" FontSize="22" HorizontalAlignment="Center"/>
+                    <up:HorseMarkButton Horse="{Binding}" HorizontalAlignment="Center"/>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <!--全読み込みボタン-->
+          <Button Margin="8,8" Content="一括読み込み" Width="120" Height="40" FontSize="16" HorizontalAlignment="Left"
+                  Command="{Binding LoadAnalysisTableCommand}" CommandParameter="{Binding TableGroup.ActiveTable.Value,ElementName=Root}"
+                  Visibility="{Binding TableGroup.ActiveTable.Value.CanLoadAll.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+        </Grid>
       </ScrollViewer>
-      
-      <!--全読み込みボタン-->
-      <Button Margin="8,8" Content="一括読み込み" Width="120" Height="40" FontSize="16" HorizontalAlignment="Left"
-              Command="{Binding LoadAnalysisTableCommand}" CommandParameter="{Binding TableGroup.ActiveTable.Value,ElementName=Root}"
-              Visibility="{Binding TableGroup.ActiveTable.Value.CanLoadAll.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
 
       <!--行-->
       <ItemsControl Grid.Row="1" ItemsSource="{Binding TableGroup.ActiveTable.Value.Rows,ElementName=Root}" Style="{StaticResource TableList}"
@@ -96,9 +103,13 @@
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <Border Width="80" Height="72" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0,0,0,1">
-                      <TextBlock Text="{Binding Value.Value}" Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
-                                 FontSize="16" TextAlignment="Center" VerticalAlignment="Center"
-                                 Visibility="{Binding HasComparationValue.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                      <StackPanel VerticalAlignment="Center" Visibility="{Binding HasComparationValue.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                        <TextBlock Text="{Binding Value.Value}" Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
+                                   FontSize="16" TextAlignment="Center" Margin="0,2"/>
+                        <TextBlock Text="{Binding SubValue.Value}" Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
+                                   FontSize="13" TextAlignment="Center" Margin="0,2"
+                                   Visibility="{Binding SubValue.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
+                      </StackPanel>
                     </Border>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>

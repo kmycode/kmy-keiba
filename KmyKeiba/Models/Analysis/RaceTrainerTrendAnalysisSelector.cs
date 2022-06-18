@@ -69,6 +69,14 @@ namespace KmyKeiba.Models.Analysis
       [Label("性")]
       [ScriptParameterKey("sex")]
       Sex,
+
+      [Label("枠")]
+      [ScriptParameterKey("frame")]
+      Frame,
+
+      [Label("オッズ")]
+      [ScriptParameterKey("odds")]
+      Odds,
     }
 
     public override string Name => this.RaceHorse.TrainerName;
@@ -166,6 +174,15 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.Sex))
       {
         query = query.Where(r => r.RaceHorse.Sex == this.RaceHorse.Sex);
+      }
+      if (keys.Contains(Key.Frame))
+      {
+        query = query.Where(r => r.RaceHorse.FrameNumber == this.RaceHorse.FrameNumber);
+      }
+      if (keys.Contains(Key.Odds))
+      {
+        var (min, max) = AnalysisUtil.GetOddsRange(this.RaceHorse.Odds);
+        query = query.Where(r => r.RaceHorse.Odds >= min && r.RaceHorse.Odds < max);
       }
 
       var races = await query

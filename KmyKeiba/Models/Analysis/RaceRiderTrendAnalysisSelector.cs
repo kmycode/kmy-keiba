@@ -70,9 +70,13 @@ namespace KmyKeiba.Models.Analysis
       [ScriptParameterKey("sex")]
       Sex,
 
-      [Label("同内外")]
-      [ScriptParameterKey("outsideOrInside")]
-      SameOutsideOrInside,
+      [Label("枠")]
+      [ScriptParameterKey("frame")]
+      Frame,
+
+      [Label("オッズ")]
+      [ScriptParameterKey("odds")]
+      Odds,
     }
 
     public override string Name => this.RaceHorse.RiderName;
@@ -177,20 +181,14 @@ namespace KmyKeiba.Models.Analysis
       {
         query = query.Where(r => r.RaceHorse.Sex == this.RaceHorse.Sex);
       }
-      if (keys.Contains(Key.SameOutsideOrInside))
+      if (keys.Contains(Key.Frame))
       {
-        if (this.RaceHorse.Number <= this.Race.HorsesCount / 3.0f)
-        {
-          query = query.Where(r => r.RaceHorse.Number <= r.Race.HorsesCount / 3.0f);
-        }
-        else if (this.RaceHorse.Number >= this.Race.HorsesCount * 2 / 3.0f)
-        {
-          query = query.Where(r => r.RaceHorse.Number >= r.Race.HorsesCount * 2 / 3.0f);
-        }
-        else
-        {
-          query = query.Where(r => r.RaceHorse.Number >= r.Race.HorsesCount / 3.0f && r.RaceHorse.Number <= r.Race.HorsesCount * 2 / 3);
-        }
+        query = query.Where(r => r.RaceHorse.FrameNumber == this.RaceHorse.FrameNumber);
+      }
+      if (keys.Contains(Key.Odds))
+      {
+        var (min, max) = AnalysisUtil.GetOddsRange(this.RaceHorse.Odds);
+        query = query.Where(r => r.RaceHorse.Odds >= min && r.RaceHorse.Odds < max);
       }
 
       var races = await query

@@ -47,7 +47,7 @@ namespace KmyKeiba.Models.Script
     }
 
     [ScriptMember("useHorseAnalyzer")]
-    public void UseRaceHorseAnalyzer(string name, string keys, string value)
+    public void UseHorseAnalyzer(string name, string keys, string value)
     {
       this._rows.Add(async race =>
       {
@@ -98,25 +98,94 @@ namespace KmyKeiba.Models.Script
       });
     }
 
+    [ScriptMember("useRaceHorseAnalyzer")]
+    public void UseRaceHorseAnalyzer(string name, string target, string keys, string value)
+    {
+      this._rows.Add(async race =>
+      {
+        return new AnalysisTableRow(name, race, (race, horse) =>
+        {
+          return new LambdaAnalysisTableCell<RaceWinnerHorseTrendAnalysisSelector, RaceWinnerHorseTrendAnalyzer>(
+            horse, h => race.WinnerTrendAnalyzers, keys,
+            (analyzer, cell) =>
+            {
+              var targets = target.Split('|');
+              if (targets.Contains("frame"))
+              {
+                var grade = new ResultOrderGradeMap(analyzer.Source
+                  .Where(s => s.Data.FrameNumber == horse.Data.FrameNumber).Select(s => s.Data).ToArray());
+                this.SetValueOfGradeMap(value, grade, cell);
+              }
+              if (targets.Contains("runningstyle"))
+              {
+                var grade = new ResultOrderGradeMap(analyzer.Source
+                  .Where(s => s.Data.RunningStyle == horse.History?.RunningStyle).Select(s => s.Data).ToArray());
+                this.SetValueOfGradeMap(value, grade, cell);
+              }
+              if (targets.Contains("sex"))
+              {
+                var grade = new ResultOrderGradeMap(analyzer.Source
+                  .Where(s => s.Data.Sex == horse.Data.Sex).Select(s => s.Data).ToArray());
+                this.SetValueOfGradeMap(value, grade, cell);
+              }
+              if (targets.Contains("color"))
+              {
+                var grade = new ResultOrderGradeMap(analyzer.Source
+                  .Where(s => s.Data.Color == horse.Data.Color).Select(s => s.Data).ToArray());
+                this.SetValueOfGradeMap(value, grade, cell);
+              }
+              if (targets.Contains("age"))
+              {
+                var grade = new ResultOrderGradeMap(analyzer.Source
+                  .Where(s => s.Data.Age == horse.Data.Age).Select(s => s.Data).ToArray());
+                this.SetValueOfGradeMap(value, grade, cell);
+              }
+              if (targets.Contains("popular"))
+              {
+                var grade = new ResultOrderGradeMap(analyzer.Source
+                  .Where(s => s.Data.Popular == horse.Data.Popular && s.Race.HorsesCount >= horse.Race.HorsesCount).Select(s => s.Data).ToArray());
+                this.SetValueOfGradeMap(value, grade, cell);
+              }
+            });
+        });
+      });
+    }
+
     private void SetValueOfRaceHorseAnalyzer(string value, RaceHorseTrendAnalyzerBase analyzer, IAnalysisTableCell cell)
     {
-      if (value == "place")
-      {
-        cell.Value.Value = analyzer.AllGrade.Value.PlacingBetsRate.ToString("P0") + "\n" + $"({analyzer.AllGrade.Value.PlacingBetsCount} / {analyzer.AllGrade.Value.AllCount})";
-        cell.ComparationValue.Value = analyzer.AllGrade.Value.PlacingBetsRate;
-        cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
-      }
       if (value == "time")
       {
         cell.Value.Value = analyzer.TimeDeviationValue.Value.ToString("F1");
         cell.ComparationValue.Value = (float)analyzer.TimeDeviationValue.Value;
         cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
       }
-      if (value == "a3htime")
+      else if (value == "a3htime")
       {
         cell.Value.Value = analyzer.A3HTimeDeviationValue.Value.ToString("F1");
         cell.ComparationValue.Value = (float)analyzer.A3HTimeDeviationValue.Value;
         cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
+      }
+      else
+      {
+        this.SetValueOfGradeMap(value, analyzer.AllGrade.Value, cell);
+      }
+    }
+
+    private void SetValueOfGradeMap(string value, ResultOrderGradeMap grade, IAnalysisTableCell cell)
+    {
+      if (value == "place")
+      {
+        cell.Value.Value = grade.PlacingBetsRate.ToString("P1");
+        cell.SubValue.Value = $"{grade.PlacingBetsCount} / {grade.AllCount}";
+        cell.ComparationValue.Value = grade.PlacingBetsRate;
+        cell.HasComparationValue.Value = grade.AllCount > 0;
+      }
+      if (value == "win")
+      {
+        cell.Value.Value = grade.WinRate.ToString("P1");
+        cell.SubValue.Value = $"{grade.FirstCount} / {grade.AllCount}";
+        cell.ComparationValue.Value = grade.WinRate;
+        cell.HasComparationValue.Value = grade.AllCount > 0;
       }
     }
 

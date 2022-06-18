@@ -337,6 +337,14 @@ namespace KmyKeiba.Models.Analysis
       [Label("重賞")]
       [ScriptParameterKey("grades")]
       Grades,
+
+      [Label("枠")]
+      [ScriptParameterKey("frame")]
+      Frame,
+
+      [Label("オッズ")]
+      [ScriptParameterKey("odds")]
+      Odds,
     }
 
     private readonly string _key;
@@ -543,6 +551,15 @@ namespace KmyKeiba.Models.Analysis
       {
         var (min, max) = AnalysisUtil.GetIntervalRange(this.RaceHorse.PreviousRaceDays);
         query = query.Where(r => r.RaceHorse.PreviousRaceDays >= min && r.RaceHorse.PreviousRaceDays <= max);
+      }
+      if (keys.Contains(Key.Frame))
+      {
+        query = query.Where(r => r.RaceHorse.FrameNumber == this.RaceHorse.FrameNumber);
+      }
+      if (keys.Contains(Key.Odds))
+      {
+        var (min, max) = AnalysisUtil.GetOddsRange(this.RaceHorse.Odds);
+        query = query.Where(r => r.RaceHorse.Odds >= min && r.RaceHorse.Odds < max);
       }
 
       var r0 = query

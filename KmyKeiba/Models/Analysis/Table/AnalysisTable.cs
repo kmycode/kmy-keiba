@@ -13,7 +13,7 @@ using Reactive.Bindings.Extensions;
 
 namespace KmyKeiba.Models.Analysis.Table
 {
-  public class AnalysisTableList : ReactiveCollection<AnalysisTable>
+  public class AnalysisTableList : ReactiveCollection<AnalysisTable>, IDisposable
   {
     private readonly CompositeDisposable _disposables = new();
 
@@ -175,6 +175,8 @@ namespace KmyKeiba.Models.Analysis.Table
   {
     ReactiveProperty<string> Value { get; }
 
+    ReactiveProperty<string> SubValue { get; }
+
     ReactiveProperty<float> ComparationValue { get; }
 
     ReactiveProperty<ValueComparation> Comparation { get; }
@@ -197,6 +199,8 @@ namespace KmyKeiba.Models.Analysis.Table
 
     public ReactiveProperty<string> Value { get; } = new();
 
+    public ReactiveProperty<string> SubValue { get; } = new();
+
     public ReactiveProperty<float> ComparationValue { get; } = new(float.MinValue);
 
     public ReactiveProperty<bool> HasComparationValue { get; } = new(true);
@@ -217,8 +221,14 @@ namespace KmyKeiba.Models.Analysis.Table
         throw new ObjectDisposedException("horse");
       }
 
+      var count = 1000;
+      if (typeof(S) == typeof(RaceWinnerHorseTrendAnalysisSelector))
+      {
+        count = 4000;
+      }
+
       var selector = this._selector(this._horse);
-      var analyzer = selector.BeginLoad(this._keys, 1000, 0, false);
+      var analyzer = selector.BeginLoad(this._keys, count, 0, false);
       await analyzer.WaitAnalysisAsync();
 
       this.Analyzer.Value = analyzer;

@@ -837,7 +837,7 @@ namespace KmyKeiba.Downloader
         // 天候、馬場
         {
           logger.Info($"天気、馬場を設定します {data.CourseWeatherConditions.Count}");
-          foreach (var weather in data.CourseWeatherConditions)
+          foreach (var weather in data.CourseWeatherConditions.OrderBy(d => d.ChangeTime))
           {
             var races = await db.Races!
               .Where((r) => r.Key.StartsWith(weather.RaceKeyWithoutRaceNum) && r.StartTime >= weather.ChangeTime)

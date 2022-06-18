@@ -716,6 +716,8 @@ RaceHorse.prototype._getObj = function() {
 //             placebits  上位3着以内
 //             losed      着外
 //             sex        同じ性別
+//             frame      同じ枠
+//             odds       近いオッズ
 //   count:  取得最大数
 //   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
 //
@@ -744,6 +746,7 @@ RaceHorse.prototype.getRiderSimilarRaceHorsesAsync = async function(keys, count,
 //             placebits  上位3着以内
 //             losed      着外
 //             sex        同じ性別
+//             frame      同じ枠
 //   count:  取得最大数
 //   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
 //
@@ -801,6 +804,8 @@ RaceHorse.prototype.getBloodHorseRaceHorsesAsync = async function(type) {
 //             losed      着外
 //             age        同じ年齢
 //             grades     重賞
+//             frame      同じ枠
+//             odds       近いオッズ
 //   count:  取得最大数
 //   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
 //
