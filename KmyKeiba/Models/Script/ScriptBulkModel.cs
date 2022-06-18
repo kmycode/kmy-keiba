@@ -140,12 +140,23 @@ namespace KmyKeiba.Models.Script
 
       if (!this._isCanceled && ml != null && ml.HasTrainingData)
       {
-        ml.SaveTrainingFile(Path.Combine(Constrants.MLDir, "source.txt"), Path.Combine(Constrants.MLDir, "results.txt"));
-        await Process.Start(new ProcessStartInfo
+        var profiles = ml.AllProfileNames;
+        foreach (var profile in profiles)
         {
-          FileName = "./KmyKeiba.ML.exe",
-          Arguments = "training",
-        })!.WaitForExitAsync();
+          var isExistData = ml.SaveTrainingFile(profile, Path.Combine(Constrants.MLDir, "source.txt"), Path.Combine(Constrants.MLDir, "results.txt"));
+          if (isExistData)
+          {
+            await Process.Start(new ProcessStartInfo
+            {
+              FileName = "./KmyKeiba.ML.exe",
+              ArgumentList =
+            {
+              "training",
+              profile,
+            },
+            })!.WaitForExitAsync();
+          }
+        }
       }
 
       this.IsExecuting.Value = false;

@@ -15,9 +15,13 @@ namespace KmyKeiba.ML.Script
   [NoDefaultScriptAccess]
   public class ScriptLayer
   {
+    private readonly List<ScriptLayer> _profiles = new();
+
     public List<Action<KerasModel>> AfterTrainingActions { get; } = new();
 
     public List<Action<KerasModel>> BeforePredictionActions { get; } = new();
+
+    public string ProfileName { get; init; } = string.Empty;
 
     [ScriptMember("layers")]
     public LayerList Layers { get; } = new();
@@ -58,6 +62,26 @@ namespace KmyKeiba.ML.Script
     {
       var array = JsonSerializer.Deserialize<string[]>(jsonArray, ScriptRunner.JsonOptions) ?? Array.Empty<string>();
       this.Labels = array;
+    }
+
+    [ScriptMember("createProfile")]
+    public ScriptLayer CreateProfile(string name)
+    {
+      var profile = new ScriptLayer
+      {
+        ProfileName = name,
+      };
+      this._profiles.Add(profile);
+      return profile;
+    }
+
+    public ScriptLayer? GetProfile(string name)
+    {
+      if (string.IsNullOrEmpty(name))
+      {
+        return this;
+      }
+      return this._profiles.FirstOrDefault(p => p.ProfileName == name);
     }
 
     public Sequential ToModel()

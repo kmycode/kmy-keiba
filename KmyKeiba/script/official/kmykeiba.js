@@ -63,11 +63,11 @@ KmyKeiba.setBulkBanei = function(value) {
 }
 
 KmyKeiba.mlTraining = function() {
-  return MLTraining;
+  return new MLTraining();
 }
 
 KmyKeiba.mlPrediction = function() {
-  return MLPrediction;
+  return new MLPrediction();
 }
 
 KmyKeiba.__csDateTimeToDate = function(dateTime) {
@@ -75,27 +75,45 @@ KmyKeiba.__csDateTimeToDate = function(dateTime) {
 }
 
 
-function MLTraining() {
+function MLTraining(obj) {
+  if (!obj) {
+    this._obj = __ml.item;
+  } else {
+    this._obj = obj;
+  }
 }
 
-MLTraining.addRow = function(data, result) {
-  __ml.item.addRow(JSON.stringify(data), result);
+MLTraining.prototype.profile = function (name) {
+  return new MLTraining(this._obj.profile(name));
 }
 
-MLTraining.predictAsync = async function() {
+MLTraining.prototype.addRow = function(data, result) {
+  this._obj.addRow(JSON.stringify(data), result);
+}
+
+MLTraining.prototype.predictAsync = async function() {
   // dummy
   return [];
 }
 
-function MLPrediction() {
+function MLPrediction(obj) {
+  if (!obj) {
+    this._obj = __mlp.item;
+  } else {
+    this._obj = obj;
+  }
 }
 
-MLPrediction.addRow = function(data) {
-  __mlp.item.addRow(JSON.stringify(data));
+MLPrediction.prototype.profile = function (name) {
+  return new MLPrediction(this._obj.profile(name));
 }
 
-MLPrediction.predictAsync = async function() {
-  return JSON.parse(await __mlp.item.predictAsync(false));
+MLPrediction.prototype.addRow = function(data) {
+  this._obj.addRow(JSON.stringify(data));
+}
+
+MLPrediction.prototype.predictAsync = async function () {
+  return JSON.parse(await this._obj.predictAsync());
 }
 
 
