@@ -613,6 +613,8 @@ namespace KmyKeiba.Models.Analysis
 
     public int AllCount => this.FirstCount + this.SecondCount + this.ThirdCount + this.LoseCount;
 
+    public int PlacingBetsCount => this.FirstCount + this.SecondCount + this.ThirdCount;
+
     public bool IsZero => this.AllCount == 0;
 
     /// <summary>
@@ -622,7 +624,7 @@ namespace KmyKeiba.Models.Analysis
 
     public float WinRate { get; } = 0;
 
-    public ValueComparation PlacingBetsRateComparation => this.PlacingBetsRate >= 0.75 ? ValueComparation.Good : this.PlacingBetsRate <= 0.2 ? ValueComparation.Bad : ValueComparation.Standard;
+    public ValueComparation PlacingBetsRateComparation => this.PlacingBetsRate >= 0.5 ? ValueComparation.Good : this.PlacingBetsRate <= 0.15 ? ValueComparation.Bad : ValueComparation.Standard;
 
     public ResultOrderGradeMap(IReadOnlyList<RaceHorseData> source)
     {

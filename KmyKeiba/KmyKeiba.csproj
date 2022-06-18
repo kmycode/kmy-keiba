@@ -43,6 +43,9 @@
     <None Update="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="script\configure_sample.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="script\index_sample.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

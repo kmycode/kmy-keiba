@@ -27,4 +27,26 @@ namespace KmyKeiba.Common
       this.Memo = memo;
     }
   }
+
+  public class OpenErrorConfiguringRequest
+  {
+    public static OpenErrorConfiguringRequest Default { get; } = new();
+
+    public void Request(string message)
+    {
+      this.Requested?.Invoke(this, new OpenErrorConfiguringRequestEventArgs(message));
+    }
+
+    public event EventHandler<OpenErrorConfiguringRequestEventArgs>? Requested;
+  }
+
+  public class OpenErrorConfiguringRequestEventArgs : EventArgs
+  {
+    public string Message { get; }
+
+    public OpenErrorConfiguringRequestEventArgs(string message)
+    {
+      this.Message = message;
+    }
+  }
 }

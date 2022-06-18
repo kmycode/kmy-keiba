@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Analysis.Table;
 using KmyKeiba.Models.Common;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
@@ -64,6 +65,10 @@ namespace KmyKeiba.Models.Race
     public ReactiveCollection<RaceHorseAnalyzer> HorsesResultOrdered { get; } = new();
 
     public ReactiveProperty<RaceHorseAnalyzer?> ActiveHorse { get; } = new();
+
+    public AnalysisTableList AnalysisTables { get; } = new();
+
+    public ReactiveProperty<bool> HasAnalysisTables { get; } = new();
 
     public ReactiveCollection<RaceCorner> Corners { get; } = new();
 
@@ -138,6 +143,8 @@ namespace KmyKeiba.Models.Race
       this.TrendAnalyzers = new RaceTrendAnalysisSelector(race);
       this.WinnerTrendAnalyzers = new RaceWinnerHorseTrendAnalysisSelector(race);
       this.CourseSummaryImage.Race = race;
+
+      this.AnalysisTables.ObserveAddChanged().Subscribe(_ => this.HasAnalysisTables.Value = true).AddTo(this._disposables);
 
       var buyLimitTime = this.Data.StartTime.AddMinutes(-2);
       logger.Debug($"購入締め切り: {buyLimitTime} レース開始: {race.StartTime}");
@@ -495,7 +502,7 @@ namespace KmyKeiba.Models.Race
       this.Payoff?.Dispose();
     }
 
-    public static async Task<RaceInfo?> FromKeyAsync(string key)
+    public static async Task<RaceInfo?> FromKeyAsync(string key, bool withTransaction = true)
     {
       logger.Info($"{key} のレースを読み込みます");
 
@@ -516,15 +523,15 @@ namespace KmyKeiba.Models.Race
         payoffInfo = new PayoffInfo(payoff);
       }
 
-      return await FromDataAsync(race, payoffInfo);
+      return await FromDataAsync(race, payoffInfo, withTransaction);
     }
 
-    private static async Task<RaceInfo> FromDataAsync(RaceData race, PayoffInfo? payoff)
+    private static async Task<RaceInfo> FromDataAsync(RaceData race, PayoffInfo? payoff, bool withTransaction)
     {
       logger.Debug($"{race.Key} のレース情報を読み込みます");
 
       var db = new MyContext();
-      if (DownloaderModel.Instance.CanSaveOthers.Value)
+      if (DownloaderModel.Instance.CanSaveOthers.Value && withTransaction)
       {
         logger.Debug("念のためトランザクションを開始します");
         await db.BeginTransactionAsync();
@@ -659,9 +666,9 @@ namespace KmyKeiba.Models.Race
           // 払い戻し情報を更新
           info.Payoff?.SetTickets(info.Tickets.Value, horses);
 
-          // 最新情報
+          // 最新情報／ついでに分析テーブル
           var changes = await db.RaceChanges!.Where(c => c.RaceKey == race.Key).ToArrayAsync();
-          ThreadUtil.InvokeOnUiThread(() =>
+          ThreadUtil.InvokeOnUiThread(async () =>
           {
             var isWeightAdded = false;
             foreach (var change in changes.Select(c => new RaceChangeInfo(c, race, horses)))
@@ -672,6 +679,16 @@ namespace KmyKeiba.Models.Race
                 isWeightAdded = true;
               }
               info.Changes.Add(change);
+            }
+
+            foreach (var table in ApplicationConfiguration.Current.Value.AnalysisTableGenerators)
+            {
+              info.AnalysisTables.Add(await table.GenerateAsync(info));
+            }
+            var first = info.AnalysisTables.FirstOrDefault();
+            if (first != null)
+            {
+              first.IsActive.Value = true;
             }
           });
           logger.Debug($"最新情報の数: {changes.Length}");

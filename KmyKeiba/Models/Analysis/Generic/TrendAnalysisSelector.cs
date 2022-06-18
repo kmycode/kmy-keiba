@@ -32,6 +32,13 @@ namespace KmyKeiba.Models.Analysis.Generic
     void BeginLoad();
   }
 
+  public interface ITrendAnalysisSelector<A> : ITrendAnalysisSelector where A : TrendAnalyzer
+  {
+    A BeginLoadByScript(string scriptParams, int count, int offset, bool isLoadSameHorses = true);
+
+    void CopyFrom(ITrendAnalysisSelector<A> selector);
+  }
+
   internal static class TrendAnalysisSelector
   {
     public static ReactiveProperty<int> SizeMax { get; } = new(1000);
@@ -47,7 +54,7 @@ namespace KmyKeiba.Models.Analysis.Generic
     }
   }
 
-  public abstract class TrendAnalysisSelector<KEY, A> : ITrendAnalysisSelector, IDisposable
+  public abstract class TrendAnalysisSelector<KEY, A> : ITrendAnalysisSelector<A>, IDisposable
     where A : TrendAnalyzer where KEY : Enum, IComparable
   {
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
@@ -237,6 +244,9 @@ namespace KmyKeiba.Models.Analysis.Generic
 
       return this.BeginLoad(keys, count, offset, isLoadSameHorses, isSandbox: true);
     }
+
+    void ITrendAnalysisSelector<A>.CopyFrom(ITrendAnalysisSelector<A> selector)
+      => this.CopyFrom((TrendAnalysisSelector<KEY, A>)selector);
 
     public void CopyFrom(TrendAnalysisSelector<KEY, A> selector)
     {

@@ -1,0 +1,32 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Dialogs.ErrorConfigringDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+  <Grid Width="500" Height="380" Background="{DynamicResource BaseBackground}">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto"/>
+      <RowDefinition Height="auto"/>
+      <RowDefinition/>
+      <RowDefinition Height="auto"/>
+    </Grid.RowDefinitions>
+    <TextBlock FontSize="36" FontWeight="Bold" Text="申し訳ございません" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,24"/>
+    <TextBlock Grid.Row="1" FontSize="16" Foreground="{DynamicResource BaseForeground}">
+      構成スクリプト実行中にエラーが発生しました。<LineBreak/>
+      下記のエラーメッセージを参考に、スクリプトを修正して再度お試しください。
+    </TextBlock>
+    <TextBox Grid.Row="2" Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource ErrorForeground}"
+             FontSize="16" IsReadOnly="True" Margin="0,16" Text="{Binding ErrorConfigringMessage.Value}"/>
+    <Grid Grid.Row="3" Margin="0,0,0,16">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition/>
+        <ColumnDefinition Width="auto"/>
+      </Grid.ColumnDefinitions>
+      <Button Content="了解" FontSize="16" Width="80" VerticalAlignment="Bottom" Command="{Binding CloseDialogCommand}"/>
+    </Grid>
+  </Grid>
+</UserControl>

@@ -229,7 +229,7 @@ namespace KmyKeiba.Models.Script
     }
   }
 
-  public class ScriptEngineWrapper : IDisposable
+  public class ScriptEngineWrapper : ScriptEngineWrapperBase
   {
     private static readonly string _backgroundColor = ResourceUtil.TryGetResource<RHColor>("BrowserBackgroundColor")?.ToHTMLColor() ?? "white";
     private static readonly string _foregroundColor = ResourceUtil.TryGetResource<RHColor>("BrowserForegroundColor")?.ToHTMLColor() ?? "white";
@@ -237,8 +237,6 @@ namespace KmyKeiba.Models.Script
     protected ScriptObjectContainer<ScriptHtml> HtmlContainer { get; } = new();
 
     public ScriptHtml Html => this.HtmlContainer.Item!;
-
-    protected V8ScriptEngine Engine { get; }
 
     protected ScriptObjectContainer<ScriptCurrentRace> RaceContainer { get; } = new();
 
@@ -258,20 +256,8 @@ namespace KmyKeiba.Models.Script
 
     public ScriptML ML => this.MLContainer.Item!;
 
-    public ScriptEngineWrapper()
+    public ScriptEngineWrapper() : base("index.js")
     {
-      this.Engine = new V8ScriptEngine(V8ScriptEngineFlags.EnableDynamicModuleImports |
-        V8ScriptEngineFlags.EnableTaskPromiseConversion |
-        V8ScriptEngineFlags.EnableValueTaskPromiseConversion |
-        V8ScriptEngineFlags.EnableDateTimeConversion);
-
-      this.Engine.DocumentSettings.AccessFlags |= DocumentAccessFlags.EnableAllLoading | DocumentAccessFlags.EnforceRelativePrefix;
-#if DEBUG
-      this.Engine.DocumentSettings.SearchPath = Path.Combine(Directory.GetCurrentDirectory(), "script");
-#else
-      this.Engine.DocumentSettings.SearchPath = Constrants.ScriptDir;
-#endif
-
       this.Engine.AddHostObject("__currentRace", this.RaceContainer);
       this.Engine.AddHostObject("__currentRaceWithResults", this.RaceContainerWithResults);
       this.Engine.AddHostObject("__suggestion", this.SuggestionContainer);
@@ -279,8 +265,6 @@ namespace KmyKeiba.Models.Script
       this.Engine.AddHostObject("__bulk", this.BulkConfigContainer);
       this.Engine.AddHostObject("__ml", this.MLContainer);
       this.Engine.AddHostObject("__mlp", this.MLPredictionContainer);
-      this.Engine.AddHostObject("__fs", new NodeJSFileSystem());
-      this.Engine.AddHostObject("__hostFuncs", new HostFunctions());
 
       this.HtmlContainer.SetItem(new ScriptHtml());
       this.BulkConfigContainer.SetItem(new ScriptBulkConfig());
@@ -290,11 +274,7 @@ namespace KmyKeiba.Models.Script
 
     protected virtual object Execute(RaceInfo race)
     {
-      DocumentLoader.Default.DiscardCachedDocuments();
-
-      var script = File.ReadAllText(Path.Combine(Constrants.ScriptDir, "index.js"));
-      this.Engine.Script.OnInit = this.Engine.Evaluate(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
-      return this.Engine.Invoke("OnInit");
+      return this.Execute();
     }
 
     public async Task<ScriptResult> ExecuteAsync(RaceInfo race)
@@ -361,11 +341,6 @@ namespace KmyKeiba.Models.Script
 
       return data;
     }
-
-    public virtual void Dispose()
-    {
-      this.Engine.Dispose();
-    }
   }
 
   public class CompiledScriptEngineWrapper : ScriptEngineWrapper
@@ -376,20 +351,11 @@ namespace KmyKeiba.Models.Script
     {
       if (this._compiled == null)
       {
-        this.Compile();
+        this._compiled = this.Compile();
       }
 
       this.RaceContainerWithResults.SetItem(new ScriptCurrentRaceWithResults(race));
-      return this.Engine.Invoke("OnInit");
-    }
-
-    private void Compile()
-    {
-      DocumentLoader.Default.DiscardCachedDocuments();
-
-      var script = File.ReadAllText(Path.Combine(Constrants.ScriptDir, "index.js"));
-      this._compiled = this.Engine.Compile(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
-      this.Engine.Script.OnInit = this.Engine.Evaluate(this._compiled);
+      return this.Execute(this._compiled!);
     }
 
     public override void Dispose()
