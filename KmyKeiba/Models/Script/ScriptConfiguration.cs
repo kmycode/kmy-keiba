@@ -61,17 +61,17 @@ namespace KmyKeiba.Models.Script
               if (value == "place")
               {
                 cell.Value.Value = analyzer.AllGrade.Value.PlacingBetsRate.ToString("P0") + "\n" + $"({analyzer.AllGrade.Value.PlacingBetsCount} / {analyzer.AllGrade.Value.AllCount})";
-                cell.Comparation.Value = analyzer.AllGrade.Value.PlacingBetsRateComparation;
+                cell.ComparationValue = analyzer.AllGrade.Value.PlacingBetsRate;
               }
               if (value == "time")
               {
                 cell.Value.Value = analyzer.TimeDeviationValue.Value.ToString("F1");
-                cell.Comparation.Value = AnalysisUtil.CompareValue(analyzer.TimeDeviationValue.Value, 45, 20);
+                cell.ComparationValue = (float)analyzer.TimeDeviationValue.Value;
               }
               if (value == "a3htime")
               {
                 cell.Value.Value = analyzer.A3HTimeDeviationValue.Value.ToString("F1");
-                cell.Comparation.Value = AnalysisUtil.CompareValue(analyzer.A3HTimeDeviationValue.Value, 45, 20);
+                cell.ComparationValue = (float)analyzer.A3HTimeDeviationValue.Value;
               }
             })).WithLoadAsync();
       });

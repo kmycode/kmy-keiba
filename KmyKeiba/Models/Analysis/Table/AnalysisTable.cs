@@ -108,6 +108,19 @@ namespace KmyKeiba.Models.Analysis.Table
       {
         await cell.LoadAsync();
       }
+
+      if (this.Cells.Any())
+      {
+        if (this.Cells.Count() >= 4 && !this.Cells.All(c => c.ComparationValue == default))
+        {
+          var max = this.Cells.OrderByDescending(c => c.ComparationValue).ElementAtOrDefault(2)?.ComparationValue ?? default;
+          var min = this.Cells.OrderBy(c => c.ComparationValue).ElementAtOrDefault(2)?.ComparationValue ?? default;
+          foreach (var cell in this.Cells)
+          {
+            cell.Comparation.Value = AnalysisUtil.CompareValue(cell.ComparationValue, max, min);
+          }
+        }
+      }
     }
 
     public async Task<AnalysisTableRow> WithLoadAsync()
@@ -120,6 +133,8 @@ namespace KmyKeiba.Models.Analysis.Table
   public interface IAnalysisTableCell
   {
     ReactiveProperty<string> Value { get; }
+
+    float ComparationValue { get; }
 
     ReactiveProperty<ValueComparation> Comparation { get; }
 
@@ -138,6 +153,8 @@ namespace KmyKeiba.Models.Analysis.Table
     public ReactiveProperty<A?> Analyzer { get; } = new();
 
     public ReactiveProperty<string> Value { get; } = new();
+
+    public float ComparationValue { get; set; }
 
     public ReactiveProperty<ValueComparation> Comparation { get; } = new();
 
