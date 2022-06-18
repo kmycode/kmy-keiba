@@ -1,33 +1,31 @@
 
-// こうやって複数の設定を管理すれば容易に切り替えられる（ファイル最後にprofileA()という呼び出しがある）
-// どの設定がよいか調べるときに切り替えられると便利
-const profileA = () => {
+const profileA = (profile) => {
 
   // 学習に名前をつける。学習ファイルの保存先フォルダにつける名前でもある
-  keras.name = 'hello';
+  profile.name = 'local_data';
 
   // 学習の設定
-  keras.optimizer = 'sgd';   // https://keras.io/ja/optimizers/ にくわえて「radam」も指定可能
-  keras.loss = 'binary_crossentropy';  // https://keras.io/ja/losses/
+  profile.optimizer = 'sgd';   // https://keras.io/ja/optimizers/ にくわえて「radam」も指定可能
+  profile.loss = 'binary_crossentropy';  // https://keras.io/ja/losses/
 
   // モデルを作るときの設定
-  keras.epochs = 10;
-  keras.batchSize = 2;
-  keras.verbose = 1;
+  profile.epochs = 10;
+  profile.batchSize = 2;
+  profile.verbose = 1;
 
   // 前回学習したモデルにさらにデータを追加する場合はこれのコメントを外す
   // コメントを外す条件として、同じ名前でこれまで学習したことのないデータを学習させること
   // また、レイヤーの設定、オプティマイザなどなども絶対に変えないこと
   // コメントを外さない場合、学習ごとにデータはリセットされる
-  //keras.isContinuous = true;
+  //profile.isContinuous = true;
 
   // 回帰分析をしたい場合はこれのコメントを外す
-  //keras.type = 'reguressor';
+  //profile.type = 'reguressor';
 
   // 決定木が欲しい場合はこれのコメントを外し、適宜ラベルをつけておく
   // ファイルはAppData/Local/KMYsofts/KMYKeiba/mlフォルダ内に作られる
-  //keras.dotFileName = 'tree.dot';
-  //keras.setLabels(JSON.stringify(['number', 'weight']));
+  //profile.dotFileName = 'tree.dot';
+  //profile.setLabels(JSON.stringify(['number', 'weight']));
 
   // レイヤー。最初に設定するレイヤーはdense、activation、activityRegularization、batchNormalizationのみサポート
   // input_shapeを指定する必要はない（プログラムで自動で指定します）
@@ -38,12 +36,29 @@ const profileA = () => {
   //   activityRegularization(l1, l2)
   //   masking(value)
   //   batchNormalization()
-  keras.layers.dense(32, 'relu');  // reluの部分に指定できるもの https://keras.io/ja/activations/
-  keras.layers.dropout(0.2);
-  keras.layers.dense(1, 'sigmoid');
+  profile.layers.dense(32, 'relu');  // reluの部分に指定できるもの https://keras.io/ja/activations/
+  profile.layers.dropout(0.2);
+  profile.layers.dense(1, 'sigmoid');
+};
+
+const profileB = (profile) => {
+
+  profile.name = 'central_data';
+  profile.optimizer = 'sgd';   // https://keras.io/ja/optimizers/ にくわえて「radam」も指定可能
+  profile.loss = 'binary_crossentropy';  // https://keras.io/ja/losses/
+
+  profile.epochs = 10;
+  profile.batchSize = 2;
+  profile.verbose = 1;
+
+  profile.layers.dense(32, 'relu');  // reluの部分に指定できるもの https://keras.io/ja/activations/
+  profile.layers.dropout(0.2);
+  profile.layers.dense(1, 'sigmoid');
 };
 
 (function () {
-  // 今回は設定Aを使用する
-  profileA();
+  // 「local」「central」というプロファイルで設定する
+  // index.jsからDLを呼び出す時、プロファイル名を指定することで異なる設定を呼び出せる
+  profileA(keras.createProfile('local'));
+  profileB(keras.createProfile('central'));
 });

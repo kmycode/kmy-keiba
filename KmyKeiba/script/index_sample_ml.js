@@ -5,7 +5,8 @@ import * as fs from 'official/njcompat_fs.js';
   // 一括実行であれば学習、それ以外の場合は予測をおこなう
   // 一括実行の場合も予測を行いたいときは、単にml = KmyKeiba.mlPrediction()とする
   // 一括実行では両方、個別レースのスクリプト実行ではmlPredictionのみが正しく動作する
-  const ml = KmyKeiba.isBulk() ? KmyKeiba.mlTraining() : KmyKeiba.mlPrediction();
+  // プロファイルを使う場合: ml = KmyKeiba.mlTraining().profile('central') とする。使い方はmlTraining()のオブジェクトと同じ
+  const mlRoot = KmyKeiba.isBulk() ? KmyKeiba.mlTraining() : KmyKeiba.mlPrediction();
 
   // レース取得
   // getTargetRaceはレース結果が取得できないのに対して、getTargetRaceWithResultsは結果（着順、タイムなど）を含めて取得可能
@@ -21,6 +22,10 @@ import * as fs from 'official/njcompat_fs.js';
     KmyKeiba.setBulkBanei(false);
     return;
   }
+
+  // 中央・地方でプロファイルを切り替える
+  const profileName = race.course <= 29 ? 'central' : 'local';
+  const ml = mlRoot.profile(profileName);
 
   for (const horse of horses) {
     // 学習データまたは予測データに追加する

@@ -24,7 +24,7 @@ namespace KmyKeiba.Models.Script
           if (File.Exists(sampleFile))
           {
             logger.Info("構成スクリプトファイルが見つからないため、サンプルスクリプトをコピーしました");
-            File.Copy(sampleFile, Path.Combine(Constrants.ScriptDir, "configure_sample.js"));
+            File.Copy(sampleFile, Path.Combine(Constrants.ScriptDir, "configure.js"));
           }
           else
           {
