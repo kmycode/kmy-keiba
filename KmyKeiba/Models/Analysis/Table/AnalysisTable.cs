@@ -34,6 +34,12 @@ namespace KmyKeiba.Models.Analysis.Table
       }).AddTo(this._disposables);
     }
 
+    public new void Dispose()
+    {
+      base.Dispose();
+      this._disposables.Dispose();
+    }
+
     // 以下はRemoveItemObservable対応してないので保険で
 
     public new void Remove(AnalysisTable item)
