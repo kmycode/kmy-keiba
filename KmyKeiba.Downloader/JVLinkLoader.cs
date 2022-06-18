@@ -840,7 +840,7 @@ namespace KmyKeiba.Downloader
           foreach (var weather in data.CourseWeatherConditions)
           {
             var races = await db.Races!
-              .Where((r) => r.Key.StartsWith(weather.RaceKeyWithoutRaceNum))
+              .Where((r) => r.Key.StartsWith(weather.RaceKeyWithoutRaceNum) && r.StartTime >= weather.ChangeTime)
               .ToArrayAsync();
             foreach (var race in races)
             {

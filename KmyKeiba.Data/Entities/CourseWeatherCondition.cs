@@ -17,6 +17,8 @@ namespace KmyKeiba.JVLink.Entities
 
     public RaceCourseCondition DirtCondition { get; set; }
 
+    public DateTime ChangeTime { get; set; }
+
     internal CourseWeatherCondition()
     {
     }
@@ -35,6 +37,7 @@ namespace KmyKeiba.JVLink.Entities
         Weather = (RaceCourseWeather)weather,
         TurfCondition = (RaceCourseCondition)turf,
         DirtCondition = (RaceCourseCondition)dirt,
+        ChangeTime = we.HappyoTime.ToDateTime(we.id),
       };
       return obj;
     }
