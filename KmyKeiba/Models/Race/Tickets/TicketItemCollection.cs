@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.Models.Analysis.Generic;
+using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
@@ -9,14 +10,14 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race.Tickets
 {
-  public class TicketItemCollection : ObservableItemCollection<TicketItem>, IDisposable
+  public class TicketItemCollection : ReactiveCollection<TicketItem>, IDisposable
   {
     private readonly CompositeDisposable _disposables = new();
     private readonly Dictionary<TicketItem, List<IDisposable>> _disposableItems = new();
 
     public TicketItemCollection()
     {
-      this.NewItemObservable.Subscribe(i =>
+      this.ObserveAddChanged().Subscribe(i =>
       {
         this._disposableItems.TryGetValue(i, out var list);
         if (list == null)
@@ -32,7 +33,7 @@ namespace KmyKeiba.Models.Race.Tickets
         list.Add(d);
       }).AddTo(this._disposables);
 
-      this.OldItemObservable.Subscribe(i =>
+      this.ObserveRemoveChanged().Subscribe(i =>
       {
         this._disposableItems.TryGetValue(i, out var list);
         if (list != null)
