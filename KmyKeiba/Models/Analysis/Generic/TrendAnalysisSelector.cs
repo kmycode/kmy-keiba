@@ -34,6 +34,8 @@ namespace KmyKeiba.Models.Analysis.Generic
 
   public interface ITrendAnalysisSelector<A> : ITrendAnalysisSelector where A : TrendAnalyzer
   {
+    A BeginLoad(string scriptParams, int count, int offset, bool isLoadSameHorses = true);
+
     A BeginLoadByScript(string scriptParams, int count, int offset, bool isLoadSameHorses = true);
 
     void CopyFrom(ITrendAnalysisSelector<A> selector);
@@ -226,7 +228,17 @@ namespace KmyKeiba.Models.Analysis.Generic
       return this.BeginLoad(keys, 300, 0);
     }
 
+    public A BeginLoad(string scriptParams, int count, int offset, bool isLoadSameHorses = true)
+    {
+      return this.BeginLoadWithScriptParameters(scriptParams, count, offset, isLoadSameHorses, isSandbox: false);
+    }
+
     public A BeginLoadByScript(string scriptParams, int count, int offset, bool isLoadSameHorses = true)
+    {
+      return this.BeginLoadWithScriptParameters(scriptParams, count, offset, isLoadSameHorses, isSandbox: true);
+    }
+
+    private A BeginLoadWithScriptParameters(string scriptParams, int count, int offset, bool isLoadSameHorses = true, bool isSandbox = true)
     {
       var pairs = Enum.GetValues(typeof(KEY)).OfType<KEY>().Select(k =>
         new { Key = k, ScriptParameter = typeof(KEY).GetField(k.ToString())!.GetCustomAttributes(true).OfType<ScriptParameterKeyAttribute>().FirstOrDefault()?.Key ?? string.Empty, })
@@ -242,7 +254,7 @@ namespace KmyKeiba.Models.Analysis.Generic
         }
       }
 
-      return this.BeginLoad(keys, count, offset, isLoadSameHorses, isSandbox: true);
+      return this.BeginLoad(keys, count, offset, isLoadSameHorses, isSandbox: isSandbox);
     }
 
     void ITrendAnalysisSelector<A>.CopyFrom(ITrendAnalysisSelector<A> selector)

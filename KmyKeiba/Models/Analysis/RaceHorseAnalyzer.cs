@@ -114,6 +114,8 @@ namespace KmyKeiba.Models.Analysis
 
     public CurrentRaceData? CurrentRace { get; }
 
+    public bool IsDisposed { get; private set; }
+
     public class HistoryData
     {
       public IReadOnlyList<RaceHorseAnalyzer> BeforeRaces { get; } = Array.Empty<RaceHorseAnalyzer>();
@@ -554,6 +556,8 @@ namespace KmyKeiba.Models.Analysis
       this.RiderTrendAnalyzers?.Dispose();
       this.TrainerTrendAnalyzers?.Dispose();
       this.TrendAnalyzers?.Dispose();
+
+      this.IsDisposed = true;
     }
   }
 

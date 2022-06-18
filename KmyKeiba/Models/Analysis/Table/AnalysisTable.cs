@@ -38,6 +38,10 @@ namespace KmyKeiba.Models.Analysis.Table
     {
       base.Dispose();
       this._disposables.Dispose();
+      foreach (var table in this)
+      {
+        table.Dispose();
+      }
     }
 
     // 以下はRemoveItemObservable対応してないので保険で
@@ -65,6 +69,8 @@ namespace KmyKeiba.Models.Analysis.Table
 
   public class AnalysisTable
   {
+    private readonly CompositeDisposable _disposables = new();
+
     public string Name { get; }
 
     public ObservableCollection<RaceHorseAnalyzer> Horses { get; }
@@ -73,10 +79,34 @@ namespace KmyKeiba.Models.Analysis.Table
 
     public ReactiveProperty<bool> IsActive { get; } = new();
 
+    public ReactiveProperty<bool> CanLoadAll { get; } = new(false);
+
     public AnalysisTable(string name, IReadOnlyList<RaceHorseAnalyzer> horses)
     {
       this.Name = name;
       this.Horses = new ObservableCollection<RaceHorseAnalyzer>(horses);
+      this.Rows.ObserveElementObservableProperty(row => row.IsAnalyzed)
+        .Subscribe(_ => this.CanLoadAll.Value = this.Rows.Any(r => !r.IsAnalyzed.Value))
+        .AddTo(this._disposables);
+    }
+
+    public async Task LoadAllAsync()
+    {
+      if (!this.CanLoadAll.Value)
+      {
+        return;
+      }
+      this.CanLoadAll.Value = false;
+
+      foreach (var row in this.Rows)
+      {
+        await row.LoadAsync();
+      }
+    }
+
+    public void Dispose()
+    {
+      this._disposables.Dispose();
     }
   }
 
@@ -110,20 +140,25 @@ namespace KmyKeiba.Models.Analysis.Table
       }
       this.IsAnalyzed.Value = true;
 
-      foreach (var cell in this.Cells)
+      try
       {
-        await cell.LoadAsync();
+        await Task.WhenAll(this.Cells.Select(c => c.LoadAsync()));
+      }
+      catch (ObjectDisposedException)
+      {
+        // TODO: logs
+        return;
       }
 
       if (this.Cells.Any())
       {
-        if (this.Cells.Count() >= 4 && !this.Cells.All(c => c.ComparationValue == default))
+        if (this.Cells.Count() >= 4 && !this.Cells.All(c => c.ComparationValue.Value == float.MinValue))
         {
-          var max = this.Cells.OrderByDescending(c => c.ComparationValue).ElementAtOrDefault(2)?.ComparationValue ?? default;
-          var min = this.Cells.OrderBy(c => c.ComparationValue).ElementAtOrDefault(2)?.ComparationValue ?? default;
+          var max = this.Cells.OrderByDescending(c => c.ComparationValue.Value).ElementAtOrDefault(2)?.ComparationValue.Value ?? default;
+          var min = this.Cells.OrderBy(c => c.ComparationValue.Value).ElementAtOrDefault(2)?.ComparationValue.Value ?? default;
           foreach (var cell in this.Cells)
           {
-            cell.Comparation.Value = AnalysisUtil.CompareValue(cell.ComparationValue, max, min);
+            cell.Comparation.Value = AnalysisUtil.CompareValue(cell.ComparationValue.Value, max, min);
           }
         }
       }
@@ -140,9 +175,11 @@ namespace KmyKeiba.Models.Analysis.Table
   {
     ReactiveProperty<string> Value { get; }
 
-    float ComparationValue { get; }
+    ReactiveProperty<float> ComparationValue { get; }
 
     ReactiveProperty<ValueComparation> Comparation { get; }
+
+    ReactiveProperty<bool> HasComparationValue { get; }
 
     Task LoadAsync();
   }
@@ -160,7 +197,9 @@ namespace KmyKeiba.Models.Analysis.Table
 
     public ReactiveProperty<string> Value { get; } = new();
 
-    public float ComparationValue { get; set; }
+    public ReactiveProperty<float> ComparationValue { get; } = new(float.MinValue);
+
+    public ReactiveProperty<bool> HasComparationValue { get; } = new(true);
 
     public ReactiveProperty<ValueComparation> Comparation { get; } = new();
 
@@ -173,8 +212,13 @@ namespace KmyKeiba.Models.Analysis.Table
 
     public async Task LoadAsync()
     {
+      if (this._horse.IsDisposed)
+      {
+        throw new ObjectDisposedException("horse");
+      }
+
       var selector = this._selector(this._horse);
-      var analyzer = selector.BeginLoadByScript(this._keys, 1000, 0, false);
+      var analyzer = selector.BeginLoad(this._keys, 1000, 0, false);
       await analyzer.WaitAnalysisAsync();
 
       this.Analyzer.Value = analyzer;

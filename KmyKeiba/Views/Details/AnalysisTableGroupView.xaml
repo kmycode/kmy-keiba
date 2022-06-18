@@ -61,7 +61,9 @@
       </ScrollViewer>
       
       <!--全読み込みボタン-->
-      <Button Margin="8,8" Content="一括読み込み" Width="120" Height="40" FontSize="16" HorizontalAlignment="Left"/>
+      <Button Margin="8,8" Content="一括読み込み" Width="120" Height="40" FontSize="16" HorizontalAlignment="Left"
+              Command="{Binding LoadAnalysisTableCommand}" CommandParameter="{Binding TableGroup.ActiveTable.Value,ElementName=Root}"
+              Visibility="{Binding TableGroup.ActiveTable.Value.CanLoadAll.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
 
       <!--行-->
       <ItemsControl Grid.Row="1" ItemsSource="{Binding TableGroup.ActiveTable.Value.Rows,ElementName=Root}" Style="{StaticResource TableList}"
@@ -79,6 +81,7 @@
                   <TextBlock FontSize="16" FontWeight="Bold" Margin="8,4"
                              Text="{Binding Name}"/>
                   <Button HorizontalAlignment="Center" Content="解析" FontSize="16" Padding="8,2"
+                          Command="{Binding DataContext.LoadAnalysisTableRowCommand,ElementName=Root}" CommandParameter="{Binding}"
                           Visibility="{Binding IsAnalyzed.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
                 </StackPanel>
               </Border>
@@ -94,7 +97,8 @@
                   <DataTemplate>
                     <Border Width="80" Height="72" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0,0,0,1">
                       <TextBlock Text="{Binding Value.Value}" Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
-                                  FontSize="16" TextAlignment="Center" VerticalAlignment="Center"/>
+                                 FontSize="16" TextAlignment="Center" VerticalAlignment="Center"
+                                 Visibility="{Binding HasComparationValue.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                     </Border>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>

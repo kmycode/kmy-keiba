@@ -217,6 +217,41 @@ namespace KmyKeiba.Models.Analysis
       return this.MenuItems.FirstOrDefault(i => i.Type == type)?.Selector;
     }
 
+    public RaceHorseBloodTrendAnalysisSelector? GetSelector(string scriptType)
+    {
+      var type = this.KeysToBloodType(scriptType);
+      return this.GetSelector(type);
+    }
+
+    public async Task<RaceHorseBloodTrendAnalysisSelector> GetSelectorForceAsync(string scriptType)
+    {
+      using var db = new MyContext();
+      await this.InitializeBloodListAsync(db);
+      return this.GetSelector(scriptType)!;
+    }
+
+    private BloodType KeysToBloodType(string keys)
+    {
+      return keys switch
+      {
+        "f" => BloodType.Father,
+        "ff" => BloodType.FatherFather,
+        "fff" => BloodType.FatherFatherFather,
+        "ffm" => BloodType.FatherFatherMother,
+        "fm" => BloodType.FatherMother,
+        "fmf" => BloodType.FatherMotherFather,
+        "fmm" => BloodType.FatherMotherMother,
+        "m" => BloodType.Mother,
+        "mf" => BloodType.MotherFather,
+        "mff" => BloodType.MotherFatherFather,
+        "mfm" => BloodType.MotherFatherMother,
+        "mm" => BloodType.MotherMother,
+        "mmf" => BloodType.MotherMotherFather,
+        "mmm" => BloodType.MotherMotherMother,
+        _ => BloodType.Unknown,
+      };
+    }
+
     public class MenuItem : ICheckableItem
     {
       public ReactiveProperty<bool> IsChecked { get; } = new();
@@ -241,6 +276,7 @@ namespace KmyKeiba.Models.Analysis
     public enum Key
     {
       [IgnoreKey]
+      [ScriptParameterKey("self")]
       BloodHorseSelf,      // 血統馬自身を指定するために内部でAnalyzerを管理する便宜上のキー
 
       [Label("コース")]
@@ -320,7 +356,7 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<bool> IsSameChildren { get; } = new(true);
 
-    protected override bool IsAutoLoad => this._allRaces != null;
+    protected override bool IsAutoLoad => false;
 
     public RaceHorseBloodTrendAnalysisSelector(RaceHorseBloodTrendAnalysisSelectorMenu menu, RaceData race, RaceHorseData horse, string relativeKey, string relativeName, BloodType type, string bloodKey) : base(typeof(Key))
     {

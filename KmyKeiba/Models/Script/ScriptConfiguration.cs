@@ -46,35 +46,78 @@ namespace KmyKeiba.Models.Script
       this._name = name;
     }
 
-    [ScriptMember("useRaceHorseAnalyzer")]
+    [ScriptMember("useHorseAnalyzer")]
     public void UseRaceHorseAnalyzer(string name, string keys, string value)
     {
       this._rows.Add(async race =>
       {
         return await new AnalysisTableRow(name, race, (race, horse) =>
           new LambdaAnalysisTableCell<RaceHorseTrendAnalysisSelector, RaceHorseTrendAnalyzer>(
-            horse,
-            h => h.TrendAnalyzers!,
-            keys,
-            (analyzer, cell) =>
-            {
-              if (value == "place")
-              {
-                cell.Value.Value = analyzer.AllGrade.Value.PlacingBetsRate.ToString("P0") + "\n" + $"({analyzer.AllGrade.Value.PlacingBetsCount} / {analyzer.AllGrade.Value.AllCount})";
-                cell.ComparationValue = analyzer.AllGrade.Value.PlacingBetsRate;
-              }
-              if (value == "time")
-              {
-                cell.Value.Value = analyzer.TimeDeviationValue.Value.ToString("F1");
-                cell.ComparationValue = (float)analyzer.TimeDeviationValue.Value;
-              }
-              if (value == "a3htime")
-              {
-                cell.Value.Value = analyzer.A3HTimeDeviationValue.Value.ToString("F1");
-                cell.ComparationValue = (float)analyzer.A3HTimeDeviationValue.Value;
-              }
-            })).WithLoadAsync();
+            horse, h => h.TrendAnalyzers!, keys,
+            (analyzer, cell) => this.SetValueOfRaceHorseAnalyzer(value, analyzer, cell))
+          ).WithLoadAsync();
       });
+    }
+
+    [ScriptMember("useRiderAnalyzer")]
+    public void UseRiderAnalyzer(string name, string keys, string value)
+    {
+      this._rows.Add(async race =>
+      {
+        return new AnalysisTableRow(name, race, (race, horse) =>
+          new LambdaAnalysisTableCell<RaceRiderTrendAnalysisSelector, RaceRiderTrendAnalyzer>(
+            horse, h => h.RiderTrendAnalyzers!, keys,
+            (analyzer, cell) => this.SetValueOfRaceHorseAnalyzer(value, analyzer, cell))
+          );
+      });
+    }
+
+    [ScriptMember("useTrainerAnalyzer")]
+    public void UseTrainerAnalyzer(string name, string keys, string value)
+    {
+      this._rows.Add(async race =>
+      {
+        return new AnalysisTableRow(name, race, (race, horse) =>
+          new LambdaAnalysisTableCell<RaceTrainerTrendAnalysisSelector, RaceTrainerTrendAnalyzer>(
+            horse, h => h.TrainerTrendAnalyzers!, keys,
+            (analyzer, cell) => this.SetValueOfRaceHorseAnalyzer(value, analyzer, cell))
+          );
+      });
+    }
+
+    [ScriptMember("useBloodAnalyzer")]
+    public void UseRiderAnalyzer(string name, string type, string keys, string value)
+    {
+      this._rows.Add(async race =>
+      {
+        return new AnalysisTableRow(name, race, (race, horse) =>
+          new LambdaAnalysisTableCell<RaceHorseBloodTrendAnalysisSelector, RaceHorseBloodTrendAnalyzer>(
+            horse, h => h.BloodSelectors!.GetSelectorForceAsync(type).Result, keys,
+            (analyzer, cell) => this.SetValueOfRaceHorseAnalyzer(value, analyzer, cell))
+          );
+      });
+    }
+
+    private void SetValueOfRaceHorseAnalyzer(string value, RaceHorseTrendAnalyzerBase analyzer, IAnalysisTableCell cell)
+    {
+      if (value == "place")
+      {
+        cell.Value.Value = analyzer.AllGrade.Value.PlacingBetsRate.ToString("P0") + "\n" + $"({analyzer.AllGrade.Value.PlacingBetsCount} / {analyzer.AllGrade.Value.AllCount})";
+        cell.ComparationValue.Value = analyzer.AllGrade.Value.PlacingBetsRate;
+        cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
+      }
+      if (value == "time")
+      {
+        cell.Value.Value = analyzer.TimeDeviationValue.Value.ToString("F1");
+        cell.ComparationValue.Value = (float)analyzer.TimeDeviationValue.Value;
+        cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
+      }
+      if (value == "a3htime")
+      {
+        cell.Value.Value = analyzer.A3HTimeDeviationValue.Value.ToString("F1");
+        cell.ComparationValue.Value = (float)analyzer.A3HTimeDeviationValue.Value;
+        cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
+      }
     }
 
     public override async Task<AnalysisTable> GenerateAsync(RaceInfo race)

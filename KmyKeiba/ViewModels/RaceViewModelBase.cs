@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Analysis.Table;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Shared;
@@ -147,6 +148,16 @@ namespace KmyKeiba.ViewModels
       this._approveReplacingScriptTicketsCommand ??=
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveReplacingTicketsAsync() ?? Task.CompletedTask);
     private AsyncReactiveCommand<object>? _approveReplacingScriptTicketsCommand;
+
+    public ICommand LoadAnalysisTableRowCommand =>
+      this._loadAnalysisTableRowCommand ??=
+        new AsyncReactiveCommand<AnalysisTableRow>().WithSubscribe(async row => await row.LoadAsync());
+    private AsyncReactiveCommand<AnalysisTableRow>? _loadAnalysisTableRowCommand;
+
+    public ICommand LoadAnalysisTableCommand =>
+      this._loadAnalysisTableCommand ??=
+        new AsyncReactiveCommand<AnalysisTable>().WithSubscribe(async table => await table.LoadAllAsync());
+    private AsyncReactiveCommand<AnalysisTable>? _loadAnalysisTableCommand;
 
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;
