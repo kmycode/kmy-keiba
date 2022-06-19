@@ -44,6 +44,8 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<string> ModelErrorMessage => this.model.ErrorMessage;
 
+    public bool IsRunningAsAdministrator { get; } = JVLinkServiceWatcher.IsRunningAsAdministrator();
+
     public string VersionNumber => Constrants.ApplicationVersion;
 
     public RaceViewModelBase()

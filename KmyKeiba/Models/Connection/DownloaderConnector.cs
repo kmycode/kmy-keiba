@@ -256,10 +256,14 @@ namespace KmyKeiba.Models.Connection
     {
       if (link == "central")
       {
-        var isRunningService = JVLinkServiceWatcher.CheckAndTryStart();
-        if (!isRunningService)
+        var serviceStatus = JVLinkServiceWatcher.CheckAndTryStart();
+        if (serviceStatus == JVLinkServiceResult.StartFailed)
         {
           throw new DownloaderCommandException(DownloaderError.NotRunningJVLinkAgent);
+        }
+        else if (serviceStatus == JVLinkServiceResult.NotFound)
+        {
+          throw new DownloaderCommandException(DownloaderError.NotInstalledCom);
         }
       }
 

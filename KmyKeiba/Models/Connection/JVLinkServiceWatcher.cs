@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +12,14 @@ namespace KmyKeiba.Models.Connection
   {
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
-    public static bool CheckAndTryStart()
+    public static bool IsRunningAsAdministrator()
+    {
+      var identity = WindowsIdentity.GetCurrent();
+      var principal = new WindowsPrincipal(identity);
+      return principal.IsInRole(WindowsBuiltInRole.Administrator);
+    }
+
+    public static JVLinkServiceResult CheckAndTryStart()
     {
       try
       {
@@ -33,13 +41,17 @@ namespace KmyKeiba.Models.Connection
           }
           else
           {
-            return true;
+            return JVLinkServiceResult.Running;
           }
 
           logger.Info("JVLinkAgentサービス開始を待機");
           service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(30));
           logger.Info("JVLinkAgentサービスを開始しました");
-          return true;
+          return JVLinkServiceResult.Running;
+        }
+        else
+        {
+          return JVLinkServiceResult.NotFound;
         }
       }
       catch (Exception ex)
@@ -47,7 +59,14 @@ namespace KmyKeiba.Models.Connection
         logger.Warn("JVLinkAgentサービスの確認で例外", ex);
       }
 
-      return false;
+      return JVLinkServiceResult.StartFailed;
     }
+  }
+
+  enum JVLinkServiceResult
+  {
+    Running,
+    StartFailed,
+    NotFound,
   }
 }

@@ -119,7 +119,7 @@ namespace KmyKeiba.Data.Db
     [DownloaderError("レーシングビューアー連携機能が有効ではありません")]
     RacingViewerNotAvailable = 18,
 
-    [DownloaderError("JV-Linkの動作が確認できません。インストールしている場合、管理者権限でアプリを再起動してください")]
+    [DownloaderError("JV-Linkの動作が確認できません。管理者権限でKMY競馬を再起動してください")]
     NotRunningJVLinkAgent = 19,
   }
 

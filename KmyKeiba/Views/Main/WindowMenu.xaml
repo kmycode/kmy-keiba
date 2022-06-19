@@ -11,10 +11,14 @@
       <Color x:Key="CloseButtonColor" R="0xcc" G="0x30" B="0x30"/>
     </StackPanel.Resources>
     <Border Margin="8" VerticalAlignment="Center" Background="{DynamicResource TableListFocusedRowBackground}">
-      <TextBlock FontSize="18" FontWeight="Bold" VerticalAlignment="Center"
-                 Margin="12,4">
-        KMY競馬 <Run Text="{Binding VersionNumber,Mode=OneTime}" Foreground="{DynamicResource SubForeground}"/>
-      </TextBlock>
+      <StackPanel Orientation="Horizontal" Margin="12,0">
+        <TextBlock FontSize="14" Margin="0,4,8,4" Text="（管理者）" Visibility="{Binding IsRunningAsAdministrator,Converter={StaticResource BooleanVisibilityConv}}"
+                   VerticalAlignment="Bottom" Foreground="{DynamicResource GoodForeground}"/>
+        <TextBlock FontSize="18" FontWeight="Bold" VerticalAlignment="Center"
+                   Margin="0,4">
+          KMY競馬 <Run Text="{Binding VersionNumber,Mode=OneTime}" Foreground="{DynamicResource SubForeground}"/>
+        </TextBlock>
+      </StackPanel>
     </Border>
     <Button Width="48" Height="48" VerticalAlignment="Top" Cursor="Hand" WindowChrome.IsHitTestVisibleInChrome="True"
             Click="MinButton_Click">
