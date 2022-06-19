@@ -144,9 +144,13 @@ namespace KmyKeiba.Models.Analysis.Table
       {
         await Task.WhenAll(this.Cells.Select(c => c.LoadAsync()));
       }
-      catch (ObjectDisposedException)
+      catch (TaskCanceledException)
       {
         // TODO: logs
+        return;
+      }
+      catch (ObjectDisposedException)
+      {
         return;
       }
 
@@ -218,7 +222,7 @@ namespace KmyKeiba.Models.Analysis.Table
     {
       if (this._horse.IsDisposed)
       {
-        throw new ObjectDisposedException("horse");
+        throw new TaskCanceledException("horse");
       }
 
       var count = 1000;
