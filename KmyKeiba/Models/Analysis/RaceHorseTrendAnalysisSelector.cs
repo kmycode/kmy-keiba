@@ -68,6 +68,7 @@ namespace KmyKeiba.Models.Analysis
 
       [Label("騎手")]
       [ScriptParameterKey("rider")]
+      [NotCacheKeyUntilRace]
       SameRider,
     }
 
@@ -75,7 +76,7 @@ namespace KmyKeiba.Models.Analysis
 
     public override string Name => this.RaceHorse.Name;
 
-    public RaceData Race { get; }
+    public override RaceData Race { get; }
 
     public RaceHorseData RaceHorse { get; }
 

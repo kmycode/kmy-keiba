@@ -384,6 +384,7 @@ namespace KmyKeiba.Models.Analysis
 
       [Label("オッズ")]
       [ScriptParameterKey("odds")]
+      [NotCacheKeyUntilRace]
       Odds,
     }
 
@@ -396,7 +397,7 @@ namespace KmyKeiba.Models.Analysis
 
     public string RelativeKey { get; }
 
-    public RaceData Race { get; }
+    public override RaceData Race { get; }
 
     public RaceHorseData RaceHorse { get; }
 

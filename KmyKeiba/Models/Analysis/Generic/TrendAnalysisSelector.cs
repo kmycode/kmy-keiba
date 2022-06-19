@@ -1,4 +1,6 @@
 ﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Data;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -86,6 +88,8 @@ namespace KmyKeiba.Models.Analysis.Generic
     public ReactiveProperty<bool> IsSizeChanged { get; }
 
     protected virtual bool IsAutoLoad => false;
+
+    public abstract RaceData Race { get; }
 
     public TrendAnalysisSelector(): this(Enumerable.Empty<KEY>())
     {
@@ -266,6 +270,13 @@ namespace KmyKeiba.Models.Analysis.Generic
 
       foreach (var item in selector.Analyzers)
       {
+        if (item.Key.Any(k => k.GetType().GetField(k.ToString())!.GetCustomAttributes(true).OfType<NotCacheKeyUntilRaceAttribute>().Any()))
+        {
+          if (this.Race.DataStatus < RaceDataStatus.PreliminaryGradeFull)
+          {
+            continue;
+          }
+        }
         this.Analyzers.Add(item.Key, item.Value);
       }
 
@@ -425,6 +436,10 @@ namespace KmyKeiba.Models.Analysis.Generic
     {
       this.Key = key;
     }
+  }
+
+  internal class NotCacheKeyUntilRaceAttribute : Attribute
+  {
   }
 
   public record class TrendAnalysisFilterItem<KEY>(KEY Key, string? GroupName) : IMultipleCheckableItem

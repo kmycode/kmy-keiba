@@ -76,12 +76,13 @@ namespace KmyKeiba.Models.Analysis
 
       [Label("オッズ")]
       [ScriptParameterKey("odds")]
+      [NotCacheKeyUntilRace]
       Odds,
     }
 
     public override string Name => this.RaceHorse.TrainerName;
 
-    public RaceData Race { get; }
+    public override RaceData Race { get; }
 
     public RaceHorseData RaceHorse { get; }
 

@@ -171,7 +171,7 @@ namespace KmyKeiba.Models.Analysis
 
     public override string Name => this.Subject.DisplayName;
 
-    public RaceData Race { get; }
+    public override RaceData Race { get; }
 
     public RaceSubjectInfo Subject { get; }
 

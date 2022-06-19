@@ -64,7 +64,7 @@ namespace KmyKeiba.Models.Analysis
 
     public override string Name => this._subject.DisplayName;
 
-    public RaceData Race { get; }
+    public override RaceData Race { get; }
 
     private readonly RaceSubjectInfo _subject;
 
