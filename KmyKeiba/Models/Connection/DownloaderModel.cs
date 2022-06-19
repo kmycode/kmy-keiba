@@ -267,6 +267,8 @@ namespace KmyKeiba.Models.Connection
 
       async Task DownloadRTAsync(DateOnly date)
       {
+        var isSucceed = true;
+
         if (this.IsRTDownloadCentral.Value)
         {
           var isDownload = true;
@@ -280,9 +282,10 @@ namespace KmyKeiba.Models.Connection
           {
             logger.Info($"中央競馬の最新情報取得を開始 木～月のみ更新: {isDownloadAfterThursday}");
             await this.DownloadRTAsync(DownloadLink.Central, date);
+            isSucceed = !this.IsRTError.Value;
           }
         }
-        if (this.IsRTDownloadLocal.Value)
+        if (this.IsRTDownloadLocal.Value && isSucceed)
         {
           logger.Info("地方競馬の最新情報取得を開始");
           await this.DownloadRTAsync(DownloadLink.Local, date);
@@ -303,7 +306,7 @@ namespace KmyKeiba.Models.Connection
             isSucceed = false;
           }
         }
-        if (this.IsRTDownloadLocal.Value)
+        if (this.IsRTDownloadLocal.Value && isSucceed)
         {
           logger.Info($"地方競馬の標準データ更新を開始 {year}/{month}/{day}");
           await this.DownloadAsync(DownloadLink.Local, year, month, day);

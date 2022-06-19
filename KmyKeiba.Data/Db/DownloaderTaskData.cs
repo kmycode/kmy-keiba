@@ -118,6 +118,9 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderError("レーシングビューアー連携機能が有効ではありません")]
     RacingViewerNotAvailable = 18,
+
+    [DownloaderError("JV-Linkの動作が確認できません。インストールしている場合、管理者権限でアプリを再起動してください")]
+    NotRunningJVLinkAgent = 19,
   }
 
   internal class DownloaderCommandAttribute : Attribute
