@@ -165,6 +165,26 @@ namespace KmyKeiba.Models.Script
         cell.ComparationValue.Value = (float)analyzer.A3HTimeDeviationValue.Value;
         cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
       }
+      else if (value == "shortesttime")
+      {
+        if (analyzer.Race.Distance <= 0)
+        {
+          return;
+        }
+        var timePerMeters = analyzer.Source
+          .Where(s => s.Data.ResultOrder >= 1 && s.Data.ResultTime != TimeSpan.Zero && s.Race.Distance > 0)
+          .Select(s => s.Data.ResultTime.TotalSeconds / s.Race.Distance * analyzer.Race.Distance)
+          .Select(s => TimeSpan.FromSeconds(s))
+          .ToArray();
+        if (timePerMeters.Any())
+        {
+          var shortestTime = timePerMeters.Min();
+          cell.Value.Value = shortestTime.ToString("m\\:ss\\.f");
+          cell.SubValue.Value = timePerMeters.Length.ToString();
+          cell.ComparationValue.Value = (float)shortestTime.TotalSeconds * -1;
+          cell.HasComparationValue.Value = true;
+        }
+      }
       else
       {
         this.SetValueOfGradeMap(value, analyzer.AllGrade.Value, cell);

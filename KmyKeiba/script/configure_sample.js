@@ -3,10 +3,11 @@
   //
   // 分析画面の項目
   //
-  // [value] --- place   : 複勝率
-  //             win     : 単勝率
-  //             time    : タイム偏差値平均
-  //             a3htime : 後3ハロンタイム偏差値平均
+  // [value] --- place        : 複勝率
+  //             win          : 単勝率
+  //             shortesttime : 最短タイム
+  //             time         : タイム偏差値平均
+  //             a3htime      : 後3ハロンタイム偏差値平均
   // [target] --- frame        : 枠番
   //              age          : 年齢
   //              color        : 色
