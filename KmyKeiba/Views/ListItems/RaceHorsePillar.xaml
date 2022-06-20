@@ -229,7 +229,7 @@
           </StackPanel>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Column="8" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
-          <TextBlock Text="{Binding Horse.Data.ResultTime,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}"
+          <TextBlock Text="{Binding Horse.Data.ResultTime,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss\\.f}"
                      Width="70" FontSize="20"/>
           <TextBlock Width="60" FontSize="16"><Run Text="{Binding Horse.Data.ResultLength1,ElementName=Root,Converter={StaticResource ResultLengthConv}}"/></TextBlock>
           <up:CornerResultTip Margin="36,0,0,0" VerticalAlignment="Center"
