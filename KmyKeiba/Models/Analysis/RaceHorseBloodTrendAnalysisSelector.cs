@@ -605,18 +605,20 @@ namespace KmyKeiba.Models.Analysis
         query = query.Where(r => r.RaceHorse.Odds >= min && r.RaceHorse.Odds < max);
       }
 
-      var r0 = query
-        .Join(db.HorseBloods!, h => h.RaceHorse.Key, h => h.Code, (d, h) => new { d.Race, d.RaceHorse, BloodKey = h.Code, });
+      //var r0 = query
+      //  .Join(db.HorseBloods!, h => h.RaceHorse.Key, h => h.Code, (d, h) => new { d.Race, d.RaceHorse, BloodKey = h.Code, });
       //var r1 = r0.Join(q1, d => d.BloodKey, q => q.Code, (d, q) => new { d.Race, d.RaceHorse, });
-      var r2 = r0.Join(q2, d => d.BloodKey, q => q.Code, (d, q) => new { d.Race, d.RaceHorse, });
+      //var r2 = r0.Join(q2, d => d.BloodKey, q => q.Code, (d, q) => new { d.Race, d.RaceHorse, });
+      var r3 = query.Join(q2, d => d.RaceHorse.Key, q => q.Code, (d, q) => new { d.Race, d.RaceHorse, });
 
       try
       {
-        var races = await r2 //.Concat(r1)
+        var races = await r3 //r2.Concat(r1)
           .OrderByDescending(r => r.Race.StartTime)
           .Skip(offset)
           .Take(sizeMax)
           .ToArrayAsync();
+        races = races.DistinctBy(r => r.RaceHorse.Key + r.RaceHorse.RaceKey).ToArray();
         var raceHorses = Array.Empty<RaceHorseData>();
         if (isLoadSameHorses)
         {
