@@ -52,4 +52,7 @@
   bloodTable.useBloodAnalyzer('同父距離複勝', 'f', 'distance', 'place');
   bloodTable.useBloodAnalyzer('同父地面距離複勝', 'f', 'distance|ground', 'place');
   bloodTable.useBloodAnalyzer('同母父複勝', 'mf', '', 'place');
+
+  // キャッシュするレースの最大数。RAM容量が気になる場合は減らし、逆に余裕があれば増やしてもよい
+  appconfig.raceCacheMax = 48;
 });

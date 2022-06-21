@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Data.Db;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
 using System;
 using System.Collections.Generic;
@@ -35,7 +36,7 @@ namespace KmyKeiba.Models.Race
       }
       _caches.Add(cache);
 
-      if (_caches.Count > 48)
+      if (_caches.Count > ApplicationConfiguration.Current.Value.RaceInfoCacheMax)
       {
         _caches.RemoveAt(0);
       }

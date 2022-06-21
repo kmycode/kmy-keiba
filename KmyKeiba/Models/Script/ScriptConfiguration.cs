@@ -16,6 +16,9 @@ namespace KmyKeiba.Models.Script
   {
     private List<ScriptAnalysisTableConfiguration> _tables = new();
 
+    [ScriptMember("raceCacheMax")]
+    public int RaceInfoCacheMax { get; set; } = 48;
+
     [ScriptMember("createAnalysisTable")]
     public ScriptAnalysisTableConfiguration CreateAnalysisTable(string name)
     {
@@ -26,7 +29,10 @@ namespace KmyKeiba.Models.Script
 
     public void SetConfiguration()
     {
-      var configuration = new ApplicationConfiguration();
+      var configuration = new ApplicationConfiguration
+      {
+        RaceInfoCacheMax = this.RaceInfoCacheMax,
+      };
       foreach (var table in this._tables)
       {
         configuration.AnalysisTableGenerators.Add(table);

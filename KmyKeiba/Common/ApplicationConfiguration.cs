@@ -13,6 +13,8 @@ namespace KmyKeiba.Common
   {
     public static ReactiveProperty<ApplicationConfiguration> Current { get; } = new(new ApplicationConfiguration());
 
+    public int RaceInfoCacheMax { get; init; } = 48;
+
     public List<AnalysisTableGenerator> AnalysisTableGenerators { get; } = new();
   }
 
