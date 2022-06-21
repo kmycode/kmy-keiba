@@ -79,10 +79,6 @@ namespace KmyKeiba.Models.Analysis
       [NotCacheKeyUntilRace]
       Odds,
 
-      [Label("脚質")]
-      [ScriptParameterKey("runningstyle")]
-      RunningStyle,
-
       [ScriptParameterKey("rs_frontrunner")]
       [IgnoreKey]
       RS_FrontRunner,
@@ -213,10 +209,6 @@ namespace KmyKeiba.Models.Analysis
       {
         var (min, max) = AnalysisUtil.GetOddsRange(this.RaceHorse.Odds);
         query = query.Where(r => r.RaceHorse.Odds >= min && r.RaceHorse.Odds < max);
-      }
-      if (keys.Contains(Key.RunningStyle))
-      {
-        query = query.Where(r => r.RaceHorse.RunningStyle == this.RaceHorse.RunningStyle);
       }
 
       var rss = new List<RunningStyle>();
