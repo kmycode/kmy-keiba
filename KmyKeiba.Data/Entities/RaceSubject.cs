@@ -69,27 +69,16 @@ namespace KmyKeiba.JVLink.Entities
         }
 
         // 地方競馬
-        if (maxClass != RaceClass.Unknown)
+        if (maxClass != RaceClass.Unknown || this.IsLocal)
         {
-          // 重賞or特別、年齢指定レースでは未勝利や新馬のような情報を表示する余裕がない
-          if (displayClass is RaceGrade || displayClass is RaceClass.Age || displayClass is RaceClass.Money)
+          // 重賞or特別レースでは未勝利や新馬のような情報を表示する余裕がない
+          // でも高知がたまに特別レースという名の新馬戦をぶちこんでくるので、特別レースは扱いを分ける
+          if (displayClass is RaceGrade &&
+            displayClass is not RaceGrade.LocalNonGradeSpecial &&
+            displayClass is not RaceGrade.NonGradeSpecial &&
+            displayClass is not RaceGrade.Listed &&
+            displayClass is not RaceGrade.LocalListed)
           {
-            if (displayClass is RaceGrade.NonGradeSpecial || displayClass is RaceGrade.LocalNonGradeSpecial)
-            {
-              // 高知が特別レースと称して新馬戦をぶちこんでくることがある
-              if (this.IsNotWon)
-              {
-                return RaceSubjectType.Maiden;
-              }
-              if (this.IsNewHorses)
-              {
-                return RaceSubjectType.NewComer;
-              }
-            }
-            if (this.IsOpen)
-            {
-              return RaceSubjectType.Open;
-            }
             if (maxClass == RaceClass.Age)
             {
               // 年齢制限特別レースで年齢制限の表示ぷっちゃけいらない
@@ -109,6 +98,16 @@ namespace KmyKeiba.JVLink.Entities
           if (this.IsOpen)
           {
             return RaceSubjectType.Open;
+          }
+
+          // 上の条件分岐で漏れた分（特別レース）
+          if (displayClass is RaceGrade)
+          {
+            if (maxClass == RaceClass.Age)
+            {
+              return null;
+            }
+            return maxClass;
           }
 
           if (displayClass is RaceClass.Age && maxClass == RaceClass.Money)
