@@ -270,14 +270,20 @@ namespace KmyKeiba.Models.Analysis.Generic
 
       foreach (var item in selector.Analyzers)
       {
-        if (item.Key.Any(k => k.GetType().GetField(k.ToString())!.GetCustomAttributes(true).OfType<NotCacheKeyUntilRaceAttribute>().Any()))
+        if (item.Key
+          .Any(k => k.GetType()
+            .GetField(k.ToString())!
+            .GetCustomAttributes(true)
+            .OfType<NotCacheKeyUntilRaceAttribute>()
+            .Any()
+          ))
         {
           if (this.Race.DataStatus < RaceDataStatus.PreliminaryGradeFull)
           {
             continue;
           }
         }
-        this.Analyzers.Add(item.Key, item.Value);
+        this.Analyzers[item.Key] = item.Value;
       }
 
       foreach (var key in this.Keys
