@@ -255,7 +255,11 @@ namespace KmyKeiba.Models.Analysis
           this.SameGroundGrade = new ResultOrderGradeMap(this.BeforeRaces
             .Where(r => r.Race.TrackGround == race.TrackGround).Select(r => r.Data).ToArray());
           this.SameDistanceGrade = new ResultOrderGradeMap(this.BeforeRaces
-            .Where(r => r.Race.Distance / 100 == race.Distance / 100).Select(r => r.Data).ToArray());
+            .Where(r =>
+            {
+              var diff = race.Course <= RaceCourse.CentralMaxValue ? ApplicationConfiguration.Current.Value.NearDistanceDiffCentralInHorseGrade : ApplicationConfiguration.Current.Value.NearDistanceDiffLocalInHorseGrade;
+              return r.Race.Distance >= race.Distance - diff && r.Race.Distance <= race.Distance + diff;
+            }).Select(r => r.Data).ToArray());
           this.SameDirectionGrade = new ResultOrderGradeMap(this.BeforeRaces
             .Where(r => r.Race.TrackCornerDirection == race.TrackCornerDirection).Select(r => r.Data).ToArray());
           this.SameConditionGrade = new ResultOrderGradeMap(this.BeforeRaces
@@ -264,12 +268,12 @@ namespace KmyKeiba.Models.Analysis
             .Where(r => r.Data.RiderCode == horse.RiderCode).Select(r => r.Data).ToArray());
 
           // 競馬場ごとの成績
-          this.CourseGrades.Add(new CourseHorseGrade(race.Distance, this.BeforeRaces));
+          this.CourseGrades.Add(new CourseHorseGrade(race.Distance, race.TrackGround, this.BeforeRaces));
           foreach (var courseSource in this.BeforeRaces
             .Where(r => r.Data.AbnormalResult == RaceAbnormality.Unknown && r.Data.ResultTime != default)
             .GroupBy(r => r.Race.Course))
           {
-            var grade = new CourseHorseGrade(courseSource.Key, race.Distance, courseSource.ToArray())
+            var grade = new CourseHorseGrade(courseSource.Key, race.Distance, race.TrackGround, courseSource.ToArray())
             {
               IsCurrentCourse = courseSource.Key == race.Course,
             };
@@ -674,15 +678,16 @@ namespace KmyKeiba.Models.Analysis
 
     public double ShortestTimeRaceTopHorseDeviationValue { get; }
 
-    public CourseHorseGrade(RaceCourse course, short distance, IReadOnlyList<RaceHorseAnalyzer> source)
+    public CourseHorseGrade(RaceCourse course, short distance, TrackGround ground, IReadOnlyList<RaceHorseAnalyzer> source)
     {
       var filtered = source.Where(s => s.Data.AbnormalResult == RaceAbnormality.Unknown && s.Data.ResultOrder > 0);
 
       this.Course = course;
       this.AllGrade = new ResultOrderGradeMap(filtered.Select(s => s.Data).ToArray());
 
+      var diff = course <= RaceCourse.CentralMaxValue ? ApplicationConfiguration.Current.Value.NearDistanceDiffCentralInHorseGrade : ApplicationConfiguration.Current.Value.NearDistanceDiffLocalInHorseGrade;
       var nearDistanceRaces = filtered
-        .Where(s => System.Math.Abs(s.Race.Distance - distance) <= 100);
+        .Where(s => System.Math.Abs(s.Race.Distance - distance) <= diff && s.Race.TrackGround == ground);
       if (nearDistanceRaces.Any())
       {
         this.HasData = true;
@@ -703,7 +708,7 @@ namespace KmyKeiba.Models.Analysis
       }
     }
 
-    public CourseHorseGrade(short distance, IReadOnlyList<RaceHorseAnalyzer> source) : this(RaceCourse.All, distance, source)
+    public CourseHorseGrade(short distance, TrackGround ground, IReadOnlyList<RaceHorseAnalyzer> source) : this(RaceCourse.All, distance, ground, source)
     {
     }
   }

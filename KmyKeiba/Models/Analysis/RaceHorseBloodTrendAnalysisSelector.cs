@@ -542,7 +542,7 @@ namespace KmyKeiba.Models.Analysis
       }
       if (keys.Contains(Key.NearDistance))
       {
-        query = query.Where(r => r.Race.Distance >= this.Race.Distance - 100 && r.Race.Distance <= this.Race.Distance + 100);
+        query = query.Where(r => r.Race.Distance >= this.Race.Distance - 50 && r.Race.Distance <= this.Race.Distance + 50);
       }
       if (keys.Contains(Key.SameDirection))
       {

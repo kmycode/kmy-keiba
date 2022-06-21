@@ -70,6 +70,10 @@ namespace KmyKeiba.Models.Analysis
       [ScriptParameterKey("rider")]
       [NotCacheKeyUntilRace]
       SameRider,
+
+      [Label("枠")]
+      [ScriptParameterKey("frame")]
+      SameFrame,
     }
 
     private IReadOnlyList<RaceHorseAnalyzer>? _allRaces;
@@ -134,7 +138,10 @@ namespace KmyKeiba.Models.Analysis
       }
       if (keys.Contains(Key.NearDistance))
       {
-        query = query.Where(r => r.Race.Distance / 200 == this.Race.Distance / 200);
+        var diff = this.Race.Course <= RaceCourse.CentralMaxValue ?
+          ApplicationConfiguration.Current.Value.NearDistanceDiffCentralInHorseGrade :
+          ApplicationConfiguration.Current.Value.NearDistanceDiffLocalInHorseGrade;
+        query = query.Where(r => r.Race.Distance >= this.Race.Distance - diff && r.Race.Distance <= this.Race.Distance + diff);
       }
       if (keys.Contains(Key.SameDirection))
       {
@@ -188,6 +195,10 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.SameRider))
       {
         query = query.Where(r => r.Data.RiderCode == this.RaceHorse.RiderCode);
+      }
+      if (keys.Contains(Key.SameFrame))
+      {
+        query = query.Where(r => r.Data.FrameNumber == this.RaceHorse.FrameNumber);
       }
 
       analyzer.SetSource(query);

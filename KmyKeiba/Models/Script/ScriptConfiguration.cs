@@ -19,6 +19,18 @@ namespace KmyKeiba.Models.Script
     [ScriptMember("raceCacheMax")]
     public int RaceInfoCacheMax { get; set; } = 48;
 
+    [ScriptMember("distanceDiffCentral")]
+    public int NearDistanceDiffCentral { get; init; } = 50;
+
+    [ScriptMember("distanceDiffCentralInHorseGrade")]
+    public int NearDistanceDiffCentralInHorseGrade { get; init; } = 50;
+
+    [ScriptMember("distanceDiffLocal")]
+    public int NearDistanceDiffLocal { get; init; } = 50;
+
+    [ScriptMember("distanceDiffLocalInHorseGrade")]
+    public int NearDistanceDiffLocalInHorseGrade { get; init; } = 50;
+
     [ScriptMember("createAnalysisTable")]
     public ScriptAnalysisTableConfiguration CreateAnalysisTable(string name)
     {
@@ -32,6 +44,10 @@ namespace KmyKeiba.Models.Script
       var configuration = new ApplicationConfiguration
       {
         RaceInfoCacheMax = this.RaceInfoCacheMax,
+        NearDistanceDiffCentral = this.NearDistanceDiffCentral,
+        NearDistanceDiffCentralInHorseGrade = this.NearDistanceDiffCentralInHorseGrade,
+        NearDistanceDiffLocal = this.NearDistanceDiffLocal,
+        NearDistanceDiffLocalInHorseGrade = this.NearDistanceDiffLocalInHorseGrade,
       };
       foreach (var table in this._tables)
       {

@@ -15,6 +15,14 @@ namespace KmyKeiba.Common
 
     public int RaceInfoCacheMax { get; init; } = 48;
 
+    public int NearDistanceDiffCentral { get; init; } = 50;
+
+    public int NearDistanceDiffCentralInHorseGrade { get; init; } = 50;
+
+    public int NearDistanceDiffLocal { get; init; } = 50;
+
+    public int NearDistanceDiffLocalInHorseGrade { get; init; } = 50;
+
     public List<AnalysisTableGenerator> AnalysisTableGenerators { get; } = new();
   }
 

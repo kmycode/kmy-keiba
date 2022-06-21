@@ -55,4 +55,14 @@
 
   // キャッシュするレースの最大数。RAM容量が気になる場合は減らし、逆に余裕があれば増やしてもよい
   appconfig.raceCacheMax = 48;
+
+  // 傾向検索、分析画面などで絞り込み条件に「距離」を指定した場合に同じ距離として扱う範囲を指定する
+  // 50を指定した場合、1600mレースでは1550 - 1650mのレースがヒットする
+  // 中央レースはレース回数の少ない馬が多く、地方レースでは距離が10刻みになることもあるため、中央と地方で設定項目を分けている
+  // InHorseGradeのついてないほう: 騎手、調教師、レース傾向などから検索した場合の設定
+  // InHorseGradeのついているほう: その馬自身の成績から検索した場合の設定
+  appconfig.distanceDiffCentral = 50;
+  appconfig.distanceDiffCentralInHorseGrade = 50;
+  appconfig.distanceDiffLocal = 50;
+  appconfig.distanceDiffLocalInHorseGrade = 50;
 });
