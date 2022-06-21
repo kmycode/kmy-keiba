@@ -71,34 +71,52 @@ namespace KmyKeiba.JVLink.Entities
         // 地方競馬
         if (maxClass != RaceClass.Unknown)
         {
-          if (maxClass == RaceClass.Age || maxClass == RaceClass.Money)
+          // 重賞or特別、年齢指定レースでは未勝利や新馬のような情報を表示する余裕がない
+          if (displayClass is RaceGrade || displayClass is RaceClass.Age || displayClass is RaceClass.Money)
           {
-            if (this.IsNotWon)
+            if (displayClass is RaceGrade.NonGradeSpecial || displayClass is RaceGrade.LocalNonGradeSpecial)
             {
-              return RaceSubjectType.Maiden;
-            }
-            if (this.IsNewHorses)
-            {
-              return RaceSubjectType.NewComer;
+              // 高知が特別レースと称して新馬戦をぶちこんでくることがある
+              if (this.IsNotWon)
+              {
+                return RaceSubjectType.Maiden;
+              }
+              if (this.IsNewHorses)
+              {
+                return RaceSubjectType.NewComer;
+              }
             }
             if (this.IsOpen)
             {
               return RaceSubjectType.Open;
             }
-
-            if (displayClass is RaceClass.Age && maxClass == RaceClass.Money)
+            if (maxClass == RaceClass.Age)
             {
-              return RaceClass.Money;
+              // 年齢制限特別レースで年齢制限の表示ぷっちゃけいらない
+              return null;
             }
-
-            return null;
-          }
-
-          // 年齢制限は中央地方のほとんどのレースにある。いちいち入れると画面がうるさい
-          if (displayClass is RaceGrade || displayClass is RaceClass.Age)
-          {
             return maxClass;
           }
+
+          if (this.IsNotWon)
+          {
+            return RaceSubjectType.Maiden;
+          }
+          if (this.IsNewHorses)
+          {
+            return RaceSubjectType.NewComer;
+          }
+          if (this.IsOpen)
+          {
+            return RaceSubjectType.Open;
+          }
+
+          if (displayClass is RaceClass.Age && maxClass == RaceClass.Money)
+          {
+            return RaceClass.Money;
+          }
+
+          return null;
         }
         // 中央競馬
         else
