@@ -114,6 +114,8 @@ namespace KmyKeiba.Models.Race
 
     public string Name => this.Subject.DisplayName;
 
+    public bool IsAvoidCaching { get; private set; }
+
     public RaceMovieInfo Movie => this._movie ??= new(this.Data);
     private RaceMovieInfo? _movie;
 
@@ -308,6 +310,10 @@ namespace KmyKeiba.Models.Race
 
         await db.SaveChangesAsync();
 
+        this.IsAvoidCaching = true;
+        RaceInfoCacheManager.Remove(this.Data.Key);
+        await this.CheckCanUpdateAsync();
+
         logger.Debug($"天気情報を {this.Weather.Value} に変更しました key: {key}");
       }
       catch (Exception ex)
@@ -331,6 +337,10 @@ namespace KmyKeiba.Models.Race
         this.Data.IsConditionSetManually = true;
 
         await db.SaveChangesAsync();
+
+        this.IsAvoidCaching = true;
+        RaceInfoCacheManager.Remove(this.Data.Key);
+        await this.CheckCanUpdateAsync();
 
         logger.Debug($"馬場状態を {this.Weather.Value} に変更しました key: {key}");
       }
@@ -376,6 +386,14 @@ namespace KmyKeiba.Models.Race
 
     public async Task CheckCanUpdateAsync()
     {
+      if (this.IsAvoidCaching)
+      {
+        // 天候馬場を手動で変更したとき
+        this.CanUpdate.Value = true;
+        this.IsWillTrendAnalyzersResetedOnUpdate.Value = true;
+        return;
+      }
+
       // LastModifiedに時刻は記録されないので、各項目を比較するしかない
       try
       {
@@ -427,58 +445,12 @@ namespace KmyKeiba.Models.Race
 
     private bool IsWillResetTrendAnalyzersDataOnUpdate(RaceData newData)
     {
+      if (this.IsAvoidCaching)
+      {
+        return true;
+      }
+
       return IsWillResetTrendAnalyzersDataOnUpdate(this.Data, newData);
-    }
-
-    public async Task CopyTrendAnalyzersFromAsync(RaceInfo source)
-    {
-      var db = new Lazy<MyContext>(() => new MyContext());
-
-      try
-      {
-        if (!source.IsWillResetTrendAnalyzersDataOnUpdate(this.Data))
-        {
-          this.TrendAnalyzers.CopyFrom(source.TrendAnalyzers);
-          this.WinnerTrendAnalyzers.CopyFrom(source.WinnerTrendAnalyzers);
-
-          foreach (var horse in source.Horses.Join(this.Horses, h => h.Data.Id, h => h.Data.Id, (o, n) => new { Old = o, New = n, }))
-          {
-            if (horse.New.TrendAnalyzers != null && horse.Old.TrendAnalyzers != null)
-            {
-              horse.New.TrendAnalyzers.CopyFrom(horse.Old.TrendAnalyzers);
-            }
-            if (horse.New.RiderTrendAnalyzers != null && horse.Old.RiderTrendAnalyzers != null &&
-              horse.New.Data.RiderCode == horse.Old.Data.RiderCode)
-            {
-              horse.New.RiderTrendAnalyzers.CopyFrom(horse.Old.RiderTrendAnalyzers);
-            }
-            if (horse.New.TrainerTrendAnalyzers != null && horse.Old.TrainerTrendAnalyzers != null)
-            {
-              horse.New.TrainerTrendAnalyzers.CopyFrom(horse.Old.TrainerTrendAnalyzers);
-            }
-
-            if (horse.New.BloodSelectors != null && horse.Old.BloodSelectors != null && !horse.Old.BloodSelectors.IsRequestedInitialization)
-            {
-              //await horse.New.BloodSelectors.InitializeBloodListAsync(db.Value);
-              //foreach (var menuItem in horse.New.BloodSelectors.MenuItems
-              //  .Join(horse.Old.BloodSelectors.MenuItems, i => i.Type, i => i.Type, (o, n) => new { Old = o, New = n, }))
-              //{
-              //  menuItem.New.Selector.CopyFrom(menuItem.Old.Selector);
-              //}
-              horse.New.BloodSelectors.CopyFrom(horse.Old.BloodSelectors);
-            }
-          }
-
-          logger.Info("更新前のTrendAnalyzersをコピーしました");
-        }
-      }
-      finally
-      {
-        if (db.IsValueCreated)
-        {
-          db.Value.Dispose();
-        }
-      }
     }
 
     public async Task BuyAsync()
@@ -533,7 +505,7 @@ namespace KmyKeiba.Models.Race
       this.Payoff?.Dispose();
     }
 
-    public static async Task<RaceInfo?> FromKeyAsync(string key, bool withTransaction = true)
+    public static async Task<RaceInfo?> FromKeyAsync(string key, bool withTransaction = true, bool isCache = true)
     {
       logger.Info($"{key} のレースを読み込みます");
 
@@ -554,10 +526,10 @@ namespace KmyKeiba.Models.Race
         payoffInfo = new PayoffInfo(payoff);
       }
 
-      return await FromDataAsync(race, payoffInfo, withTransaction);
+      return await FromDataAsync(race, payoffInfo, withTransaction, isCache);
     }
 
-    private static async Task<RaceInfo> FromDataAsync(RaceData race, PayoffInfo? payoff, bool withTransaction)
+    private static async Task<RaceInfo> FromDataAsync(RaceData race, PayoffInfo? payoff, bool withTransaction, bool isCache)
     {
       logger.Debug($"{race.Key} のレース情報を読み込みます");
 
@@ -774,8 +746,11 @@ namespace KmyKeiba.Models.Race
           }
 
           // キャッシング
-          RaceInfoCacheManager.Register(info, horseAllHistories, horseHistorySameHorses, trainings, woodTrainings,
-            info.Payoff?.Payoff, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
+          if (isCache)
+          {
+            RaceInfoCacheManager.Register(info, horseAllHistories, horseHistorySameHorses, trainings, woodTrainings,
+              info.Payoff?.Payoff, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
+          }
         }
         catch (Exception ex)
         {

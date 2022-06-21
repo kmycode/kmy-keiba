@@ -204,7 +204,7 @@ namespace KmyKeiba.Models.Race
             }
           }
 
-          if (oldInfo != null)
+          if (oldInfo != null && !oldInfo.IsAvoidCaching)
           {
             RaceInfoCacheManager.Register(oldInfo);
           }

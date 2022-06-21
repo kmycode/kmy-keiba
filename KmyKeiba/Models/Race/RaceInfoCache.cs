@@ -119,6 +119,15 @@ namespace KmyKeiba.Models.Race
 
       return true;
     }
+
+    public static void Remove(string raceKey)
+    {
+      var exists = TryGetCache(raceKey);
+      if (exists != null)
+      {
+        _caches.Remove(exists);
+      }
+    }
   }
 
   internal class RaceInfoCache
