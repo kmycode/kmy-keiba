@@ -192,11 +192,8 @@ namespace KmyKeiba.Models.Race
           // 現在のレースを更新した場合、必要な情報を記録する
           var oldSelectedHorseId = 0u;
           var oldInfo = this.Info.Value;
-          var isUpdateCurrentInfo = false;
           if (oldInfo != null && oldInfo.Data.Key == key)
           {
-            isUpdateCurrentInfo = true;
-
             if (!this.IsSelectedAllHorses.Value)
             {
               oldSelectedHorseId = oldInfo.ActiveHorse.Value?.Data.Id ?? 0u;
@@ -291,10 +288,6 @@ namespace KmyKeiba.Models.Race
 
           if (oldInfo != null)
           {
-            if (isUpdateCurrentInfo)
-            {
-              //await race.CopyTrendAnalyzersFromAsync(oldInfo);
-            }
             oldInfo.Dispose();
             logger.Debug("旧オブジェクトの破棄完了");
           }
