@@ -78,6 +78,26 @@ namespace KmyKeiba.Models.Analysis
       [ScriptParameterKey("odds")]
       [NotCacheKeyUntilRace]
       Odds,
+
+      [Label("脚質")]
+      [ScriptParameterKey("runningstyle")]
+      RunningStyle,
+
+      [ScriptParameterKey("rs_frontrunner")]
+      [IgnoreKey]
+      RS_FrontRunner,
+
+      [ScriptParameterKey("rs_stalker")]
+      [IgnoreKey]
+      RS_Stalker,
+
+      [ScriptParameterKey("rs_sotp")]
+      [IgnoreKey]
+      RS_Sotp,
+
+      [ScriptParameterKey("rs_saverunner")]
+      [IgnoreKey]
+      RS_SaveRunner,
     }
 
     public override string Name => this.RaceHorse.RiderName;
@@ -193,6 +213,32 @@ namespace KmyKeiba.Models.Analysis
       {
         var (min, max) = AnalysisUtil.GetOddsRange(this.RaceHorse.Odds);
         query = query.Where(r => r.RaceHorse.Odds >= min && r.RaceHorse.Odds < max);
+      }
+      if (keys.Contains(Key.RunningStyle))
+      {
+        query = query.Where(r => r.RaceHorse.RunningStyle == this.RaceHorse.RunningStyle);
+      }
+
+      var rss = new List<RunningStyle>();
+      if (keys.Contains(Key.RS_FrontRunner))
+      {
+        rss.Add(RunningStyle.FrontRunner);
+      }
+      if (keys.Contains(Key.RS_Stalker))
+      {
+        rss.Add(RunningStyle.Stalker);
+      }
+      if (keys.Contains(Key.RS_Sotp))
+      {
+        rss.Add(RunningStyle.Sotp);
+      }
+      if (keys.Contains(Key.RS_SaveRunner))
+      {
+        rss.Add(RunningStyle.SaveRunner);
+      }
+      if (rss.Any())
+      {
+        query = query.Where(r => rss.Contains(r.RaceHorse.RunningStyle));
       }
 
       var races = await query
