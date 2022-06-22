@@ -223,7 +223,7 @@ namespace KmyKeiba.Models.Script
               continue;
             }
 
-            using var info = await RaceInfo.FromKeyAsync(item.Race.Key, withTransaction: id == 1, isCache: false);
+            using var info = await RaceInfo.FromKeyAsync(item.Race.Key, withTransaction: false, isCache: false);
             if (info != null)
             {
               while (!info.IsLoadCompleted.Value)
