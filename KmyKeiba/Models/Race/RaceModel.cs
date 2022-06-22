@@ -192,18 +192,18 @@ namespace KmyKeiba.Models.Race
           // 現在のレースを更新した場合、必要な情報を記録する
           var oldSelectedHorseId = 0u;
           var oldInfo = this.Info.Value;
-          var isUpdateCurrentInfo = false;
+          if (oldInfo != null && oldInfo.Data.Key == key)
           {
-            if (oldInfo != null && oldInfo.Data.Key == key)
+            if (!this.IsSelectedAllHorses.Value)
             {
-              isUpdateCurrentInfo = true;
-
-              if (!this.IsSelectedAllHorses.Value)
-              {
-                oldSelectedHorseId = oldInfo.ActiveHorse.Value?.Data.Id ?? 0u;
-                logger.Info($"現在のレースの更新のようです。選択中馬ID: {oldSelectedHorseId}");
-              }
+              oldSelectedHorseId = oldInfo.ActiveHorse.Value?.Data.Id ?? 0u;
+              logger.Info($"現在のレースの更新のようです。選択中馬ID: {oldSelectedHorseId}");
             }
+          }
+
+          if (oldInfo != null && !oldInfo.IsAvoidCaching)
+          {
+            RaceInfoCacheManager.Register(oldInfo);
           }
 
           this.ticketUpdated?.Dispose();
@@ -260,6 +260,9 @@ namespace KmyKeiba.Models.Race
           await race.WaitHorsesSetupAsync();
           logger.Info("すべての馬情報のロード完了を検出");
 
+          var isCached = RaceInfoCacheManager.TryApplyTrendAnalyzers(race);
+          logger.Info($"キャッシュ検出: {isCached}");
+
           if (this.IsViewExpection.Value)
           {
             // レースの更新時に馬情報が空になるのを修正する
@@ -285,10 +288,6 @@ namespace KmyKeiba.Models.Race
 
           if (oldInfo != null)
           {
-            if (isUpdateCurrentInfo)
-            {
-              race.CopyTrendAnalyzersFrom(oldInfo);
-            }
             oldInfo.Dispose();
             logger.Debug("旧オブジェクトの破棄完了");
           }

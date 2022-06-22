@@ -69,11 +69,20 @@ namespace KmyKeiba.Models.Analysis
       [Label("性")]
       [ScriptParameterKey("sex")]
       Sex,
+
+      [Label("枠")]
+      [ScriptParameterKey("frame")]
+      Frame,
+
+      [Label("オッズ")]
+      [ScriptParameterKey("odds")]
+      [NotCacheKeyUntilRace]
+      Odds,
     }
 
     public override string Name => this.RaceHorse.TrainerName;
 
-    public RaceData Race { get; }
+    public override RaceData Race { get; }
 
     public RaceHorseData RaceHorse { get; }
 
@@ -113,7 +122,10 @@ namespace KmyKeiba.Models.Analysis
       }
       if (keys.Contains(Key.NearDistance))
       {
-        query = query.Where(r => r.Race.Distance >= this.Race.Distance - 100 && r.Race.Distance <= this.Race.Distance + 100);
+        var diff = this.Race.Course <= RaceCourse.CentralMaxValue ?
+          ApplicationConfiguration.Current.Value.NearDistanceDiffCentral :
+          ApplicationConfiguration.Current.Value.NearDistanceDiffLocal;
+        query = query.Where(r => r.Race.Distance >= this.Race.Distance - diff && r.Race.Distance <= this.Race.Distance + diff);
       }
       if (keys.Contains(Key.SameDirection))
       {
@@ -166,6 +178,15 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.Sex))
       {
         query = query.Where(r => r.RaceHorse.Sex == this.RaceHorse.Sex);
+      }
+      if (keys.Contains(Key.Frame))
+      {
+        query = query.Where(r => r.RaceHorse.FrameNumber == this.RaceHorse.FrameNumber);
+      }
+      if (keys.Contains(Key.Odds))
+      {
+        var (min, max) = AnalysisUtil.GetOddsRange(this.RaceHorse.Odds);
+        query = query.Where(r => r.RaceHorse.Odds >= min && r.RaceHorse.Odds < max);
       }
 
       var races = await query

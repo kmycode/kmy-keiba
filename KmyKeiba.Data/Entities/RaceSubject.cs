@@ -69,36 +69,53 @@ namespace KmyKeiba.JVLink.Entities
         }
 
         // 地方競馬
-        if (maxClass != RaceClass.Unknown)
+        if (maxClass != RaceClass.Unknown || this.IsLocal)
         {
-          if (maxClass == RaceClass.Age || maxClass == RaceClass.Money)
+          // 重賞or特別レースでは未勝利や新馬のような情報を表示する余裕がない
+          // でも高知がたまに特別レースという名の新馬戦をぶちこんでくるので、特別レースは扱いを分ける
+          if (displayClass is RaceGrade &&
+            displayClass is not RaceGrade.LocalNonGradeSpecial &&
+            displayClass is not RaceGrade.NonGradeSpecial &&
+            displayClass is not RaceGrade.Listed &&
+            displayClass is not RaceGrade.LocalListed)
           {
-            if (this.IsNotWon)
+            if (maxClass == RaceClass.Age)
             {
-              return RaceSubjectType.Maiden;
+              // 年齢制限特別レースで年齢制限の表示ぷっちゃけいらない
+              return null;
             }
-            if (this.IsNewHorses)
-            {
-              return RaceSubjectType.NewComer;
-            }
-            if (this.IsOpen)
-            {
-              return RaceSubjectType.Open;
-            }
-
-            if (displayClass is RaceClass.Age && maxClass == RaceClass.Money)
-            {
-              return RaceClass.Money;
-            }
-
-            return null;
-          }
-
-          // 年齢制限は中央地方のほとんどのレースにある。いちいち入れると画面がうるさい
-          if (displayClass is RaceGrade || displayClass is RaceClass.Age)
-          {
             return maxClass;
           }
+
+          if (this.IsNotWon)
+          {
+            return RaceSubjectType.Maiden;
+          }
+          if (this.IsNewHorses)
+          {
+            return RaceSubjectType.NewComer;
+          }
+          if (this.IsOpen)
+          {
+            return RaceSubjectType.Open;
+          }
+
+          // 上の条件分岐で漏れた分（特別レース）
+          if (displayClass is RaceGrade)
+          {
+            if (maxClass == RaceClass.Age)
+            {
+              return null;
+            }
+            return maxClass;
+          }
+
+          if (displayClass is RaceClass.Age && maxClass == RaceClass.Money)
+          {
+            return RaceClass.Money;
+          }
+
+          return null;
         }
         // 中央競馬
         else

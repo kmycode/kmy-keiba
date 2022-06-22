@@ -22,6 +22,7 @@ namespace Kmykeiba.ML
       }
 
       var command = args[0];
+      var profile = args.Length >= 2 ? args[1] : string.Empty;
 
       if (command == "training")
       {
@@ -29,7 +30,7 @@ namespace Kmykeiba.ML
         {
           try
           {
-            await KerasModel.FromSourceAsync();
+            await KerasModel.FromSourceAsync(profile);
             PythonEngine.Shutdown();
           }
           catch (Exception ex)
@@ -45,7 +46,7 @@ namespace Kmykeiba.ML
         {
           try
           {
-            await KerasModel.PredictAsync();
+            await KerasModel.PredictAsync(profile);
             PythonEngine.Shutdown();
           }
           catch (Exception ex)

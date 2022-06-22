@@ -202,34 +202,10 @@ namespace KmyKeiba.Models.Script
       return JsonSerializer.Serialize(names, ScriptManager.JsonOptions);
     }
 
-    private BloodType KeysToBloodType(string keys)
-    {
-      return keys switch
-      {
-        "f" => BloodType.Father,
-        "ff" => BloodType.FatherFather,
-        "fff" => BloodType.FatherFatherFather,
-        "ffm" => BloodType.FatherFatherMother,
-        "fm" => BloodType.FatherMother,
-        "fmf" => BloodType.FatherMotherFather,
-        "fmm" => BloodType.FatherMotherMother,
-        "m" => BloodType.Mother,
-        "mf" => BloodType.MotherFather,
-        "mff" => BloodType.MotherFatherFather,
-        "mfm" => BloodType.MotherFatherMother,
-        "mm" => BloodType.MotherMother,
-        "mmf" => BloodType.MotherMotherFather,
-        "mmm" => BloodType.MotherMotherMother,
-        _ => BloodType.Unknown,
-      };
-    }
-
     [ScriptMember("getBloodHorseRacesAsync")]
     public async Task<string> LoadBloodRacesAsync(string typeCode)
     {
-      var type = this.KeysToBloodType(typeCode);
-
-      var analyzer = this._analyzer?.BloodSelectors?.GetSelector(type)?.BeginLoad(Enumerable.Empty<RaceHorseBloodTrendAnalysisSelector.Key>().Append(RaceHorseBloodTrendAnalysisSelector.Key.BloodHorseSelf).ToArray(), 300, 0);
+      var analyzer = this._analyzer?.BloodSelectors?.GetSelector(typeCode)?.BeginLoad(Enumerable.Empty<RaceHorseBloodTrendAnalysisSelector.Key>().Append(RaceHorseBloodTrendAnalysisSelector.Key.BloodHorseSelf).ToArray(), 300, 0);
       if (analyzer != null)
       {
         await analyzer.WaitAnalysisAsync();
@@ -241,9 +217,7 @@ namespace KmyKeiba.Models.Script
     [ScriptMember("getSameBloodHorseRacesAsync")]
     public async Task<string> LoadSameBloodRacesAsync(string typeCode, string keys, int count = 300, int offset = 0)
     {
-      var type = this.KeysToBloodType(typeCode);
-
-      var analyzer = this._analyzer?.BloodSelectors?.GetSelector(type)?.BeginLoadByScript(keys, count, offset);
+      var analyzer = this._analyzer?.BloodSelectors?.GetSelector(typeCode)?.BeginLoadByScript(keys, count, offset);
       if (analyzer != null)
       {
         await analyzer.WaitAnalysisAsync();

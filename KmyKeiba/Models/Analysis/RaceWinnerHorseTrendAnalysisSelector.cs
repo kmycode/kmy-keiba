@@ -171,7 +171,7 @@ namespace KmyKeiba.Models.Analysis
 
     public override string Name => this.Subject.DisplayName;
 
-    public RaceData Race { get; }
+    public override RaceData Race { get; }
 
     public RaceSubjectInfo Subject { get; }
 
@@ -294,7 +294,10 @@ namespace KmyKeiba.Models.Analysis
       }
       if (keys.Contains(Key.NearDistance))
       {
-        query = query.Where(r => r.Race.Distance >= this.Race.Distance - 100 && r.Race.Distance <= this.Race.Distance + 100);
+        var diff = this.Race.Course <= RaceCourse.CentralMaxValue ?
+          ApplicationConfiguration.Current.Value.NearDistanceDiffCentral :
+          ApplicationConfiguration.Current.Value.NearDistanceDiffLocal;
+        query = query.Where(r => r.Race.Distance >= this.Race.Distance - diff && r.Race.Distance <= this.Race.Distance + diff);
       }
       if (keys.Contains(Key.SameDirection))
       {

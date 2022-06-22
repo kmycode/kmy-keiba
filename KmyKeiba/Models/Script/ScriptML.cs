@@ -14,15 +14,42 @@ namespace KmyKeiba.Models.Script
   [NoDefaultScriptAccess]
   public class ScriptML
   {
+    private readonly List<ScriptML> _profiles = new();
+
     private readonly List<float[]> _rows = new();
     private readonly List<float> _results = new();
     private readonly List<ScriptML> _merged = new();
 
-    public bool HasTrainingData => this._merged.SelectMany(m => m._rows).Any();
+    public string ProfileName { get; init; } = string.Empty;
+
+    public IEnumerable<string> AllProfileNames => this._merged.SelectMany(m => m._profiles).Select(p => p.ProfileName).Append(string.Empty).Distinct();
+
+    public bool HasTrainingData => this._merged.SelectMany(m => m._profiles).SelectMany(p => p._rows).Any();
 
     public ScriptML()
     {
       this._merged.Add(this);
+    }
+
+    [ScriptMember("profile")]
+    public ScriptML GetProfile(string name)
+    {
+      if (string.IsNullOrEmpty(name))
+      {
+        return this;
+      }
+
+      var exists = this._profiles.FirstOrDefault(p => p.ProfileName == name);
+      if (exists == null)
+      {
+        var profile = new ScriptML
+        {
+          ProfileName = name,
+        };
+        this._profiles.Add(profile);
+        return profile;
+      }
+      return exists;
     }
 
     [ScriptMember("addRow")]
@@ -41,15 +68,17 @@ namespace KmyKeiba.Models.Script
       this._merged.Add(other);
     }
 
-    public void SaveTrainingFile(string fileName, string resultFileName)
+    public bool SaveTrainingFile(string profile, string fileName, string resultFileName)
     {
-      if (!this._merged.SelectMany(m => m._rows).Any())
+      var rows = this._merged.Select(m => m.GetProfile(profile)).SelectMany(p => p._rows);
+
+      if (!rows.Any())
       {
-        return;
+        return false;
       }
 
       var text = new StringBuilder();
-      foreach (var row in this._merged.SelectMany(m => m._rows))
+      foreach (var row in rows)
       {
         foreach (var column in row)
         {
@@ -59,14 +88,40 @@ namespace KmyKeiba.Models.Script
       }
 
       File.WriteAllText(fileName, text.ToString());
-      File.WriteAllText(resultFileName, string.Join("\n", this._merged.SelectMany(m => m._results)));
+      File.WriteAllText(resultFileName, string.Join("\n", this._merged.Select(m => m.GetProfile(profile)).SelectMany(m => m._results)));
+
+      return true;
     }
   }
 
   [NoDefaultScriptAccess]
   public class ScriptMLPrediction
   {
+    private readonly List<ScriptMLPrediction> _profiles = new();
     private readonly List<float[]> _rows = new();
+
+    public string ProfileName { get; init; } = string.Empty;
+
+    [ScriptMember("profile")]
+    public ScriptMLPrediction GetProfile(string name)
+    {
+      if (string.IsNullOrEmpty(name))
+      {
+        return this;
+      }
+
+      var exists = this._profiles.FirstOrDefault(p => p.ProfileName == name);
+      if (exists == null)
+      {
+        var profile = new ScriptMLPrediction
+        {
+          ProfileName = name,
+        };
+        this._profiles.Add(profile);
+        return profile;
+      }
+      return exists;
+    }
 
     [ScriptMember("addRow")]
     public void AddRow(string array)
@@ -79,7 +134,7 @@ namespace KmyKeiba.Models.Script
     }
 
     [ScriptMember("predictAsync")]
-    public async Task<string> PredictAsync(bool isConsole)
+    public async Task<string> PredictAsync()
     {
       var resultFile = Path.Combine(Constrants.MLDir, "predictresults.txt");
       var errorFile = Path.Combine(Constrants.MLDir, "error.txt");
@@ -89,9 +144,13 @@ namespace KmyKeiba.Models.Script
       File.WriteAllLines(Path.Combine(Constrants.MLDir, "predicts.txt"), this._rows.Select(r => string.Join(',', r)));
       await Process.Start(new ProcessStartInfo
       {
-        Arguments = "predict",
+        ArgumentList =
+        {
+          "predict",
+          this.ProfileName,
+        },
         FileName = "./KmyKeiba.ML.exe",
-        CreateNoWindow = !isConsole,
+        CreateNoWindow = true,
       })!.WaitForExitAsync();
 
       if (File.Exists(errorFile))

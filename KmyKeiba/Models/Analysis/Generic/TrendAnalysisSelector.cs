@@ -1,4 +1,6 @@
 ﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Data;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -32,6 +34,15 @@ namespace KmyKeiba.Models.Analysis.Generic
     void BeginLoad();
   }
 
+  public interface ITrendAnalysisSelector<A> : ITrendAnalysisSelector where A : TrendAnalyzer
+  {
+    A BeginLoad(string scriptParams, int count, int offset, bool isLoadSameHorses = true);
+
+    A BeginLoadByScript(string scriptParams, int count, int offset, bool isLoadSameHorses = true);
+
+    void CopyFrom(ITrendAnalysisSelector<A> selector);
+  }
+
   internal static class TrendAnalysisSelector
   {
     public static ReactiveProperty<int> SizeMax { get; } = new(1000);
@@ -47,7 +58,7 @@ namespace KmyKeiba.Models.Analysis.Generic
     }
   }
 
-  public abstract class TrendAnalysisSelector<KEY, A> : ITrendAnalysisSelector, IDisposable
+  public abstract class TrendAnalysisSelector<KEY, A> : ITrendAnalysisSelector<A>, IDisposable
     where A : TrendAnalyzer where KEY : Enum, IComparable
   {
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
@@ -77,6 +88,8 @@ namespace KmyKeiba.Models.Analysis.Generic
     public ReactiveProperty<bool> IsSizeChanged { get; }
 
     protected virtual bool IsAutoLoad => false;
+
+    public abstract RaceData Race { get; }
 
     public TrendAnalysisSelector(): this(Enumerable.Empty<KEY>())
     {
@@ -219,7 +232,17 @@ namespace KmyKeiba.Models.Analysis.Generic
       return this.BeginLoad(keys, 300, 0);
     }
 
+    public A BeginLoad(string scriptParams, int count, int offset, bool isLoadSameHorses = true)
+    {
+      return this.BeginLoadWithScriptParameters(scriptParams, count, offset, isLoadSameHorses, isSandbox: false);
+    }
+
     public A BeginLoadByScript(string scriptParams, int count, int offset, bool isLoadSameHorses = true)
+    {
+      return this.BeginLoadWithScriptParameters(scriptParams, count, offset, isLoadSameHorses, isSandbox: true);
+    }
+
+    private A BeginLoadWithScriptParameters(string scriptParams, int count, int offset, bool isLoadSameHorses = true, bool isSandbox = true)
     {
       var pairs = Enum.GetValues(typeof(KEY)).OfType<KEY>().Select(k =>
         new { Key = k, ScriptParameter = typeof(KEY).GetField(k.ToString())!.GetCustomAttributes(true).OfType<ScriptParameterKeyAttribute>().FirstOrDefault()?.Key ?? string.Empty, })
@@ -235,8 +258,11 @@ namespace KmyKeiba.Models.Analysis.Generic
         }
       }
 
-      return this.BeginLoad(keys, count, offset, isLoadSameHorses, isSandbox: true);
+      return this.BeginLoad(keys, count, offset, isLoadSameHorses, isSandbox: isSandbox);
     }
+
+    void ITrendAnalysisSelector<A>.CopyFrom(ITrendAnalysisSelector<A> selector)
+      => this.CopyFrom((TrendAnalysisSelector<KEY, A>)selector);
 
     public void CopyFrom(TrendAnalysisSelector<KEY, A> selector)
     {
@@ -244,7 +270,20 @@ namespace KmyKeiba.Models.Analysis.Generic
 
       foreach (var item in selector.Analyzers)
       {
-        this.Analyzers.Add(item.Key, item.Value);
+        if (item.Key
+          .Any(k => k.GetType()
+            .GetField(k.ToString())!
+            .GetCustomAttributes(true)
+            .OfType<NotCacheKeyUntilRaceAttribute>()
+            .Any()
+          ))
+        {
+          if (this.Race.DataStatus < RaceDataStatus.PreliminaryGradeFull)
+          {
+            continue;
+          }
+        }
+        this.Analyzers[item.Key] = item.Value;
       }
 
       foreach (var key in this.Keys
@@ -403,6 +442,10 @@ namespace KmyKeiba.Models.Analysis.Generic
     {
       this.Key = key;
     }
+  }
+
+  internal class NotCacheKeyUntilRaceAttribute : Attribute
+  {
   }
 
   public record class TrendAnalysisFilterItem<KEY>(KEY Key, string? GroupName) : IMultipleCheckableItem

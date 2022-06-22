@@ -71,8 +71,8 @@ namespace KmyKeiba.Models.Connection
       var info = new ProcessStartInfo
       {
         FileName = "cmd",
-#if !DEBUG
         CreateNoWindow = true,    // コンソール画面非表示
+#if !DEBUG
 #endif
       };
       info.ArgumentList.Add("/c");
@@ -254,6 +254,19 @@ namespace KmyKeiba.Models.Connection
 
     private async Task<bool> DownloadAsync(string link, string type, DateOnly start, Func<DownloaderTaskData, Task>? progress, bool isRealTime)
     {
+      if (link == "central")
+      {
+        var serviceStatus = JVLinkServiceWatcher.CheckAndTryStart();
+        if (serviceStatus == JVLinkServiceResult.StartFailed)
+        {
+          throw new DownloaderCommandException(DownloaderError.NotRunningJVLinkAgent);
+        }
+        else if (serviceStatus == JVLinkServiceResult.NotFound)
+        {
+          throw new DownloaderCommandException(DownloaderError.NotInstalledCom);
+        }
+      }
+
       logger.Info($"ダウンロードを開始します RT:{isRealTime} リンク:{link} タイプ:{type} 開始年月:{start}");
 
       if (isRealTime ? this.IsRTBusy.Value : this.IsBusy.Value)

@@ -111,7 +111,7 @@ namespace KmyKeiba.Models.Script
         var t = s;
         _ = Task.Run(async () =>
         {
-          await engine.DoAsync(this, items.Where(i => i.Index % divitions == t));
+          await engine.DoAsync(this, items.Where(i => i.Index % divitions == t), t);
         });
 
         // 同時に始めるとInjectionManagerでIBuyer取得時にエラーが発生することがある
@@ -140,12 +140,23 @@ namespace KmyKeiba.Models.Script
 
       if (!this._isCanceled && ml != null && ml.HasTrainingData)
       {
-        ml.SaveTrainingFile(Path.Combine(Constrants.MLDir, "source.txt"), Path.Combine(Constrants.MLDir, "results.txt"));
-        await Process.Start(new ProcessStartInfo
+        var profiles = ml.AllProfileNames;
+        foreach (var profile in profiles)
         {
-          FileName = "./KmyKeiba.ML.exe",
-          Arguments = "training",
-        })!.WaitForExitAsync();
+          var isExistData = ml.SaveTrainingFile(profile, Path.Combine(Constrants.MLDir, "source.txt"), Path.Combine(Constrants.MLDir, "results.txt"));
+          if (isExistData)
+          {
+            await Process.Start(new ProcessStartInfo
+            {
+              FileName = "./KmyKeiba.ML.exe",
+              ArgumentList =
+            {
+              "training",
+              profile,
+            },
+            })!.WaitForExitAsync();
+          }
+        }
       }
 
       this.IsExecuting.Value = false;
@@ -177,7 +188,7 @@ namespace KmyKeiba.Models.Script
         this.Engine = engine;
       }
 
-      public async Task DoAsync(ScriptBulkModel model, IEnumerable<ScriptResultItem> items)
+      public async Task DoAsync(ScriptBulkModel model, IEnumerable<ScriptResultItem> items, int id)
       {
         foreach (var item in items)
         {
@@ -212,7 +223,7 @@ namespace KmyKeiba.Models.Script
               continue;
             }
 
-            using var info = await RaceInfo.FromKeyAsync(item.Race.Key);
+            using var info = await RaceInfo.FromKeyAsync(item.Race.Key, withTransaction: false, isCache: false);
             if (info != null)
             {
               while (!info.IsLoadCompleted.Value)

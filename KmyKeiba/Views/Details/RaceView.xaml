@@ -178,16 +178,24 @@
             </StackPanel>
 
             <!--馬番号表示-->
-            <RadioButton FontSize="18" Content="全体" Margin="0,12,0,0" GroupName="{Binding UniqueId,ElementName=Root}"
-                         Style="{StaticResource InnerToggleButtonDefault}" Name="S_All"
-                         IsChecked="{Binding IsSelectedAllHorses.Value,Mode=TwoWay}">
-              <Control.Visibility>
+            <Grid Margin="0,12,0,0" Height="44">
+              <Panel.Visibility>
                 <MultiBinding Converter="{StaticResource MultiBooleanConv}">
                   <Binding Path="IsChecked" ElementName="S_Predict"/>
                   <Binding Path="Race.HasHorses.Value" ElementName="Root"/>
                 </MultiBinding>
-              </Control.Visibility>
-            </RadioButton>
+              </Panel.Visibility>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+              </Grid.ColumnDefinitions>
+              <RadioButton FontSize="18" Content="全体" GroupName="{Binding UniqueId,ElementName=Root}"
+                           Style="{StaticResource HalfToggleButtonDefault}" Name="S_All"
+                           IsChecked="{Binding IsSelectedAllHorses.Value,Mode=TwoWay}"/>
+              <RadioButton FontSize="18" Content="分析" GroupName="{Binding UniqueId,ElementName=Root}"
+                           Style="{StaticResource HalfToggleButtonDefault}" Name="S_AllAnalysis"
+                           Grid.Column="1"/>
+            </Grid>
             <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}"
                           Visibility="{Binding IsChecked,ElementName=S_Predict,Converter={StaticResource BooleanVisibilityConv}}">
               <ItemsControl.ItemsPanel>
@@ -262,12 +270,24 @@
           </Control.Visibility>
         </uc:RaceExpectAllView>
 
+        <!--予想・分析-->
+        <uc:AnalysisTableGroupView TableGroup="{Binding Race.AnalysisTables,ElementName=Root}" Grid.Column="1">
+          <Control.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsChecked" ElementName="S_Predict"/>
+              <Binding Path="IsChecked" ElementName="S_AllAnalysis"/>
+              <Binding Path="Race.HasHorses.Value" ElementName="Root"/>
+            </MultiBinding>
+          </Control.Visibility>
+        </uc:AnalysisTableGroupView>
+
         <!--予想・各馬-->
         <uc:RaceExpectHorseView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding Race.ActiveHorse.Value,ElementName=Root}" Grid.Column="1">
           <Control.Visibility>
             <MultiBinding Converter="{StaticResource MultiBooleanConv}">
               <Binding Path="IsChecked" ElementName="S_Predict"/>
               <Binding Path="IsChecked" ElementName="S_All" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="IsChecked" ElementName="S_AllAnalysis" Converter="{StaticResource NegativeConv}"/>
               <Binding Path="Race.HasHorses.Value" ElementName="Root"/>
             </MultiBinding>
           </Control.Visibility>

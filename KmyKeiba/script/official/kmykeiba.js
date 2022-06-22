@@ -63,11 +63,11 @@ KmyKeiba.setBulkBanei = function(value) {
 }
 
 KmyKeiba.mlTraining = function() {
-  return MLTraining;
+  return new MLTraining();
 }
 
 KmyKeiba.mlPrediction = function() {
-  return MLPrediction;
+  return new MLPrediction();
 }
 
 KmyKeiba.__csDateTimeToDate = function(dateTime) {
@@ -75,27 +75,45 @@ KmyKeiba.__csDateTimeToDate = function(dateTime) {
 }
 
 
-function MLTraining() {
+function MLTraining(obj) {
+  if (!obj) {
+    this._obj = __ml.item;
+  } else {
+    this._obj = obj;
+  }
 }
 
-MLTraining.addRow = function(data, result) {
-  __ml.item.addRow(JSON.stringify(data), result);
+MLTraining.prototype.profile = function (name) {
+  return new MLTraining(this._obj.profile(name));
 }
 
-MLTraining.predictAsync = async function() {
+MLTraining.prototype.addRow = function(data, result) {
+  this._obj.addRow(JSON.stringify(data), result);
+}
+
+MLTraining.prototype.predictAsync = async function() {
   // dummy
   return [];
 }
 
-function MLPrediction() {
+function MLPrediction(obj) {
+  if (!obj) {
+    this._obj = __mlp.item;
+  } else {
+    this._obj = obj;
+  }
 }
 
-MLPrediction.addRow = function(data) {
-  __mlp.item.addRow(JSON.stringify(data));
+MLPrediction.prototype.profile = function (name) {
+  return new MLPrediction(this._obj.profile(name));
 }
 
-MLPrediction.predictAsync = async function() {
-  return JSON.parse(await __mlp.item.predictAsync(false));
+MLPrediction.prototype.addRow = function(data) {
+  this._obj.addRow(JSON.stringify(data));
+}
+
+MLPrediction.prototype.predictAsync = async function () {
+  return JSON.parse(await this._obj.predictAsync());
 }
 
 
@@ -420,6 +438,7 @@ Race.prototype.getSimilarRacesAsync = async function(keys, count, offset) {
 //             inside     内枠
 //             intermediate中枠
 //             outside    外枠
+//           以下はいずれか１つまたは複数を指定すると絞り込まれる
 //             sex_male
 //             sex_female
 //             sex_castrated
@@ -430,6 +449,10 @@ Race.prototype.getSimilarRacesAsync = async function(keys, count, offset) {
 //             interval_91_150
 //             interval_151_300
 //             interval_301_
+//             rs_frontrunner 逃げ
+//             rs_stalker     先行
+//             rs_sotp        差し
+//             rs_saverunner  追込
 //   count:  取得最大数
 //   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
 //
@@ -685,19 +708,26 @@ RaceHorse.prototype._getObj = function() {
 //
 //   keys:  以下の組み合わせを「|」で区切って指定する
 //          例えば「同じ競馬場＆距離」のレースを取得したい場合、「course|distance」を指定する
-//             course     同じ競馬場
-//             ground     同じ地面（芝、ダート）
-//             condition  同じ馬場状態
-//             weather    同じ天気
-//             name       同じレース名（地方競馬の協賛レースなどでは誤動作の場合あり。条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）
-//             subject    同じ条件
-//             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
-//             month      同じ月
-//             distance   前後100メートルの距離
-//             direction  同じ向き（右、左、直線）
-//             placebits  上位3着以内
-//             losed      着外
-//             sex        同じ性別
+//             course         同じ競馬場
+//             ground         同じ地面（芝、ダート）
+//             condition      同じ馬場状態
+//             weather        同じ天気
+//             name           同じレース名（地方競馬の協賛レースなどでは誤動作の場合あり。条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）
+//             subject        同じ条件
+//             grade          同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
+//             month          同じ月
+//             distance       前後100メートルの距離
+//             direction      同じ向き（右、左、直線）
+//             placebits      上位3着以内
+//             losed          着外
+//             sex            同じ性別
+//             frame          同じ枠
+//             odds           近いオッズ
+//           以下はいずれか１つまたは複数を指定すると絞り込まれる
+//             rs_frontrunner 逃げ
+//             rs_stalker     先行
+//             rs_sotp        差し
+//             rs_saverunner  追込
 //   count:  取得最大数
 //   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
 //
@@ -726,6 +756,7 @@ RaceHorse.prototype.getRiderSimilarRaceHorsesAsync = async function(keys, count,
 //             placebits  上位3着以内
 //             losed      着外
 //             sex        同じ性別
+//             frame      同じ枠
 //   count:  取得最大数
 //   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
 //
@@ -783,6 +814,8 @@ RaceHorse.prototype.getBloodHorseRaceHorsesAsync = async function(type) {
 //             losed      着外
 //             age        同じ年齢
 //             grades     重賞
+//             frame      同じ枠
+//             odds       近いオッズ
 //   count:  取得最大数
 //   offset: 取得を開始する位置。0を指定すると最新のものから順に取得される
 //

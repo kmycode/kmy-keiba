@@ -56,6 +56,10 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<string> ErrorSavingMemoText { get; } = new();
 
+    public OpenErrorConfiguringRequest ErrorConfiguring => OpenErrorConfiguringRequest.Default;
+
+    public ReactiveProperty<string> ErrorConfigringMessage { get; } = new();
+
     public MainViewModel()
     {
       logger.Debug("アプリ関係オブジェクトの生成開始");
@@ -96,6 +100,10 @@ namespace KmyKeiba.ViewModels
           this.CurrentDialog.Value = DialogType.Download;
         }
 
+        // 構成スクリプト
+        await ConfigureScript.RunAsync();
+
+        // アップデートチェック
         await this.Update.CheckAsync();
       });
 
@@ -244,5 +252,6 @@ namespace KmyKeiba.ViewModels
     ScriptBulk,
     Version,
     ErrorSavingMemo,
+    ErrorConfigring,
   }
 }

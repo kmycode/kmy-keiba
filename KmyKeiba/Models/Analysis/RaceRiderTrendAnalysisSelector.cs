@@ -70,14 +70,35 @@ namespace KmyKeiba.Models.Analysis
       [ScriptParameterKey("sex")]
       Sex,
 
-      [Label("同内外")]
-      [ScriptParameterKey("outsideOrInside")]
-      SameOutsideOrInside,
+      [Label("枠")]
+      [ScriptParameterKey("frame")]
+      Frame,
+
+      [Label("オッズ")]
+      [ScriptParameterKey("odds")]
+      [NotCacheKeyUntilRace]
+      Odds,
+
+      [ScriptParameterKey("rs_frontrunner")]
+      [IgnoreKey]
+      RS_FrontRunner,
+
+      [ScriptParameterKey("rs_stalker")]
+      [IgnoreKey]
+      RS_Stalker,
+
+      [ScriptParameterKey("rs_sotp")]
+      [IgnoreKey]
+      RS_Sotp,
+
+      [ScriptParameterKey("rs_saverunner")]
+      [IgnoreKey]
+      RS_SaveRunner,
     }
 
     public override string Name => this.RaceHorse.RiderName;
 
-    public RaceData Race { get; }
+    public override RaceData Race { get; }
 
     public RaceHorseData RaceHorse { get; }
 
@@ -123,7 +144,10 @@ namespace KmyKeiba.Models.Analysis
       }
       if (keys.Contains(Key.NearDistance))
       {
-        query = query.Where(r => r.Race.Distance >= this.Race.Distance - 100 && r.Race.Distance <= this.Race.Distance + 100);
+        var diff = this.Race.Course <= RaceCourse.CentralMaxValue ?
+          ApplicationConfiguration.Current.Value.NearDistanceDiffCentral :
+          ApplicationConfiguration.Current.Value.NearDistanceDiffLocal;
+        query = query.Where(r => r.Race.Distance >= this.Race.Distance - diff && r.Race.Distance <= this.Race.Distance + diff);
       }
       if (keys.Contains(Key.SameDirection))
       {
@@ -177,20 +201,36 @@ namespace KmyKeiba.Models.Analysis
       {
         query = query.Where(r => r.RaceHorse.Sex == this.RaceHorse.Sex);
       }
-      if (keys.Contains(Key.SameOutsideOrInside))
+      if (keys.Contains(Key.Frame))
       {
-        if (this.RaceHorse.Number <= this.Race.HorsesCount / 3.0f)
-        {
-          query = query.Where(r => r.RaceHorse.Number <= r.Race.HorsesCount / 3.0f);
-        }
-        else if (this.RaceHorse.Number >= this.Race.HorsesCount * 2 / 3.0f)
-        {
-          query = query.Where(r => r.RaceHorse.Number >= r.Race.HorsesCount * 2 / 3.0f);
-        }
-        else
-        {
-          query = query.Where(r => r.RaceHorse.Number >= r.Race.HorsesCount / 3.0f && r.RaceHorse.Number <= r.Race.HorsesCount * 2 / 3);
-        }
+        query = query.Where(r => r.RaceHorse.FrameNumber == this.RaceHorse.FrameNumber);
+      }
+      if (keys.Contains(Key.Odds))
+      {
+        var (min, max) = AnalysisUtil.GetOddsRange(this.RaceHorse.Odds);
+        query = query.Where(r => r.RaceHorse.Odds >= min && r.RaceHorse.Odds < max);
+      }
+
+      var rss = new List<RunningStyle>();
+      if (keys.Contains(Key.RS_FrontRunner))
+      {
+        rss.Add(RunningStyle.FrontRunner);
+      }
+      if (keys.Contains(Key.RS_Stalker))
+      {
+        rss.Add(RunningStyle.Stalker);
+      }
+      if (keys.Contains(Key.RS_Sotp))
+      {
+        rss.Add(RunningStyle.Sotp);
+      }
+      if (keys.Contains(Key.RS_SaveRunner))
+      {
+        rss.Add(RunningStyle.SaveRunner);
+      }
+      if (rss.Any())
+      {
+        query = query.Where(r => rss.Contains(r.RaceHorse.RunningStyle));
       }
 
       var races = await query

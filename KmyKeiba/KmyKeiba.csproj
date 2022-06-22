@@ -11,7 +11,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
-    <VersionPrefix>2.0.0</VersionPrefix>
+    <VersionPrefix>2.2.1</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,6 +33,7 @@
     <PackageReference Include="ReactiveProperty.WPF" Version="8.1.0" />
     <PackageReference Include="SkiaSharp" Version="2.80.3" />
     <PackageReference Include="SkiaSharp.Views.Wpf" Version="2.80.3" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,6 +42,9 @@
 
   <ItemGroup>
     <None Update="log4net.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="script\configure_sample.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="script\index_sample.js">

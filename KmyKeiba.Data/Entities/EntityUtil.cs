@@ -41,6 +41,23 @@ namespace KmyKeiba.JVLink.Entities
       return new DateTime(date.Year, date.Month, date.Day, hours, minutes, 0);
     }
 
+    public static DateTime ToDateTime(this JVData_Struct.MDHM dt, JVData_Struct.RACE_ID2 id)
+    {
+      int.TryParse(dt.Month, out int month);
+      int.TryParse(dt.Day, out int day);
+      int.TryParse(dt.Hour, out int hour);
+      int.TryParse(dt.Minute, out int minute);
+
+      if (month == default)
+      {
+        return default;
+      }
+
+      int.TryParse(id.Year, out int raceYear);
+
+      return new DateTime(raceYear, month, day, hour, minute, 0);
+    }
+
     public static DateTime ToDateTime(this JVData_Struct.MDHM dt, JVData_Struct.RACE_ID id)
     {
       int.TryParse(dt.Month, out int month);

@@ -132,7 +132,7 @@ namespace KmyKeiba.ML.Brain
       return Array.Empty<float>();
     }
 
-    public static async Task FromSourceAsync()
+    public static async Task FromSourceAsync(string profile)
     {
       var rawFile = Path.Combine(Constrants.MLDir, "source.txt");
       var rawResultFile = Path.Combine(Constrants.MLDir, "results.txt");
@@ -165,19 +165,24 @@ namespace KmyKeiba.ML.Brain
       var resultRaws = File.ReadLines(rawResultFile);
       var results = ResultsToArray(resultRaws.ToArray());
 
-      var layer = result.Layer!;
-      layer.ShapeLength = array.GetLength(1);
+      var layer = result.Layer!.GetProfile(profile);
+      if (layer == null)
+      {
+        Program.Error($"プロファイル {profile} が存在しません");
+      }
+
+      layer!.ShapeLength = array.GetLength(1);
       var model = new KerasModel(layer);
 
       model.Training(array, results);
 
-      foreach (var action in result.Layer!.AfterTrainingActions)
+      foreach (var action in layer.AfterTrainingActions)
       {
         action(model);
       }
     }
 
-    public static async Task PredictAsync()
+    public static async Task PredictAsync(string profile)
     {
       var rawFile = Path.Combine(Constrants.MLDir, "predicts.txt");
       var layerFile = Path.Combine(Constrants.ScriptDir, "mlconfigure.js");
@@ -199,13 +204,18 @@ namespace KmyKeiba.ML.Brain
         Program.Error("設定スクリプトエラー: " + result.ErrorMessage);
       }
 
-      var model = new KerasModel(result.Layer!);
+      var layer = result.Layer!.GetProfile(profile);
+      if (layer == null)
+      {
+        Program.Error($"プロファイル {profile} が存在しません");
+      }
+      var model = new KerasModel(layer!);
 
       var raws = File.ReadLines(rawFile);
       var source = RawToSource(raws.ToArray());
       var array = SourceToArray(source);
 
-      foreach (var action in result.Layer!.BeforePredictionActions)
+      foreach (var action in layer!.BeforePredictionActions)
       {
         action(model);
       }
