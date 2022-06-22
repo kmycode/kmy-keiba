@@ -107,8 +107,6 @@ namespace KmyKeiba.Models.Race
       if (cache.RaceWinnerAnalyzers != null) race.WinnerTrendAnalyzers.CopyFrom(cache.RaceWinnerAnalyzers);
       foreach (var horse in race.Horses.Join(cache.Horses, r => r.Data.Id, c => c.Data.Id, (r, c) => new { New = r, Old = c, }))
       {
-        if (horse.Old.RaceHorseAnalyzers != null && horse.New.Data.RiderCode == horse.Old.Data.RiderCode)
-          horse.New.TrendAnalyzers?.CopyFrom(horse.Old.RaceHorseAnalyzers);
         if (horse.Old.RaceRiderAnalyzers != null && horse.New.Data.RiderCode == horse.Old.Data.RiderCode)
           horse.New.RiderTrendAnalyzers?.CopyFrom(horse.Old.RaceRiderAnalyzers);
         if (horse.Old.RaceTrainerAnalyzers != null)
@@ -172,7 +170,6 @@ namespace KmyKeiba.Models.Race
       {
         this.Horses.Add(new RaceInfoHorseCache(horse.Data)
         {
-          RaceHorseAnalyzers = horse.TrendAnalyzers,
           RaceRiderAnalyzers = horse.RiderTrendAnalyzers,
           RaceTrainerAnalyzers = horse.TrainerTrendAnalyzers,
           RaceHorseBloodAnalyzers = horse.BloodSelectors,
@@ -183,8 +180,6 @@ namespace KmyKeiba.Models.Race
     public class RaceInfoHorseCache
     {
       public RaceHorseData Data { get; }
-
-      public RaceHorseTrendAnalysisSelector? RaceHorseAnalyzers { get; set; }
 
       public RaceRiderTrendAnalysisSelector? RaceRiderAnalyzers { get; set; }
 
