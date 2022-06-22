@@ -369,7 +369,7 @@ namespace KmyKeiba.Models.Connection
 
         // 最初に最終起動からの差分を落とす
         // （真っ先にやらないと、ユーザーが先に過去データダウンロードを開始する可能性あり）
-        _ = Task.Run(async () =>
+        // RTと同時に開始すると、JVLinkAgentが落ちる可能性が高まる？
         {
           this._isInitializationDownloading = true;
 
@@ -388,8 +388,11 @@ namespace KmyKeiba.Models.Connection
             // 毎日初回起動時に必ずダウンロードする
             if (lastLaunch != today)
             {
-              await DownloadPlanOfRacesAsync(year, month, day);
-              lastDownloadNormalData = DateTime.Now;
+              var isSucceed = await DownloadPlanOfRacesAsync(year, month, day);
+              if (isSucceed)
+              {
+                lastDownloadNormalData = DateTime.Now;
+              }
             }
             else
             {
@@ -407,7 +410,7 @@ namespace KmyKeiba.Models.Connection
 
           logger.Info("初期ダウンロード完了");
           this._isInitializationDownloading = false;
-        });
+        }
 
         async Task DownloadOddsOfCentralHolidaysAsync()
         {
