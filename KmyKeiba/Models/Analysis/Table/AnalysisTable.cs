@@ -10,6 +10,7 @@ using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 using Reactive.Bindings.Extensions;
+using KmyKeiba.Common;
 
 namespace KmyKeiba.Models.Analysis.Table
 {
@@ -225,10 +226,10 @@ namespace KmyKeiba.Models.Analysis.Table
         throw new TaskCanceledException("horse");
       }
 
-      var count = 1000;
+      var count = ApplicationConfiguration.Current.Value.AnalysisTableSourceSize;
       if (typeof(S) == typeof(RaceWinnerHorseTrendAnalysisSelector))
       {
-        count = 4000;
+        count = ApplicationConfiguration.Current.Value.AnalysisTableRaceHorseSourceSize;
       }
 
       var selector = this._selector(this._horse);

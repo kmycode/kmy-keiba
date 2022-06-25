@@ -23,6 +23,10 @@ namespace KmyKeiba.Common
 
     public int NearDistanceDiffLocalInHorseGrade { get; init; } = 50;
 
+    public int AnalysisTableSourceSize { get; init; } = 1000;
+
+    public int AnalysisTableRaceHorseSourceSize { get; init; } = 4000;
+
     public List<AnalysisTableGenerator> AnalysisTableGenerators { get; } = new();
   }
 
