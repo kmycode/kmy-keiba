@@ -229,11 +229,9 @@ namespace KmyKeiba.Downloader
         logger.Info($"新しいプロセスを開始します");
         var info = new ProcessStartInfo
         {
-          FileName = "cmd",
+          FileName = selfPath,
           ArgumentList =
           {
-            "/c",
-            selfPath,
             currentTask.Command.GetCommandText(),
           },
 #if !DEBUG

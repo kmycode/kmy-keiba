@@ -303,6 +303,7 @@ namespace KmyKeiba.Models.Connection
           await this.DownloadAsync(DownloadLink.Central, year, month, day);
           if (this.IsError.Value)
           {
+            logger.Info("ダウンロード失敗を検出");
             isSucceed = false;
           }
         }
@@ -312,6 +313,7 @@ namespace KmyKeiba.Models.Connection
           await this.DownloadAsync(DownloadLink.Local, year, month, day);
           if (this.IsError.Value)
           {
+            logger.Info("ダウンロード失敗を検出");
             isSucceed = false;
           }
         }
