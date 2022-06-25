@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Analysis.Table;
 using KmyKeiba.Models.Common;
 using KmyKeiba.Models.Connection;
@@ -435,12 +436,43 @@ namespace KmyKeiba.Models.Race
     public static bool IsWillResetTrendAnalyzersDataOnUpdate(RaceData oldData, RaceData newData)
     {
       // 更新の時に傾向検索結果をリセットする必要があるか
-      return !(newData.TrackWeather == oldData.TrackWeather && newData.TrackCondition == oldData.TrackCondition &&
-        newData.Distance == oldData.Distance && newData.TrackGround == oldData.TrackGround &&
-        newData.TrackOption == oldData.TrackOption && newData.TrackCornerDirection == oldData.TrackCornerDirection &&
-        newData.SubjectAge2 == oldData.SubjectAge2 && newData.SubjectAge3 == oldData.SubjectAge3 &&
-        newData.SubjectAge4 == oldData.SubjectAge4 && newData.SubjectAge5 == oldData.SubjectAge5 &&
-        newData.SubjectAgeYounger == oldData.SubjectAgeYounger && newData.SubjectName == oldData.SubjectName);
+      return GetTrendAnalyzerResetType(oldData, newData) != RaceUpdateType.None;
+    }
+
+    public static RaceUpdateType GetTrendAnalyzerResetType(RaceData oldData, RaceData newData)
+    {
+      var type = RaceUpdateType.None;
+      if (newData.TrackWeather != oldData.TrackWeather)
+      {
+        type |= RaceUpdateType.Weather;
+      }
+      if (newData.TrackGround != oldData.TrackGround)
+      {
+        type |= RaceUpdateType.Ground;
+      }
+      if (newData.Distance != oldData.Distance)
+      {
+        type |= RaceUpdateType.Distance;
+      }
+      if (newData.TrackCondition != oldData.TrackCondition)
+      {
+        type |= RaceUpdateType.Condition;
+      }
+      if (newData.TrackOption != oldData.TrackOption)
+      {
+        type |= RaceUpdateType.Option;
+      }
+      if (newData.TrackCornerDirection != oldData.TrackCornerDirection)
+      {
+        type |= RaceUpdateType.CornerDirection;
+      }
+      if (newData.SubjectAge2 != oldData.SubjectAge2 || newData.SubjectAge3 != oldData.SubjectAge3 ||
+        newData.SubjectAge4 != oldData.SubjectAge4 || newData.SubjectAge5 != oldData.SubjectAge5 ||
+        newData.SubjectAgeYounger != oldData.SubjectAgeYounger || newData.SubjectName != oldData.SubjectName)
+      {
+        type |= RaceUpdateType.Subject;
+      }
+      return type;
     }
 
     private bool IsWillResetTrendAnalyzersDataOnUpdate(RaceData newData)
@@ -576,7 +608,7 @@ namespace KmyKeiba.Models.Race
 
           // 時系列オッズ
           var oddsTimeline = await db.SingleOddsTimelines!.Where(o => o.RaceKey == race.Key).ToArrayAsync();
-          logger.Info($"時系列オッズ {oddsTimeline.Length}件");
+          logger.Debug($"時系列オッズ {oddsTimeline.Length}件");
 
           // 各馬の情報
           var horseHistorySameHorses = cache?.HorseHistorySameHorses;
