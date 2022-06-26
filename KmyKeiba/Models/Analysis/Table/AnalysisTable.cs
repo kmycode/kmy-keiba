@@ -178,6 +178,10 @@ namespace KmyKeiba.Models.Analysis.Table
 
   public interface IAnalysisTableCell
   {
+    int SampleSize { set; }
+
+    Func<RaceHorseAnalyzer, bool> SampleFilter { set; }
+
     ReactiveProperty<string> Value { get; }
 
     ReactiveProperty<string> SubValue { get; }
@@ -187,6 +191,8 @@ namespace KmyKeiba.Models.Analysis.Table
     ReactiveProperty<ValueComparation> Comparation { get; }
 
     ReactiveProperty<bool> HasComparationValue { get; }
+
+    ReactiveCollection<RaceHorseAnalyzer> Samples { get; }
 
     Task LoadAsync();
   }
@@ -200,6 +206,10 @@ namespace KmyKeiba.Models.Analysis.Table
 
     private readonly string _keys;
 
+    public int SampleSize { get; set; } = 3;
+
+    public Func<RaceHorseAnalyzer, bool> SampleFilter { get; set; } = _ => true;
+
     public ReactiveProperty<A?> Analyzer { get; } = new();
 
     public ReactiveProperty<string> Value { get; } = new();
@@ -211,6 +221,10 @@ namespace KmyKeiba.Models.Analysis.Table
     public ReactiveProperty<bool> HasComparationValue { get; } = new(true);
 
     public ReactiveProperty<ValueComparation> Comparation { get; } = new();
+
+    public ReactiveCollection<RaceHorseAnalyzer> Samples { get; } = new();
+
+    public bool IsSamplesEnabled => this.Samples.Any();
 
     public AnalysisTableCell(RaceHorseAnalyzer horse, Func<RaceHorseAnalyzer, S> selector, string keys)
     {
@@ -239,6 +253,20 @@ namespace KmyKeiba.Models.Analysis.Table
       this.Analyzer.Value = analyzer;
 
       this.AfterLoad(analyzer);
+
+      if (analyzer is RaceHorseTrendAnalyzerBase rha)
+      {
+        ThreadUtil.InvokeOnUiThread(() =>
+        {
+          foreach (var sample in rha.Source
+            .Where(this.SampleFilter)
+            .Where(s => s.Data.ResultOrder > 0)
+            .Take(this.SampleSize))
+          {
+            this.Samples.Add(sample);
+          }
+        });
+      }
     }
 
     protected abstract void AfterLoad(A analyzer);

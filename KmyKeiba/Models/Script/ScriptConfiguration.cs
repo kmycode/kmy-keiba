@@ -142,39 +142,50 @@ namespace KmyKeiba.Models.Script
               var targets = target.Split('|');
               if (targets.Contains("frame"))
               {
+                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.FrameNumber == horse.Data.FrameNumber;
                 var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(s => s.Data.FrameNumber == horse.Data.FrameNumber).Select(s => s.Data).ToArray());
+                  .Where(filter).Select(s => s.Data).ToArray());
                 this.SetValueOfGradeMap(value, grade, cell);
               }
               if (targets.Contains("runningstyle"))
               {
+                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.FrameNumber == horse.Data.FrameNumber;
                 var grade = new ResultOrderGradeMap(analyzer.Source
                   .Where(s => s.Data.RunningStyle == horse.History?.RunningStyle).Select(s => s.Data).ToArray());
                 this.SetValueOfGradeMap(value, grade, cell);
+                cell.SampleFilter = filter;
               }
               if (targets.Contains("sex"))
               {
+                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.Sex == horse.Data.Sex;
                 var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(s => s.Data.Sex == horse.Data.Sex).Select(s => s.Data).ToArray());
+                  .Where(filter).Select(s => s.Data).ToArray());
                 this.SetValueOfGradeMap(value, grade, cell);
+                cell.SampleFilter = filter;
               }
               if (targets.Contains("color"))
               {
+                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.Color == horse.Data.Color;
                 var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(s => s.Data.Color == horse.Data.Color).Select(s => s.Data).ToArray());
+                  .Where(filter).Select(s => s.Data).ToArray());
                 this.SetValueOfGradeMap(value, grade, cell);
+                cell.SampleFilter = filter;
               }
               if (targets.Contains("age"))
               {
+                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.Age == horse.Data.Age;
                 var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(s => s.Data.Age == horse.Data.Age).Select(s => s.Data).ToArray());
+                  .Where(filter).Select(s => s.Data).ToArray());
                 this.SetValueOfGradeMap(value, grade, cell);
+                cell.SampleFilter = filter;
               }
               if (targets.Contains("popular"))
               {
+                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.Popular == horse.Data.Popular && s.Race.HorsesCount >= horse.Race.HorsesCount;
                 var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(s => s.Data.Popular == horse.Data.Popular && s.Race.HorsesCount >= horse.Race.HorsesCount).Select(s => s.Data).ToArray());
+                  .Where(filter).Select(s => s.Data).ToArray());
                 this.SetValueOfGradeMap(value, grade, cell);
+                cell.SampleFilter = filter;
               }
             });
         });
@@ -188,12 +199,14 @@ namespace KmyKeiba.Models.Script
         cell.Value.Value = analyzer.TimeDeviationValue.Value.ToString("F1");
         cell.ComparationValue.Value = (float)analyzer.TimeDeviationValue.Value;
         cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
+        cell.SampleSize = 0;
       }
       else if (value == "a3htime")
       {
         cell.Value.Value = analyzer.A3HTimeDeviationValue.Value.ToString("F1");
         cell.ComparationValue.Value = (float)analyzer.A3HTimeDeviationValue.Value;
         cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
+        cell.SampleSize = 0;
       }
       else if (value == "shortesttime")
       {
@@ -201,8 +214,9 @@ namespace KmyKeiba.Models.Script
         {
           return;
         }
+        Func<RaceHorseAnalyzer, bool> filter = s => s.Data.ResultOrder >= 1 && s.Data.ResultTime != TimeSpan.Zero && s.Race.Distance > 0;
         var timePerMeters = analyzer.Source
-          .Where(s => s.Data.ResultOrder >= 1 && s.Data.ResultTime != TimeSpan.Zero && s.Race.Distance > 0)
+          .Where(filter)
           .Select(s => s.Data.ResultTime.TotalSeconds / s.Race.Distance * analyzer.Race.Distance)
           .Select(s => TimeSpan.FromSeconds(s))
           .ToArray();
@@ -213,6 +227,8 @@ namespace KmyKeiba.Models.Script
           cell.SubValue.Value = timePerMeters.Length.ToString();
           cell.ComparationValue.Value = (float)shortestTime.TotalSeconds * -1;
           cell.HasComparationValue.Value = true;
+          cell.SampleSize = 1;
+          cell.SampleFilter = filter;
         }
       }
       else
@@ -229,6 +245,7 @@ namespace KmyKeiba.Models.Script
         cell.SubValue.Value = $"{grade.PlacingBetsCount} / {grade.AllCount}";
         cell.ComparationValue.Value = grade.PlacingBetsRate;
         cell.HasComparationValue.Value = grade.AllCount > 0;
+        cell.SampleFilter = s => s.Data.ResultOrder <= (s.Race.HorsesCount <= 7 ? 2 : 3);
       }
       if (value == "win")
       {
@@ -236,6 +253,7 @@ namespace KmyKeiba.Models.Script
         cell.SubValue.Value = $"{grade.FirstCount} / {grade.AllCount}";
         cell.ComparationValue.Value = grade.WinRate;
         cell.HasComparationValue.Value = grade.AllCount > 0;
+        cell.SampleFilter = s => s.Data.ResultOrder == 1;
       }
     }
 
