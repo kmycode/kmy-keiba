@@ -186,10 +186,12 @@
                        Text="A3HT偏差値"/>
             <TextBlock Grid.Column="8" Grid.Row="1" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.A3HTimeDeviationValue.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+            <!--
             <TextBlock Grid.Column="7" Grid.Row="2" Margin="48,0,0,0" Style="{StaticResource Sub}"
                        Text="UA3HT偏差値"/>
             <TextBlock Grid.Column="8" Grid.Row="2" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.UntilA3HTimeDeviationValue.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+            -->
           </Grid>
 
           <!--過去レースの一覧-->
