@@ -648,6 +648,15 @@ namespace KmyKeiba.Models.Analysis
         this.WinRate = this.FirstCount / (float)targets.Length;
       }
     }
+
+    public ResultOrderGradeMap(IReadOnlyList<RaceHorseAnalyzer> source) : this(source.Select(s => s.Data).ToArray())
+    {
+      var targets = source.Where(s => s.Data.AbnormalResult == RaceAbnormality.Unknown).ToArray();
+      if (targets.Any())
+      {
+        this.PlacingBetsRate = targets.Count(f => f.Data.ResultOrder <= (f.Race.HorsesCount >= 7 ? 3 : 2) && f.Data.ResultOrder > 0) / (float)targets.Length;
+      }
+    }
   }
 
   public class CourseHorseGrade
