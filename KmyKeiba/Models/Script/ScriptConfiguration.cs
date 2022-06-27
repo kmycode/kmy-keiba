@@ -245,7 +245,6 @@ namespace KmyKeiba.Models.Script
         cell.SubValue.Value = $"{grade.PlacingBetsCount} / {grade.AllCount}";
         cell.ComparationValue.Value = grade.PlacingBetsRate;
         cell.HasComparationValue.Value = grade.AllCount > 0;
-        cell.SampleFilter = s => s.Data.ResultOrder <= (s.Race.HorsesCount <= 7 ? 2 : 3);
       }
       if (value == "win")
       {
@@ -253,7 +252,6 @@ namespace KmyKeiba.Models.Script
         cell.SubValue.Value = $"{grade.FirstCount} / {grade.AllCount}";
         cell.ComparationValue.Value = grade.WinRate;
         cell.HasComparationValue.Value = grade.AllCount > 0;
-        cell.SampleFilter = s => s.Data.ResultOrder == 1;
       }
     }
 
