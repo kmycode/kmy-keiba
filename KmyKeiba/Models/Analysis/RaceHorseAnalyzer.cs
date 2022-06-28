@@ -214,9 +214,9 @@ namespace KmyKeiba.Models.Analysis
           //this.TimeDeviationValue = st.CalcRegressionValue((race.StartTime.Date - startTime).TotalDays);
           var predictValue = 0;
           var single = targetRaces.Count() == 1 ? targetRaces.First() : null;
-          this.TimeDeviationValue = single?.ResultTimeDeviationValue ?? points.CalcRegressionValue(predictValue);
-          this.A3HTimeDeviationValue = single?.A3HResultTimeDeviationValue ?? pointsa3h.CalcRegressionValue(predictValue);
-          this.UntilA3HTimeDeviationValue = single?.UntilA3HResultTimeDeviationValue ?? pointsua3h.CalcRegressionValue(predictValue);
+          this.TimeDeviationValue = MathUtil.AvoidNan(single?.ResultTimeDeviationValue ?? points.CalcRegressionValue(predictValue));
+          this.A3HTimeDeviationValue = MathUtil.AvoidNan(single?.A3HResultTimeDeviationValue ?? pointsa3h.CalcRegressionValue(predictValue));
+          this.UntilA3HTimeDeviationValue = MathUtil.AvoidNan(single?.UntilA3HResultTimeDeviationValue ?? pointsua3h.CalcRegressionValue(predictValue));
           this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(targetRaces);
 
           this.RunningStyle = targetRaces
@@ -405,9 +405,9 @@ namespace KmyKeiba.Models.Analysis
     {
       if (raceStandardTime != null && raceStandardTime.SampleCount > 0 && _timeDeviationValueCalculator != null)
       {
-        this.ResultTimeDeviationValue = _timeDeviationValueCalculator.GetTimeDeviationValueAsync(race, horse, raceStandardTime).Result;
-        this.A3HResultTimeDeviationValue = _timeDeviationValueCalculator.GetA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result;
-        this.UntilA3HResultTimeDeviationValue = _timeDeviationValueCalculator.GetUntilA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result;
+        this.ResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
+        this.A3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
+        this.UntilA3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetUntilA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
       }
     }
 
