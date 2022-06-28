@@ -98,7 +98,8 @@
                   </Grid>
                 </Border>
                 <StackPanel Orientation="Horizontal">
-                  <Button Width="90" Padding="0" Command="{Binding OpenScriptBulkDialogCommand}">
+                  <Button Width="90" Padding="0" Command="{Binding OpenScriptBulkDialogCommand}"
+                          Margin="0,4">
                     <TextBlock FontSize="16" TextAlignment="Center">
                       スクリプト<LineBreak/>一括実行
                     </TextBlock>
