@@ -224,7 +224,7 @@ namespace KmyKeiba.Models.Analysis.Table
 
     public ReactiveCollection<RaceHorseAnalyzer> Samples { get; } = new();
 
-    public bool IsSamplesEnabled => this.Samples.Any();
+    public ReactiveProperty<bool> IsSamplesEnabled { get; } = new();
 
     public AnalysisTableCell(RaceHorseAnalyzer horse, Func<RaceHorseAnalyzer, S> selector, string keys)
     {
@@ -264,6 +264,10 @@ namespace KmyKeiba.Models.Analysis.Table
             .Take(this.SampleSize))
           {
             this.Samples.Add(sample);
+          }
+          if (this.Samples.Any())
+          {
+            this.IsSamplesEnabled.Value = true;
           }
         });
       }

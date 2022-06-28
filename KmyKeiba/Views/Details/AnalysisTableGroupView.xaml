@@ -105,7 +105,7 @@
                     <Border Width="80" Height="72" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0,0,0,1">
                       <ToggleButton Style="{StaticResource ListItemToggleNotDisabled}" Name="CellItem" Width="80" Height="72"
                                     Visibility="{Binding HasComparationValue.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                                    IsEnabled="{Binding IsSamplesEnabled}">
+                                    IsEnabled="{Binding IsSamplesEnabled.Value}">
                         <ToggleButton.Template>
                           <ControlTemplate>
                             <Border Background="{TemplateBinding Background}">
