@@ -206,7 +206,7 @@ namespace KmyKeiba.Models.Analysis.Table
 
     private readonly string _keys;
 
-    public int SampleSize { get; set; } = 10;
+    public int SampleSize { get; set; } = ApplicationConfiguration.Current.Value.AnalysisTableSampleSize;
 
     public Func<RaceHorseAnalyzer, bool> SampleFilter { get; set; } = _ => true;
 

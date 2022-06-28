@@ -27,6 +27,12 @@ namespace KmyKeiba.Common
 
     public int AnalysisTableRaceHorseSourceSize { get; init; } = 4000;
 
+    public int AnalysisTableSampleSize { get; init; } = 10;
+
+    public int DownloadNormalDataIntervalMinutes { get; init; } = 120;
+
+    public bool IsFirstMessageVisible { get; init; } = true;
+
     public List<AnalysisTableGenerator> AnalysisTableGenerators { get; } = new();
   }
 

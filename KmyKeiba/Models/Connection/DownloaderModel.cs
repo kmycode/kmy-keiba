@@ -471,7 +471,7 @@ namespace KmyKeiba.Models.Connection
             }
 
             // レース予定データはRTではなくこっちにあるみたい。定期的にチェックする
-            if (lastDownloadNormalData.AddMinutes(120) < now && !this.IsDownloading.Value)
+            if (lastDownloadNormalData.AddMinutes(ApplicationConfiguration.Current.Value.DownloadNormalDataIntervalMinutes) < now && !this.IsDownloading.Value)
             {
               logger.Info("翌日以降の予定を更新");
               var isSucceed = await DownloadPlanOfRacesAsync(today.Year, today.Month, today.Day);

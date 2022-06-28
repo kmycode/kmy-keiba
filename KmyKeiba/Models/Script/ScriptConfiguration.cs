@@ -37,6 +37,15 @@ namespace KmyKeiba.Models.Script
     [ScriptMember("analysisTableRaceHorseSourceSize")]
     public int AnalysisTableRaceHorseSourceSize { get; set; } = 4000;
 
+    [ScriptMember("analysisTableSampleSize")]
+    public int AnalysisTableSampleSize { get; set; } = 10;
+
+    [ScriptMember("downloadNormalDataIntervalMinutes")]
+    public int DownloadNormalDataIntervalMinutes { get; set; } = 120;
+
+    [ScriptMember("isFirstMessageVisible")]
+    public bool IsFirstMessageVisible { get; set; } = true;
+
     [ScriptMember("createAnalysisTable")]
     public ScriptAnalysisTableConfiguration CreateAnalysisTable(string name)
     {
@@ -56,6 +65,9 @@ namespace KmyKeiba.Models.Script
         NearDistanceDiffLocalInHorseGrade = this.NearDistanceDiffLocalInHorseGrade,
         AnalysisTableSourceSize = this.AnalysisTableSourceSize,
         AnalysisTableRaceHorseSourceSize = this.AnalysisTableRaceHorseSourceSize,
+        AnalysisTableSampleSize = this.AnalysisTableSampleSize,
+        DownloadNormalDataIntervalMinutes = this.DownloadNormalDataIntervalMinutes,
+        IsFirstMessageVisible = this.IsFirstMessageVisible,
       };
       foreach (var table in this._tables)
       {

@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Data.Db;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Injection;
@@ -40,7 +41,7 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<bool> IsSelectedAllHorses { get; } = new(true);
 
-    public string FirstMessage { get; }
+    public ReactiveProperty<string> FirstMessage { get; } = new();
 
     public ReactiveProperty<string> ErrorMessage { get; } = new();
 
@@ -53,8 +54,9 @@ namespace KmyKeiba.Models.Race
         .ToReactiveProperty()
         .AddTo(this._disposables);
 
-      var firstMessages = new string[]
       {
+        var firstMessages = new string[]
+        {
         "寂しい画面ですね。",
         "昨日はいくら勝ちましたか？",
         "今日はいい天気でしょうか？",
@@ -68,8 +70,20 @@ namespace KmyKeiba.Models.Race
         "ゲートインはスムーズに。",
         "競馬は投資ではなくギャンブルです。",
         "またガミりやがった！",
-      };
-      this.FirstMessage = firstMessages[new Random().Next(firstMessages.Length)];
+        };
+        var index = new Random().Next(firstMessages.Length);
+        ApplicationConfiguration.Current.Skip(1).Select(c => c.IsFirstMessageVisible).Subscribe(v =>
+        {
+          if (v)
+          {
+            this.FirstMessage.Value = firstMessages[index];
+          }
+          else
+          {
+            this.FirstMessage.Value = string.Empty;
+          }
+        }).AddTo(this._disposables);
+      }
 
       this.RaceList.SelectedRaceKey.Subscribe(key =>
       {

@@ -118,7 +118,8 @@
                                 <up:ImePopup Width="520" Height="auto" StaysOpen="False"
                                              IsOpen="{Binding IsChecked,Mode=TwoWay,RelativeSource={RelativeSource FindAncestor,AncestorType=ToggleButton}}">
                                   <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
-                                    <ItemsControl Margin="4,8" ItemsSource="{Binding Samples}">
+                                    <ItemsControl Margin="4,8,4,4" ItemsSource="{Binding Samples}"
+                                                  Style="{StaticResource TableList}" MaxHeight="364">
                                       <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                           <Button Style="{StaticResource ListItemButton}" Command="{Binding DataContext.OpenRaceWindowCommand,ElementName=Root}"
