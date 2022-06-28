@@ -156,14 +156,14 @@ namespace KmyKeiba.Models.Script
               {
                 Func<RaceHorseAnalyzer, bool> filter = s => s.Data.FrameNumber == horse.Data.FrameNumber;
                 var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(filter).Select(s => s.Data).ToArray());
+                  .Where(filter).ToArray());
                 this.SetValueOfGradeMap(value, grade, cell);
               }
               if (targets.Contains("runningstyle"))
               {
-                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.FrameNumber == horse.Data.FrameNumber;
+                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.RunningStyle == horse.History?.RunningStyle;
                 var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(s => s.Data.RunningStyle == horse.History?.RunningStyle).Select(s => s.Data).ToArray());
+                  .Where(filter).ToArray());
                 this.SetValueOfGradeMap(value, grade, cell);
                 cell.SampleFilter = filter;
               }
@@ -171,7 +171,7 @@ namespace KmyKeiba.Models.Script
               {
                 Func<RaceHorseAnalyzer, bool> filter = s => s.Data.Sex == horse.Data.Sex;
                 var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(filter).Select(s => s.Data).ToArray());
+                  .Where(filter).ToArray());
                 this.SetValueOfGradeMap(value, grade, cell);
                 cell.SampleFilter = filter;
               }
@@ -179,7 +179,7 @@ namespace KmyKeiba.Models.Script
               {
                 Func<RaceHorseAnalyzer, bool> filter = s => s.Data.Color == horse.Data.Color;
                 var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(filter).Select(s => s.Data).ToArray());
+                  .Where(filter).ToArray());
                 this.SetValueOfGradeMap(value, grade, cell);
                 cell.SampleFilter = filter;
               }
@@ -187,7 +187,7 @@ namespace KmyKeiba.Models.Script
               {
                 Func<RaceHorseAnalyzer, bool> filter = s => s.Data.Age == horse.Data.Age;
                 var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(filter).Select(s => s.Data).ToArray());
+                  .Where(filter).ToArray());
                 this.SetValueOfGradeMap(value, grade, cell);
                 cell.SampleFilter = filter;
               }
@@ -195,7 +195,7 @@ namespace KmyKeiba.Models.Script
               {
                 Func<RaceHorseAnalyzer, bool> filter = s => s.Data.Popular == horse.Data.Popular && s.Race.HorsesCount >= horse.Race.HorsesCount;
                 var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(filter).Select(s => s.Data).ToArray());
+                  .Where(filter).ToArray());
                 this.SetValueOfGradeMap(value, grade, cell);
                 cell.SampleFilter = filter;
               }

@@ -38,7 +38,7 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceHorseTrendAnalysisSelector? TrendAnalyzers { get; init; }
 
-    public RaceRiderTrendAnalysisSelector? RiderTrendAnalyzers { get; init; }
+    public RaceRiderTrendAnalysisSelector? RiderTrendAnalyzers { get; set; }
 
     public RaceTrainerTrendAnalysisSelector? TrainerTrendAnalyzers { get; init; }
 

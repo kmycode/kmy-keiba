@@ -79,6 +79,10 @@ namespace KmyKeiba.Models.Analysis
       [NotCacheKeyUntilRace]
       Odds,
 
+      [ScriptParameterKey("runningstyle")]
+      [IgnoreKey]
+      RunningStyle,
+
       [ScriptParameterKey("rs_frontrunner")]
       [IgnoreKey]
       RS_FrontRunner,
@@ -102,6 +106,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceHorseData RaceHorse { get; }
 
+    private RaceHorseAnalyzer? _horseAnalyzer;
+
     public RaceRiderTrendAnalysisSelector(RaceData race, RaceHorseData horse) : base(typeof(Key))
     {
       this.Race = race;
@@ -113,6 +119,11 @@ namespace KmyKeiba.Models.Analysis
       }
 
       base.OnFinishedInitialization();
+    }
+
+    public RaceRiderTrendAnalysisSelector(RaceHorseAnalyzer horse) : this(horse.Race, horse.Data)
+    {
+      this._horseAnalyzer = horse;
     }
 
     protected override RaceRiderTrendAnalyzer GenerateAnalyzer(int sizeMax)
@@ -209,6 +220,11 @@ namespace KmyKeiba.Models.Analysis
       {
         var (min, max) = AnalysisUtil.GetOddsRange(this.RaceHorse.Odds);
         query = query.Where(r => r.RaceHorse.Odds >= min && r.RaceHorse.Odds < max);
+      }
+      if (this._horseAnalyzer?.History != null && keys.Contains(Key.RunningStyle))
+      {
+        var rs = this._horseAnalyzer.History.RunningStyle;
+        query = query.Where(r => r.RaceHorse.RunningStyle == rs);
       }
 
       var rss = new List<RunningStyle>();

@@ -638,10 +638,10 @@ namespace KmyKeiba.Models.Race
             var analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate)
             {
               TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse, histories),
-              RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(race, horse),
               TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
               BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
             };
+            analyzer.RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(analyzer);
             analyzer.SetOddsTimeline(oddsTimeline);
 
             horseInfos.Add(analyzer);

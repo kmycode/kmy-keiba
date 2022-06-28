@@ -241,7 +241,8 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public A BeginLoadByScript(string scriptParams, int count, int offset, bool isLoadSameHorses = true)
     {
-      return this.BeginLoadWithScriptParameters(scriptParams, count, offset, isLoadSameHorses, isSandbox: true);
+      return this.BeginLoadWithScriptParameters(scriptParams, count, offset, isLoadSameHorses,
+        isSandbox: offset != default);
     }
 
     private A BeginLoadWithScriptParameters(string scriptParams, int count, int offset, bool isLoadSameHorses = true, bool isSandbox = true)

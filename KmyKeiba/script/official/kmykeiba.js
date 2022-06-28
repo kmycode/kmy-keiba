@@ -723,6 +723,7 @@ RaceHorse.prototype._getObj = function() {
 //             sex            同じ性別
 //             frame          同じ枠
 //             odds           近いオッズ
+//             runningstyle   同じ脚質（※馬の過去戦績から推測された脚質と比較される）
 //           以下はいずれか１つまたは複数を指定すると絞り込まれる
 //             rs_frontrunner 逃げ
 //             rs_stalker     先行
