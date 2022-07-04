@@ -214,7 +214,8 @@ namespace KmyKeiba.Models.Race
     {
       ThreadUtil.InvokeOnUiThread(() =>
       {
-        foreach (var horse in horses.OrderBy(h => h.Data.Number))
+        var sortedHorses = horses.All(h => h.Data.Number == default) ? horses.OrderBy(h => h.Data.Name) : horses.OrderBy(h => h.Data.Number);
+        foreach (var horse in sortedHorses)
         {
           this.Horses.Add(horse);
         }
@@ -649,16 +650,27 @@ namespace KmyKeiba.Models.Race
           }
           {
             // タイム指数の相対評価
-            var timedvMax = horseInfos.Where(i => (i.History?.TimeDeviationValue ?? default) != default).OrderByDescending(i => i.History?.TimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.TimeDeviationValue;
-            var timedvMin = horseInfos.Where(i => (i.History?.TimeDeviationValue ?? default) != default).OrderBy(i => i.History?.TimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.TimeDeviationValue;
-            var a3htimedvMax = horseInfos.Where(i => (i.History?.A3HTimeDeviationValue ?? default) != default).OrderByDescending(i => i.History?.A3HTimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.A3HTimeDeviationValue;
-            var a3htimedvMin = horseInfos.Where(i => (i.History?.A3HTimeDeviationValue ?? default) != default).OrderBy(i => i.History?.A3HTimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.A3HTimeDeviationValue;
-            var ua3htimedvMax = horseInfos.Where(i => (i.History?.UntilA3HTimeDeviationValue ?? default) != default).OrderByDescending(i => i.History?.UntilA3HTimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.UntilA3HTimeDeviationValue;
-            var ua3htimedvMin = horseInfos.Where(i => (i.History?.UntilA3HTimeDeviationValue ?? default) != default).OrderBy(i => i.History?.UntilA3HTimeDeviationValue ?? 0.0).Skip(2).FirstOrDefault()?.History?.UntilA3HTimeDeviationValue;
-            var riderPlaceRateMax = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderByDescending(i => i).Skip(2).FirstOrDefault();
-            var riderPlaceRateMin = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderBy(i => i).Skip(2).FirstOrDefault();
+            var timedvMax = horseInfos.Select(i => i.History?.TimeDeviationValue ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
+            var timedvMin = horseInfos.Select(i => i.History?.TimeDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
+            var a3htimedvMax = horseInfos.Select(i => i.History?.A3HTimeDeviationValue ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
+            var a3htimedvMin = horseInfos.Select(i => i.History?.A3HTimeDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
+            var ua3htimedvMax = horseInfos.Select(i => i.History?.UntilA3HTimeDeviationValue ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
+            var ua3htimedvMin = horseInfos.Select(i => i.History?.UntilA3HTimeDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
+            var riderPlaceRateMax = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderByDescending(v => v).Skip(2).FirstOrDefault();
+            var riderPlaceRateMin = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderBy(v => v).Skip(2).FirstOrDefault();
+            var resultA3hMax = horseInfos.Where(i => !i.IsAbnormalResult).Select(i => i.Data.AfterThirdHalongTime).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault().TotalSeconds + 0.001;  // 等価比較対策
+            var resultA3hMin = horseInfos.Where(i => !i.IsAbnormalResult).Select(i => i.Data.AfterThirdHalongTime).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault().TotalSeconds - 0.001;
             foreach (var horse in horseInfos)
             {
+              if (horse.Data.AfterThirdHalongTime != default && !horse.IsAbnormalResult)
+              {
+                // 書式指定子の「f」は四捨五入してくれないようなので
+                // 古いバージョンでダウンロードしたデータには浮動小数点数の除算時のゴミが残っているので、手動で四捨五入する
+                var ticks = (int)Math.Round(horse.Data.AfterThirdHalongTime.Ticks / 1000000.0) * 1000000;
+                horse.Data.AfterThirdHalongTime = TimeSpan.FromTicks(ticks);
+                horse.ResultA3HTimeComparation = AnalysisUtil.CompareValue(horse.Data.AfterThirdHalongTime.TotalSeconds, resultA3hMax, resultA3hMin, true);
+              }
+
               if (horse.History != null)
               {
                 if (horse.History.BeforeRaces.Where(r => r.Data.ResultTime.TotalSeconds > 0).Take(10)

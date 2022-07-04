@@ -82,6 +82,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ValueComparation ResultA3HTimeDVComparation { get; set; }
 
+    public ValueComparation ResultA3HTimeComparation { get; set; }
+
     public double ResultTimePerMeter { get; }
 
     /// <summary>
