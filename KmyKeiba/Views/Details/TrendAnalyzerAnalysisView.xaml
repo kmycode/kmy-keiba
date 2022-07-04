@@ -46,7 +46,7 @@
         </up:MyProgressBar>
       </Border>
       <Border Grid.RowSpan="3" Visibility="{Binding TrendAnalyzers.IsError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource ErrorForeground}"
+        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource ErrorForeground}"
                    FontSize="32" Text="傾向解析中にエラーが発生しました"/>
       </Border>
 
@@ -199,7 +199,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{Binding Subject.DisplayName}" TextAlignment="Left"
                                     FontSize="16" FontWeight="Bold"/>
-                        <Ellipse Grid.Column="1" Width="8" Height="8" Fill="{DynamicResource NoticeForeground}" Margin="4,0,0,0" VerticalAlignment="Center"
+                        <Ellipse Grid.Column="1" Width="8" Height="8" Fill="{StaticResource NoticeForeground}" Margin="4,0,0,0" VerticalAlignment="Center"
                                  Visibility="{Binding Memo.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
                       </Grid>
                       <TextBlock Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
@@ -247,11 +247,11 @@
                         -->
                       </StackPanel>
                       <TextBlock Text="{Binding Data.AbnormalResult,Converter={StaticResource EnumsConv}}"
-                                 Foreground="{DynamicResource BadForeground}" FontSize="16" FontWeight="Bold"
+                                 Foreground="{StaticResource BadForeground}" FontSize="16" FontWeight="Bold"
                                  Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}"
                                  Margin="24,0,0,0"/>
                       <TextBlock Text="レース中止"
-                                 Foreground="{DynamicResource BadForeground}" FontSize="16" FontWeight="Bold"
+                                 Foreground="{StaticResource BadForeground}" FontSize="16" FontWeight="Bold"
                                  Visibility="{Binding IsRaceCanceled,Converter={StaticResource BooleanVisibilityConv}}"
                                  Margin="24,0,0,0"/>
 

@@ -21,7 +21,7 @@
       <Grid.Resources>
         <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
       </Grid.Resources>
-      <Border Background="{DynamicResource GoodBackground}"
+      <Border Background="{StaticResource GoodBackground}"
               Visibility="{Binding IsMainWindow,Converter={StaticResource NegativeVisibilityConv}}"/>
 
       <Grid Grid.Row="0" Height="56">
@@ -35,20 +35,20 @@
         </Grid.ColumnDefinitions>
         <up:RaceSubjectIcon Subject="{Binding Race.Subject.Subject,ElementName=Root}"
                             FontSize="32" Width="120"/>
-        <Border Grid.Column="1" Width="80" Background="{DynamicResource RaceNumberBackground}">
+        <Border Grid.Column="1" Width="80" Background="{StaticResource RaceNumberBackground}">
           <TextBlock FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
                      LineHeight="20" LineStackingStrategy="BlockLineHeight"
-                     Foreground="{DynamicResource RaceNumberForeground}">
+                     Foreground="{StaticResource RaceNumberForeground}">
             <Run Text="{Binding Race.Data.Course,ElementName=Root,Converter={StaticResource CourseNameConv}}"/><LineBreak/>
             <Run Text="{Binding Race.Data.CourseRaceNumber,ElementName=Root}"/>R
           </TextBlock>
         </Border>
         <Border Grid.Column="2" Width="120" Visibility="{Binding Race.IsCanceled,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
-                Background="{DynamicResource BadBackground}">
+                Background="{StaticResource BadBackground}">
           <TextBlock Text="中止" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"/>
         </Border>
         <Border Grid.Column="2" Width="160" Visibility="{Binding Race.CanUpdate.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
-                Background="{DynamicResource GoodBackground}">
+                Background="{StaticResource GoodBackground}">
           <TextBlock Text="更新可" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"/>
         </Border>
         <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="8,0,0,0" Width="40">
@@ -138,10 +138,10 @@
               </ToggleButton.Style>
             </RadioButton>
             <Border Visibility="{Binding Race.IsCanceled,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
-                    Margin="0,16" Height="56" Background="{DynamicResource BadBackground}">
+                    Margin="0,16" Height="56" Background="{StaticResource BadBackground}">
               <TextBlock Text="中止" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"/>
             </Border>
-            <Border Margin="0,16" Height="56" Background="{DynamicResource FirstOrderBackground}">
+            <Border Margin="0,16" Height="56" Background="{StaticResource FirstOrderBackground}">
               <Border.Visibility>
                 <MultiBinding Converter="{StaticResource MultiBooleanConv}">
                   <Binding Path="Race.IsWaitingResults.Value" ElementName="Root"/>
@@ -151,16 +151,16 @@
               <TextBlock Text="結果待ち" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"/>
             </Border>
             <Border Visibility="{Binding Race.CanUpdate.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
-                    Margin="0,16" Height="56" Background="{DynamicResource GoodBackground}">
+                    Margin="0,16" Height="56" Background="{StaticResource GoodBackground}">
               <TextBlock Text="更新可" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"/>
             </Border>
             <Button Visibility="{Binding Race.CanUpdate.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
                     Command="{Binding UpdateRaceInfoCommand}" Padding="0,8">
               <StackPanel VerticalAlignment="Center">
                 <TextBlock FontSize="22" Text="更新する" HorizontalAlignment="Center"/>
-                <TextBlock FontSize="16" Text="レース結果が届きました" Foreground="{DynamicResource SubForeground}"
+                <TextBlock FontSize="16" Text="レース結果が届きました" Foreground="{StaticResource SubForeground}"
                            Visibility="{Binding Race.IsNewDataHasResults.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
-                <TextBlock FontSize="14" Text="傾向検索結果はリセットされます" Foreground="{DynamicResource BadForeground}"
+                <TextBlock FontSize="14" Text="傾向検索結果はリセットされます" Foreground="{StaticResource BadForeground}"
                            Visibility="{Binding Race.IsWillTrendAnalyzersResetedOnUpdate.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
               </StackPanel>
             </Button>
@@ -240,9 +240,9 @@
                   </Grid.ColumnDefinitions>
                   <Border Width="60" Background="{Binding Data.Type,Converter={StaticResource TicketTypeBackgroundConv}}">
                     <TextBlock Text="{Binding Data.Type,Converter={StaticResource EnumsConv}}" VerticalAlignment="Center"
-                               Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="4,2"/>
+                               Foreground="{StaticResource BaseForeground}" FontSize="16" Margin="4,2"/>
                   </Border>
-                  <TextBlock Grid.Column="1" Text="{Binding Data,Converter={StaticResource TicketSummaryConv}}" Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="8,2,4,2" TextWrapping="Wrap"/>
+                  <TextBlock Grid.Column="1" Text="{Binding Data,Converter={StaticResource TicketSummaryConv}}" Foreground="{StaticResource BaseForeground}" FontSize="16" Margin="8,2,4,2" TextWrapping="Wrap"/>
                 </Grid>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -332,7 +332,7 @@
     </Grid>
 
     <Grid Visibility="{Binding IsModelError.Value,Converter={StaticResource BooleanVisibilityConv}}">
-      <TextBlock FontSize="48" Foreground="{DynamicResource ErrorForeground}"
+      <TextBlock FontSize="48" Foreground="{StaticResource ErrorForeground}"
                  Text="{Binding ModelErrorMessage.Value}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Grid>
   </Grid>

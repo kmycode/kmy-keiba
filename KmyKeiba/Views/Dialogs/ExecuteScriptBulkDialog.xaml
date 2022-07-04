@@ -30,17 +30,17 @@
           収入合計：　<Run Text="{Binding ScriptBulk.SumOfIncomes.Value,ElementName=Root}" FontSize="24" FontWeight="Bold"
                Foreground="{Binding ScriptBulk.IncomeComparation.Value,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>　円
         </TextBlock>
-        <TextBlock Text="同時実行" Margin="0,0,4,0" FontSize="16" Foreground="{DynamicResource SubForeground}"
+        <TextBlock Text="同時実行" Margin="0,0,4,0" FontSize="16" Foreground="{StaticResource SubForeground}"
                    VerticalAlignment="Center" Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
-        <TextBox Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
+        <TextBox Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
                  Text="{Binding ScriptBulk.ThreadSize.Value,ElementName=Root,Mode=TwoWay}" FontSize="20" Width="40"
                  VerticalAlignment="Center" TextAlignment="Center" Margin="0,0,32,0"
                  Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <ToggleButton Content="開始日付" Name="StartDateToggle" FontSize="16" Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <up:ImePopup Placement="Bottom" PlacementTarget="{Binding ElementName=StartDateToggle}"
                      Width="200" Height="170" IsOpen="{Binding IsChecked,ElementName=StartDateToggle}" StaysOpen="False">
-          <Grid Background="{DynamicResource BaseBackground}">
-            <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
+          <Grid Background="{StaticResource BaseBackground}">
+            <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1">
               <Calendar SelectedDate="{Binding ScriptBulk.StartDate.Value,ElementName=Root,Mode=TwoWay}"/>
             </Border>
           </Grid>
@@ -50,8 +50,8 @@
         <ToggleButton Content="終了日付" Name="EndDateToggle" FontSize="16" Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <up:ImePopup Placement="Bottom" PlacementTarget="{Binding ElementName=EndDateToggle}"
                      Width="200" Height="170" IsOpen="{Binding IsChecked,ElementName=EndDateToggle}" StaysOpen="False">
-          <Grid Background="{DynamicResource BaseBackground}">
-            <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
+          <Grid Background="{StaticResource BaseBackground}">
+            <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1">
               <Calendar SelectedDate="{Binding ScriptBulk.EndDate.Value,ElementName=Root,Mode=TwoWay}"/>
             </Border>
           </Grid>
@@ -67,7 +67,7 @@
 
     <Border Grid.Row="1" Visibility="{Binding ScriptBulk.IsError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
       <TextBlock Text="エラーが発生しました。スクリプトファイルが存在しないか、他のアプリによってロックされている可能性があります"
-                 FontSize="18" Margin="8,4" Foreground="{DynamicResource ErrorForeground}"/>
+                 FontSize="18" Margin="8,4" Foreground="{StaticResource ErrorForeground}"/>
     </Border>
 
     <StackPanel Orientation="Horizontal" Grid.Row="2">
@@ -93,7 +93,7 @@
                   ItemsSource="{Binding ScriptBulk.Results,ElementName=Root}" Margin="0,0,0,8">
       <ItemsControl.Resources>
         <Style TargetType="Border" x:Key="Cell">
-          <Setter Property="BorderBrush" Value="{DynamicResource BaseBorderBrush}"/>
+          <Setter Property="BorderBrush" Value="{StaticResource BaseBorderBrush}"/>
           <Setter Property="BorderThickness" Value="0.5"/>
         </Style>
       </ItemsControl.Resources>
@@ -131,21 +131,21 @@
                   </Border>
                   <Grid>
                     <Border Visibility="{Binding IsExecuting.Value,Converter={StaticResource BooleanVisibilityConv}}">
-                      <TextBlock FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
+                      <TextBlock FontWeight="Bold" Foreground="{StaticResource SubForeground}"
                              FontSize="16" Margin="48,0,0,0">
                     実行中...　( <Run Text="{Binding HandlerEngine.Value.Progress.Value.Value}"/> / <Run Text="{Binding HandlerEngine.Value.ProgressMax.Value.Value}"/> )
                       </TextBlock>
                     </Border>
                     <Border Visibility="{Binding IsError.Value,Converter={StaticResource BooleanVisibilityConv}}">
-                      <TextBlock Text="{Binding ErrorType.Value,Converter={StaticResource LabelConv}}" FontWeight="Bold" Foreground="{DynamicResource ErrorForeground}"
+                      <TextBlock Text="{Binding ErrorType.Value,Converter={StaticResource LabelConv}}" FontWeight="Bold" Foreground="{StaticResource ErrorForeground}"
                              FontSize="16" Margin="12,0,0,0"/>
                     </Border>
                     <Border Visibility="{Binding IsSkipped.Value,Converter={StaticResource BooleanVisibilityConv}}">
-                      <TextBlock Text="スキップされました" FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
+                      <TextBlock Text="スキップされました" FontWeight="Bold" Foreground="{StaticResource SubForeground}"
                              FontSize="16" Margin="12,0,0,0"/>
                     </Border>
                     <Border Visibility="{Binding IsResultRead.Value,Converter={StaticResource BooleanVisibilityConv}}">
-                      <TextBlock Text="結果が取得されたため馬券購入をスキップしました" FontWeight="Bold" Foreground="{DynamicResource SubForeground}"
+                      <TextBlock Text="結果が取得されたため馬券購入をスキップしました" FontWeight="Bold" Foreground="{StaticResource SubForeground}"
                              FontSize="16" Margin="12,0,0,0"/>
                     </Border>
                     <StackPanel Orientation="Horizontal">

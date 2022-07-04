@@ -6,8 +6,8 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Parts"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
-  <Border Width="400" Height="170" Background="{DynamicResource BaseBackground}"
-          BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
+  <Border Width="400" Height="170" Background="{StaticResource BaseBackground}"
+          BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1">
     <Grid>
       <Grid.ColumnDefinitions>
         <ColumnDefinition/>
@@ -19,7 +19,7 @@
         <RowDefinition Height="auto"/>
       </Grid.RowDefinitions>
       <StackPanel Margin="8,4" Grid.RowSpan="3">
-        <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" TextAlignment="Center" Margin="0,0,0,8">
+        <TextBlock Foreground="{StaticResource BaseForeground}" FontSize="16" TextAlignment="Center" Margin="0,0,0,8">
           <Run Text="{Binding Horse.Race.StartTime,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd HH\\:mm}"/><LineBreak/>
           <Run Text="{Binding Horse.Race.Course,ElementName=Root,Converter={StaticResource CourseNameConv}}"/> <Run Text="{Binding Horse.Race.CourseRaceNumber,ElementName=Root}"/> R <Run Text="{Binding Horse.Data.Number,ElementName=Root}"/> 番
         </TextBlock>
@@ -29,9 +29,9 @@
         <Button Content="パトロール" Command="{Binding Horse.PlayPatrolCommand,ElementName=Root}"/>
         <Button Content="マルチカメラ" Command="{Binding Horse.PlayMultiCamerasCommand,ElementName=Root}"/>
       </StackPanel>
-      <TextBlock Grid.Column="1" FontSize="18" Margin="4,8,4,4" Text="{Binding Horse.Data.Name,ElementName=Root}" TextAlignment="Left" Foreground="{DynamicResource BaseForeground}"/>
+      <TextBlock Grid.Column="1" FontSize="18" Margin="4,8,4,4" Text="{Binding Horse.Data.Name,ElementName=Root}" TextAlignment="Left" Foreground="{StaticResource BaseForeground}"/>
       <ScrollViewer Grid.Column="1" Grid.Row="1" Margin="8,4,4,0">
-        <TextBox Background="{DynamicResource BaseBackground}" Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource BaseForeground}"
+        <TextBox Background="{StaticResource BaseBackground}" Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="14" TextWrapping="Wrap" Foreground="{StaticResource BaseForeground}"
                  AcceptsReturn="True">
           <TextBox.IsReadOnly>
             <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">

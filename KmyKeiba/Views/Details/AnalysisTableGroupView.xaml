@@ -54,10 +54,10 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="80">
+                <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="80">
                   <StackPanel HorizontalAlignment="Stretch">
                     <Border Height="4" Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
-                    <TextBlock Text="{Binding Data.Number}" Foreground="{DynamicResource SubForeground}" FontSize="22" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding Data.Number}" Foreground="{StaticResource SubForeground}" FontSize="22" HorizontalAlignment="Center"/>
                     <up:HorseMarkButton Horse="{Binding}" HorizontalAlignment="Center"/>
                   </StackPanel>
                 </Border>
@@ -83,7 +83,7 @@
               </StackPanel.Resources>
 
               <!--名前-->
-              <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="156" Height="72">
+              <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="156" Height="72">
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock FontSize="16" FontWeight="Bold" Margin="8,4"
                              Text="{Binding Name}"/>
@@ -102,7 +102,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <Border Width="80" Height="72" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0,0,0,1">
+                    <Border Width="80" Height="72" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="0,0,0,1">
                       <ToggleButton Style="{StaticResource ListItemToggleNotDisabled}" Name="CellItem" Width="80" Height="72"
                                     Visibility="{Binding HasComparationValue.Value,Converter={StaticResource BooleanVisibilityConv}}"
                                     IsEnabled="{Binding IsSamplesEnabled.Value}">
@@ -117,7 +117,7 @@
                                             Visibility="{Binding SubValue.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
                                 <up:ImePopup Width="520" Height="auto" StaysOpen="False"
                                              IsOpen="{Binding IsChecked,Mode=TwoWay,RelativeSource={RelativeSource FindAncestor,AncestorType=ToggleButton}}">
-                                  <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
+                                  <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1">
                                     <ItemsControl Margin="4,8,4,4" ItemsSource="{Binding Samples}"
                                                   Style="{StaticResource TableList}" MaxHeight="364">
                                       <ItemsControl.ItemTemplate>
@@ -180,7 +180,7 @@
     </Grid>
 
     <Grid Grid.Row="1" Visibility="{Binding TableGroup.HasItems.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
-      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="36" Foreground="{DynamicResource SubForeground}"
+      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="36" Foreground="{StaticResource SubForeground}"
                  Text="分析が設定されていません"/>
     </Grid>
   </Grid>
