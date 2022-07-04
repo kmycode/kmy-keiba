@@ -104,48 +104,56 @@ namespace KmyKeiba.Models.Script
     [ScriptMember("useRiderAnalyzer")]
     public void UseRiderAnalyzer(string name, string keys, string value)
     {
-      this._rows.Add(async race =>
+      this._rows.Add(race =>
       {
-        return new AnalysisTableRow(name, race, (race, horse) =>
+        return Task.FromResult(new AnalysisTableRow(name, race, (race, horse) =>
           new LambdaAnalysisTableCell<RaceRiderTrendAnalysisSelector, RaceRiderTrendAnalyzer>(
             horse, h => h.RiderTrendAnalyzers!, keys,
             (analyzer, cell) => this.SetValueOfRaceHorseAnalyzer(value, analyzer, cell))
-          );
+          ));
       });
     }
 
     [ScriptMember("useTrainerAnalyzer")]
     public void UseTrainerAnalyzer(string name, string keys, string value)
     {
-      this._rows.Add(async race =>
+      this._rows.Add(race =>
       {
-        return new AnalysisTableRow(name, race, (race, horse) =>
+        return Task.FromResult(new AnalysisTableRow(name, race, (race, horse) =>
           new LambdaAnalysisTableCell<RaceTrainerTrendAnalysisSelector, RaceTrainerTrendAnalyzer>(
             horse, h => h.TrainerTrendAnalyzers!, keys,
             (analyzer, cell) => this.SetValueOfRaceHorseAnalyzer(value, analyzer, cell))
-          );
+          ));
       });
     }
 
     [ScriptMember("useBloodAnalyzer")]
     public void UseRiderAnalyzer(string name, string type, string keys, string value)
     {
-      this._rows.Add(async race =>
+      this._rows.Add(race =>
       {
-        return new AnalysisTableRow(name, race, (race, horse) =>
+        return Task.FromResult(new AnalysisTableRow(name, race, (race, horse) =>
           new LambdaAnalysisTableCell<RaceHorseBloodTrendAnalysisSelector, RaceHorseBloodTrendAnalyzer>(
             horse, h => h.BloodSelectors!.GetSelectorForceAsync(type).Result, keys,
             (analyzer, cell) => this.SetValueOfRaceHorseAnalyzer(value, analyzer, cell))
-          );
+          ));
       });
     }
 
     [ScriptMember("useRaceHorseAnalyzer")]
     public void UseRaceHorseAnalyzer(string name, string target, string keys, string value)
     {
-      this._rows.Add(async race =>
+      void SetCellValue(RaceWinnerHorseTrendAnalyzer analyzer, IAnalysisTableCell cell, Func< RaceHorseAnalyzer, bool> filter)
       {
-        return new AnalysisTableRow(name, race, (race, horse) =>
+        var grade = new ResultOrderGradeMap(analyzer.Source
+          .Where(filter).ToArray());
+        this.SetValueOfGradeMap(value, grade, cell);
+        cell.SampleFilter = filter;
+      }
+
+      this._rows.Add(race =>
+      {
+        return Task.FromResult(new AnalysisTableRow(name, race, (race, horse) =>
         {
           return new LambdaAnalysisTableCell<RaceWinnerHorseTrendAnalysisSelector, RaceWinnerHorseTrendAnalyzer>(
             horse, h => race.WinnerTrendAnalyzers, keys,
@@ -154,53 +162,51 @@ namespace KmyKeiba.Models.Script
               var targets = target.Split('|');
               if (targets.Contains("frame"))
               {
-                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.FrameNumber == horse.Data.FrameNumber;
-                var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(filter).ToArray());
-                this.SetValueOfGradeMap(value, grade, cell);
+                SetCellValue(analyzer, cell,
+                  s => s.Data.FrameNumber == horse.Data.FrameNumber);
               }
               if (targets.Contains("runningstyle"))
               {
-                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.RunningStyle == horse.History?.RunningStyle;
-                var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(filter).ToArray());
-                this.SetValueOfGradeMap(value, grade, cell);
-                cell.SampleFilter = filter;
+                SetCellValue(analyzer, cell,
+                  s => s.Data.RunningStyle == horse.History?.RunningStyle);
               }
               if (targets.Contains("sex"))
               {
-                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.Sex == horse.Data.Sex;
-                var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(filter).ToArray());
-                this.SetValueOfGradeMap(value, grade, cell);
-                cell.SampleFilter = filter;
+                SetCellValue(analyzer, cell,
+                  s => s.Data.Sex == horse.Data.Sex);
               }
               if (targets.Contains("color"))
               {
-                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.Color == horse.Data.Color;
-                var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(filter).ToArray());
-                this.SetValueOfGradeMap(value, grade, cell);
-                cell.SampleFilter = filter;
+                SetCellValue(analyzer, cell,
+                  s => s.Data.Color == horse.Data.Color);
               }
               if (targets.Contains("age"))
               {
-                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.Age == horse.Data.Age;
-                var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(filter).ToArray());
-                this.SetValueOfGradeMap(value, grade, cell);
-                cell.SampleFilter = filter;
+                SetCellValue(analyzer, cell,
+                  s => s.Data.Age == horse.Data.Age);
               }
               if (targets.Contains("popular"))
               {
-                Func<RaceHorseAnalyzer, bool> filter = s => s.Data.Popular == horse.Data.Popular && s.Race.HorsesCount >= horse.Race.HorsesCount;
-                var grade = new ResultOrderGradeMap(analyzer.Source
-                  .Where(filter).ToArray());
-                this.SetValueOfGradeMap(value, grade, cell);
-                cell.SampleFilter = filter;
+                SetCellValue(analyzer, cell,
+                  s => s.Data.Popular == horse.Data.Popular);
+              }
+              if (targets.Contains("weightdiff"))
+              {
+                SetCellValue(analyzer, cell,
+                  s => s.Data.WeightDiff == horse.Data.WeightDiff);
+              }
+              if (targets.Contains("weight"))
+              {
+                SetCellValue(analyzer, cell,
+                  s => s.Data.Weight / 20 == horse.Data.Weight / 20);
+              }
+              if (targets.Contains("riderweight"))
+              {
+                SetCellValue(analyzer, cell,
+                  s => s.Data.RiderWeight == horse.Data.RiderWeight);
               }
             });
-        });
+        }));
       });
     }
 
