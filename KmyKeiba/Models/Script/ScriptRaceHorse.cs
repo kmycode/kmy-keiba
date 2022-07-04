@@ -103,7 +103,7 @@ namespace KmyKeiba.Models.Script
     public short Time => this.IsTargetRace ? default : (short)(this._horse.ResultTime.TotalSeconds * 10);
 
     [JsonPropertyName("a3hTime")]
-    public short A3HTime => this.IsTargetRace ? default : (short)(this._horse.AfterThirdHalongTime.TotalSeconds * 10);
+    public short A3HTime => this.IsTargetRace ? default : (short)Math.Round(this._horse.AfterThirdHalongTime.TotalSeconds * 10);
 
     [JsonPropertyName("timeDeviationValue")]
     public double TimeDeviationValue => this.IsTargetRace ? default : this._analyzer?.ResultTimeDeviationValue ?? default;
