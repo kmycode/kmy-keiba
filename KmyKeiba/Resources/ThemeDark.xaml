@@ -28,7 +28,7 @@
 
   <SolidColorBrush x:Key="BaseBackground" Color="#030303"/>
   <SolidColorBrush x:Key="ThinBaseBackground" Color="#202020"/>
-  <SolidColorBrush x:Key="MoreThinBaseBackground" Color="{DynamicResource MoreThinBaseBackgroundColor}"/>
+  <SolidColorBrush x:Key="MoreThinBaseBackground" Color="{StaticResource MoreThinBaseBackgroundColor}"/>
   <SolidColorBrush x:Key="ActiveBackground" Color="#404055"/>
   <SolidColorBrush x:Key="BaseForeground" Color="#f0f0f0"/>
   <SolidColorBrush x:Key="BaseBorderBrush" Color="#cccccc"/>

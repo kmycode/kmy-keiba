@@ -183,7 +183,7 @@ namespace KmyKeiba.JVLink.Entities
       TimeSpan halongTime;
       if (int.TryParse(uma.HaronTimeL3, out int halongTime10))
       {
-        halongTime = TimeSpan.FromSeconds((float)halongTime10 / 10);
+        halongTime = new TimeSpan(days: 0, hours: 0, minutes: 0, seconds: halongTime10 / 10, milliseconds: halongTime10 % 10 * 100);
       }
       else
       {

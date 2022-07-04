@@ -19,6 +19,8 @@ namespace KmyKeiba.JVLink.Entities
 
     public string RiderCode { get; set; } = string.Empty;
 
+    public DateTime ChangeTime { get; set; }
+
     internal HorseRiderChange()
     {
     }
@@ -37,6 +39,7 @@ namespace KmyKeiba.JVLink.Entities
         RiderCode = jc.JCInfoAfter.KisyuCode,
         RiderName = jc.JCInfoAfter.KisyuName.Trim(),
         RiderWeight = (short)riderWeight,
+        ChangeTime = jc.HappyoTime.ToDateTime(jc.id),
       };
       return obj;
     }

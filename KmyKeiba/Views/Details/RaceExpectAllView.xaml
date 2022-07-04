@@ -32,19 +32,19 @@
         <ColumnDefinition/>
         <ColumnDefinition/>
       </Grid.ColumnDefinitions>
-      <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="0" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="出走馬" Name="S_HorseList" IsChecked="True"/>
-      <RadioButton Grid.Column="1" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="1" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="傾向" Name="S_RaceTrend"/>
-      <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="2" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="傾向（馬）" Name="S_RaceHorseTrend"/>
-      <RadioButton Grid.Column="3" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="3" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="対戦表" Name="S_Matches"/>
-      <RadioButton Grid.Column="4" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="4" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="オッズ一覧" Name="S_Odds"/>
-      <RadioButton Grid.Column="5" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="5" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="予想スクリプト" Name="S_Script"/>
-      <RadioButton Grid.Column="6" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="6" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="馬券" Name="S_Tickets"/>
     </Grid>
 
@@ -186,10 +186,12 @@
                        Text="A3HT偏差値"/>
             <TextBlock Grid.Column="8" Grid.Row="1" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.A3HTimeDeviationValue.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+            <!--
             <TextBlock Grid.Column="7" Grid.Row="2" Margin="48,0,0,0" Style="{StaticResource Sub}"
                        Text="UA3HT偏差値"/>
             <TextBlock Grid.Column="8" Grid.Row="2" Margin="4,0,0,0" FontSize="22" Width="65" TextAlignment="Right"
                        Text="{Binding Race.TrendAnalyzers.CurrentAnalyzer.Value.UntilA3HTimeDeviationValue.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+            -->
           </Grid>
 
           <!--過去レースの一覧-->
@@ -229,7 +231,7 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="{Binding Subject.DisplayName}" TextAlignment="Left"
                                        FontSize="16" FontWeight="Bold"/>
-                            <Ellipse Grid.Column="1" Width="8" Height="8" Fill="{DynamicResource NoticeForeground}" Margin="4,0,0,0" VerticalAlignment="Center"
+                            <Ellipse Grid.Column="1" Width="8" Height="8" Fill="{StaticResource NoticeForeground}" Margin="4,0,0,0" VerticalAlignment="Center"
                                      Visibility="{Binding Memo.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
                           </Grid>
                           <TextBlock Text="{Binding Data.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yy/MM/dd}" FontSize="16" Width="80"/>
@@ -248,7 +250,7 @@
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Visibility="{Binding IsRaceCanceled,Converter={StaticResource BooleanVisibilityConv}}">
                             <TextBlock Text="レース中止"
-                                       Foreground="{DynamicResource BadForeground}" FontSize="16" FontWeight="Bold"
+                                       Foreground="{StaticResource BadForeground}" FontSize="16" FontWeight="Bold"
                                        Visibility="{Binding IsRaceCanceled,Converter={StaticResource BooleanVisibilityConv}}"
                                        Margin="24,0,0,0"/>
                           </StackPanel>
@@ -377,10 +379,10 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="52">
+                  <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="52">
                     <StackPanel HorizontalAlignment="Stretch">
                       <Border Height="4" Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
-                      <TextBlock Text="{Binding Data.Number}" Foreground="{DynamicResource SubForeground}" FontSize="22" HorizontalAlignment="Center"/>
+                      <TextBlock Text="{Binding Data.Number}" Foreground="{StaticResource SubForeground}" FontSize="22" HorizontalAlignment="Center"/>
                       <up:HorseMarkButton Horse="{Binding}" HorizontalAlignment="Center"/>
                     </StackPanel>
                   </Border>
@@ -401,7 +403,7 @@
                     <ToggleButton.Template>
                       <ControlTemplate>
                         <Grid Background="{TemplateBinding Background}">
-                          <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="156" Height="48">
+                          <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="156" Height="48">
                             <Grid Margin="4,4">
                               <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="auto"/>
@@ -412,9 +414,9 @@
                                 <RowDefinition/>
                               </Grid.RowDefinitions>
                               <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Width="32" Height="20" FontSize="12" Margin="0,0,4,0"/>
-                              <TextBlock Grid.Column="1" FontWeight="Bold" Text="{Binding Subject.DisplayName}" FontSize="15" Foreground="{DynamicResource BaseForeground}"/>
+                              <TextBlock Grid.Column="1" FontWeight="Bold" Text="{Binding Subject.DisplayName}" FontSize="15" Foreground="{StaticResource BaseForeground}"/>
                               <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Race.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
-                                  Foreground="{DynamicResource BaseForeground}" FontSize="14"/>
+                                  Foreground="{StaticResource BaseForeground}" FontSize="14"/>
                             </Grid>
                           </Border>
 
@@ -436,7 +438,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
-                        <Border Width="52" Height="48" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0,0,0,1">
+                        <Border Width="52" Height="48" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="0,0,0,1">
                           <Grid Visibility="{Binding HasResult,Converter={StaticResource BooleanVisibilityConv}}" VerticalAlignment="Center">
                             <TextBlock Text="{Binding RaceHorse.Data.ResultOrder}" Foreground="{Binding RaceHorse.ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}"
                                         FontSize="16" TextAlignment="Center"/>
@@ -509,19 +511,19 @@
             <ColumnDefinition/>
             <ColumnDefinition/>
           </Grid.ColumnDefinitions>
-          <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
+          <RadioButton Grid.Column="0" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
                        Content="単複勝" Name="SO_Single" IsChecked="True"/>
-          <RadioButton Grid.Column="1" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
+          <RadioButton Grid.Column="1" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
                        Content="枠連" Name="SO_Frame"/>
-          <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
+          <RadioButton Grid.Column="2" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
                        Content="ワイド" Name="SO_QuinellaPlace"/>
-          <RadioButton Grid.Column="3" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
+          <RadioButton Grid.Column="3" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
                        Content="馬連" Name="SO_Quinella"/>
-          <RadioButton Grid.Column="4" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
+          <RadioButton Grid.Column="4" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
                        Content="馬単" Name="SO_Exacta"/>
-          <RadioButton Grid.Column="5" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
+          <RadioButton Grid.Column="5" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
                        Content="三連複" Name="SO_Trio"/>
-          <RadioButton Grid.Column="6" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
+          <RadioButton Grid.Column="6" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
                        Content="三連単" Name="SO_Trifecta"/>
         </Grid>
 
@@ -545,16 +547,16 @@
         <ScrollViewer Grid.Row="1" Grid.Column="1" Visibility="{Binding IsChecked,ElementName=SO_Single,Converter={StaticResource BooleanVisibilityConv}}">
           <StackPanel>
             <StackPanel Orientation="Horizontal">
-              <Border BorderBrush="{DynamicResource SingleTicketBackground}" BorderThickness="0,0,0,4" Width="80" Margin="60,0,0,0">
+              <Border BorderBrush="{StaticResource SingleTicketBackground}" BorderThickness="0,0,0,4" Width="80" Margin="60,0,0,0">
                 <TextBlock Text="単勝" FontSize="16" Margin="8" HorizontalAlignment="Center"/>
               </Border>
-              <Border BorderBrush="{DynamicResource PlaceTicketBackground}" BorderThickness="0,0,0,4" Width="110">
+              <Border BorderBrush="{StaticResource PlaceTicketBackground}" BorderThickness="0,0,0,4" Width="110">
                 <TextBlock Text="複勝" FontSize="16" Margin="8" HorizontalAlignment="Center"/>
               </Border>
-              <Border BorderBrush="{DynamicResource SingleTicketBackground}" BorderThickness="0,0,0,4" Width="80" Margin="80,0,0,0">
+              <Border BorderBrush="{StaticResource SingleTicketBackground}" BorderThickness="0,0,0,4" Width="80" Margin="80,0,0,0">
                 <TextBlock Text="単勝" FontSize="16" Margin="8" HorizontalAlignment="Center"/>
               </Border>
-              <Border BorderBrush="{DynamicResource PlaceTicketBackground}" BorderThickness="0,0,0,4" Width="110">
+              <Border BorderBrush="{StaticResource PlaceTicketBackground}" BorderThickness="0,0,0,4" Width="110">
                 <TextBlock Text="複勝" FontSize="16" Margin="8" HorizontalAlignment="Center"/>
               </Border>
             </StackPanel>
@@ -567,7 +569,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
-                    <Border BorderBrush="{DynamicResource SingleTicketBackground}" BorderThickness="0,0,4,0" Width="60">
+                    <Border BorderBrush="{StaticResource SingleTicketBackground}" BorderThickness="0,0,4,0" Width="60">
                       <TextBlock Text="{Binding Number1}" Style="{StaticResource HorseNumber}"/>
                     </Border>
                     <Border Visibility="{Binding Odds,Converter={StaticResource NonZeroVisibilityConv}}" Width="80">
@@ -590,7 +592,7 @@
             <ItemsControl ItemsSource="{Binding Race.Odds.Value.Frames.Value.Numbers,ElementName=Root}" Margin="0,70,0,0">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Border BorderBrush="{DynamicResource FrameNumberTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
+                  <Border BorderBrush="{StaticResource FrameNumberTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
                     <TextBlock Text="{Binding}" Style="{StaticResource HorseNumber}"/>
                   </Border>
                 </DataTemplate>
@@ -605,7 +607,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <StackPanel>
-                    <Border BorderBrush="{DynamicResource FrameNumberTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
+                    <Border BorderBrush="{StaticResource FrameNumberTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
                       <TextBlock Text="{Binding Number}" Style="{StaticResource HorseNumber}"/>
                     </Border>
                     <ItemsControl ItemsSource="{Binding Odds}">
@@ -632,7 +634,7 @@
             <ItemsControl ItemsSource="{Binding Race.Odds.Value.QuinellaPlaces.Value.Numbers,ElementName=Root}" Margin="0,70,0,0">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Border BorderBrush="{DynamicResource QuinellaPlaceTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
+                  <Border BorderBrush="{StaticResource QuinellaPlaceTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
                     <TextBlock Text="{Binding}" Style="{StaticResource HorseNumber}"/>
                   </Border>
                 </DataTemplate>
@@ -647,7 +649,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <StackPanel>
-                    <Border BorderBrush="{DynamicResource QuinellaPlaceTicketBackground}" BorderThickness="0,0,0,4" Width="120" Height="35">
+                    <Border BorderBrush="{StaticResource QuinellaPlaceTicketBackground}" BorderThickness="0,0,0,4" Width="120" Height="35">
                       <TextBlock Text="{Binding Number}" Style="{StaticResource HorseNumber}"/>
                     </Border>
                     <ItemsControl ItemsSource="{Binding Odds}">
@@ -675,7 +677,7 @@
             <ItemsControl ItemsSource="{Binding Race.Odds.Value.Quinellas.Value.Numbers,ElementName=Root}" Margin="0,70,0,0">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Border BorderBrush="{DynamicResource QuinellaTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
+                  <Border BorderBrush="{StaticResource QuinellaTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
                     <TextBlock Text="{Binding}" Style="{StaticResource HorseNumber}"/>
                   </Border>
                 </DataTemplate>
@@ -690,7 +692,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <StackPanel>
-                    <Border BorderBrush="{DynamicResource QuinellaTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
+                    <Border BorderBrush="{StaticResource QuinellaTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
                       <TextBlock Text="{Binding Number}" Style="{StaticResource HorseNumber}"/>
                     </Border>
                     <ItemsControl ItemsSource="{Binding Odds}">
@@ -717,7 +719,7 @@
             <ItemsControl ItemsSource="{Binding Race.Odds.Value.Exactas.Value.Numbers,ElementName=Root}" Margin="0,70,0,0">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Border BorderBrush="{DynamicResource ExactaTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
+                  <Border BorderBrush="{StaticResource ExactaTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
                     <TextBlock Text="{Binding}" Style="{StaticResource HorseNumber}"/>
                   </Border>
                 </DataTemplate>
@@ -732,7 +734,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <StackPanel>
-                    <Border BorderBrush="{DynamicResource ExactaTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
+                    <Border BorderBrush="{StaticResource ExactaTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
                       <TextBlock Text="{Binding Number}" Style="{StaticResource HorseNumber}"/>
                     </Border>
                     <ItemsControl ItemsSource="{Binding Odds}">
@@ -756,14 +758,14 @@
 
         <ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Auto" Visibility="{Binding IsChecked,ElementName=SO_Trio,Converter={StaticResource BooleanVisibilityConv}}">
           <StackPanel Orientation="Vertical">
-            <Border Background="{DynamicResource TrioTicketBackground}" Padding="8">
+            <Border Background="{StaticResource TrioTicketBackground}" Padding="8">
               <TextBlock Text="{Binding Race.Odds.Value.CurrentTrios.Value.NumberInGroup,ElementName=Root}" FontSize="28" Style="{StaticResource TextBlockDefault}"/>
             </Border>
             <StackPanel Orientation="Horizontal">
               <ItemsControl ItemsSource="{Binding Race.Odds.Value.CurrentTrios.Value.Numbers,ElementName=Root}" Margin="0,35,0,0">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <Border BorderBrush="{DynamicResource TrioTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
+                    <Border BorderBrush="{StaticResource TrioTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
                       <TextBlock Text="{Binding}" Style="{StaticResource HorseNumber}"/>
                     </Border>
                   </DataTemplate>
@@ -778,7 +780,7 @@
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <StackPanel>
-                      <Border BorderBrush="{DynamicResource TrioTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
+                      <Border BorderBrush="{StaticResource TrioTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
                         <TextBlock Text="{Binding Number}" Style="{StaticResource HorseNumber}"/>
                       </Border>
                       <ItemsControl ItemsSource="{Binding Odds}">
@@ -803,14 +805,14 @@
 
         <ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Auto" Visibility="{Binding IsChecked,ElementName=SO_Trifecta,Converter={StaticResource BooleanVisibilityConv}}">
           <StackPanel Orientation="Vertical">
-            <Border Background="{DynamicResource TrifectaTicketBackground}" Padding="8">
+            <Border Background="{StaticResource TrifectaTicketBackground}" Padding="8">
               <TextBlock Text="{Binding Race.Odds.Value.CurrentTrifectas.Value.NumberInGroup,ElementName=Root}" FontSize="28" Style="{StaticResource TextBlockDefault}"/>
             </Border>
             <StackPanel Orientation="Horizontal">
               <ItemsControl ItemsSource="{Binding Race.Odds.Value.CurrentTrifectas.Value.Numbers,ElementName=Root}" Margin="0,35,0,0">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <Border BorderBrush="{DynamicResource TrifectaTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
+                    <Border BorderBrush="{StaticResource TrifectaTicketBackground}" BorderThickness="0,0,4,0" Width="60" Height="35">
                       <TextBlock Text="{Binding}" Style="{StaticResource HorseNumber}"/>
                     </Border>
                   </DataTemplate>
@@ -825,7 +827,7 @@
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <StackPanel>
-                      <Border BorderBrush="{DynamicResource TrifectaTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
+                      <Border BorderBrush="{StaticResource TrifectaTicketBackground}" BorderThickness="0,0,0,4" Width="60" Height="35">
                         <TextBlock Text="{Binding Number}" Style="{StaticResource HorseNumber}"/>
                       </Border>
                       <ItemsControl ItemsSource="{Binding Odds}">
@@ -868,13 +870,13 @@
           </i:Interaction.Behaviors>
         </cef:ChromiumWebBrowser>
         <Border Grid.ColumnSpan="2" Grid.Row="1" Visibility="{Binding Race.Script.IsExecuting.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
-          <TextBlock FontSize="48" Foreground="{DynamicResource SubForeground}" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <TextBlock FontSize="48" Foreground="{StaticResource SubForeground}" HorizontalAlignment="Center" VerticalAlignment="Center">
             <Run Text="{Binding Race.Script.Progress.Value.Value,ElementName=Root}"/> / <Run Text="{Binding Race.Script.ProgressMax.Value.Value,ElementName=Root}"/>
           </TextBlock>
         </Border>
         <Border Grid.ColumnSpan="2" Grid.Row="1" Visibility="{Binding Race.Script.IsError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
-          <TextBox IsReadOnly="True" FontSize="20" Text="{Binding Race.Script.ErrorMessage.Value,Mode=OneWay,ElementName=Root}" Foreground="{DynamicResource ErrorForeground}"
-                   TextWrapping="Wrap" Background="{DynamicResource BaseBackground}" AcceptsReturn="True"/>
+          <TextBox IsReadOnly="True" FontSize="20" Text="{Binding Race.Script.ErrorMessage.Value,Mode=OneWay,ElementName=Root}" Foreground="{StaticResource ErrorForeground}"
+                   TextWrapping="Wrap" Background="{StaticResource BaseBackground}" AcceptsReturn="True"/>
         </Border>
         
         <!--馬券提案-->
@@ -891,7 +893,7 @@
                           <ScaleTransform ScaleX="0.7" ScaleY="0.7"/>
                         </ContentControl.LayoutTransform>
                       </ContentControl>
-                      <TextBlock Text="{Binding HorseNumber}" Foreground="{DynamicResource BaseForeground}" FontSize="18" Margin="8,2,4,2"/>
+                      <TextBlock Text="{Binding HorseNumber}" Foreground="{StaticResource BaseForeground}" FontSize="18" Margin="8,2,4,2"/>
                     </StackPanel>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -906,9 +908,9 @@
                     <StackPanel Orientation="Horizontal">
                       <Border Width="80" Background="{Binding Type,Converter={StaticResource TicketTypeBackgroundConv}}">
                         <TextBlock Text="{Binding Type,Converter={StaticResource EnumsConv}}"
-                                   Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="4,2"/>
+                                   Foreground="{StaticResource BaseForeground}" FontSize="16" Margin="4,2"/>
                       </Border>
-                      <TextBlock Text="{Binding Converter={StaticResource TicketSummaryConv}}" Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="8,2,4,2"/>
+                      <TextBlock Text="{Binding Converter={StaticResource TicketSummaryConv}}" Foreground="{StaticResource BaseForeground}" FontSize="16" Margin="8,2,4,2"/>
                     </StackPanel>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -949,7 +951,7 @@
               <Style TargetType="RadioButton" BasedOn="{StaticResource TicketType}">
                 <Style.Triggers>
                   <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource SingleTicketBackground}"/>
+                    <Setter Property="Background" Value="{StaticResource SingleTicketBackground}"/>
                   </Trigger>
                 </Style.Triggers>
               </Style>
@@ -963,7 +965,7 @@
               <Style TargetType="RadioButton" BasedOn="{StaticResource TicketType}">
                 <Style.Triggers>
                   <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource PlaceTicketBackground}"/>
+                    <Setter Property="Background" Value="{StaticResource PlaceTicketBackground}"/>
                   </Trigger>
                 </Style.Triggers>
               </Style>
@@ -977,7 +979,7 @@
               <Style TargetType="RadioButton" BasedOn="{StaticResource TicketType}">
                 <Style.Triggers>
                   <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource FrameNumberTicketBackground}"/>
+                    <Setter Property="Background" Value="{StaticResource FrameNumberTicketBackground}"/>
                   </Trigger>
                 </Style.Triggers>
               </Style>
@@ -991,7 +993,7 @@
               <Style TargetType="RadioButton" BasedOn="{StaticResource TicketType}">
                 <Style.Triggers>
                   <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource QuinellaPlaceTicketBackground}"/>
+                    <Setter Property="Background" Value="{StaticResource QuinellaPlaceTicketBackground}"/>
                   </Trigger>
                 </Style.Triggers>
               </Style>
@@ -1005,7 +1007,7 @@
               <Style TargetType="RadioButton" BasedOn="{StaticResource TicketType}">
                 <Style.Triggers>
                   <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource QuinellaTicketBackground}"/>
+                    <Setter Property="Background" Value="{StaticResource QuinellaTicketBackground}"/>
                   </Trigger>
                 </Style.Triggers>
               </Style>
@@ -1019,7 +1021,7 @@
               <Style TargetType="RadioButton" BasedOn="{StaticResource TicketType}">
                 <Style.Triggers>
                   <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource ExactaTicketBackground}"/>
+                    <Setter Property="Background" Value="{StaticResource ExactaTicketBackground}"/>
                   </Trigger>
                 </Style.Triggers>
               </Style>
@@ -1033,7 +1035,7 @@
               <Style TargetType="RadioButton" BasedOn="{StaticResource TicketType}">
                 <Style.Triggers>
                   <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource TrioTicketBackground}"/>
+                    <Setter Property="Background" Value="{StaticResource TrioTicketBackground}"/>
                   </Trigger>
                 </Style.Triggers>
               </Style>
@@ -1047,7 +1049,7 @@
               <Style TargetType="RadioButton" BasedOn="{StaticResource TicketType}">
                 <Style.Triggers>
                   <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource TrifectaTicketBackground}"/>
+                    <Setter Property="Background" Value="{StaticResource TrifectaTicketBackground}"/>
                   </Trigger>
                 </Style.Triggers>
               </Style>
@@ -1256,13 +1258,13 @@
                 <Style TargetType="Button" BasedOn="{StaticResource ButtonDefault}">
                   <Style.Triggers>
                     <Trigger Property="IsEnabled" Value="False">
-                      <Setter Property="Background" Value="{DynamicResource DisabledBackground}"/>
+                      <Setter Property="Background" Value="{StaticResource DisabledBackground}"/>
                     </Trigger>
                   </Style.Triggers>
                 </Style>
               </StackPanel.Resources>
               <TextBlock Text="購入数" FontSize="16" HorizontalAlignment="Center"/>
-              <TextBox Width="80" FontSize="32" TextAlignment="Center" Margin="0,4,0,24" Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
+              <TextBox Width="80" FontSize="32" TextAlignment="Center" Margin="0,4,0,24" Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
                        Text="{Binding Race.Tickets.Value.Count.Value,ElementName=Root,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" InputScope="Number"/>
               <Button Content="購入" Width="80" Height="60" FontSize="24" VerticalAlignment="Top"
                       Command="{Binding BuyTicketCommand}" IsEnabled="{Binding Race.Tickets.Value.CanBuy.Value,ElementName=Root}"/>
@@ -1304,12 +1306,12 @@
                       </Border>
                       <Border Width="24" Visibility="{Binding IsSingleRow,Converter={StaticResource BooleanVisibilityConv}}"/>
                       <Border Margin="10,0,0,0" Width="55">
-                        <TextBlock Text="{Binding MoneyMax}" Foreground="{DynamicResource SubForeground}" Visibility="{Binding MoneyMax,Converter={StaticResource NonZeroVisibilityConv}}"/>
+                        <TextBlock Text="{Binding MoneyMax}" Foreground="{StaticResource SubForeground}" Visibility="{Binding MoneyMax,Converter={StaticResource NonZeroVisibilityConv}}"/>
                       </Border>
                       <TextBlock Text="{Binding Money}" Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}" Width="60" Margin="16,0,0,0"/>
                       <Border Width="40">
                         <Border Visibility="{Binding IsSingleRow,Converter={StaticResource BooleanVisibilityConv}}">
-                          <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16">
+                          <TextBlock Foreground="{StaticResource BaseForeground}" FontSize="16">
                             x<Run Text="{Binding Count.Value}"/>
                           </TextBlock>
                         </Border>
@@ -1328,14 +1330,14 @@
                         <StackPanel>
                           <StackPanel Orientation="Horizontal">
                             <Border Background="{Binding Data.Type,Converter={StaticResource TicketTypeBackgroundConv}}" Width="80">
-                              <TextBlock Text="{Binding Data.Type,Converter={StaticResource EnumsConv}}" FontSize="16" Foreground="{DynamicResource BaseForeground}"
+                              <TextBlock Text="{Binding Data.Type,Converter={StaticResource EnumsConv}}" FontSize="16" Foreground="{StaticResource BaseForeground}"
                                        Margin="4,2"/>
                             </Border>
                             <ToggleButton Width="20" Margin="24,2,0,2" Padding="0" IsChecked="{Binding IsOpen.Value}"/>
-                            <TextBlock Text="{Binding}" Foreground="{DynamicResource BaseForeground}" FontSize="16" Margin="4,2"
+                            <TextBlock Text="{Binding}" Foreground="{StaticResource BaseForeground}" FontSize="16" Margin="4,2"
                                        Width="232" FontWeight="Bold"/>
                             <Border Width="36">
-                              <TextBlock Foreground="{DynamicResource BaseForeground}" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right">
+                              <TextBlock Foreground="{StaticResource BaseForeground}" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right">
                                 x<Run Text="{Binding Count.Value}"/>
                               </TextBlock>
                             </Border>

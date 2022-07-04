@@ -27,17 +27,17 @@
         <ColumnDefinition/>
         <ColumnDefinition/>
       </Grid.ColumnDefinitions>
-      <RadioButton Grid.Column="0" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="0" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="概要" Name="S_Summary" IsChecked="True"/>
-      <RadioButton Grid.Column="1" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="1" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="傾向" Name="S_HorseTrend"/>
-      <RadioButton Grid.Column="2" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="2" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="騎手" Name="S_Rider"/>
-      <RadioButton Grid.Column="3" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="3" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="調教師" Name="S_Trainer"/>
-      <RadioButton Grid.Column="4" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="4" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="血統" Name="S_HorseBlood"/>
-      <RadioButton Grid.Column="5" Style="{DynamicResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="5" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="調教" Name="S_Training"/>
     </Grid>
 
@@ -67,42 +67,44 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
               </Style>
             </Grid.Resources>
-            <TextBlock Grid.Column="0" Text="記号" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
+            <TextBlock Grid.Column="0" Text="記号" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
             <up:HorseTypeTip Grid.Column="1" HorseType="{Binding RaceHorse.Data.Type,ElementName=Root}"/>
-            <TextBlock Grid.Column="0" Grid.Row="1" Text="毛色" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
+            <TextBlock Grid.Column="0" Grid.Row="1" Text="毛色" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
             <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal">
-              <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Margin="0,0,24,0"
+              <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Margin="0,0,24,0"
                       Width="80" Height="20" Background="{Binding RaceHorse.Data.Color,ElementName=Root,Converter={StaticResource HorseColorBrushConv}}"/>
               <TextBlock Text="{Binding RaceHorse.Data.Color,ElementName=Root,Converter={StaticResource EnumsConv}}"
                          FontSize="24"/>
             </StackPanel>
-            <TextBlock Grid.Column="0" Grid.Row="2" Text="A3Hまでの偏差値" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
+            <!--
+            <TextBlock Grid.Column="0" Grid.Row="2" Text="A3Hまでの偏差値" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
             <TextBlock Grid.Column="1" Grid.Row="2" FontSize="24" Margin="0,8,0,0"
                        Text="{Binding RaceHorse.History.UntilA3HTimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"
                        Foreground="{Binding RaceHorse.History.UntilA3HTimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
+            -->
 
-            <TextBlock Grid.Column="2" Text="距離１" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
+            <TextBlock Grid.Column="2" Text="距離１" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
             <TextBlock Grid.Column="3" FontSize="24"
                        Text="{Binding RaceHorse.History.BestDistance,ElementName=Root,Converter={StaticResource LabelConv}}"/>
-            <TextBlock Grid.Column="2" Text="距離２" Grid.Row="1" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
+            <TextBlock Grid.Column="2" Text="距離２" Grid.Row="1" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
             <TextBlock Grid.Column="3" Grid.Row="1" FontSize="24" Margin="0,8,0,0"
                        Text="{Binding RaceHorse.History.SecondDistance,ElementName=Root,Converter={StaticResource LabelConv}}"/>
-            <TextBlock Grid.Column="2" Grid.Row="2" Text="その他" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
+            <TextBlock Grid.Column="2" Grid.Row="2" Text="その他" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
             <StackPanel Grid.Column="3" Grid.Row="2" Orientation="Horizontal">
               <TextBlock FontSize="18" Visibility="{Binding RaceHorse.Data.IsBlinkers,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
                          Text="ブリンカー" Margin="0,8,16,0"/>
             </StackPanel>
 
-            <TextBlock Grid.Column="4" Foreground="{DynamicResource SubForeground}" FontSize="14" Margin="0,0,24,0">
+            <TextBlock Grid.Column="4" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,0,24,0">
               同距離・地面<LineBreak/>騎手複勝
             </TextBlock>
             <TextBlock Grid.Column="5" FontSize="24" Foreground="{Binding RaceHorse.RiderPlaceBitsRateComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
                        Text="{Binding RaceHorse.RiderPlaceBitsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
             <TextBlock Grid.Column="5" Grid.Row="1" FontSize="16">
-              <Run Text="１着" Foreground="{DynamicResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderFirstCount,ElementName=Root,Mode=OneWay}"/>　
-              <Run Text="２着" Foreground="{DynamicResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderSecondCount,ElementName=Root,Mode=OneWay}"/><LineBreak/>
-              <Run Text="３着" Foreground="{DynamicResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderThirdCount,ElementName=Root,Mode=OneWay}"/>　
-              <Run Text="着外" Foreground="{DynamicResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderLosedCount,ElementName=Root,Mode=OneWay}"/>
+              <Run Text="１着" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderFirstCount,ElementName=Root,Mode=OneWay}"/>　
+              <Run Text="２着" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderSecondCount,ElementName=Root,Mode=OneWay}"/><LineBreak/>
+              <Run Text="３着" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderThirdCount,ElementName=Root,Mode=OneWay}"/>　
+              <Run Text="着外" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderLosedCount,ElementName=Root,Mode=OneWay}"/>
             </TextBlock>
           </Grid>
 
@@ -133,7 +135,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <Grid>
-                    <Border Background="{DynamicResource TableListFocusedRowBackground}" Visibility="{Binding IsCurrentCourse,Converter={StaticResource BooleanVisibilityConv}}"/>
+                    <Border Background="{StaticResource TableListFocusedRowBackground}" Visibility="{Binding IsCurrentCourse,Converter={StaticResource BooleanVisibilityConv}}"/>
                     <StackPanel Orientation="Horizontal" Height="48" Margin="8,0,0,0">
                       <StackPanel.Resources>
                         <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
@@ -174,7 +176,7 @@
 
           <TextBlock Text="メモ" FontWeight="Bold" FontSize="24" Margin="8,24,0,8"/>
           <TextBox TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" MinHeight="100" Margin="16,0"
-                   Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}" FontSize="16"
+                   Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}" FontSize="16"
                    Text="{Binding RaceHorse.Memo.Value,ElementName=Root}">
             <TextBox.IsReadOnly>
               <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
@@ -236,7 +238,7 @@
                         <ColumnDefinition/>
                       </Grid.ColumnDefinitions>
                       <TextBlock Text="{Binding Selector.Type,Converter={StaticResource LabelConv}}"
-                                 FontSize="14" Foreground="{DynamicResource SubForeground}"/>
+                                 FontSize="14" Foreground="{StaticResource SubForeground}"/>
                       <TextBlock Grid.Column="1" Text="{Binding Selector.Name}"
                                  FontSize="14" FontWeight="Bold"/>
                     </Grid>

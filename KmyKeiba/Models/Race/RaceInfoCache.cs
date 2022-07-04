@@ -61,7 +61,7 @@ namespace KmyKeiba.Models.Race
       {
         cache = new RaceInfoCache(race);
         _caches.Add(cache);
-        if (_caches.Count > 48)
+        if (_caches.Count > ApplicationConfiguration.Current.Value.RaceInfoCacheMax)
         {
           _caches.RemoveAt(0);
         }

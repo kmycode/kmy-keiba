@@ -13,6 +13,7 @@ namespace KmyKeiba.Common
   {
     public static Func<string, object?>? TryGetResource { get; set; }
 
+    [Obsolete("テーマはいったん廃止")]
     public static Action<ApplicationTheme>? ChangeTheme { get; set; }
 
     public static Action<Action>? InvokeUiThread { get; set; }

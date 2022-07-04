@@ -101,7 +101,7 @@ namespace KmyKeiba.Models.Connection
         var rakutenCourseCode = courseCode switch
         {
           "45" => "2135",      // 川崎
-          "41" => "2015",      // 大井
+          "44" => "2015",      // 大井
           "43" => "1914",      // 船橋
           "42" => "1813",      // 浦和
           "36" => "1106",      // 水沢

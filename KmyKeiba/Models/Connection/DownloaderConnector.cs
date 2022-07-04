@@ -106,6 +106,7 @@ namespace KmyKeiba.Models.Connection
 
       var tryCount = 0;
       var loopStart = DateTime.Now;
+      var lastProcessIdChecked = DateTime.Now;
       var isProcessStarted = false;
       while (true)
       {
@@ -132,8 +133,11 @@ namespace KmyKeiba.Models.Connection
               if (item.ProcessId != default)
               {
                 isProcessStarted = true;
+                lastProcessIdChecked = DateTime.Now;
               }
-              if (!isProcessStarted && loopStart.AddMinutes(10) < DateTime.Now)
+
+              if (!isProcessStarted &&
+                (loopStart.AddMinutes(5) < DateTime.Now || lastProcessIdChecked.AddMinutes(3) < DateTime.Now))
               {
                 if (item.ProcessId == default)
                 {

@@ -17,7 +17,7 @@
       <ColumnDefinition/>
     </Grid.ColumnDefinitions>
 
-    <Border Background="{DynamicResource ActiveBackground}" Grid.ColumnSpan="2"
+    <Border Background="{StaticResource ActiveBackground}" Grid.ColumnSpan="2"
             Visibility="{Binding Horse.IsActive.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
 
     <!--枠色-->
@@ -25,7 +25,7 @@
             Margin="0,0,8,0"/>
 
     <!--競走中止時の背景-->
-    <Border Grid.Column="1" Background="{DynamicResource BadBackground}"
+    <Border Grid.Column="1" Background="{StaticResource BadBackground}"
             Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
 
     <StackPanel Margin="0,6" Grid.Column="1" Opacity="{Binding Horse.Data.AbnormalResult,ElementName=Root,Converter={StaticResource AbnormalResultOpacityConv}}">
@@ -69,13 +69,13 @@
                                  Text="{Binding Horse.Data.Name,ElementName=Root}"
                                  Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
                       <TextBlock FontSize="24" FontWeight="Bold" TextAlignment="Left" VerticalAlignment="Center"
-                                 Text="{Binding Horse.Data.Name,ElementName=Root}" Foreground="{DynamicResource SubForeground}"
+                                 Text="{Binding Horse.Data.Name,ElementName=Root}" Foreground="{StaticResource SubForeground}"
                                  Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
-                      <Ellipse Width="8" Height="8" Fill="{DynamicResource NoticeForeground}" Margin="4,0,0,0" VerticalAlignment="Center"
+                      <Ellipse Width="8" Height="8" Fill="{StaticResource NoticeForeground}" Margin="4,0,0,0" VerticalAlignment="Center"
                                Visibility="{Binding Horse.Memo.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"/>
                     </StackPanel>
                     <TextBlock FontSize="16" Text="{Binding Horse.Data.AbnormalResult,ElementName=Root,Converter={StaticResource EnumsConv}}"
-                               Foreground="{DynamicResource BadForeground}" FontWeight="Bold"
+                               Foreground="{StaticResource BadForeground}" FontWeight="Bold"
                                Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </StackPanel>
                 </Grid>
@@ -84,14 +84,14 @@
           </ToggleButton>
           <up:ImePopup PlacementTarget="{Binding ElementName=HorseDetailParent}" StaysOpen="False"
                        IsOpen="{Binding IsChecked,ElementName=HorseDetailParent,Mode=TwoWay}">
-            <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1"
+            <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1"
                     Width="300" Height="150">
               <Grid>
                 <Grid.RowDefinitions>
                   <RowDefinition/>
                   <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <TextBox Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
+                <TextBox Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
                          FontSize="16" Margin="4" Text="{Binding Horse.Memo.Value,ElementName=Root,Mode=TwoWay}"
                          AcceptsReturn="True">
                   <TextBox.IsReadOnly>
@@ -127,8 +127,8 @@
                 </TextBlock>
                 <up:ImePopup IsOpen="{Binding IsChecked,ElementName=OddsToggle}" StaysOpen="False"
                              PlacementTarget="{Binding ElementName=OddsToggle}">
-                  <Border Background="{DynamicResource BaseBackground}" Width="296" Height="206"
-                          BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
+                  <Border Background="{StaticResource BaseBackground}" Width="296" Height="206"
+                          BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1">
                     <Grid>
                       <ItemsControl ItemsSource="{Binding Horse.OddsTimelineLatestItems,RelativeSource={RelativeSource AncestorType={x:Type local:RaceHorsePillar}}}" Margin="8,4">
                         <ItemsControl.ItemsPanel>
@@ -139,7 +139,7 @@
                         <ItemsControl.ItemTemplate>
                           <DataTemplate>
                             <StackPanel Orientation="Horizontal" Width="140">
-                              <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="14" Width="60" TextAlignment="Right"
+                              <TextBlock Foreground="{StaticResource SubForeground}" FontSize="14" Width="60" TextAlignment="Right"
                                          VerticalAlignment="Bottom">
                                 <Run Text="{Binding LeftTime.TotalMinutes,Mode=OneWay,Converter={StaticResource StringFormatConv},ConverterParameter=F0}"/>分前
                               </TextBlock>
@@ -211,26 +211,30 @@
             <up:RaceResultOrderGradeRow Header="馬場" FontSize="12" Grade="{Binding Horse.History.SameConditionGrade,ElementName=Root}"/>
           </StackPanel>
           <StackPanel Width="60" Margin="8,0,0,0">
-            <TextBlock Text="T偏差値" Foreground="{DynamicResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
+            <TextBlock Text="T偏差値" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
             <TextBlock Text="{Binding Horse.History.TimeDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
                        Foreground="{Binding Horse.History.TimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
                        Visibility="{Binding Horse.History.TimeDeviationValue,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
           </StackPanel>
           <StackPanel Width="60">
-            <TextBlock Text="A3H偏" Foreground="{DynamicResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
+            <TextBlock Text="A3H偏" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
             <TextBlock Text="{Binding Horse.History.A3HTimeDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
                        Foreground="{Binding Horse.History.A3HTimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
                        Visibility="{Binding Horse.History.A3HTimeDeviationValue,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
           </StackPanel>
           <StackPanel Width="60">
-            <TextBlock Text="騎手複勝" Foreground="{DynamicResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
+            <TextBlock Text="騎手複勝" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
             <TextBlock Text="{Binding Horse.RiderPlaceBitsRate,ElementName=Root,StringFormat=P1}" FontSize="16" HorizontalAlignment="Center"
                        Foreground="{Binding Horse.RiderPlaceBitsRateComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
           </StackPanel>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Column="8" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
-          <TextBlock Text="{Binding Horse.Data.ResultTime,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss\\.f}"
-                     Width="70" FontSize="20"/>
+          <StackPanel Width="70" VerticalAlignment="Center">
+            <TextBlock Text="{Binding Horse.Data.ResultTime,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss\\.f}"
+                       FontSize="18"/>
+            <TextBlock Text="{Binding Horse.Data.AfterThirdHalongTime,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=ss\\.f}"
+                       FontSize="14" Foreground="{Binding Horse.ResultA3HTimeComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
+          </StackPanel>
           <TextBlock Width="60" FontSize="16"><Run Text="{Binding Horse.Data.ResultLength1,ElementName=Root,Converter={StaticResource ResultLengthConv}}"/></TextBlock>
           <up:CornerResultTip Margin="36,0,0,0" VerticalAlignment="Center"
                               PartWidth="24" PartHeight="36" PartPadding="4"
@@ -240,7 +244,7 @@
       </Grid>
 
       <!--馬柱-->
-      <Grid Background="{DynamicResource ThinBaseBackground}"
+      <Grid Background="{StaticResource ThinBaseBackground}"
             Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="auto"/>
@@ -249,7 +253,7 @@
 
         <Border Width="40" Height="64" VerticalAlignment="Top">
           <StackPanel VerticalAlignment="Center" Visibility="{Binding Horse.Data.PreviousRaceDays,ElementName=Root,Converter={StaticResource NonMinusVisibilityConv}}">
-            <Polygon Points="8,0 8,20 0,10" Fill="{DynamicResource ThinSubForeground}" StrokeThickness="0"
+            <Polygon Points="8,0 8,20 0,10" Fill="{StaticResource ThinSubForeground}" StrokeThickness="0"
                      HorizontalAlignment="Center"/>
             <TextBlock Text="{Binding Horse.Data.PreviousRaceDays,ElementName=Root}" FontSize="14" TextAlignment="Center"/>
           </StackPanel>
@@ -297,7 +301,7 @@
                               <up:CornerResultTip CornerGrades="{Binding CornerGrades}" FontSize="12" WithResult="False" Width="90"
                                                   PartWidth="16" PartHeight="18" PartPadding="0"/>
                               <Border Width="22" Height="22" Background="{Binding ResultOrderComparationWithLastCorner,Converter={StaticResource ValueComparationBackgroundConv}}"
-                                      BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0.7">
+                                      BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="0.7">
                                 <TextBlock FontSize="16" Text="{Binding Data.ResultOrder}" TextAlignment="Center">
                                   <TextBlock.RenderTransform>
                                     <TranslateTransform Y="-2"/>
@@ -309,11 +313,11 @@
                                          Visibility="{Binding ResultTimeDeviationValue,Converter={StaticResource NonZeroVisibilityConv}}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}">
-                              <TextBlock FontSize="14" Foreground="{DynamicResource BadForeground}" FontWeight="Bold"
+                              <TextBlock FontSize="14" Foreground="{StaticResource BadForeground}" FontWeight="Bold"
                                          Text="{Binding Data.AbnormalResult,Converter={StaticResource EnumsConv}}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Visibility="{Binding IsRaceCanceled,Converter={StaticResource BooleanVisibilityConv}}">
-                              <TextBlock FontSize="14" Foreground="{DynamicResource BadForeground}" FontWeight="Bold"
+                              <TextBlock FontSize="14" Foreground="{StaticResource BadForeground}" FontWeight="Bold"
                                          Text="レース中止"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
@@ -322,7 +326,7 @@
                               <TextBlock FontSize="12" Text="{Binding Data.RiderName}" Width="56" VerticalAlignment="Center"/>
                               <TextBlock FontSize="14" Text="{Binding Race.TrackWeather,Converter={StaticResource TrackConv}}"/>
                               <TextBlock FontSize="14" Text="{Binding Race.TrackCondition,Converter={StaticResource TrackConv}}"/>
-                              <Ellipse Width="8" Height="8" Fill="{DynamicResource NoticeForeground}" Margin="2,0,0,0"
+                              <Ellipse Width="8" Height="8" Fill="{StaticResource NoticeForeground}" Margin="2,0,0,0"
                                        Visibility="{Binding Memo.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
                             </StackPanel>
                           </StackPanel>
@@ -330,10 +334,10 @@
                           <!--前走日数-->
                           <Border Width="40">
                             <StackPanel Width="40" VerticalAlignment="Center" Visibility="{Binding Data.PreviousRaceDays,Converter={StaticResource NonMinusVisibilityConv}}">
-                              <Polygon Points="8,0 8,20 0,10" Fill="{DynamicResource ThinSubForeground}" StrokeThickness="0"
+                              <Polygon Points="8,0 8,20 0,10" Fill="{StaticResource ThinSubForeground}" StrokeThickness="0"
                                        HorizontalAlignment="Center"/>
                               <TextBlock Text="{Binding Data.PreviousRaceDays}" FontSize="14" TextAlignment="Center"
-                                         Foreground="{DynamicResource SubForeground}"/>
+                                         Foreground="{StaticResource SubForeground}"/>
                             </StackPanel>
                           </Border>
                         </StackPanel>

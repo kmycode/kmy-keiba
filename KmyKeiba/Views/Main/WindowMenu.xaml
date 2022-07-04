@@ -6,17 +6,17 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Main"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-  <StackPanel Orientation="Horizontal" Height="56" Background="{DynamicResource BaseBackground}">
+  <StackPanel Orientation="Horizontal" Height="56" Background="{StaticResource BaseBackground}">
     <StackPanel.Resources>
       <Color x:Key="CloseButtonColor" R="0xcc" G="0x30" B="0x30"/>
     </StackPanel.Resources>
-    <Border Margin="8" VerticalAlignment="Center" Background="{DynamicResource TableListFocusedRowBackground}">
+    <Border Margin="8" VerticalAlignment="Center" Background="{StaticResource TableListFocusedRowBackground}">
       <StackPanel Orientation="Horizontal" Margin="12,0">
         <TextBlock FontSize="14" Margin="0,4,8,4" Text="（管理者）" Visibility="{Binding IsRunningAsAdministrator,Converter={StaticResource BooleanVisibilityConv}}"
-                   VerticalAlignment="Bottom" Foreground="{DynamicResource GoodForeground}"/>
+                   VerticalAlignment="Bottom" Foreground="{StaticResource GoodForeground}"/>
         <TextBlock FontSize="18" FontWeight="Bold" VerticalAlignment="Center"
                    Margin="0,4">
-          KMY競馬 <Run Text="{Binding VersionNumber,Mode=OneTime}" Foreground="{DynamicResource SubForeground}"/>
+          KMY競馬 <Run Text="{Binding VersionNumber,Mode=OneTime}" Foreground="{StaticResource SubForeground}"/>
         </TextBlock>
       </StackPanel>
     </Border>
@@ -24,10 +24,10 @@
             Click="MinButton_Click">
       <Button.Style>
         <Style TargetType="Button">
-          <Setter Property="Background" Value="{DynamicResource BaseBackground}"/>
+          <Setter Property="Background" Value="{StaticResource BaseBackground}"/>
           <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-              <Setter Property="Background" Value="{DynamicResource HoverBackground}"/>
+              <Setter Property="Background" Value="{StaticResource HoverBackground}"/>
             </Trigger>
           </Style.Triggers>
         </Style>
@@ -36,7 +36,7 @@
         <ControlTemplate>
           <Border Background="{TemplateBinding Background}">
             <TextBlock Text="＿" HorizontalAlignment="Center" VerticalAlignment="Center"
-                       FontSize="16" Foreground="{DynamicResource BaseForeground}"/>
+                       FontSize="16" Foreground="{StaticResource BaseForeground}"/>
           </Border>
         </ControlTemplate>
       </Button.Template>
@@ -45,10 +45,10 @@
             Click="NormalButton_Click" x:Name="NormalButton">
       <Button.Style>
         <Style TargetType="Button">
-          <Setter Property="Background" Value="{DynamicResource BaseBackground}"/>
+          <Setter Property="Background" Value="{StaticResource BaseBackground}"/>
           <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-              <Setter Property="Background" Value="{DynamicResource HoverBackground}"/>
+              <Setter Property="Background" Value="{StaticResource HoverBackground}"/>
             </Trigger>
           </Style.Triggers>
         </Style>
@@ -57,7 +57,7 @@
         <ControlTemplate>
           <Border Background="{TemplateBinding Background}">
             <TextBlock Text="❐" HorizontalAlignment="Center" VerticalAlignment="Center"
-                       FontSize="16" Foreground="{DynamicResource BaseForeground}"/>
+                       FontSize="16" Foreground="{StaticResource BaseForeground}"/>
           </Border>
         </ControlTemplate>
       </Button.Template>
@@ -66,10 +66,10 @@
             Click="MaxButton_Click" x:Name="MaximumButton">
       <Button.Style>
         <Style TargetType="Button">
-          <Setter Property="Background" Value="{DynamicResource BaseBackground}"/>
+          <Setter Property="Background" Value="{StaticResource BaseBackground}"/>
           <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-              <Setter Property="Background" Value="{DynamicResource HoverBackground}"/>
+              <Setter Property="Background" Value="{StaticResource HoverBackground}"/>
             </Trigger>
           </Style.Triggers>
         </Style>
@@ -78,7 +78,7 @@
         <ControlTemplate>
           <Border Background="{TemplateBinding Background}">
             <TextBlock Text="▢" HorizontalAlignment="Center" VerticalAlignment="Center"
-                       FontSize="16" Foreground="{DynamicResource BaseForeground}"/>
+                       FontSize="16" Foreground="{StaticResource BaseForeground}"/>
           </Border>
         </ControlTemplate>
       </Button.Template>
@@ -87,7 +87,7 @@
             Click="CloseButton_Click">
       <Button.Style>
         <Style TargetType="Button">
-          <Setter Property="Background" Value="{DynamicResource BaseBackground}"/>
+          <Setter Property="Background" Value="{StaticResource BaseBackground}"/>
           <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
               <Setter Property="Background" Value="#cc3030"/>
@@ -98,7 +98,7 @@
       <Button.Template>
         <ControlTemplate>
           <Border Cursor="Hand" Background="{TemplateBinding Background}">
-            <TextBlock Text="✕" FontSize="24" Foreground="{DynamicResource BaseForeground}"
+            <TextBlock Text="✕" FontSize="24" Foreground="{StaticResource BaseForeground}"
                        VerticalAlignment="Center" TextAlignment="Center" IsHitTestVisible="False"/>
           </Border>
         </ControlTemplate>

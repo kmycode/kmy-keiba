@@ -116,7 +116,7 @@ namespace KmyKeiba.Models.Script
     {
       var analyzer = this._race.TrendAnalyzers.BeginLoadByScript(keys, count, offset);
       await analyzer.WaitAnalysisAsync();
-      return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRace(s.Data, s.TopHorses)).ToArray(), ScriptManager.JsonOptions);
+      return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRace(s.Data, s.TopHorses)).Take(count).ToArray(), ScriptManager.JsonOptions);
     }
 
     [ScriptMember("getSimilarRaceHorsesAsync")]
@@ -126,7 +126,7 @@ namespace KmyKeiba.Models.Script
       if (analyzer != null)
       {
         await analyzer.WaitAnalysisAsync();
-        return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRaceHorse(string.Empty, s)).ToArray(), ScriptManager.JsonOptions);
+        return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRaceHorse(string.Empty, s)).Take(count).ToArray(), ScriptManager.JsonOptions);
       }
       return "[]";
     }

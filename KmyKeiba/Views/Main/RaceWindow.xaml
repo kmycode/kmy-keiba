@@ -8,10 +8,10 @@
         xmlns:local="clr-namespace:KmyKeiba.Views.Main"
         mc:Ignorable="d" Style="{StaticResource DefaultWindowStyle}"
         Title="{Binding Race.Value.Subject.DisplayName}" Height="800" Width="1400">
-  <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1">
-    <Grid Style="{DynamicResource WindowTopPanel}">
+  <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1">
+    <Grid Style="{StaticResource WindowTopPanel}">
       <uc:RaceView Race="{Binding Race.Value}" Visibility="{Binding Race.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
-      <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center"
+      <TextBlock Foreground="{StaticResource SubForeground}" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center"
                  Text="レースが読み込めませんでした" Visibility="{Binding IsModelError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
 
       <um:WindowMenu HorizontalAlignment="Right" VerticalAlignment="Top"/>

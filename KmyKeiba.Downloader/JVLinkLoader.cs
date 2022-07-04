@@ -873,7 +873,7 @@ namespace KmyKeiba.Downloader
         // 馬の状態
         {
           logger.Info($"馬の出走状態を設定します {data.HorseAbnormalities.Count}");
-          foreach (var ab in data.HorseAbnormalities)
+          foreach (var ab in data.HorseAbnormalities.OrderBy(c => c.ChangeTime))
           {
             var horse = await db.RaceHorses!
               .FirstOrDefaultAsync((h) => h.RaceKey == ab.RaceKey && h.Number == ab.HorseNumber);
@@ -893,7 +893,7 @@ namespace KmyKeiba.Downloader
         // 騎手
         {
           logger.Info($"騎手変更を設定します {data.HorseRiderChanges.Count}");
-          foreach (var ab in data.HorseRiderChanges)
+          foreach (var ab in data.HorseRiderChanges.OrderBy(c => c.ChangeTime))
           {
             var horse = await db.RaceHorses!
               .FirstOrDefaultAsync((h) => h.RaceKey == ab.RaceKey && h.Number == ab.HorseNumber);
@@ -915,7 +915,7 @@ namespace KmyKeiba.Downloader
         // 開始時刻
         {
           logger.Info($"レース開始時刻を設定します {data.RaceStartTimeChanges.Count}");
-          foreach (var st in data.RaceStartTimeChanges)
+          foreach (var st in data.RaceStartTimeChanges.OrderBy(c => c.ChangeTime))
           {
             var race = await db.Races!
               .FirstOrDefaultAsync((h) => h.Key == st.RaceKey);

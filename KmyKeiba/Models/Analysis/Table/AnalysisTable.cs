@@ -10,6 +10,7 @@ using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 using Reactive.Bindings.Extensions;
+using KmyKeiba.Common;
 
 namespace KmyKeiba.Models.Analysis.Table
 {
@@ -177,6 +178,10 @@ namespace KmyKeiba.Models.Analysis.Table
 
   public interface IAnalysisTableCell
   {
+    int SampleSize { set; }
+
+    Func<RaceHorseAnalyzer, bool> SampleFilter { set; }
+
     ReactiveProperty<string> Value { get; }
 
     ReactiveProperty<string> SubValue { get; }
@@ -186,6 +191,8 @@ namespace KmyKeiba.Models.Analysis.Table
     ReactiveProperty<ValueComparation> Comparation { get; }
 
     ReactiveProperty<bool> HasComparationValue { get; }
+
+    ReactiveCollection<RaceHorseAnalyzer> Samples { get; }
 
     Task LoadAsync();
   }
@@ -199,6 +206,10 @@ namespace KmyKeiba.Models.Analysis.Table
 
     private readonly string _keys;
 
+    public int SampleSize { get; set; } = ApplicationConfiguration.Current.Value.AnalysisTableSampleSize;
+
+    public Func<RaceHorseAnalyzer, bool> SampleFilter { get; set; } = _ => true;
+
     public ReactiveProperty<A?> Analyzer { get; } = new();
 
     public ReactiveProperty<string> Value { get; } = new();
@@ -210,6 +221,10 @@ namespace KmyKeiba.Models.Analysis.Table
     public ReactiveProperty<bool> HasComparationValue { get; } = new(true);
 
     public ReactiveProperty<ValueComparation> Comparation { get; } = new();
+
+    public ReactiveCollection<RaceHorseAnalyzer> Samples { get; } = new();
+
+    public ReactiveProperty<bool> IsSamplesEnabled { get; } = new();
 
     public AnalysisTableCell(RaceHorseAnalyzer horse, Func<RaceHorseAnalyzer, S> selector, string keys)
     {
@@ -225,10 +240,10 @@ namespace KmyKeiba.Models.Analysis.Table
         throw new TaskCanceledException("horse");
       }
 
-      var count = 1000;
+      var count = ApplicationConfiguration.Current.Value.AnalysisTableSourceSize;
       if (typeof(S) == typeof(RaceWinnerHorseTrendAnalysisSelector))
       {
-        count = 4000;
+        count = ApplicationConfiguration.Current.Value.AnalysisTableRaceHorseSourceSize;
       }
 
       var selector = this._selector(this._horse);
@@ -238,6 +253,24 @@ namespace KmyKeiba.Models.Analysis.Table
       this.Analyzer.Value = analyzer;
 
       this.AfterLoad(analyzer);
+
+      if (analyzer is RaceHorseTrendAnalyzerBase rha)
+      {
+        ThreadUtil.InvokeOnUiThread(() =>
+        {
+          foreach (var sample in rha.Source
+            .Where(this.SampleFilter)
+            .Where(s => s.Data.ResultOrder > 0)
+            .Take(this.SampleSize))
+          {
+            this.Samples.Add(sample);
+          }
+          if (this.Samples.Any())
+          {
+            this.IsSamplesEnabled.Value = true;
+          }
+        });
+      }
     }
 
     protected abstract void AfterLoad(A analyzer);

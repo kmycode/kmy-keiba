@@ -542,7 +542,10 @@ namespace KmyKeiba.Models.Analysis
       }
       if (keys.Contains(Key.NearDistance))
       {
-        query = query.Where(r => r.Race.Distance >= this.Race.Distance - 50 && r.Race.Distance <= this.Race.Distance + 50);
+        var diff = this.Race.Course <= RaceCourse.CentralMaxValue ?
+          ApplicationConfiguration.Current.Value.NearDistanceDiffCentral :
+          ApplicationConfiguration.Current.Value.NearDistanceDiffLocal;
+        query = query.Where(r => r.Race.Distance >= this.Race.Distance - diff && r.Race.Distance <= this.Race.Distance + diff);
       }
       if (keys.Contains(Key.SameDirection))
       {
@@ -682,7 +685,10 @@ namespace KmyKeiba.Models.Analysis
       }
       if (keys.Contains(Key.NearDistance))
       {
-        query = query.Where(r => r.Race.Distance / 200 == this.Race.Distance / 200);
+        var diff = this.Race.Course <= RaceCourse.CentralMaxValue ?
+          ApplicationConfiguration.Current.Value.NearDistanceDiffCentralInHorseGrade :
+          ApplicationConfiguration.Current.Value.NearDistanceDiffLocalInHorseGrade;
+        query = query.Where(r => r.Race.Distance >= this.Race.Distance - diff && r.Race.Distance <= this.Race.Distance + diff);
       }
       if (keys.Contains(Key.SameDirection))
       {
