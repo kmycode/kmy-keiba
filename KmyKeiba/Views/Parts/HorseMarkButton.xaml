@@ -27,7 +27,7 @@
     </ToggleButton>
     <Popup Name="MarkPopup" Grid.Column="2" Width="254" Height="38" IsOpen="{Binding IsChecked,ElementName=MarkButton,Mode=TwoWay}" StaysOpen="False"
                  PlacementTarget="{Binding ElementName=MarkButton}" Placement="Right" Margin="4,0,0,0">
-      <Grid Background="{DynamicResource BaseBorderBrush}">
+      <Grid Background="{StaticResource BaseBorderBrush}">
         <StackPanel Orientation="Horizontal" Margin="1">
           <Button Command="{Binding Horse.SetMarkCommand,ElementName=Root}" CommandParameter="0">
             <ContentControl Template="{StaticResource MarkDefault}" RenderTransform="{StaticResource MarkTransform}"/>

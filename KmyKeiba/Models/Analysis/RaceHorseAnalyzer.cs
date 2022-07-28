@@ -38,7 +38,7 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceHorseTrendAnalysisSelector? TrendAnalyzers { get; init; }
 
-    public RaceRiderTrendAnalysisSelector? RiderTrendAnalyzers { get; init; }
+    public RaceRiderTrendAnalysisSelector? RiderTrendAnalyzers { get; set; }
 
     public RaceTrainerTrendAnalysisSelector? TrainerTrendAnalyzers { get; init; }
 
@@ -81,6 +81,8 @@ namespace KmyKeiba.Models.Analysis
     public ValueComparation ResultTimeDVComparation { get; set; }
 
     public ValueComparation ResultA3HTimeDVComparation { get; set; }
+
+    public ValueComparation ResultA3HTimeComparation { get; set; }
 
     public double ResultTimePerMeter { get; }
 
@@ -214,9 +216,9 @@ namespace KmyKeiba.Models.Analysis
           //this.TimeDeviationValue = st.CalcRegressionValue((race.StartTime.Date - startTime).TotalDays);
           var predictValue = 0;
           var single = targetRaces.Count() == 1 ? targetRaces.First() : null;
-          this.TimeDeviationValue = single?.ResultTimeDeviationValue ?? points.CalcRegressionValue(predictValue);
-          this.A3HTimeDeviationValue = single?.A3HResultTimeDeviationValue ?? pointsa3h.CalcRegressionValue(predictValue);
-          this.UntilA3HTimeDeviationValue = single?.UntilA3HResultTimeDeviationValue ?? pointsua3h.CalcRegressionValue(predictValue);
+          this.TimeDeviationValue = MathUtil.AvoidNan(single?.ResultTimeDeviationValue ?? points.CalcRegressionValue(predictValue));
+          this.A3HTimeDeviationValue = MathUtil.AvoidNan(single?.A3HResultTimeDeviationValue ?? pointsa3h.CalcRegressionValue(predictValue));
+          this.UntilA3HTimeDeviationValue = MathUtil.AvoidNan(single?.UntilA3HResultTimeDeviationValue ?? pointsua3h.CalcRegressionValue(predictValue));
           this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(targetRaces);
 
           this.RunningStyle = targetRaces
@@ -405,9 +407,9 @@ namespace KmyKeiba.Models.Analysis
     {
       if (raceStandardTime != null && raceStandardTime.SampleCount > 0 && _timeDeviationValueCalculator != null)
       {
-        this.ResultTimeDeviationValue = _timeDeviationValueCalculator.GetTimeDeviationValueAsync(race, horse, raceStandardTime).Result;
-        this.A3HResultTimeDeviationValue = _timeDeviationValueCalculator.GetA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result;
-        this.UntilA3HResultTimeDeviationValue = _timeDeviationValueCalculator.GetUntilA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result;
+        this.ResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
+        this.A3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
+        this.UntilA3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetUntilA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
       }
     }
 
@@ -646,6 +648,15 @@ namespace KmyKeiba.Models.Analysis
 
         this.PlacingBetsRate = (this.FirstCount + this.SecondCount + this.ThirdCount) / (float)targets.Length;
         this.WinRate = this.FirstCount / (float)targets.Length;
+      }
+    }
+
+    public ResultOrderGradeMap(IReadOnlyList<RaceHorseAnalyzer> source) : this(source.Select(s => s.Data).ToArray())
+    {
+      var targets = source.Where(s => s.Data.AbnormalResult == RaceAbnormality.Unknown).ToArray();
+      if (targets.Any())
+      {
+        this.PlacingBetsRate = targets.Count(f => f.Data.ResultOrder <= (f.Race.HorsesCount >= 7 ? 3 : 2) && f.Data.ResultOrder > 0) / (float)targets.Length;
       }
     }
   }

@@ -21,7 +21,7 @@
       </Grid.RowDefinitions>
 
       <!-- レースの正式な条件 -->
-      <TextBlock FontSize="20" Foreground="{DynamicResource SubForeground}" Margin="0,0,0,48">
+      <TextBlock FontSize="20" Foreground="{StaticResource SubForeground}" Margin="0,0,0,48">
         <Run Text="{Binding Race.Data.SubName,ElementName=Root,Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding Race.Subject.DisplaySubjectName,ElementName=Root,Mode=OneWay}"/>
       </TextBlock>
 
@@ -46,7 +46,7 @@
             </Button.Visibility>
             <StackPanel>
               <TextBlock FontSize="20" Text="パドック映像" HorizontalAlignment="Center"/>
-              <TextBlock FontSize="14" Foreground="{DynamicResource SubForeground}"
+              <TextBlock FontSize="14" Foreground="{StaticResource SubForeground}"
                          Text="取得できませんでした。後でもう一度お試しください" HorizontalAlignment="Center"
                          Visibility="{Binding Race.RaceAnalyzer.Value.Movie.IsPaddockError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
             </StackPanel>
@@ -74,7 +74,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <TextBlock FontSize="14" Foreground="{DynamicResource SubForeground}">
+                <TextBlock FontSize="14" Foreground="{StaticResource SubForeground}">
                   <Run Text="{Binding Option,Converter={StaticResource TrackConv}}"/><Run Text="{Binding Ground,Converter={StaticResource TrackConv}}"/>
                   　一周: <Run Text="{Binding Length}"/>m
                   　最後の直線: <Run Text="{Binding LastStraightLineLength}"/>m
@@ -119,7 +119,7 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="{Binding Converter={StaticResource RaceChangeTextConv}}" FontSize="16" Foreground="{DynamicResource BaseForeground}"/>
+                  <TextBlock Text="{Binding Converter={StaticResource RaceChangeTextConv}}" FontSize="16" Foreground="{StaticResource BaseForeground}"/>
                 </StackPanel>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -128,7 +128,7 @@
       </StackPanel>
 
       <TextBox Grid.Row="2" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
-               TextWrapping="Wrap" AcceptsReturn="True" Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
+               TextWrapping="Wrap" AcceptsReturn="True" Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
                FontSize="16" MinHeight="200" MaxHeight="200" Width="800" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto"
                Margin="0,32,0,16" Text="{Binding Race.RaceAnalyzer.Value.Memo.Value,ElementName=Root,Mode=TwoWay}">
         <TextBox.IsReadOnly>
@@ -141,11 +141,11 @@
 
       <!--ローディング-->
       <Border Grid.Row="2" Margin="0,56,0,0" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
-        <TextBlock Text="詳細情報をロード中です。しばらくお待ちください..." FontSize="36" Foreground="{DynamicResource SubForeground}"
+        <TextBlock Text="詳細情報をロード中です。しばらくお待ちください..." FontSize="36" Foreground="{StaticResource SubForeground}"
                    HorizontalAlignment="Center"/>
       </Border>
       <Border Grid.Row="2" Margin="0,56,0,0" Visibility="{Binding Race.IsLoadError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
-        <TextBlock Text="一部データの読み込みに失敗しました" FontSize="24" Foreground="{DynamicResource ErrorForeground}"
+        <TextBlock Text="一部データの読み込みに失敗しました" FontSize="24" Foreground="{StaticResource ErrorForeground}"
                    HorizontalAlignment="Center" />
       </Border>
     </Grid>

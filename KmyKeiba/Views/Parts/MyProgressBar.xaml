@@ -29,7 +29,7 @@
           </BeginStoryboard>
         </EventTrigger>
       </StackPanel.Triggers>
-      <Ellipse Width="15" Height="15" Fill="{DynamicResource ProgressBarForeground}" Name="Test">
+      <Ellipse Width="15" Height="15" Fill="{StaticResource ProgressBarForeground}" Name="Test">
         <Ellipse.RenderTransform>
           <TranslateTransform x:Name="TestTranslate"/>
         </Ellipse.RenderTransform>
@@ -58,7 +58,7 @@
           </EventTrigger>
         </Ellipse.Triggers>
       </Ellipse>
-      <Ellipse Width="15" Height="15" Fill="{DynamicResource ProgressBarForeground}" Name="Test2">
+      <Ellipse Width="15" Height="15" Fill="{StaticResource ProgressBarForeground}" Name="Test2">
         <Ellipse.RenderTransform>
           <TranslateTransform/>
         </Ellipse.RenderTransform>
@@ -87,7 +87,7 @@
           </EventTrigger>
         </Ellipse.Triggers>
       </Ellipse>
-      <Ellipse Width="15" Height="15" Fill="{DynamicResource ProgressBarForeground}" Name="Test3">
+      <Ellipse Width="15" Height="15" Fill="{StaticResource ProgressBarForeground}" Name="Test3">
         <Ellipse.RenderTransform>
           <TranslateTransform/>
         </Ellipse.RenderTransform>
@@ -116,7 +116,7 @@
           </EventTrigger>
         </Ellipse.Triggers>
       </Ellipse>
-      <Ellipse Width="15" Height="15" Fill="{DynamicResource ProgressBarForeground}" Name="Test4">
+      <Ellipse Width="15" Height="15" Fill="{StaticResource ProgressBarForeground}" Name="Test4">
         <Ellipse.RenderTransform>
           <TranslateTransform/>
         </Ellipse.RenderTransform>

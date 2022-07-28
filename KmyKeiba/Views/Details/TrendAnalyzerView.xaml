@@ -17,7 +17,7 @@
         <RowDefinition Height="auto"/>
       </Grid.RowDefinitions>
 
-      <Border Background="{DynamicResource MoreThinBaseBackground}" Margin="0,0,0,8" Width="180">
+      <Border Background="{StaticResource MoreThinBaseBackground}" Margin="0,0,0,8" Width="180">
         <TextBlock Text="{Binding Selector.Name,ElementName=Root}" FontSize="20" FontWeight="Bold"
                    Margin="8,8,8,16"/>
       </Border>
@@ -69,8 +69,8 @@
           <ColumnDefinition Width="0.4*"/>
           <ColumnDefinition Width="0.6*"/>
         </Grid.ColumnDefinitions>
-        <TextBlock Foreground="{DynamicResource SubForeground}" FontSize="16" Text="取得数" VerticalAlignment="Center"/>
-        <TextBox Grid.Column="1" Foreground="{DynamicResource BaseForeground}" Background="{DynamicResource BaseBackground}"
+        <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Text="取得数" VerticalAlignment="Center"/>
+        <TextBox Grid.Column="1" Foreground="{StaticResource BaseForeground}" Background="{StaticResource BaseBackground}"
                  FontSize="16" TextAlignment="Center" Text="{Binding Selector.SizeMaxInput.Value,ElementName=Root,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
       </Grid>
     </Grid>

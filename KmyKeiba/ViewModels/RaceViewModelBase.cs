@@ -1,4 +1,7 @@
-﻿using KmyKeiba.JVLink.Entities;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Table;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
@@ -76,12 +79,12 @@ namespace KmyKeiba.ViewModels
 
     public ICommand ChangeActiveHorseCommand =>
       this._changeHorseNumberCommand ??=
-        new ReactiveCommand<uint>().WithSubscribe((id) => this.model.Info.Value?.SetActiveHorse(id));
+        new ReactiveCommand<uint>().WithSubscribe((id) => this.model.Info.Value?.SetActiveHorse(id)).AddTo(this._disposables);
     private ReactiveCommand<uint>? _changeHorseNumberCommand;
 
     public ICommand UpdateScriptCommand =>
       this._updateScriptCommand ??=
-        new AsyncReactiveCommand().WithSubscribe(() => this.model.Info.Value != null ? this.model.Info.Value.Script.UpdateAsync() : Task.CompletedTask);
+        new AsyncReactiveCommand().WithSubscribe(() => this.model.Info.Value != null ? this.model.Info.Value.Script.UpdateAsync() : Task.CompletedTask).AddTo(this._disposables);
     private AsyncReactiveCommand? _updateScriptCommand;
 
     public ICommand SetTrioBlockCommand =>
@@ -92,7 +95,7 @@ namespace KmyKeiba.ViewModels
           {
             this.model.Info.Value.Odds.Value!.CurrentTrios.Value = p;
           }
-        });
+        }).AddTo(this._disposables);
     private ReactiveCommand<OddsBlock<TrioOdds.OddsData>>? _setTrioBlockCommand;
 
     public ICommand SetTrifectaBlockCommand =>
@@ -103,63 +106,97 @@ namespace KmyKeiba.ViewModels
           {
             this.model.Info.Value.Odds.Value!.CurrentTrifectas.Value = p;
           }
-        });
+        }).AddTo(this._disposables);
     private ReactiveCommand<OddsBlock<TrifectaOdds.OddsData>>? _setTrifectaBlockCommand;
 
     public ICommand SetTicketTypeCommand =>
       this._setTicketTypeCommand ??=
-        new ReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.SetType(p));
+        new ReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.SetType(p)).AddTo(this._disposables);
     private ReactiveCommand<string>? _setTicketTypeCommand;
 
     public ICommand SetTicketFormTypeCommand =>
       this._setTicketFormTypeCommand ??=
-        new ReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.SetFormType(p));
+        new ReactiveCommand<string>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.SetFormType(p)).AddTo(this._disposables);
     private ReactiveCommand<string>? _setTicketFormTypeCommand;
 
     public ICommand BuyTicketCommand =>
       this._buyTicketCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Tickets.Value != null ? this.model.Info.Value.Tickets.Value!.BuyAsync() : Task.CompletedTask);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Tickets.Value != null ? this.model.Info.Value.Tickets.Value!.BuyAsync() : Task.CompletedTask).AddTo(this._disposables);
     private AsyncReactiveCommand<object>? _buyTicketCommand;
 
     public ICommand RemoveTicketCommand =>
       this._removeTicketCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Tickets.Value != null ? this.model.Info.Value.Tickets.Value!.RemoveTicketAsync() : Task.CompletedTask);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Tickets.Value != null ? this.model.Info.Value.Tickets.Value!.RemoveTicketAsync() : Task.CompletedTask).AddTo(this._disposables);
     private AsyncReactiveCommand<object>? _removeTicketCommand;
 
     public ICommand UpdateSelectedTicketsCommand =>
       this._updateSelectedTicketsCommand ??=
-        new ReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.UpdateIsSelected());
+        new ReactiveCommand<object>().WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.UpdateIsSelected()).AddTo(this._disposables);
     private ReactiveCommand<object>? _updateSelectedTicketsCommand;
 
     public ICommand UpdateSelectedTicketCountsCommand =>
       this._updateSelectedTicketCountsCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.UpdateTicketCountAsync() ?? Task.CompletedTask);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.UpdateTicketCountAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private AsyncReactiveCommand<object>? _updateSelectedTicketCountsCommand;
 
     public ICommand ApproveScriptMarksCommand =>
       this._approveScriptMarksCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveMarksAsync() ?? Task.CompletedTask);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveMarksAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private AsyncReactiveCommand<object>? _approveScriptMarksCommand;
 
     public ICommand ApproveScriptTicketsCommand =>
       this._approveScriptTicketsCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveTicketsAsync() ?? Task.CompletedTask);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveTicketsAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private AsyncReactiveCommand<object>? _approveScriptTicketsCommand;
 
     public ICommand ApproveReplacingScriptTicketsCommand =>
       this._approveReplacingScriptTicketsCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveReplacingTicketsAsync() ?? Task.CompletedTask);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveReplacingTicketsAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private AsyncReactiveCommand<object>? _approveReplacingScriptTicketsCommand;
 
     public ICommand LoadAnalysisTableRowCommand =>
       this._loadAnalysisTableRowCommand ??=
-        new AsyncReactiveCommand<AnalysisTableRow>().WithSubscribe(async row => await row.LoadAsync());
+        new AsyncReactiveCommand<AnalysisTableRow>().WithSubscribe(async row => await row.LoadAsync()).AddTo(this._disposables);
     private AsyncReactiveCommand<AnalysisTableRow>? _loadAnalysisTableRowCommand;
 
     public ICommand LoadAnalysisTableCommand =>
       this._loadAnalysisTableCommand ??=
-        new AsyncReactiveCommand<AnalysisTable>().WithSubscribe(async table => await table.LoadAllAsync());
+        new AsyncReactiveCommand<AnalysisTable>().WithSubscribe(async table => await table.LoadAllAsync()).AddTo(this._disposables);
     private AsyncReactiveCommand<AnalysisTable>? _loadAnalysisTableCommand;
+
+    public ICommand OpenRaceWindowCommand =>
+      this._openRaceWindowCommand ??=
+        new ReactiveCommand<object>().WithSubscribe(obj =>
+        {
+          string? raceKey = null;
+          string? raceHorseKey = null;
+          if (obj is RaceHorseAnalyzer rht)
+          {
+            raceKey = rht.Race.Key;
+            raceHorseKey = rht.Data.Key;
+          }
+          if (obj is RaceData rd)
+          {
+            raceKey = rd.Key;
+          }
+          if (obj is RaceHorseData rh)
+          {
+            raceKey = rh.RaceKey;
+            raceHorseKey = rh.Key;
+          }
+          if (raceKey != null)
+          {
+            if (raceHorseKey == null)
+            {
+              OpenRaceRequest.Default.Request(raceKey);
+            }
+            else
+            {
+              OpenRaceRequest.Default.Request(raceKey, raceHorseKey);
+            }
+          }
+        }).AddTo(this._disposables);
+    private ReactiveCommand<object>? _openRaceWindowCommand;
 
 #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;

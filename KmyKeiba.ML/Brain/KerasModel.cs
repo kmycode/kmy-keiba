@@ -19,6 +19,7 @@ namespace KmyKeiba.ML.Brain
   public class KerasModel
   {
     private BaseModel _model;
+    private KerasReguressor? _reguressor;
     private readonly ScriptLayer _layer;
 
     private int _epochs;
@@ -35,7 +36,14 @@ namespace KmyKeiba.ML.Brain
     {
       try
       {
-        this._model.Save(fileName);
+        if (this._reguressor == null)
+        {
+          this._model.Save(fileName);
+        }
+        else
+        {
+          this._reguressor.Save(fileName);
+        }
         File.WriteAllText(fileName + "/epochs.data", @$"epochs={this._epochs}");
       }
       catch (Exception ex)
@@ -86,6 +94,7 @@ namespace KmyKeiba.ML.Brain
           var estimator = new KerasReguressor(this._model, epochs: this._layer.Epochs + this._epochs, initial_epoch: this._epochs, batch_size: this._layer.BatchSize);
           var history = estimator.Fit(x, y);
           this._epochs += history.Epoch.Length;
+          this._reguressor = estimator;
         }
         else
         {
@@ -111,7 +120,16 @@ namespace KmyKeiba.ML.Brain
           return Array.Empty<float>();
         }
 
-        var result = this._model.Predict(np.array(data), batch_size: 1, verbose: 0);
+        NDarray result;
+        if (this._layer.Type == "reguressor")
+        {
+          var regressor = new KerasReguressor(this._model, batch_size: 1);
+          result = regressor.Predict(np.array(data), batch_size: 1, verbose: 0);
+        }
+        else
+        {
+          result = this._model.Predict(np.array(data), batch_size: 1, verbose: 0);
+        }
         var resultArray = result.GetData<float>();
 
         if (!string.IsNullOrEmpty(this._layer.DotFileName) && this._layer.Labels.Any())

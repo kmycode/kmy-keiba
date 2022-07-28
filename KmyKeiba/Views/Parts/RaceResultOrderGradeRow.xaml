@@ -19,7 +19,7 @@
         <Setter Property="Foreground" Value="{Binding Grade.PlacingBetsRateComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
       </Style>
     </Grid.Resources>
-    <TextBlock Grid.Column="0" TextAlignment="Center" FontSize="{Binding FontSize,ElementName=Root}" Text="{Binding Header,ElementName=Root}" Foreground="{DynamicResource SubForeground}"/>
+    <TextBlock Grid.Column="0" TextAlignment="Center" FontSize="{Binding FontSize,ElementName=Root}" Text="{Binding Header,ElementName=Root}" Foreground="{StaticResource SubForeground}"/>
     <TextBlock Grid.Column="1" TextAlignment="Center" FontSize="{Binding FontSize,ElementName=Root}" Text="{Binding Grade.FirstCount,ElementName=Root}"/>
     <TextBlock Grid.Column="2" TextAlignment="Center" FontSize="{Binding FontSize,ElementName=Root}" Text="{Binding Grade.SecondCount,ElementName=Root}"/>
     <TextBlock Grid.Column="3" TextAlignment="Center" FontSize="{Binding FontSize,ElementName=Root}" Text="{Binding Grade.ThirdCount,ElementName=Root}"/>

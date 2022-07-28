@@ -14,7 +14,7 @@ namespace Kmykeiba.ML
     {
       Console.WriteLine("============ Start ML Program ============");
 
-      //args = new string[] { "predict", };
+      //args = new string[] { "training", "local", };
 
       if (args.Length == 0)
       {

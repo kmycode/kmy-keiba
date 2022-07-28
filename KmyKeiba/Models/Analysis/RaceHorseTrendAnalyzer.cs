@@ -85,11 +85,10 @@ namespace KmyKeiba.Models.Analysis
         this.SpeedAverage.Value = TimeSpan.FromSeconds(this.SpeedPoints.Value.Average * this.Race.Distance);
         this.DisturbanceRate.Value = AnalysisUtil.CalcDisturbanceRate(source);
 
-        var horses = source.Select(s => s.Data);
-        this.FrontRunnersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.FrontRunner).ToArray());
-        this.StalkersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.Stalker).ToArray());
-        this.SotpsGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.Sotp).ToArray());
-        this.SaveRunnersGrade.Value = new ResultOrderGradeMap(horses.Where(h => h.RunningStyle == RunningStyle.SaveRunner).ToArray());
+        this.FrontRunnersGrade.Value = new ResultOrderGradeMap(source.Where(h => h.Data.RunningStyle == RunningStyle.FrontRunner).ToArray());
+        this.StalkersGrade.Value = new ResultOrderGradeMap(source.Where(h => h.Data.RunningStyle == RunningStyle.Stalker).ToArray());
+        this.SotpsGrade.Value = new ResultOrderGradeMap(source.Where(h => h.Data.RunningStyle == RunningStyle.Sotp).ToArray());
+        this.SaveRunnersGrade.Value = new ResultOrderGradeMap(source.Where(h => h.Data.RunningStyle == RunningStyle.SaveRunner).ToArray());
 
         var timePoint = new StatisticSingleArray(source.Select(h => h.ResultTimeDeviationValue).Where(v => v != default).ToArray());
         var a3htimePoint = new StatisticSingleArray(source.Select(h => h.A3HResultTimeDeviationValue).Where(v => v != default).ToArray());
@@ -100,11 +99,11 @@ namespace KmyKeiba.Models.Analysis
 
         var validRaces = source.Where(r => r.Data.ResultOrder != 0);
         var sourceArr = source.Select(s => s.Data).ToArray();
-        this.AllGrade.Value = new ResultOrderGradeMap(sourceArr);
+        this.AllGrade.Value = new ResultOrderGradeMap(source);
         this.InsideFrameGrade.Value = new ResultOrderGradeMap(source
-          .Where(s => s.Data.Number / (float)s.Race.HorsesCount <= 1 / 3f).Select(s => s.Data).ToArray());
+          .Where(s => s.Data.Number / (float)s.Race.HorsesCount <= 1 / 3f).ToArray());
         this.OutsideFrameGrade.Value = new ResultOrderGradeMap(source
-          .Where(s => s.Data.Number / (float)s.Race.HorsesCount >= 2 / 3f).Select(s => s.Data).ToArray());
+          .Where(s => s.Data.Number / (float)s.Race.HorsesCount >= 2 / 3f).ToArray());
       }
 
       this.IsAnalyzed.Value = true;
@@ -154,6 +153,5 @@ namespace KmyKeiba.Models.Analysis
       base.Analyze(source);
       this.SetTimeDeviationValueComparations(source, 4);
     }
-
   }
 }

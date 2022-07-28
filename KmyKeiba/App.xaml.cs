@@ -75,7 +75,7 @@ namespace KmyKeiba
 
       // Dependency Injections
       ViewMessages.TryGetResource = (key) => this.TryFindResource(key);
-      ViewMessages.ChangeTheme = (theme) => this.ChangeTheme(theme);
+      //ViewMessages.ChangeTheme = (theme) => this.ChangeTheme(theme);
       ViewMessages.InvokeUiThread = (action) => this.Dispatcher.Invoke(action);
       
       // Shift-JISを扱う
@@ -117,6 +117,7 @@ namespace KmyKeiba
       base.OnExit(e);
     }
 
+    [Obsolete("テーマはいったん廃止")]
     private void ChangeTheme(ApplicationTheme theme)
     {
       logger.Info($"テーマを変更します: {theme}");

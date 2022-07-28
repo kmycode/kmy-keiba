@@ -13,6 +13,8 @@ namespace KmyKeiba.JVLink.Entities
 
     public DateTime StartTime { get; set; }
 
+    public DateTime ChangeTime { get; set; }
+
     internal RaceStartTimeChange()
     {
     }
@@ -28,6 +30,7 @@ namespace KmyKeiba.JVLink.Entities
         DataStatus = tc.head.DataKubun.ToDataStatus(),
         RaceKey = tc.id.ToRaceKey(),
         StartTime = new DateTime(2000, 1, 1, hours, minutes, 0),
+        ChangeTime = tc.HappyoTime.ToDateTime(tc.id),
       };
       return obj;
     }

@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-  <Grid Width="500" Height="380" Background="{DynamicResource BaseBackground}">
+  <Grid Width="500" Height="380" Background="{StaticResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="auto"/>
@@ -14,12 +14,12 @@
       <RowDefinition Height="auto"/>
     </Grid.RowDefinitions>
     <TextBlock FontSize="36" FontWeight="Bold" Text="申し訳ございません" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,24"/>
-    <TextBlock Grid.Row="1" FontSize="16" Foreground="{DynamicResource BaseForeground}">
+    <TextBlock Grid.Row="1" FontSize="16" Foreground="{StaticResource BaseForeground}">
       メモの保存中にエラーが発生しました。<LineBreak/>
       このエラーは、しばしばデータベース保存中に発生します。<LineBreak/>
       下記にメモの内容を復元しますので、退避のうえで再度保存を試してください。
     </TextBlock>
-    <TextBox Grid.Row="2" Background="{DynamicResource BaseBackground}" Foreground="{DynamicResource BaseForeground}"
+    <TextBox Grid.Row="2" Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
              FontSize="16" IsReadOnly="True" Margin="0,16" Text="{Binding ErrorSavingMemoText.Value}"/>
     <Grid Grid.Row="3" Margin="0,0,0,16">
       <Grid.ColumnDefinitions>

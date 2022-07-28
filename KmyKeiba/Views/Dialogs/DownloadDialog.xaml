@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-  <Grid Width="600" Height="570" Background="{DynamicResource BaseBackground}">
+  <Grid Width="600" Height="570" Background="{StaticResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition/>
@@ -25,9 +25,9 @@
       <StackPanel Margin="0,0,32,0">
         <StackPanel.Resources>
           <Style TargetType="ComboBoxItem">
-            <Setter Property="Background" Value="{DynamicResource BaseBackground}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BaseBackground}"/>
-            <Setter Property="Foreground" Value="{DynamicResource BaseForeground}"/>
+            <Setter Property="Background" Value="{StaticResource BaseBackground}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BaseBackground}"/>
+            <Setter Property="Foreground" Value="{StaticResource BaseForeground}"/>
           </Style>
         </StackPanel.Resources>
         <TextBlock FontSize="28" Text="開始年月" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16"
@@ -95,25 +95,25 @@
             <TranslateTransform X="210"/>
           </up:MyProgressBar.RenderTransform>
         </up:MyProgressBar>
-        <TextBlock Foreground="{DynamicResource SubForeground}" Margin="0,16,0,0" FontSize="16" TextAlignment="Center"
+        <TextBlock Foreground="{StaticResource SubForeground}" Margin="0,16,0,0" FontSize="16" TextAlignment="Center"
                    Visibility="{Binding IsLongDownloadMonth.Value,Converter={StaticResource BooleanVisibilityConv}}">
           この月は処理に非常に時間がかかります。<LineBreak/>焦らずお待ちください...
         </TextBlock>
-        <TextBlock Foreground="{DynamicResource SubForeground}" Margin="0,16,0,0" FontSize="16" TextAlignment="Center"
+        <TextBlock Foreground="{StaticResource SubForeground}" Margin="0,16,0,0" FontSize="16" TextAlignment="Center"
                    Visibility="{Binding Downloader.HasProcessingProgress.Value,Converter={StaticResource BooleanVisibilityConv}}">
           [ <Run Text="{Binding Downloader.ProcessingProgress.Value}"/> / <Run Text="{Binding Downloader.ProcessingProgressMax.Value}"/> ]
         </TextBlock>
       </StackPanel>
     </Grid>
     <Border Grid.Row="2" Height="60" Margin="0,0,0,16">
-      <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{DynamicResource ErrorForeground}" FontSize="20" TextWrapping="Wrap"
+      <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{StaticResource ErrorForeground}" FontSize="20" TextWrapping="Wrap"
                  Text="{Binding Downloader.ErrorMessage.Value}" Visibility="{Binding Downloader.IsError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
     </Border>
     <TextBlock Style="{StaticResource TextBlockDefault}" FontSize="16" Grid.Row="3" Margin="0,0,0,16">
       処理はバックグラウンドで実行されます。問題が発生した場合は、画面下部に表示されます。<LineBreak/>
       処理中に表示したレースデータの一部が破損・欠損したように見えることがありますが、<LineBreak/>異常ではありません。<LineBreak/>
       処理中にアプリを終了しても、次回起動時に本画面より月単位で途中から再開できます。<LineBreak/>
-      <Run FontWeight="Bold" Foreground="{DynamicResource BadForeground}" Text="データ保存中は、印付けや購入など一部操作ができなくなります。"/><LineBreak/>
+      <Run FontWeight="Bold" Foreground="{StaticResource BadForeground}" Text="データ保存中は、印付けや購入など一部操作ができなくなります。"/><LineBreak/>
       途中で中央競馬セットアップダイアログが<Run FontWeight="Bold" Text="２回以上"/>出ることがあります。
     </TextBlock>
     <Grid Grid.Row="4" Margin="0,0,0,16">

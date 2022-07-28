@@ -15,6 +15,8 @@ namespace KmyKeiba.JVLink.Entities
 
     public int HorseNumber { get; set; }
 
+    public DateTime ChangeTime { get; set; }
+
     public static HorseAbnormality FromJV(JVData_Struct.JV_AV_INFO av)
     {
       int.TryParse(av.Umaban, out int number);
@@ -25,6 +27,7 @@ namespace KmyKeiba.JVLink.Entities
         DataStatus = av.head.DataKubun.ToDataStatus(),
         RaceKey = av.id.ToRaceKey(),
         HorseNumber = number,
+        ChangeTime = av.HappyoTime.ToDateTime(av.id),
       };
       obj.AbnormalResult = (short)obj.DataStatus == 1 ? RaceAbnormality.Scratched : RaceAbnormality.ExcludedByStewards;
       return obj;

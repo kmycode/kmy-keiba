@@ -65,4 +65,22 @@
   appconfig.distanceDiffCentralInHorseGrade = 50;
   appconfig.distanceDiffLocal = 50;
   appconfig.distanceDiffLocalInHorseGrade = 50;
+
+  // 分析画面で分析に利用するデータの量。多いほどキャッシュのときにRAM容量を使う
+  appconfig.analysisTableSourceSize = 1000;
+
+  // 分析画面で分析に利用するデータの量（useRaceHorseAnalyzerの場合）
+  // useRaceHorseAnalyzerは１つのレースで複数の馬のデータを利用するが、馬の数だけデータの量にカウントされるので
+  // レース単位でカウントされる他のAnalyzerより実際に含まれるレースの数が少なくなる
+  appconfig.analysisTableRaceHorseSourceSize = 4000;
+
+  // 分析画面で数字をクリックしたときに表示される過去レースリストの最大項目数
+  appconfig.analysisTableSampleSize = 10;
+
+  // 明日以降のレース予定をダウンロードする間隔を分で指定する
+  // なおこれとは別に日付の変わり目に必ずダウンロードが実行される（自動更新をONにしている限り）
+  appconfig.downloadNormalDataIntervalMinutes = 120;
+
+  // 起動時のメッセージを表示するか（true/false）
+  appconfig.isFirstMessageVisible = true;
 });

@@ -54,10 +54,10 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="80">
+                <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="80">
                   <StackPanel HorizontalAlignment="Stretch">
                     <Border Height="4" Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
-                    <TextBlock Text="{Binding Data.Number}" Foreground="{DynamicResource SubForeground}" FontSize="22" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding Data.Number}" Foreground="{StaticResource SubForeground}" FontSize="22" HorizontalAlignment="Center"/>
                     <up:HorseMarkButton Horse="{Binding}" HorizontalAlignment="Center"/>
                   </StackPanel>
                 </Border>
@@ -83,7 +83,7 @@
               </StackPanel.Resources>
 
               <!--名前-->
-              <Border BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="1" Width="156" Height="72">
+              <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="156" Height="72">
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock FontSize="16" FontWeight="Bold" Margin="8,4"
                              Text="{Binding Name}"/>
@@ -102,14 +102,70 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <Border Width="80" Height="72" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0,0,0,1">
-                      <StackPanel VerticalAlignment="Center" Visibility="{Binding HasComparationValue.Value,Converter={StaticResource BooleanVisibilityConv}}">
-                        <TextBlock Text="{Binding Value.Value}" Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
-                                   FontSize="16" TextAlignment="Center" Margin="0,2"/>
-                        <TextBlock Text="{Binding SubValue.Value}" Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
-                                   FontSize="13" TextAlignment="Center" Margin="0,2"
-                                   Visibility="{Binding SubValue.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
-                      </StackPanel>
+                    <Border Width="80" Height="72" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="0,0,0,1">
+                      <ToggleButton Style="{StaticResource ListItemToggleNotDisabled}" Name="CellItem" Width="80" Height="72"
+                                    Visibility="{Binding HasComparationValue.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                                    IsEnabled="{Binding IsSamplesEnabled.Value}">
+                        <ToggleButton.Template>
+                          <ControlTemplate>
+                            <Border Background="{TemplateBinding Background}">
+                              <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Value.Value}" Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
+                                            FontSize="16" TextAlignment="Center" Margin="0,2"/>
+                                <TextBlock Text="{Binding SubValue.Value}" Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
+                                            FontSize="13" TextAlignment="Center" Margin="0,2"
+                                            Visibility="{Binding SubValue.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
+                                <up:ImePopup Width="520" Height="auto" StaysOpen="False"
+                                             IsOpen="{Binding IsChecked,Mode=TwoWay,RelativeSource={RelativeSource FindAncestor,AncestorType=ToggleButton}}">
+                                  <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1">
+                                    <ItemsControl Margin="4,8,4,4" ItemsSource="{Binding Samples}"
+                                                  Style="{StaticResource TableList}" MaxHeight="364">
+                                      <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                          <Button Style="{StaticResource ListItemButton}" Command="{Binding DataContext.OpenRaceWindowCommand,ElementName=Root}"
+                                                  CommandParameter="{Binding}">
+                                            <Button.Template>
+                                              <ControlTemplate>
+                                                <Grid Height="20" Margin="0,0,0,4" Background="{TemplateBinding Background}">
+                                                  <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="auto"/>
+                                                    <ColumnDefinition/>
+                                                    <ColumnDefinition Width="92"/>
+                                                    <ColumnDefinition Width="40"/>
+                                                    <ColumnDefinition Width="30"/>
+                                                    <ColumnDefinition Width="40"/>
+                                                    <ColumnDefinition Width="30"/>
+                                                    <ColumnDefinition Width="40"/>
+                                                  </Grid.ColumnDefinitions>
+                                                  <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Width="40" Margin="0,0,4,0"/>
+                                                  <TextBlock Grid.Column="1" Text="{Binding Subject.DisplayName}" FontSize="16"/>
+                                                  <TextBlock Grid.Column="2" Text="{Binding Race.StartTime,StringFormat=yyyy/MM/dd}"
+                                                             FontSize="14" Margin="12,0,0,0"/>
+                                                  <TextBlock Grid.Column="3" Text="{Binding Race.Course,Converter={StaticResource CourseNameConv}}"
+                                                             FontSize="14" TextAlignment="Right"/>
+                                                  <up:CourseSimpleImageView Grid.Column="4" Race="{Binding Race}" Width="20" Height="20"/>
+                                                  <TextBlock Grid.Column="5" Text="{Binding Race.Distance}"
+                                                             FontSize="14"/>
+                                                  <TextBlock Grid.Column="6" FontSize="14" TextAlignment="Right">
+                                                    <Run Text="{Binding Data.Popular}"/>人
+                                                  </TextBlock>
+                                                  <TextBlock Grid.Column="7" Text="{Binding Data.ResultOrder}" FontSize="16" Margin="8,0,8,0"
+                                                             Foreground="{Binding ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                                                             TextAlignment="Center"/>
+                                                </Grid>
+                                              </ControlTemplate>
+                                            </Button.Template>
+                                          </Button>
+                                        </DataTemplate>
+                                      </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                  </Border>
+                                </up:ImePopup>
+                              </StackPanel>
+                            </Border>
+                          </ControlTemplate>
+                        </ToggleButton.Template>
+                      </ToggleButton>
                     </Border>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -124,7 +180,7 @@
     </Grid>
 
     <Grid Grid.Row="1" Visibility="{Binding TableGroup.HasItems.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
-      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="36" Foreground="{DynamicResource SubForeground}"
+      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="36" Foreground="{StaticResource SubForeground}"
                  Text="分析が設定されていません"/>
     </Grid>
   </Grid>

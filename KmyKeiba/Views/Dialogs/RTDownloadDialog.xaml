@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
              d:DesignHeight="550" d:DesignWidth="800">
-  <Grid Width="600" Height="580" Background="{DynamicResource BaseBackground}">
+  <Grid Width="600" Height="580" Background="{StaticResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="auto"/>
@@ -60,7 +60,7 @@
       </StackPanel>
     </Grid>
     <Border Grid.Row="4" Height="60" Margin="0,0,0,16">
-      <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{DynamicResource ErrorForeground}" FontSize="20" TextWrapping="Wrap"
+      <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{StaticResource ErrorForeground}" FontSize="20" TextWrapping="Wrap"
                  Text="{Binding Downloader.RTErrorMessage.Value}" Visibility="{Binding Downloader.IsRTError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
     </Border>
     <TextBlock Style="{StaticResource TextBlockDefault}" FontSize="16" Grid.Row="5" Margin="0,0,0,16">
@@ -76,7 +76,7 @@
         <ColumnDefinition Width="auto"/>
       </Grid.ColumnDefinitions>
       <Button Content="閉じる" FontSize="16" Width="80" VerticalAlignment="Bottom" Command="{Binding CloseDialogCommand}"/>
-      <TextBlock Grid.Column="1" FontSize="16" Foreground="{DynamicResource SubForeground}" Margin="0,0,16,0"
+      <TextBlock Grid.Column="1" FontSize="16" Foreground="{StaticResource SubForeground}" Margin="0,0,16,0"
                  HorizontalAlignment="Right" VerticalAlignment="Center"
                  Visibility="{Binding Downloader.IsWaitingNextRTUpdate.Value,Converter={StaticResource BooleanVisibilityConv}}">
         次回更新まで <Run Text="{Binding Downloader.NextRTUpdateSeconds.Value}"/> 秒

@@ -303,6 +303,7 @@ namespace KmyKeiba.Models.Connection
           await this.DownloadAsync(DownloadLink.Central, year, month, day);
           if (this.IsError.Value)
           {
+            logger.Info("ダウンロード失敗を検出");
             isSucceed = false;
           }
         }
@@ -312,6 +313,7 @@ namespace KmyKeiba.Models.Connection
           await this.DownloadAsync(DownloadLink.Local, year, month, day);
           if (this.IsError.Value)
           {
+            logger.Info("ダウンロード失敗を検出");
             isSucceed = false;
           }
         }
@@ -393,6 +395,10 @@ namespace KmyKeiba.Models.Connection
               {
                 lastDownloadNormalData = DateTime.Now;
               }
+              else
+              {
+                lastDownloadNormalData = lastLaunch.ToDateTime(default);
+              }
             }
             else
             {
@@ -469,10 +475,10 @@ namespace KmyKeiba.Models.Connection
             }
 
             // レース予定データはRTではなくこっちにあるみたい。定期的にチェックする
-            if (lastDownloadNormalData.AddMinutes(120) < now && !this.IsDownloading.Value)
+            if (lastDownloadNormalData.AddMinutes(ApplicationConfiguration.Current.Value.DownloadNormalDataIntervalMinutes) < now && !this.IsDownloading.Value)
             {
               logger.Info("翌日以降の予定を更新");
-              var isSucceed = await DownloadPlanOfRacesAsync(today.Year, today.Month, today.Day);
+              var isSucceed = await DownloadPlanOfRacesAsync(lastDownloadNormalData.Year, lastDownloadNormalData.Month, lastDownloadNormalData.Day);
               if (isSucceed)
               {
                 lastDownloadNormalData = DateTime.Now;

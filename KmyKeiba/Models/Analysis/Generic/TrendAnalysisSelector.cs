@@ -41,6 +41,8 @@ namespace KmyKeiba.Models.Analysis.Generic
     A BeginLoadByScript(string scriptParams, int count, int offset, bool isLoadSameHorses = true);
 
     void CopyFrom(ITrendAnalysisSelector<A> selector);
+
+    void CopyFrom(ITrendAnalysisSelector<A> selector, RaceUpdateType updateType);
   }
 
   internal static class TrendAnalysisSelector
@@ -239,7 +241,8 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public A BeginLoadByScript(string scriptParams, int count, int offset, bool isLoadSameHorses = true)
     {
-      return this.BeginLoadWithScriptParameters(scriptParams, count, offset, isLoadSameHorses, isSandbox: true);
+      return this.BeginLoadWithScriptParameters(scriptParams, count, offset, isLoadSameHorses,
+        isSandbox: offset != default);
     }
 
     private A BeginLoadWithScriptParameters(string scriptParams, int count, int offset, bool isLoadSameHorses = true, bool isSandbox = true)
@@ -262,11 +265,18 @@ namespace KmyKeiba.Models.Analysis.Generic
     }
 
     void ITrendAnalysisSelector<A>.CopyFrom(ITrendAnalysisSelector<A> selector)
-      => this.CopyFrom((TrendAnalysisSelector<KEY, A>)selector);
+      => this.CopyFrom((TrendAnalysisSelector<KEY, A>)selector, RaceUpdateType.None);
+
+    void ITrendAnalysisSelector<A>.CopyFrom(ITrendAnalysisSelector<A> selector, RaceUpdateType updateType)
+      => this.CopyFrom((TrendAnalysisSelector<KEY, A>)selector, RaceUpdateType.None);
 
     public void CopyFrom(TrendAnalysisSelector<KEY, A> selector)
+      => this.CopyFrom(selector, RaceUpdateType.None);
+
+    public void CopyFrom(TrendAnalysisSelector<KEY, A> selector, RaceUpdateType updateType)
     {
       this.Analyzers.Clear();
+      var updateTypes = Enum.GetValues(typeof(RaceUpdateType)).OfType<RaceUpdateType>().Skip(1).ToArray();
 
       foreach (var item in selector.Analyzers)
       {
@@ -283,6 +293,20 @@ namespace KmyKeiba.Models.Analysis.Generic
             continue;
           }
         }
+
+        var keyUpdateType = item.Key
+          .SelectMany(k => k.GetType()
+            .GetField(k.ToString())!
+            .GetCustomAttributes(true)
+            .OfType<NotCacheAttribute>()
+            .Select(a => a.UpdateType)
+          )
+          .Aggregate(RaceUpdateType.None, (a, b) => a | b);
+        if (updateTypes.Any(t => updateType.HasFlag(t) && keyUpdateType.HasFlag(t)))
+        {
+          continue;
+        }
+
         this.Analyzers[item.Key] = item.Value;
       }
 
@@ -448,8 +472,33 @@ namespace KmyKeiba.Models.Analysis.Generic
   {
   }
 
+  internal class NotCacheAttribute : Attribute
+  {
+    public RaceUpdateType UpdateType { get; }
+
+    public NotCacheAttribute(RaceUpdateType updateType)
+    {
+      this.UpdateType = updateType;
+    }
+  }
+
   public record class TrendAnalysisFilterItem<KEY>(KEY Key, string? GroupName) : IMultipleCheckableItem
   {
     public ReactiveProperty<bool> IsChecked { get; } = new();
+  }
+
+  [Flags]
+  public enum RaceUpdateType
+  {
+    None = 0,
+    Weather = 1,
+    Condition = 2,
+    Distance = 4,
+    Ground = 8,
+    Odds = 16,
+    Option = 32,
+    CornerDirection = 64,
+    Subject = 128,
+    All = int.MaxValue,
   }
 }

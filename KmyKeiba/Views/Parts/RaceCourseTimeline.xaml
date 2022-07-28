@@ -12,7 +12,7 @@
       <RowDefinition Height="auto"/>
       <RowDefinition/>
     </Grid.RowDefinitions>
-    <Border Height="30" BorderBrush="{DynamicResource BaseBorderBrush}" BorderThickness="0.8,0.8,0.8,0.8">
+    <Border Height="30" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="0.8,0.8,0.8,0.8">
       <TextBlock Text="{Binding Course.Course,ElementName=Root,Converter={StaticResource CourseNameConv}}"
                  FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
     </Border>
