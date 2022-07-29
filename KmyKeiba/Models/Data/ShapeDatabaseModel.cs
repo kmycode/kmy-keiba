@@ -36,7 +36,6 @@ namespace KmyKeiba.Models.Data
     public static void TrainRunningStyle(bool isForce = false)
     {
       StartRunningStyleTraining(isForce);
-      StartRunningStylePredicting();
     }
 
     public static void StartRunningStyleTraining(bool isForce = false)
@@ -54,10 +53,14 @@ namespace KmyKeiba.Models.Data
       var rs = new PredictRunningStyleModel();
 
       logger.Debug("トレーニング中...");
-      rs.Training();
+      var count = rs.Training();
 
-      logger.Debug("保存中...");
-      rs.SaveFile(mmlName);
+      // トレーニングデータが一定数に満たなければ、インストーラ付属のファイルを使う
+      if (count > 500)
+      {
+        logger.Debug("保存中...");
+        rs.SaveFile(mmlName);
+      }
     }
 
     public static void StartRunningStylePredicting()
