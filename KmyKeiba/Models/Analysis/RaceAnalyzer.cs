@@ -48,11 +48,15 @@ namespace KmyKeiba.Models.Analysis
 
     public double A3HResultTimeDeviationValue { get; }
 
+    public double MaxA3HResultTimeDeviationValue { get; }
+
     public double UntilA3HResultTimeDeviationValue { get; }
 
     public RacePace Pace { get; }
 
     public RacePace A3HPace { get; }
+
+    public RacePace MaxA3HPace { get; }
 
     public ReactiveProperty<string> Memo { get; } = new();
 
@@ -103,6 +107,17 @@ namespace KmyKeiba.Models.Analysis
         this.ResultTimeDeviationValue = this.TopHorse.ResultTimeDeviationValue;
         this.A3HResultTimeDeviationValue = this.TopHorse.A3HResultTimeDeviationValue;
         this.UntilA3HResultTimeDeviationValue = this.TopHorse.UntilA3HResultTimeDeviationValue;
+
+        var maxA3HHorse = topHorses.OrderBy(h => h.AfterThirdHalongTime).FirstOrDefault();
+        if (maxA3HHorse != null)
+        {
+          var maxa3h = new RaceHorseAnalyzer(race, maxA3HHorse, raceStandardTime);
+          this.MaxA3HPace = maxa3h.A3HResultTimeDeviationValue < 38 ? RacePace.VeryLow :
+            maxa3h.A3HResultTimeDeviationValue < 45 ? RacePace.Low :
+            maxa3h.A3HResultTimeDeviationValue < 55 ? RacePace.Standard :
+            maxa3h.A3HResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
+          this.MaxA3HResultTimeDeviationValue = maxa3h.A3HResultTimeDeviationValue;
+        }
       }
     }
 

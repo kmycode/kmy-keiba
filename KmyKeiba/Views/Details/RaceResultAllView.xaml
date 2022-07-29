@@ -73,6 +73,7 @@
               <ColumnDefinition/>
               <ColumnDefinition/>
               <ColumnDefinition/>
+              <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
               <RowDefinition/>
@@ -90,7 +91,10 @@
             <TextBlock Grid.Row="0" Grid.Column="1" FontSize="16" Text="１着の後３ハロンタイム偏差値" Foreground="{StaticResource SubForeground}"/>
             <TextBlock Grid.Row="1" Grid.Column="1" FontSize="32" Text="{Binding Race.RaceAnalyzer.Value.A3HResultTimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F2}"/>
             <TextBlock Grid.Row="2" Grid.Column="1" FontSize="18" Text="{Binding Race.RaceAnalyzer.Value.A3HPace,ElementName=Root,Converter={StaticResource LabelConv}}"/>
-            <Grid Grid.RowSpan="3" Grid.Column="2">
+            <TextBlock Grid.Row="0" Grid.Column="2" FontSize="16" Text="最大の後３ハロンタイム偏差値" Foreground="{StaticResource SubForeground}"/>
+            <TextBlock Grid.Row="1" Grid.Column="2" FontSize="32" Text="{Binding Race.RaceAnalyzer.Value.MaxA3HResultTimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F2}"/>
+            <TextBlock Grid.Row="2" Grid.Column="2" FontSize="18" Text="{Binding Race.RaceAnalyzer.Value.MaxA3HPace,ElementName=Root,Converter={StaticResource LabelConv}}"/>
+            <Grid Grid.RowSpan="3" Grid.Column="3">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
