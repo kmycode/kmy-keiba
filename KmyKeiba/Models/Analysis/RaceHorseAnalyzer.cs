@@ -681,6 +681,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceHorseData? ShortestTimeRaceHorse { get; }
 
+    public RaceHorseAnalyzer? ShortestTimeRaceHorseAnalyzer { get; }
+
     public RaceSubjectInfo? ShortestTimeRaceSubject { get; }
 
     public double ShortestTimeRaceHorseDeviationValue { get; }
@@ -709,9 +711,19 @@ namespace KmyKeiba.Models.Analysis
           .OrderBy(s => s.ComparationValue)
           .First().Data;
         this.ShortestTime = shortestTime.Data.ResultTime;
-        this.ShortestTimeNormalized = shortestTime.Data.ResultTime / shortestTime.Race.Distance * distance;
+        if (shortestTime.Race.Distance == distance)
+        {
+          // 小数がびみょうに変わったりしてしまう
+          this.ShortestTimeNormalized = shortestTime.Data.ResultTime;
+        }
+        else
+        {
+          this.ShortestTimeNormalized = TimeSpan.FromTicks(
+            (int)System.Math.Round((float)shortestTime.Data.ResultTime.Ticks / shortestTime.Race.Distance * distance));
+        }
         this.ShortestTimeRace = shortestTime.Race;
         this.ShortestTimeRaceHorse = shortestTime.Data;
+        this.ShortestTimeRaceHorseAnalyzer = shortestTime;
         this.ShortestTimeRaceSubject = shortestTime.Subject;
         this.ShortestTimeRaceHorseDeviationValue = shortestTime.ResultTimeDeviationValue;
         this.ShortestTimeRaceHorseA3HDeviationValue = shortestTime.A3HResultTimeDeviationValue;

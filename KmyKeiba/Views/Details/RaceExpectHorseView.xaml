@@ -156,7 +156,7 @@
                             <TextBlock Text="{Binding ShortestTimeRace.Distance}" FontSize="14" TextAlignment="Left" Margin="2,0,0,0"/>
                           </StackPanel>
                         </Border>
-                        <TextBlock Width="60" Text="{Binding ShortestTime,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss}"/>
+                        <TextBlock Width="60" Text="{Binding ShortestTime,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss\\.f}"/>
                         <TextBlock Width="90" Text="{Binding ShortestTimeNormalized,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss\\.f}" FontSize="24"/>
                         <TextBlock Width="60" Text="{Binding ShortestTimeRaceHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
                         <TextBlock Width="60" Text="{Binding ShortestTimeRaceTopHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
@@ -164,8 +164,22 @@
                         <TextBlock Width="50" Text="{Binding ShortestTimeRaceHorse.RiderWeight,Converter={StaticResource DigitMinusConv}}"/>
                         <TextBlock Width="30" Text="{Binding ShortestTimeRaceHorse.Age}"/>
                         <TextBlock Width="120" Text="{Binding ShortestTimeRace.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"/>
-                        <up:RaceSubjectIcon Subject="{Binding ShortestTimeRaceSubject.Subject}" Margin="8,0,8,0" Width="40" Height="24" FontSize="14" VerticalAlignment="Center"/>
-                        <TextBlock Width="200" Text="{Binding ShortestTimeRaceSubject.DisplayName}" TextAlignment="Left"/>
+                        <ToggleButton Name="ShortestRace" Style="{StaticResource ListItemToggle}">
+                          <ToggleButton.Template>
+                            <ControlTemplate>
+                              <Border Background="{TemplateBinding Background}">
+                                <StackPanel Orientation="Horizontal">
+                                  <up:RaceSubjectIcon Subject="{Binding ShortestTimeRaceSubject.Subject}" Margin="8,0,8,0" Width="40" Height="24" FontSize="14" VerticalAlignment="Center"/>
+                                  <TextBlock Width="200" Text="{Binding ShortestTimeRaceSubject.DisplayName}" TextAlignment="Left" FontSize="16" VerticalAlignment="Center"/>
+                                </StackPanel>
+                              </Border>
+                            </ControlTemplate>
+                          </ToggleButton.Template>
+                        </ToggleButton>
+                        <up:ImePopup IsOpen="{Binding IsChecked,ElementName=ShortestRace,Mode=TwoWay}" StaysOpen="False"
+                                     PlacementTarget="{Binding ElementName=ShortestRace}">
+                          <up:RaceHorsePopup Horse="{Binding ShortestTimeRaceHorseAnalyzer}"/>
+                        </up:ImePopup>
                       </StackPanel>
                     </StackPanel>
                   </Grid>
