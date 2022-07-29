@@ -66,6 +66,14 @@ namespace KmyKeiba.Models.Analysis
       [GroupName("ResultOrder")]
       Losed,
 
+      [Label("運営")]
+      [ScriptParameterKey("region")]
+      SameRegion,
+
+      [Label("重賞")]
+      [ScriptParameterKey("grades")]
+      Grades,
+
       [Label("性")]
       [ScriptParameterKey("sex")]
       Sex,
@@ -148,6 +156,17 @@ namespace KmyKeiba.Models.Analysis
       {
         query = query.Where(r => r.Race.Course == this.Race.Course);
       }
+      if (keys.Contains(Key.SameRegion))
+      {
+        if (this.Race.Course <= RaceCourse.CentralMaxValue)
+        {
+          query = query.Where(r => r.Race.Course <= RaceCourse.CentralMaxValue);
+        }
+        else
+        {
+          query = query.Where(r => r.Race.Course >= RaceCourse.LocalMinValue);
+        }
+      }
 
       if (keys.Contains(Key.SameGround))
       {
@@ -207,6 +226,11 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.Losed))
       {
         query = query.Where(r => r.RaceHorse.ResultOrder > 5);
+      }
+      if (keys.Contains(Key.Grades))
+      {
+        query = query.Where(r => r.Race.Grade == RaceGrade.Grade1 || r.Race.Grade == RaceGrade.Grade2 || r.Race.Grade == RaceGrade.Grade3 ||
+                                 r.Race.Grade == RaceGrade.LocalGrade1 || r.Race.Grade == RaceGrade.LocalGrade2 || r.Race.Grade == RaceGrade.LocalGrade3);
       }
       if (keys.Contains(Key.Sex))
       {

@@ -374,6 +374,10 @@ namespace KmyKeiba.Models.Analysis
       [ScriptParameterKey("age")]
       SameAge,
 
+      [Label("運営")]
+      [ScriptParameterKey("region")]
+      SameRegion,
+
       [Label("重賞")]
       [ScriptParameterKey("grades")]
       Grades,
@@ -535,6 +539,17 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.SameCourse))
       {
         query = query.Where(r => r.Race.Course == this.Race.Course);
+      }
+      if (keys.Contains(Key.SameRegion))
+      {
+        if (this.Race.Course <= RaceCourse.CentralMaxValue)
+        {
+          query = query.Where(r => r.Race.Course <= RaceCourse.CentralMaxValue);
+        }
+        else
+        {
+          query = query.Where(r => r.Race.Course >= RaceCourse.LocalMinValue);
+        }
       }
       if (keys.Contains(Key.SameGround))
       {

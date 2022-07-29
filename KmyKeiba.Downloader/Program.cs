@@ -61,6 +61,7 @@ namespace KmyKeiba.Downloader
       {
         object oldArgs = args;
 
+        //args = new[] { "nvconfig", "8080" };
         //args = new[] { "dwrt", "31", };
         //args = new[] { "movie", "1266", };
         //args = new[] { "movielist", "94" };

@@ -404,7 +404,7 @@ Race.prototype.getHorses = function() {
 //             weather    同じ天気
 //             name       同じレース名（地方競馬の協賛レースなどでは誤動作の場合あり。条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）
 //             subject    同じ条件（地方競馬では誤動作の場合あり）
-//             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
+//             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが環境によって違うため）
 //             month      同じ月
 //             distance   前後100メートルの距離
 //             direction  同じ向き（右、左、直線）
@@ -429,7 +429,7 @@ Race.prototype.getSimilarRacesAsync = async function(keys, count, offset) {
 //             weather    同じ天気
 //             name       同じレース名（条件レースなど名前の設定されないレースでは、同様に名前のない全てのレースを取得）
 //             subject    同じ条件
-//             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが競馬場によって違うため）
+//             grade      同じ格（地方競馬では、特に一般レースで誤動作の場合あり。0と10のどちらが設定されるかが環境によって違うため）
 //             month      同じ月
 //             distance   前後100メートルの距離
 //             direction  同じ向き（右、左、直線）
@@ -720,6 +720,8 @@ RaceHorse.prototype._getObj = function() {
 //             direction      同じ向き（右、左、直線）
 //             placebits      上位3着以内
 //             losed          着外
+//             region         運営（中央レースの場合は中央競馬、地方レースの場合は地方競馬から検索する）
+//             grades         重賞（gradeと混合しないよう注意）
 //             sex            同じ性別
 //             frame          同じ枠
 //             odds           近いオッズ
@@ -756,6 +758,8 @@ RaceHorse.prototype.getRiderSimilarRaceHorsesAsync = async function(keys, count,
 //             direction  同じ向き（右、左、直線）
 //             placebits  上位3着以内
 //             losed      着外
+//             region     運営（中央レースの場合は中央競馬、地方レースの場合は地方競馬から検索する）
+//             grade      重賞（gradeと混合しないよう注意）
 //             sex        同じ性別
 //             frame      同じ枠
 //   count:  取得最大数
@@ -813,6 +817,8 @@ RaceHorse.prototype.getBloodHorseRaceHorsesAsync = async function(type) {
 //             direction  同じ向き（右、左、直線）
 //             placebits  上位3着以内
 //             losed      着外
+//             region     運営（中央レースの場合は中央競馬、地方レースの場合は地方競馬から検索する）
+//             grade      重賞（gradeと混合しないよう注意）
 //             age        同じ年齢
 //             grades     重賞
 //             frame      同じ枠
