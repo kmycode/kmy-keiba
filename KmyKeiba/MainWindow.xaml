@@ -73,7 +73,14 @@
                                Text="{Binding Downloader.ErrorMessage.Value}" Visibility="{Binding Downloader.IsError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </Grid>
                 </Border>
-                <Button Width="80" Height="50" FontSize="24" Padding="0" Content="RT" Command="{Binding OpenRTDownloadDialogCommand}"/>
+                <Grid Width="80" Height="50">
+                  <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition Height="auto"/>
+                  </Grid.RowDefinitions>
+                  <Button FontSize="20" Padding="0" Content="RT" Command="{Binding OpenRTDownloadDialogCommand}"/>
+                  <ToggleButton Grid.Row="1" FontSize="12" Padding="0" Content="一時停止" IsChecked="{Binding Downloader.IsRTPaused.Value,Mode=TwoWay}"/>
+                </Grid>
                 <Border Width="240">
                   <Grid Background="{Binding Downloader.RTDownloadingStatus.Value,Converter={StaticResource ValueComparationBackgroundConv}}">
                     <Grid.Visibility>

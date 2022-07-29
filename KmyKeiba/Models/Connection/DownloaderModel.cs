@@ -120,6 +120,8 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsWaitingNextRTUpdate { get; } = new();
 
+    public ReactiveProperty<bool> IsRTPaused { get; } = new();
+
     private DownloaderModel()
     {
       logger.Debug("ダウンロードモデルの初期化");
@@ -508,6 +510,16 @@ namespace KmyKeiba.Models.Connection
           {
             // ５分に１回ずつ更新する
             this.NextRTUpdateSeconds.Value = 60 * 5 - (int)(DateTime.Now - now).TotalSeconds;
+            await Task.Delay(1000);
+          }
+          this.NextRTUpdateSeconds.Value = 0;
+          if (this.IsRTPaused.Value)
+          {
+            logger.Debug("一時停止の設定を検出");
+          }
+          while (this.IsRTPaused.Value && !this._isUpdateRtForce)
+          {
+            // 一時停止
             await Task.Delay(1000);
           }
           this.IsWaitingNextRTUpdate.Value = false;
