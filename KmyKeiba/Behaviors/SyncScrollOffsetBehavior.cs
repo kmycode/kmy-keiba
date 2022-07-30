@@ -17,7 +17,28 @@ namespace KmyKeiba.Behaviors
             nameof(TargetElement),
             typeof(FrameworkElement),
             typeof(SyncScrollOffsetBehavior),
-            new PropertyMetadata(null));
+            new PropertyMetadata(null, (sender, e) =>
+            {
+              if (sender is SyncScrollOffsetBehavior view)
+              {
+                if (e.OldValue is FrameworkElement old)
+                {
+                  var scroll = view.GetScrollViewer(old);
+                  if (scroll != null)
+                  {
+                    scroll.ScrollChanged -= view.Scroll_ScrollChangedAndBack;
+                  }
+                }
+                if (e.NewValue is FrameworkElement @new)
+                {
+                  var scroll = view.GetScrollViewer(@new);
+                  if (scroll != null)
+                  {
+                    scroll.ScrollChanged += view.Scroll_ScrollChangedAndBack;
+                  }
+                }
+              }
+            }));
 
     public FrameworkElement? TargetElement
     {
@@ -77,10 +98,21 @@ namespace KmyKeiba.Behaviors
 
     private void Scroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-      if (this.GetScrollViewer(TargetElement) is ScrollViewer target)
+      if (this.GetScrollViewer(this.TargetElement) is ScrollViewer target)
       {
         target.ScrollToHorizontalOffset(e.HorizontalOffset);
         target.ScrollToVerticalOffset(e.VerticalOffset);
+      }
+    }
+
+    private void Scroll_ScrollChangedAndBack(object sender, ScrollChangedEventArgs e)
+    {
+      if (this.GetScrollViewer(this.AssociatedObject) is ScrollViewer self &&
+        this.GetScrollViewer(this.TargetElement) is ScrollViewer target &&
+        (Math.Abs(target.HorizontalOffset - self.HorizontalOffset) > 2 || Math.Abs(target.VerticalOffset - self.VerticalOffset) > 2))
+      {
+        target.ScrollToHorizontalOffset(self.HorizontalOffset);
+        target.ScrollToVerticalOffset(self.VerticalOffset);
       }
     }
   }
