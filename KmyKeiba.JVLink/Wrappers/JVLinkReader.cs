@@ -318,6 +318,16 @@ namespace KmyKeiba.JVLink.Wrappers
                 ReadDic(item, data.BornHorses, item.Code);
                 break;
               }
+            case "BT":
+              {
+                var a = new JVData_Struct.JV_BT_KEITO();
+                a.SetDataB(ref d);
+                var item = HorseBloodInfo.FromJV(a);
+
+                // Read(item, data.HorseBloods, (a, b) => a.Key == b.Key, new ComparableComparer<HorseBlood>(x => x?.Key));
+                ReadDic(item, data.HorseBloodInfos, item.Key);
+                break;
+              }
             case "JC":
               {
                 var a = new JVData_Struct.JV_JC_INFO();
@@ -491,6 +501,8 @@ namespace KmyKeiba.JVLink.Wrappers
     public Dictionary<string, Horse> Horses { get; internal set; } = new();
 
     public Dictionary<string, HorseBlood> HorseBloods { get; internal set; } = new();
+
+    public Dictionary<string, HorseBloodInfo> HorseBloodInfos { get; internal set; } = new();
 
     public Dictionary<string, BornHorse> BornHorses { get; internal set; } = new();
 

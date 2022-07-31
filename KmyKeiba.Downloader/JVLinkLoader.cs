@@ -635,6 +635,13 @@ namespace KmyKeiba.Downloader
         (d) => d.Key,
         (list) => e => list.Contains(e.Key));
       await db.CommitAsync();
+      logger.Info($"HorseBloodInfosの保存を開始 {data.HorseBloodInfos.Count}");
+      await SaveDicAsync(data.HorseBloodInfos,
+        db.HorseBloodInfos!,
+        (e) => e.Key,
+        (d) => d.Key,
+        (list) => e => list.Contains(e.Key));
+      await db.CommitAsync();
       logger.Info($"BornHorsesの保存を開始 {data.BornHorses.Count}");
       await SaveDicAsync(data.BornHorses,
         db.BornHorses!,
