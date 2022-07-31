@@ -105,7 +105,7 @@ namespace KmyKeiba.Models.Analysis.Generic
 
         bool AddBloodQuery()
         {
-          var splits = q!.Split('=');
+          var splits = q!.Split(':');
           var key = splits[0] switch
           {
             "f" => QueryKey.Father,
@@ -129,12 +129,12 @@ namespace KmyKeiba.Models.Analysis.Generic
             return false;
           }
 
-          var bkey = horse?.Key;
-          var bcode = splits.ElementAtOrDefault(1);
+          //var bkey = horse?.Key;
+          var bkey = splits.ElementAtOrDefault(1);
 
-          if (bkey != null || bcode != null)
+          if (bkey != null)
           {
-            queries.Add(new BloodHorseScriptKeyQuery(key, code: bcode, key: bkey));
+            queries.Add(new BloodHorseScriptKeyQuery(key, key: bkey));
             return true;
           }
 
@@ -196,7 +196,8 @@ namespace KmyKeiba.Models.Analysis.Generic
         if (hr)
         {
           var key = GetKeyInfo(q);
-          // TODO
+
+          // 条件式指定がないときのデフォルト値を指定
           if (key.Item1 != QueryKey.Unknown && key.Item2 != null)
           {
             switch (key.Item1)
@@ -212,6 +213,9 @@ namespace KmyKeiba.Models.Analysis.Generic
                   ApplicationConfiguration.Current.Value.NearDistanceDiffCentral :
                   ApplicationConfiguration.Current.Value.NearDistanceDiffLocal;
                 queries.Add(new RaceLambdaScriptKeyQuery(r => r.Distance >= race.Distance - diff && r.Distance <= race.Distance + diff));
+                break;
+              case QueryKey.Direction:
+                queries.Add(new RaceLambdaScriptKeyQuery(r => r.TrackCornerDirection == race.TrackCornerDirection));
                 break;
               case QueryKey.Day:
                 queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Day == race.StartTime.Day));
@@ -248,6 +252,55 @@ namespace KmyKeiba.Models.Analysis.Generic
                 queries.Add(new RaceLambdaScriptKeyQuery(r => race.Grade == RaceGrade.Grade1 || race.Grade == RaceGrade.Grade2 || race.Grade == RaceGrade.Grade3 ||
                                  race.Grade == RaceGrade.LocalGrade1 || race.Grade == RaceGrade.LocalGrade2 || race.Grade == RaceGrade.LocalGrade3));
                 break;
+              case QueryKey.Course:
+                queries.Add(new RaceLambdaScriptKeyQuery(r => r.Course == race.Course));
+                break;
+              case QueryKey.RaceKey:
+                queries.Add(new RaceLambdaScriptKeyQuery(r => r.Key == race.Key));
+                break;
+            }
+
+            if (horse != null)
+            {
+              switch (key.Item1)
+              {
+                case QueryKey.Color:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Color == horse.Color));
+                  break;
+                case QueryKey.Age:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Age == horse.Age));
+                  break;
+                case QueryKey.Sex:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Sex == horse.Sex));
+                  break;
+                case QueryKey.HorseType:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Type == horse.Type));
+                  break;
+                case QueryKey.HorseNumber:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Number == horse.Number));
+                  break;
+                case QueryKey.FrameNumber:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.FrameNumber == horse.FrameNumber));
+                  break;
+                case QueryKey.HorseKey:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Key == horse.Key));
+                  break;
+                case QueryKey.Place:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.ResultOrder == horse.ResultOrder));
+                  break;
+                case QueryKey.RiderCode:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.RiderCode == horse.RiderCode));
+                  break;
+                case QueryKey.TrainerCode:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.TrainerCode == horse.TrainerCode));
+                  break;
+                case QueryKey.OwnerCode:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.OwnerCode == horse.OwnerCode));
+                  break;
+                case QueryKey.Abnormal:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.AbnormalResult == horse.AbnormalResult));
+                  break;
+              }
             }
           }
         }
@@ -392,6 +445,21 @@ namespace KmyKeiba.Models.Analysis.Generic
     }
 
     public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
+    {
+      return query.Where(this._where);
+    }
+  }
+
+  class HorseLambdaScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  {
+    private readonly Expression<Func<RaceHorseData, bool>> _where;
+
+    public HorseLambdaScriptKeyQuery(Expression<Func<RaceHorseData, bool>> lambda)
+    {
+      this._where = lambda;
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
     {
       return query.Where(this._where);
     }
