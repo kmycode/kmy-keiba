@@ -63,6 +63,8 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<RaceChangeData>? RaceChanges { get; set; }
 
+    public DbSet<MemoData>? Memos { get; set; }
+
     #endregion
 
     private IDbContextTransaction? _transaction;

@@ -3,6 +3,7 @@ using System;
 using KmyKeiba.Downloader;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KmyKeiba.Downloader.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20220731014008_AddMemo")]
+    partial class AddMemo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.5");
@@ -550,7 +552,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Point", "Target1", "Key1");
+                    b.HasIndex("Target1", "Key1");
 
                     b.ToTable("Memos");
                 });
@@ -794,7 +796,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StartTime", "Key", "Course");
+                    b.HasIndex("Key", "StartTime", "Course");
 
                     b.ToTable("Races");
                 });

@@ -32,11 +32,15 @@ namespace KmyKeiba.Models.Analysis
       this.Subject = new RaceSubjectInfo(race);
     }
 
-    public async Task<IList<RaceHorseAnalyzer>> GetRaceHorsesAsync(MyContext db, string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false)
+    public async Task<IList<RaceHorseAnalyzer>> GetRaceHorsesAsync(MyContext db, string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true)
     {
       var reader = new ScriptKeysReader(keys);
 
-      var races = db.Races!.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
+      IQueryable<RaceData> races = db.Races!;
+      if (withoutFutureRaces)
+      {
+        races = races.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
+      }
       var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
 
       var raceQueries = reader.GetQueries(this.Race);
@@ -44,13 +48,15 @@ namespace KmyKeiba.Models.Analysis
 
       foreach (var q in raceQueries)
       {
-        races = q.Apply(races);
+        races = q.Apply(db, races);
       }
 
+      if (withoutFutureRaces)
+      {
+        horses = horses.Where(rh => rh.DataStatus >= RaceDataStatus.PreliminaryGrade);
+      }
       var query = horses
-        .Where(rh => rh.DataStatus >= RaceDataStatus.PreliminaryGrade)
         .Join(races, rh => rh.RaceKey, r => r.Key, (rh, r) => new { RaceHorse = rh, Race = r, });
-
 
       var racesData = await query
         .OrderByDescending(r => r.Race.StartTime)
@@ -78,6 +84,32 @@ namespace KmyKeiba.Models.Analysis
       }
 
       return list;
+    }
+
+    public async Task<IList<RaceData>> GetRacesAsync(MyContext db, string keys, int sizeMax, int offset = 0, bool withoutFutureRaces = true)
+    {
+      var reader = new ScriptKeysReader(keys);
+
+      IQueryable<RaceData> races = db.Races!;
+      if (withoutFutureRaces)
+      {
+        races = races.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
+      }
+
+      var raceQueries = reader.GetQueries(this.Race);
+
+      foreach (var q in raceQueries)
+      {
+        races = q.Apply(db, races);
+      }
+
+      var racesData = await races
+        .OrderByDescending(r => r.StartTime)
+        .Skip(offset)
+        .Take(sizeMax)
+        .ToArrayAsync();
+
+      return racesData;
     }
 
     public void Dispose()

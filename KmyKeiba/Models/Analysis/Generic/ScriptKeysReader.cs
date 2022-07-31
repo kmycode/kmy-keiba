@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,15 +27,20 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public IReadOnlyList<ScriptKeyQuery> GetQueries(RaceData race)
     {
+      return GetQueries(this._keys, race);
+    }
+
+    public static IReadOnlyList<ScriptKeyQuery> GetQueries(string keys, RaceData race)
+    {
       var queries = new List<ScriptKeyQuery>();
-      foreach (var q in this._keys.Split('|'))
+      foreach (var q in keys.Split('|'))
       {
         bool AddQuery(string split, QueryType type)
         {
           if (q.Contains(split))
           {
             var data = q.Split(split);
-            var query = this.GetQuery(type, data[0], data[1]);
+            var query = GetQuery(type, data[0], data[1]);
             if (query != null)
             {
               queries!.Add(query);
@@ -44,7 +50,56 @@ namespace KmyKeiba.Models.Analysis.Generic
           return false;
         }
 
+        bool AddMemoQuery()
+        {
+          if (!q!.StartsWith("memo"))
+          {
+            return false;
+          }
+
+          var pointTarget = (MemoTarget)(short)-1;
+
+          var parameters = q.Split('/')
+            .Skip(1)
+            .Select(d => d.Split(':'))
+            .Select(d =>
+            {
+              var key = d[0] switch
+              {
+                "race" => MemoTarget.Race,
+                "course" => MemoTarget.Course,
+                "distance" => MemoTarget.Distance,
+                "horse" => MemoTarget.Horse,
+                "rider" => MemoTarget.Rider,
+                "trainer" => MemoTarget.Trainer,
+                "owner" => MemoTarget.Owner,
+                "point" => pointTarget,
+                "" => pointTarget,
+                _ => MemoTarget.Unknown,
+              };
+              return (Key: key, Value: d.ElementAtOrDefault(1) ?? string.Empty);
+            })
+            .Where(d => d.Key != MemoTarget.Unknown)
+            .OrderBy(d => d.Key)
+            .ToDictionary(d => d.Key, d => d.Value);
+
+          if (!parameters.TryGetValue(pointTarget, out _) || parameters.Count < 2)
+          {
+            return false;
+          }
+
+          var query = GetQueries(parameters[pointTarget], race);
+          if (query.Any())
+          {
+            queries.Add(new MemoScriptKeyQuery(parameters, query.First()));
+            return true;
+          }
+
+          return false;
+        }
+
         var hr = true;
+        hr = hr && !AddMemoQuery();
         hr = hr && !AddQuery("==", QueryType.Equals);
         hr = hr && !AddQuery("!=", QueryType.NotEquals);
         hr = hr && !AddQuery("<>", QueryType.NotEquals);
@@ -59,7 +114,7 @@ namespace KmyKeiba.Models.Analysis.Generic
 
         if (hr)
         {
-          var key = this.GetKeyInfo(q);
+          var key = GetKeyInfo(q);
           if (key.Item1 != QueryKey.Unknown && key.Item2 != null)
           {
             switch (key.Item1)
@@ -76,6 +131,41 @@ namespace KmyKeiba.Models.Analysis.Generic
                   ApplicationConfiguration.Current.Value.NearDistanceDiffLocal;
                 queries.Add(new RaceLambdaScriptKeyQuery(r => r.Distance >= race.Distance - diff && r.Distance <= race.Distance + diff));
                 break;
+              case QueryKey.Day:
+                queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Day == race.StartTime.Day));
+                break;
+              case QueryKey.Month:
+                queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Month == race.StartTime.Month));
+                break;
+              case QueryKey.Year:
+                queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Year == race.StartTime.Year));
+                break;
+              case QueryKey.Subject:
+                if (race.Course <= RaceCourse.CentralMaxValue)
+                {
+                  queries.Add(new RaceLambdaScriptKeyQuery(r =>
+                                           r.SubjectName == race.SubjectName &&
+                                           r.SubjectAge2 == race.SubjectAge2 &&
+                                           r.SubjectAge3 == race.SubjectAge3 &&
+                                           r.SubjectAge4 == race.SubjectAge4 &&
+                                           r.SubjectAge5 == race.SubjectAge5 &&
+                                           r.SubjectAgeYounger == race.SubjectAgeYounger));
+                }
+                else if (race.Course >= RaceCourse.LocalMinValue && !string.IsNullOrEmpty(race.SubjectDisplayInfo))
+                {
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.SubjectDisplayInfo == race.SubjectDisplayInfo));
+                }
+                break;
+              case QueryKey.GradeId:
+                if (race.GradeId != default)
+                {
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.GradeId == race.GradeId));
+                }
+                break;
+              case QueryKey.Grades:
+                queries.Add(new RaceLambdaScriptKeyQuery(r => race.Grade == RaceGrade.Grade1 || race.Grade == RaceGrade.Grade2 || race.Grade == RaceGrade.Grade3 ||
+                                 race.Grade == RaceGrade.LocalGrade1 || race.Grade == RaceGrade.LocalGrade2 || race.Grade == RaceGrade.LocalGrade3));
+                break;
             }
           }
         }
@@ -84,7 +174,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       return queries;
     }
 
-    private (QueryKey, QueryKeyAttribute?) GetKeyInfo(string scriptKey)
+    private static (QueryKey, QueryKeyAttribute?) GetKeyInfo(string scriptKey)
     {
       var key = _keyDefs.FirstOrDefault(k => k.Item2?.ScriptKey == scriptKey);
       if (key.Item2 != null)
@@ -94,7 +184,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       return (QueryKey.Unknown, null);
     }
 
-    private ScriptKeyQuery? GetQuery(QueryType type, string scriptKey, string value)
+    private static ScriptKeyQuery? GetQuery(QueryType type, string scriptKey, string value)
     {
       var key = GetKeyInfo(scriptKey);
       if (key.Item1 == QueryKey.Unknown)
@@ -138,7 +228,21 @@ namespace KmyKeiba.Models.Analysis.Generic
 
       if (key.Item2 is NumericQueryKeyAttribute)
       {
-        if (value.Contains('-'))
+        if (value.Contains(','))
+        {
+          var values = value.Split(',').Select(v =>
+          {
+            if (int.TryParse(v, out var val))
+              return val;
+            return -12445;
+          }).Where(v => v != -12445).ToArray();
+          if (values.Length > 0)
+          {
+            // 1,2,3
+            return new ExpressionScriptKeyQuery(key.Item1, type == QueryType.Equals ? QueryType.Contains : QueryType.Excepts, values);
+          }
+        }
+        else if (value.Contains('-'))
         {
           var data = value.Split('-');
           if (int.TryParse(data[0], out var min) && int.TryParse(data[1], out var max))
@@ -167,12 +271,32 @@ namespace KmyKeiba.Models.Analysis.Generic
 
   abstract class ScriptKeyQuery
   {
-    public abstract IQueryable<RaceData> Apply(IQueryable<RaceData> query);
+    public abstract IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query);
 
-    // public abstract IQueryable<RaceHorseData> Apply(IQueryable<RaceHorseData> query);
+    public abstract IQueryable<MemoData> Apply(MyContext db, IQueryable<MemoData> query);
+
+    public abstract IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query);
   }
 
-  class RaceLambdaScriptKeyQuery : ScriptKeyQuery
+  abstract class DefaultLambdaScriptKeyQuery : ScriptKeyQuery
+  {
+    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
+    {
+      return query;
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      return query;
+    }
+
+    public override IQueryable<MemoData> Apply(MyContext db, IQueryable<MemoData> query)
+    {
+      return query;
+    }
+  }
+
+  class RaceLambdaScriptKeyQuery : DefaultLambdaScriptKeyQuery
   {
     private readonly Expression<Func<RaceData, bool>> _where;
 
@@ -181,9 +305,64 @@ namespace KmyKeiba.Models.Analysis.Generic
       this._where = lambda;
     }
 
-    public override IQueryable<RaceData> Apply(IQueryable<RaceData> query)
+    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
     {
       return query.Where(this._where);
+    }
+  }
+
+  class MemoScriptKeyQuery : ScriptKeyQuery
+  {
+    private readonly IReadOnlyList<KeyValuePair<MemoTarget, string>> _data;
+    private readonly ScriptKeyQuery _query;
+
+    public MemoScriptKeyQuery(Dictionary<MemoTarget, string> data, ScriptKeyQuery query)
+    {
+      this._query = query;
+
+      var pointTarget = (MemoTarget)(short)-1;
+      if (data.TryGetValue(pointTarget, out _))
+      {
+        data.Remove(pointTarget);
+      }
+
+      this._data = data.OrderBy(d => d.Key).ToList();
+    }
+
+    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
+    {
+      var targetKeys = this._data.Where(d =>
+          d.Key == MemoTarget.Race || d.Key == MemoTarget.Course)
+        .ToArray();
+
+      var i = 1;
+      foreach (var key in targetKeys.Take(3))
+      {
+        var memo = Expression.Parameter(typeof(MemoData), "x");
+        var innerKey = Expression.Lambda<Func<MemoData, string>>(Expression.Property(memo, "Key" + i), memo);
+        i++;
+
+        if (key.Key == MemoTarget.Course)
+        {
+          query = query.Join(this._query.Apply(db, db.Memos!), r => r.Course, m => m.CourseKey, (r, m) => r);
+        }
+        else if (key.Key == MemoTarget.Race)
+        {
+          query = query.Join(this._query.Apply(db, db.Memos!), r => r.Key, innerKey, (r, m) => r);
+        }
+      }
+
+      return query;
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      return query;
+    }
+
+    public override IQueryable<MemoData> Apply(MyContext db, IQueryable<MemoData> query)
+    {
+      return query;
     }
   }
 
@@ -231,55 +410,85 @@ namespace KmyKeiba.Models.Analysis.Generic
       this.StringValue = value;
     }
 
-    public override IQueryable<RaceData> Apply(IQueryable<RaceData> query)
+    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
     {
-      if (this.Key == QueryKey.Weather)
+      switch (this.Key)
       {
-        query = query.Where(this.BuildValuesQuery<RaceData, RaceCourseWeather>
-          (nameof(RaceData.TrackWeather), this.Values.Select(v => (RaceCourseWeather)v)));
-      }
-      if (this.Key == QueryKey.Condition)
-      {
-        query = query.Where(this.BuildValuesQuery<RaceData, RaceCourseCondition>
-          (nameof(RaceData.TrackCondition), this.Values.Select(v => (RaceCourseCondition)v)));
-      }
-      if (this.Key == QueryKey.Course)
-      {
-        query = query.Where(this.BuildValuesQuery<RaceData, RaceCourse>
-          (nameof(RaceData.Course), this.Values.Select(v => (RaceCourse)v)));
-      }
-      if (this.Key == QueryKey.Ground)
-      {
-        query = query.Where(this.BuildValuesQuery<RaceData, TrackGround>
-          (nameof(RaceData.TrackGround), this.Values.Select(v => (TrackGround)v)));
-      }
-      if (this.Key == QueryKey.Direction)
-      {
-        query = query.Where(this.BuildValuesQuery<RaceData, TrackCornerDirection>
-          (nameof(RaceData.TrackCornerDirection), this.Values.Select(v => (TrackCornerDirection)v)));
-      }
-      if (this.Key == QueryKey.Distance)
-      {
-        query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.Distance)));
-      }
-      if (this.Key == QueryKey.Month)
-      {
-        query = query.Where(r => this.Values.Contains(r.StartTime.Month));
-      }
-      if (this.Key == QueryKey.RaceName)
-      {
-        if (!string.IsNullOrEmpty(this.StringValue))
-        {
-          query = query.Where(this.BuildStringQuery<RaceData>(nameof(RaceData.Name)));
-        }
+        case QueryKey.Weather:
+          query = query.Where(this.BuildEnumValuesQuery<RaceData, RaceCourseWeather>
+            (nameof(RaceData.TrackWeather), this.Values.Select(v => (RaceCourseWeather)v)));
+          break;
+        case QueryKey.Condition:
+          query = query.Where(this.BuildEnumValuesQuery<RaceData, RaceCourseCondition>
+            (nameof(RaceData.TrackCondition), this.Values.Select(v => (RaceCourseCondition)v)));
+          break;
+        case QueryKey.Course:
+          query = query.Where(this.BuildEnumValuesQuery<RaceData, RaceCourse>
+            (nameof(RaceData.Course), this.Values.Select(v => (RaceCourse)v)));
+          break;
+        case QueryKey.Ground:
+          query = query.Where(this.BuildEnumValuesQuery<RaceData, TrackGround>
+            (nameof(RaceData.TrackGround), this.Values.Select(v => (TrackGround)v)));
+          break;
+        case QueryKey.Direction:
+          query = query.Where(this.BuildEnumValuesQuery<RaceData, TrackCornerDirection>
+            (nameof(RaceData.TrackCornerDirection), this.Values.Select(v => (TrackCornerDirection)v)));
+          break;
+        case QueryKey.Distance:
+          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.Distance)));
+          break;
+        case QueryKey.Day:
+          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.StartTime), nameof(DateTime.Day), false));
+          break;
+        case QueryKey.Month:
+          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.StartTime), nameof(DateTime.Month), false));
+          break;
+        case QueryKey.Year:
+          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.StartTime), nameof(DateTime.Year), false));
+          break;
+        case QueryKey.RaceName:
+          if (!string.IsNullOrEmpty(this.StringValue))
+          {
+            query = query.Where(this.BuildStringQuery<RaceData>(nameof(RaceData.Name)));
+          }
+          break;
+        case QueryKey.Grade:
+          query = query.Where(this.BuildEnumValuesQuery<RaceData, RaceGrade>
+            (nameof(RaceData.Grade), this.Values.Select(v => (RaceGrade)v)));
+          break;
       }
       return query;
     }
 
-    private Expression<Func<T, bool>> BuildValuesQuery<T, V>(string propertyName, IEnumerable<V> values)
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      return query;
+    }
+
+    public override IQueryable<MemoData> Apply(MyContext db, IQueryable<MemoData> query)
+    {
+      switch (this.Key)
+      {
+        case QueryKey.Point:
+          query = query.Where(this.BuildEnumValuesQuery<MemoData, short>(nameof(MemoData.Point), this.Values.Select(v => (short)v)));
+          break;
+      }
+      return query;
+    }
+
+    private Expression<Func<T, bool>> BuildEnumValuesQuery<T, V>(string propertyName, IEnumerable<V> values)
+    {
+      return this.BuildEnumValuesQuery<T, V>(propertyName, null, values);
+    }
+
+    private Expression<Func<T, bool>> BuildEnumValuesQuery<T, V>(string propertyName, string? propertyName2, IEnumerable<V> values)
     {
       var param = Expression.Parameter(typeof(T), "x");
       var property = Expression.Property(param, propertyName);
+      if (propertyName2 != null)
+      {
+        property = Expression.Property(property, propertyName2);
+      }
 
       var valuesExp = Expression.Constant(values.ToList());
 
@@ -331,8 +540,17 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     private Expression<Func<T, bool>> BuildNumericQuery<T>(string propertyName, bool isShort = true)
     {
+      return this.BuildNumericQuery<T>(propertyName, null, isShort);
+    }
+
+    private Expression<Func<T, bool>> BuildNumericQuery<T>(string propertyName, string? propertyName2, bool isShort = true)
+    {
       var param = Expression.Parameter(typeof(T), "x");
       var property = Expression.Property(param, propertyName);
+      if (propertyName2 != null)
+      {
+        property = Expression.Property(property, propertyName2);
+      }
       var value = Expression.Constant(isShort ? (object)(short)this.Value : (object)this.Value);
 
       if (this.Type == QueryType.Equals)
@@ -388,6 +606,16 @@ namespace KmyKeiba.Models.Analysis.Generic
           param);
       }
 
+      var valuesExp = Expression.Constant(this.Values.ToList());
+      if (this.Type == QueryType.Contains)
+      {
+        return Expression.Lambda<Func<T, bool>>(Expression.Call(valuesExp, "Contains", null, property), param);
+      }
+      if (this.Type == QueryType.Excepts)
+      {
+        return Expression.Lambda<Func<T, bool>>(Expression.IsFalse(Expression.Call(valuesExp, "Contains", null, property)), param);
+      }
+
       throw new NotSupportedException();
     }
 
@@ -433,10 +661,25 @@ namespace KmyKeiba.Models.Analysis.Generic
     Distance,
     [EnumQueryKey("direction")]
     Direction,
-    [EnumQueryKey("month")]
+    [NumericQueryKey("day")]
+    Day,
+    [NumericQueryKey("month")]
     Month,
+    [NumericQueryKey("year")]
+    Year,
     [StringQueryKey("name")]
     RaceName,
+    [QueryKey("subject")]
+    Subject,
+    [EnumQueryKey("grade")]
+    Grade,
+    [QueryKey("gradeid")]
+    GradeId,
+    [QueryKey("grades")]
+    Grades,
+
+    [EnumQueryKey("point")]
+    Point,
   }
 
   enum QueryType
@@ -457,19 +700,34 @@ namespace KmyKeiba.Models.Analysis.Generic
     EndsWith,
   }
 
+  enum QueryTarget
+  {
+    Unknown,
+    Race,
+    RaceHorse,
+  }
+
   class QueryKeyAttribute : Attribute
   {
     public string ScriptKey { get; }
+
+    public QueryTarget Target { get; }
 
     public QueryKeyAttribute(string key)
     {
       this.ScriptKey = key;
     }
+
+    public QueryKeyAttribute(string key, QueryTarget target)
+    {
+      this.ScriptKey = key;
+      this.Target = target;
+    }
   }
 
-  class NumericQueryKeyAttribute : QueryKeyAttribute { public NumericQueryKeyAttribute(string key) : base(key) { } }
+  class NumericQueryKeyAttribute : QueryKeyAttribute { public NumericQueryKeyAttribute(string key) : base(key) { } public NumericQueryKeyAttribute(string key, QueryTarget target) : base(key, target) { } }
 
-  class EnumQueryKeyAttribute : QueryKeyAttribute { public EnumQueryKeyAttribute(string key) : base(key) { } }
+  class EnumQueryKeyAttribute : QueryKeyAttribute { public EnumQueryKeyAttribute(string key) : base(key) { } public EnumQueryKeyAttribute(string key, QueryTarget target) : base(key, target) { } }
 
-  class StringQueryKeyAttribute : QueryKeyAttribute { public StringQueryKeyAttribute(string key) : base(key) { } }
+  class StringQueryKeyAttribute : QueryKeyAttribute { public StringQueryKeyAttribute(string key) : base(key) { } public StringQueryKeyAttribute(string key, QueryTarget target) : base(key, target) { } }
 }

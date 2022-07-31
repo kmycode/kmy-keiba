@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  [Index(nameof(Key), nameof(StartTime), nameof(Course))]
+  [Index(nameof(StartTime), nameof(Key), nameof(Course))]
   public class RaceData : DataBase<Race>
   {
     [StringLength(20)]
