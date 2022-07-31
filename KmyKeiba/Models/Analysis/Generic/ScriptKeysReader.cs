@@ -30,7 +30,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       return GetQueries(this._keys, race);
     }
 
-    public static IReadOnlyList<ScriptKeyQuery> GetQueries(string keys, RaceData race)
+    public static IReadOnlyList<ScriptKeyQuery> GetQueries(string keys, RaceData race, RaceHorseData? horse = null)
     {
       var queries = new List<ScriptKeyQuery>();
       foreach (var q in keys.Split('|'))
@@ -103,10 +103,86 @@ namespace KmyKeiba.Models.Analysis.Generic
           return false;
         }
 
+        bool AddBloodQuery()
+        {
+          var splits = q!.Split('=');
+          var key = splits[0] switch
+          {
+            "f" => QueryKey.Father,
+            "ff" => QueryKey.FatherFather,
+            "fff" => QueryKey.FatherFatherFather,
+            "ffm" => QueryKey.FatherFatherMother,
+            "fm" => QueryKey.FatherMother,
+            "fmf" => QueryKey.FatherMotherFather,
+            "fmm" => QueryKey.FatherMotherMother,
+            "m" => QueryKey.Mother,
+            "mf" => QueryKey.MotherFather,
+            "mff" => QueryKey.MotherFatherFather,
+            "mfm" => QueryKey.MotherFatherMother,
+            "mm" => QueryKey.MotherMother,
+            "mmf" => QueryKey.MotherMotherFather,
+            "mmm" => QueryKey.MotherMotherMother,
+            _ => QueryKey.Unknown,
+          };
+          if (key == QueryKey.Unknown)
+          {
+            return false;
+          }
+
+          var bkey = horse?.Key;
+          var bcode = splits.ElementAtOrDefault(1);
+
+          if (bkey != null || bcode != null)
+          {
+            queries.Add(new BloodHorseScriptKeyQuery(key, code: bcode, key: bkey));
+            return true;
+          }
+
+          // 処理済として以降の処理をスキップする
+          if (horse == null)
+          {
+            return true;
+          }
+
+          return true;
+        }
+
+        bool AddPlaceHorseQuery()
+        {
+          if (!q!.StartsWith("(place"))
+          {
+            return false;
+          }
+
+          var endIndex = q.IndexOf(')');
+          if (endIndex < 0)
+          {
+            return false;
+          }
+
+          var placeScriptKey = q[1..endIndex];
+          if (string.IsNullOrEmpty(placeScriptKey))
+          {
+            return false;
+          }
+
+          var placeQueries = GetQueries(placeScriptKey, race, horse);
+          if (placeQueries == null || !placeQueries.Any())
+          {
+            return false;
+          }
+
+          var keys = q.Substring(endIndex + 1).Replace(';', '|');
+          var qs = GetQueries(keys, race, horse);
+
+          queries.Add(new TopHorsesScriptKeyQuery(placeQueries[0], qs));
+          return true;
+        }
+
         var hr = true;
         hr = hr && !AddMemoQuery();
-        hr = hr && !AddQuery("==", QueryType.Equals);
-        hr = hr && !AddQuery("!=", QueryType.NotEquals);
+        hr = hr && !AddBloodQuery();
+        hr = hr && !AddPlaceHorseQuery();
         hr = hr && !AddQuery("<>", QueryType.NotEquals);
         hr = hr && !AddQuery("<=", QueryType.LessThanOrEqual);
         hr = hr && !AddQuery(">=", QueryType.GreaterThanOrEqual);
@@ -397,6 +473,114 @@ namespace KmyKeiba.Models.Analysis.Generic
     }
 
     public override IQueryable<MemoData> Apply(MyContext db, IQueryable<MemoData> query)
+    {
+      return query;
+    }
+  }
+
+  class BloodHorseScriptKeyQuery : ScriptKeyQuery
+  {
+    private readonly QueryKey _scriptKey;
+    private string? _code;
+    private readonly string? _key;
+    private bool _isCheckedCode = false;
+
+    public BloodHorseScriptKeyQuery(QueryKey scriptKey, string? code = null, string? key = null)
+    {
+      this._scriptKey = scriptKey;
+      this._code = code;
+      this._key = key;
+      this._isCheckedCode = code != null;
+    }
+
+    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
+    {
+      return query;
+    }
+
+    public override IQueryable<MemoData> Apply(MyContext db, IQueryable<MemoData> query)
+    {
+      return query;
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      if (this._code == null && !this._isCheckedCode)
+      {
+        var born = db.BornHorses!.FirstOrDefault(h => h.Code == this._key);
+        if (born != null)
+        {
+          this._code = this._scriptKey switch
+          {
+            QueryKey.Father => born.FatherBreedingCode,
+            _ => null,
+          };
+        }
+        else
+        {
+          var horse = db.Horses!.FirstOrDefault(h => h.Code == this._key);
+          if (horse != null)
+          {
+            this._code = this._scriptKey switch
+            {
+              QueryKey.Father => horse.FatherBreedingCode,
+              _ => null,
+            };
+          }
+        }
+
+        this._isCheckedCode = true;
+      }
+
+      if (this._code != null)
+      {
+        Expression<Func<BornHorseData, bool>>? subject = this._scriptKey switch
+        {
+          QueryKey.Father => b => b.FatherBreedingCode == this._code,
+          _ => null,
+        };
+
+        if (subject != null)
+        {
+          query = query.Join(db.BornHorses!.Where(subject), h => h.Key, b => b.Code, (h, b) => h);
+        }
+      }
+
+      return query;
+    }
+  }
+
+  class TopHorsesScriptKeyQuery : ScriptKeyQuery
+  {
+    private readonly ScriptKeyQuery _placeQuery;
+    private readonly IReadOnlyList<ScriptKeyQuery> _queries;
+
+    public TopHorsesScriptKeyQuery(ScriptKeyQuery placeQuery, IReadOnlyList<ScriptKeyQuery> queries)
+    {
+      this._placeQuery = placeQuery;
+      this._queries = queries;
+    }
+
+    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
+    {
+      IQueryable<RaceHorseData> horses = db.RaceHorses!;
+      horses = this._placeQuery.Apply(db, horses);
+      foreach (var q in this._queries)
+      {
+        horses = q.Apply(db, horses);
+      }
+
+      query = query.Join(horses, r => r.Key, rh => rh.RaceKey, (r, rh) => r);
+
+      return query;
+    }
+
+    public override IQueryable<MemoData> Apply(MyContext db, IQueryable<MemoData> query)
+    {
+      return query;
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
     {
       return query;
     }
@@ -713,6 +897,38 @@ namespace KmyKeiba.Models.Analysis.Generic
     GradeId,
     [QueryKey("grades")]
     Grades,
+
+    [EnumQueryKey("place")]
+    Place,
+
+    [StringQueryKey("f")]
+    Father,
+    [StringQueryKey("ff")]
+    FatherFather,
+    [StringQueryKey("fff")]
+    FatherFatherFather,
+    [StringQueryKey("ffm")]
+    FatherFatherMother,
+    [StringQueryKey("fm")]
+    FatherMother,
+    [StringQueryKey("fmf")]
+    FatherMotherFather,
+    [StringQueryKey("fmm")]
+    FatherMotherMother,
+    [StringQueryKey("m")]
+    Mother,
+    [StringQueryKey("mf")]
+    MotherFather,
+    [StringQueryKey("mff")]
+    MotherFatherFather,
+    [StringQueryKey("mfm")]
+    MotherFatherMother,
+    [StringQueryKey("mm")]
+    MotherMother,
+    [StringQueryKey("mmf")]
+    MotherMotherFather,
+    [StringQueryKey("mmm")]
+    MotherMotherMother,
 
     [EnumQueryKey("point")]
     Point,
