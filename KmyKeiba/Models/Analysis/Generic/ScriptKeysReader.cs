@@ -25,9 +25,9 @@ namespace KmyKeiba.Models.Analysis.Generic
       this._keys = keys;
     }
 
-    public IReadOnlyList<ScriptKeyQuery> GetQueries(RaceData race)
+    public IReadOnlyList<ScriptKeyQuery> GetQueries(RaceData race, RaceHorseData? horse = null)
     {
-      return GetQueries(this._keys, race);
+      return GetQueries(this._keys, race, horse);
     }
 
     public static IReadOnlyList<ScriptKeyQuery> GetQueries(string keys, RaceData race, RaceHorseData? horse = null)
@@ -196,6 +196,7 @@ namespace KmyKeiba.Models.Analysis.Generic
         if (hr)
         {
           var key = GetKeyInfo(q);
+          // TODO
           if (key.Item1 != QueryKey.Unknown && key.Item2 != null)
           {
             switch (key.Item1)
@@ -289,9 +290,10 @@ namespace KmyKeiba.Models.Analysis.Generic
             return new ExpressionScriptKeyQuery(key.Item1, type == QueryType.Equals ? QueryType.Contains : QueryType.Excepts, values);
           }
         }
-        else if (value.Contains('-'))
+        else if (value.IndexOf('-', 1) > 0)  // マイナス記号で始まっていた場合にそなえて
         {
-          var data = value.Split('-');
+          var spliter = value.IndexOf('-', 1);
+          var data = new string[] { value[..spliter], value[(spliter + 1)..], };
           if (int.TryParse(data[0], out var min) && int.TryParse(data[1], out var max))
           {
             // 2-4
@@ -323,9 +325,12 @@ namespace KmyKeiba.Models.Analysis.Generic
             return new ExpressionScriptKeyQuery(key.Item1, type == QueryType.Equals ? QueryType.Contains : QueryType.Excepts, values);
           }
         }
-        else if (value.Contains('-'))
+        else if (value.IndexOf('-', 1) > 0)  // マイナス記号で始まっていた場合にそなえて
         {
-          var data = value.Split('-');
+          // テストケース
+          // 30-50    -20-40    -3--1
+          var spliter = value.IndexOf('-', 1);
+          var data = new string[] { value[..spliter], value[(spliter + 1)..], };
           if (int.TryParse(data[0], out var min) && int.TryParse(data[1], out var max))
           {
             // 2-4
@@ -513,6 +518,19 @@ namespace KmyKeiba.Models.Analysis.Generic
           this._code = this._scriptKey switch
           {
             QueryKey.Father => born.FatherBreedingCode,
+            QueryKey.FatherFather => born.FFBreedingCode,
+            QueryKey.FatherFatherFather => born.FFFBreedingCode,
+            QueryKey.FatherFatherMother => born.FFMBreedingCode,
+            QueryKey.FatherMother => born.FMBreedingCode,
+            QueryKey.FatherMotherFather => born.FMFBreedingCode,
+            QueryKey.FatherMotherMother => born.FMMBreedingCode,
+            QueryKey.Mother => born.MotherBreedingCode,
+            QueryKey.MotherFather => born.MFBreedingCode,
+            QueryKey.MotherFatherFather => born.MFFBreedingCode,
+            QueryKey.MotherFatherMother => born.MFMBreedingCode,
+            QueryKey.MotherMother => born.MMBreedingCode,
+            QueryKey.MotherMotherFather => born.MMFBreedingCode,
+            QueryKey.MotherMotherMother => born.MMMBreedingCode,
             _ => null,
           };
         }
@@ -524,6 +542,19 @@ namespace KmyKeiba.Models.Analysis.Generic
             this._code = this._scriptKey switch
             {
               QueryKey.Father => horse.FatherBreedingCode,
+              QueryKey.FatherFather => horse.FFBreedingCode,
+              QueryKey.FatherFatherFather => horse.FFFBreedingCode,
+              QueryKey.FatherFatherMother => horse.FFMBreedingCode,
+              QueryKey.FatherMother => horse.FMBreedingCode,
+              QueryKey.FatherMotherFather => horse.FMFBreedingCode,
+              QueryKey.FatherMotherMother => horse.FMMBreedingCode,
+              QueryKey.Mother => horse.MotherBreedingCode,
+              QueryKey.MotherFather => horse.MFBreedingCode,
+              QueryKey.MotherFatherFather => horse.MFFBreedingCode,
+              QueryKey.MotherFatherMother => horse.MFMBreedingCode,
+              QueryKey.MotherMother => horse.MMBreedingCode,
+              QueryKey.MotherMotherFather => horse.MMFBreedingCode,
+              QueryKey.MotherMotherMother => horse.MMMBreedingCode,
               _ => null,
             };
           }
@@ -537,6 +568,19 @@ namespace KmyKeiba.Models.Analysis.Generic
         Expression<Func<BornHorseData, bool>>? subject = this._scriptKey switch
         {
           QueryKey.Father => b => b.FatherBreedingCode == this._code,
+          QueryKey.FatherFather => b => b.FFBreedingCode == this._code,
+          QueryKey.FatherFatherFather => b => b.FFFBreedingCode == this._code,
+          QueryKey.FatherFatherMother => b => b.FFMBreedingCode == this._code,
+          QueryKey.FatherMother => b => b.FMBreedingCode == this._code,
+          QueryKey.FatherMotherFather => b => b.FMFBreedingCode == this._code,
+          QueryKey.FatherMotherMother => b => b.FMMBreedingCode == this._code,
+          QueryKey.Mother => b => b.MotherBreedingCode == this._code,
+          QueryKey.MotherFather => b => b.MFBreedingCode == this._code,
+          QueryKey.MotherFatherFather => b => b.MFFBreedingCode == this._code,
+          QueryKey.MotherFatherMother => b => b.MFMBreedingCode == this._code,
+          QueryKey.MotherMother => b => b.MMBreedingCode == this._code,
+          QueryKey.MotherMotherFather => b => b.MMFBreedingCode == this._code,
+          QueryKey.MotherMotherMother => b => b.MMMBreedingCode == this._code,
           _ => null,
         };
 
@@ -544,6 +588,11 @@ namespace KmyKeiba.Models.Analysis.Generic
         {
           query = query.Join(db.BornHorses!.Where(subject), h => h.Key, b => b.Code, (h, b) => h);
         }
+      }
+      else
+      {
+        // すべてを焼き尽くす
+        query = query.Where(r => false);
       }
 
       return query;
@@ -572,6 +621,12 @@ namespace KmyKeiba.Models.Analysis.Generic
 
       query = query.Join(horses, r => r.Key, rh => rh.RaceKey, (r, rh) => r);
 
+      /*
+      query = query.GroupJoin(horses, r => r.Key, rh => rh.RaceKey, (r, rhs) => new { Race = r, Horses = rhs, })
+        .Where(d => d.Horses.Any())
+        .Select(d => d.Race);
+      */
+
       return query;
     }
 
@@ -592,7 +647,7 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public QueryType Type { get; }
 
-    public int Value { get; }
+    public int Value { get; private set; }
 
     public int MaxValue { get; }
 
@@ -602,14 +657,22 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public ExpressionScriptKeyQuery(QueryKey key, QueryType type, int value, int maxValue)
     {
+      if (maxValue < value)
+      {
+        var tmp = maxValue;
+        maxValue = value;
+        value = tmp;
+      }
+
       this.Key = key;
       this.Type = type;
       this.Value = value;
       this.Values = new int[] { value, };
       this.MaxValue = maxValue;
+      this.NormalizeData();
     }
 
-    public ExpressionScriptKeyQuery(QueryKey key, QueryType type, int value) : this(key, type, value, default(int))
+    public ExpressionScriptKeyQuery(QueryKey key, QueryType type, int value) : this(key, type, value, value)
     {
     }
 
@@ -620,6 +683,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       this.Value = values.FirstOrDefault();
       this.Values = values;
       this.MaxValue = default;
+      this.NormalizeData();
     }
 
     public ExpressionScriptKeyQuery(QueryKey key, QueryType type, string value)
@@ -628,12 +692,35 @@ namespace KmyKeiba.Models.Analysis.Generic
       this.Type = QueryType.Equals;
       this.Values = Array.Empty<int>();
       this.StringValue = value;
+      this.NormalizeData();
+    }
+
+    private void NormalizeData()
+    {
+      // ミリ秒と比較をおこなうので
+      if (this.Key == QueryKey.ResultTime || this.Key == QueryKey.A3HTime)
+      {
+        this.Value *= 100;
+        if (this.Values != null)
+        {
+          for (var i = 0; i < this.Values.Length; i++)
+          {
+            this.Values[i] = this.Values[i] * 100;
+          }
+        }
+      }
     }
 
     public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
     {
       switch (this.Key)
       {
+        case QueryKey.RaceKey:
+          if (!string.IsNullOrEmpty(this.StringValue))
+          {
+            query = query.Where(this.BuildStringQuery<RaceData>(nameof(RaceData.Key)));
+          }
+          break;
         case QueryKey.Weather:
           query = query.Where(this.BuildEnumValuesQuery<RaceData, RaceCourseWeather>
             (nameof(RaceData.TrackWeather), this.Values.Select(v => (RaceCourseWeather)v)));
@@ -672,6 +759,26 @@ namespace KmyKeiba.Models.Analysis.Generic
             query = query.Where(this.BuildStringQuery<RaceData>(nameof(RaceData.Name)));
           }
           break;
+        case QueryKey.GradeId:
+          query = query.Where(this.BuildEnumValuesQuery<RaceData, short>
+            (nameof(RaceData.GradeId), this.Values.Select(v => (short)v)));
+          break;
+        case QueryKey.SubjectAge2:
+          query = query.Where(this.BuildEnumValuesQuery<RaceData, RaceSubjectType>
+            (nameof(RaceData.SubjectAge2), this.Values.Select(v => (RaceSubjectType)v)));
+          break;
+        case QueryKey.SubjectAge3:
+          query = query.Where(this.BuildEnumValuesQuery<RaceData, RaceSubjectType>
+            (nameof(RaceData.SubjectAge3), this.Values.Select(v => (RaceSubjectType)v)));
+          break;
+        case QueryKey.SubjectAge4:
+          query = query.Where(this.BuildEnumValuesQuery<RaceData, RaceSubjectType>
+            (nameof(RaceData.SubjectAge4), this.Values.Select(v => (RaceSubjectType)v)));
+          break;
+        case QueryKey.SubjectAge5:
+          query = query.Where(this.BuildEnumValuesQuery<RaceData, RaceSubjectType>
+            (nameof(RaceData.SubjectAge5), this.Values.Select(v => (RaceSubjectType)v)));
+          break;
         case QueryKey.Grade:
           query = query.Where(this.BuildEnumValuesQuery<RaceData, RaceGrade>
             (nameof(RaceData.Grade), this.Values.Select(v => (RaceGrade)v)));
@@ -682,6 +789,111 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
     {
+      switch (this.Key)
+      {
+        case QueryKey.HorseKey:
+          if (!string.IsNullOrEmpty(this.StringValue))
+          {
+            query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.Key)));
+          }
+          break;
+        case QueryKey.Age:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, short>(nameof(RaceHorseData.Age), this.Values.Select(v => (short)v)));
+          break;
+        case QueryKey.Sex:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, HorseSex>
+            (nameof(RaceHorseData.Sex), this.Values.Select(v => (HorseSex)v)));
+          break;
+        case QueryKey.HorseType:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, HorseType>
+            (nameof(RaceHorseData.Type), this.Values.Select(v => (HorseType)v)));
+          break;
+        case QueryKey.Color:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, HorseBodyColor>
+            (nameof(RaceHorseData.Color), this.Values.Select(v => (HorseBodyColor)v)));
+          break;
+        case QueryKey.HorseNumber:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, short>(nameof(RaceHorseData.Number), this.Values.Select(v => (short)v)));
+          break;
+        case QueryKey.FrameNumber:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, short>(nameof(RaceHorseData.FrameNumber), this.Values.Select(v => (short)v)));
+          break;
+        case QueryKey.RiderCode:
+          if (!string.IsNullOrEmpty(this.StringValue))
+          {
+            query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.RiderCode)));
+          }
+          break;
+        case QueryKey.TrainerCode:
+          if (!string.IsNullOrEmpty(this.StringValue))
+          {
+            query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.TrainerCode)));
+          }
+          break;
+        case QueryKey.OwnerCode:
+          if (!string.IsNullOrEmpty(this.StringValue))
+          {
+            query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.OwnerCode)));
+          }
+          break;
+        case QueryKey.Place:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, short>(nameof(RaceHorseData.ResultOrder), this.Values.Select(v => (short)v)));
+          break;
+        case QueryKey.ResultLength:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, short>
+            (nameof(RaceHorseData.ResultLength1), this.Values.Select(v => (short)v)));
+          break;
+        case QueryKey.Abnormal:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, RaceAbnormality>
+            (nameof(RaceHorseData.AbnormalResult), this.Values.Select(v => (RaceAbnormality)v)));
+          break;
+        case QueryKey.Popular:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, short>(nameof(RaceHorseData.Popular), this.Values.Select(v => (short)v)));
+          break;
+        case QueryKey.ResultTime:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ResultTime), nameof(TimeSpan.TotalMilliseconds), isDouble: true));
+          break;
+        case QueryKey.CornerPlace1:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, short>(nameof(RaceHorseData.FirstCornerOrder), this.Values.Select(v => (short)v)));
+          break;
+        case QueryKey.CornerPlace2:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, short>(nameof(RaceHorseData.SecondCornerOrder), this.Values.Select(v => (short)v)));
+          break;
+        case QueryKey.CornerPlace3:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, short>(nameof(RaceHorseData.ThirdCornerOrder), this.Values.Select(v => (short)v)));
+          break;
+        case QueryKey.CornerPlace4:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, short>(nameof(RaceHorseData.FourthCornerOrder), this.Values.Select(v => (short)v)));
+          break;
+        case QueryKey.Weight:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Weight)));
+          break;
+        case QueryKey.WeightDiff:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.WeightDiff)));
+          break;
+        case QueryKey.RiderWeight:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RiderWeight)));
+          break;
+        case QueryKey.Odds:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Odds)));
+          break;
+        case QueryKey.PlaceOddsMax:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.PlaceOddsMax)));
+          break;
+        case QueryKey.PlaceOddsMin:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.PlaceOddsMin)));
+          break;
+        case QueryKey.A3HTime:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.AfterThirdHalongTime), nameof(TimeSpan.TotalMilliseconds), isDouble: true));
+          break;
+        case QueryKey.RunningStyle:
+          query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, RunningStyle>
+            (nameof(RaceHorseData.RunningStyle), this.Values.Select(v => (RunningStyle)v)));
+          break;
+        case QueryKey.PreviousRaceDays:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.PreviousRaceDays)));
+          break;
+      }
       return query;
     }
 
@@ -758,12 +970,12 @@ namespace KmyKeiba.Models.Analysis.Generic
       return Expression.Lambda<Func<T, bool>>(Expression.Constant(true), param);
     }
 
-    private Expression<Func<T, bool>> BuildNumericQuery<T>(string propertyName, bool isShort = true)
+    private Expression<Func<T, bool>> BuildNumericQuery<T>(string propertyName, bool isShort = true, bool isDouble = false)
     {
-      return this.BuildNumericQuery<T>(propertyName, null, isShort);
+      return this.BuildNumericQuery<T>(propertyName, null, isShort, isDouble);
     }
 
-    private Expression<Func<T, bool>> BuildNumericQuery<T>(string propertyName, string? propertyName2, bool isShort = true)
+    private Expression<Func<T, bool>> BuildNumericQuery<T>(string propertyName, string? propertyName2, bool isShort = true, bool isDouble = false)
     {
       var param = Expression.Parameter(typeof(T), "x");
       var property = Expression.Property(param, propertyName);
@@ -771,7 +983,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       {
         property = Expression.Property(property, propertyName2);
       }
-      var value = Expression.Constant(isShort ? (object)(short)this.Value : (object)this.Value);
+      var value = Expression.Constant(isDouble ? (object)(double)this.Value : isShort ? (object)(short)this.Value : (object)this.Value);
 
       if (this.Type == QueryType.Equals)
       {
@@ -797,30 +1009,28 @@ namespace KmyKeiba.Models.Analysis.Generic
       {
         return Expression.Lambda<Func<T, bool>>(Expression.LessThanOrEqual(property, value), param);
       }
+
+      var maxValue = Expression.Constant(isDouble ? (object)(double)this.MaxValue : isShort ? (object)(short)this.MaxValue : (object)this.MaxValue);
       if (Type == QueryType.Range)
       {
-        var maxValue = Expression.Constant(isShort ? (object)(short)this.MaxValue : (object)this.MaxValue);
         return Expression.Lambda<Func<T, bool>>(
           Expression.And(Expression.GreaterThanOrEqual(property, value), Expression.LessThan(property, maxValue)),
           param);
       }
       if (Type == QueryType.RangeOrEqual)
       {
-        var maxValue = Expression.Constant(isShort ? (object)(short)this.MaxValue : (object)this.MaxValue);
         return Expression.Lambda<Func<T, bool>>(
           Expression.And(Expression.GreaterThanOrEqual(property, value), Expression.LessThanOrEqual(property, maxValue)),
           param);
       }
       if (Type == QueryType.NotRange)
       {
-        var maxValue = Expression.Constant(isShort ? (object)(short)this.MaxValue : (object)this.MaxValue);
         return Expression.Lambda<Func<T, bool>>(
           Expression.And(Expression.LessThan(property, value), Expression.GreaterThanOrEqual(property, maxValue)),
           param);
       }
       if (Type == QueryType.NotRangeOrEqual)
       {
-        var maxValue = Expression.Constant(isShort ? (object)(short)this.MaxValue : (object)this.MaxValue);
         return Expression.Lambda<Func<T, bool>>(
           Expression.And(Expression.LessThan(property, value), Expression.GreaterThan(property, maxValue)),
           param);
@@ -869,6 +1079,8 @@ namespace KmyKeiba.Models.Analysis.Generic
   enum QueryKey
   {
     Unknown,
+    [StringQueryKey("racekey")]
+    RaceKey,
     [EnumQueryKey("weather")]
     Weather,
     [EnumQueryKey("condition")]
@@ -891,6 +1103,14 @@ namespace KmyKeiba.Models.Analysis.Generic
     RaceName,
     [QueryKey("subject")]
     Subject,
+    [EnumQueryKey("subjectage2")]
+    SubjectAge2,
+    [EnumQueryKey("subjectage3")]
+    SubjectAge3,
+    [EnumQueryKey("subjectage4")]
+    SubjectAge4,
+    [EnumQueryKey("subjectage5")]
+    SubjectAge5,
     [EnumQueryKey("grade")]
     Grade,
     [QueryKey("gradeid")]
@@ -898,8 +1118,62 @@ namespace KmyKeiba.Models.Analysis.Generic
     [QueryKey("grades")]
     Grades,
 
+    [StringQueryKey("horsekey")]
+    HorseKey,
+    [EnumQueryKey("age")]
+    Age,
+    [EnumQueryKey("sex")]
+    Sex,
+    [EnumQueryKey("horsetype")]
+    HorseType,
+    [EnumQueryKey("color")]
+    Color,
+    [EnumQueryKey("horsenumber")]
+    HorseNumber,
+    [EnumQueryKey("framenumber")]
+    FrameNumber,
+    [StringQueryKey("rider")]
+    RiderCode,
     [EnumQueryKey("place")]
     Place,
+    [EnumQueryKey("resultlength")]
+    ResultLength,
+    [EnumQueryKey("abnormal")]
+    Abnormal,
+    [EnumQueryKey("popular")]
+    Popular,
+    [NumericQueryKey("resulttime")]
+    ResultTime,
+    [EnumQueryKey("corner1")]
+    CornerPlace1,
+    [EnumQueryKey("corner2")]
+    CornerPlace2,
+    [EnumQueryKey("corner3")]
+    CornerPlace3,
+    [EnumQueryKey("corner4")]
+    CornerPlace4,
+    [NumericQueryKey("weight")]
+    Weight,
+    [NumericQueryKey("weightdiff")]
+    WeightDiff,
+    [NumericQueryKey("riderweight")]
+    RiderWeight,
+    [StringQueryKey("trainer")]
+    TrainerCode,
+    [StringQueryKey("owner")]
+    OwnerCode,
+    [NumericQueryKey("odds")]
+    Odds,
+    [NumericQueryKey("placeoddsmin")]
+    PlaceOddsMin,
+    [NumericQueryKey("placeoddsmax")]
+    PlaceOddsMax,
+    [NumericQueryKey("a3htime")]
+    A3HTime,
+    [EnumQueryKey("runningstyle")]
+    RunningStyle,
+    [NumericQueryKey("prevdays")]
+    PreviousRaceDays,
 
     [StringQueryKey("f")]
     Father,

@@ -26,10 +26,13 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceSubjectInfo Subject { get; }
 
-    public RaceFinder(RaceData race)
+    public RaceHorseData? RaceHorse { get; }
+
+    public RaceFinder(RaceData race, RaceHorseData? raceHorse = null)
     {
       this.Race = race;
       this.Subject = new RaceSubjectInfo(race);
+      this.RaceHorse = raceHorse;
     }
 
     public async Task<IList<RaceHorseAnalyzer>> GetRaceHorsesAsync(MyContext db, string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true)
@@ -43,12 +46,12 @@ namespace KmyKeiba.Models.Analysis
       }
       var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
 
-      var raceQueries = reader.GetQueries(this.Race);
-      // var horseQueries =
+      var raceQueries = reader.GetQueries(this.Race, this.RaceHorse);
 
       foreach (var q in raceQueries)
       {
         races = q.Apply(db, races);
+        horses = q.Apply(db, horses);
       }
 
       if (withoutFutureRaces)
