@@ -174,7 +174,7 @@ namespace KmyKeiba.Downloader
         return;
       }
 
-      var specs1 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "JC", "HC", "WC", "HR", };
+      var specs1 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "BT", "JC", "HC", "WC", "HR", };
       var specs2 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", };
       var dataspec1 = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku;
       if (parameters[2] == "central")
