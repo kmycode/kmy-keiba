@@ -46,11 +46,14 @@ namespace KmyKeiba.Data.Db
   {
     Unknown = 0,
     Race = 8,
-    Course = 16,
-    Distance = 24,        // 数値比較が必要になるため現在は実装しない。将来のための予約
-    Horse = 32,
-    Rider = 40,
-    Trainer = 48,
-    Owner = 56,
+    Day = 16,
+    Course = 24,
+    Direction = 32,       // 予約
+    Distance = 40,        // 数値比較が必要になるため現在は実装しない。将来のための予約
+    Grades = 48,          // 予約
+    Horse = 100,
+    Rider = 108,
+    Trainer = 116,
+    Owner = 124,
   }
 }
