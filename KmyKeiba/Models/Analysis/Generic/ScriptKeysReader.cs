@@ -129,12 +129,31 @@ namespace KmyKeiba.Models.Analysis.Generic
             return false;
           }
 
-          //var bkey = horse?.Key;
-          var bkey = splits.ElementAtOrDefault(1);
-
-          if (bkey != null)
+          var value = splits.ElementAtOrDefault(1) ?? horse?.Key;
+          if (value == null)
           {
-            queries.Add(new BloodHorseScriptKeyQuery(key, key: bkey));
+            return false;
+          }
+
+          var isSelfMode = false;
+          if (value.StartsWith('@'))
+          {
+            isSelfMode = true;
+            value = value[1..];
+          }
+
+          string? bkey = value;
+          string? bcode = value;
+
+          if (bkey != null || bcode != null)
+          {
+            if (bkey?.Length != 10) bkey = null;
+            if (bcode?.Length != 8) bcode = null;
+          }
+
+          if (bkey != null || bcode != null)
+          {
+            queries.Add(new BloodHorseScriptKeyQuery(key, key: bkey, code: bcode, isSelfCode: isSelfMode));
             return true;
           }
 
@@ -557,13 +576,15 @@ namespace KmyKeiba.Models.Analysis.Generic
     private string? _code;
     private readonly string? _key;
     private bool _isCheckedCode = false;
+    private readonly bool _isSelfCode = false;
 
-    public BloodHorseScriptKeyQuery(QueryKey scriptKey, string? code = null, string? key = null)
+    public BloodHorseScriptKeyQuery(QueryKey scriptKey, string? code = null, string? key = null, bool isSelfCode = false)
     {
       this._scriptKey = scriptKey;
       this._code = code;
       this._key = key;
       this._isCheckedCode = code != null;
+      this._isSelfCode = isSelfCode;
     }
 
     public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
@@ -580,51 +601,64 @@ namespace KmyKeiba.Models.Analysis.Generic
     {
       if (this._code == null && !this._isCheckedCode)
       {
-        var born = db.BornHorses!.FirstOrDefault(h => h.Code == this._key);
-        if (born != null)
+        if (!this._isSelfCode)
         {
-          this._code = this._scriptKey switch
-          {
-            QueryKey.Father => born.FatherBreedingCode,
-            QueryKey.FatherFather => born.FFBreedingCode,
-            QueryKey.FatherFatherFather => born.FFFBreedingCode,
-            QueryKey.FatherFatherMother => born.FFMBreedingCode,
-            QueryKey.FatherMother => born.FMBreedingCode,
-            QueryKey.FatherMotherFather => born.FMFBreedingCode,
-            QueryKey.FatherMotherMother => born.FMMBreedingCode,
-            QueryKey.Mother => born.MotherBreedingCode,
-            QueryKey.MotherFather => born.MFBreedingCode,
-            QueryKey.MotherFatherFather => born.MFFBreedingCode,
-            QueryKey.MotherFatherMother => born.MFMBreedingCode,
-            QueryKey.MotherMother => born.MMBreedingCode,
-            QueryKey.MotherMotherFather => born.MMFBreedingCode,
-            QueryKey.MotherMotherMother => born.MMMBreedingCode,
-            _ => null,
-          };
-        }
-        else
-        {
-          var horse = db.Horses!.FirstOrDefault(h => h.Code == this._key);
-          if (horse != null)
+          // 自分と同じ父を持つ馬を検索
+          var born = db.BornHorses!.FirstOrDefault(h => h.Code == this._key);
+          if (born != null)
           {
             this._code = this._scriptKey switch
             {
-              QueryKey.Father => horse.FatherBreedingCode,
-              QueryKey.FatherFather => horse.FFBreedingCode,
-              QueryKey.FatherFatherFather => horse.FFFBreedingCode,
-              QueryKey.FatherFatherMother => horse.FFMBreedingCode,
-              QueryKey.FatherMother => horse.FMBreedingCode,
-              QueryKey.FatherMotherFather => horse.FMFBreedingCode,
-              QueryKey.FatherMotherMother => horse.FMMBreedingCode,
-              QueryKey.Mother => horse.MotherBreedingCode,
-              QueryKey.MotherFather => horse.MFBreedingCode,
-              QueryKey.MotherFatherFather => horse.MFFBreedingCode,
-              QueryKey.MotherFatherMother => horse.MFMBreedingCode,
-              QueryKey.MotherMother => horse.MMBreedingCode,
-              QueryKey.MotherMotherFather => horse.MMFBreedingCode,
-              QueryKey.MotherMotherMother => horse.MMMBreedingCode,
+              QueryKey.Father => born.FatherBreedingCode,
+              QueryKey.FatherFather => born.FFBreedingCode,
+              QueryKey.FatherFatherFather => born.FFFBreedingCode,
+              QueryKey.FatherFatherMother => born.FFMBreedingCode,
+              QueryKey.FatherMother => born.FMBreedingCode,
+              QueryKey.FatherMotherFather => born.FMFBreedingCode,
+              QueryKey.FatherMotherMother => born.FMMBreedingCode,
+              QueryKey.Mother => born.MotherBreedingCode,
+              QueryKey.MotherFather => born.MFBreedingCode,
+              QueryKey.MotherFatherFather => born.MFFBreedingCode,
+              QueryKey.MotherFatherMother => born.MFMBreedingCode,
+              QueryKey.MotherMother => born.MMBreedingCode,
+              QueryKey.MotherMotherFather => born.MMFBreedingCode,
+              QueryKey.MotherMotherMother => born.MMMBreedingCode,
               _ => null,
             };
+          }
+          else
+          {
+            var horse = db.Horses!.FirstOrDefault(h => h.Code == this._key);
+            if (horse != null)
+            {
+              this._code = this._scriptKey switch
+              {
+                QueryKey.Father => horse.FatherBreedingCode,
+                QueryKey.FatherFather => horse.FFBreedingCode,
+                QueryKey.FatherFatherFather => horse.FFFBreedingCode,
+                QueryKey.FatherFatherMother => horse.FFMBreedingCode,
+                QueryKey.FatherMother => horse.FMBreedingCode,
+                QueryKey.FatherMotherFather => horse.FMFBreedingCode,
+                QueryKey.FatherMotherMother => horse.FMMBreedingCode,
+                QueryKey.Mother => horse.MotherBreedingCode,
+                QueryKey.MotherFather => horse.MFBreedingCode,
+                QueryKey.MotherFatherFather => horse.MFFBreedingCode,
+                QueryKey.MotherFatherMother => horse.MFMBreedingCode,
+                QueryKey.MotherMother => horse.MMBreedingCode,
+                QueryKey.MotherMotherFather => horse.MMFBreedingCode,
+                QueryKey.MotherMotherMother => horse.MMMBreedingCode,
+                _ => null,
+              };
+            }
+          }
+        }
+        else
+        {
+          // 自分が父になっている馬を検索
+          var data = db.HorseBloods!.FirstOrDefault(b => b.Code == this._key);
+          if (data != null)
+          {
+            this._code = data.Key;
           }
         }
 
