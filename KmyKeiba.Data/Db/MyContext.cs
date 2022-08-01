@@ -67,6 +67,10 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<MemoData>? Memos { get; set; }
 
+    public DbSet<ExpansionMemoConfig>? MemoConfigs { get; set; }
+
+    public DbSet<PointLabelData>? PointLabels { get; set; }
+
     #endregion
 
     private IDbContextTransaction? _transaction;

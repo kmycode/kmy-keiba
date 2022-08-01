@@ -9,6 +9,7 @@ using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
 using KmyKeiba.Models.Injection;
+using KmyKeiba.Models.Race.Expand;
 using KmyKeiba.Models.Race.Tickets;
 using KmyKeiba.Models.Script;
 using KmyKeiba.Shared;
@@ -86,6 +87,8 @@ namespace KmyKeiba.Models.Race
     public ReactiveCollection<RaceChangeInfo> Changes { get; } = new();
 
     public RaceFinder Finder { get; }
+
+    public ReactiveProperty<RaceMemoModel?> MemoEx { get; } = new();
 
     public ScriptManager Script { get; }
 
@@ -533,6 +536,7 @@ namespace KmyKeiba.Models.Race
       this.TrendAnalyzers.Dispose();
       this.AnalysisTables.Dispose();
       this.Finder.Dispose();
+      this.MemoEx?.Dispose();
       foreach (var h in this.Horses)
       {
         h.Dispose();
@@ -783,6 +787,10 @@ namespace KmyKeiba.Models.Race
               woodTrainings.Where(t => t.HorseKey == horse.Data.Key).ToArray()
               );
           }
+
+          // 拡張メモ
+          info.MemoEx.Value = new RaceMemoModel(race, horses);
+          await info.MemoEx.Value.LoadAsync(db);
 
           // キャッシング
           if (isCache)

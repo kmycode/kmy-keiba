@@ -14,18 +14,18 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace KmyKeiba.Views.Details
+namespace KmyKeiba.Views.Expansions
 {
   /// <summary>
-  /// RaceView.xaml の相互作用ロジック
+  /// ExpansionMemoView.xaml の相互作用ロジック
   /// </summary>
-  public partial class RaceView : UserControl
+  public partial class ExpansionMemoView : UserControl
   {
     public static readonly DependencyProperty RaceProperty
     = DependencyProperty.Register(
         nameof(Race),
         typeof(RaceInfo),
-        typeof(RaceView),
+        typeof(ExpansionMemoView),
         new PropertyMetadata(null));
 
     public RaceInfo? Race
@@ -40,7 +40,9 @@ namespace KmyKeiba.Views.Details
 
     public Guid UniqueId3 { get; } = Guid.NewGuid();
 
-    public RaceView()
+    public Guid UniqueId4 { get; } = Guid.NewGuid();
+
+    public ExpansionMemoView()
     {
       InitializeComponent();
     }

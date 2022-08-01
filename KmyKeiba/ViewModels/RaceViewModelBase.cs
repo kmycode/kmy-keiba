@@ -164,6 +164,11 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<AnalysisTable>().WithSubscribe(async table => await table.LoadAllAsync()).AddTo(this._disposables);
     private AsyncReactiveCommand<AnalysisTable>? _loadAnalysisTableCommand;
 
+    public ICommand AddMemoConfigCommand =>
+      this._addMemoConfigCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.AddRaceMemoConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addMemoConfigCommand;
+
     public ICommand OpenRaceWindowCommand =>
       this._openRaceWindowCommand ??=
         new ReactiveCommand<object>().WithSubscribe(obj =>

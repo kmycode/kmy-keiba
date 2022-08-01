@@ -25,6 +25,7 @@
   <u:RHColor x:Key="BrowserForegroundColor" Red="240" Green="240" Blue="240"/>
 
   <Color x:Key="MoreThinBaseBackgroundColor" R="0x30" G="0x30" B="0x30"/>
+  <Color x:Key="BaseBorderBrushColor">#cccccc</Color>
 
   <SolidColorBrush x:Key="BaseBackground" Color="#030303"/>
   <SolidColorBrush x:Key="ThinBaseBackground" Color="#202020"/>
@@ -32,6 +33,7 @@
   <SolidColorBrush x:Key="ActiveBackground" Color="#404055"/>
   <SolidColorBrush x:Key="BaseForeground" Color="#f0f0f0"/>
   <SolidColorBrush x:Key="BaseBorderBrush" Color="#cccccc"/>
+  <SolidColorBrush x:Key="SubBorderBrush" Color="#909090"/>
   <SolidColorBrush x:Key="SubForeground" Color="#b0b0b0"/>
   <SolidColorBrush x:Key="ThinSubForeground" Color="#808080"/>
   <SolidColorBrush x:Key="ErrorForeground" Color="#ff9090"/>

@@ -8,6 +8,7 @@
              xmlns:b="clr-namespace:KmyKeiba.Behaviors"
              xmlns:uc="clr-namespace:KmyKeiba.Views.Details"
              xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
+             xmlns:ex="clr-namespace:KmyKeiba.Views.Expansions"
              xmlns:local="clr-namespace:KmyKeiba.Views.Details"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
@@ -118,6 +119,19 @@
                   <Style.Triggers>
                     <Trigger Property="IsChecked" Value="True">
                       <Setter Property="Background" Value="#903"/>
+                    </Trigger>
+                  </Style.Triggers>
+                </Style>
+              </ToggleButton.Style>
+            </RadioButton>
+            <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Expansion"
+                         Visibility="{Binding Race.HasHorses.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+              拡張
+              <ToggleButton.Style>
+                <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource LargeToggleButtonDefault}">
+                  <Style.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter Property="Background" Value="#994"/>
                     </Trigger>
                   </Style.Triggers>
                 </Style>
@@ -292,6 +306,31 @@
             </MultiBinding>
           </Control.Visibility>
         </uc:RaceExpectHorseView>
+        
+        <!-- 拡張 -->
+        <Grid Grid.Column="1" Margin="8,0,0,0">
+          <Panel.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsChecked" ElementName="S_Expansion"/>
+              <Binding Path="Race.HasHorses.Value" ElementName="Root"/>
+            </MultiBinding>
+          </Panel.Visibility>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition/>
+          </Grid.RowDefinitions>
+
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <RadioButton Grid.Column="0" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                   Content="拡張メモ" Name="S_ExMemo" IsChecked="True"/>
+          </Grid>
+
+          <ex:ExpansionMemoView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExMemo,Converter={StaticResource BooleanVisibilityConv}}"
+                                Race="{Binding Race,ElementName=Root}"/>
+        </Grid>
 
         <!-- 結果・全体 -->
         <uc:RaceResultAllView Race="{Binding Race,ElementName=Root}" Grid.Column="1">

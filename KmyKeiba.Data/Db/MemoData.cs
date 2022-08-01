@@ -42,18 +42,22 @@ namespace KmyKeiba.Data.Db
     public short Point { get; set; }
   }
 
-  public enum MemoTarget : short
+  // 拡張キー検索（finder）、拡張メモ画面、両方での対応が必要
+  [Flags]
+  public enum MemoTarget : int
   {
     Unknown = 0,
-    Race = 8,
-    Day = 16,
-    Course = 24,
-    Direction = 32,       // 予約
-    Distance = 40,        // 数値比較が必要になるため現在は実装しない。将来のための予約
-    Grades = 48,          // 予約
-    Horse = 100,
-    Rider = 108,
-    Trainer = 116,
-    Owner = 124,
+    Race = 0b_0001,
+    Day = 0b_0010,
+    Course = 0b_0100,
+    Direction = 0b_1000,       // 予約
+    Distance = 0b_0001_0000,        // 数値比較が必要になるため現在は実装しない。将来のための予約
+    Grades = 0b_0010_0000,          // 予約
+    Condition = 0b_0100_0000,       // 予約
+    Weather = 0b_1000_0000,         // 予約
+    Horse = 0b_0001_0000_0000_0000_0000,
+    Rider = 0b_0010_0000_0000_0000_0000,
+    Trainer = 0b_0100_0000_0000_0000_0000,
+    Owner = 0b_1000_0000_0000_0000_0000,
   }
 }

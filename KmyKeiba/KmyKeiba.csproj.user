@@ -52,6 +52,9 @@
     <Compile Update="Views\Dialogs\VersionDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Expansions\ExpansionMemoView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\ListItems\RaceHorsePillar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -91,6 +94,9 @@
   </ItemGroup>
   <ItemGroup>
     <Page Update="MainWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Resources\ComboBoxStyle.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Resources\ControlStyles.xaml">
@@ -151,6 +157,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Dialogs\VersionDialog.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\ExpansionMemoView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\ListItems\RaceHorsePillar.xaml">
