@@ -267,7 +267,7 @@ namespace KmyKeiba.Models.Analysis
     {
       using var db = new MyContext();
       await this.InitializeBloodListAsync(db);
-      return this.GetSelector(scriptType)!;
+      return this.GetSelector(scriptType) ?? new RaceHorseBloodTrendAnalysisSelector(this, this.Race, this.RaceHorse, string.Empty, string.Empty, BloodType.Unknown, string.Empty);
     }
 
     private BloodType KeysToBloodType(string keys)
@@ -756,52 +756,5 @@ namespace KmyKeiba.Models.Analysis
       base.Dispose();
       this._disposables.Dispose();
     }
-  }
-
-  public enum BloodType
-  {
-    Unknown,
-
-    [Label("父")]
-    Father,
-
-    [Label("父父")]
-    FatherFather,
-
-    [Label("父父父")]
-    FatherFatherFather,
-
-    [Label("父父母")]
-    FatherFatherMother,
-
-    [Label("父母")]
-    FatherMother,
-
-    [Label("父母父")]
-    FatherMotherFather,
-
-    [Label("父母母")]
-    FatherMotherMother,
-
-    [Label("母")]
-    Mother,
-
-    [Label("母父")]
-    MotherFather,
-
-    [Label("母父父")]
-    MotherFatherFather,
-
-    [Label("母父母")]
-    MotherFatherMother,
-
-    [Label("母母")]
-    MotherMother,
-
-    [Label("母母父")]
-    MotherMotherFather,
-
-    [Label("母母母")]
-    MotherMotherMother,
   }
 }

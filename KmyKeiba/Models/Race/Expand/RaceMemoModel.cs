@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
+using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
@@ -76,14 +77,14 @@ namespace KmyKeiba.Models.Race.Expand
       // レースメモ
       foreach (var config in _configs!.Where(c => c.Type == MemoType.Race).OrderBy(c => c.Id).OrderBy(c => c.Order))
       {
-        var memo = await this.GetMemoQuery(db.Memos!, config, null).FirstOrDefaultAsync();
+        var memo = await (await this.GetMemoQueryAsync(db, db.Memos!, config, null)).FirstOrDefaultAsync();
         if (memo != null)
         {
           raceMemos.Add(new RaceMemoItem(memo, config).AddTo(this._disposables));
         }
         else
         {
-          raceMemos.Add(new RaceMemoItem(this.GenerateMemoData(config, null), config));
+          raceMemos.Add(new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, null), config));
         }
       }
 
@@ -95,14 +96,14 @@ namespace KmyKeiba.Models.Race.Expand
 
         foreach (var config in _configs!.Where(c => c.Type == MemoType.RaceHorse).OrderBy(c => c.Id).OrderBy(c => c.Order))
         {
-          var memo = await this.GetMemoQuery(db.Memos!, config, horse).FirstOrDefaultAsync();
+          var memo = await (await this.GetMemoQueryAsync(db, db.Memos!, config, horse)).FirstOrDefaultAsync();
           if (memo != null)
           {
             horseMemo.Memos.Add(new RaceMemoItem(memo, config));
           }
           else
           {
-            horseMemo.Memos.Add(new RaceMemoItem(this.GenerateMemoData(config, horse), config));
+            horseMemo.Memos.Add(new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, horse), config));
           }
         }
       }
@@ -142,9 +143,10 @@ namespace KmyKeiba.Models.Race.Expand
       await db.SaveChangesAsync();
       _configs!.Add(config);
 
+      var data = await this.GenerateMemoDataAsync(db, config, null);
       ThreadUtil.InvokeOnUiThread(() =>
       {
-        this.RaceMemos.Add(new RaceMemoItem(this.GenerateMemoData(config, null), config));
+        this.RaceMemos.Add(new RaceMemoItem(data, config));
       });
       await ReloadAllModelsAsync(db, this);
     }
@@ -269,7 +271,7 @@ namespace KmyKeiba.Models.Race.Expand
       }
     }
 
-    private MemoData GenerateMemoData(ExpansionMemoConfig config, RaceHorseData? horse)
+    private async Task<MemoData> GenerateMemoDataAsync(MyContext db, ExpansionMemoConfig config, RaceHorseData? horse)
     {
       var data = new MemoData
       {
@@ -279,7 +281,7 @@ namespace KmyKeiba.Models.Race.Expand
         Number = config.MemoNumber,
       };
 
-      string GetKey(MemoTarget target)
+      async Task<string> GetKeyAsync(MemoTarget target)
       {
         if (target == MemoTarget.Course)
         {
@@ -312,21 +314,25 @@ namespace KmyKeiba.Models.Race.Expand
           {
             return horse.OwnerCode;
           }
+          else if (target == MemoTarget.Father)
+          {
+            return await HorseBloodUtil.GetBloodCodeAsync(db, horse.Key, BloodType.Father);
+          }
         }
 
         return string.Empty;
       }
 
-      data.Key1 = GetKey(data.Target1);
-      data.Key2 = GetKey(data.Target2);
-      data.Key3 = GetKey(data.Target3);
+      data.Key1 = await GetKeyAsync(data.Target1);
+      data.Key2 = await GetKeyAsync(data.Target2);
+      data.Key3 = await GetKeyAsync(data.Target3);
 
       return data;
     }
 
-    private IQueryable<MemoData> GetMemoQuery(IQueryable<MemoData> query, ExpansionMemoConfig config, RaceHorseData? horse)
+    private async Task<IQueryable<MemoData>> GetMemoQueryAsync(MyContext db, IQueryable<MemoData> query, ExpansionMemoConfig config, RaceHorseData? horse)
     {
-      Expression<Func<MemoData, bool>> GetTargetComparation(int target, MemoTarget targetType)
+      async Task<Expression<Func<MemoData, bool>>> GetTargetComparationAsync(int target, MemoTarget targetType)
       {
         var memo = Expression.Parameter(typeof(MemoData), "x");
         var key = Expression.Property(memo, "Key" + target);
@@ -366,17 +372,25 @@ namespace KmyKeiba.Models.Race.Expand
           {
             return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(horse.OwnerCode)), memo);
           }
+          else if (targetType == MemoTarget.Father)
+          {
+            var father = await HorseBloodUtil.GetBloodCodeAsync(db, horse.Key, BloodType.Father);
+            if (!string.IsNullOrEmpty(father))
+            {
+              return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(father)), memo);
+            }
+          }
         }
 
         return Expression.Lambda<Func<MemoData, bool>>(Expression.Constant(false), memo);
       }
 
       query = query.Where(m => m.Target1 == config.Target1 && m.Target2 == config.Target2 && m.Target3 == config.Target3 && m.Number == config.MemoNumber);
-      query = query.Where(GetTargetComparation(1, config.Target1));
+      query = query.Where(await GetTargetComparationAsync(1, config.Target1));
       if (config.Target2 != MemoTarget.Unknown)
-        query = query.Where(GetTargetComparation(2, config.Target2));
+        query = query.Where(await GetTargetComparationAsync(2, config.Target2));
       if (config.Target3 != MemoTarget.Unknown)
-        query = query.Where(GetTargetComparation(3, config.Target3));
+        query = query.Where(await GetTargetComparationAsync(3, config.Target3));
       return query;
     }
 
@@ -405,6 +419,8 @@ namespace KmyKeiba.Models.Race.Expand
 
     public ReactiveProperty<bool> IsFilterOwner { get; } = new();
 
+    public ReactiveProperty<bool> IsFilterFather { get; } = new();
+
     public ReactiveProperty<bool> IsStylePoint { get; } = new();
 
     public ReactiveProperty<bool> IsStyleMemo { get; } = new();
@@ -429,6 +445,7 @@ namespace KmyKeiba.Models.Race.Expand
         if (this.IsFilterHorse.Value) list.Add(MemoTarget.Horse);
         if (this.IsFilterRider.Value) list.Add(MemoTarget.Rider);
         if (this.IsFilterTrainer.Value) list.Add(MemoTarget.Trainer);
+        if (this.IsFilterFather.Value) list.Add(MemoTarget.Father);
       }
 
       return list.OrderBy(i => i).Take(3).ToArray();
@@ -499,6 +516,9 @@ namespace KmyKeiba.Models.Race.Expand
             break;
           case MemoTarget.Trainer:
             this.IsFilterTrainer.Value = true;
+            break;
+          case MemoTarget.Father:
+            this.IsFilterFather.Value = true;
             break;
         }
       }

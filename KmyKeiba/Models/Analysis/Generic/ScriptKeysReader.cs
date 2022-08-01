@@ -77,6 +77,7 @@ namespace KmyKeiba.Models.Analysis.Generic
                 "rider" => MemoTarget.Rider,
                 "trainer" => MemoTarget.Trainer,
                 "owner" => MemoTarget.Owner,
+                "f" => MemoTarget.Father,
                 "point" => pointTarget,
                 "" => pointTarget,
                 "number" => numberTarget,
@@ -539,11 +540,15 @@ namespace KmyKeiba.Models.Analysis.Generic
     public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
     {
       var targetKeys = this._data.Where(d =>
+          d.Key == MemoTarget.Race || d.Key == MemoTarget.Course || d.Key == MemoTarget.Day)
+        .ToArray();
+      var horseKeys = this._data.Where(d =>
           d.Key == MemoTarget.Race || d.Key == MemoTarget.Course || d.Key == MemoTarget.Day ||
-          d.Key == MemoTarget.Distance || d.Key == MemoTarget.Direction || d.Key == MemoTarget.Grades)
+          d.Key == MemoTarget.Rider || d.Key == MemoTarget.Trainer || d.Key == MemoTarget.Owner ||
+          d.Key == MemoTarget.Horse || d.Key == MemoTarget.Father)
         .ToArray();
 
-      if (!targetKeys.Any())
+      if (!targetKeys.Any() || targetKeys.Length != horseKeys.Length)
       {
         return query;
       }
@@ -587,6 +592,76 @@ namespace KmyKeiba.Models.Analysis.Generic
 
     public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
     {
+      var raceKeys = this._data.Where(d =>
+          d.Key == MemoTarget.Race || d.Key == MemoTarget.Course || d.Key == MemoTarget.Day)
+        .ToArray();
+      var targetKeys = this._data.Where(d =>
+          d.Key == MemoTarget.Race || d.Key == MemoTarget.Course || d.Key == MemoTarget.Day ||
+          d.Key == MemoTarget.Rider || d.Key == MemoTarget.Trainer || d.Key == MemoTarget.Owner ||
+          d.Key == MemoTarget.Horse || d.Key == MemoTarget.Father)
+        .ToArray();
+
+      if (!targetKeys.Any() || raceKeys.Length == targetKeys.Length)
+      {
+        return query;
+      }
+
+      var memo = Expression.Parameter(typeof(MemoData), "x");
+      var target1 = targetKeys.ElementAtOrDefault(0).Key;
+      var target2 = targetKeys.ElementAtOrDefault(1).Key;
+      var target3 = targetKeys.ElementAtOrDefault(2).Key;
+
+      var memoFilter =
+        this._query.Apply(db, db.Memos!).Where(m => m.Target1 == target1 && m.Target2 == target2 && m.Target3 == target3);
+      if (this._number != default)
+      {
+        memoFilter = memoFilter.Where(m => m.Number == this._number);
+      }
+
+      var i = 1;
+      foreach (var key in targetKeys.Take(3))
+      {
+        var innerKey = Expression.Lambda<Func<MemoData, string>>(Expression.Property(memo, "Key" + i), memo);
+        i++;
+
+        if (key.Key == MemoTarget.Course)
+        {
+          query = query.Join(memoFilter, r => r.Course, m => m.CourseKey, (r, m) => r);
+        }
+        else if (key.Key == MemoTarget.Day)
+        {
+          query = query
+            .Select(r => new { Race = r, Day = r.RaceKey.Substring(0, 8), })
+            .Join(memoFilter, r => r.Day, innerKey, (r, m) => r.Race);
+        }
+        else if (key.Key == MemoTarget.Race)
+        {
+          query = query.Join(memoFilter, r => r.RaceKey, innerKey, (r, m) => r);
+        }
+        else if (key.Key == MemoTarget.Rider)
+        {
+          query = query.Join(memoFilter, h => h.RiderCode, innerKey, (r, m) => r);
+        }
+        else if (key.Key == MemoTarget.Trainer)
+        {
+          query = query.Join(memoFilter, h => h.TrainerCode, innerKey, (r, m) => r);
+        }
+        else if (key.Key == MemoTarget.Owner)
+        {
+          query = query.Join(memoFilter, h => h.OwnerCode, innerKey, (r, m) => r);
+        }
+        else if (key.Key == MemoTarget.Horse)
+        {
+          query = query.Join(memoFilter, h => h.Key, innerKey, (r, m) => r);
+        }
+        else if (key.Key == MemoTarget.Father)
+        {
+          query = query
+            .Join(db.BornHorses!, h => h.Key, b => b.Code, (h, b) => new { Horse = h, FatherCode = b.FatherBreedingCode, })
+            .Join(memoFilter, h => h.FatherCode, innerKey, (h, m) => h.Horse);
+        }
+      }
+
       return query;
     }
 
