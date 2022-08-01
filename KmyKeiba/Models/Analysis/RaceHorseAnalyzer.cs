@@ -34,6 +34,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceSubjectInfo Subject { get; }
 
+    public RaceFinder Finder { get; }
+
     public RaceHorseBloodTrendAnalysisSelectorMenu? BloodSelectors { get; init; }
 
     public RaceHorseTrendAnalysisSelector? TrendAnalyzers { get; init; }
@@ -338,6 +340,7 @@ namespace KmyKeiba.Models.Analysis
       this.ResultTimePerMeter = (double)horse.ResultTime.TotalSeconds / race.Distance;
       this.ResultOrderComparation = horse.ResultOrder >= 1 && horse.ResultOrder <= 3 ? ValueComparation.Good :
         horse.ResultOrder >= 8 || horse.ResultOrder >= race.HorsesCount * 0.7f ? ValueComparation.Bad : ValueComparation.Standard;
+      this.Finder = new RaceFinder(race, horse);
       if (race.Distance >= 800)
       {
         this.UntilA3HResultTime = horse.ResultTime - horse.AfterThirdHalongTime;
@@ -562,6 +565,7 @@ namespace KmyKeiba.Models.Analysis
       this.RiderTrendAnalyzers?.Dispose();
       this.TrainerTrendAnalyzers?.Dispose();
       this.TrendAnalyzers?.Dispose();
+      this.Finder.Dispose();
 
       this.IsDisposed = true;
     }
@@ -623,7 +627,7 @@ namespace KmyKeiba.Models.Analysis
 
     public int AllCount => this.FirstCount + this.SecondCount + this.ThirdCount + this.LoseCount;
 
-    public int PlacingBetsCount => this.FirstCount + this.SecondCount + this.ThirdCount;
+    public int PlacingBetsCount { get; } = 0;
 
     public bool IsZero => this.AllCount == 0;
 
@@ -646,17 +650,26 @@ namespace KmyKeiba.Models.Analysis
         this.ThirdCount = targets.Count(f => f.ResultOrder == 3);
         this.LoseCount = targets.Count(f => f.ResultOrder > 3);
 
-        this.PlacingBetsRate = (this.FirstCount + this.SecondCount + this.ThirdCount) / (float)targets.Length;
+        this.PlacingBetsCount = this.FirstCount + this.SecondCount + this.ThirdCount;
+        this.PlacingBetsRate = this.PlacingBetsCount / (float)targets.Length;
         this.WinRate = this.FirstCount / (float)targets.Length;
       }
     }
 
-    public ResultOrderGradeMap(IReadOnlyList<RaceHorseAnalyzer> source) : this(source.Select(s => s.Data).ToArray())
+    public ResultOrderGradeMap(IReadOnlyList<RaceHorseAnalyzer> source)
     {
-      var targets = source.Where(s => s.Data.AbnormalResult == RaceAbnormality.Unknown).ToArray();
+      var targets = source.Where(s => s.Data.AbnormalResult == RaceAbnormality.Unknown &&
+        s.Race.DataStatus != RaceDataStatus.Canceled && s.Race.DataStatus != RaceDataStatus.Delete).ToArray();
       if (targets.Any())
       {
-        this.PlacingBetsRate = targets.Count(f => f.Data.ResultOrder <= (f.Race.HorsesCount >= 7 ? 3 : 2) && f.Data.ResultOrder > 0) / (float)targets.Length;
+        this.FirstCount = targets.Count(f => f.Data.ResultOrder == 1);
+        this.SecondCount = targets.Count(f => f.Data.ResultOrder == 2);
+        this.ThirdCount = targets.Count(f => f.Data.ResultOrder == 3);
+        this.LoseCount = targets.Count(f => f.Data.ResultOrder > 3);
+
+        this.PlacingBetsCount = targets.Count(f => f.Data.ResultOrder <= (f.Race.HorsesCount >= 7 ? 3 : 2) && f.Data.ResultOrder > 0);
+        this.PlacingBetsRate = this.PlacingBetsCount / (float)targets.Length;
+        this.WinRate = this.FirstCount / (float)targets.Length;
       }
     }
   }

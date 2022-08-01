@@ -33,6 +33,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<double> UntilA3HTimeDeviationValue { get; } = new();
 
+    public ReactiveProperty<double> RecoveryRate { get; } = new();
+
     public ReactiveProperty<ResultOrderGradeMap> FrontRunnersGrade { get; } = new();
 
     public ReactiveProperty<ResultOrderGradeMap> StalkersGrade { get; } = new();
@@ -104,9 +106,22 @@ namespace KmyKeiba.Models.Analysis
           .Where(s => s.Data.Number / (float)s.Race.HorsesCount <= 1 / 3f).ToArray());
         this.OutsideFrameGrade.Value = new ResultOrderGradeMap(source
           .Where(s => s.Data.Number / (float)s.Race.HorsesCount >= 2 / 3f).ToArray());
+
+        // 回収率
+        if (source.Any(s => s.Data.ResultOrder == 1))
+        {
+          this.RecoveryRate.Value = source.Where(s => s.Data.ResultOrder == 1).Sum(s => s.Data.Odds * 10) / (float)(count * 100);
+        }
       }
 
       this.IsAnalyzed.Value = true;
+    }
+  }
+
+  public class SimpleRaceHorseTrendAnalyzer : RaceHorseTrendAnalyzerBase
+  {
+    public SimpleRaceHorseTrendAnalyzer(int sizeMax, RaceData race, RaceHorseData horse) : base(sizeMax, race, horse)
+    {
     }
   }
 

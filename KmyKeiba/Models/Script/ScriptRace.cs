@@ -131,6 +131,22 @@ namespace KmyKeiba.Models.Script
       return "[]";
     }
 
+    [ScriptMember("findRacesAsync")]
+    public async Task<string> FindRacesAsync(string keys, int count, int offset = 0)
+    {
+      var result = await this._race.Finder.FindRacesAsync(null, keys, count, offset);
+      return JsonSerializer.Serialize(
+        result.Select(s => new ScriptRace(s.Data)).Take(count).ToArray(), ScriptManager.JsonOptions);
+    }
+
+    [ScriptMember("findRaceHorsesAsync")]
+    public async Task<string> FindRaceHorsesAsync(string keys, int count, int offset = 0)
+    {
+      var result = await this._race.Finder.FindRaceHorsesAsync(null, keys, count, offset);
+      return JsonSerializer.Serialize(
+        result.Select(s => new ScriptRaceHorse(string.Empty, s.Data)).Take(count).ToArray(), ScriptManager.JsonOptions);
+    }
+
     [ScriptMember("getFrameNumberOdds")]
     public string GetFrameNumberOdds()
     {

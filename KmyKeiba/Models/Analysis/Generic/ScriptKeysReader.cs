@@ -140,6 +140,11 @@ namespace KmyKeiba.Models.Analysis.Generic
           {
             isSelfMode = true;
             value = value[1..];
+            if (string.IsNullOrEmpty(value))
+            {
+              // f:@ という描き方を想定
+              value = horse?.Key;
+            }
           }
 
           string? bkey = value;
@@ -318,6 +323,24 @@ namespace KmyKeiba.Models.Analysis.Generic
                   break;
                 case QueryKey.Abnormal:
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.AbnormalResult == horse.AbnormalResult));
+                  break;
+                case QueryKey.Odds:
+                  {
+                    var (min, max) = AnalysisUtil.GetOddsRange(horse.Odds);
+                    queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Odds >= min && rh.Odds < max));
+                  }
+                  break;
+                case QueryKey.PlaceOddsMax:
+                  {
+                    var (min, max) = AnalysisUtil.GetOddsRange(horse.Odds);
+                    queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.PlaceOddsMax >= min && rh.PlaceOddsMax < max));
+                  }
+                  break;
+                case QueryKey.PlaceOddsMin:
+                  {
+                    var (min, max) = AnalysisUtil.GetOddsRange(horse.Odds);
+                    queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.PlaceOddsMin >= min && rh.PlaceOddsMin < max));
+                  }
                   break;
               }
             }
@@ -1181,7 +1204,7 @@ namespace KmyKeiba.Models.Analysis.Generic
   enum QueryKey
   {
     Unknown,
-    [StringQueryKey("racekey")]
+    [StringQueryKey("race")]
     RaceKey,
     [EnumQueryKey("weather")]
     Weather,
@@ -1220,7 +1243,7 @@ namespace KmyKeiba.Models.Analysis.Generic
     [QueryKey("grades")]
     Grades,
 
-    [StringQueryKey("horsekey")]
+    [StringQueryKey("horse")]
     HorseKey,
     [EnumQueryKey("age")]
     Age,

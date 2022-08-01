@@ -1,8 +1,8 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Generic;
-using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
@@ -14,11 +14,12 @@ using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KmyKeiba.Models.Analysis
+namespace KmyKeiba.Models.Data
 {
   public class RaceFinder
   {
-    private readonly CompositeDisposable _disposables = new();
+    private Dictionary<string, (int, IReadOnlyList<RaceHorseAnalyzer>)> _raceHorseCaches = new();
+    private Dictionary<string, (int, IReadOnlyList<RaceAnalyzer>)> _raceCaches = new();
 
     public string Name => this.Subject.DisplayName;
 
@@ -35,8 +36,14 @@ namespace KmyKeiba.Models.Analysis
       this.RaceHorse = raceHorse;
     }
 
-    public async Task<IList<RaceHorseAnalyzer>> GetRaceHorsesAsync(MyContext db, string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true)
+    public async Task<IReadOnlyList<RaceHorseAnalyzer>> FindRaceHorsesAsync(MyContext? db, string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true)
     {
+      if (withoutFutureRaces && this._raceHorseCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
+      {
+        return cache.Item2;
+      }
+
+      db ??= new();
       var reader = new ScriptKeysReader(keys);
 
       IQueryable<RaceData> races = db.Races!;
@@ -85,12 +92,22 @@ namespace KmyKeiba.Models.Analysis
             raceHorsesData.Where(rh => rh.RaceKey == race.Race.Key).ToArray(),
             await AnalysisUtil.GetRaceStandardTimeAsync(db, race.Race)));
       }
+      if (withoutFutureRaces && this.IsCache(keys))
+      {
+        this._raceHorseCaches[keys] = (sizeMax, list);
+      }
 
       return list;
     }
 
-    public async Task<IList<RaceData>> GetRacesAsync(MyContext db, string keys, int sizeMax, int offset = 0, bool withoutFutureRaces = true)
+    public async Task<IReadOnlyList<RaceAnalyzer>> FindRacesAsync(MyContext? db, string keys, int sizeMax, int offset = 0, bool withoutFutureRaces = true)
     {
+      if (withoutFutureRaces && this._raceCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
+      {
+        return cache.Item2;
+      }
+
+      db ??= new();
       var reader = new ScriptKeysReader(keys);
 
       IQueryable<RaceData> races = db.Races!;
@@ -112,12 +129,58 @@ namespace KmyKeiba.Models.Analysis
         .Take(sizeMax)
         .ToArrayAsync();
 
-      return racesData;
+      var list = new List<RaceAnalyzer>();
+      foreach (var race in racesData)
+      {
+        list.Add(new RaceAnalyzer(race, Array.Empty<RaceHorseData>(), await AnalysisUtil.GetRaceStandardTimeAsync(db, race)));
+      }
+      if (withoutFutureRaces && this.IsCache(keys))
+      {
+        this._raceCaches[keys] = (sizeMax, list);
+      }
+
+      return list;
+    }
+
+    private bool IsCache(string keys)
+    {
+      // ここから先は結果が変わりようがないのでキャッシュ対象
+      if (this.Race.DataStatus >= RaceDataStatus.PreliminaryGrade3)
+      {
+        return true;
+      }
+
+      // 単に「popular」とだけ書いてあって条件式が指定されていないものは、現在のオッズを参照するのでキャッシュ不可
+      var keysArr = keys.Split('|');
+      if (keysArr.Contains("popular") || keysArr.Contains("odds") || keysArr.Contains("placeoddsmin") || keysArr.Contains("placeoddsmax"))
+      {
+        return false;
+      }
+
+      return true;
+    }
+
+    public RaceHorseTrendAnalysisSelectorWrapper AsTrendAnalysisSelector()
+    {
+      return new RaceHorseTrendAnalysisSelectorWrapper(this);
+    }
+
+    public void ReplaceFrom(RaceFinder other)
+    {
+      this.Dispose();
+
+      this._raceCaches = other._raceCaches;
+      this._raceHorseCaches = other._raceHorseCaches;
     }
 
     public void Dispose()
     {
-      this._disposables.Dispose();
+      foreach (var disposable in this._raceCaches
+        .SelectMany(c => c.Value.Item2.Cast<IDisposable>())
+        .Concat(this._raceHorseCaches.SelectMany(c => c.Value.Item2.Cast<IDisposable>())))
+      {
+        disposable.Dispose();
+      }
     }
   }
 }

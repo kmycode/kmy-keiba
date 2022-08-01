@@ -204,7 +204,7 @@ namespace KmyKeiba.Models.Analysis.Table
 
     private readonly Func<RaceHorseAnalyzer, S> _selector;
 
-    private readonly string _keys;
+    protected readonly string _keys;
 
     public int SampleSize { get; set; } = ApplicationConfiguration.Current.Value.AnalysisTableSampleSize;
 
@@ -225,6 +225,8 @@ namespace KmyKeiba.Models.Analysis.Table
     public ReactiveCollection<RaceHorseAnalyzer> Samples { get; } = new();
 
     public ReactiveProperty<bool> IsSamplesEnabled { get; } = new();
+
+    protected virtual A LoadAnalyzer(S selector, int count) => selector.BeginLoad(this._keys, count, 0, false);
 
     public AnalysisTableCell(RaceHorseAnalyzer horse, Func<RaceHorseAnalyzer, S> selector, string keys)
     {
@@ -247,7 +249,7 @@ namespace KmyKeiba.Models.Analysis.Table
       }
 
       var selector = this._selector(this._horse);
-      var analyzer = selector.BeginLoad(this._keys, count, 0, false);
+      var analyzer = this.LoadAnalyzer(selector, count);
       await analyzer.WaitAnalysisAsync();
 
       this.Analyzer.Value = analyzer;
@@ -289,6 +291,15 @@ namespace KmyKeiba.Models.Analysis.Table
     protected override void AfterLoad(A analyzer)
     {
       this._afterLoad(analyzer, this);
+    }
+  }
+
+  class LambdaAnalysisWithFinderTableCell : LambdaAnalysisTableCell<RaceHorseTrendAnalysisSelectorWrapper, RaceHorseTrendAnalyzer>
+  {
+    protected override RaceHorseTrendAnalyzer LoadAnalyzer(RaceHorseTrendAnalysisSelectorWrapper selector, int count) => selector.BeginLoad(this._keys, count);
+
+    public LambdaAnalysisWithFinderTableCell(RaceHorseAnalyzer horse, Func<RaceHorseAnalyzer, RaceHorseTrendAnalysisSelectorWrapper> selector, string keys, Action<RaceHorseTrendAnalyzer, AnalysisTableCell<RaceHorseTrendAnalysisSelectorWrapper, RaceHorseTrendAnalyzer>> afterLoad) : base(horse, selector, keys, afterLoad)
+    {
     }
   }
 }

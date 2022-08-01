@@ -464,6 +464,20 @@ Race.prototype.getSimilarRaceHorsesAsync = async function (keys, count, offset) 
     return data.map(d => new RaceHorse(d));
 }
 
+// 拡張キーを用いてレースを検索する。 https://github.com/kmycode/kmy-keiba/wiki/%E6%8B%A1%E5%BC%B5%E5%82%BE%E5%90%91%E6%A4%9C%E7%B4%A2%E3%82%AD%E3%83%BC
+Race.prototype.findRacesAsync = async function (keys, count, offset) {
+  const json = await this._obj.findRacesAsync(keys, count || 300, offset || 0);
+  const data = JSON.parse(json);
+  return data.map(d => new Race(d));
+}
+
+// 拡張キーを用いてレース出場馬を検索する。 https://github.com/kmycode/kmy-keiba/wiki/%E6%8B%A1%E5%BC%B5%E5%82%BE%E5%90%91%E6%A4%9C%E7%B4%A2%E3%82%AD%E3%83%BC
+Race.prototype.findRaceHorsesAsync = async function (keys, count, offset) {
+  const json = await this._obj.findRaceHorsesAsync(keys, count || 300, offset || 0);
+  const data = JSON.parse(json);
+  return data.map(d => new RaceHorse(d));
+}
+
 // 以下はオッズ取得関数が並んでいるが、
 // 単勝／複勝オッズは各馬（RaceHorse型）のデータの中に入っているのでそれを参照する
 
@@ -842,6 +856,20 @@ RaceHorse.prototype.getBloodNamesAsync = async function() {
   const json = await this._getObj().getBloodNamesAsync();
   const data = JSON.parse(json);
   return data;
+}
+
+// 拡張キーを用いてレースを検索する。 https://github.com/kmycode/kmy-keiba/wiki/%E6%8B%A1%E5%BC%B5%E5%82%BE%E5%90%91%E6%A4%9C%E7%B4%A2%E3%82%AD%E3%83%BC
+RaceHorse.prototype.findRacesAsync = async function (keys, count, offset) {
+  const json = await this._getObj().findRacesAsync(keys, count || 300, offset || 0);
+  const data = JSON.parse(json);
+  return data.map(d => new Race(d));
+}
+
+// 拡張キーを用いてレース出場馬を検索する。 https://github.com/kmycode/kmy-keiba/wiki/%E6%8B%A1%E5%BC%B5%E5%82%BE%E5%90%91%E6%A4%9C%E7%B4%A2%E3%82%AD%E3%83%BC
+RaceHorse.prototype.findRaceHorsesAsync = async function (keys, count, offset) {
+  const json = await this._getObj().findRaceHorsesAsync(keys, count || 300, offset || 0);
+  const data = JSON.parse(json);
+  return data.map(d => new RaceHorse(d));
 }
 
 // 最近の調教結果を取得する

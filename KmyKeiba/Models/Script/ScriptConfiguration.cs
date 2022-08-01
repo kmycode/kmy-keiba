@@ -140,6 +140,21 @@ namespace KmyKeiba.Models.Script
       });
     }
 
+    [ScriptMember("useFinder")]
+    public void UseFinder(string name, string keys, string value)
+    {
+      this._rows.Add(race =>
+      {
+        return Task.FromResult(new AnalysisTableRow(name, race, (race, horse) =>
+        {
+          var selector = horse.Finder.AsTrendAnalysisSelector();
+          return new LambdaAnalysisWithFinderTableCell(
+            horse, h => selector, keys,
+            (analyzer, cell) => this.SetValueOfRaceHorseAnalyzer(value, analyzer, cell));
+        }));
+      });
+    }
+
     [ScriptMember("useRaceHorseAnalyzer")]
     public void UseRaceHorseAnalyzer(string name, string target, string keys, string value)
     {
@@ -226,6 +241,13 @@ namespace KmyKeiba.Models.Script
         cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
         cell.SampleSize = 0;
       }
+      else if (value == "ua3htime")
+      {
+        cell.Value.Value = analyzer.UntilA3HTimeDeviationValue.Value.ToString("F1");
+        cell.ComparationValue.Value = (float)analyzer.UntilA3HTimeDeviationValue.Value;
+        cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
+        cell.SampleSize = 0;
+      }
       else if (value == "shortesttime")
       {
         if (analyzer.Race.Distance <= 0)
@@ -248,6 +270,13 @@ namespace KmyKeiba.Models.Script
           cell.SampleSize = 1;
           cell.SampleFilter = filter;
         }
+      }
+      else if (value == "recovery")
+      {
+        cell.Value.Value = analyzer.RecoveryRate.Value.ToString("P1");
+        cell.ComparationValue.Value = (float)analyzer.RecoveryRate.Value;
+        cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
+        cell.SampleSize = 0;
       }
       else
       {

@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,6 +48,7 @@ namespace KmyKeiba.Models.Race
       IReadOnlyList<RaceHorseData> horseHistorySameHorses,
       IReadOnlyList<TrainingData> trainings,
       IReadOnlyList<WoodtipTrainingData> woodtipTrainings,
+      RaceFinder finder,
       RefundData? refund,
       FrameNumberOddsData? frameNumberOdds,
       QuinellaPlaceOddsData? quinellaPlaceOdds,
@@ -71,6 +73,7 @@ namespace KmyKeiba.Models.Race
       cache.Trainings = trainings;
       cache.WoodtipTrainings = woodtipTrainings;
       cache.Refund = refund;
+      cache.Finder = finder;
 
       if (refund != null)
       {
@@ -105,6 +108,7 @@ namespace KmyKeiba.Models.Race
 
       if (cache.RaceAnalyzers != null) race.TrendAnalyzers.CopyFrom(cache.RaceAnalyzers);
       if (cache.RaceWinnerAnalyzers != null) race.WinnerTrendAnalyzers.CopyFrom(cache.RaceWinnerAnalyzers);
+      if (cache.Finder != null) race.Finder.ReplaceFrom(cache.Finder);
       foreach (var horse in race.Horses.Join(cache.Horses, r => r.Data.Id, c => c.Data.Id, (r, c) => new { New = r, Old = c, }))
       {
         if (horse.Old.RaceRiderAnalyzers != null && horse.New.Data.RiderCode == horse.Old.Data.RiderCode)
@@ -113,6 +117,8 @@ namespace KmyKeiba.Models.Race
           horse.New.TrainerTrendAnalyzers?.CopyFrom(horse.Old.RaceTrainerAnalyzers);
         if (horse.Old.RaceHorseBloodAnalyzers != null)
           horse.New.BloodSelectors?.CopyFrom(horse.Old.RaceHorseBloodAnalyzers);
+        if (horse.Old.Finder != null)
+          horse.New.Finder.ReplaceFrom(horse.Old.Finder);
       }
 
       return true;
@@ -135,6 +141,8 @@ namespace KmyKeiba.Models.Race
     public RaceTrendAnalysisSelector? RaceAnalyzers { get; set; }
 
     public RaceWinnerHorseTrendAnalysisSelector? RaceWinnerAnalyzers { get; set; }
+
+    public RaceFinder? Finder { get; set; }
 
     public IReadOnlyList<(RaceData Race, RaceHorseData RaceHorse)>? HorseAllHistories { get; set; }
 
@@ -173,6 +181,7 @@ namespace KmyKeiba.Models.Race
           RaceRiderAnalyzers = horse.RiderTrendAnalyzers,
           RaceTrainerAnalyzers = horse.TrainerTrendAnalyzers,
           RaceHorseBloodAnalyzers = horse.BloodSelectors,
+          Finder = horse.Finder,
         });
       }
     }
@@ -186,6 +195,8 @@ namespace KmyKeiba.Models.Race
       public RaceTrainerTrendAnalysisSelector? RaceTrainerAnalyzers { get; set; }
 
       public RaceHorseBloodTrendAnalysisSelectorMenu? RaceHorseBloodAnalyzers { get; set; }
+
+      public RaceFinder? Finder { get; set; }
 
       public RaceInfoHorseCache(RaceHorseData horse)
       {

@@ -34,7 +34,24 @@ namespace KmyKeiba.Common
 
     public void Request(string message)
     {
-      this.Requested?.Invoke(this, new OpenErrorConfiguringRequestEventArgs(message));
+      if (this.Requested != null)
+      {
+        this.Requested.Invoke(this, new OpenErrorConfiguringRequestEventArgs(message));
+      }
+      else
+      {
+        Task.Run(() =>
+        {
+          while (this.Requested == null)
+          {
+            Task.Delay(500).Wait();
+          }
+          ThreadUtil.InvokeOnUiThread(() =>
+          {
+            this.Requested.Invoke(this, new OpenErrorConfiguringRequestEventArgs(message));
+          });
+        });
+      }
     }
 
     public event EventHandler<OpenErrorConfiguringRequestEventArgs>? Requested;
