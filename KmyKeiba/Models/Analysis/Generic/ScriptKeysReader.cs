@@ -25,12 +25,12 @@ namespace KmyKeiba.Models.Analysis.Generic
       this._keys = keys;
     }
 
-    public IReadOnlyList<ScriptKeyQuery> GetQueries(RaceData race, RaceHorseData? horse = null)
+    public IReadOnlyList<ScriptKeyQuery> GetQueries(RaceData? race, RaceHorseData? horse = null)
     {
       return GetQueries(this._keys, race, horse);
     }
 
-    public static IReadOnlyList<ScriptKeyQuery> GetQueries(string keys, RaceData race, RaceHorseData? horse = null)
+    public static IReadOnlyList<ScriptKeyQuery> GetQueries(string keys, RaceData? race = null, RaceHorseData? horse = null)
     {
       var queries = new List<ScriptKeyQuery>();
       foreach (var q in keys.Split('|'))
@@ -224,64 +224,67 @@ namespace KmyKeiba.Models.Analysis.Generic
           // 条件式指定がないときのデフォルト値を指定
           if (key.Item1 != QueryKey.Unknown && key.Item2 != null)
           {
-            switch (key.Item1)
+            if (race != null)
             {
-              case QueryKey.Weather:
-                queries.Add(new RaceLambdaScriptKeyQuery(r => r.TrackWeather == race.TrackWeather));
-                break;
-              case QueryKey.Condition:
-                queries.Add(new RaceLambdaScriptKeyQuery(r => r.TrackCondition == race.TrackCondition));
-                break;
-              case QueryKey.Distance:
-                var diff = race.Course <= RaceCourse.CentralMaxValue ?
-                  ApplicationConfiguration.Current.Value.NearDistanceDiffCentral :
-                  ApplicationConfiguration.Current.Value.NearDistanceDiffLocal;
-                queries.Add(new RaceLambdaScriptKeyQuery(r => r.Distance >= race.Distance - diff && r.Distance <= race.Distance + diff));
-                break;
-              case QueryKey.Direction:
-                queries.Add(new RaceLambdaScriptKeyQuery(r => r.TrackCornerDirection == race.TrackCornerDirection));
-                break;
-              case QueryKey.Day:
-                queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Day == race.StartTime.Day));
-                break;
-              case QueryKey.Month:
-                queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Month == race.StartTime.Month));
-                break;
-              case QueryKey.Year:
-                queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Year == race.StartTime.Year));
-                break;
-              case QueryKey.Subject:
-                if (race.Course <= RaceCourse.CentralMaxValue)
-                {
-                  queries.Add(new RaceLambdaScriptKeyQuery(r =>
-                                           r.SubjectName == race.SubjectName &&
-                                           r.SubjectAge2 == race.SubjectAge2 &&
-                                           r.SubjectAge3 == race.SubjectAge3 &&
-                                           r.SubjectAge4 == race.SubjectAge4 &&
-                                           r.SubjectAge5 == race.SubjectAge5 &&
-                                           r.SubjectAgeYounger == race.SubjectAgeYounger));
-                }
-                else if (race.Course >= RaceCourse.LocalMinValue && !string.IsNullOrEmpty(race.SubjectDisplayInfo))
-                {
-                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.SubjectDisplayInfo == race.SubjectDisplayInfo));
-                }
-                break;
-              case QueryKey.GradeId:
-                if (race.GradeId != default)
-                {
-                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.GradeId == race.GradeId));
-                }
-                break;
-              case QueryKey.Grades:
-                queries.Add(new RaceLambdaScriptKeyQuery(r => race.Grade == RaceGrade.Grade1 || race.Grade == RaceGrade.Grade2 || race.Grade == RaceGrade.Grade3 ||
-                                 race.Grade == RaceGrade.LocalGrade1 || race.Grade == RaceGrade.LocalGrade2 || race.Grade == RaceGrade.LocalGrade3));
-                break;
-              case QueryKey.Course:
-                queries.Add(new RaceLambdaScriptKeyQuery(r => r.Course == race.Course));
-                break;
-              case QueryKey.RaceKey:
-                queries.Add(new RaceLambdaScriptKeyQuery(r => r.Key == race.Key));
-                break;
+              switch (key.Item1)
+              {
+                case QueryKey.Weather:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.TrackWeather == race.TrackWeather));
+                  break;
+                case QueryKey.Condition:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.TrackCondition == race.TrackCondition));
+                  break;
+                case QueryKey.Distance:
+                  var diff = race.Course <= RaceCourse.CentralMaxValue ?
+                    ApplicationConfiguration.Current.Value.NearDistanceDiffCentral :
+                    ApplicationConfiguration.Current.Value.NearDistanceDiffLocal;
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.Distance >= race.Distance - diff && r.Distance <= race.Distance + diff));
+                  break;
+                case QueryKey.Direction:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.TrackCornerDirection == race.TrackCornerDirection));
+                  break;
+                case QueryKey.Day:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Day == race.StartTime.Day));
+                  break;
+                case QueryKey.Month:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Month == race.StartTime.Month));
+                  break;
+                case QueryKey.Year:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Year == race.StartTime.Year));
+                  break;
+                case QueryKey.Subject:
+                  if (race.Course <= RaceCourse.CentralMaxValue)
+                  {
+                    queries.Add(new RaceLambdaScriptKeyQuery(r =>
+                                             r.SubjectName == race.SubjectName &&
+                                             r.SubjectAge2 == race.SubjectAge2 &&
+                                             r.SubjectAge3 == race.SubjectAge3 &&
+                                             r.SubjectAge4 == race.SubjectAge4 &&
+                                             r.SubjectAge5 == race.SubjectAge5 &&
+                                             r.SubjectAgeYounger == race.SubjectAgeYounger));
+                  }
+                  else if (race.Course >= RaceCourse.LocalMinValue && !string.IsNullOrEmpty(race.SubjectDisplayInfo))
+                  {
+                    queries.Add(new RaceLambdaScriptKeyQuery(r => r.SubjectDisplayInfo == race.SubjectDisplayInfo));
+                  }
+                  break;
+                case QueryKey.GradeId:
+                  if (race.GradeId != default)
+                  {
+                    queries.Add(new RaceLambdaScriptKeyQuery(r => r.GradeId == race.GradeId));
+                  }
+                  break;
+                case QueryKey.Grades:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => race.Grade == RaceGrade.Grade1 || race.Grade == RaceGrade.Grade2 || race.Grade == RaceGrade.Grade3 ||
+                                   race.Grade == RaceGrade.LocalGrade1 || race.Grade == RaceGrade.LocalGrade2 || race.Grade == RaceGrade.LocalGrade3));
+                  break;
+                case QueryKey.Course:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.Course == race.Course));
+                  break;
+                case QueryKey.RaceKey:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.Key == race.Key));
+                  break;
+              }
             }
 
             if (horse != null)

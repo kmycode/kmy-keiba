@@ -23,16 +23,23 @@ namespace KmyKeiba.Models.Data
 
     public string Name => this.Subject.DisplayName;
 
-    public RaceData Race { get; }
+    public RaceData? Race { get; }
 
     public RaceSubjectInfo Subject { get; }
 
     public RaceHorseData? RaceHorse { get; }
 
-    public RaceFinder(RaceData race, RaceHorseData? raceHorse = null)
+    public RaceFinder(RaceData? race = null, RaceHorseData? raceHorse = null)
     {
       this.Race = race;
-      this.Subject = new RaceSubjectInfo(race);
+      if (race != null)
+      {
+        this.Subject = new RaceSubjectInfo(race);
+      }
+      else
+      {
+        this.Subject = new RaceSubjectInfo(new());
+      }
       this.RaceHorse = raceHorse;
     }
 
@@ -49,7 +56,14 @@ namespace KmyKeiba.Models.Data
       IQueryable<RaceData> races = db.Races!;
       if (withoutFutureRaces)
       {
-        races = races.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
+        if (this.Race != null)
+        {
+          races = races.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
+        }
+        else
+        {
+          races = races.Where(r => r.StartTime < DateTime.Now && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
+        }
       }
       var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
 
@@ -113,7 +127,14 @@ namespace KmyKeiba.Models.Data
       IQueryable<RaceData> races = db.Races!;
       if (withoutFutureRaces)
       {
-        races = races.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
+        if (this.Race != null)
+        {
+          races = races.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
+        }
+        else
+        {
+          races = races.Where(r => r.StartTime < DateTime.Now && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
+        }
       }
 
       var raceQueries = reader.GetQueries(this.Race);
@@ -145,7 +166,7 @@ namespace KmyKeiba.Models.Data
     private bool IsCache(string keys)
     {
       // ここから先は結果が変わりようがないのでキャッシュ対象
-      if (this.Race.DataStatus >= RaceDataStatus.PreliminaryGrade3)
+      if (this.Race == null || this.Race.DataStatus >= RaceDataStatus.PreliminaryGrade3)
       {
         return true;
       }
