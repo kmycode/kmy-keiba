@@ -536,7 +536,7 @@ namespace KmyKeiba.Models.Race
       this.TrendAnalyzers.Dispose();
       this.AnalysisTables.Dispose();
       this.Finder.Dispose();
-      this.MemoEx?.Dispose();
+      this.MemoEx.Value?.Dispose();
       foreach (var h in this.Horses)
       {
         h.Dispose();

@@ -12,6 +12,7 @@ namespace KmyKeiba.Models.Analysis
   internal static class HorseBloodUtil
   {
     private static readonly Dictionary<string, Dictionary<BloodType, BloodItem>> _caches = new();
+    private static readonly Dictionary<string, BloodItem> _bloodItems = new();
 
     public static async Task<string> GetNameAsync(MyContext db, string horseKey, BloodType type)
     {
@@ -43,10 +44,20 @@ namespace KmyKeiba.Models.Analysis
         {
           var dic = new Dictionary<BloodType, BloodItem>
           {
-            [BloodType.Father] = new BloodItem
-            {
-              BloodCode = born.FatherBreedingCode,
-            }
+            [BloodType.Father] = new BloodItem { BloodCode = born.FatherBreedingCode, },
+            [BloodType.FatherFather] = new BloodItem { BloodCode = born.FFBreedingCode, },
+            [BloodType.FatherFatherFather] = new BloodItem { BloodCode = born.FFFBreedingCode, },
+            [BloodType.FatherFatherMother] = new BloodItem { BloodCode = born.FFMBreedingCode, },
+            [BloodType.FatherMother] = new BloodItem { BloodCode = born.FMBreedingCode, },
+            [BloodType.FatherMotherFather] = new BloodItem { BloodCode = born.FMFBreedingCode, },
+            [BloodType.FatherMotherMother] = new BloodItem { BloodCode = born.FMMBreedingCode, },
+            [BloodType.Mother] = new BloodItem { BloodCode = born.MotherBreedingCode, },
+            [BloodType.MotherFather] = new BloodItem { BloodCode = born.MFBreedingCode, },
+            [BloodType.MotherFatherFather] = new BloodItem { BloodCode = born.MFFBreedingCode, },
+            [BloodType.MotherFatherMother] = new BloodItem { BloodCode = born.MFMBreedingCode, },
+            [BloodType.MotherMother] = new BloodItem { BloodCode = born.MMBreedingCode, },
+            [BloodType.MotherMotherFather] = new BloodItem { BloodCode = born.MMFBreedingCode, },
+            [BloodType.MotherMotherMother] = new BloodItem { BloodCode = born.MMMBreedingCode, },
           };
           _caches[horseKey] = dic;
         }
@@ -57,10 +68,20 @@ namespace KmyKeiba.Models.Analysis
           {
             var dic = new Dictionary<BloodType, BloodItem>
             {
-              [BloodType.Father] = new BloodItem
-              {
-                BloodCode = horse.FatherBreedingCode,
-              }
+              [BloodType.Father] = new BloodItem { BloodCode = horse.FatherBreedingCode, },
+              [BloodType.FatherFather] = new BloodItem { BloodCode = horse.FFBreedingCode, },
+              [BloodType.FatherFatherFather] = new BloodItem { BloodCode = horse.FFFBreedingCode, },
+              [BloodType.FatherFatherMother] = new BloodItem { BloodCode = horse.FFMBreedingCode, },
+              [BloodType.FatherMother] = new BloodItem { BloodCode = horse.FMBreedingCode, },
+              [BloodType.FatherMotherFather] = new BloodItem { BloodCode = horse.FMFBreedingCode, },
+              [BloodType.FatherMotherMother] = new BloodItem { BloodCode = horse.FMMBreedingCode, },
+              [BloodType.Mother] = new BloodItem { BloodCode = horse.MotherBreedingCode, },
+              [BloodType.MotherFather] = new BloodItem { BloodCode = horse.MFBreedingCode, },
+              [BloodType.MotherFatherFather] = new BloodItem { BloodCode = horse.MFFBreedingCode, },
+              [BloodType.MotherFatherMother] = new BloodItem { BloodCode = horse.MFMBreedingCode, },
+              [BloodType.MotherMother] = new BloodItem { BloodCode = horse.MMBreedingCode, },
+              [BloodType.MotherMotherFather] = new BloodItem { BloodCode = horse.MMFBreedingCode, },
+              [BloodType.MotherMotherMother] = new BloodItem { BloodCode = horse.MMMBreedingCode, },
             };
             _caches[horseKey] = dic;
           }
@@ -78,8 +99,15 @@ namespace KmyKeiba.Models.Analysis
 
       if (item.TryGetValue(type, out var detail))
       {
+        if (_bloodItems.TryGetValue(detail.BloodCode, out var existsItem))
+        {
+          detail.HorseKey = existsItem.HorseKey;
+          detail.Name = existsItem.Name;
+        }
+
         if (detail.HorseKey == null)
         {
+          detail.HorseKey = string.Empty;
           var data = await db.HorseBloods!.FirstOrDefaultAsync(b => b.Key == detail.BloodCode);
           if (data != null)
           {
@@ -89,12 +117,15 @@ namespace KmyKeiba.Models.Analysis
         }
         if (detail.HorseKey != null && detail.Name == null)
         {
+          detail.Name = string.Empty;
           var data = await db.Horses!.FirstOrDefaultAsync(h => h.Code == detail.HorseKey);
           if (data != null)
           {
             detail.Name = data.Name;
           }
         }
+
+        _bloodItems[detail.BloodCode] = detail;
 
         return detail;
       }

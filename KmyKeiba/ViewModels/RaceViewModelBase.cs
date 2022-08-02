@@ -5,6 +5,7 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Table;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.Expand;
 using KmyKeiba.Shared;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -166,8 +167,33 @@ namespace KmyKeiba.ViewModels
 
     public ICommand AddMemoConfigCommand =>
       this._addMemoConfigCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.AddRaceMemoConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _addMemoConfigCommand;
+
+    public ICommand EditMemoConfigCommand =>
+      this._editMemoConfigCommand ??=
+        new ReactiveCommand<RaceMemoItem>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.StartEditRaceMemoConfig(obj.Config)).AddTo(this._disposables);
+    private ICommand? _editMemoConfigCommand;
+
+    public ICommand SaveMemoConfigCommand =>
+      this._saveMemoConfigCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.UpdateConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _saveMemoConfigCommand;
+
+    public ICommand UpMemoOrderCommand =>
+      this._upMemoOrderCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.UpConfigOrderAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upMemoOrderCommand;
+
+    public ICommand DownMemoOrderCommand =>
+      this._downMemoOrderCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.DownConfigOrderAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downMemoOrderCommand;
+
+    public ICommand DeleteMemoConfigCommand =>
+      this._deleteMemoConfigCommand ??=
+        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.DeleteConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _deleteMemoConfigCommand;
 
     public ICommand OpenRaceWindowCommand =>
       this._openRaceWindowCommand ??=

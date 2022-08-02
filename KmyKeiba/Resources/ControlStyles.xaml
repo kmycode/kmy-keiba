@@ -92,6 +92,13 @@
         <Setter Property="Foreground" Value="{StaticResource SubForeground}"/>
         <Setter Property="Opacity" Value="0.8"/>
       </Trigger>
+      <MultiTrigger>
+        <MultiTrigger.Conditions>
+          <Condition Property="IsEnabled" Value="False"/>
+          <Condition Property="IsChecked" Value="True"/>
+        </MultiTrigger.Conditions>
+        <Setter Property="Background" Value="{StaticResource CheckedBackground}"/>
+      </MultiTrigger>
     </Style.Triggers>
   </Style>
   <Style TargetType="ToggleButton" BasedOn="{StaticResource ToggleButtonDefault}"/>
@@ -158,6 +165,25 @@
         <ControlTemplate>
           <ScrollViewer Padding="{TemplateBinding Control.Padding}" Focusable="False"
                         CanContentScroll="True">
+            <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
+          </ScrollViewer>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style TargetType="ItemsControl" x:Key="TableListHorizontal">
+    <Setter Property="ItemsPanel">
+      <Setter.Value>
+        <ItemsPanelTemplate>
+          <VirtualizingStackPanel IsVirtualizing="True" VirtualizationMode="Recycling" Orientation="Horizontal"/>
+        </ItemsPanelTemplate>
+      </Setter.Value>
+    </Setter>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate>
+          <ScrollViewer Padding="{TemplateBinding Control.Padding}" Focusable="False"
+                        CanContentScroll="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
             <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
           </ScrollViewer>
         </ControlTemplate>

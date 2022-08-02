@@ -20,6 +20,10 @@ namespace KmyKeiba.Models.Race.Expand
   {
     private readonly CompositeDisposable _disposables = new();
     private static List<ExpansionMemoConfig>? _configs;
+    private static bool _isRaceTab = true;
+    private static bool _isRaceHorseTab;
+
+    // 他のウィンドウのデータ
     private static readonly List<RaceMemoModel> _allModels = new();
 
     private static async Task UpdateConfigsAsync(MyContext db)
@@ -48,15 +52,39 @@ namespace KmyKeiba.Models.Race.Expand
 
     public IReadOnlyList<RaceHorseData> RaceHorses { get; }
 
+    public ReactiveProperty<bool> IsCreating { get; } = new();
+
     public ReactiveProperty<bool> IsEditing { get; } = new();
+
+    public ReactiveProperty<bool> IsRaceView { get; } = new(_isRaceTab);
+
+    public ReactiveProperty<bool> IsRaceHorseView { get; } = new(_isRaceHorseTab);
 
     private ExpansionMemoConfig? editingConfig;
 
     public RaceMemoModel(RaceData race, IReadOnlyList<RaceHorseData> raceHorses)
     {
       this.Race = race;
-      this.RaceHorses = raceHorses;
+      if (raceHorses.All(rh => rh.Number == default))
+      {
+        this.RaceHorses = raceHorses.OrderBy(h => h.Name).ToArray();
+      }
+      else
+      {
+        this.RaceHorses = raceHorses.OrderBy(h => h.Number).ToArray();
+      }
       _allModels.Add(this);
+
+      this.IsRaceView.Subscribe(v => _isRaceTab = v).AddTo(this._disposables);
+      this.IsRaceHorseView.Subscribe(v => _isRaceHorseTab = v).AddTo(this._disposables);
+
+      this.IsCreating.Where(v => v).Subscribe(_ =>
+      {
+        this.IsEditing.Value = false;
+        this.Config.CopyFromData(new ExpansionMemoConfig());
+        this.editingConfig = null;
+      }).AddTo(this._disposables);
+      this.IsEditing.Where(v => v).Subscribe(_ => this.IsCreating.Value = false).AddTo(this._disposables);
     }
 
     public async Task LoadAsync(MyContext db)
@@ -77,14 +105,28 @@ namespace KmyKeiba.Models.Race.Expand
       // レースメモ
       foreach (var config in _configs!.Where(c => c.Type == MemoType.Race).OrderBy(c => c.Id).OrderBy(c => c.Order))
       {
-        var memo = await (await this.GetMemoQueryAsync(db, db.Memos!, config, null)).FirstOrDefaultAsync();
-        if (memo != null)
+        // 同じメモが同時に表示される可能性はないが、他のウィンドウで表示されているかもしれない
+        var existsMemoQuery = _allModels
+          .Where(m => m != this)
+          .SelectMany(m => m.RaceMemos);
+        existsMemoQuery = await this.GetMemoQueryAsync(db, existsMemoQuery, config, null);
+        var existsMemo = existsMemoQuery.FirstOrDefault();
+
+        if (existsMemo != null)
         {
-          raceMemos.Add(new RaceMemoItem(memo, config).AddTo(this._disposables));
+          raceMemos.Add(existsMemo);
         }
         else
         {
-          raceMemos.Add(new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, null), config));
+          var memo = await (await this.GetMemoQueryAsync(db, db.Memos!, config, null)).FirstOrDefaultAsync();
+          if (memo != null)
+          {
+            raceMemos.Add(new RaceMemoItem(memo, config).AddTo(this._disposables));
+          }
+          else
+          {
+            raceMemos.Add(new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, null), config));
+          }
         }
       }
 
@@ -96,14 +138,27 @@ namespace KmyKeiba.Models.Race.Expand
 
         foreach (var config in _configs!.Where(c => c.Type == MemoType.RaceHorse).OrderBy(c => c.Id).OrderBy(c => c.Order))
         {
-          var memo = await (await this.GetMemoQueryAsync(db, db.Memos!, config, horse)).FirstOrDefaultAsync();
-          if (memo != null)
+          var existsMemoQuery = _allModels
+            .SelectMany(m => m.RaceHorseMemos.SelectMany(h => h.Memos))
+            .Concat(raceHorseMemos.SelectMany(m => m.Memos));
+          existsMemoQuery = await this.GetMemoQueryAsync(db, existsMemoQuery, config, horse);
+          var existsMemo = existsMemoQuery.FirstOrDefault();
+
+          if (existsMemo != null)
           {
-            horseMemo.Memos.Add(new RaceMemoItem(memo, config));
+            horseMemo.Memos.Add(existsMemo);
           }
           else
           {
-            horseMemo.Memos.Add(new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, horse), config));
+            var memo = await (await this.GetMemoQueryAsync(db, db.Memos!, config, horse)).FirstOrDefaultAsync();
+            if (memo != null)
+            {
+              horseMemo.Memos.Add(new RaceMemoItem(memo, config));
+            }
+            else
+            {
+              horseMemo.Memos.Add(new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, horse), config));
+            }
           }
         }
       }
@@ -123,12 +178,12 @@ namespace KmyKeiba.Models.Race.Expand
       });
     }
 
-    public async Task AddRaceMemoConfigAsync()
+    public async Task AddConfigAsync()
     {
       using var db = new MyContext();
 
       var config = new ExpansionMemoConfig();
-      var isSucceed = await this.Config.CopyDataAsync(db, config);
+      var isSucceed = await this.Config.CopyDataAsync(db, config, this.IsRaceView.Value);
       if (!isSucceed)
       {
         return;
@@ -143,12 +198,30 @@ namespace KmyKeiba.Models.Race.Expand
       await db.SaveChangesAsync();
       _configs!.Add(config);
 
+      /*
+      // これでは同じ番号のつけられた既存のメモがロードできない
       var data = await this.GenerateMemoDataAsync(db, config, null);
-      ThreadUtil.InvokeOnUiThread(() =>
+      if (config.Type == MemoType.Race)
       {
-        this.RaceMemos.Add(new RaceMemoItem(data, config));
-      });
+        ThreadUtil.InvokeOnUiThread(() =>
+        {
+          this.RaceMemos.Add(new RaceMemoItem(data, config));
+        });
+      }
+      else
+      {
+        ThreadUtil.InvokeOnUiThread(() =>
+        {
+          foreach (var horse in this.RaceHorseMemos)
+          {
+            horse.Memos.Add(new RaceMemoItem(data, config));
+          }
+        });
+      }
+      */
+      await this.LoadAsync(db);
       await ReloadAllModelsAsync(db, this);
+      this.IsCreating.Value = false;
     }
 
     public void StartEditRaceMemoConfig(ExpansionMemoConfig config)
@@ -158,20 +231,21 @@ namespace KmyKeiba.Models.Race.Expand
       this.editingConfig = config;
     }
 
-    public async Task UpdateRaceMemoConfigAsync()
+    public async Task UpdateConfigAsync()
     {
       using var db = new MyContext();
 
       if (this.editingConfig != null)
       {
         db.MemoConfigs!.Attach(this.editingConfig);
-        await this.Config.CopyDataAsync(db, this.editingConfig);
-        await db.SaveChangesAsync();
-        UpdateConfigs(this.editingConfig);
+        var isSucceed = await this.Config.CopyDataAsync(db, this.editingConfig, this.IsRaceView.Value);
+        if (isSucceed)
+        {
+          await db.SaveChangesAsync();
+          UpdateConfigs(this.editingConfig);
+          this.IsEditing.Value = false;
+        }
       }
-
-      this.IsEditing.Value = false;
-      await ReloadAllModelsAsync(db, this);
     }
 
     private static void UpdateConfigs(ExpansionMemoConfig config)
@@ -181,24 +255,29 @@ namespace KmyKeiba.Models.Race.Expand
       {
         _configs![_configs.IndexOf(exists)] = config;
 
-        // TODO
+        void SetValues(RaceMemoItem item)
+        {
+          // TODO 既存のモデルに更新を反映（ラベルとか）
+          item.Header.Value = config.Header;
+        }
+
         foreach (var model in _allModels)
         {
-          var item = model.RaceMemos.FirstOrDefault(m => m.Data.Id == exists.Id);
+          var item = model.RaceMemos.FirstOrDefault(m => m.Config.Id == exists.Id);
           if (item != null)
           {
-            item.Header.Value = config.Header;
+            SetValues(item);
           }
 
-          foreach (var horse in model.RaceHorseMemos.SelectMany(h => h.Memos.Where(m => m.Data.Id == exists.Id)))
+          foreach (var horse in model.RaceHorseMemos.SelectMany(h => h.Memos.Where(m => m.Config.Id == exists.Id)))
           {
-            horse.Header.Value = config.Header;
+            SetValues(horse);
           }
         }
       }
     }
 
-    public async Task DeleteRaceMemoConfigAsync()
+    public async Task DeleteConfigAsync()
     {
       using var db = new MyContext();
 
@@ -215,11 +294,12 @@ namespace KmyKeiba.Models.Race.Expand
       }
 
       this.IsEditing.Value = false;
+
       await this.LoadAsync(db);
       await ReloadAllModelsAsync(db, this);
     }
 
-    public async Task UpConfigAsync()
+    public async Task UpConfigOrderAsync()
     {
       using var db = new MyContext();
 
@@ -245,7 +325,7 @@ namespace KmyKeiba.Models.Race.Expand
       }
     }
 
-    public async Task DownConfigAsync()
+    public async Task DownConfigOrderAsync()
     {
       using var db = new MyContext();
 
@@ -332,66 +412,83 @@ namespace KmyKeiba.Models.Race.Expand
 
     private async Task<IQueryable<MemoData>> GetMemoQueryAsync(MyContext db, IQueryable<MemoData> query, ExpansionMemoConfig config, RaceHorseData? horse)
     {
-      async Task<Expression<Func<MemoData, bool>>> GetTargetComparationAsync(int target, MemoTarget targetType)
+      query = query.Where(m => m.Target1 == config.Target1 && m.Target2 == config.Target2 && m.Target3 == config.Target3 && m.Number == config.MemoNumber);
+      query = query.Where(await GetTargetComparationAsync(db, 1, config.Target1, horse));
+      if (config.Target2 != MemoTarget.Unknown)
+        query = query.Where(await GetTargetComparationAsync(db, 2, config.Target2, horse));
+      if (config.Target3 != MemoTarget.Unknown)
+        query = query.Where(await GetTargetComparationAsync(db, 3, config.Target3, horse));
+      return query;
+    }
+
+    private async Task<IEnumerable<MemoData>> GetMemoQueryAsync(MyContext db, IEnumerable<MemoData> query, ExpansionMemoConfig config, RaceHorseData? horse)
+    {
+      query = query.Where(m => m.Target1 == config.Target1 && m.Target2 == config.Target2 && m.Target3 == config.Target3 && m.Number == config.MemoNumber);
+      query = query.Where((await GetTargetComparationAsync(db, 1, config.Target1, horse)).Compile());
+      if (config.Target2 != MemoTarget.Unknown)
+        query = query.Where((await GetTargetComparationAsync(db, 2, config.Target2, horse)).Compile());
+      if (config.Target3 != MemoTarget.Unknown)
+        query = query.Where((await GetTargetComparationAsync(db, 3, config.Target3, horse)).Compile());
+      return query;
+    }
+
+    private async Task<IEnumerable<RaceMemoItem>> GetMemoQueryAsync(MyContext db, IEnumerable<RaceMemoItem> query, ExpansionMemoConfig config, RaceHorseData? horse)
+    {
+      var hits = await this.GetMemoQueryAsync(db, query.Select(i => i.Data), config, horse);
+      return query.Join(hits.ToArray(), i => (object)i.Data, m => (object)m, (i, m) => i);
+    }
+
+    private async Task<Expression<Func<MemoData, bool>>> GetTargetComparationAsync(MyContext db, int target, MemoTarget targetType, RaceHorseData? horse)
+    {
+      var memo = Expression.Parameter(typeof(MemoData), "x");
+      var key = Expression.Property(memo, "Key" + target);
+
+      if (targetType == MemoTarget.Race)
       {
-        var memo = Expression.Parameter(typeof(MemoData), "x");
-        var key = Expression.Property(memo, "Key" + target);
-
-        if (targetType == MemoTarget.Race)
+        return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(this.Race.Key)), memo);
+      }
+      else if (targetType == MemoTarget.Course)
+      {
+        key = Expression.Property(memo, nameof(MemoData.CourseKey));
+        return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(this.Race.Course)), memo);
+      }
+      else if (targetType == MemoTarget.Day)
+      {
+        return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(this.Race.Key[..8])), memo);
+      }
+      else if (targetType == MemoTarget.Unknown)
+      {
+        return Expression.Lambda<Func<MemoData, bool>>(Expression.Constant(true), memo);
+      }
+      else if (horse != null)
+      {
+        if (targetType == MemoTarget.Horse)
         {
-          return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(this.Race.Key)), memo);
+          return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(horse.Key)), memo);
         }
-        else if (targetType == MemoTarget.Course)
+        else if (targetType == MemoTarget.Rider)
         {
-          key = Expression.Property(memo, nameof(MemoData.CourseKey));
-          return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(this.Race.Course)), memo);
+          return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(horse.RiderCode)), memo);
         }
-        else if (targetType == MemoTarget.Day)
+        else if (targetType == MemoTarget.Trainer)
         {
-          return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(this.Race.Key[..8])), memo);
+          return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(horse.TrainerCode)), memo);
         }
-        else if (targetType == MemoTarget.Unknown)
+        else if (targetType == MemoTarget.Owner)
         {
-          return Expression.Lambda<Func<MemoData, bool>>(Expression.Constant(true), memo);
+          return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(horse.OwnerCode)), memo);
         }
-        else if (horse != null)
+        else if (targetType == MemoTarget.Father)
         {
-          if (targetType == MemoTarget.Horse)
+          var father = await HorseBloodUtil.GetBloodCodeAsync(db, horse.Key, BloodType.Father);
+          if (!string.IsNullOrEmpty(father))
           {
-            return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(horse.Key)), memo);
-          }
-          else if (targetType == MemoTarget.Rider)
-          {
-            return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(horse.RiderCode)), memo);
-          }
-          else if (targetType == MemoTarget.Trainer)
-          {
-            return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(horse.TrainerCode)), memo);
-          }
-          else if (targetType == MemoTarget.Owner)
-          {
-            return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(horse.OwnerCode)), memo);
-          }
-          else if (targetType == MemoTarget.Father)
-          {
-            var father = await HorseBloodUtil.GetBloodCodeAsync(db, horse.Key, BloodType.Father);
-            if (!string.IsNullOrEmpty(father))
-            {
-              return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(father)), memo);
-            }
+            return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(father)), memo);
           }
         }
-
-        return Expression.Lambda<Func<MemoData, bool>>(Expression.Constant(false), memo);
       }
 
-      query = query.Where(m => m.Target1 == config.Target1 && m.Target2 == config.Target2 && m.Target3 == config.Target3 && m.Number == config.MemoNumber);
-      query = query.Where(await GetTargetComparationAsync(1, config.Target1));
-      if (config.Target2 != MemoTarget.Unknown)
-        query = query.Where(await GetTargetComparationAsync(2, config.Target2));
-      if (config.Target3 != MemoTarget.Unknown)
-        query = query.Where(await GetTargetComparationAsync(3, config.Target3));
-      return query;
+      return Expression.Lambda<Func<MemoData, bool>>(Expression.Constant(false), memo);
     }
 
     public void Dispose()
@@ -451,7 +548,7 @@ namespace KmyKeiba.Models.Race.Expand
       return list.OrderBy(i => i).Take(3).ToArray();
     }
 
-    public async Task<string> GetErrorMessageAsync(MyContext db, bool isRaceMemo)
+    public async Task<string> GetErrorMessageAsync(MyContext db, bool isRaceMemo, ExpansionMemoConfig editingConfig)
     {
       if (string.IsNullOrEmpty(this.Header.Value))
       {
@@ -467,6 +564,15 @@ namespace KmyKeiba.Models.Race.Expand
       var target2 = targets.ElementAtOrDefault(1);
       var target3 = targets.ElementAtOrDefault(2);
 
+      if (!isRaceMemo)
+      {
+        var horseConfigs = new[] { MemoTarget.Horse, MemoTarget.Rider, MemoTarget.Trainer, MemoTarget.Owner, MemoTarget.Father };
+        if (!horseConfigs.Contains(target1) && !horseConfigs.Contains(target2) && !horseConfigs.Contains(target3))
+        {
+          return "馬の情報が絞り込み条件に含まれていません";
+        }
+      }
+
       var r = short.TryParse(this.MemoNumber.Value, out var number);
       if (!r)
       {
@@ -474,7 +580,7 @@ namespace KmyKeiba.Models.Race.Expand
       }
 
       var exists = await db.MemoConfigs!.Where(c => c.Target1 == target1 && c.Target2 == target2 && c.Target3 == target3).ToArrayAsync();
-      if (exists.Any(i => i.MemoNumber == number))
+      if (exists.Any(i => i.Id != editingConfig.Id && i.MemoNumber == number))
       {
         return "同一の絞り込み条件で同一の識別番号が設定されたメモがあります";
       }
@@ -541,16 +647,17 @@ namespace KmyKeiba.Models.Race.Expand
       this.Header.Value = config.Header;
     }
 
-    public async Task<bool> CopyDataAsync(MyContext db, ExpansionMemoConfig config)
+    public async Task<bool> CopyDataAsync(MyContext db, ExpansionMemoConfig config, bool isRaceMemo)
     {
-      var isRaceMemo = !this.IsFilterHorse.Value && !this.IsFilterOwner.Value && !this.IsFilterRider.Value && !this.IsFilterTrainer.Value;
+      // var isRaceMemo = !this.IsFilterHorse.Value && !this.IsFilterOwner.Value && !this.IsFilterRider.Value && !this.IsFilterTrainer.Value;
 
-      var error = await this.GetErrorMessageAsync(db, isRaceMemo);
+      var error = await this.GetErrorMessageAsync(db, isRaceMemo, config);
       if (!string.IsNullOrEmpty(error))
       {
         this.ErrorMessage.Value = error;
         return false;
       }
+      this.ErrorMessage.Value = string.Empty;
 
       var targets = this.GetTargets(isRaceMemo);
       var target1 = targets[0];
@@ -601,6 +708,8 @@ namespace KmyKeiba.Models.Race.Expand
   {
     private readonly CompositeDisposable _disposables = new();
 
+    public ReactiveProperty<bool> IsStopSaving { get; } = new();
+
     public MemoData Data { get; }
 
     public ExpansionMemoConfig Config { get; }
@@ -629,7 +738,7 @@ namespace KmyKeiba.Models.Race.Expand
       this.IsPointVisible.Value = config.Style.HasFlag(MemoStyle.Point);
       this.IsMemoVisible.Value = config.Style.HasFlag(MemoStyle.Memo);
 
-      this.Memo.Skip(1).Subscribe(async (memo) =>
+      this.Memo.Skip(1).Where(_ => !this.IsStopSaving.Value).Subscribe(async (memo) =>
       {
         if (this.Data.Memo != memo)
         {
@@ -637,7 +746,7 @@ namespace KmyKeiba.Models.Race.Expand
         }
       }).AddTo(this._disposables);
 
-      this.Point.Skip(1).Subscribe(async (point) =>
+      this.Point.Skip(1).Where(_ => !this.IsStopSaving.Value).Subscribe(async (point) =>
       {
         if (short.TryParse(point, out var p))
         {
@@ -670,6 +779,33 @@ namespace KmyKeiba.Models.Race.Expand
       catch (Exception ex)
       {
         OpenErrorSavingMemoRequest.Default.Request(memo);
+      }
+    }
+
+    public void SetMemoWithoutSave(string value)
+    {
+      this.IsStopSaving.Value = true;
+      try
+      {
+        this.Data.Memo = this.Memo.Value = value;
+      }
+      finally
+      {
+        this.IsStopSaving.Value = false;
+      }
+    }
+
+    public void SetPointWithoutSave(short value)
+    {
+      this.IsStopSaving.Value = true;
+      try
+      {
+        this.Data.Point = value;
+        this.Point.Value = value.ToString();
+      }
+      finally
+      {
+        this.IsStopSaving.Value = false;
       }
     }
 
