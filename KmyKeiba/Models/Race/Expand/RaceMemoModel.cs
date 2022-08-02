@@ -20,6 +20,7 @@ namespace KmyKeiba.Models.Race.Expand
   {
     private readonly CompositeDisposable _disposables = new();
     private static List<ExpansionMemoConfig>? _configs;
+    private static readonly List<RaceMemoItem> _memoCaches = new();
     private static bool _isRaceTab = true;
     private static bool _isRaceHorseTab;
 
@@ -60,6 +61,8 @@ namespace KmyKeiba.Models.Race.Expand
 
     public ReactiveProperty<bool> IsRaceHorseView { get; } = new(_isRaceHorseTab);
 
+    public ReactiveCollection<RaceHorseMemoGroupInfo> Groups { get; } = new();
+
     private ExpansionMemoConfig? editingConfig;
 
     public RaceMemoModel(RaceData race, IReadOnlyList<RaceHorseData> raceHorses)
@@ -85,6 +88,31 @@ namespace KmyKeiba.Models.Race.Expand
         this.editingConfig = null;
       }).AddTo(this._disposables);
       this.IsEditing.Where(v => v).Subscribe(_ => this.IsCreating.Value = false).AddTo(this._disposables);
+
+      foreach (var num in Enumerable.Range(1, 8))
+      {
+        var group = new RaceHorseMemoGroupInfo(num);
+        group.IsChecked.Where(c => c).Subscribe(c =>
+        {
+          this.ChangeGroup(group.GroupNumber, this.RaceHorseMemos);
+        }).AddTo(this._disposables);
+        this.Groups.Add(group);
+      }
+      this.Groups.First().IsChecked.Value = true;
+    }
+
+    private void ChangeGroup(int num, IEnumerable<RaceHorseMemoItem> horses)
+    {
+      foreach (var memo in horses.SelectMany(m => m.Memos))
+      {
+        memo.IsGroupVisible.Value = memo.Config.MemoGroup == num;
+      }
+    }
+
+    private int GetCurrentGroup()
+    {
+      var group = this.Groups.FirstOrDefault(g => g.IsChecked.Value);
+      return group?.GroupNumber ?? 1;
     }
 
     public async Task LoadAsync(MyContext db)
@@ -106,9 +134,9 @@ namespace KmyKeiba.Models.Race.Expand
       foreach (var config in _configs!.Where(c => c.Type == MemoType.Race).OrderBy(c => c.Id).OrderBy(c => c.Order))
       {
         // 同じメモが同時に表示される可能性はないが、他のウィンドウで表示されているかもしれない
-        var existsMemoQuery = _allModels
+        var existsMemoQuery = _memoCaches.Concat(_allModels
           .Where(m => m != this)
-          .SelectMany(m => m.RaceMemos);
+          .SelectMany(m => m.RaceMemos));
         existsMemoQuery = await this.GetMemoQueryAsync(db, existsMemoQuery, config, null);
         var existsMemo = existsMemoQuery.FirstOrDefault();
 
@@ -118,15 +146,19 @@ namespace KmyKeiba.Models.Race.Expand
         }
         else
         {
+          RaceMemoItem newItem;
           var memo = await (await this.GetMemoQueryAsync(db, db.Memos!, config, null)).FirstOrDefaultAsync();
           if (memo != null)
           {
-            raceMemos.Add(new RaceMemoItem(memo, config).AddTo(this._disposables));
+            newItem = new RaceMemoItem(memo, config).AddTo(this._disposables);
           }
           else
           {
-            raceMemos.Add(new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, null), config));
+            newItem = new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, null), config);
           }
+          newItem.IsGroupVisible.Value = true;
+          raceMemos.Add(newItem);
+          _memoCaches.Add(newItem);
         }
       }
 
@@ -138,8 +170,8 @@ namespace KmyKeiba.Models.Race.Expand
 
         foreach (var config in _configs!.Where(c => c.Type == MemoType.RaceHorse).OrderBy(c => c.Id).OrderBy(c => c.Order))
         {
-          var existsMemoQuery = _allModels
-            .SelectMany(m => m.RaceHorseMemos.SelectMany(h => h.Memos))
+          var existsMemoQuery = _memoCaches.Concat(_allModels
+            .SelectMany(m => m.RaceHorseMemos.SelectMany(h => h.Memos)))
             .Concat(raceHorseMemos.SelectMany(m => m.Memos));
           existsMemoQuery = await this.GetMemoQueryAsync(db, existsMemoQuery, config, horse);
           var existsMemo = existsMemoQuery.FirstOrDefault();
@@ -150,18 +182,23 @@ namespace KmyKeiba.Models.Race.Expand
           }
           else
           {
+            RaceMemoItem newItem;
             var memo = await (await this.GetMemoQueryAsync(db, db.Memos!, config, horse)).FirstOrDefaultAsync();
             if (memo != null)
             {
-              horseMemo.Memos.Add(new RaceMemoItem(memo, config));
+              newItem = new RaceMemoItem(memo, config);
             }
             else
             {
-              horseMemo.Memos.Add(new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, horse), config));
+              newItem = new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, horse), config);
             }
+            horseMemo.Memos.Add(newItem);
+            _memoCaches.Add(newItem);
           }
         }
       }
+
+      this.ChangeGroup(this.GetCurrentGroup(), raceHorseMemos);
 
       ThreadUtil.InvokeOnUiThread(() =>
       {
@@ -180,6 +217,8 @@ namespace KmyKeiba.Models.Race.Expand
 
     public async Task AddConfigAsync()
     {
+      var isNewMemoNumber = this.Config.MemoNumber.Value == "0";
+
       using var db = new MyContext();
 
       var config = new ExpansionMemoConfig();
@@ -193,33 +232,41 @@ namespace KmyKeiba.Models.Race.Expand
       {
         config.Order = (short)(_configs!.Max(c => c.Order) + 1);
       }
+      config.MemoGroup = (short)this.GetCurrentGroup();
 
       await db.MemoConfigs!.AddAsync(config);
       await db.SaveChangesAsync();
       _configs!.Add(config);
 
-      /*
-      // これでは同じ番号のつけられた既存のメモがロードできない
-      var data = await this.GenerateMemoDataAsync(db, config, null);
-      if (config.Type == MemoType.Race)
+      if (isNewMemoNumber)
       {
-        ThreadUtil.InvokeOnUiThread(() =>
+        // これでは同じ番号のつけられた既存のメモがロードできない
+        var data = await this.GenerateMemoDataAsync(db, config, null);
+        if (config.Type == MemoType.Race)
         {
-          this.RaceMemos.Add(new RaceMemoItem(data, config));
-        });
+          ThreadUtil.InvokeOnUiThread(() =>
+          {
+            var newItem = new RaceMemoItem(data, config);
+            this.RaceMemos.Add(newItem);
+          });
+        }
+        else
+        {
+          ThreadUtil.InvokeOnUiThread(() =>
+          {
+            foreach (var horse in this.RaceHorseMemos)
+            {
+              var newItem = new RaceMemoItem(data, config);
+              newItem.IsGroupVisible.Value = true;
+              horse.Memos.Add(newItem);
+            }
+          });
+        }
       }
       else
       {
-        ThreadUtil.InvokeOnUiThread(() =>
-        {
-          foreach (var horse in this.RaceHorseMemos)
-          {
-            horse.Memos.Add(new RaceMemoItem(data, config));
-          }
-        });
+        await this.LoadAsync(db);
       }
-      */
-      await this.LoadAsync(db);
       await ReloadAllModelsAsync(db, this);
       this.IsCreating.Value = false;
     }
@@ -728,6 +775,8 @@ namespace KmyKeiba.Models.Race.Expand
 
     public ReactiveProperty<bool> IsMemoVisible { get; } = new();
 
+    public ReactiveProperty<bool> IsGroupVisible { get; } = new();
+
     public RaceMemoItem(MemoData data, ExpansionMemoConfig config)
     {
       this.Data = data;
@@ -835,6 +884,18 @@ namespace KmyKeiba.Models.Race.Expand
       {
         memo.Dispose();
       }
+    }
+  }
+
+  public class RaceHorseMemoGroupInfo
+  {
+    public int GroupNumber { get; }
+
+    public ReactiveProperty<bool> IsChecked { get; } = new();
+
+    public RaceHorseMemoGroupInfo(int number)
+    {
+      this.GroupNumber = number;
     }
   }
 }

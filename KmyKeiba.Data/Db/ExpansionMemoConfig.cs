@@ -25,6 +25,8 @@ namespace KmyKeiba.Data.Db
     public MemoTarget Target3 { get; set; }
 
     public short PointLabelId { get; set; }
+
+    public short MemoGroup { get; set; }
   }
 
   [Flags]

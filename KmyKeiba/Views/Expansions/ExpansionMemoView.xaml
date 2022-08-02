@@ -32,21 +32,49 @@
                    Content="ラベル設定" Name="S_ComboLabel"/>
     </Grid>
 
-    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="8">
+    <Grid Grid.Row="1" Margin="8">
       <Panel.Visibility>
         <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
           <Binding Path="IsChecked" ElementName="S_RaceMemo"/>
           <Binding Path="IsChecked" ElementName="S_RaceHorseMemo"/>
         </MultiBinding>
       </Panel.Visibility>
-      <ToggleButton Content="新規" FontSize="16" Margin="8,0,0,0" Name="S_Creation"
-                    Style="{StaticResource ToggleButtonDefault}"
-                    IsChecked="{Binding Race.MemoEx.Value.IsCreating.Value,ElementName=Root}"/>
-      <ToggleButton Content="編集" FontSize="16" Margin="8,0,0,0" Name="S_Edit"
-                    Style="{StaticResource ToggleButtonDefault}"
-                    IsChecked="{Binding Race.MemoEx.Value.IsEditing.Value,ElementName=Root}"
-                    Visibility="{Binding Race.MemoEx.Value.IsEditing.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
-    </StackPanel>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition Width="auto"/>
+      </Grid.ColumnDefinitions>
+      <StackPanel Orientation="Horizontal">
+        <ToggleButton Content="新規" FontSize="16" Margin="8,0,0,0" Name="S_Creation"
+                      Style="{StaticResource ToggleButtonDefault}"
+                      IsChecked="{Binding Race.MemoEx.Value.IsCreating.Value,ElementName=Root}"/>
+        <ToggleButton Content="編集" FontSize="16" Margin="8,0,0,0" Name="S_Edit"
+                      Style="{StaticResource ToggleButtonDefault}"
+                      IsChecked="{Binding Race.MemoEx.Value.IsEditing.Value,ElementName=Root}"
+                      Visibility="{Binding Race.MemoEx.Value.IsEditing.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Grid.Column="1"
+                  Visibility="{Binding Race.MemoEx.Value.IsRaceHorseView.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+        <StackPanel.Resources>
+          <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+          </Style>
+        </StackPanel.Resources>
+        <ItemsControl ItemsSource="{Binding Race.MemoEx.Value.Groups,ElementName=Root}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <RadioButton Content="{Binding GroupNumber}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                           IsChecked="{Binding IsChecked.Value,Mode=TwoWay}"/>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Grid>
 
     <Border Grid.Row="2">
       <Decorator.Visibility>
@@ -158,7 +186,7 @@
     <Grid Grid.Row="3" Margin="8,0,0,0">
       <Grid.Resources>
         <DataTemplate x:Key="MemoCell">
-          <Grid Width="260" Height="120" Margin="8,8,8,24">
+          <Grid Width="260" Height="120" Margin="8,8,8,24" Visibility="{Binding IsGroupVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="auto"/>
               <ColumnDefinition/>
