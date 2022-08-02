@@ -206,7 +206,9 @@ namespace KmyKeiba.JVLink.Entities
       var (trackType, trackGround, trackCornerDirection, trackOption) = GetTrackType(track);
 
       int.TryParse(race.TenkoBaba.TenkoCD, out int weather);
-      int.TryParse(trackGround == TrackGround.Turf ? race.TenkoBaba.SibaBabaCD : race.TenkoBaba.DirtBabaCD, out int condition);
+
+      // 地方競馬DATAは、盛岡の芝もダートとして配信し、SibaBabaCDには何も設定しないみたい
+      int.TryParse((trackGround == TrackGround.Turf && course <= RaceCourse.CentralMaxValue) ? race.TenkoBaba.SibaBabaCD : race.TenkoBaba.DirtBabaCD, out int condition);
 
       short.TryParse(race.CornerInfo[0].Syukaisu, out var cnum1);
       short.TryParse(race.CornerInfo[0].Corner, out var cn1);

@@ -856,12 +856,19 @@ namespace KmyKeiba.Downloader
                 race.TrackWeather = weather.Weather;
                 race.IsWeatherSetManually = false;
               }
-              if (race.TrackGround == TrackGround.Turf && weather.TurfCondition != RaceCourseCondition.Unknown)
+
+              var ground = race.TrackGround;
+              if (race.Course >= RaceCourse.LocalMinValue)
+              {
+                // 地方競馬DATAは盛岡の芝の状態をダートとして配信する様子
+                ground = TrackGround.Dirt;
+              }
+              if (ground == TrackGround.Turf && weather.TurfCondition != RaceCourseCondition.Unknown)
               {
                 race.TrackCondition = weather.TurfCondition;
                 race.IsConditionSetManually = false;
               }
-              else if ((race.TrackGround == TrackGround.Dirt || race.TrackGround == TrackGround.TurfToDirt || race.TrackGround == TrackGround.Sand) &&
+              else if ((ground == TrackGround.Dirt || ground == TrackGround.TurfToDirt || ground == TrackGround.Sand) &&
                 weather.DirtCondition != RaceCourseCondition.Unknown)
               {
                 race.TrackCondition = weather.DirtCondition;
