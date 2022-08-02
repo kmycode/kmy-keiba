@@ -789,7 +789,7 @@ namespace KmyKeiba.Models.Race
           }
 
           // 拡張メモ
-          info.MemoEx.Value = new RaceMemoModel(race, horses);
+          info.MemoEx.Value = new RaceMemoModel(race, horseInfos);
           await info.MemoEx.Value.LoadAsync(db);
 
           // キャッシング

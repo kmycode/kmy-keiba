@@ -186,7 +186,7 @@
     <Grid Grid.Row="3" Margin="8,0,0,0">
       <Grid.Resources>
         <DataTemplate x:Key="MemoCell">
-          <Grid Width="260" Height="120" Visibility="{Binding IsGroupVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <Grid Width="260" Height="152" Visibility="{Binding IsGroupVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
             <Grid Margin="8,8,8,24">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
@@ -239,16 +239,17 @@
                       Style="{StaticResource TableList}" ScrollViewer.VerticalScrollBarVisibility="Hidden">
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="50" Height="120">
+              <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="50" Height="152">
                 <Grid VerticalAlignment="Stretch">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition/>
-                    <ColumnDefinition Width="auto"/>
                   </Grid.ColumnDefinitions>
-                  <Border Width="4" Background="{Binding RaceHorse.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
-                  <TextBlock Grid.Column="1" Text="{Binding RaceHorse.Number}" Foreground="{StaticResource SubForeground}" FontSize="22" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                  <!--<up:HorseMarkButton Grid.Column="2" Horse="{Binding}" VerticalAlignment="Center"/>-->
+                  <Border Width="4" Background="{Binding RaceHorse.Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
+                  <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding RaceHorse.Data.Number}" Foreground="{StaticResource SubForeground}" FontSize="22" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <up:HorseMarkButton Horse="{Binding RaceHorse}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                  </StackPanel>
                 </Grid>
               </Border>
             </DataTemplate>
