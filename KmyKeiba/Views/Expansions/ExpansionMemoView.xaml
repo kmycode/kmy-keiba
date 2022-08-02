@@ -186,29 +186,31 @@
     <Grid Grid.Row="3" Margin="8,0,0,0">
       <Grid.Resources>
         <DataTemplate x:Key="MemoCell">
-          <Grid Width="260" Height="120" Margin="8,8,8,24" Visibility="{Binding IsGroupVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="auto"/>
-              <ColumnDefinition/>
-              <ColumnDefinition Width="auto"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="auto"/>
-              <RowDefinition Height="auto"/>
-              <RowDefinition/>
-            </Grid.RowDefinitions>
-            <TextBlock FontSize="16" Grid.ColumnSpan="2">
-                    <Run Text="{Binding Data.Target1}"/> + <Run Text="{Binding Data.Target2}"/> + <Run Text="{Binding Data.Target3}"/>
-            </TextBlock>
-            <TextBlock Text="{Binding Header.Value}" FontSize="14" Grid.ColumnSpan="2"
-                             Foreground="{StaticResource SubForeground}" Grid.Row="1"/>
-            <Button Grid.Column="2" Grid.RowSpan="2" Content="編集" VerticalAlignment="Top"
-                          Padding="6,2" FontSize="12"
-                          Command="{Binding DataContext.EditMemoConfigCommand,ElementName=Root}" CommandParameter="{Binding}"/>
-            <TextBox Text="{Binding Point.Value,Mode=TwoWay}" FontSize="20" TextAlignment="Center" Width="60"
-                           Grid.Row="2" VerticalAlignment="Center" Margin="0,0,8,0"/>
-            <TextBox Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="14" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
-                           AcceptsReturn="True" TextWrapping="Wrap"/>
+          <Grid Width="260" Height="120" Visibility="{Binding IsGroupVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
+            <Grid Margin="8,8,8,24">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="auto"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition/>
+              </Grid.RowDefinitions>
+              <TextBlock FontSize="16" Grid.ColumnSpan="2">
+                      <Run Text="{Binding Data.Target1}"/> + <Run Text="{Binding Data.Target2}"/> + <Run Text="{Binding Data.Target3}"/>
+              </TextBlock>
+              <TextBlock Text="{Binding Header.Value}" FontSize="14" Grid.ColumnSpan="2"
+                               Foreground="{StaticResource SubForeground}" Grid.Row="1"/>
+              <Button Grid.Column="2" Grid.RowSpan="2" Content="編集" VerticalAlignment="Top"
+                            Padding="6,2" FontSize="12"
+                            Command="{Binding DataContext.EditMemoConfigCommand,ElementName=Root}" CommandParameter="{Binding}"/>
+              <TextBox Text="{Binding Point.Value,Mode=TwoWay}" FontSize="20" TextAlignment="Center" Width="60"
+                             Grid.Row="2" VerticalAlignment="Center" Margin="0,0,8,0"/>
+              <TextBox Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="14" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
+                             AcceptsReturn="True" TextWrapping="Wrap"/>
+            </Grid>
           </Grid>
         </DataTemplate>
       </Grid.Resources>
@@ -229,8 +231,32 @@
 
       <!--馬メモ-->
       <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_RaceHorseMemo,Converter={StaticResource BooleanVisibilityConv}}">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <ItemsControl ItemsSource="{Binding Race.MemoEx.Value.RaceHorseMemos,ElementName=Root}" Name="HorseNumberLabels"
+                      Style="{StaticResource TableList}" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="50" Height="120">
+                <Grid VerticalAlignment="Stretch">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="auto"/>
+                  </Grid.ColumnDefinitions>
+                  <Border Width="4" Background="{Binding RaceHorse.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
+                  <TextBlock Grid.Column="1" Text="{Binding RaceHorse.Number}" Foreground="{StaticResource SubForeground}" FontSize="22" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                  <!--<up:HorseMarkButton Grid.Column="2" Horse="{Binding}" VerticalAlignment="Center"/>-->
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
         <ItemsControl ItemsSource="{Binding Race.MemoEx.Value.RaceHorseMemos,ElementName=Root}"
-                      Style="{StaticResource TableList}" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                      Style="{StaticResource TableList}" ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                      Grid.Column="1">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <StackPanel/>
@@ -239,18 +265,6 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <StackPanel Orientation="Horizontal">
-                <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="80" MinHeight="80">
-                  <Grid VerticalAlignment="Stretch">
-                    <Grid.ColumnDefinitions>
-                      <ColumnDefinition Width="auto"/>
-                      <ColumnDefinition/>
-                      <ColumnDefinition Width="auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Width="4" Background="{Binding RaceHorse.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
-                    <TextBlock Grid.Column="1" Text="{Binding RaceHorse.Number}" Foreground="{StaticResource SubForeground}" FontSize="22" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                    <!--<up:HorseMarkButton Grid.Column="2" Horse="{Binding}" VerticalAlignment="Center"/>-->
-                  </Grid>
-                </Border>
                 <ItemsControl ItemsSource="{Binding Memos}" ItemTemplate="{StaticResource MemoCell}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -261,6 +275,9 @@
               </StackPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
+          <i:Interaction.Behaviors>
+            <b:SyncScrollOffsetBehavior TargetElement="{Binding ElementName=HorseNumberLabels}"/>
+          </i:Interaction.Behaviors>
         </ItemsControl>
       </Grid>
     </Grid>

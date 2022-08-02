@@ -46,6 +46,19 @@ namespace KmyKeiba.Behaviors
       set { SetValue(TargetElementProperty, value); }
     }
 
+    public static readonly DependencyProperty RowHeightProperty
+        = DependencyProperty.Register(
+            nameof(RowHeight),
+            typeof(double),
+            typeof(SyncScrollOffsetBehavior),
+            new PropertyMetadata(1.0));
+
+    public double RowHeight
+    {
+      get { return (double)GetValue(RowHeightProperty); }
+      set { SetValue(RowHeightProperty, value); }
+    }
+
     protected override void OnAttached()
     {
       base.OnAttached();
@@ -80,7 +93,7 @@ namespace KmyKeiba.Behaviors
 
     private ScrollViewer? GetScrollViewer(DependencyObject? element)
     {
-      while (!(element is ScrollViewer))
+      while (element is not ScrollViewer)
       {
         var childrenCount = VisualTreeHelper.GetChildrenCount(element);
         if (childrenCount == 1)
@@ -101,7 +114,7 @@ namespace KmyKeiba.Behaviors
       if (this.GetScrollViewer(this.TargetElement) is ScrollViewer target)
       {
         target.ScrollToHorizontalOffset(e.HorizontalOffset);
-        target.ScrollToVerticalOffset(e.VerticalOffset);
+        target.ScrollToVerticalOffset(e.VerticalOffset * this.RowHeight);
       }
     }
 
@@ -112,7 +125,7 @@ namespace KmyKeiba.Behaviors
         (Math.Abs(target.HorizontalOffset - self.HorizontalOffset) > 2 || Math.Abs(target.VerticalOffset - self.VerticalOffset) > 2))
       {
         target.ScrollToHorizontalOffset(self.HorizontalOffset);
-        target.ScrollToVerticalOffset(self.VerticalOffset);
+        target.ScrollToVerticalOffset(self.VerticalOffset * this.RowHeight);
       }
     }
   }

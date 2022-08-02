@@ -164,12 +164,14 @@
       <Setter.Value>
         <ControlTemplate>
           <ScrollViewer Padding="{TemplateBinding Control.Padding}" Focusable="False"
+                        VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
                         CanContentScroll="True">
             <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
           </ScrollViewer>
         </ControlTemplate>
       </Setter.Value>
     </Setter>
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
   </Style>
   <Style TargetType="ItemsControl" x:Key="TableListHorizontal">
     <Setter Property="ItemsPanel">
