@@ -52,5 +52,6 @@ namespace KmyKeiba.Data.Db
     Good = 1,
     Bad = 2,
     Warning = 3,
+    Negative = 4,
   }
 }

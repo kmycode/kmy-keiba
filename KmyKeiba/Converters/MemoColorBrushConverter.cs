@@ -65,6 +65,19 @@ namespace KmyKeiba.Converters
       set { SetValue(WarningBrushProperty, value); }
     }
 
+    public static readonly DependencyProperty NegativeBrushProperty
+        = DependencyProperty.Register(
+            nameof(NegativeBrush),
+            typeof(Brush),
+            typeof(MemoColorBrushConverter),
+            new PropertyMetadata(null));
+
+    public Brush? NegativeBrush
+    {
+      get { return (Brush)GetValue(NegativeBrushProperty); }
+      set { SetValue(NegativeBrushProperty, value); }
+    }
+
     public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
       if (value is MemoColor c)
@@ -74,6 +87,7 @@ namespace KmyKeiba.Converters
           MemoColor.Good => this.GoodBrush,
           MemoColor.Bad => this.BadBrush,
           MemoColor.Warning => this.WarningBrush,
+          MemoColor.Negative => this.NegativeBrush,
           _ => this.DefaultBrush,
         };
       }

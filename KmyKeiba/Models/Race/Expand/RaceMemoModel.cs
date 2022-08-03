@@ -394,7 +394,15 @@ namespace KmyKeiba.Models.Race.Expand
           {
             SetValues(horse);
           }
-          model.ChangeGroup(model.GetCurrentGroup(), model.RaceHorseMemos);
+
+          if (config.Type == MemoType.RaceHorse)
+          {
+            model.ChangeGroup(model.GetCurrentGroup(), model.RaceHorseMemos);
+          }
+          else
+          {
+            model.UpdateRaceMemoSelections();
+          }
         }
       }
     }
@@ -1038,10 +1046,6 @@ namespace KmyKeiba.Models.Race.Expand
         if (l != null)
         {
           this.Point.Value = l.Point.Value.ToString();
-        }
-        else
-        {
-          this.Point.Value = this.Data.Point.ToString();
         }
       }).AddTo(this._disposables);
 

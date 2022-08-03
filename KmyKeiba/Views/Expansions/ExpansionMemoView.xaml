@@ -327,7 +327,7 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <RadioButton GroupName="{Binding UniqueId5,ElementName=Root}" Content="{Binding Name.Value}"
-                           Style="{StaticResource ToggleButtonDefault}" Width="200" Height="40" FontSize="16" Margin="0,0,0,8"
+                           Style="{StaticResource ToggleButtonDefault}" Width="200" Height="40" FontSize="16"
                            IsChecked="{Binding IsChecked.Value,Mode=TwoWay}"/>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
@@ -372,6 +372,7 @@
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
                   </Grid.ColumnDefinitions>
                   <Grid.RowDefinitions>
                     <RowDefinition/>
@@ -392,12 +393,15 @@
                                Style="{StaticResource ToggleButtonDefault}"/>
                   <RadioButton Grid.Column="5" FontSize="16" Content="色" Padding="8,2" Foreground="{StaticResource WarningForeground}"
                                IsChecked="{Binding IsColorWarning.Value,Mode=TwoWay}" GroupName="{Binding Data.Point}"
+                               Style="{StaticResource ToggleButtonDefault}"/>
+                  <RadioButton Grid.Column="6" FontSize="16" Content="色" Padding="8,2" Foreground="{StaticResource NegativeForeground}"
+                               IsChecked="{Binding IsColorNegative.Value,Mode=TwoWay}" GroupName="{Binding Data.Point}"
                                Style="{StaticResource ToggleButtonDefault}" Margin="0,0,16,0"/>
-                  <Button Grid.Column="6" FontSize="16" Content="上へ" Command="{Binding DataContext.UpLabelConfigItemCommand,ElementName=Root}"
+                  <Button Grid.Column="7" FontSize="16" Content="上へ" Command="{Binding DataContext.UpLabelConfigItemCommand,ElementName=Root}"
                           Padding="12,2" VerticalAlignment="Center" CommandParameter="{Binding}"/>
-                  <Button Grid.Column="7" FontSize="16" Content="下へ" Command="{Binding DataContext.DownLabelConfigItemCommand,ElementName=Root}"
+                  <Button Grid.Column="8" FontSize="16" Content="下へ" Command="{Binding DataContext.DownLabelConfigItemCommand,ElementName=Root}"
                           Padding="12,2" VerticalAlignment="Center" CommandParameter="{Binding}"/>
-                  <Button Grid.Column="8" FontSize="14" Content="削除" Command="{Binding DataContext.DeleteLabelConfigItemCommand,ElementName=Root}"
+                  <Button Grid.Column="9" FontSize="14" Content="削除" Command="{Binding DataContext.DeleteLabelConfigItemCommand,ElementName=Root}"
                           Margin="16,0,0,0" Padding="4,2" VerticalAlignment="Center" CommandParameter="{Binding}"/>
                   <TextBlock Foreground="{StaticResource ErrorForeground}" Visibility="{Binding IsError.Value,Converter={StaticResource BooleanVisibilityConv}}"
                              Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="5" Text="保存時にエラーが発生しました" FontSize="16" Margin="8,0,0,0"/>

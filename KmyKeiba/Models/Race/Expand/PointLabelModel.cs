@@ -193,6 +193,7 @@ namespace KmyKeiba.Models.Race.Expand
         var index = this.Items.IndexOf(item);
         this.Items.Remove(target);
         this.Items.Insert(index, target);
+        RaceMemoModel.UpdatePointLabel(target.Config.Data.Id, target.Data.Point);
 
         using var db = new MyContext();
         await this.SaveItemsAsync(db);
@@ -201,12 +202,13 @@ namespace KmyKeiba.Models.Race.Expand
 
     public async Task DownItemAsync(PointLabelConfigItem item)
     {
-      var target = this.Items.SkipWhile(i => i != item).ElementAtOrDefault(2);
+      var target = this.Items.SkipWhile(i => i != item).ElementAtOrDefault(1);
       if (target != null)
       {
         var index = this.Items.IndexOf(target);
         this.Items.Remove(item);
         this.Items.Insert(index, item);
+        RaceMemoModel.UpdatePointLabel(item.Config.Data.Id, item.Data.Point);
 
         using var db = new MyContext();
         await this.SaveItemsAsync(db);
@@ -242,6 +244,8 @@ namespace KmyKeiba.Models.Race.Expand
     public ReactiveProperty<bool> IsColorBad { get; } = new();
 
     public ReactiveProperty<bool> IsColorWarning { get; } = new();
+
+    public ReactiveProperty<bool> IsColorNegative { get; } = new();
 
     public ReactiveProperty<MemoColor> Color { get; } = new();
 
@@ -310,6 +314,7 @@ namespace KmyKeiba.Models.Race.Expand
       this.IsColorGood.Subscribe(async _ => await this.UpdateColorAsync()).AddTo(this._disposables);
       this.IsColorBad.Subscribe(async _ => await this.UpdateColorAsync()).AddTo(this._disposables);
       this.IsColorWarning.Subscribe(async _ => await this.UpdateColorAsync()).AddTo(this._disposables);
+      this.IsColorNegative.Subscribe(async _ => await this.UpdateColorAsync()).AddTo(this._disposables);
       this.IsColorDefault.Subscribe(async _ => await this.UpdateColorAsync()).AddTo(this._disposables);
     }
 
@@ -325,6 +330,9 @@ namespace KmyKeiba.Models.Race.Expand
           break;
         case MemoColor.Warning:
           this.IsColorWarning.Value = true;
+          break;
+        case MemoColor.Negative:
+          this.IsColorNegative.Value = true;
           break;
         default:
           this.IsColorDefault.Value = true;
@@ -346,6 +354,10 @@ namespace KmyKeiba.Models.Race.Expand
       if (this.IsColorWarning.Value)
       {
         return MemoColor.Warning;
+      }
+      if (this.IsColorNegative.Value)
+      {
+        return MemoColor.Negative;
       }
       return MemoColor.Default;
     }

@@ -39,7 +39,8 @@
                               DefaultBrush="{StaticResource BaseForeground}"
                               GoodBrush="{StaticResource GoodForeground}"
                               BadBrush="{StaticResource BadForeground}"
-                              WarningBrush="{StaticResource WarningForeground}"/>
+                              WarningBrush="{StaticResource WarningForeground}"
+                              NegativeBrush="{StaticResource NegativeForeground}"/>
   <cv:StringEmptyVisibilityConv x:Key="StringEmptyVisibilityConv"/>
 
   <cv:BooleanBrushConverter x:Key="BooleanForegroundSubOrBaseConv" TrueBrush="{StaticResource SubForeground}" FalseBrush="{StaticResource BaseForeground}"/>
