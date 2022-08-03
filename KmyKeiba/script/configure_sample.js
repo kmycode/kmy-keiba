@@ -86,4 +86,7 @@
 
   // 起動時のメッセージを表示するか（true/false）
   appconfig.isFirstMessageVisible = true;
+
+  // 拡張メモにおける馬メモのグループ数。1未満を指定した場合は1を下限とする
+  appconfig.expansionMemoGroupSize = 8;
 });

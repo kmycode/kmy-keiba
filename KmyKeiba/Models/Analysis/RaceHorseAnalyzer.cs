@@ -194,6 +194,10 @@ namespace KmyKeiba.Models.Analysis
       /// </summary>
       public DistanceAptitude SecondDistance { get; }
 
+      public long PrizeMoney { get; }
+
+      public string PrizeMoneyLabel { get; }
+
       public HistoryData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseAnalyzer> raceHistory)
       {
         this.BeforeRaces = raceHistory.OrderByDescending(h => h.Race.StartTime).ToArray();
@@ -282,6 +286,46 @@ namespace KmyKeiba.Models.Analysis
               IsCurrentCourse = courseSource.Key == race.Course,
             };
             this.CourseGrades.Add(grade);
+          }
+
+          // 賞金
+          var prizeMoney = 0L;
+          foreach (var data in raceHistory.Where(h => h.Data.ResultOrder <= 5 && h.Data.ResultOrder > 0))
+          {
+            var order = data.Data.ResultOrder;
+            if (data.CurrentRace != null)
+            {
+              foreach (var sameHorse in data.CurrentRace.TopHorses.Where(h => h.ResultOrder <= data.Data.ResultOrder))
+              {
+                if (sameHorse.ResultLength1 == 2)
+                {
+                  order++;
+                }
+              }
+            }
+            if (order > 7) order = 7;
+
+            var pm = data.Race.GetPrizeMoneys();
+            var epm = data.Race.GetExtraPrizeMoneys();
+            prizeMoney += pm.ElementAtOrDefault(order - 1) + epm.ElementAtOrDefault(order - 1);
+          }
+          this.PrizeMoney = prizeMoney * 100;
+
+          if (this.PrizeMoney >= 1000_0000_0000)
+          {
+            this.PrizeMoneyLabel = ((double)this.PrizeMoney / 1_0000_0000_0000).ToString("F2") + "兆";
+          }
+          else if (this.PrizeMoney >= 1000_0000)
+          {
+            this.PrizeMoneyLabel = ((double)this.PrizeMoney / 1_0000_0000).ToString("F2") + "億";
+          }
+          else if (this.PrizeMoney >= 1_0000)
+          {
+            this.PrizeMoneyLabel = ((double)this.PrizeMoney / 1_0000).ToString("F2") + "万";
+          }
+          else
+          {
+            this.PrizeMoneyLabel = this.PrizeMoney.ToString();
           }
         }
       }

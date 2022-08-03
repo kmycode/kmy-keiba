@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
+using KmyKeiba.Data.Wrappers;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +33,7 @@ namespace KmyKeiba.Models.Race.Expand
       if (_configs == null)
       {
         _configs = await db.MemoConfigs!.ToListAsync();
+        await PointLabelModel.InitializeAsync(db);
       }
     }
 
@@ -48,6 +50,8 @@ namespace KmyKeiba.Models.Race.Expand
     public ReactiveCollection<RaceHorseMemoItem> RaceHorseMemos { get; } = new();
 
     public RaceMemoConfig Config { get; } = new();
+
+    public PointLabelModel LabelConfig => PointLabelModel.Default;
 
     public RaceData Race { get; }
 
@@ -78,8 +82,16 @@ namespace KmyKeiba.Models.Race.Expand
       }
       _allModels.Add(this);
 
-      this.IsRaceView.Subscribe(v => _isRaceTab = v).AddTo(this._disposables);
-      this.IsRaceHorseView.Subscribe(v => _isRaceHorseTab = v).AddTo(this._disposables);
+      this.IsRaceView.Subscribe(v =>
+      {
+        this.IsEditing.Value = false;
+        _isRaceTab = v;
+      }).AddTo(this._disposables);
+      this.IsRaceHorseView.Subscribe(v =>
+      {
+        this.IsEditing.Value = false;
+        _isRaceHorseTab = v;
+      }).AddTo(this._disposables);
 
       this.IsCreating.Where(v => v).Subscribe(_ =>
       {
@@ -92,11 +104,12 @@ namespace KmyKeiba.Models.Race.Expand
       }).AddTo(this._disposables);
       this.IsEditing.Where(v => v).Subscribe(_ => this.IsCreating.Value = false).AddTo(this._disposables);
 
-      foreach (var num in Enumerable.Range(1, 8))
+      foreach (var num in Enumerable.Range(1, Math.Max(1, ApplicationConfiguration.Current.Value.ExpansionMemoGroupSize)))
       {
         var group = new RaceHorseMemoGroupInfo(num);
         group.IsChecked.Where(c => c).Subscribe(c =>
         {
+          this.IsEditing.Value = false;
           this.ChangeGroup(group.GroupNumber, this.RaceHorseMemos);
         }).AddTo(this._disposables);
         this.Groups.Add(group);
@@ -146,6 +159,7 @@ namespace KmyKeiba.Models.Race.Expand
         if (existsMemo != null)
         {
           raceMemos.Add(existsMemo);
+          SetLabel(existsMemo, config);
         }
         else
         {
@@ -159,7 +173,9 @@ namespace KmyKeiba.Models.Race.Expand
           {
             newItem = new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, null), config);
           }
+          newItem.Name.Value = await this.GetItemNameAsync(db, newItem.Data, null);
           newItem.IsGroupVisible.Value = true;
+          SetLabel(newItem, config);
           raceMemos.Add(newItem);
           _memoCaches.Add(newItem);
         }
@@ -182,6 +198,7 @@ namespace KmyKeiba.Models.Race.Expand
           if (existsMemo != null)
           {
             horseMemo.Memos.Add(existsMemo);
+            SetLabel(existsMemo, config);
           }
           else
           {
@@ -195,6 +212,15 @@ namespace KmyKeiba.Models.Race.Expand
             {
               newItem = new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, horse), config);
             }
+            try
+            {
+              newItem.Name.Value = await this.GetItemNameAsync(db, newItem.Data, horse);
+            }
+            catch (Exception ex)
+            {
+
+            }
+            SetLabel(newItem, config);
             horseMemo.Memos.Add(newItem);
             _memoCaches.Add(newItem);
           }
@@ -216,6 +242,19 @@ namespace KmyKeiba.Models.Race.Expand
           this.RaceHorseMemos.Add(item);
         }
       });
+    }
+
+    private static void SetLabel(RaceMemoItem memo, ExpansionMemoConfig config)
+    {
+      var label = PointLabelModel.Default.Configs.FirstOrDefault(c => c.Data.Id == (uint)config.PointLabelId);
+      if (label != null)
+      {
+        memo.SetLabelConfig(label);
+      }
+      else
+      {
+        memo.RemoveLabelConfig();
+      }
     }
 
     public async Task AddConfigAsync()
@@ -245,22 +284,28 @@ namespace KmyKeiba.Models.Race.Expand
       {
         // これでは同じ番号のつけられた既存のメモがロードできない
         var data = await this.GenerateMemoDataAsync(db, config, null);
+
         if (config.Type == MemoType.Race)
         {
+          var newItem = new RaceMemoItem(data, config);
+          newItem.Name.Value = await this.GetItemNameAsync(db, newItem.Data, null);
+          newItem.IsGroupVisible.Value = true;
+          SetLabel(newItem, config);
           ThreadUtil.InvokeOnUiThread(() =>
           {
-            var newItem = new RaceMemoItem(data, config);
             this.RaceMemos.Add(newItem);
           });
         }
         else
         {
-          ThreadUtil.InvokeOnUiThread(() =>
+          ThreadUtil.InvokeOnUiThread(async () =>
           {
             foreach (var horse in this.RaceHorseMemos)
             {
               var newItem = new RaceMemoItem(data, config);
+              newItem.Name.Value = await this.GetItemNameAsync(db, newItem.Data, horse.RaceHorse);
               newItem.IsGroupVisible.Value = true;
+              SetLabel(newItem, config);
               horse.Memos.Add(newItem);
             }
           });
@@ -307,8 +352,8 @@ namespace KmyKeiba.Models.Race.Expand
 
         void SetValues(RaceMemoItem item)
         {
-          // TODO 既存のモデルに更新を反映（ラベルとか）
-          item.Header.Value = config.Header;
+          item.UpdateConfig(config);
+          SetLabel(item, config);
         }
 
         foreach (var model in _allModels)
@@ -317,11 +362,13 @@ namespace KmyKeiba.Models.Race.Expand
           if (item != null)
           {
             SetValues(item);
+            SetLabel(item, config);
           }
 
           foreach (var horse in model.RaceHorseMemos.SelectMany(h => h.Memos.Where(m => m.Config.Id == exists.Id)))
           {
             SetValues(horse);
+            SetLabel(horse, config);
           }
         }
       }
@@ -358,7 +405,7 @@ namespace KmyKeiba.Models.Race.Expand
         var exists = _configs!.FirstOrDefault(c => c.Id == this.editingConfig.Id);
         if (exists != null)
         {
-          var target = _configs!.Where(c => c.Order < exists.Order && c.Type == exists.Type).OrderByDescending(c => c.Order).FirstOrDefault();
+          var target = _configs!.Where(c => c.Order < exists.Order && c.Type == exists.Type && c.MemoGroup == exists.MemoGroup).OrderByDescending(c => c.Order).FirstOrDefault();
           if (target != null)
           {
             db.MemoConfigs!.Attach(target);
@@ -384,7 +431,7 @@ namespace KmyKeiba.Models.Race.Expand
         var exists = _configs!.FirstOrDefault(c => c.Id == this.editingConfig.Id);
         if (exists != null)
         {
-          var target = _configs!.Where(c => c.Order > exists.Order && c.Type == exists.Type).OrderBy(c => c.Order).FirstOrDefault();
+          var target = _configs!.Where(c => c.Order > exists.Order && c.Type == exists.Type && c.MemoGroup == exists.MemoGroup).OrderBy(c => c.Order).FirstOrDefault();
           if (target != null)
           {
             db.MemoConfigs!.Attach(target);
@@ -398,6 +445,61 @@ namespace KmyKeiba.Models.Race.Expand
             await ReloadAllModelsAsync(db, this);
           }
         }
+      }
+    }
+
+    public static async Task UpdateLabelPointNumbersAsync(MyContext db, uint labelId, short old, short @new)
+    {
+      var targetConfigs = _configs!.Where(c => c.PointLabelId == labelId).ToArray();
+      var targetMemos = await db.Memos!
+        .Join(db.MemoConfigs!, m => m.Target1 | m.Target2 | m.Target3, c => c.Target1 | c.Target2 | c.Target3, (m, c) => new { Memo = m, Config = c, })
+        .Where(d => d.Memo.Number == d.Config.MemoNumber)
+        .Select(d => d.Memo)
+        .Where(m => m.Point == old)
+        .ToArrayAsync();
+      foreach (var memo in targetMemos)
+      {
+        memo.Point = @new;
+      }
+      await db.SaveChangesAsync();
+
+      foreach (var item in _memoCaches.Where(i => i.LabelConfig.Value?.Data.Id == labelId && i.Data.Point == old))
+      {
+        item.SetPointWithoutSave(@new);
+      }
+    }
+
+    public static void UpdatePointLabel(uint labelId, short point)
+    {
+      var targetConfigs = _configs!.Where(c => c.PointLabelId == labelId).ToArray();
+      foreach (var item in _memoCaches.Where(i => i.LabelConfig.Value?.Data.Id == labelId && i.Data.Point == point))
+      {
+        item.UpdateLabelConfig();
+      }
+    }
+
+    public static void DeletePointLabelConfig(uint labelId)
+    {
+      var targetConfigs = _configs!.Where(c => c.PointLabelId == labelId).ToArray();
+      foreach (var item in _memoCaches.Where(i => i.LabelConfig.Value?.Data.Id == labelId))
+      {
+        item.RemoveLabelConfig();
+      }
+    }
+
+    public static async Task DeleteLabelDataAsync(MyContext db, uint labelId)
+    {
+      var targetConfigs = _configs!.Where(c => c.PointLabelId == labelId).ToArray();
+      db.MemoConfigs!.AttachRange(targetConfigs);
+      foreach (var config in targetConfigs)
+      {
+        config.PointLabelId = default;
+      }
+      await db.SaveChangesAsync();
+
+      foreach (var item in _memoCaches.Where(i => i.LabelConfig.Value?.Data.Id == labelId))
+      {
+        item.RemoveLabelConfig();
       }
     }
 
@@ -541,6 +643,59 @@ namespace KmyKeiba.Models.Race.Expand
       return Expression.Lambda<Func<MemoData, bool>>(Expression.Constant(false), memo);
     }
 
+    private async Task<string> GetItemNameAsync(MyContext db, MemoData memo, RaceHorseAnalyzer? horse)
+    {
+      var results = new string[]
+      {
+        await this.GetItemNameAsync(db, memo, memo.Target1, memo.Key1, horse),
+        await this.GetItemNameAsync(db, memo, memo.Target2, memo.Key2, horse),
+        await this.GetItemNameAsync(db, memo, memo.Target3, memo.Key3, horse),
+      }.Where(t => !string.IsNullOrEmpty(t));
+      return string.Join(" + ", results);
+    }
+
+    private async Task<string> GetItemNameAsync(MyContext db, MemoData memo, MemoTarget target, string key, RaceHorseAnalyzer? horse)
+    {
+      string SliceName(string? name, string defaultValue)
+      {
+        name = name?.Replace("　", string.Empty).Replace(" ", string.Empty) ?? string.Empty;
+        if (string.IsNullOrEmpty(name))
+        {
+          return defaultValue;
+        }
+        return name.Length <= 6 ? name : name[..6];
+      }
+
+      switch (target)
+      {
+        case MemoTarget.Day:
+          {
+            if (short.TryParse(key.Substring(4, 2), out var month) && short.TryParse(key.Substring(6, 2), out var day))
+            {
+              return $"{month}/{day}";
+            }
+          }
+          return string.Empty;
+        case MemoTarget.Race:
+          return "レース";
+        case MemoTarget.Course:
+          return memo.CourseKey.GetName() ?? "不明";
+        case MemoTarget.Horse:
+          return SliceName(horse?.Data.Name, "馬");
+        case MemoTarget.Rider:
+          return horse?.Data.RiderName ?? string.Empty;
+        case MemoTarget.Trainer:
+          return horse?.Data.TrainerName ?? string.Empty;
+        case MemoTarget.Owner:
+          return SliceName(horse?.Data.OwnerName, "馬主");
+        case MemoTarget.Father:
+          if (horse != null)
+            return "(父)" + SliceName(await HorseBloodUtil.GetNameAsync(db, horse.Data.Key, BloodType.Father), string.Empty);
+          return string.Empty;
+      }
+      return string.Empty;
+    }
+
     public void Dispose()
     {
       this._disposables.Dispose();
@@ -576,11 +731,13 @@ namespace KmyKeiba.Models.Race.Expand
 
     public ReactiveProperty<bool> IsUseLabel { get; } = new();
 
+    public ReactiveProperty<PointLabelConfig?> SelectedLabel { get; } = new();
+
     public ReactiveProperty<string> MemoNumber { get; } = new("0");
 
     public ReactiveProperty<string> ErrorMessage { get; } = new();
 
-    private IReadOnlyList<MemoTarget> GetTargets(bool isRaceMemo)
+    private IReadOnlyList<MemoTarget> GetTargets(bool isRaceMemo, bool isAll = false)
     {
       var list = new List<MemoTarget>();
       if (this.IsFilterDay.Value) list.Add(MemoTarget.Day);
@@ -595,7 +752,7 @@ namespace KmyKeiba.Models.Race.Expand
         if (this.IsFilterFather.Value) list.Add(MemoTarget.Father);
       }
 
-      return list.OrderBy(i => i).Take(3).ToArray();
+      return list.OrderBy(i => i).Take(isAll ? 100 : 3).ToArray();
     }
 
     public async Task<string> GetErrorMessageAsync(MyContext db, bool isRaceMemo, ExpansionMemoConfig editingConfig)
@@ -605,10 +762,14 @@ namespace KmyKeiba.Models.Race.Expand
         return "名前が指定されていません";
       }
 
-      var targets = this.GetTargets(isRaceMemo);
+      var targets = this.GetTargets(isRaceMemo, true);
       if (!targets.Any())
       {
         return "絞り込み条件が指定されていません";
+      }
+      if (targets.Count() > 3)
+      {
+        return "絞り込み条件が３より多く指定されています";
       }
       var target1 = targets[0];
       var target2 = targets.ElementAtOrDefault(1);
@@ -637,7 +798,14 @@ namespace KmyKeiba.Models.Race.Expand
 
       if (this.IsUseLabel.Value)
       {
-        // TODO ラベル置換でその設定が存在するかのチェック
+        if (this.SelectedLabel.Value == null)
+        {
+          return "ラベルが選択されていません";
+        }
+        if (!(await db.PointLabels!.AnyAsync(l => l.Id == this.SelectedLabel.Value.Data.Id)))
+        {
+          return "そのラベルは存在しません";
+        }
       }
 
       return string.Empty;
@@ -646,7 +814,7 @@ namespace KmyKeiba.Models.Race.Expand
     public void CopyFromData(ExpansionMemoConfig config)
     {
       this.IsFilterTrainer.Value = this.IsFilterOwner.Value = this.IsFilterDay.Value = this.IsFilterRider.Value =
-        this.IsFilterRace.Value = this.IsFilterCourse.Value = this.IsFilterHorse.Value = false;
+        this.IsFilterRace.Value = this.IsFilterCourse.Value = this.IsFilterHorse.Value = this.IsFilterFather.Value = false;
       var targets = new MemoTarget[] { config.Target1, config.Target2, config.Target3 };
       foreach (var target in targets)
       {
@@ -680,6 +848,20 @@ namespace KmyKeiba.Models.Race.Expand
       }
 
       this.IsUseLabel.Value = config.PointLabelId != default;
+      if (this.IsUseLabel.Value)
+      {
+        var label = PointLabelModel.Default.Configs.FirstOrDefault(c => c.Data.Id == config.PointLabelId);
+        if (label != null)
+        {
+          this.SelectedLabel.Value = label;
+        }
+        else
+        {
+          this.IsUseLabel.Value = false;
+          this.SelectedLabel.Value = null;
+        }
+      }
+
       switch (config.Style)
       {
         case MemoStyle.MemoAndPoint:
@@ -747,8 +929,14 @@ namespace KmyKeiba.Models.Race.Expand
       }
       config.MemoNumber = number;
 
-      // TODO ラベル置換
-      // config.PointLabelId =
+      if (this.IsUseLabel.Value && this.SelectedLabel.Value != null)
+      {
+        config.PointLabelId = (short)this.SelectedLabel.Value.Data.Id;
+      }
+      else
+      {
+        config.PointLabelId = 0;
+      }
 
       return true;
     }
@@ -764,13 +952,17 @@ namespace KmyKeiba.Models.Race.Expand
 
     public ExpansionMemoConfig Config { get; }
 
-    public PointLabelConfig? Labels { get; }
+    public ReactiveProperty<PointLabelConfig?> LabelConfig { get; } = new();
 
     public ReactiveProperty<string> Header { get; } = new();
+
+    public ReactiveProperty<string> Name { get; } = new();
 
     public ReactiveProperty<string> Memo { get; } = new();
 
     public ReactiveProperty<string> Point { get; } = new();
+
+    public ReactiveProperty<string> Label { get; } = new();
 
     public ReactiveProperty<MemoStyle> Style { get; } = new();
 
@@ -780,15 +972,21 @@ namespace KmyKeiba.Models.Race.Expand
 
     public ReactiveProperty<bool> IsGroupVisible { get; } = new();
 
+    public ReactiveProperty<bool> IsPopupVisible { get; } = new();
+
+    public ReactiveProperty<bool> IsUseLabel { get; } = new();
+
+    public ReactiveProperty<MemoColor> Color { get; } = new();
+
+    public ReactiveProperty<PointLabelConfigItem?> SelectedLabel { get; } = new();
+
     public RaceMemoItem(MemoData data, ExpansionMemoConfig config)
     {
       this.Data = data;
       this.Config = config;
       this.Memo.Value = data.Memo;
       this.Point.Value = data.Point.ToString();
-      this.Header.Value = config.Header;
-      this.IsPointVisible.Value = config.Style.HasFlag(MemoStyle.Point);
-      this.IsMemoVisible.Value = config.Style.HasFlag(MemoStyle.Memo);
+      this.UpdateConfig(config);
 
       this.Memo.Skip(1).Where(_ => !this.IsStopSaving.Value).Subscribe(async (memo) =>
       {
@@ -805,9 +1003,65 @@ namespace KmyKeiba.Models.Race.Expand
           if (this.Data.Point != p)
           {
             await this.SaveMemoAsync(m => m.Point = p, $"(Point {p})");
+            this.UpdateLabel();
           }
         }
       }).AddTo(this._disposables);
+
+      this.SelectedLabel.Subscribe(l =>
+      {
+        if (l != null)
+        {
+          this.Point.Value = l.Point.Value.ToString();
+        }
+        else
+        {
+          this.Point.Value = this.Data.Point.ToString();
+        }
+      }).AddTo(this._disposables);
+
+      this.LabelConfig.Subscribe(l => this.IsUseLabel.Value = l != null).AddTo(this._disposables);
+    }
+
+    public void UpdateConfig(ExpansionMemoConfig config)
+    {
+      this.Header.Value = config.Header;
+      this.IsPointVisible.Value = config.Style.HasFlag(MemoStyle.Point);
+      this.IsMemoVisible.Value = config.Style.HasFlag(MemoStyle.Memo);
+    }
+
+    public void SetLabelConfig(PointLabelConfig config)
+    {
+      this.LabelConfig.Value = config;
+      this.UpdateLabel();
+    }
+
+    private void UpdateLabel()
+    {
+      if (this.LabelConfig.Value == null)
+      {
+        this.Label.Value = this.Data.Point.ToString();
+        this.Color.Value = MemoColor.Default;
+        this.SelectedLabel.Value = null;
+      }
+      else
+      {
+        this.Label.Value = this.LabelConfig.Value.GetLabel(this.Data.Point);
+        this.Color.Value = this.LabelConfig.Value.GetColor(this.Data.Point);
+        this.SelectedLabel.Value = this.LabelConfig.Value.GetLabelItem(this.Data.Point);
+      }
+    }
+
+    public void UpdateLabelConfig()
+    {
+      this.UpdateLabel();
+    }
+
+    public void RemoveLabelConfig()
+    {
+      this.LabelConfig.Value = null;
+      this.IsUseLabel.Value = false;
+      this.UpdateLabel();
     }
 
     private async Task SaveMemoAsync(Action<MemoData> save, string memo)
@@ -854,6 +1108,7 @@ namespace KmyKeiba.Models.Race.Expand
       {
         this.Data.Point = value;
         this.Point.Value = value.ToString();
+        this.UpdateLabel();
       }
       finally
       {

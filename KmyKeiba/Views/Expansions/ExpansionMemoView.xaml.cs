@@ -42,6 +42,10 @@ namespace KmyKeiba.Views.Expansions
 
     public Guid UniqueId4 { get; } = Guid.NewGuid();
 
+    public Guid UniqueId5 { get; } = Guid.NewGuid();
+
+    public Guid UniqueId6 { get; } = Guid.NewGuid();
+
     public ExpansionMemoView()
     {
       InitializeComponent();

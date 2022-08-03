@@ -137,6 +137,30 @@ namespace KmyKeiba.JVLink.Entities
 
     public TimeSpan Corner4LapTime { get; set; }
 
+    public int PrizeMoney1 { get; set; }
+
+    public int PrizeMoney2 { get; set; }
+
+    public int PrizeMoney3 { get; set; }
+
+    public int PrizeMoney4 { get; set; }
+
+    public int PrizeMoney5 { get; set; }
+
+    public int PrizeMoney6 { get; set; }
+
+    public int PrizeMoney7 { get; set; }
+
+    public int ExtraPrizeMoney1 { get; set; }
+
+    public int ExtraPrizeMoney2 { get; set; }
+
+    public int ExtraPrizeMoney3 { get; set; }
+
+    public int ExtraPrizeMoney4 { get; set; }
+
+    public int ExtraPrizeMoney5 { get; set; }
+
     internal Race()
     {
     }
@@ -224,6 +248,19 @@ namespace KmyKeiba.JVLink.Entities
       int.TryParse(race.LapTime[2], out var lap3);
       int.TryParse(race.LapTime[3], out var lap4);
 
+      int.TryParse(race.Honsyokin[0], out var money1);
+      int.TryParse(race.Honsyokin[1], out var money2);
+      int.TryParse(race.Honsyokin[2], out var money3);
+      int.TryParse(race.Honsyokin[3], out var money4);
+      int.TryParse(race.Honsyokin[4], out var money5);
+      int.TryParse(race.Honsyokin[5], out var money6);
+      int.TryParse(race.Honsyokin[6], out var money7);
+      int.TryParse(race.Fukasyokin[0], out var emoney1);
+      int.TryParse(race.Fukasyokin[1], out var emoney2);
+      int.TryParse(race.Fukasyokin[2], out var emoney3);
+      int.TryParse(race.Fukasyokin[3], out var emoney4);
+      int.TryParse(race.Fukasyokin[4], out var emoney5);
+
       var obj = new Race
       {
         LastModified = race.head.MakeDate.ToDateTime(),
@@ -262,6 +299,18 @@ namespace KmyKeiba.JVLink.Entities
         Corner4Number = cnum4,
         Corner4Result = race.CornerInfo[3].Jyuni.Trim(),
         Corner4LapTime = new TimeSpan(0, 0, 0, lap4 / 10, lap1 % 10 * 100),
+        PrizeMoney1 = money1,
+        PrizeMoney2 = money2,
+        PrizeMoney3 = money3,
+        PrizeMoney4 = money4,
+        PrizeMoney5 = money5,
+        PrizeMoney6 = money6,
+        PrizeMoney7 = money7,
+        ExtraPrizeMoney1 = emoney1,
+        ExtraPrizeMoney2 = emoney2,
+        ExtraPrizeMoney3 = emoney3,
+        ExtraPrizeMoney4 = emoney4,
+        ExtraPrizeMoney5 = emoney5,
       };
       return obj;
     }

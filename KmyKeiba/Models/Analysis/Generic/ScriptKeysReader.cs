@@ -986,6 +986,9 @@ namespace KmyKeiba.Models.Analysis.Generic
           query = query.Where(this.BuildEnumValuesQuery<RaceData, RaceGrade>
             (nameof(RaceData.Grade), this.Values.Select(v => (RaceGrade)v)));
           break;
+        case QueryKey.PrizeMoney1:
+          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.PrizeMoney1), isShort: false));
+          break;
       }
       return query;
     }
@@ -1320,6 +1323,16 @@ namespace KmyKeiba.Models.Analysis.Generic
     GradeId,
     [QueryKey("grades")]
     Grades,
+    [QueryKey("prize1")]
+    PrizeMoney1,
+    [QueryKey("prize2")]
+    PrizeMoney2,
+    [QueryKey("prize3")]
+    PrizeMoney3,
+    [QueryKey("prize4")]
+    PrizeMoney4,
+    [QueryKey("prize5")]
+    PrizeMoney5,
 
     [StringQueryKey("horse")]
     HorseKey,

@@ -46,6 +46,9 @@ namespace KmyKeiba.Models.Script
     [ScriptMember("isFirstMessageVisible")]
     public bool IsFirstMessageVisible { get; set; } = true;
 
+    [ScriptMember("expansionMemoGroupSize")]
+    public int ExpansionMemoGroupSize { get; set; } = 8;
+
     [ScriptMember("createAnalysisTable")]
     public ScriptAnalysisTableConfiguration CreateAnalysisTable(string name)
     {
@@ -68,6 +71,7 @@ namespace KmyKeiba.Models.Script
         AnalysisTableSampleSize = this.AnalysisTableSampleSize,
         DownloadNormalDataIntervalMinutes = this.DownloadNormalDataIntervalMinutes,
         IsFirstMessageVisible = this.IsFirstMessageVisible,
+        ExpansionMemoGroupSize = this.ExpansionMemoGroupSize,
       };
       foreach (var table in this._tables)
       {

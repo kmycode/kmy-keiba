@@ -247,6 +247,13 @@ namespace KmyKeiba.Models.Analysis.Table
       {
         count = ApplicationConfiguration.Current.Value.AnalysisTableRaceHorseSourceSize;
       }
+      else if (this is LambdaAnalysisWithFinderTableCell finder)
+      {
+        if (finder.IsMultipleHorsesPerRace)
+        {
+          count = ApplicationConfiguration.Current.Value.AnalysisTableRaceHorseSourceSize;
+        }
+      }
 
       var selector = this._selector(this._horse);
       var analyzer = this.LoadAnalyzer(selector, count);
@@ -298,8 +305,12 @@ namespace KmyKeiba.Models.Analysis.Table
   {
     protected override RaceHorseTrendAnalyzer LoadAnalyzer(RaceHorseTrendAnalysisSelectorWrapper selector, int count) => selector.BeginLoad(this._keys, count);
 
+    public bool IsMultipleHorsesPerRace { get; }
+
     public LambdaAnalysisWithFinderTableCell(RaceHorseAnalyzer horse, Func<RaceHorseAnalyzer, RaceHorseTrendAnalysisSelectorWrapper> selector, string keys, Action<RaceHorseTrendAnalyzer, AnalysisTableCell<RaceHorseTrendAnalysisSelectorWrapper, RaceHorseTrendAnalyzer>> afterLoad) : base(horse, selector, keys, afterLoad)
     {
+      var items = keys.Split('|');
+      this.IsMultipleHorsesPerRace = !(items.Contains("horse") || items.Contains("rider") || items.Contains("race"));  // trainer、ownerは１つのレースで複数出ることがある
     }
   }
 }

@@ -62,6 +62,11 @@ namespace KmyKeiba.Models.Analysis.Generic
               {
                 if (item == null) continue;
 
+                if (this.ActiveItem.Value == item)
+                {
+                  this.ActiveItem.Value = null;
+                }
+
                 this._itemEvents.TryGetValue(item, out var disable);
                 if (disable != null)
                 {

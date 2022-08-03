@@ -120,6 +120,10 @@ namespace KmyKeiba.Data.Db
 
     public string? Memo { get; set; }
 
+    public byte[] PrizeMoney { get; set; } = Array.Empty<byte>();
+
+    public int PrizeMoney1 { get; set; }
+
     public override void SetEntity(Race race)
     {
       this.Key = race.Key;
@@ -196,6 +200,60 @@ namespace KmyKeiba.Data.Db
             break;
         }
       }
+
+      var prizeMoney = new byte[12 * 4];
+      var prizeMoneyIndex = 0;
+      void SetPrizeMoney(int money)
+      {
+        prizeMoney![prizeMoneyIndex++] = (byte)(money >> 24 & 255);
+        prizeMoney![prizeMoneyIndex++] = (byte)(money >> 16 & 255);
+        prizeMoney![prizeMoneyIndex++] = (byte)(money >> 8 & 255);
+        prizeMoney![prizeMoneyIndex++] = (byte)(money & 255);
+      }
+      SetPrizeMoney(race.PrizeMoney1);
+      SetPrizeMoney(race.PrizeMoney2);
+      SetPrizeMoney(race.PrizeMoney3);
+      SetPrizeMoney(race.PrizeMoney4);
+      SetPrizeMoney(race.PrizeMoney5);
+      SetPrizeMoney(race.PrizeMoney6);
+      SetPrizeMoney(race.PrizeMoney7);
+      SetPrizeMoney(race.ExtraPrizeMoney1);
+      SetPrizeMoney(race.ExtraPrizeMoney2);
+      SetPrizeMoney(race.ExtraPrizeMoney3);
+      SetPrizeMoney(race.ExtraPrizeMoney4);
+      SetPrizeMoney(race.ExtraPrizeMoney5);
+      this.PrizeMoney = prizeMoney;
+      this.PrizeMoney1 = race.PrizeMoney1;
+    }
+
+    public int[] GetPrizeMoneys()
+    {
+      if (this.PrizeMoney == null || this.PrizeMoney.Length < 7 * 4)
+      {
+        return Array.Empty<int>();
+      }
+
+      var arr = new int[7];
+      for (var i = 0; i < 7 * 4; i += 4)
+      {
+        arr[i / 4] = (this.PrizeMoney[i] << 24) | (this.PrizeMoney[i + 1] << 16) | (this.PrizeMoney[i + 2] << 8) | (this.PrizeMoney[i + 3]);
+      }
+      return arr;
+    }
+
+    public int[] GetExtraPrizeMoneys()
+    {
+      if (this.PrizeMoney == null || this.PrizeMoney.Length < 12 * 4)
+      {
+        return Array.Empty<int>();
+      }
+
+      var arr = new int[5];
+      for (var i = 7 * 4; i < 12 * 4; i += 4)
+      {
+        arr[i / 4 - 7] = (this.PrizeMoney[i] << 24) | (this.PrizeMoney[i + 1] << 16) | (this.PrizeMoney[i + 2] << 8) | (this.PrizeMoney[i + 3]);
+      }
+      return arr;
     }
 
     public override bool IsEquals(DataBase<Race> b)
