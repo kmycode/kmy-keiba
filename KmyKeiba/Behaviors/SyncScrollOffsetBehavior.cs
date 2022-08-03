@@ -12,6 +12,8 @@ namespace KmyKeiba.Behaviors
 {
   internal class SyncScrollOffsetBehavior : Behavior<FrameworkElement>
   {
+    private bool _isTargetEventSet = true;
+
     public static readonly DependencyProperty TargetElementProperty
         = DependencyProperty.Register(
             nameof(TargetElement),
@@ -35,6 +37,11 @@ namespace KmyKeiba.Behaviors
                   if (scroll != null)
                   {
                     scroll.ScrollChanged += view.Scroll_ScrollChangedAndBack;
+                    view._isTargetEventSet = true;
+                  }
+                  else
+                  {
+                    view._isTargetEventSet = false;
                   }
                 }
               }
@@ -68,6 +75,7 @@ namespace KmyKeiba.Behaviors
     protected override void OnDetaching()
     {
       this.ReleaseBindingOffset();
+      this._isTargetEventSet = false;
       base.OnDetaching();
     }
 
@@ -115,6 +123,16 @@ namespace KmyKeiba.Behaviors
       {
         target.ScrollToHorizontalOffset(e.HorizontalOffset);
         target.ScrollToVerticalOffset(e.VerticalOffset * this.RowHeight);
+      }
+
+      if (this.TargetElement is ItemsControl && !this._isTargetEventSet)
+      {
+        var scroll = this.GetScrollViewer(this.TargetElement);
+        if (scroll != null)
+        {
+          scroll.ScrollChanged += this.Scroll_ScrollChangedAndBack;
+          this._isTargetEventSet = true;
+        }
       }
     }
 

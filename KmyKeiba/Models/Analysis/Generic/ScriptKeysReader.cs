@@ -78,6 +78,8 @@ namespace KmyKeiba.Models.Analysis.Generic
                 "trainer" => MemoTarget.Trainer,
                 "owner" => MemoTarget.Owner,
                 "f" => MemoTarget.Father,
+                "m" => MemoTarget.Mother,
+                "mf" => MemoTarget.MotherFather,
                 "point" => pointTarget,
                 "" => pointTarget,
                 "number" => numberTarget,
@@ -545,7 +547,8 @@ namespace KmyKeiba.Models.Analysis.Generic
       var horseKeys = this._data.Where(d =>
           d.Key == MemoTarget.Race || d.Key == MemoTarget.Course || d.Key == MemoTarget.Day ||
           d.Key == MemoTarget.Rider || d.Key == MemoTarget.Trainer || d.Key == MemoTarget.Owner ||
-          d.Key == MemoTarget.Horse || d.Key == MemoTarget.Father)
+          d.Key == MemoTarget.Horse || d.Key == MemoTarget.Father || d.Key == MemoTarget.Mother ||
+          d.Key == MemoTarget.MotherFather)
         .ToArray();
 
       if (!targetKeys.Any() || targetKeys.Length != horseKeys.Length)
@@ -598,7 +601,8 @@ namespace KmyKeiba.Models.Analysis.Generic
       var targetKeys = this._data.Where(d =>
           d.Key == MemoTarget.Race || d.Key == MemoTarget.Course || d.Key == MemoTarget.Day ||
           d.Key == MemoTarget.Rider || d.Key == MemoTarget.Trainer || d.Key == MemoTarget.Owner ||
-          d.Key == MemoTarget.Horse || d.Key == MemoTarget.Father)
+          d.Key == MemoTarget.Horse || d.Key == MemoTarget.Father || d.Key == MemoTarget.Mother ||
+          d.Key == MemoTarget.MotherFather)
         .ToArray();
 
       if (!targetKeys.Any() || raceKeys.Length == targetKeys.Length)
@@ -659,6 +663,18 @@ namespace KmyKeiba.Models.Analysis.Generic
           query = query
             .Join(db.BornHorses!, h => h.Key, b => b.Code, (h, b) => new { Horse = h, FatherCode = b.FatherBreedingCode, })
             .Join(memoFilter, h => h.FatherCode, innerKey, (h, m) => h.Horse);
+        }
+        else if (key.Key == MemoTarget.Mother)
+        {
+          query = query
+            .Join(db.BornHorses!, h => h.Key, b => b.Code, (h, b) => new { Horse = h, MotherCode = b.MotherBreedingCode, })
+            .Join(memoFilter, h => h.MotherCode, innerKey, (h, m) => h.Horse);
+        }
+        else if (key.Key == MemoTarget.MotherFather)
+        {
+          query = query
+            .Join(db.BornHorses!, h => h.Key, b => b.Code, (h, b) => new { Horse = h, MotherFatherCode = b.MFBreedingCode, })
+            .Join(memoFilter, h => h.MotherFatherCode, innerKey, (h, m) => h.Horse);
         }
       }
 

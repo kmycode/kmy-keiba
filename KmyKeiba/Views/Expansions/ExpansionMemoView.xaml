@@ -140,6 +140,8 @@
             <ToggleButton Content="調教師" IsChecked="{Binding Race.MemoEx.Value.Config.IsFilterTrainer.Value,Mode=TwoWay,ElementName=Root}"/>
             <ToggleButton Content="馬主" IsChecked="{Binding Race.MemoEx.Value.Config.IsFilterOwner.Value,Mode=TwoWay,ElementName=Root}"/>
             <ToggleButton Content="父馬" IsChecked="{Binding Race.MemoEx.Value.Config.IsFilterFather.Value,Mode=TwoWay,ElementName=Root}"/>
+            <ToggleButton Content="母馬" IsChecked="{Binding Race.MemoEx.Value.Config.IsFilterMother.Value,Mode=TwoWay,ElementName=Root}"/>
+            <ToggleButton Content="母父馬" IsChecked="{Binding Race.MemoEx.Value.Config.IsFilterMotherFather.Value,Mode=TwoWay,ElementName=Root}"/>
           </StackPanel>
           <StackPanel Grid.ColumnSpan="2" Grid.Row="4" Orientation="Horizontal" Margin="0,16">
             <TextBlock Text="同一の絞り込み条件における識別番号" FontSize="16" Margin="0,0,24,0" VerticalAlignment="Center"/>
@@ -150,9 +152,9 @@
           </StackPanel>
           <TextBlock Grid.Row="5" Text="スタイル" FontSize="16" VerticalAlignment="Center" Width="80" Margin="0,8,0,0"/>
           <StackPanel Orientation="Horizontal" Grid.Row="5" Grid.Column="1" Margin="0,8,0,0">
+            <RadioButton Content="コメント" GroupName="{Binding UniqueId2,ElementName=Root}" IsChecked="{Binding Race.MemoEx.Value.Config.IsStyleMemo.Value,Mode=TwoWay,ElementName=Root}"/>
             <RadioButton Content="数値＋コメント" GroupName="{Binding UniqueId2,ElementName=Root}" IsChecked="{Binding Race.MemoEx.Value.Config.IsStylePointAndMemo.Value,Mode=TwoWay,ElementName=Root}"/>
             <RadioButton Content="数値" GroupName="{Binding UniqueId2,ElementName=Root}" IsChecked="{Binding Race.MemoEx.Value.Config.IsStylePoint.Value,Mode=TwoWay,ElementName=Root}"/>
-            <RadioButton Content="コメント" GroupName="{Binding UniqueId2,ElementName=Root}" IsChecked="{Binding Race.MemoEx.Value.Config.IsStyleMemo.Value,Mode=TwoWay,ElementName=Root}"/>
           </StackPanel>
           <TextBlock Grid.Row="6" Text="数値表示" FontSize="16" VerticalAlignment="Center" Width="80" Margin="0,8,0,0"/>
           <StackPanel Orientation="Horizontal" Grid.Row="6" Grid.Column="1" Margin="0,8,0,0">
@@ -168,7 +170,8 @@
               </ComboBox.ItemTemplate>
             </ComboBox>
           </StackPanel>
-          <StackPanel Grid.ColumnSpan="2" Grid.Row="7" Orientation="Horizontal" Margin="0,16,0,0">
+          <StackPanel Grid.ColumnSpan="2" Grid.Row="7" Orientation="Horizontal" Margin="0,16,0,0"
+                      IsEnabled="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root}">
             <Button FontSize="16" Content="追加" Width="120" Command="{Binding AddMemoConfigCommand}"
                     Visibility="{Binding Race.MemoEx.Value.IsCreating.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
             <StackPanel Orientation="Horizontal"
@@ -179,7 +182,10 @@
               <Button FontSize="16" Content="削除" Width="120" Margin="8,0,0,0" Command="{Binding DeleteMemoConfigCommand}"/>
             </StackPanel>
             <TextBlock Text="{Binding Race.MemoEx.Value.Config.ErrorMessage.Value,Mode=OneWay,ElementName=Root}" FontSize="16" VerticalAlignment="Center" Foreground="{StaticResource ErrorForeground}"
-                       Margin="16,0,0,0"/>
+                       Margin="16,0,16,0"/>
+            <TextBlock Visibility="{Binding Race.MemoEx.Value.Config.IsRaceHeaderCombo.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}" FontSize="16" VerticalAlignment="Center"
+                       Foreground="{StaticResource SubForeground}" Text="レース名の横に選択肢が表示されます"
+                       Margin="16,0,16,0"/>
           </StackPanel>
         </Grid>
       </Border>
@@ -201,17 +207,19 @@
                 <RowDefinition/>
               </Grid.RowDefinitions>
               <TextBlock FontSize="16" Grid.ColumnSpan="2" Text="{Binding Name.Value}"/>
-              <TextBlock Text="{Binding Header.Value}" FontSize="14" Grid.ColumnSpan="2"
-                               Foreground="{StaticResource SubForeground}" Grid.Row="1"/>
+              <TextBlock Text="{Binding Header.Value}" FontSize="14" Grid.ColumnSpan="2" Margin="8,2"
+                         Foreground="{StaticResource SubForeground}" Grid.Row="1"/>
               <Button Grid.Column="2" Grid.RowSpan="2" Content="設定" VerticalAlignment="Top"
                             Padding="6,2" FontSize="12"
                             Command="{Binding DataContext.EditMemoConfigCommand,ElementName=Root}" CommandParameter="{Binding}"/>
               <StackPanel Grid.Row="2" VerticalAlignment="Center" Width="60" Margin="0,0,8,0"
                           Visibility="{Binding IsPointVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
                 <TextBox Text="{Binding Point.Value,Mode=TwoWay}" FontSize="20" TextAlignment="Center"
-                         Visibility="{Binding IsUseLabel.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
+                         Visibility="{Binding IsUseLabel.Value,Converter={StaticResource NegativeVisibilityConv}}"
+                         IsReadOnly="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
                 <ComboBox ItemsSource="{Binding LabelConfig.Value.Items}" SelectedItem="{Binding SelectedLabel.Value,Mode=TwoWay}"
-                          Visibility="{Binding IsUseLabel.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                          Visibility="{Binding IsUseLabel.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                          IsEnabled="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root}">
                   <ComboBox.ItemTemplate>
                     <DataTemplate>
                       <TextBlock Text="{Binding Label.Value}" FontSize="20" Foreground="{Binding Color.Value,Converter={StaticResource MemoColorBrushConv}}"
@@ -224,7 +232,7 @@
                             Visibility="{Binding IsMemoVisible.Value,Converter={StaticResource BooleanVisibilityConv}}"
                             HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
                 <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                  <TextBlock Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="14"
+                  <TextBlock Text="{Binding Memo.Value}" FontSize="14" Margin="4,2"
                              TextWrapping="Wrap" Name="MemoEdit" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
                   <TextBlock Visibility="{Binding Memo.Value,Mode=OneWay,Converter={StaticResource StringEmptyVisibilityConv}}"
                              Text="編集" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -233,7 +241,8 @@
                                IsOpen="{Binding IsChecked,ElementName=Toggle,Mode=TwoWay}" StaysOpen="False">
                     <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1">
                       <TextBox Margin="8,4" Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="16"
-                               AcceptsReturn="True" TextWrapping="Wrap" Name="PopupEdit"/>
+                               AcceptsReturn="True" TextWrapping="Wrap" Name="PopupEdit"
+                               IsReadOnly="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
                     </Border>
                   </up:ImePopup>
                 </Grid>
@@ -350,13 +359,14 @@
               <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
             <TextBox Text="{Binding Race.MemoEx.Value.LabelConfig.ActiveConfig.Value.Name.Value,Mode=TwoWay,ElementName=Root}"
+                     IsReadOnly="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"
                      FontSize="20"/>
             <Button Grid.Column="1" Content="削除" VerticalAlignment="Bottom"
                     Command="{Binding DeleteLabelConfigCommand}"/>
           </Grid>
           <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
             <TextBlock Text="数値" Foreground="{StaticResource SubForeground}" FontSize="16" Width="128"/>
-            <TextBlock Text="ラベル（１文字推奨）" Foreground="{StaticResource SubForeground}" FontSize="16"/>
+            <TextBlock Text="ラベル（１～２文字推奨）" Foreground="{StaticResource SubForeground}" FontSize="16"/>
           </StackPanel>
           <ItemsControl Grid.Row="2" Style="{StaticResource TableList}" ItemsSource="{Binding Race.MemoEx.Value.LabelConfig.ActiveConfig.Value.Items,ElementName=Root}">
             <ItemsControl.ItemTemplate>
@@ -379,8 +389,10 @@
                     <RowDefinition/>
                   </Grid.RowDefinitions>
                   <TextBox Text="{Binding Point.Value,Mode=TwoWay}" FontSize="16" TextAlignment="Center" Width="120"
+                           IsReadOnly="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"
                            VerticalAlignment="Center" Padding="4,2"/>
                   <TextBox Text="{Binding Label.Value,Mode=TwoWay}" FontSize="16" MinWidth="200" Margin="8,0,16,0" Padding="4,2"
+                           IsReadOnly="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"
                            Grid.Column="1" VerticalAlignment="Center"/>
                   <RadioButton Grid.Column="2" FontSize="16" Content="色" Padding="8,2" Foreground="{StaticResource BaseForeground}"
                                IsChecked="{Binding IsColorDefault.Value,Mode=TwoWay}" GroupName="{Binding Data.Point}"

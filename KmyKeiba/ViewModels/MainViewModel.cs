@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Connection;
+using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Models.RList;
 using KmyKeiba.Models.Script;
@@ -107,6 +108,9 @@ namespace KmyKeiba.ViewModels
           logger.Debug("初めての利用のようです。初期画面を表示します");
           this.CurrentDialog.Value = DialogType.Download;
         }
+
+        // DBのプリセット
+        await DatabasePresetModel.SetPresetsAsync();
 
         // アップデートチェック
         await this.Update.CheckAsync();

@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
@@ -24,6 +25,8 @@ namespace KmyKeiba.Models.Race.Expand
     private static readonly List<RaceMemoItem> _memoCaches = new();
     private static bool _isRaceTab = true;
     private static bool _isRaceHorseTab;
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
 
     // 他のウィンドウのデータ
     private static readonly List<RaceMemoModel> _allModels = new();
@@ -69,6 +72,8 @@ namespace KmyKeiba.Models.Race.Expand
 
     public ReactiveCollection<RaceMemoItem> RaceMemoSelections { get; } = new();
 
+    public ReactiveProperty<bool> CanSave => DownloaderModel.Instance.CanSaveOthers;
+
     private ExpansionMemoConfig? editingConfig;
 
     public RaceMemoModel(RaceData race, IReadOnlyList<RaceHorseAnalyzer> raceHorses)
@@ -88,6 +93,7 @@ namespace KmyKeiba.Models.Race.Expand
       {
         this.IsEditing.Value = false;
         _isRaceTab = v;
+        this.Config.IsRaceTab.Value = v;
       }).AddTo(this._disposables);
       this.IsRaceHorseView.Subscribe(v =>
       {
@@ -98,11 +104,8 @@ namespace KmyKeiba.Models.Race.Expand
       this.IsCreating.Where(v => v).Subscribe(_ =>
       {
         this.IsEditing.Value = false;
-        if (this.editingConfig != null)
-        {
-          this.Config.CopyFromData(new ExpansionMemoConfig());
-          this.editingConfig = null;
-        }
+        this.Config.CopyFromData(new ExpansionMemoConfig());
+        this.editingConfig = null;
       }).AddTo(this._disposables);
       this.IsEditing.Where(v => v).Subscribe(_ => this.IsCreating.Value = false).AddTo(this._disposables);
 
@@ -144,106 +147,113 @@ namespace KmyKeiba.Models.Race.Expand
         // トランザクションは任意
       }
 
-      var raceMemos = new List<RaceMemoItem>();
-      var raceHorseMemos = new List<RaceHorseMemoItem>();
-
-      // レースメモ
-      foreach (var config in _configs!.Where(c => c.Type == MemoType.Race).OrderBy(c => c.Id).OrderBy(c => c.Order))
+      try
       {
-        // 同じメモが同時に表示される可能性はないが、他のウィンドウで表示されているかもしれない
-        var existsMemoQuery = _memoCaches.Concat(_allModels
-          .Where(m => m != this)
-          .SelectMany(m => m.RaceMemos));
-        existsMemoQuery = await this.GetMemoQueryAsync(db, existsMemoQuery, config, null);
-        var existsMemo = existsMemoQuery.FirstOrDefault();
+        var raceMemos = new List<RaceMemoItem>();
+        var raceHorseMemos = new List<RaceHorseMemoItem>();
 
-        if (existsMemo != null)
+        // レースメモ
+        foreach (var config in _configs!.Where(c => c.Type == MemoType.Race).OrderBy(c => c.Id).OrderBy(c => c.Order))
         {
-          raceMemos.Add(existsMemo);
-          SetLabel(existsMemo, config);
-        }
-        else
-        {
-          RaceMemoItem newItem;
-          var memo = await (await this.GetMemoQueryAsync(db, db.Memos!, config, null)).FirstOrDefaultAsync();
-          if (memo != null)
-          {
-            newItem = new RaceMemoItem(memo, config).AddTo(this._disposables);
-          }
-          else
-          {
-            newItem = new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, null), config);
-          }
-          newItem.Name.Value = await this.GetItemNameAsync(db, newItem.Data, null);
-          newItem.IsGroupVisible.Value = true;
-          SetLabel(newItem, config);
-          raceMemos.Add(newItem);
-          _memoCaches.Add(newItem);
-        }
-      }
-
-      // 馬メモ
-      foreach (var horse in this.RaceHorses)
-      {
-        var horseMemo = new RaceHorseMemoItem(Race, horse).AddTo(this._disposables);
-        raceHorseMemos.Add(horseMemo);
-
-        foreach (var config in _configs!.Where(c => c.Type == MemoType.RaceHorse).OrderBy(c => c.Id).OrderBy(c => c.Order))
-        {
+          // 同じメモが同時に表示される可能性はないが、他のウィンドウで表示されているかもしれない
           var existsMemoQuery = _memoCaches.Concat(_allModels
-            .SelectMany(m => m.RaceHorseMemos.SelectMany(h => h.Memos)))
-            .Concat(raceHorseMemos.SelectMany(m => m.Memos));
-          existsMemoQuery = await this.GetMemoQueryAsync(db, existsMemoQuery, config, horse);
+            .Where(m => m != this)
+            .SelectMany(m => m.RaceMemos));
+          existsMemoQuery = await this.GetMemoQueryAsync(db, existsMemoQuery, config, null);
           var existsMemo = existsMemoQuery.FirstOrDefault();
 
           if (existsMemo != null)
           {
-            horseMemo.Memos.Add(existsMemo);
+            raceMemos.Add(existsMemo);
             SetLabel(existsMemo, config);
           }
           else
           {
             RaceMemoItem newItem;
-            var memo = await (await this.GetMemoQueryAsync(db, db.Memos!, config, horse)).FirstOrDefaultAsync();
+            var memo = await (await this.GetMemoQueryAsync(db, db.Memos!, config, null)).FirstOrDefaultAsync();
             if (memo != null)
             {
-              newItem = new RaceMemoItem(memo, config);
+              newItem = new RaceMemoItem(memo, config).AddTo(this._disposables);
             }
             else
             {
-              newItem = new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, horse), config);
+              newItem = new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, null), config);
             }
-            try
-            {
-              newItem.Name.Value = await this.GetItemNameAsync(db, newItem.Data, horse);
-            }
-            catch (Exception ex)
-            {
-
-            }
+            newItem.Name.Value = await this.GetItemNameAsync(db, newItem.Data, null);
+            newItem.IsGroupVisible.Value = true;
             SetLabel(newItem, config);
-            horseMemo.Memos.Add(newItem);
+            raceMemos.Add(newItem);
             _memoCaches.Add(newItem);
           }
         }
+
+        // 馬メモ
+        foreach (var horse in this.RaceHorses)
+        {
+          var horseMemo = new RaceHorseMemoItem(Race, horse).AddTo(this._disposables);
+          raceHorseMemos.Add(horseMemo);
+
+          foreach (var config in _configs!.Where(c => c.Type == MemoType.RaceHorse).OrderBy(c => c.Id).OrderBy(c => c.Order))
+          {
+            var existsMemoQuery = _memoCaches.Concat(_allModels
+              .SelectMany(m => m.RaceHorseMemos.SelectMany(h => h.Memos)))
+              .Concat(raceHorseMemos.SelectMany(m => m.Memos));
+            existsMemoQuery = await this.GetMemoQueryAsync(db, existsMemoQuery, config, horse);
+            var existsMemo = existsMemoQuery.FirstOrDefault();
+
+            if (existsMemo != null)
+            {
+              horseMemo.Memos.Add(existsMemo);
+              SetLabel(existsMemo, config);
+            }
+            else
+            {
+              RaceMemoItem newItem;
+              var memo = await (await this.GetMemoQueryAsync(db, db.Memos!, config, horse)).FirstOrDefaultAsync();
+              if (memo != null)
+              {
+                newItem = new RaceMemoItem(memo, config);
+              }
+              else
+              {
+                newItem = new RaceMemoItem(await this.GenerateMemoDataAsync(db, config, horse), config);
+              }
+              try
+              {
+                newItem.Name.Value = await this.GetItemNameAsync(db, newItem.Data, horse);
+              }
+              catch (Exception ex)
+              {
+
+              }
+              SetLabel(newItem, config);
+              horseMemo.Memos.Add(newItem);
+              _memoCaches.Add(newItem);
+            }
+          }
+        }
+
+        this.ChangeGroup(this.GetCurrentGroup(), raceHorseMemos);
+
+        ThreadUtil.InvokeOnUiThread(() =>
+        {
+          this.RaceMemos.Clear();
+          this.RaceHorseMemos.Clear();
+          foreach (var item in raceMemos)
+          {
+            this.RaceMemos.Add(item);
+          }
+          foreach (var item in raceHorseMemos)
+          {
+            this.RaceHorseMemos.Add(item);
+          }
+          this.UpdateRaceMemoSelections();
+        });
       }
-
-      this.ChangeGroup(this.GetCurrentGroup(), raceHorseMemos);
-
-      ThreadUtil.InvokeOnUiThread(() =>
+      catch (Exception ex)
       {
-        this.RaceMemos.Clear();
-        this.RaceHorseMemos.Clear();
-        foreach (var item in raceMemos)
-        {
-          this.RaceMemos.Add(item);
-        }
-        foreach (var item in raceHorseMemos)
-        {
-          this.RaceHorseMemos.Add(item);
-        }
-        this.UpdateRaceMemoSelections();
-      });
+        logger.Error("拡張メモのロードでエラー発生", ex);
+      }
     }
 
     private static void SetLabel(RaceMemoItem memo, ExpansionMemoConfig config)
@@ -302,10 +312,10 @@ namespace KmyKeiba.Models.Race.Expand
       if (isNewMemoNumber)
       {
         // これでは同じ番号のつけられた既存のメモがロードできない
-        var data = await this.GenerateMemoDataAsync(db, config, null);
 
         if (config.Type == MemoType.Race)
         {
+          var data = await this.GenerateMemoDataAsync(db, config, null);
           var newItem = new RaceMemoItem(data, config);
           newItem.Name.Value = await this.GetItemNameAsync(db, newItem.Data, null);
           newItem.IsGroupVisible.Value = true;
@@ -318,15 +328,22 @@ namespace KmyKeiba.Models.Race.Expand
         }
         else
         {
-          ThreadUtil.InvokeOnUiThread(async () =>
+          var items = new List<(RaceHorseMemoItem, RaceMemoItem)>();
+          foreach (var horse in this.RaceHorseMemos)
           {
-            foreach (var horse in this.RaceHorseMemos)
+            var data = await this.GenerateMemoDataAsync(db, config, horse.RaceHorse);
+            var newItem = new RaceMemoItem(data, config);
+            newItem.Name.Value = await this.GetItemNameAsync(db, newItem.Data, horse.RaceHorse);
+            newItem.IsGroupVisible.Value = true;
+            SetLabel(newItem, config);
+            items.Add((horse, newItem));
+          }
+
+          ThreadUtil.InvokeOnUiThread(() =>
+          {
+            foreach (var item in items)
             {
-              var newItem = new RaceMemoItem(data, config);
-              newItem.Name.Value = await this.GetItemNameAsync(db, newItem.Data, horse.RaceHorse);
-              newItem.IsGroupVisible.Value = true;
-              SetLabel(newItem, config);
-              horse.Memos.Add(newItem);
+              item.Item1.Memos.Add(item.Item2);
             }
           });
         }
@@ -413,13 +430,26 @@ namespace KmyKeiba.Models.Race.Expand
 
       if (this.editingConfig != null)
       {
-        db.MemoConfigs!.Remove(this.editingConfig);
-        await db.SaveChangesAsync();
-
-        var exists = _configs!.FirstOrDefault(c => c.Id == this.editingConfig.Id);
-        if (exists != null)
+        try
         {
-          _configs!.Remove(exists);
+          db.MemoConfigs!.Remove(this.editingConfig);
+          await db.SaveChangesAsync();
+
+          var exists = _configs!.FirstOrDefault(c => c.Id == this.editingConfig.Id);
+          if (exists != null)
+          {
+            _configs!.Remove(exists);
+          }
+
+          var existCaches = _memoCaches.Where(c => c.Config.Id == this.editingConfig.Id).ToArray();
+          foreach (var cache in existCaches)
+          {
+            _memoCaches.Remove(cache);
+          }
+        }
+        catch (Exception ex)
+        {
+          logger.Error("拡張メモ設定削除でエラー", ex);
         }
       }
 
@@ -583,6 +613,14 @@ namespace KmyKeiba.Models.Race.Expand
           {
             return await HorseBloodUtil.GetBloodCodeAsync(db, horse.Data.Key, BloodType.Father);
           }
+          else if (target == MemoTarget.Mother)
+          {
+            return await HorseBloodUtil.GetBloodCodeAsync(db, horse.Data.Key, BloodType.Mother);
+          }
+          else if (target == MemoTarget.MotherFather)
+          {
+            return await HorseBloodUtil.GetBloodCodeAsync(db, horse.Data.Key, BloodType.MotherFather);
+          }
         }
 
         return string.Empty;
@@ -671,6 +709,22 @@ namespace KmyKeiba.Models.Race.Expand
             return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(father)), memo);
           }
         }
+        else if (targetType == MemoTarget.Mother)
+        {
+          var father = await HorseBloodUtil.GetBloodCodeAsync(db, horse.Data.Key, BloodType.Mother);
+          if (!string.IsNullOrEmpty(father))
+          {
+            return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(father)), memo);
+          }
+        }
+        else if (targetType == MemoTarget.MotherFather)
+        {
+          var father = await HorseBloodUtil.GetBloodCodeAsync(db, horse.Data.Key, BloodType.MotherFather);
+          if (!string.IsNullOrEmpty(father))
+          {
+            return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(father)), memo);
+          }
+        }
       }
 
       return Expression.Lambda<Func<MemoData, bool>>(Expression.Constant(false), memo);
@@ -725,6 +779,14 @@ namespace KmyKeiba.Models.Race.Expand
           if (horse != null)
             return "(父)" + SliceName(await HorseBloodUtil.GetNameAsync(db, horse.Data.Key, BloodType.Father), string.Empty);
           return string.Empty;
+        case MemoTarget.Mother:
+          if (horse != null)
+            return "(母)" + SliceName(await HorseBloodUtil.GetNameAsync(db, horse.Data.Key, BloodType.Mother), string.Empty);
+          return string.Empty;
+        case MemoTarget.MotherFather:
+          if (horse != null)
+            return "(母父)" + SliceName(await HorseBloodUtil.GetNameAsync(db, horse.Data.Key, BloodType.MotherFather), string.Empty);
+          return string.Empty;
       }
       return string.Empty;
     }
@@ -732,12 +794,17 @@ namespace KmyKeiba.Models.Race.Expand
     public void Dispose()
     {
       this._disposables.Dispose();
+      this.Config.Dispose();
       _allModels.Remove(this);
     }
   }
 
-  public class RaceMemoConfig
+  public class RaceMemoConfig : IDisposable
   {
+    private readonly CompositeDisposable _disposables = new();
+
+    public ReactiveProperty<bool> IsRaceTab { get; } = new();
+
     public ReactiveProperty<string> Header { get; } = new();
 
     public ReactiveProperty<bool> IsFilterRace { get; } = new();
@@ -756,6 +823,10 @@ namespace KmyKeiba.Models.Race.Expand
 
     public ReactiveProperty<bool> IsFilterFather { get; } = new();
 
+    public ReactiveProperty<bool> IsFilterMother { get; } = new();
+
+    public ReactiveProperty<bool> IsFilterMotherFather { get; } = new();
+
     public ReactiveProperty<bool> IsStylePoint { get; } = new();
 
     public ReactiveProperty<bool> IsStyleMemo { get; } = new();
@@ -770,6 +841,49 @@ namespace KmyKeiba.Models.Race.Expand
 
     public ReactiveProperty<string> ErrorMessage { get; } = new();
 
+    public ReactiveProperty<bool> IsRaceHeaderCombo { get; } = new();
+
+    public RaceMemoConfig()
+    {
+      this.IsFilterRace
+        .CombineLatest(this.IsFilterDay)
+        .CombineLatest(this.IsFilterCourse)
+        .CombineLatest(this.IsFilterFather)
+        .CombineLatest(this.IsFilterHorse)
+        .CombineLatest(this.IsFilterOwner)
+        .CombineLatest(this.IsFilterRider)
+        .CombineLatest(this.IsFilterTrainer)
+        .CombineLatest(this.IsFilterMother)
+        .CombineLatest(this.IsFilterMotherFather)
+        .CombineLatest(this.IsStyleMemo)
+        .CombineLatest(this.IsStylePoint)
+        .CombineLatest(this.IsStylePointAndMemo)
+        .CombineLatest(this.IsUseLabel)
+        .CombineLatest(this.IsRaceTab)
+        .CombineLatest(this.SelectedLabel.Select(_ => true))
+        .Subscribe(_ =>
+        {
+          this.IsRaceHeaderCombo.Value = false;
+          var targets = this.GetTargets(false, true);
+          if (targets.Count == 1 && targets[0] == MemoTarget.Race && this.IsRaceTab.Value)
+          {
+            if (this.IsStylePoint.Value || this.IsStylePointAndMemo.Value)
+            {
+              if (this.IsUseLabel.Value && this.SelectedLabel.Value != null)
+              {
+                this.IsRaceHeaderCombo.Value = true;
+              }
+            }
+          }
+        })
+        .AddTo(this._disposables);
+    }
+
+    public void Dispose()
+    {
+      this._disposables.Dispose();
+    }
+
     private IReadOnlyList<MemoTarget> GetTargets(bool isRaceMemo, bool isAll = false)
     {
       var list = new List<MemoTarget>();
@@ -783,6 +897,8 @@ namespace KmyKeiba.Models.Race.Expand
         if (this.IsFilterRider.Value) list.Add(MemoTarget.Rider);
         if (this.IsFilterTrainer.Value) list.Add(MemoTarget.Trainer);
         if (this.IsFilterFather.Value) list.Add(MemoTarget.Father);
+        if (this.IsFilterMother.Value) list.Add(MemoTarget.Mother);
+        if (this.IsFilterMotherFather.Value) list.Add(MemoTarget.MotherFather);
       }
 
       return list.OrderBy(i => i).Take(isAll ? 100 : 3).ToArray();
@@ -810,7 +926,7 @@ namespace KmyKeiba.Models.Race.Expand
 
       if (!isRaceMemo)
       {
-        var horseConfigs = new[] { MemoTarget.Horse, MemoTarget.Rider, MemoTarget.Trainer, MemoTarget.Owner, MemoTarget.Father };
+        var horseConfigs = new[] { MemoTarget.Horse, MemoTarget.Rider, MemoTarget.Trainer, MemoTarget.Owner, MemoTarget.Father, MemoTarget.MotherFather, MemoTarget.Mother, };
         if (!horseConfigs.Contains(target1) && !horseConfigs.Contains(target2) && !horseConfigs.Contains(target3))
         {
           return "馬の情報が絞り込み条件に含まれていません";
@@ -847,7 +963,8 @@ namespace KmyKeiba.Models.Race.Expand
     public void CopyFromData(ExpansionMemoConfig config)
     {
       this.IsFilterTrainer.Value = this.IsFilterOwner.Value = this.IsFilterDay.Value = this.IsFilterRider.Value =
-        this.IsFilterRace.Value = this.IsFilterCourse.Value = this.IsFilterHorse.Value = this.IsFilterFather.Value = false;
+        this.IsFilterRace.Value = this.IsFilterCourse.Value = this.IsFilterHorse.Value = this.IsFilterFather.Value =
+        this.IsFilterMother.Value = this.IsFilterMotherFather.Value = false;
       var targets = new MemoTarget[] { config.Target1, config.Target2, config.Target3 };
       foreach (var target in targets)
       {
@@ -877,6 +994,12 @@ namespace KmyKeiba.Models.Race.Expand
           case MemoTarget.Father:
             this.IsFilterFather.Value = true;
             break;
+          case MemoTarget.Mother:
+            this.IsFilterMother.Value = true;
+            break;
+          case MemoTarget.MotherFather:
+            this.IsFilterMotherFather.Value = true;
+            break;
         }
       }
 
@@ -904,6 +1027,7 @@ namespace KmyKeiba.Models.Race.Expand
           this.IsStylePoint.Value = true;
           break;
         case MemoStyle.Memo:
+        default:
           this.IsStyleMemo.Value = true;
           break;
       }
@@ -978,6 +1102,7 @@ namespace KmyKeiba.Models.Race.Expand
   public class RaceMemoItem : IDisposable
   {
     private readonly CompositeDisposable _disposables = new();
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
     public ReactiveProperty<bool> IsStopSaving { get; } = new();
 
@@ -1113,6 +1238,7 @@ namespace KmyKeiba.Models.Race.Expand
       }
       catch (Exception ex)
       {
+        logger.Error("メモの保存でエラー発生", ex);
         OpenErrorSavingMemoRequest.Default.Request(memo);
       }
     }
