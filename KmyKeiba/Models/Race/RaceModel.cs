@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Injection;
+using KmyKeiba.Models.Race.Expand;
 using KmyKeiba.Models.RList;
 using KmyKeiba.Shared;
 using Reactive.Bindings;
@@ -24,6 +25,7 @@ namespace KmyKeiba.Models.Race
 
     private readonly CompositeDisposable _disposables = new();
     private IDisposable? ticketUpdated;
+    private IDisposable? memoChanged;
 
     public ReactiveProperty<string> RaceKey { get; } = new(string.Empty);
 
@@ -231,6 +233,7 @@ namespace KmyKeiba.Models.Race
           }
 
           this.ticketUpdated?.Dispose();
+          this.memoChanged?.Dispose();
 
           var raceKey = key ?? this.RaceKey.Value;
 
@@ -315,6 +318,18 @@ namespace KmyKeiba.Models.Race
             oldInfo.Dispose();
             logger.Debug("旧オブジェクトの破棄完了");
           }
+
+          while (race.MemoEx.Value == null)
+          {
+            await Task.Delay(100);
+          }
+          this.memoChanged = Observable.FromEventPattern<PointLabelChangedEventArgs>(
+            ev => race.MemoEx.Value.PointLabelChangedForRaceList += ev,
+            ev => race.MemoEx.Value.PointLabelChangedForRaceList -= ev)
+          .Subscribe(ev =>
+          {
+            this.RaceList.UpdateColor(ev.EventArgs.Color, ev.EventArgs.IsVisible);
+          });
         }
         catch (Exception ex)
         {

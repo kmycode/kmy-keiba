@@ -797,6 +797,41 @@ namespace KmyKeiba.Models.Race.Expand
       this.Config.Dispose();
       _allModels.Remove(this);
     }
+
+    public static void OnPointLabelChangedForRaceList(MemoColor color, RaceMemoItem raceMemoItem, string label)
+    {
+      var config = _configs!
+        .Where(m => m.Target1 == MemoTarget.Race && m.Target2 == MemoTarget.Unknown && m.Target3 == MemoTarget.Unknown && m.Type == MemoType.Race && m.PointLabelId != default)
+        .Where(m => m.Style == MemoStyle.Point || m.Style == MemoStyle.MemoAndPoint)
+        .Where(m => _memoCaches.Any(c => c.Config.Id == m.Id && c.LabelConfig.Value != null))
+        .OrderBy(m => m.Order)
+        .FirstOrDefault();
+      if (config?.Id == raceMemoItem.Config.Id)
+      {
+        foreach (var model in _allModels)
+        {
+          model.PointLabelChangedForRaceList?.Invoke(model, new PointLabelChangedEventArgs(color, raceMemoItem, !string.IsNullOrEmpty(label)));
+        }
+      }
+    }
+
+    public event EventHandler<PointLabelChangedEventArgs> PointLabelChangedForRaceList;
+  }
+
+  public class PointLabelChangedEventArgs : EventArgs
+  {
+    public MemoColor Color { get; }
+
+    public RaceMemoItem MemoItem { get; }
+
+    public bool IsVisible { get; }
+
+    public PointLabelChangedEventArgs(MemoColor color, RaceMemoItem item, bool isVisible)
+    {
+      this.Color = color;
+      this.MemoItem = item;
+      this.IsVisible = isVisible;
+    }
   }
 
   public class RaceMemoConfig : IDisposable
@@ -1203,6 +1238,12 @@ namespace KmyKeiba.Models.Race.Expand
         this.Label.Value = this.LabelConfig.Value.GetLabel(this.Data.Point);
         this.Color.Value = this.LabelConfig.Value.GetColor(this.Data.Point);
         this.SelectedLabel.Value = this.LabelConfig.Value.GetLabelItem(this.Data.Point);
+
+        if (this.Config.Target1 == MemoTarget.Race && this.Config.Target2 == MemoTarget.Unknown && this.Config.Target3 == MemoTarget.Unknown &&
+          this.Config.Style.HasFlag(MemoStyle.Point))
+        {
+          RaceMemoModel.OnPointLabelChangedForRaceList(this.Color.Value, this, this.Label.Value);
+        }
       }
     }
 

@@ -769,6 +769,10 @@ namespace KmyKeiba.Models.Race
             }
           });
 
+          // 拡張メモ
+          info.MemoEx.Value = new RaceMemoModel(race, horseInfos);
+          await info.MemoEx.Value.LoadAsync(db);
+
           // 調教
           var historyStartDate = race.StartTime.AddMonths(-3);
           var trainings = cache?.Trainings ?? await db.Trainings!
@@ -787,10 +791,6 @@ namespace KmyKeiba.Models.Race
               woodTrainings.Where(t => t.HorseKey == horse.Data.Key).ToArray()
               );
           }
-
-          // 拡張メモ
-          info.MemoEx.Value = new RaceMemoModel(race, horseInfos);
-          await info.MemoEx.Value.LoadAsync(db);
 
           // キャッシング
           if (isCache)
