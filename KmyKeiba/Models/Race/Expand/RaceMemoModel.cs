@@ -67,6 +67,8 @@ namespace KmyKeiba.Models.Race.Expand
 
     public ReactiveCollection<RaceHorseMemoGroupInfo> Groups { get; } = new();
 
+    public ReactiveCollection<RaceMemoItem> RaceMemoSelections { get; } = new();
+
     private ExpansionMemoConfig? editingConfig;
 
     public RaceMemoModel(RaceData race, IReadOnlyList<RaceHorseAnalyzer> raceHorses)
@@ -109,7 +111,6 @@ namespace KmyKeiba.Models.Race.Expand
         var group = new RaceHorseMemoGroupInfo(num);
         group.IsChecked.Where(c => c).Subscribe(c =>
         {
-          this.IsEditing.Value = false;
           this.ChangeGroup(group.GroupNumber, this.RaceHorseMemos);
         }).AddTo(this._disposables);
         this.Groups.Add(group);
@@ -241,6 +242,7 @@ namespace KmyKeiba.Models.Race.Expand
         {
           this.RaceHorseMemos.Add(item);
         }
+        this.UpdateRaceMemoSelections();
       });
     }
 
@@ -255,6 +257,23 @@ namespace KmyKeiba.Models.Race.Expand
       {
         memo.RemoveLabelConfig();
       }
+    }
+
+    private void UpdateRaceMemoSelections()
+    {
+      var memos = this.RaceMemos.Where(r => r.Data.Target1 == MemoTarget.Race &&
+        r.Data.Target2 == MemoTarget.Unknown && r.Data.Target3 == MemoTarget.Unknown &&
+        r.Config.Style.HasFlag(MemoStyle.Point) && r.LabelConfig.Value != null)
+        .Take(8).ToArray();
+
+      ThreadUtil.InvokeOnUiThread(() =>
+      {
+        this.RaceMemoSelections.Clear();
+        foreach (var memo in memos)
+        {
+          this.RaceMemoSelections.Add(memo);
+        }
+      });
     }
 
     public async Task AddConfigAsync()
@@ -294,6 +313,7 @@ namespace KmyKeiba.Models.Race.Expand
           ThreadUtil.InvokeOnUiThread(() =>
           {
             this.RaceMemos.Add(newItem);
+            this.UpdateRaceMemoSelections();
           });
         }
         else
@@ -336,8 +356,13 @@ namespace KmyKeiba.Models.Race.Expand
         var isSucceed = await this.Config.CopyDataAsync(db, this.editingConfig, this.IsRaceView.Value);
         if (isSucceed)
         {
+          if (this.editingConfig.Type == MemoType.RaceHorse)
+          {
+            this.editingConfig.MemoGroup = (short)this.GetCurrentGroup();
+          }
           await db.SaveChangesAsync();
           UpdateConfigs(this.editingConfig);
+
           this.IsEditing.Value = false;
         }
       }
@@ -362,14 +387,14 @@ namespace KmyKeiba.Models.Race.Expand
           if (item != null)
           {
             SetValues(item);
-            SetLabel(item, config);
           }
 
-          foreach (var horse in model.RaceHorseMemos.SelectMany(h => h.Memos.Where(m => m.Config.Id == exists.Id)))
+          var horseMemos = model.RaceHorseMemos.SelectMany(h => h.Memos.Where(m => m.Config.Id == exists.Id));
+          foreach (var horse in horseMemos)
           {
             SetValues(horse);
-            SetLabel(horse, config);
           }
+          model.ChangeGroup(model.GetCurrentGroup(), model.RaceHorseMemos);
         }
       }
     }
@@ -1118,7 +1143,8 @@ namespace KmyKeiba.Models.Race.Expand
 
     public void Dispose()
     {
-      this._disposables.Dispose();
+      // このアイテムはキャッシュされるので、キャッシュから情報を取り出して画面を表示する時にSubscribeが働かなくなる
+      //this._disposables.Dispose();
     }
   }
 

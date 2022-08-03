@@ -33,6 +33,8 @@
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition Width="auto"/>
+          <ColumnDefinition/>
+          <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
         <up:RaceSubjectIcon Subject="{Binding Race.Subject.Subject,ElementName=Root}"
                             FontSize="32" Width="120"/>
@@ -67,6 +69,27 @@
         </TextBlock>
         <TextBlock Grid.Column="5" Text="{Binding Race.Name,ElementName=Root}" FontSize="28" FontWeight="Bold"
                    VerticalAlignment="Center" Margin="24,0,0,0"/>
+        <ItemsControl Grid.Column="7" ItemsSource="{Binding Race.MemoEx.Value.RaceMemoSelections,ElementName=Root}"
+                      Margin="0,0,440,0">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <ComboBox ItemsSource="{Binding LabelConfig.Value.Items}" SelectedItem="{Binding SelectedLabel.Value,Mode=TwoWay}"
+                        WindowChrome.IsHitTestVisibleInChrome="True" Margin="8,0,0,0">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Label.Value}" FontSize="20" Foreground="{Binding Color.Value,Converter={StaticResource MemoColorBrushConv}}"
+                               TextAlignment="Center" Width="40"/>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </Grid>
 
       <!-- ここまでヘッダ -->

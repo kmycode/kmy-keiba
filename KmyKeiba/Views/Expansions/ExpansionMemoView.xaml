@@ -174,8 +174,8 @@
             <StackPanel Orientation="Horizontal"
                         Visibility="{Binding Race.MemoEx.Value.IsEditing.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
               <Button FontSize="16" Content="保存" Width="120" Command="{Binding SaveMemoConfigCommand}"/>
-              <Button FontSize="16" Content="上へ" Width="80" Margin="8,0,0,0" Command="{Binding UpMemoOrderCommand}"/>
-              <Button FontSize="16" Content="下へ" Width="80" Margin="8,0,0,0" Command="{Binding DownMemoOrderCommand}"/>
+              <Button FontSize="16" Content="左へ" Width="80" Margin="8,0,0,0" Command="{Binding UpMemoOrderCommand}"/>
+              <Button FontSize="16" Content="右へ" Width="80" Margin="8,0,0,0" Command="{Binding DownMemoOrderCommand}"/>
               <Button FontSize="16" Content="削除" Width="120" Margin="8,0,0,0" Command="{Binding DeleteMemoConfigCommand}"/>
             </StackPanel>
             <TextBlock Text="{Binding Race.MemoEx.Value.Config.ErrorMessage.Value,Mode=OneWay,ElementName=Root}" FontSize="16" VerticalAlignment="Center" Foreground="{StaticResource ErrorForeground}"
