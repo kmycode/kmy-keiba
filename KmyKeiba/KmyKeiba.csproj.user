@@ -67,6 +67,12 @@
     <Compile Update="Views\Main\WindowMenu.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Parts\FinderKeyInputView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\FinderRowListView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Parts\HorseMarkButton.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -103,6 +109,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Resources\Converters.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Resources\FinderCellTemplates.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Resources\HorseMarks.xaml">
@@ -172,6 +181,12 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Main\WindowMenu.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\FinderKeyInputView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\FinderRowListView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Parts\HorseMarkButton.xaml">

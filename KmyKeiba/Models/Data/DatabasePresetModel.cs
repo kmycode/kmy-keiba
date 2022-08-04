@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Models.Race.Finder;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -237,6 +238,16 @@ namespace KmyKeiba.Models.Data
       }
       await db.MemoConfigs!.AddRangeAsync(presetsWithLabel.Select(l => l.Item1));
       await db.SaveChangesAsync();
+    }
+
+    public static IReadOnlyList<FinderColumnDefinition<FinderRaceHorseItem>> GetFinderRaceHorseColumns()
+    {
+      return new[]
+      {
+        new FinderColumnDefinition<FinderRaceHorseItem>(FinderColumnType.RaceSubject, 50, "", h => h.Analyzer.Subject.Subject),
+        new FinderColumnDefinition<FinderRaceHorseItem>(FinderColumnType.BoldText, 200, "レース名", h => h.Analyzer.Subject.DisplayName),
+        new FinderColumnDefinition<FinderRaceHorseItem>(FinderColumnType.Text, 120, "馬名", h => h.Analyzer.Data.Name),
+      };
     }
   }
 }

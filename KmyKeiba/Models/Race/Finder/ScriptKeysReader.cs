@@ -214,12 +214,12 @@ namespace KmyKeiba.Models.Race.Finder
         hr = hr && !AddQuery("<>", QueryType.NotEquals);
         hr = hr && !AddQuery("<=", QueryType.LessThanOrEqual);
         hr = hr && !AddQuery(">=", QueryType.GreaterThanOrEqual);
-        hr = hr && !AddQuery("<", QueryType.LessThan);
-        hr = hr && !AddQuery(">", QueryType.GreaterThan);
         hr = hr && !AddQuery("=", QueryType.Equals);
         hr = hr && !AddQuery("@<", QueryType.Contains);
         hr = hr && !AddQuery("@:", QueryType.StartsWith);
         hr = hr && !AddQuery("@;", QueryType.EndsWith);
+        hr = hr && !AddQuery("<", QueryType.LessThan);
+        hr = hr && !AddQuery(">", QueryType.GreaterThan);
 
         if (hr)
         {
@@ -288,6 +288,15 @@ namespace KmyKeiba.Models.Race.Finder
                 case QueryKey.RaceKey:
                   queries.Add(new RaceLambdaScriptKeyQuery(r => r.Key == race.Key));
                   break;
+                case QueryKey.RaceName:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.Name == race.Name));
+                  break;
+                case QueryKey.Date:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Date == DateTime.Today));
+                  break;
+                case QueryKey.Hour:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Hour == DateTime.Now.Hour));
+                  break;
               }
             }
 
@@ -353,6 +362,11 @@ namespace KmyKeiba.Models.Race.Finder
             }
           }
         }
+      }
+
+      if (!queries.Any())
+      {
+        queries.Add(new DefaultLambdaScriptKeyQuery());
       }
 
       return queries;
@@ -466,7 +480,7 @@ namespace KmyKeiba.Models.Race.Finder
     public abstract IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query);
   }
 
-  abstract class DefaultLambdaScriptKeyQuery : ScriptKeyQuery
+  class DefaultLambdaScriptKeyQuery : ScriptKeyQuery
   {
     public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
     {
@@ -909,7 +923,7 @@ namespace KmyKeiba.Models.Race.Finder
     public ExpressionScriptKeyQuery(QueryKey key, QueryType type, string value)
     {
       this.Key = key;
-      this.Type = QueryType.Equals;
+      this.Type = type;
       this.Values = Array.Empty<int>();
       this.StringValue = value;
       this.NormalizeData();
@@ -972,6 +986,12 @@ namespace KmyKeiba.Models.Race.Finder
           break;
         case QueryKey.Year:
           query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.StartTime), nameof(DateTime.Year), false));
+          break;
+        case QueryKey.Date:
+          query = query.Where(this.BuildDateQuery<RaceData>(nameof(RaceData.StartTime)));
+          break;
+        case QueryKey.Hour:
+          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.StartTime), nameof(DateTime.Hour), false));
           break;
         case QueryKey.RaceName:
           if (!string.IsNullOrEmpty(this.StringValue))
@@ -1116,6 +1136,18 @@ namespace KmyKeiba.Models.Race.Finder
         case QueryKey.PreviousRaceDays:
           query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.PreviousRaceDays)));
           break;
+        case QueryKey.HorseName:
+          query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.Name)));
+          break;
+        case QueryKey.RiderName:
+          query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.RiderName)));
+          break;
+        case QueryKey.TrainerName:
+          query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.TrainerName)));
+          break;
+        case QueryKey.OwnerName:
+          query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.OwnerName)));
+          break;
       }
       return query;
     }
@@ -1207,7 +1239,13 @@ namespace KmyKeiba.Models.Race.Finder
         property = Expression.Property(property, propertyName2);
       }
       var value = Expression.Constant(isDouble ? (double)this.Value : isShort ? (short)this.Value : (object)this.Value);
+      var maxValue = Expression.Constant(isDouble ? (double)this.MaxValue : isShort ? (short)this.MaxValue : (object)this.MaxValue);
 
+      return this.BuildNumericQuery<T>(param, property, value, maxValue);
+    }
+
+    private Expression<Func<T, bool>> BuildNumericQuery<T>(ParameterExpression param, Expression property, Expression value, Expression maxValue)
+    {
       if (this.Type == QueryType.Equals)
       {
         return Expression.Lambda<Func<T, bool>>(Expression.Equal(property, value), param);
@@ -1233,7 +1271,6 @@ namespace KmyKeiba.Models.Race.Finder
         return Expression.Lambda<Func<T, bool>>(Expression.LessThanOrEqual(property, value), param);
       }
 
-      var maxValue = Expression.Constant(isDouble ? (double)this.MaxValue : isShort ? (short)this.MaxValue : (object)this.MaxValue);
       if (Type == QueryType.Range)
       {
         return Expression.Lambda<Func<T, bool>>(
@@ -1284,18 +1321,34 @@ namespace KmyKeiba.Models.Race.Finder
       }
       if (this.Type == QueryType.Contains)
       {
-        return Expression.Lambda<Func<T, bool>>(Expression.Call(value, "Contains", null, property), param);
+        return Expression.Lambda<Func<T, bool>>(Expression.Call(property, "Contains", null, value), param);
       }
       if (this.Type == QueryType.StartsWith)
       {
-        return Expression.Lambda<Func<T, bool>>(Expression.Call(value, "StartsWith", null, property), param);
+        return Expression.Lambda<Func<T, bool>>(Expression.Call(property, "StartsWith", null, value), param);
       }
       if (this.Type == QueryType.EndsWith)
       {
-        return Expression.Lambda<Func<T, bool>>(Expression.Call(value, "EndsWith", null, property), param);
+        return Expression.Lambda<Func<T, bool>>(Expression.Call(property, "EndsWith", null, value), param);
       }
 
       throw new NotSupportedException();
+    }
+
+    private Expression<Func<T, bool>> BuildDateQuery<T>(string propertyName)
+    {
+      var param = Expression.Parameter(typeof(T), "x");
+      var property = Expression.Property(param, propertyName);
+      var property2 = Expression.Add(
+        Expression.Add(
+          Expression.Multiply(Expression.Property(property, nameof(DateTime.Year)), Expression.Constant(10000)),
+          Expression.Multiply(Expression.Property(property, nameof(DateTime.Month)), Expression.Constant(100))),
+        Expression.Property(property, nameof(DateTime.Day)));
+
+      var value = Expression.Constant((int)this.Value);
+      var maxValue = Expression.Constant((int)this.MaxValue);
+
+      return this.BuildNumericQuery<T>(param, property2, value, maxValue);
     }
   }
 
@@ -1304,6 +1357,8 @@ namespace KmyKeiba.Models.Race.Finder
     Unknown,
     [StringQueryKey("race")]
     RaceKey,
+    [StringQueryKey("racename")]
+    RaceName,
     [EnumQueryKey("weather")]
     Weather,
     [EnumQueryKey("condition")]
@@ -1322,8 +1377,10 @@ namespace KmyKeiba.Models.Race.Finder
     Month,
     [NumericQueryKey("year")]
     Year,
-    [StringQueryKey("name")]
-    RaceName,
+    [NumericQueryKey("date")]
+    Date,
+    [NumericQueryKey("hour")]
+    Hour,
     [QueryKey("subject")]
     Subject,
     [EnumQueryKey("subjectage2")]
@@ -1353,6 +1410,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     [StringQueryKey("horse")]
     HorseKey,
+    [StringQueryKey("horsename")]
+    HorseName,
     [EnumQueryKey("age")]
     Age,
     [EnumQueryKey("sex")]
@@ -1367,6 +1426,8 @@ namespace KmyKeiba.Models.Race.Finder
     FrameNumber,
     [StringQueryKey("rider")]
     RiderCode,
+    [StringQueryKey("ridername")]
+    RiderName,
     [EnumQueryKey("place")]
     Place,
     [EnumQueryKey("resultlength")]
@@ -1393,8 +1454,12 @@ namespace KmyKeiba.Models.Race.Finder
     RiderWeight,
     [StringQueryKey("trainer")]
     TrainerCode,
+    [StringQueryKey("trainername")]
+    TrainerName,
     [StringQueryKey("owner")]
     OwnerCode,
+    [StringQueryKey("ownername")]
+    OwnerName,
     [NumericQueryKey("odds")]
     Odds,
     [NumericQueryKey("placeoddsmin")]

@@ -351,8 +351,12 @@ namespace KmyKeiba.Models.Analysis
       /// </summary>
       public double TopDeviationValue { get; }
 
+      public RaceStandardTimeMasterData? StandardTime { get; }
+
       public CurrentRaceData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, RaceStandardTimeMasterData? raceStandardTime)
       {
+        this.StandardTime = raceStandardTime;
+
         var weightPoint = new StatisticSingleArray(sameRaceHorses.Select(h => (double)h.RiderWeight).ToArray());
         var median = (short)weightPoint.Median;  // 小数点以下切り捨て。中央値が常に整数とは限らない（全体の数が偶数の時））
         this.RiderWeightComparation = horse.RiderWeight > median ? ValueComparation.Bad :

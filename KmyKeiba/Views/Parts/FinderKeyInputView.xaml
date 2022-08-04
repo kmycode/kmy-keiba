@@ -1,0 +1,20 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Parts.FinderKeyInputView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KmyKeiba.Views.Parts"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Name="Root">
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition/>
+      <ColumnDefinition Width="auto"/>
+    </Grid.ColumnDefinitions>
+
+    <TextBox Text="{Binding FinderModel.Keys.Value,ElementName=Root,Mode=TwoWay}" FontSize="16" Padding="4,2"
+             VerticalAlignment="Center"/>
+    <Button Content="検索" Grid.Column="1" FontSize="16" Width="100"
+            x:Name="SearchButton"/>
+  </Grid>
+</UserControl>

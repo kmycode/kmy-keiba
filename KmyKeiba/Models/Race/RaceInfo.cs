@@ -91,6 +91,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<RaceMemoModel?> MemoEx { get; } = new();
 
+    public FinderModel FinderModel { get; }
+
     public ScriptManager Script { get; }
 
     public ReactiveProperty<bool> CanExecuteScript { get; } = new();
@@ -152,6 +154,7 @@ namespace KmyKeiba.Models.Race
       this.TrendAnalyzers = new RaceTrendAnalysisSelector(race);
       this.WinnerTrendAnalyzers = new RaceWinnerHorseTrendAnalysisSelector(race);
       this.Finder = new RaceFinder(race);
+      this.FinderModel = new FinderModel(race, null);
       this.CourseSummaryImage.Race = race;
 
       this.AnalysisTables.ObserveAddChanged().Subscribe(_ => this.HasAnalysisTables.Value = true).AddTo(this._disposables);

@@ -9,13 +9,13 @@ namespace KmyKeiba.Models.Race.Finder
 {
   public class FinderCell
   {
-    public IFinderColumnDefiniton Column { get; }
+    public IFinderColumnDefinition Column { get; }
 
     public object Value { get; }
 
     public ValueComparation Comparation { get; set; }
 
-    public FinderCell(IFinderColumnDefiniton column, object value)
+    public FinderCell(IFinderColumnDefinition column, object value)
     {
       this.Column = column;
       this.Value = value;

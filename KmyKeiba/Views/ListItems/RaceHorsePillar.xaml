@@ -93,7 +93,7 @@
                 </Grid.RowDefinitions>
                 <TextBox Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
                          FontSize="16" Margin="4" Text="{Binding Horse.Memo.Value,ElementName=Root,Mode=TwoWay}"
-                         AcceptsReturn="True">
+                         AcceptsReturn="True" TextWrapping="Wrap">
                   <TextBox.IsReadOnly>
                     <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
                       <Binding Path="Horse.CanSave.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
