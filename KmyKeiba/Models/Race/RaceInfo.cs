@@ -728,7 +728,7 @@ namespace KmyKeiba.Models.Race
 
           // 最新情報／ついでに分析テーブル
           var changes = await db.RaceChanges!.Where(c => c.RaceKey == race.Key).ToArrayAsync();
-          ThreadUtil.InvokeOnUiThread(async () =>
+          ThreadUtil.InvokeOnUiThread(() =>
           {
             var isWeightAdded = false;
             foreach (var change in changes.Select(c => new RaceChangeInfo(c, race, horses)))
@@ -740,10 +740,20 @@ namespace KmyKeiba.Models.Race
               }
               info.Changes.Add(change);
             }
+          });
+          logger.Debug($"最新情報の数: {changes.Length}");
 
-            foreach (var table in ApplicationConfiguration.Current.Value.AnalysisTableGenerators)
+          // 分析テーブル
+          var analysisTables = new List<AnalysisTable>();
+          foreach (var table in ApplicationConfiguration.Current.Value.AnalysisTableGenerators)
+          {
+            analysisTables.Add(await table.GenerateAsync(info));
+          }
+          ThreadUtil.InvokeOnUiThread(() =>
+          {
+            foreach (var table in analysisTables)
             {
-              info.AnalysisTables.Add(await table.GenerateAsync(info));
+              info.AnalysisTables.Add(table);
             }
             var first = info.AnalysisTables.FirstOrDefault();
             if (first != null)
@@ -751,12 +761,15 @@ namespace KmyKeiba.Models.Race
               first.IsActive.Value = true;
             }
           });
-          logger.Debug($"最新情報の数: {changes.Length}");
 
           // すべてのデータ読み込み完了
           info.IsLoadCompleted.Value = true;
           info.CanExecuteScript.Value = true;
           logger.Info("レースの読み込みが完了しました");
+
+          // 拡張メモ
+          info.MemoEx.Value = new RaceMemoModel(race, horseInfos);
+          await info.MemoEx.Value.LoadAsync(db);
 
           // コーナー順位の色分け
           var firstHorse = horses.FirstOrDefault(h => h.ResultOrder == 1);
@@ -769,10 +782,6 @@ namespace KmyKeiba.Models.Race
               corner.Image.SetOrders(firstHorse?.Number ?? 0, secondHorse?.Number ?? 0, thirdHorse?.Number ?? 0);
             }
           });
-
-          // 拡張メモ
-          info.MemoEx.Value = new RaceMemoModel(race, horseInfos);
-          await info.MemoEx.Value.LoadAsync(db);
 
           // 調教
           var historyStartDate = race.StartTime.AddMonths(-3);
