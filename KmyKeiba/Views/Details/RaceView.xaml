@@ -79,7 +79,7 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <ComboBox ItemsSource="{Binding LabelConfig.Value.Items}" SelectedItem="{Binding SelectedLabel.Value,Mode=TwoWay}"
-                        WindowChrome.IsHitTestVisibleInChrome="True" Margin="8,0,0,0"
+                        WindowChrome.IsHitTestVisibleInChrome="True" Margin="4,0,0,0" Width="66"
                         IsEnabled="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root}">
                 <ComboBox.ItemTemplate>
                   <DataTemplate>

@@ -342,7 +342,8 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Button Grid.Row="1" FontSize="16" Content="追加" Width="200" Height="40" Command="{Binding AddLabelConfigCommand}"/>
+        <Button Grid.Row="1" FontSize="16" Content="追加" Width="200" Height="40" Command="{Binding AddLabelConfigCommand}"
+                IsEnabled="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root}"/>
 
         <!--ラベル設定-->
         <Grid Grid.Column="1" Visibility="{Binding Race.MemoEx.Value.LabelConfig.ActiveConfig.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"
@@ -353,7 +354,7 @@
             <RowDefinition/>
             <RowDefinition Height="auto"/>
           </Grid.RowDefinitions>
-          <Grid Margin="0,8,0,32">
+          <Grid Margin="0,8,0,32" IsEnabled="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root}">
             <Grid.ColumnDefinitions>
               <ColumnDefinition/>
               <ColumnDefinition Width="auto"/>
@@ -371,7 +372,7 @@
           <ItemsControl Grid.Row="2" Style="{StaticResource TableList}" ItemsSource="{Binding Race.MemoEx.Value.LabelConfig.ActiveConfig.Value.Items,ElementName=Root}">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Grid Margin="0,0,0,16">
+                <Grid Margin="0,0,0,16" IsEnabled="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root}">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition/>
@@ -421,7 +422,8 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-          <Button Grid.Row="3" FontSize="16" Height="40" Content="ラベルを追加" Command="{Binding DataContext.AddLabelConfigItemCommand,ElementName=Root}"/>
+          <Button Grid.Row="3" FontSize="16" Height="40" Content="ラベルを追加" Command="{Binding DataContext.AddLabelConfigItemCommand,ElementName=Root}"
+                  IsEnabled="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root}"/>
         </Grid>
       </Grid>
     </Grid>

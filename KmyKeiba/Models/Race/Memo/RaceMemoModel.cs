@@ -16,7 +16,7 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KmyKeiba.Models.Race.Expand
+namespace KmyKeiba.Models.Race.Memo
 {
   public class RaceMemoModel : IDisposable
   {
@@ -173,7 +173,7 @@ namespace KmyKeiba.Models.Race.Expand
             var memo = await (await this.GetMemoQueryAsync(db, db.Memos!, config, null)).FirstOrDefaultAsync();
             if (memo != null)
             {
-              newItem = new RaceMemoItem(memo, config).AddTo(this._disposables);
+              newItem = new RaceMemoItem(memo, config);
             }
             else
             {
@@ -444,6 +444,7 @@ namespace KmyKeiba.Models.Race.Expand
           var existCaches = _memoCaches.Where(c => c.Config.Id == this.editingConfig.Id).ToArray();
           foreach (var cache in existCaches)
           {
+            cache.Dispose();
             _memoCaches.Remove(cache);
           }
         }
@@ -658,7 +659,7 @@ namespace KmyKeiba.Models.Race.Expand
     private async Task<IEnumerable<RaceMemoItem>> GetMemoQueryAsync(MyContext db, IEnumerable<RaceMemoItem> query, ExpansionMemoConfig config, RaceHorseAnalyzer? horse)
     {
       var hits = await this.GetMemoQueryAsync(db, query.Select(i => i.Data), config, horse);
-      return query.Join(hits.ToArray(), i => (object)i.Data, m => (object)m, (i, m) => i);
+      return query.Join(hits.ToArray(), i => i.Data, m => (object)m, (i, m) => i);
     }
 
     private async Task<Expression<Func<MemoData, bool>>> GetTargetComparationAsync(MyContext db, int target, MemoTarget targetType, RaceHorseAnalyzer? horse)
@@ -986,7 +987,7 @@ namespace KmyKeiba.Models.Race.Expand
         {
           return "ラベルが選択されていません";
         }
-        if (!(await db.PointLabels!.AnyAsync(l => l.Id == this.SelectedLabel.Value.Data.Id)))
+        if (!await db.PointLabels!.AnyAsync(l => l.Id == this.SelectedLabel.Value.Data.Id))
         {
           return "そのラベルは存在しません";
         }
@@ -1315,7 +1316,8 @@ namespace KmyKeiba.Models.Race.Expand
     public void Dispose()
     {
       // このアイテムはキャッシュされるので、キャッシュから情報を取り出して画面を表示する時にSubscribeが働かなくなる
-      //this._disposables.Dispose();
+      // 呼び出しは慎重に
+      this._disposables.Dispose();
     }
   }
 
@@ -1335,10 +1337,12 @@ namespace KmyKeiba.Models.Race.Expand
 
     public void Dispose()
     {
+      /*
       foreach (var memo in this.Memos)
       {
         memo.Dispose();
       }
+      */
     }
   }
 

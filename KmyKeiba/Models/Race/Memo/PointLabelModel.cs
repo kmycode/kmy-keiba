@@ -12,7 +12,7 @@ using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KmyKeiba.Models.Race.Expand
+namespace KmyKeiba.Models.Race.Memo
 {
   public class PointLabelModel
   {

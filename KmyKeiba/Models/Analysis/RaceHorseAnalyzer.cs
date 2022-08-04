@@ -6,6 +6,7 @@ using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Injection;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Shared;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -295,12 +296,10 @@ namespace KmyKeiba.Models.Analysis
             var order = data.Data.ResultOrder;
             if (data.CurrentRace != null)
             {
-              foreach (var sameHorse in data.CurrentRace.TopHorses.Where(h => h.ResultOrder <= data.Data.ResultOrder))
+              order = 0;
+              foreach (var sameHorse in data.CurrentRace.TopHorses.Where(h => h.ResultOrder < data.Data.ResultOrder && h.ResultOrder > 0))
               {
-                if (sameHorse.ResultLength1 == 2)
-                {
-                  order++;
-                }
+                order++;
               }
             }
             if (order > 7) order = 7;

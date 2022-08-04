@@ -3,7 +3,8 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Generic;
-using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Data;
+using KmyKeiba.Models.Race.Memo;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -14,7 +15,7 @@ using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KmyKeiba.Models.Data
+namespace KmyKeiba.Models.Race.Finder
 {
   public class RaceFinder
   {

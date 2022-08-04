@@ -3,7 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Injection;
-using KmyKeiba.Models.Race.Expand;
+using KmyKeiba.Models.Race.Memo;
 using KmyKeiba.Models.RList;
 using KmyKeiba.Shared;
 using Reactive.Bindings;

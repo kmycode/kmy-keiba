@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KmyKeiba.Models.Analysis.Generic
+namespace KmyKeiba.Models.Race.Finder
 {
   class ScriptKeysReader
   {
@@ -1205,7 +1206,7 @@ namespace KmyKeiba.Models.Analysis.Generic
       {
         property = Expression.Property(property, propertyName2);
       }
-      var value = Expression.Constant(isDouble ? (object)(double)this.Value : isShort ? (object)(short)this.Value : (object)this.Value);
+      var value = Expression.Constant(isDouble ? (double)this.Value : isShort ? (short)this.Value : (object)this.Value);
 
       if (this.Type == QueryType.Equals)
       {
@@ -1232,7 +1233,7 @@ namespace KmyKeiba.Models.Analysis.Generic
         return Expression.Lambda<Func<T, bool>>(Expression.LessThanOrEqual(property, value), param);
       }
 
-      var maxValue = Expression.Constant(isDouble ? (object)(double)this.MaxValue : isShort ? (object)(short)this.MaxValue : (object)this.MaxValue);
+      var maxValue = Expression.Constant(isDouble ? (double)this.MaxValue : isShort ? (short)this.MaxValue : (object)this.MaxValue);
       if (Type == QueryType.Range)
       {
         return Expression.Lambda<Func<T, bool>>(
