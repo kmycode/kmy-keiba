@@ -398,20 +398,13 @@ namespace KmyKeiba.Models.Race.Memo
           SetLabel(item, config);
         }
 
+        foreach (var memo in _memoCaches.Where(m => m.Config.Id == exists.Id))
+        {
+          SetValues(memo);
+        }
+
         foreach (var model in _allModels)
         {
-          var item = model.RaceMemos.FirstOrDefault(m => m.Config.Id == exists.Id);
-          if (item != null)
-          {
-            SetValues(item);
-          }
-
-          var horseMemos = model.RaceHorseMemos.SelectMany(h => h.Memos.Where(m => m.Config.Id == exists.Id));
-          foreach (var horse in horseMemos)
-          {
-            SetValues(horse);
-          }
-
           if (config.Type == MemoType.RaceHorse)
           {
             model.ChangeGroup(model.GetCurrentGroup(), model.RaceHorseMemos);
@@ -1152,7 +1145,7 @@ namespace KmyKeiba.Models.Race.Memo
 
     public MemoData Data { get; }
 
-    public ExpansionMemoConfig Config { get; }
+    public ExpansionMemoConfig Config { get; private set; }
 
     public ReactiveProperty<PointLabelConfig?> LabelConfig { get; } = new();
 
@@ -1226,6 +1219,8 @@ namespace KmyKeiba.Models.Race.Memo
       this.Header.Value = config.Header;
       this.IsPointVisible.Value = config.Style.HasFlag(MemoStyle.Point);
       this.IsMemoVisible.Value = config.Style.HasFlag(MemoStyle.Memo);
+      this.Style.Value = config.Style;
+      this.Config = config;
     }
 
     public void SetLabelConfig(PointLabelConfig config)
