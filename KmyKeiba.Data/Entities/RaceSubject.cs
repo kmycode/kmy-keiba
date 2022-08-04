@@ -356,7 +356,7 @@ namespace KmyKeiba.JVLink.Entities
         return false;
       }
 
-      if (text.Contains("新馬") || raceName.Contains("新馬") || text.Contains("初出走") || raceName.Contains("初出走"))
+      if (text.Contains("新馬") || raceName.Contains("新馬") || text.Contains("初出走") || raceName.Contains("初出走") || text.Contains("ｽﾊﾟｰｷﾝｸﾞﾃﾞﾋﾞｭｰ") || raceName.Contains("ｽﾊﾟｰｷﾝｸﾞﾃﾞﾋﾞｭｰ"))
       {
         subject.IsNewHorses = true;
 
