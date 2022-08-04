@@ -549,6 +549,14 @@ namespace KmyKeiba.Models.Race.Memo
       {
         item.RemoveLabelConfig();
       }
+
+      if (targetConfigs.Any(c => c.Target1 == MemoTarget.Race && c.Target2 == MemoTarget.Unknown && c.Target3 == MemoTarget.Unknown))
+      {
+        foreach (var model in _allModels)
+        {
+          model.UpdateRaceMemoSelections();
+        }
+      }
     }
 
     public static async Task DeleteLabelDataAsync(MyContext db, uint labelId)
