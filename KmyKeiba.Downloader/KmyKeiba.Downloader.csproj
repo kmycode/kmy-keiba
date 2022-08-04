@@ -10,7 +10,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <UseWindowsForms>true</UseWindowsForms>
-    <VersionPrefix>2.4.0</VersionPrefix>
+    <VersionPrefix>2.5.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
