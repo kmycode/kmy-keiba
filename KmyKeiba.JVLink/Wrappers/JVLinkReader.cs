@@ -448,6 +448,24 @@ namespace KmyKeiba.JVLink.Wrappers
                 ReadDic(item, data.TrifectaOdds, item.RaceKey);
                 break;
               }
+            case "NR":
+              {
+                var a = new JVData_Struct.JV_NR_NOSI_RACE();
+                a.SetDataB(ref d);
+                var item = TestRace.FromJV(a);
+
+                ReadDic(item, data.TestRaces, item.Key);
+                break;
+              }
+            case "NS":
+              {
+                var a = new JVData_Struct.JV_NS_NOSI_UMA();
+                a.SetDataB(ref d);
+                var item = TestRaceHorse.FromJV(a);
+
+                ReadDic(item, data.TestRaceHorses, item.Key + item.RaceKey);
+                break;
+              }
             default:
               this.ReadedEntityCount--;
               if (!this.isRealTime)
@@ -521,6 +539,10 @@ namespace KmyKeiba.JVLink.Wrappers
     public Dictionary<string, TrifectaOdds> TrifectaOdds { get; internal set; } = new();
 
     public Dictionary<string, Refund> Refunds { get; internal set; } = new();
+
+    public Dictionary<string, TestRace> TestRaces { get; internal set; } = new();
+
+    public Dictionary<string, TestRaceHorse> TestRaceHorses { get; internal set; } = new();
 
     public List<HorseWeight> HorseWeights { get; internal set; } = new();
 

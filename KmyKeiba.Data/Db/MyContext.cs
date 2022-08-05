@@ -51,6 +51,10 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<WoodtipTrainingData>? WoodtipTrainings { get; set; }
 
+    public DbSet<TestRaceData>? TestRaces { get; set; }
+
+    public DbSet<TestRaceHorseData>? TestRaceHorses { get; set; }
+
     #endregion
 
     #region App

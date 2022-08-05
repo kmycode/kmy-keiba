@@ -12,6 +12,20 @@ namespace KmyKeiba.Downloader
 {
   internal partial class Program
   {
+    private static void Test()
+    {
+      try
+      {
+        var loader = new JVLinkLoader();
+        loader.StartLoad(JVLinkObject.Local, JVLinkDataspec.Race | JVLinkDataspec.Diff,
+          JVLinkOpenOption.Setup, null, new DateTime(2016, 1, 1), DateTime.Now, new string[] { "NR", "NS", });
+      }
+      catch (Exception ex)
+      {
+
+      }
+    }
+
     private static void StartLoad(DownloaderTaskData task, bool isRealTime = false)
     {
       var loader = new JVLinkLoader();
@@ -174,12 +188,18 @@ namespace KmyKeiba.Downloader
         return;
       }
 
-      var specs1 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "BT", "JC", "HC", "WC", "HR", };
+      var specs1 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "BT", "JC", "HC", "WC", "HR", "NR", "NS", };
       var specs2 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", };
       var dataspec1 = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku;
       if (parameters[2] == "central")
       {
         dataspec1 |= JVLinkDataspec.Wood;
+      }
+      else
+      {
+        // 2020年4月以降のデータが提供されていない／南関東しかない
+        // 実用性は低い
+        // dataspec1 |= JVLinkDataspec.Nosi;
       }
       var dataspec2 = JVLinkDataspec.Race;
 
