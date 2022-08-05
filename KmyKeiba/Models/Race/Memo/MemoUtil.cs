@@ -11,6 +11,20 @@ namespace KmyKeiba.Models.Race.Memo
 {
   internal static class MemoUtil
   {
+    public static List<ExpansionMemoConfig> Configs { get; } = new();
+    public static List<RaceMemoItem> MemoCaches { get; } = new();
+    private static bool _isInitialized;
+
+    public static async Task InitializeAsync(MyContext db)
+    {
+      if (!_isInitialized)
+      {
+        var configs = await db.MemoConfigs!.ToListAsync();
+        Configs.AddRange(configs);
+        _isInitialized = true;
+      }
+    }
+
     public static async Task<(IReadOnlyList<MemoData>, PointLabelData?)> GetRaceListMemosAsync(MyContext? db, IEnumerable<string> raceKeys)
     {
       var isDbNull = false;
@@ -20,12 +34,12 @@ namespace KmyKeiba.Models.Race.Memo
         db = new();
       }
 
-      var memoConfig = await db.MemoConfigs!
+      var memoConfig = Configs!
         .Where(m => m.Target1 == MemoTarget.Race && m.Target2 == MemoTarget.Unknown && m.Target3 == MemoTarget.Unknown && m.Type == MemoType.Race && m.PointLabelId != default)
         .Where(m => m.Style == MemoStyle.Point || m.Style == MemoStyle.MemoAndPoint)
         .Join(db.PointLabels!, m => (uint)m.PointLabelId, p => p.Id, (m, p) => new { Memo = m, PointLabel = p, })
         .OrderBy(m => m.Memo.Order)
-        .FirstOrDefaultAsync();
+        .FirstOrDefault();
       var memos = Array.Empty<MemoData>();
       PointLabelData? pointLabel = null;
       if (memoConfig != null)

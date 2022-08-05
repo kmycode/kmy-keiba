@@ -20,9 +20,8 @@ namespace KmyKeiba.Models.Race.Memo
 {
   public class RaceMemoModel : IDisposable
   {
+    private static bool _isInitialized;
     private readonly CompositeDisposable _disposables = new();
-    private static List<ExpansionMemoConfig>? _configs;
-    private static readonly List<RaceMemoItem> _memoCaches = new();
     private static bool _isRaceTab = true;
     private static bool _isRaceHorseTab;
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
@@ -33,9 +32,9 @@ namespace KmyKeiba.Models.Race.Memo
 
     private static async Task UpdateConfigsAsync(MyContext db)
     {
-      if (_configs == null)
+      if (!_isInitialized)
       {
-        _configs = await db.MemoConfigs!.ToListAsync();
+        await MemoUtil.InitializeAsync(db);
         await PointLabelModel.InitializeAsync(db);
       }
     }
@@ -153,10 +152,10 @@ namespace KmyKeiba.Models.Race.Memo
         var raceHorseMemos = new List<RaceHorseMemoItem>();
 
         // レースメモ
-        foreach (var config in _configs!.Where(c => c.Type == MemoType.Race).OrderBy(c => c.Id).OrderBy(c => c.Order))
+        foreach (var config in MemoUtil.Configs!.Where(c => c.Type == MemoType.Race).OrderBy(c => c.Id).OrderBy(c => c.Order))
         {
           // 同じメモが同時に表示される可能性はないが、他のウィンドウで表示されているかもしれない
-          var existsMemoQuery = _memoCaches.Concat(_allModels
+          var existsMemoQuery = MemoUtil.MemoCaches.Concat(_allModels
             .Where(m => m != this)
             .SelectMany(m => m.RaceMemos));
           existsMemoQuery = await this.GetMemoQueryAsync(db, existsMemoQuery, config, null);
@@ -183,7 +182,7 @@ namespace KmyKeiba.Models.Race.Memo
             newItem.IsGroupVisible.Value = true;
             SetLabel(newItem, config);
             raceMemos.Add(newItem);
-            _memoCaches.Add(newItem);
+            MemoUtil.MemoCaches.Add(newItem);
           }
         }
 
@@ -193,9 +192,9 @@ namespace KmyKeiba.Models.Race.Memo
           var horseMemo = new RaceHorseMemoItem(Race, horse).AddTo(this._disposables);
           raceHorseMemos.Add(horseMemo);
 
-          foreach (var config in _configs!.Where(c => c.Type == MemoType.RaceHorse).OrderBy(c => c.Id).OrderBy(c => c.Order))
+          foreach (var config in MemoUtil.Configs!.Where(c => c.Type == MemoType.RaceHorse).OrderBy(c => c.Id).OrderBy(c => c.Order))
           {
-            var existsMemoQuery = _memoCaches.Concat(_allModels
+            var existsMemoQuery = MemoUtil.MemoCaches.Concat(_allModels
               .SelectMany(m => m.RaceHorseMemos.SelectMany(h => h.Memos)))
               .Concat(raceHorseMemos.SelectMany(m => m.Memos));
             existsMemoQuery = await this.GetMemoQueryAsync(db, existsMemoQuery, config, horse);
@@ -228,7 +227,7 @@ namespace KmyKeiba.Models.Race.Memo
               }
               SetLabel(newItem, config);
               horseMemo.Memos.Add(newItem);
-              _memoCaches.Add(newItem);
+              MemoUtil.MemoCaches.Add(newItem);
             }
           }
         }
@@ -299,15 +298,15 @@ namespace KmyKeiba.Models.Race.Memo
         return;
       }
 
-      if (_configs!.Any())
+      if (MemoUtil.Configs!.Any())
       {
-        config.Order = (short)(_configs!.Max(c => c.Order) + 1);
+        config.Order = (short)(MemoUtil.Configs!.Max(c => c.Order) + 1);
       }
       config.MemoGroup = (short)this.GetCurrentGroup();
 
       await db.MemoConfigs!.AddAsync(config);
       await db.SaveChangesAsync();
-      _configs!.Add(config);
+      MemoUtil.Configs!.Add(config);
 
       if (isNewMemoNumber)
       {
@@ -387,10 +386,10 @@ namespace KmyKeiba.Models.Race.Memo
 
     private static void UpdateConfigs(ExpansionMemoConfig config)
     {
-      var exists = _configs!.FirstOrDefault(c => c.Id == config.Id);
+      var exists = MemoUtil.Configs!.FirstOrDefault(c => c.Id == config.Id);
       if (exists != null)
       {
-        _configs![_configs.IndexOf(exists)] = config;
+        MemoUtil.Configs![MemoUtil.Configs.IndexOf(exists)] = config;
 
         void SetValues(RaceMemoItem item)
         {
@@ -398,7 +397,7 @@ namespace KmyKeiba.Models.Race.Memo
           SetLabel(item, config);
         }
 
-        foreach (var memo in _memoCaches.Where(m => m.Config.Id == exists.Id))
+        foreach (var memo in MemoUtil.MemoCaches.Where(m => m.Config.Id == exists.Id))
         {
           SetValues(memo);
         }
@@ -428,17 +427,17 @@ namespace KmyKeiba.Models.Race.Memo
           db.MemoConfigs!.Remove(this.editingConfig);
           await db.SaveChangesAsync();
 
-          var exists = _configs!.FirstOrDefault(c => c.Id == this.editingConfig.Id);
+          var exists = MemoUtil.Configs!.FirstOrDefault(c => c.Id == this.editingConfig.Id);
           if (exists != null)
           {
-            _configs!.Remove(exists);
+            MemoUtil.Configs!.Remove(exists);
           }
 
-          var existCaches = _memoCaches.Where(c => c.Config.Id == this.editingConfig.Id).ToArray();
+          var existCaches = MemoUtil.MemoCaches.Where(c => c.Config.Id == this.editingConfig.Id).ToArray();
           foreach (var cache in existCaches)
           {
             cache.Dispose();
-            _memoCaches.Remove(cache);
+            MemoUtil.MemoCaches.Remove(cache);
           }
         }
         catch (Exception ex)
@@ -459,10 +458,10 @@ namespace KmyKeiba.Models.Race.Memo
 
       if (this.editingConfig != null)
       {
-        var exists = _configs!.FirstOrDefault(c => c.Id == this.editingConfig.Id);
+        var exists = MemoUtil.Configs!.FirstOrDefault(c => c.Id == this.editingConfig.Id);
         if (exists != null)
         {
-          var target = _configs!.Where(c => c.Order < exists.Order && c.Type == exists.Type && c.MemoGroup == exists.MemoGroup).OrderByDescending(c => c.Order).FirstOrDefault();
+          var target = MemoUtil.Configs!.Where(c => c.Order < exists.Order && c.Type == exists.Type && c.MemoGroup == exists.MemoGroup).OrderByDescending(c => c.Order).FirstOrDefault();
           if (target != null)
           {
             db.MemoConfigs!.Attach(target);
@@ -487,10 +486,10 @@ namespace KmyKeiba.Models.Race.Memo
 
       if (this.editingConfig != null)
       {
-        var exists = _configs!.FirstOrDefault(c => c.Id == this.editingConfig.Id);
+        var exists = MemoUtil.Configs!.FirstOrDefault(c => c.Id == this.editingConfig.Id);
         if (exists != null)
         {
-          var target = _configs!.Where(c => c.Order > exists.Order && c.Type == exists.Type && c.MemoGroup == exists.MemoGroup).OrderBy(c => c.Order).FirstOrDefault();
+          var target = MemoUtil.Configs!.Where(c => c.Order > exists.Order && c.Type == exists.Type && c.MemoGroup == exists.MemoGroup).OrderBy(c => c.Order).FirstOrDefault();
           if (target != null)
           {
             db.MemoConfigs!.Attach(target);
@@ -511,7 +510,7 @@ namespace KmyKeiba.Models.Race.Memo
 
     public static async Task UpdateLabelPointNumbersAsync(MyContext db, uint labelId, short old, short @new)
     {
-      var targetConfigs = _configs!.Where(c => c.PointLabelId == labelId).ToArray();
+      var targetConfigs = MemoUtil.Configs!.Where(c => c.PointLabelId == labelId).ToArray();
       var targetMemos = await db.Memos!
         .Join(db.MemoConfigs!, m => m.Target1 | m.Target2 | m.Target3, c => c.Target1 | c.Target2 | c.Target3, (m, c) => new { Memo = m, Config = c, })
         .Where(d => d.Memo.Number == d.Config.MemoNumber)
@@ -524,7 +523,7 @@ namespace KmyKeiba.Models.Race.Memo
       }
       await db.SaveChangesAsync();
 
-      foreach (var item in _memoCaches.Where(i => i.LabelConfig.Value?.Data.Id == labelId && i.Data.Point == old))
+      foreach (var item in MemoUtil.MemoCaches.Where(i => i.LabelConfig.Value?.Data.Id == labelId && i.Data.Point == old))
       {
         item.SetPointWithoutSave(@new);
       }
@@ -532,8 +531,8 @@ namespace KmyKeiba.Models.Race.Memo
 
     public static void UpdatePointLabel(uint labelId, short point)
     {
-      var targetConfigs = _configs!.Where(c => c.PointLabelId == labelId).ToArray();
-      foreach (var item in _memoCaches.Where(i => i.LabelConfig.Value?.Data.Id == labelId && i.Data.Point == point))
+      var targetConfigs = MemoUtil.Configs!.Where(c => c.PointLabelId == labelId).ToArray();
+      foreach (var item in MemoUtil.MemoCaches.Where(i => i.LabelConfig.Value?.Data.Id == labelId && i.Data.Point == point))
       {
         item.UpdateLabelConfig();
       }
@@ -541,8 +540,8 @@ namespace KmyKeiba.Models.Race.Memo
 
     public static void DeletePointLabelConfig(uint labelId)
     {
-      var targetConfigs = _configs!.Where(c => c.PointLabelId == labelId).ToArray();
-      foreach (var item in _memoCaches.Where(i => i.LabelConfig.Value?.Data.Id == labelId))
+      var targetConfigs = MemoUtil.Configs!.Where(c => c.PointLabelId == labelId).ToArray();
+      foreach (var item in MemoUtil.MemoCaches.Where(i => i.LabelConfig.Value?.Data.Id == labelId))
       {
         item.RemoveLabelConfig();
       }
@@ -558,7 +557,7 @@ namespace KmyKeiba.Models.Race.Memo
 
     public static async Task DeleteLabelDataAsync(MyContext db, uint labelId)
     {
-      var targetConfigs = _configs!.Where(c => c.PointLabelId == labelId).ToArray();
+      var targetConfigs = MemoUtil.Configs!.Where(c => c.PointLabelId == labelId).ToArray();
       db.MemoConfigs!.AttachRange(targetConfigs);
       foreach (var config in targetConfigs)
       {
@@ -566,7 +565,7 @@ namespace KmyKeiba.Models.Race.Memo
       }
       await db.SaveChangesAsync();
 
-      foreach (var item in _memoCaches.Where(i => i.LabelConfig.Value?.Data.Id == labelId))
+      foreach (var item in MemoUtil.MemoCaches.Where(i => i.LabelConfig.Value?.Data.Id == labelId))
       {
         item.RemoveLabelConfig();
       }
@@ -840,10 +839,10 @@ namespace KmyKeiba.Models.Race.Memo
 
     private static IEnumerable<ExpansionMemoConfig> GetRaceHeaderConfigs()
     {
-      var config = _configs!
+      var config = MemoUtil.Configs!
         .Where(m => m.Target1 == MemoTarget.Race && m.Target2 == MemoTarget.Unknown && m.Target3 == MemoTarget.Unknown && m.Type == MemoType.Race && m.PointLabelId != default)
         .Where(m => m.Style == MemoStyle.Point || m.Style == MemoStyle.MemoAndPoint)
-        .Where(m => _memoCaches.Any(c => c.Config.Id == m.Id && c.LabelConfig.Value != null))
+        .Where(m => MemoUtil.MemoCaches.Any(c => c.Config.Id == m.Id && c.LabelConfig.Value != null))
         .OrderBy(m => m.Order);
       return config;
     }
