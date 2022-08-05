@@ -4,6 +4,7 @@ using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.Memo;
 using KmyKeiba.Models.Race.Tickets;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
@@ -67,27 +68,7 @@ namespace KmyKeiba.Models.RList
           .ToArrayAsync();
         horses = horseData.Select(h => new RaceHorseData { RaceKey = h.RaceKey, Number = h.Number, FrameNumber = h.FrameNumber, AbnormalResult = h.AbnormalResult, }).ToArray();
 
-        var memoConfig = await db.MemoConfigs!
-          .Where(m => m.Target1 == MemoTarget.Race && m.Target2 == MemoTarget.Unknown && m.Target3 == MemoTarget.Unknown && m.Type == MemoType.Race && m.PointLabelId != default)
-          .Where(m => m.Style == MemoStyle.Point || m.Style == MemoStyle.MemoAndPoint)
-          .Join(db.PointLabels!, m => (uint)m.PointLabelId, p => p.Id, (m, p) => new { Memo = m, PointLabel = p, })
-          .OrderBy(m => m.Memo.Order)
-          .FirstOrDefaultAsync();
-        memos = Array.Empty<MemoData>();
-        pointLabel = null;
-        if (memoConfig != null)
-        {
-          var number = memoConfig.Memo.MemoNumber;
-          var memoData = await db.Memos!
-            .Where(m => m.Target1 == MemoTarget.Race && m.Target2 == MemoTarget.Unknown && m.Target3 == MemoTarget.Unknown && m.Number == number)
-            .Where(m => keys.Contains(m.Key1))
-            .ToArrayAsync();
-          if (memoData.Any())
-          {
-            memos = memoData;
-            pointLabel = memoConfig.PointLabel;
-          }
-        }
+        (memos, pointLabel) = await MemoUtil.GetRaceListMemosAsync(db, keys);
       }
 
       ThreadUtil.InvokeOnUiThread(() =>
@@ -262,6 +243,27 @@ namespace KmyKeiba.Models.RList
       {
         item.MemoColor.Value = color;
         item.IsMemoVisible.Value = isVisible;
+      }
+    }
+
+    public async Task UpdateAllColorsAsync()
+    {
+      var keys = this.Courses.SelectMany(c => c.Races.Select(r => r.Key));
+      var (memos, pointLabel) = await MemoUtil.GetRaceListMemosAsync(null, keys);
+      if (pointLabel == null)
+      {
+        return;
+      }
+
+      var items = pointLabel.GetItems();
+
+      foreach (var race in this.Courses
+        .SelectMany(c => c.Races)
+        .Join(memos, r => r.Key, m => m.Key1, (r, m) => new { Race = r, Memo = m, })
+        .Join(items, r => r.Memo.Point, i => i.Point, (r, m) => new { r.Race, m.Color, IsVisible = !string.IsNullOrEmpty(m.Label), }))
+      {
+        race.Race.MemoColor.Value = race.Color;
+        race.Race.IsMemoVisible.Value = race.IsVisible;
       }
     }
 

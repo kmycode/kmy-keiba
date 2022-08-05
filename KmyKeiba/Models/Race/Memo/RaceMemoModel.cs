@@ -474,6 +474,8 @@ namespace KmyKeiba.Models.Race.Memo
 
             await this.LoadAsync(db);
             await ReloadAllModelsAsync(db, this);
+
+            OnPointLabelOrderChangedForRaceList(exists, target);
           }
         }
       }
@@ -500,6 +502,8 @@ namespace KmyKeiba.Models.Race.Memo
 
             await this.LoadAsync(db);
             await ReloadAllModelsAsync(db, this);
+
+            OnPointLabelOrderChangedForRaceList(exists, target);
           }
         }
       }
@@ -802,12 +806,7 @@ namespace KmyKeiba.Models.Race.Memo
 
     public static void OnPointLabelChangedForRaceList(MemoColor color, RaceMemoItem raceMemoItem, string label)
     {
-      var config = _configs!
-        .Where(m => m.Target1 == MemoTarget.Race && m.Target2 == MemoTarget.Unknown && m.Target3 == MemoTarget.Unknown && m.Type == MemoType.Race && m.PointLabelId != default)
-        .Where(m => m.Style == MemoStyle.Point || m.Style == MemoStyle.MemoAndPoint)
-        .Where(m => _memoCaches.Any(c => c.Config.Id == m.Id && c.LabelConfig.Value != null))
-        .OrderBy(m => m.Order)
-        .FirstOrDefault();
+      var config = GetRaceListMemoConfig();
       if (config?.Id == raceMemoItem.Config.Id)
       {
         foreach (var model in _allModels)
@@ -817,7 +816,41 @@ namespace KmyKeiba.Models.Race.Memo
       }
     }
 
-    public event EventHandler<PointLabelChangedEventArgs> PointLabelChangedForRaceList;
+    public static void OnPointLabelOrderChangedForRaceList(ExpansionMemoConfig config, ExpansionMemoConfig target)
+    {
+      if (config.Target1 == MemoTarget.Race && config.Target2 == MemoTarget.Unknown && config.Target3 == MemoTarget.Unknown &&
+        target.Target1 == MemoTarget.Race && target.Target2 == MemoTarget.Unknown && target.Target3 == MemoTarget.Unknown)
+      {
+        var configs = GetRaceHeaderConfigs().Take(2);
+        if (configs.Any(c => c.Id == config.Id) && configs.Any(c => c.Id == target.Id))
+        {
+          foreach (var model in _allModels)
+          {
+            model.PointLabelOrderChangedForRaceList?.Invoke(model, EventArgs.Empty);
+          }
+        }
+      }
+    }
+
+    private static ExpansionMemoConfig? GetRaceListMemoConfig()
+    {
+      var config = GetRaceHeaderConfigs().FirstOrDefault();
+      return config;
+    }
+
+    private static IEnumerable<ExpansionMemoConfig> GetRaceHeaderConfigs()
+    {
+      var config = _configs!
+        .Where(m => m.Target1 == MemoTarget.Race && m.Target2 == MemoTarget.Unknown && m.Target3 == MemoTarget.Unknown && m.Type == MemoType.Race && m.PointLabelId != default)
+        .Where(m => m.Style == MemoStyle.Point || m.Style == MemoStyle.MemoAndPoint)
+        .Where(m => _memoCaches.Any(c => c.Config.Id == m.Id && c.LabelConfig.Value != null))
+        .OrderBy(m => m.Order);
+      return config;
+    }
+
+    public event EventHandler<PointLabelChangedEventArgs>? PointLabelChangedForRaceList;
+
+    public event EventHandler? PointLabelOrderChangedForRaceList;
   }
 
   public class PointLabelChangedEventArgs : EventArgs
