@@ -643,6 +643,15 @@ namespace KmyKeiba.JVLink.Entities
 
     [RaceGradeInfo("JpnL", RaceGradeType.Listed, "L")]
     LocalListed = 109,
+
+    [RaceGradeInfo("For1", RaceGradeType.Grade, "外1")]
+    ForeignGrade1 = 201,
+
+    [RaceGradeInfo("For2", RaceGradeType.Grade, "外2")]
+    ForeignGrade2 = 202,
+
+    [RaceGradeInfo("For3", RaceGradeType.Grade, "外3")]
+    ForeignGrade3 = 203,
   }
 
   class RaceSubjectTypeInfoAttribute : Attribute

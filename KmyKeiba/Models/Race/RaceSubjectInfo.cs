@@ -87,6 +87,22 @@ namespace KmyKeiba.Models.Race
         }
       }
 
+      if (race.Course >= RaceCourse.Foreign)
+      {
+        if (this.Subject.Grade == RaceGrade.LocalGrade1)
+        {
+          this.Subject.Grade = RaceGrade.ForeignGrade1;
+        }
+        if (this.Subject.Grade == RaceGrade.LocalGrade2)
+        {
+          this.Subject.Grade = RaceGrade.ForeignGrade2;
+        }
+        if (this.Subject.Grade == RaceGrade.LocalGrade3)
+        {
+          this.Subject.Grade = RaceGrade.ForeignGrade3;
+        }
+      }
+
       if (!string.IsNullOrWhiteSpace(race.Name))
       {
         this.DisplayName = race.Name;
