@@ -26,7 +26,12 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public static FinderCell CreateCell<T>(this FinderColumnDefinition<T> column, T data)
     {
-      return new FinderCell(column, column.Value(data));
+      var cell = new FinderCell(column, column.Value(data));
+      if (column.Comparation != null)
+      {
+        cell.Comparation = column.Comparation(data, cell.Value);
+      }
+      return cell;
     }
   }
 }

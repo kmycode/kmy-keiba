@@ -233,7 +233,7 @@ namespace KmyKeiba.Models.Script
       {
         return "[]";
       }
-      var result = await this._analyzer.Finder.FindRacesAsync(null, keys, count, offset);
+      var result = await this._analyzer.Finder.FindRacesAsync(keys, count, offset);
       return JsonSerializer.Serialize(
         result.Select(s => new ScriptRace(s.Data)).Take(count).ToArray(), ScriptManager.JsonOptions);
     }
@@ -245,7 +245,7 @@ namespace KmyKeiba.Models.Script
       {
         return "[]";
       }
-      var result = await this._analyzer.Finder.FindRaceHorsesAsync(null, keys, count, offset);
+      var result = await this._analyzer.Finder.FindRaceHorsesAsync(keys, count, offset);
       return JsonSerializer.Serialize(
         result.Select(s => new ScriptRaceHorse(string.Empty, s.Data)).Take(count).ToArray(), ScriptManager.JsonOptions);
     }

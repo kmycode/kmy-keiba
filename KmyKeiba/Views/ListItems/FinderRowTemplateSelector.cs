@@ -16,6 +16,9 @@ namespace KmyKeiba.Views.ListItems
     public DataTemplate? BoldTextTemplate { get; set; }
     public DataTemplate? BoldNumericTextTemplate { get; set; }
     public DataTemplate? RaceSubjectTemplate { get; set; }
+    public DataTemplate? CourseInfoTemplate { get; set; }
+    public DataTemplate? RunningStyleTemplate { get; set; }
+    public DataTemplate? CornerPlaceTemplate { get; set; }
 
     public override DataTemplate SelectTemplate(object item, DependencyObject container)
     {
@@ -27,6 +30,9 @@ namespace KmyKeiba.Views.ListItems
           FinderColumnType.NumericText => this.NumericTextTemplate,
           FinderColumnType.BoldText => this.BoldTextTemplate,
           FinderColumnType.RaceSubject => this.RaceSubjectTemplate,
+          FinderColumnType.CourseInfo => this.CourseInfoTemplate,
+          FinderColumnType.RunningStyle => this.RunningStyleTemplate,
+          FinderColumnType.CornerPlaces => this.CornerPlaceTemplate,
           _ => null,
         };
         if (template != null)

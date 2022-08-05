@@ -85,6 +85,8 @@ namespace KmyKeiba.Data.Db
 
     public TimeSpan Corner1LapTime { get; set; }
 
+    public short Corner1LapTimeValue { get; set; }
+
     [StringLength(80)]
     public string Corner2Result { get; set; } = string.Empty;
 
@@ -95,6 +97,8 @@ namespace KmyKeiba.Data.Db
     public short Corner2Number => (short)(this.CornerPositionInfos / 1_00_00 % 10);
 
     public TimeSpan Corner2LapTime { get; set; }
+
+    public short Corner2LapTimeValue { get; set; }
 
     [StringLength(80)]
     public string Corner3Result { get; set; } = string.Empty;
@@ -107,6 +111,8 @@ namespace KmyKeiba.Data.Db
 
     public TimeSpan Corner3LapTime { get; set; }
 
+    public short Corner3LapTimeValue { get; set; }
+
     [StringLength(80)]
     public string Corner4Result { get; set; } = string.Empty;
 
@@ -117,6 +123,8 @@ namespace KmyKeiba.Data.Db
     public short Corner4Number => (short)(this.CornerPositionInfos / 1 % 10);
 
     public TimeSpan Corner4LapTime { get; set; }
+
+    public short Corner4LapTimeValue { get; set; }
 
     public string? Memo { get; set; }
 
@@ -159,12 +167,16 @@ namespace KmyKeiba.Data.Db
         race.Corner4Position * 10 + race.Corner4Number * 1;
       this.Corner1Result = race.Corner1Result;
       this.Corner1LapTime = race.Corner1LapTime;
+      this.Corner1LapTimeValue = race.Corner1LapTimeValue;
       this.Corner2Result = race.Corner2Result;
       this.Corner2LapTime = race.Corner2LapTime;
+      this.Corner2LapTimeValue = race.Corner2LapTimeValue;
       this.Corner3Result = race.Corner3Result;
       this.Corner3LapTime = race.Corner3LapTime;
+      this.Corner3LapTimeValue = race.Corner3LapTimeValue;
       this.Corner4Result = race.Corner4Result;
       this.Corner4LapTime = race.Corner4LapTime;
+      this.Corner4LapTimeValue = race.Corner4LapTimeValue;
 
       // NVLink（地方競馬）でRealTimeデータを取得するときに欠損していることがある
       if (race.TrackWeather != RaceCourseWeather.Unknown)

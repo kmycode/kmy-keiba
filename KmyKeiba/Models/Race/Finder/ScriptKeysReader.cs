@@ -903,7 +903,6 @@ namespace KmyKeiba.Models.Race.Finder
       this.Value = value;
       this.Values = new int[] { value, };
       this.MaxValue = maxValue;
-      this.NormalizeData();
     }
 
     public ExpressionScriptKeyQuery(QueryKey key, QueryType type, int value) : this(key, type, value, value)
@@ -917,7 +916,6 @@ namespace KmyKeiba.Models.Race.Finder
       this.Value = values.FirstOrDefault();
       this.Values = values;
       this.MaxValue = default;
-      this.NormalizeData();
     }
 
     public ExpressionScriptKeyQuery(QueryKey key, QueryType type, string value)
@@ -926,23 +924,6 @@ namespace KmyKeiba.Models.Race.Finder
       this.Type = type;
       this.Values = Array.Empty<int>();
       this.StringValue = value;
-      this.NormalizeData();
-    }
-
-    private void NormalizeData()
-    {
-      // ミリ秒と比較をおこなうので
-      if (this.Key == QueryKey.ResultTime || this.Key == QueryKey.A3HTime)
-      {
-        this.Value *= 100;
-        if (this.Values != null)
-        {
-          for (var i = 0; i < this.Values.Length; i++)
-          {
-            this.Values[i] = this.Values[i] * 100;
-          }
-        }
-      }
     }
 
     public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
@@ -1094,7 +1075,7 @@ namespace KmyKeiba.Models.Race.Finder
           query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, short>(nameof(RaceHorseData.Popular), this.Values.Select(v => (short)v)));
           break;
         case QueryKey.ResultTime:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ResultTime), nameof(TimeSpan.TotalMilliseconds), isDouble: true));
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ResultTimeValue)));
           break;
         case QueryKey.CornerPlace1:
           query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, short>(nameof(RaceHorseData.FirstCornerOrder), this.Values.Select(v => (short)v)));
@@ -1127,7 +1108,7 @@ namespace KmyKeiba.Models.Race.Finder
           query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.PlaceOddsMin)));
           break;
         case QueryKey.A3HTime:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.AfterThirdHalongTime), nameof(TimeSpan.TotalMilliseconds), isDouble: true));
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.AfterThirdHalongTimeValue)));
           break;
         case QueryKey.RunningStyle:
           query = query.Where(this.BuildEnumValuesQuery<RaceHorseData, RunningStyle>
@@ -1205,19 +1186,23 @@ namespace KmyKeiba.Models.Race.Finder
           }
           if (this.Type == QueryType.GreaterThan)
           {
-            return Expression.Lambda<Func<T, bool>>(Expression.GreaterThan(property, valueExp), param);
+            return Expression.Lambda<Func<T, bool>>(Expression.GreaterThan(
+              Expression.Convert(property, typeof(short)), Expression.Convert(valueExp, typeof(short))), param);
           }
           if (this.Type == QueryType.GreaterThanOrEqual)
           {
-            return Expression.Lambda<Func<T, bool>>(Expression.GreaterThanOrEqual(property, valueExp), param);
+            return Expression.Lambda<Func<T, bool>>(Expression.GreaterThanOrEqual(
+              Expression.Convert(property, typeof(short)), Expression.Convert(valueExp, typeof(short))), param);
           }
           if (this.Type == QueryType.LessThan)
           {
-            return Expression.Lambda<Func<T, bool>>(Expression.LessThan(property, valueExp), param);
+            return Expression.Lambda<Func<T, bool>>(Expression.LessThan(
+              Expression.Convert(property, typeof(short)), Expression.Convert(valueExp, typeof(short))), param);
           }
           if (this.Type == QueryType.LessThanOrEqual)
           {
-            return Expression.Lambda<Func<T, bool>>(Expression.LessThanOrEqual(property, valueExp), param);
+            return Expression.Lambda<Func<T, bool>>(Expression.LessThanOrEqual(
+              Expression.Convert(property, typeof(short)), Expression.Convert(valueExp, typeof(short))), param);
           }
         }
       }

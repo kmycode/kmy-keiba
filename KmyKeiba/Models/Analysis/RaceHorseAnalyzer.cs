@@ -683,7 +683,17 @@ namespace KmyKeiba.Models.Analysis
     /// </summary>
     public float PlacingBetsRate { get; } = 0;
 
+    /// <summary>
+    /// 連対率
+    /// </summary>
+    public float TopRatio => (this.FirstCount + this.SecondCount) / (float)this.AllCount;
+
     public float WinRate { get; } = 0;
+
+    /// <summary>
+    /// 単勝回収率
+    /// </summary>
+    public float RecoveryRate { get; } = 0;
 
     public ValueComparation PlacingBetsRateComparation => this.PlacingBetsRate >= 0.5 ? ValueComparation.Good : this.PlacingBetsRate <= 0.15 ? ValueComparation.Bad : ValueComparation.Standard;
 
@@ -700,6 +710,12 @@ namespace KmyKeiba.Models.Analysis
         this.PlacingBetsCount = this.FirstCount + this.SecondCount + this.ThirdCount;
         this.PlacingBetsRate = this.PlacingBetsCount / (float)targets.Length;
         this.WinRate = this.FirstCount / (float)targets.Length;
+
+        var won = source.Where(s => s.ResultOrder == 1 && s.Odds != default);
+        if (won.Any())
+        {
+          this.RecoveryRate = won.Sum(w => w.Odds * 10) / (float)(source.Count(s => s.ResultOrder > 1) * 100);
+        }
       }
     }
 
@@ -717,6 +733,12 @@ namespace KmyKeiba.Models.Analysis
         this.PlacingBetsCount = targets.Count(f => f.Data.ResultOrder <= (f.Race.HorsesCount >= 7 ? 3 : 2) && f.Data.ResultOrder > 0);
         this.PlacingBetsRate = this.PlacingBetsCount / (float)targets.Length;
         this.WinRate = this.FirstCount / (float)targets.Length;
+
+        var won = source.Where(s => s.Data.ResultOrder == 1 && s.Data.Odds != default);
+        if (won.Any())
+        {
+          this.RecoveryRate = won.Sum(w => w.Data.Odds * 10) / (float)(source.Count(s => s.Data.ResultOrder > 1) * 100);
+        }
       }
     }
   }

@@ -22,11 +22,5 @@ namespace KmyKeiba.Models.Race.Finder
         .Select(a => new { Cells = columns.Select(c => c.CreateCell(a)).ToArray(), Horse = a.Analyzer, });
       return rows.Select(r => new FinderRow(r.Cells, null, r.Horse)).ToArray();
     }
-
-    public static IReadOnlyList<IReadOnlyList<FinderCell>> ToFinderRows(this IEnumerable<FinderRaceHorseGroupItem> data, IEnumerable<FinderColumnDefinition<FinderRaceHorseGroupItem>> columns)
-    {
-      return data
-        .Select(a => columns.Select(c => c.CreateCell(a)).ToArray()).ToArray();
-    }
   }
 }

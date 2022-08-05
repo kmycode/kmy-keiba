@@ -32,5 +32,28 @@
         <up:RaceSubjectIcon Subject="{Binding Value}" FontSize="16" Width="{Binding Column.Width}" Margin="0,0,8,0"/>
       </DataTemplate>
     </ui:FinderRowTemplateSelector.RaceSubjectTemplate>
+    <ui:FinderRowTemplateSelector.CourseInfoTemplate>
+      <DataTemplate>
+        <StackPanel Orientation="Horizontal" Width="{Binding Column.Width}" Margin="0,0,8,0">
+          <Border Width="24">
+            <up:CourseSimpleImageView Race="{Binding Value}" HorizontalAlignment="Right"/>
+          </Border>
+          <TextBlock Text="{Binding Value.Distance}" FontSize="14" Width="36" TextAlignment="Right"/>
+        </StackPanel>
+      </DataTemplate>
+    </ui:FinderRowTemplateSelector.CourseInfoTemplate>
+    <ui:FinderRowTemplateSelector.RunningStyleTemplate>
+      <DataTemplate>
+        <up:RunningStyleTip RunningStyle="{Binding Value}" Width="{Binding Column.Width}" Margin="0,0,8,0"/>
+      </DataTemplate>
+    </ui:FinderRowTemplateSelector.RunningStyleTemplate>
+    <ui:FinderRowTemplateSelector.CornerPlaceTemplate>
+      <DataTemplate>
+        <Border Width="{Binding Column.Width}" Margin="0,0,8,0">
+          <up:CornerResultTip CornerGrades="{Binding Value}" WithResult="False"
+                              FontSize="14" HorizontalAlignment="Right"/>
+        </Border>
+      </DataTemplate>
+    </ui:FinderRowTemplateSelector.CornerPlaceTemplate>
   </ui:FinderRowTemplateSelector>
 </ResourceDictionary>

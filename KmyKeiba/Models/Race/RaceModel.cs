@@ -330,6 +330,13 @@ namespace KmyKeiba.Models.Race
           {
             this.RaceList.UpdateColor(ev.EventArgs.Color, ev.EventArgs.IsVisible);
           });
+          this.memoChanged = Observable.FromEventPattern(
+            ev => race.MemoEx.Value.PointLabelOrderChangedForRaceList += ev,
+            ev => race.MemoEx.Value.PointLabelOrderChangedForRaceList -= ev)
+          .Subscribe(async _ =>
+          {
+            await this.RaceList.UpdateAllColorsAsync();
+          });
         }
         catch (Exception ex)
         {

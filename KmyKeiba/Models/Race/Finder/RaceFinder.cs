@@ -44,14 +44,14 @@ namespace KmyKeiba.Models.Race.Finder
       this.RaceHorse = raceHorse;
     }
 
-    public async Task<IReadOnlyList<RaceHorseAnalyzer>> FindRaceHorsesAsync(MyContext? db, string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true)
+    public async Task<IReadOnlyList<RaceHorseAnalyzer>> FindRaceHorsesAsync(string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true)
     {
       if (withoutFutureRaces && this._raceHorseCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
       {
         return cache.Item2;
       }
 
-      db ??= new();
+      using var db = new MyContext();
       var reader = new ScriptKeysReader(keys);
 
       IQueryable<RaceData> races = db.Races!;
@@ -115,14 +115,14 @@ namespace KmyKeiba.Models.Race.Finder
       return list;
     }
 
-    public async Task<IReadOnlyList<RaceAnalyzer>> FindRacesAsync(MyContext? db, string keys, int sizeMax, int offset = 0, bool withoutFutureRaces = true)
+    public async Task<IReadOnlyList<RaceAnalyzer>> FindRacesAsync(string keys, int sizeMax, int offset = 0, bool withoutFutureRaces = true)
     {
       if (withoutFutureRaces && this._raceCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
       {
         return cache.Item2;
       }
 
-      db ??= new();
+      using var db = new MyContext();
       var reader = new ScriptKeysReader(keys);
 
       IQueryable<RaceData> races = db.Races!;

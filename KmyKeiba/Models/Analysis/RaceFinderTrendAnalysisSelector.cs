@@ -37,7 +37,7 @@ namespace KmyKeiba.Models.Analysis
       var analyzer = this.GenerateAnalyzer(sizeMax);
       Task.Run(async () =>
       {
-        analyzer.SetSource(await this._finder.FindRaceHorsesAsync(null, scriptKey, sizeMax));
+        analyzer.SetSource(await this._finder.FindRaceHorsesAsync(scriptKey, sizeMax));
       });
       return analyzer;
     }

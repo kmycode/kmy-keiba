@@ -42,6 +42,7 @@
                               WarningBrush="{StaticResource WarningForeground}"
                               NegativeBrush="{StaticResource NegativeForeground}"/>
   <cv:StringEmptyVisibilityConv x:Key="StringEmptyVisibilityConv"/>
+  <cv:CellTextAlignmentConverter x:Key="CellTextAlignmentConv"/>
 
   <cv:BooleanBrushConverter x:Key="BooleanForegroundSubOrBaseConv" TrueBrush="{StaticResource SubForeground}" FalseBrush="{StaticResource BaseForeground}"/>
 </ResourceDictionary>

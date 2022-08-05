@@ -84,6 +84,8 @@ namespace KmyKeiba.JVLink.Entities
     /// </summary>
     public TimeSpan ResultTime { get; set; }
 
+    public short ResultTimeValue { get; set; }
+
     public short FirstCornerOrder { get; set; }
 
     public short SecondCornerOrder { get; set; }
@@ -139,6 +141,8 @@ namespace KmyKeiba.JVLink.Entities
     /// 後３ハロンタイム
     /// </summary>
     public TimeSpan AfterThirdHalongTime { get; set; }
+
+    public short AfterThirdHalongTimeValue { get; set; }
 
     /// <summary>
     /// 脚質
@@ -248,6 +252,7 @@ namespace KmyKeiba.JVLink.Entities
         ThirdCornerOrder = corner3,
         FourthCornerOrder = corner4,
         ResultTime = new TimeSpan(0, 0, timeMinutes, timeSeconds, timeMilliSeconds * 100),
+        ResultTimeValue = (short)(timeMinutes * 600 + timeSeconds * 10 + timeMilliSeconds),
         RiderCode = uma.KisyuCode.Trim(),
         RiderName = uma.KisyuRyakusyo.Trim(),
         RiderWeight = (short)riderWeight,
@@ -260,6 +265,7 @@ namespace KmyKeiba.JVLink.Entities
         IsBlinkers = uma.Blinker == "1",
         Odds = odds,
         AfterThirdHalongTime = halongTime,
+        AfterThirdHalongTimeValue = (short)halongTime10,
         RunningStyle = (RunningStyle)runningStyle,
         UniformFormat = uma.Fukusyoku.Trim(),
       };

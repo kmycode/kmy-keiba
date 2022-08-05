@@ -631,5 +631,91 @@ namespace KmyKeiba.Models.Data
         logger.Error("レースの条件解析中にエラー", ex);
       }
     }
+
+    public static async Task MigrateFrom250Async(ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
+    {
+      try
+      {
+        using var db = new MyContext();
+        await db.TryBeginTransactionAsync();
+
+        var raceHorses = db.RaceHorses!.Where(rh => rh.ResultTimeValue == default && rh.ResultOrder > 0 && rh.Popular > 0 && rh.ResultLength1 != default);
+        var races = db.Races!.Where(rh => rh.Corner4LapTimeValue == default && rh.CornerPositionInfos != default && rh.DataStatus >= RaceDataStatus.PreliminaryGrade3 && rh.Course != RaceCourse.ObihiroBannei && rh.TrackCornerDirection != TrackCornerDirection.Straight && rh.Course < RaceCourse.Foreign);
+
+        if (!(await raceHorses.AnyAsync()) && !(await races.AnyAsync()))
+        {
+          return;
+        }
+
+        if (progressMax != null)
+        {
+          progressMax.Value = await raceHorses.CountAsync() + await races.CountAsync();
+        }
+        if (progress != null)
+        {
+          progress.Value = 0;
+        }
+
+        var i = 0;
+        foreach (var horse in raceHorses)
+        {
+          horse.ResultTimeValue = (short)(horse.ResultTime.Ticks / 1_000_000);
+          horse.AfterThirdHalongTimeValue = (short)(horse.AfterThirdHalongTime.Ticks / 1_000_000);
+          i++;
+
+          if (i >= 10000)
+          {
+            await db.SaveChangesAsync();
+            await db.CommitAsync();
+
+            if (isCanceled?.Value == true)
+            {
+              return;
+            }
+
+            if (progress != null)
+            {
+              progress.Value += i;
+            }
+            i = 0;
+          }
+        }
+        foreach (var race in races)
+        {
+          race.Corner1LapTimeValue = (short)(race.Corner1LapTime.Ticks / 1_000_000);
+          race.Corner2LapTimeValue = (short)(race.Corner2LapTime.Ticks / 1_000_000);
+          race.Corner3LapTimeValue = (short)(race.Corner3LapTime.Ticks / 1_000_000);
+          race.Corner4LapTimeValue = (short)(race.Corner4LapTime.Ticks / 1_000_000);
+          if (race.Corner4LapTimeValue == default)
+          {
+            race.Corner4LapTimeValue = -1;
+          }
+          i++;
+
+          if (i >= 10000)
+          {
+            await db.SaveChangesAsync();
+            await db.CommitAsync();
+
+            if (isCanceled?.Value == true)
+            {
+              return;
+            }
+            if (progress != null)
+            {
+              progress.Value += i;
+            }
+            i = 0;
+          }
+        }
+
+        await db.SaveChangesAsync();
+        await db.CommitAsync();
+      }
+      catch (Exception ex)
+      {
+        logger.Error("2.5.0からのマイグレーション中にエラー", ex);
+      }
+    }
   }
 }

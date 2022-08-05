@@ -11,10 +11,44 @@
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
+      <RowDefinition Height="auto"/>
       <RowDefinition/>
     </Grid.RowDefinitions>
 
-    <ItemsControl ItemsSource="{Binding FinderModel.Columns.Value,ElementName=Root}">
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition Width="auto"/>
+      </Grid.ColumnDefinitions>
+      <ComboBox Margin="8,0,0,16" ItemsSource="{Binding FinderModel.HorseGroups,ElementName=Root}"
+                SelectedItem="{Binding FinderModel.CurrentGroup.Value,ElementName=Root,Mode=TwoWay}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{Binding GroupKey}" FontSize="24" FontWeight="Bold" VerticalAlignment="Center" Width="140"/>
+              <TextBlock Text="件数" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
+              <TextBlock Text="{Binding Grades.AllCount}" FontSize="24" VerticalAlignment="Center" Width="60"/>
+              <TextBlock Text="１着" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
+              <TextBlock Text="{Binding Grades.FirstCount}" FontSize="20" VerticalAlignment="Center" Width="50"/>
+              <TextBlock Text="２着" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
+              <TextBlock Text="{Binding Grades.SecondCount}" FontSize="20" VerticalAlignment="Center" Width="50"/>
+              <TextBlock Text="３着" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
+              <TextBlock Text="{Binding Grades.ThirdCount}" FontSize="20" VerticalAlignment="Center" Width="50"/>
+              <TextBlock Text="勝率" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
+              <TextBlock Text="{Binding Grades.WinRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16" VerticalAlignment="Center" Width="60"/>
+              <TextBlock Text="連対率" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
+              <TextBlock Text="{Binding Grades.TopRatio,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16" VerticalAlignment="Center" Width="60"/>
+              <TextBlock Text="複勝率" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
+              <TextBlock Text="{Binding Grades.PlacingBetsRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16" VerticalAlignment="Center" Width="60"/>
+              <TextBlock Text="回収率" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
+              <TextBlock Text="{Binding Grades.RecoveryRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16" VerticalAlignment="Center" Width="60"/>
+            </StackPanel>
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </Grid>
+
+    <ItemsControl Grid.Row="1" ItemsSource="{Binding FinderModel.Columns.Value,ElementName=Root}">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <StackPanel Orientation="Horizontal"/>
@@ -22,14 +56,14 @@
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
         <DataTemplate>
-          <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Width="{Binding Width}"
-                     Text="{Binding Header}" Margin="0,0,8,0"/>
+          <TextBlock Foreground="{StaticResource SubForeground}" FontSize="14" Width="{Binding Width}"
+                     Text="{Binding Header}" TextAlignment="{Binding Alignment,Converter={StaticResource CellTextAlignmentConv}}" Margin="0,0,8,4"/>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
 
-    <ItemsControl ItemsSource="{Binding FinderModel.Rows,ElementName=Root}" Style="{StaticResource TableList}"
-                  Grid.Row="1">
+    <ItemsControl ItemsSource="{Binding FinderModel.CurrentGroup.Value.Rows,ElementName=Root}" Style="{StaticResource TableList}"
+                  Grid.Row="2">
       <ItemsControl.ItemTemplate>
         <DataTemplate>
           <Grid Margin="0,0,0,4">
@@ -37,7 +71,7 @@
               <ToggleButton.Template>
                 <ControlTemplate>
                   <Grid Background="{TemplateBinding Background}">
-                    <ItemsControl ItemsSource="{Binding Cells}"
+                    <ItemsControl ItemsSource="{Binding Cells}" Height="24"
                                   ItemTemplateSelector="{StaticResource FinderRowTemplateSelector}">
                       <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>

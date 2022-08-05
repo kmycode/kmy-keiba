@@ -113,6 +113,8 @@ namespace KmyKeiba.JVLink.Entities
 
     public TimeSpan Corner1LapTime { get; set; }
 
+    public short Corner1LapTimeValue { get; set; }
+
     public string Corner2Result { get; set; } = string.Empty;
 
     public short Corner2Position { get; set; }
@@ -120,6 +122,8 @@ namespace KmyKeiba.JVLink.Entities
     public short Corner2Number { get; set; }
 
     public TimeSpan Corner2LapTime { get; set; }
+
+    public short Corner2LapTimeValue { get; set; }
 
     public string Corner3Result { get; set; } = string.Empty;
 
@@ -129,6 +133,8 @@ namespace KmyKeiba.JVLink.Entities
 
     public TimeSpan Corner3LapTime { get; set; }
 
+    public short Corner3LapTimeValue { get; set; }
+
     public string Corner4Result { get; set; } = string.Empty;
 
     public short Corner4Position { get; set; }
@@ -136,6 +142,8 @@ namespace KmyKeiba.JVLink.Entities
     public short Corner4Number { get; set; }
 
     public TimeSpan Corner4LapTime { get; set; }
+
+    public short Corner4LapTimeValue { get; set; }
 
     public int PrizeMoney1 { get; set; }
 
@@ -287,18 +295,22 @@ namespace KmyKeiba.JVLink.Entities
         Corner1Number = cnum1,
         Corner1Result = race.CornerInfo[0].Jyuni.Trim(),
         Corner1LapTime = new TimeSpan(0, 0, 0, lap1 / 10, lap1 % 10 * 100),
+        Corner1LapTimeValue = (short)lap1,
         Corner2Position = cn2,
         Corner2Number = cnum2,
         Corner2Result = race.CornerInfo[1].Jyuni.Trim(),
         Corner2LapTime = new TimeSpan(0, 0, 0, lap2 / 10, lap1 % 10 * 100),
+        Corner2LapTimeValue = (short)lap2,
         Corner3Position = cn3,
         Corner3Number = cnum3,
         Corner3Result = race.CornerInfo[2].Jyuni.Trim(),
         Corner3LapTime = new TimeSpan(0, 0, 0, lap3 / 10, lap1 % 10 * 100),
+        Corner3LapTimeValue = (short)lap3,
         Corner4Position = cn4,
         Corner4Number = cnum4,
         Corner4Result = race.CornerInfo[3].Jyuni.Trim(),
         Corner4LapTime = new TimeSpan(0, 0, 0, lap4 / 10, lap1 % 10 * 100),
+        Corner4LapTimeValue = (short)lap4,
         PrizeMoney1 = money1,
         PrizeMoney2 = money2,
         PrizeMoney3 = money3,
@@ -535,7 +547,7 @@ namespace KmyKeiba.JVLink.Entities
     [RaceCourseInfo(RaceCourseType.Local, "中京(地)")]
     ChukyoLocal = 61,
 
-    [RaceCourseInfo(RaceCourseType.Local, "帯広(ば)")]
+    [RaceCourseInfo(RaceCourseType.Local, "帯広ば")]
     ObihiroBannei = 83,
 
     [RaceCourseInfo(RaceCourseType.Foreign, "その他の外国", Key = "A0")]

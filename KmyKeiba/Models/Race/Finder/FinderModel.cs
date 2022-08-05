@@ -15,8 +15,6 @@ namespace KmyKeiba.Models.Race.Finder
   {
     private readonly RaceFinder _finder;
 
-    public ReactiveCollection<FinderRow> Rows { get; } = new();
-
     public ReactiveProperty<IEnumerable<IFinderColumnDefinition>> Columns { get; } = new();
 
     public ReactiveCollection<FinderColumnDefinition<FinderRaceItem>> RaceColumns { get; } = new();
@@ -25,7 +23,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveCollection<FinderColumnDefinition<FinderRaceHorseGroupItem>> RaceHorseGroupColumns { get; } = new();
 
-    public ReactiveProperty<string> Keys { get; } = new(string.Empty);
+    public ReactiveCollection<FinderRaceHorseGroupItem> HorseGroups { get; } = new();
+
+    public ReactiveProperty<FinderRaceHorseGroupItem?> CurrentGroup { get; } = new();
+
+    public ReactiveProperty<string> Keys { get; } = new("place>0");
 
     public ReactiveProperty<bool> IsSearchRaces { get; } = new();
 
@@ -44,6 +46,14 @@ namespace KmyKeiba.Models.Race.Finder
       {
         this.RaceHorseColumns.Add(preset.Clone());
       }
+
+      this.CurrentGroup.Subscribe(g =>
+      {
+        if (g != null && !g.Rows.Any() && g.Items.Any())
+        {
+          this.UpdateRows(g.Items.Select(i => i.Analyzer).ToFinderRows(this.RaceHorseColumns));
+        }
+      });
     }
 
     public void BeginLoad()
@@ -57,26 +67,30 @@ namespace KmyKeiba.Models.Race.Finder
           if (this.IsSearchRaces.Value)
           {
             this.Columns.Value = this.RaceColumns;
-            var data = await this._finder.FindRacesAsync(null, this.Keys.Value, 1000, withoutFutureRaces: false);
+            var data = await this._finder.FindRacesAsync(this.Keys.Value, 3000, withoutFutureRaces: false);
             this.UpdateRows(data.ToFinderRows(this.RaceColumns));
           }
           else if (this.IsSearchRaceHorses.Value)
           {
             this.Columns.Value = this.RaceHorseColumns;
-            var data = await this._finder.FindRaceHorsesAsync(null, this.Keys.Value, 1000, withoutFutureRaces: false);
-            this.UpdateRows(data.ToFinderRows(this.RaceHorseColumns));
-          }
-          else if (this.IsSearchRaceHorseGroups.Value)
-          {
-            this.Columns.Value = this.RaceHorseGroupColumns;
-            var data = await this._finder.FindRaceHorsesAsync(null, this.Keys.Value, 1000, withoutFutureRaces: false);
+            var data = await this._finder.FindRaceHorsesAsync(this.Keys.Value, 3000, withoutFutureRaces: false);
 
-            // TODO: グループキーは仮
-            var grouped = data.GroupBy(i => i.Race.Key).Select(g => new FinderRaceHorseGroupItem(g));
-
-            // TODO
-            //this.UpdateRows(grouped.ToFinderRows(this.RaceHorseGroupColumns));
+            if (!this.IsSearchRaceHorseGroups.Value)
+            {
+              var group = new FinderRaceHorseGroupItem(data);
+              this.UpdateGroups(new[] { group, });
+            }
+            else
+            {
+              // TODO 結果のグループ分け処理を実装
+              var groups = data.GroupBy(d => d.Data.RiderName).Select(g => new FinderRaceHorseGroupItem(g)).ToArray();
+              this.UpdateGroups(groups);
+            }
           }
+        }
+        catch (Exception ex)
+        {
+
         }
         finally
         {
@@ -85,14 +99,36 @@ namespace KmyKeiba.Models.Race.Finder
       });
     }
 
-    private void UpdateRows(IEnumerable<FinderRow> rows)
+    private void UpdateGroups(IEnumerable<FinderRaceHorseGroupItem> groups)
     {
       ThreadUtil.InvokeOnUiThread(() =>
       {
-        this.Rows.Clear();
+        this.HorseGroups.Clear();
+        foreach (var group in groups)
+        {
+          this.HorseGroups.Add(group);
+        }
+        if (groups.Any())
+        {
+          this.CurrentGroup.Value = groups.First();
+        }
+      });
+    }
+
+    private void UpdateRows(IEnumerable<FinderRow> rows)
+    {
+      var group = this.CurrentGroup.Value;
+      if (group == null)
+      {
+        return;
+      }
+
+      ThreadUtil.InvokeOnUiThread(() =>
+      {
+        group.Rows.Clear();
         foreach (var row in rows)
         {
-          this.Rows.Add(row);
+          group.Rows.Add(row);
         }
       });
     }
