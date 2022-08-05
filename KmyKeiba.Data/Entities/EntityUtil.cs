@@ -19,6 +19,11 @@ namespace KmyKeiba.JVLink.Entities
       return id.Year + id.MonthDay + id.JyoCD + id.Kaiji + id.Nichiji;
     }
 
+    public static string ToTestRaceKey(this JVData_Struct.RACE_ID3 id)
+    {
+      return id.Year + id.MonthDay + id.JyoCD + id.RaceNum;
+    }
+
     public static DateTime ToDateTime(this JVData_Struct.YMD dt)
     {
       int.TryParse(dt.Year, out int year);

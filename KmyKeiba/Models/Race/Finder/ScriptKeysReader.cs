@@ -12,6 +12,25 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race.Finder
 {
+  class ScriptKeysParseResult
+  {
+    public IReadOnlyList<ScriptKeyQuery> Queries { get; }
+
+    public QueryKey GroupKey { get; }
+
+    public int Limit { get; }
+
+    public int Offset { get; }
+
+    public ScriptKeysParseResult(IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0)
+    {
+      this.Queries = queries;
+      this.GroupKey = groupKey;
+      this.Limit = limit;
+      this.Offset = offset;
+    }
+  }
+
   class ScriptKeysReader
   {
     private readonly string _keys;
@@ -26,16 +45,22 @@ namespace KmyKeiba.Models.Race.Finder
       this._keys = keys;
     }
 
-    public IReadOnlyList<ScriptKeyQuery> GetQueries(RaceData? race, RaceHorseData? horse = null)
+    public ScriptKeysParseResult GetQueries(RaceData? race, RaceHorseData? horse = null)
     {
       return GetQueries(this._keys, race, horse);
     }
 
-    public static IReadOnlyList<ScriptKeyQuery> GetQueries(string keys, RaceData? race = null, RaceHorseData? horse = null)
+    public static ScriptKeysParseResult GetQueries(string keys, RaceData? race = null, RaceHorseData? horse = null)
     {
+      var groupKey = QueryKey.Unknown;
+      var limit = 0;
+      var offset = 0;
+
       var queries = new List<ScriptKeyQuery>();
-      foreach (var q in keys.Split('|'))
+      foreach (var qu in keys.Split('|'))
       {
+        var q = qu;
+
         bool AddQuery(string split, QueryType type)
         {
           if (q.Contains(split))
@@ -98,9 +123,9 @@ namespace KmyKeiba.Models.Race.Finder
           }
 
           var query = GetQueries(parameters[pointTarget], race);
-          if (query.Any())
+          if (query.Queries.Any())
           {
-            queries.Add(new MemoScriptKeyQuery(parameters, query.First()));
+            queries.Add(new MemoScriptKeyQuery(parameters, query.Queries.First()));
             return true;
           }
 
@@ -147,8 +172,15 @@ namespace KmyKeiba.Models.Race.Finder
             if (string.IsNullOrEmpty(value))
             {
               // f:@ という描き方を想定
-              value = horse?.Key;
+              value = horse?.Key ?? string.Empty;
             }
+          }
+
+          var horseNumber = default(short);
+          if (value.StartsWith('#') && !value.EndsWith('#'))
+          {
+            var num = value.Split('#')[1];
+            short.TryParse(num, out horseNumber);
           }
 
           string? bkey = value;
@@ -160,9 +192,9 @@ namespace KmyKeiba.Models.Race.Finder
             if (bcode?.Length != 8) bcode = null;
           }
 
-          if (bkey != null || bcode != null)
+          if (bkey != null || bcode != null || horseNumber != default)
           {
-            queries.Add(new BloodHorseScriptKeyQuery(key, key: bkey, code: bcode, isSelfCode: isSelfMode));
+            queries.Add(new BloodHorseScriptKeyQuery(key, key: bkey, code: bcode, isSelfCode: isSelfMode, horseNumber: horseNumber, raceKey: race?.Key));
             return true;
           }
 
@@ -195,7 +227,7 @@ namespace KmyKeiba.Models.Race.Finder
           }
 
           var placeQueries = GetQueries(placeScriptKey, race, horse);
-          if (placeQueries == null || !placeQueries.Any())
+          if (placeQueries == null || !placeQueries.Queries.Any())
           {
             return false;
           }
@@ -203,11 +235,76 @@ namespace KmyKeiba.Models.Race.Finder
           var keys = q.Substring(endIndex + 1).Replace(';', '|');
           var qs = GetQueries(keys, race, horse);
 
-          queries.Add(new TopHorsesScriptKeyQuery(placeQueries[0], qs));
+          queries.Add(new TopHorsesScriptKeyQuery(placeQueries.Queries[0], qs.Queries));
           return true;
         }
 
+        bool CheckAttributes()
+        {
+          if (q.StartsWith("[group]"))
+          {
+            q = q[7..];
+            var key = GetKeyInfo(q);
+            groupKey = key.Item1;
+            return true;
+          }
+          if (q.StartsWith("[limit]") && int.TryParse(q[7..], out var lim))
+          {
+            limit = lim;
+            return true;
+          }
+          if (q.StartsWith("[offset]") && int.TryParse(q[7..], out var off))
+          {
+            offset = off;
+            return true;
+          }
+
+          return false;
+        }
+
+        bool CheckForCurrentRaceItems()
+        {
+          if (q.Contains("#") && race != null)
+          {
+            var horseNumberStr = q.Split('#').ElementAtOrDefault(1) ?? string.Empty;
+            var r = short.TryParse(horseNumberStr, out var horseNumber);
+
+            if (!r && !q.EndsWith('#'))
+            {
+              return false;
+            }
+
+            var key = GetKeyInfo(q.Split('#')[0]);
+            switch (key.Item1)
+            {
+              case QueryKey.RiderCode:
+              case QueryKey.RiderName:
+                queries!.Add(new SameRaceRiderScriptKeyQuery(race.Key, horseNumber));
+                break;
+              case QueryKey.TrainerCode:
+              case QueryKey.TrainerName:
+                queries!.Add(new SameRaceTrainerScriptKeyQuery(race.Key, horseNumber));
+                break;
+              case QueryKey.OwnerCode:
+              case QueryKey.OwnerName:
+                queries!.Add(new SameRaceOwnerScriptKeyQuery(race.Key, horseNumber));
+                break;
+              case QueryKey.HorseKey:
+              case QueryKey.HorseName:
+                queries!.Add(new SameRaceHorseScriptKeyQuery(race.Key, horseNumber));
+                break;
+              default:
+                return false;
+            }
+            return true;
+          }
+
+          return false;
+        }
+
         var hr = true;
+        hr = hr && !CheckAttributes();
+        hr = hr && !CheckForCurrentRaceItems();
         hr = hr && !AddMemoQuery();
         hr = hr && !AddBloodQuery();
         hr = hr && !AddPlaceHorseQuery();
@@ -369,7 +466,7 @@ namespace KmyKeiba.Models.Race.Finder
         queries.Add(new DefaultLambdaScriptKeyQuery());
       }
 
-      return queries;
+      return new ScriptKeysParseResult(queries, groupKey, limit, offset);
     }
 
     private static (QueryKey, QueryKeyAttribute?) GetKeyInfo(string scriptKey)
@@ -525,6 +622,138 @@ namespace KmyKeiba.Models.Race.Finder
     public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
     {
       return query.Where(this._where);
+    }
+  }
+
+  class SameRaceHorseScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  {
+    private readonly string _raceKey;
+    private readonly short _horseNumber;
+    private IReadOnlyList<string>? _riders;
+
+    public SameRaceHorseScriptKeyQuery(string raceKey, short horseNumber)
+    {
+      this._raceKey = raceKey;
+      this._horseNumber = horseNumber;
+    }
+
+    private void InitializeCaches(MyContext db)
+    {
+      if (this._riders != null)
+      {
+        return;
+      }
+      var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
+      if (this._horseNumber != default)
+      {
+        horses = horses.Where(h => h.Number == this._horseNumber);
+      }
+      this._riders = horses.Where(rh => rh.RaceKey == this._raceKey).Select(rh => rh.Key).ToArray();
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      this.InitializeCaches(db);
+      return query.Where(h => this._riders!.Contains(h.Key));
+    }
+  }
+
+  class SameRaceRiderScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  {
+    private readonly string _raceKey;
+    private readonly short _horseNumber;
+    private IReadOnlyList<string>? _riders;
+
+    public SameRaceRiderScriptKeyQuery(string raceKey, short horseNumber)
+    {
+      this._raceKey = raceKey;
+      this._horseNumber = horseNumber;
+    }
+
+    private void InitializeCaches(MyContext db)
+    {
+      if (this._riders != null)
+      {
+        return;
+      }
+      var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
+      if (this._horseNumber != default)
+      {
+        horses = horses.Where(h => h.Number == this._horseNumber);
+      }
+      this._riders = horses.Where(rh => rh.RaceKey == this._raceKey).Select(rh => rh.RiderCode).ToArray();
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      this.InitializeCaches(db);
+      return query.Where(h => this._riders!.Contains(h.RiderCode));
+    }
+  }
+
+  class SameRaceTrainerScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  {
+    private readonly string _raceKey;
+    private readonly short _horseNumber;
+    private IReadOnlyList<string>? _riders;
+
+    public SameRaceTrainerScriptKeyQuery(string raceKey, short horseNumber)
+    {
+      this._raceKey = raceKey;
+      this._horseNumber = horseNumber;
+    }
+
+    private void InitializeCaches(MyContext db)
+    {
+      if (this._riders != null)
+      {
+        return;
+      }
+      var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
+      if (this._horseNumber != default)
+      {
+        horses = horses.Where(h => h.Number == this._horseNumber);
+      }
+      this._riders = horses.Where(rh => rh.RaceKey == this._raceKey).Select(rh => rh.TrainerCode).ToArray();
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      this.InitializeCaches(db);
+      return query.Where(h => this._riders!.Contains(h.TrainerCode));
+    }
+  }
+
+  class SameRaceOwnerScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  {
+    private readonly string _raceKey;
+    private readonly short _horseNumber;
+    private IReadOnlyList<string>? _riders;
+
+    public SameRaceOwnerScriptKeyQuery(string raceKey, short horseNumber)
+    {
+      this._raceKey = raceKey;
+      this._horseNumber = horseNumber;
+    }
+
+    private void InitializeCaches(MyContext db)
+    {
+      if (this._riders != null)
+      {
+        return;
+      }
+      var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
+      if (this._horseNumber != default)
+      {
+        horses = horses.Where(h => h.Number == this._horseNumber);
+      }
+      this._riders = horses.Where(rh => rh.RaceKey == this._raceKey).Select(rh => rh.OwnerCode).ToArray();
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      this.InitializeCaches(db);
+      return query.Where(h => this._riders!.Contains(h.OwnerCode));
     }
   }
 
@@ -706,17 +935,21 @@ namespace KmyKeiba.Models.Race.Finder
   {
     private readonly QueryKey _scriptKey;
     private string? _code;
-    private readonly string? _key;
+    private string? _key;
     private bool _isCheckedCode = false;
     private readonly bool _isSelfCode = false;
+    private readonly short _horseNumber;
+    private readonly string? _raceKey;
 
-    public BloodHorseScriptKeyQuery(QueryKey scriptKey, string? code = null, string? key = null, bool isSelfCode = false)
+    public BloodHorseScriptKeyQuery(QueryKey scriptKey, string? code = null, string? key = null, bool isSelfCode = false, short horseNumber = 0, string? raceKey = null)
     {
       this._scriptKey = scriptKey;
       this._code = code;
       this._key = key;
       this._isCheckedCode = code != null;
       this._isSelfCode = isSelfCode;
+      this._horseNumber = horseNumber;
+      this._raceKey = raceKey;
     }
 
     public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
@@ -733,6 +966,15 @@ namespace KmyKeiba.Models.Race.Finder
     {
       if (this._code == null && !this._isCheckedCode)
       {
+        if (this._horseNumber != default && this._raceKey != null)
+        {
+          var horse = db.RaceHorses!.FirstOrDefault(rh => rh.Number == this._horseNumber && rh.RaceKey == this._raceKey);
+          if (horse != null)
+          {
+            this._key = horse.Key;
+          }
+        }
+
         if (!this._isSelfCode)
         {
           // 自分と同じ父を持つ馬を検索
@@ -1337,7 +1579,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  enum QueryKey
+  public enum QueryKey
   {
     Unknown,
     [StringQueryKey("race")]

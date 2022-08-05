@@ -44,11 +44,11 @@ namespace KmyKeiba.Models.Race.Finder
       this.RaceHorse = raceHorse;
     }
 
-    public async Task<IReadOnlyList<RaceHorseAnalyzer>> FindRaceHorsesAsync(string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true)
+    public async Task<FinderQueryResult<RaceHorseAnalyzer>> FindRaceHorsesAsync(string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true)
     {
       if (withoutFutureRaces && this._raceHorseCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
       {
-        return cache.Item2;
+        return new FinderQueryResult<RaceHorseAnalyzer>(cache.Item2, QueryKey.Unknown);
       }
 
       using var db = new MyContext();
@@ -69,8 +69,10 @@ namespace KmyKeiba.Models.Race.Finder
       var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
 
       var raceQueries = reader.GetQueries(this.Race, this.RaceHorse);
+      if (raceQueries.Limit != default) sizeMax = raceQueries.Limit;
+      if (raceQueries.Offset != default) offset = raceQueries.Offset;
 
-      foreach (var q in raceQueries)
+      foreach (var q in raceQueries.Queries)
       {
         races = q.Apply(db, races);
         horses = q.Apply(db, horses);
@@ -112,14 +114,14 @@ namespace KmyKeiba.Models.Race.Finder
         this._raceHorseCaches[keys] = (sizeMax, list);
       }
 
-      return list;
+      return new FinderQueryResult<RaceHorseAnalyzer>(list, raceQueries.GroupKey);
     }
 
-    public async Task<IReadOnlyList<RaceAnalyzer>> FindRacesAsync(string keys, int sizeMax, int offset = 0, bool withoutFutureRaces = true)
+    public async Task<FinderQueryResult<RaceAnalyzer>> FindRacesAsync(string keys, int sizeMax, int offset = 0, bool withoutFutureRaces = true)
     {
       if (withoutFutureRaces && this._raceCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
       {
-        return cache.Item2;
+        return new FinderQueryResult<RaceAnalyzer>(cache.Item2, QueryKey.Unknown);
       }
 
       using var db = new MyContext();
@@ -139,8 +141,10 @@ namespace KmyKeiba.Models.Race.Finder
       }
 
       var raceQueries = reader.GetQueries(this.Race);
+      if (raceQueries.Limit != default) sizeMax = raceQueries.Limit;
+      if (raceQueries.Offset != default) offset = raceQueries.Offset;
 
-      foreach (var q in raceQueries)
+      foreach (var q in raceQueries.Queries)
       {
         races = q.Apply(db, races);
       }
@@ -161,7 +165,7 @@ namespace KmyKeiba.Models.Race.Finder
         this._raceCaches[keys] = (sizeMax, list);
       }
 
-      return list;
+      return new FinderQueryResult<RaceAnalyzer>(list, raceQueries.GroupKey);
     }
 
     private bool IsCache(string keys)
@@ -203,6 +207,19 @@ namespace KmyKeiba.Models.Race.Finder
       {
         disposable.Dispose();
       }
+    }
+  }
+
+  public class FinderQueryResult<T>
+  {
+    public IReadOnlyList<T> Items { get; }
+
+    public QueryKey GroupKey { get; }
+
+    public FinderQueryResult(IReadOnlyList<T> items, QueryKey group)
+    {
+      this.Items = items;
+      this.GroupKey = group;
     }
   }
 }

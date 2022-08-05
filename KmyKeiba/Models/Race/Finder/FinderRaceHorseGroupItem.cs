@@ -19,7 +19,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ResultOrderGradeMap Grades { get; }
 
-    private FinderRaceHorseGroupItem(string key, IEnumerable<RaceHorseAnalyzer> group)
+    public FinderRaceHorseGroupItem(string key, IEnumerable<RaceHorseAnalyzer> group)
     {
       this.GroupKey = key;
       this.Grades = new ResultOrderGradeMap(group.ToArray());
@@ -31,6 +31,10 @@ namespace KmyKeiba.Models.Race.Finder
     }
 
     public FinderRaceHorseGroupItem(IEnumerable<RaceHorseAnalyzer> group) : this("デフォルト", group)
+    {
+    }
+
+    public FinderRaceHorseGroupItem(IGrouping<object, RaceHorseAnalyzer> group) : this(group.Key.ToString() ?? string.Empty, group)
     {
     }
 

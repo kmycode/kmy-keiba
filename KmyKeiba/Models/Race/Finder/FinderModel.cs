@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
+using KmyKeiba.Data.Wrappers;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using Reactive.Bindings;
@@ -32,8 +33,6 @@ namespace KmyKeiba.Models.Race.Finder
     public ReactiveProperty<bool> IsSearchRaces { get; } = new();
 
     public ReactiveProperty<bool> IsSearchRaceHorses { get; } = new(true);
-
-    public ReactiveProperty<bool> IsSearchRaceHorseGroups { get; } = new();
 
     public ReactiveProperty<bool> IsLoading { get; } = new();
 
@@ -68,23 +67,73 @@ namespace KmyKeiba.Models.Race.Finder
           {
             this.Columns.Value = this.RaceColumns;
             var data = await this._finder.FindRacesAsync(this.Keys.Value, 3000, withoutFutureRaces: false);
-            this.UpdateRows(data.ToFinderRows(this.RaceColumns));
+            this.UpdateRows(data.Items.ToFinderRows(this.RaceColumns));
           }
           else if (this.IsSearchRaceHorses.Value)
           {
             this.Columns.Value = this.RaceHorseColumns;
             var data = await this._finder.FindRaceHorsesAsync(this.Keys.Value, 3000, withoutFutureRaces: false);
 
-            if (!this.IsSearchRaceHorseGroups.Value)
+            IEnumerable<IGrouping<object, RaceHorseAnalyzer>>? groups = data.GroupKey switch
             {
-              var group = new FinderRaceHorseGroupItem(data);
-              this.UpdateGroups(new[] { group, });
+              QueryKey.RiderName => data.Items.GroupBy(d => d.Data.RiderName),
+              QueryKey.RiderCode => data.Items.GroupBy(d => d.Data.RiderCode),
+              QueryKey.TrainerName => data.Items.GroupBy(d => d.Data.TrainerName),
+              QueryKey.TrainerCode => data.Items.GroupBy(d => d.Data.TrainerCode),
+              QueryKey.OwnerName => data.Items.GroupBy(d => d.Data.OwnerName),
+              QueryKey.OwnerCode => data.Items.GroupBy(d => d.Data.OwnerCode),
+              QueryKey.Course => data.Items.GroupBy(d => (object)d.Race.Course),
+              QueryKey.Weather => data.Items.GroupBy(d => (object)d.Race.TrackWeather),
+              QueryKey.Condition => data.Items.GroupBy(d => (object)d.Race.TrackCondition),
+              QueryKey.HorseKey => data.Items.GroupBy(d => d.Data.Key),
+              QueryKey.HorseName => data.Items.GroupBy(d => d.Data.Name),
+              QueryKey.FrameNumber => data.Items.GroupBy(d => d.Data.FrameNumber.ToString()),
+              QueryKey.HorseNumber => data.Items.GroupBy(d => d.Data.Number.ToString()),
+              _ => null,
+            };
+            if (groups != null)
+            {
+              groups = groups.OrderBy(g => g.Key);
+
+              IReadOnlyList<FinderRaceHorseGroupItem> g;
+              if (data.GroupKey == QueryKey.RiderCode)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Data.RiderName, g)).ToArray();
+              }
+              else if (data.GroupKey == QueryKey.TrainerCode)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Data.TrainerName, g)).ToArray();
+              }
+              else if (data.GroupKey == QueryKey.OwnerCode)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Data.OwnerName, g)).ToArray();
+              }
+              else if (data.GroupKey == QueryKey.Course)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Race.Course.GetName() ?? string.Empty, g)).ToArray();
+              }
+              else if (data.GroupKey == QueryKey.Weather)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Race.TrackWeather.ToString() ?? string.Empty, g)).ToArray();
+              }
+              else if (data.GroupKey == QueryKey.Condition)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Race.TrackCondition.ToString() ?? string.Empty, g)).ToArray();
+              }
+              else if (data.GroupKey == QueryKey.HorseKey)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Data.Name, g)).ToArray();
+              }
+              else
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g)).ToArray();
+              }
+              this.UpdateGroups(g);
             }
             else
             {
-              // TODO 結果のグループ分け処理を実装
-              var groups = data.GroupBy(d => d.Data.RiderName).Select(g => new FinderRaceHorseGroupItem(g)).ToArray();
-              this.UpdateGroups(groups);
+              var group = new FinderRaceHorseGroupItem(data.Items);
+              this.UpdateGroups(new[] { group, });
             }
           }
         }
