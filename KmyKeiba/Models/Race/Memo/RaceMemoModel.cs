@@ -640,99 +640,12 @@ namespace KmyKeiba.Models.Race.Memo
 
     private async Task<IQueryable<MemoData>> GetMemoQueryAsync(MyContext db, IQueryable<MemoData> query, ExpansionMemoConfig config, RaceHorseAnalyzer? horse)
     {
-      query = query.Where(m => m.Target1 == config.Target1 && m.Target2 == config.Target2 && m.Target3 == config.Target3 && m.Number == config.MemoNumber);
-      query = query.Where(await GetTargetComparationAsync(db, 1, config.Target1, horse));
-      if (config.Target2 != MemoTarget.Unknown)
-        query = query.Where(await GetTargetComparationAsync(db, 2, config.Target2, horse));
-      if (config.Target3 != MemoTarget.Unknown)
-        query = query.Where(await GetTargetComparationAsync(db, 3, config.Target3, horse));
-      return query;
-    }
-
-    private async Task<IEnumerable<MemoData>> GetMemoQueryAsync(MyContext db, IEnumerable<MemoData> query, ExpansionMemoConfig config, RaceHorseAnalyzer? horse)
-    {
-      query = query.Where(m => m.Target1 == config.Target1 && m.Target2 == config.Target2 && m.Target3 == config.Target3 && m.Number == config.MemoNumber);
-      query = query.Where((await GetTargetComparationAsync(db, 1, config.Target1, horse)).Compile());
-      if (config.Target2 != MemoTarget.Unknown)
-        query = query.Where((await GetTargetComparationAsync(db, 2, config.Target2, horse)).Compile());
-      if (config.Target3 != MemoTarget.Unknown)
-        query = query.Where((await GetTargetComparationAsync(db, 3, config.Target3, horse)).Compile());
-      return query;
+      return await MemoUtil.GetMemoQueryAsync(db, this.Race, query, config, horse);
     }
 
     private async Task<IEnumerable<RaceMemoItem>> GetMemoQueryAsync(MyContext db, IEnumerable<RaceMemoItem> query, ExpansionMemoConfig config, RaceHorseAnalyzer? horse)
     {
-      var hits = await this.GetMemoQueryAsync(db, query.Select(i => i.Data), config, horse);
-      return query.Join(hits.ToArray(), i => i.Data, m => (object)m, (i, m) => i);
-    }
-
-    private async Task<Expression<Func<MemoData, bool>>> GetTargetComparationAsync(MyContext db, int target, MemoTarget targetType, RaceHorseAnalyzer? horse)
-    {
-      var memo = Expression.Parameter(typeof(MemoData), "x");
-      var key = Expression.Property(memo, "Key" + target);
-
-      if (targetType == MemoTarget.Race)
-      {
-        return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(this.Race.Key)), memo);
-      }
-      else if (targetType == MemoTarget.Course)
-      {
-        key = Expression.Property(memo, nameof(MemoData.CourseKey));
-        return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(this.Race.Course)), memo);
-      }
-      else if (targetType == MemoTarget.Day)
-      {
-        return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(this.Race.Key[..8])), memo);
-      }
-      else if (targetType == MemoTarget.Unknown)
-      {
-        return Expression.Lambda<Func<MemoData, bool>>(Expression.Constant(true), memo);
-      }
-      else if (horse != null)
-      {
-        if (targetType == MemoTarget.Horse)
-        {
-          return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(horse.Data.Key)), memo);
-        }
-        else if (targetType == MemoTarget.Rider)
-        {
-          return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(horse.Data.RiderCode)), memo);
-        }
-        else if (targetType == MemoTarget.Trainer)
-        {
-          return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(horse.Data.TrainerCode)), memo);
-        }
-        else if (targetType == MemoTarget.Owner)
-        {
-          return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(horse.Data.OwnerCode)), memo);
-        }
-        else if (targetType == MemoTarget.Father)
-        {
-          var father = await HorseBloodUtil.GetBloodCodeAsync(db, horse.Data.Key, BloodType.Father);
-          if (!string.IsNullOrEmpty(father))
-          {
-            return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(father)), memo);
-          }
-        }
-        else if (targetType == MemoTarget.Mother)
-        {
-          var father = await HorseBloodUtil.GetBloodCodeAsync(db, horse.Data.Key, BloodType.Mother);
-          if (!string.IsNullOrEmpty(father))
-          {
-            return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(father)), memo);
-          }
-        }
-        else if (targetType == MemoTarget.MotherFather)
-        {
-          var father = await HorseBloodUtil.GetBloodCodeAsync(db, horse.Data.Key, BloodType.MotherFather);
-          if (!string.IsNullOrEmpty(father))
-          {
-            return Expression.Lambda<Func<MemoData, bool>>(Expression.Equal(key, Expression.Constant(father)), memo);
-          }
-        }
-      }
-
-      return Expression.Lambda<Func<MemoData, bool>>(Expression.Constant(false), memo);
+      return await MemoUtil.GetMemoQueryAsync(db, this.Race, query, config, horse);
     }
 
     private async Task<string> GetItemNameAsync(MyContext db, MemoData memo, RaceHorseAnalyzer? horse)

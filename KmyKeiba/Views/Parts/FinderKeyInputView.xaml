@@ -15,6 +15,6 @@
     <TextBox Text="{Binding FinderModel.Keys.Value,ElementName=Root,Mode=TwoWay}" FontSize="16" Padding="4,2"
              VerticalAlignment="Center"/>
     <Button Content="検索" Grid.Column="1" FontSize="16" Width="100"
-            x:Name="SearchButton"/>
+            x:Name="SearchButton" IsEnabled="{Binding FinderModel.IsLoading.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
   </Grid>
 </UserControl>

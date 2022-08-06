@@ -22,6 +22,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public int Offset { get; }
 
+    public ScriptKeysMemoGroupInfo? MemoGroupInfo { get; set; }
+
     public ScriptKeysParseResult(IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0)
     {
       this.Queries = queries;
@@ -29,6 +31,17 @@ namespace KmyKeiba.Models.Race.Finder
       this.Limit = limit;
       this.Offset = offset;
     }
+  }
+
+  class ScriptKeysMemoGroupInfo
+  {
+    public MemoTarget Target1 { get; set; }
+
+    public MemoTarget Target2 { get; set; }
+
+    public MemoTarget Target3 { get; set; }
+
+    public short MemoNumber { get; set; }
   }
 
   class ScriptKeysReader
@@ -55,6 +68,7 @@ namespace KmyKeiba.Models.Race.Finder
       var groupKey = QueryKey.Unknown;
       var limit = 0;
       var offset = 0;
+      ScriptKeysMemoGroupInfo? memoGroupInfo = null;
 
       var queries = new List<ScriptKeyQuery>();
       foreach (var qu in keys.Split('|'))
@@ -76,8 +90,42 @@ namespace KmyKeiba.Models.Race.Finder
           return false;
         }
 
+        MemoTarget GetMemoTarget(string key)
+        {
+          var pointTarget = (MemoTarget)(short)-1;
+          var numberTarget = (MemoTarget)(short)-2;
+
+          return key switch
+          {
+            "race" => MemoTarget.Race,
+            "course" => MemoTarget.Course,
+            "distance" => MemoTarget.Distance,
+            "day" => MemoTarget.Day,
+            "direction" => MemoTarget.Direction,
+            "grades" => MemoTarget.Grades,
+            "horse" => MemoTarget.Horse,
+            "rider" => MemoTarget.Rider,
+            "trainer" => MemoTarget.Trainer,
+            "owner" => MemoTarget.Owner,
+            "f" => MemoTarget.Father,
+            "m" => MemoTarget.Mother,
+            "mf" => MemoTarget.MotherFather,
+            "point" => pointTarget,
+            "" => pointTarget,
+            "number" => numberTarget,
+            _ => MemoTarget.Unknown,
+          };
+        }
+
         bool AddMemoQuery()
         {
+          var isGroup = false;
+          if (q.StartsWith("[group]memo"))
+          {
+            q = q[7..];
+            isGroup = true;
+          }
+
           if (!q!.StartsWith("memo"))
           {
             return false;
@@ -91,41 +139,46 @@ namespace KmyKeiba.Models.Race.Finder
             .Select(d => d.Split(':'))
             .Select(d =>
             {
-              var key = d[0] switch
-              {
-                "race" => MemoTarget.Race,
-                "course" => MemoTarget.Course,
-                "distance" => MemoTarget.Distance,
-                "day" => MemoTarget.Day,
-                "direction" => MemoTarget.Direction,
-                "grades" => MemoTarget.Grades,
-                "horse" => MemoTarget.Horse,
-                "rider" => MemoTarget.Rider,
-                "trainer" => MemoTarget.Trainer,
-                "owner" => MemoTarget.Owner,
-                "f" => MemoTarget.Father,
-                "m" => MemoTarget.Mother,
-                "mf" => MemoTarget.MotherFather,
-                "point" => pointTarget,
-                "" => pointTarget,
-                "number" => numberTarget,
-                _ => MemoTarget.Unknown,
-              };
+              var key = GetMemoTarget(d[0]);
               return (Key: key, Value: d.ElementAtOrDefault(1) ?? string.Empty);
             })
             .Where(d => d.Key != MemoTarget.Unknown)
             .OrderBy(d => d.Key)
             .ToDictionary(d => d.Key, d => d.Value);
 
-          if (!parameters.TryGetValue(pointTarget, out _) || parameters.Count < 2)
+          if (!isGroup && parameters.Count < 2)
           {
             return false;
           }
 
-          var query = GetQueries(parameters[pointTarget], race);
-          if (query.Queries.Any())
+          if (isGroup)
           {
-            queries.Add(new MemoScriptKeyQuery(parameters, query.Queries.First()));
+            var ks = parameters.Select(p => p.Key).Where(k => (int)k > 0).OrderBy(k => k).ToArray();
+            parameters.TryGetValue(numberTarget, out var numVal);
+            short.TryParse(numVal, out var num);
+            memoGroupInfo = new ScriptKeysMemoGroupInfo
+            {
+              Target1 = ks.ElementAtOrDefault(0),
+              Target2 = ks.ElementAtOrDefault(1),
+              Target3 = ks.ElementAtOrDefault(2),
+              MemoNumber = num,
+            };
+            return true;
+          }
+
+          if (parameters.ContainsKey(pointTarget))
+          {
+            var query = GetQueries(parameters[pointTarget], race);
+            if (query.Queries.Any())
+            {
+              queries.Add(new MemoScriptKeyQuery(parameters, query.Queries.First()));
+              return true;
+            }
+          }
+          else
+          {
+            // メモのあるレースのみを検索（ポイントは比較しない）
+            queries.Add(new MemoScriptKeyQuery(parameters, new DefaultLambdaScriptKeyQuery()));
             return true;
           }
 
@@ -243,6 +296,10 @@ namespace KmyKeiba.Models.Race.Finder
         {
           if (q.StartsWith("[group]"))
           {
+            if (q.StartsWith("[group]memo"))
+            {
+              return false;
+            }
             q = q[7..];
             var key = GetKeyInfo(q);
             groupKey = key.Item1;
@@ -466,7 +523,10 @@ namespace KmyKeiba.Models.Race.Finder
         queries.Add(new DefaultLambdaScriptKeyQuery());
       }
 
-      return new ScriptKeysParseResult(queries, groupKey, limit, offset);
+      return new ScriptKeysParseResult(queries, groupKey, limit, offset)
+      {
+        MemoGroupInfo = memoGroupInfo,
+      };
     }
 
     private static (QueryKey, QueryKeyAttribute?) GetKeyInfo(string scriptKey)

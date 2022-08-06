@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
+using KmyKeiba.Models.Race.Memo;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -36,9 +37,14 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsLoading { get; } = new();
 
-    public FinderModel(RaceData? race, RaceHorseData? horse)
+    public RaceData? Race => this._finder.Race;
+
+    public RaceHorseAnalyzer? RaceHorse { get; }
+
+    public FinderModel(RaceData? race, RaceHorseAnalyzer? horse)
     {
-      this._finder = new RaceFinder(race, horse);
+      this._finder = new RaceFinder(race, horse?.Data);
+      this.RaceHorse = horse;
 
       // TODO いずれカスタマイズできるように
       foreach (var preset in DatabasePresetModel.GetFinderRaceHorseColumns())
@@ -91,9 +97,53 @@ namespace KmyKeiba.Models.Race.Finder
               QueryKey.HorseNumber => data.Items.GroupBy(d => d.Data.Number.ToString()),
               _ => null,
             };
+            groups?.OrderBy(g => g.Key);
+
+            // ラベルでグループ化
+            if (data.GroupInfo != null)
+            {
+              // メモのポイントでグループ化する処理
+              using var db = new MyContext();
+              var list = new List<(RaceHorseAnalyzer, short)>();
+
+              ExpansionMemoConfig? memoConfig = null;
+              PointLabelData? labelConfig = null;
+              IReadOnlyList<PointLabelItem>? labelItems = null;
+
+              foreach (var item in data.Items)
+              {
+                if (memoConfig == null)
+                {
+                  memoConfig = MemoUtil.GetMemoConfig(data.GroupInfo.Target1, data.GroupInfo.Target2, data.GroupInfo.Target3, data.GroupInfo.MemoNumber);
+                  if (memoConfig == null)
+                  {
+                    break;
+                  }
+                  labelConfig = MemoUtil.GetPointLabelConfig(memoConfig);
+                  labelItems = labelConfig?.GetItems();
+                }
+
+                var memo = await MemoUtil.GetMemoAsync(db, item.Race, memoConfig, item);
+                if (memo != null)
+                {
+                  list.Add((item, memo.Point));
+                }
+              }
+
+              if (labelItems == null)
+              {
+                groups = list.OrderBy(i => i.Item2).GroupBy(i => (object)i.Item2, i => i.Item1).ToArray();
+              }
+              else
+              {
+                groups = list.OrderBy(i => i.Item2).GroupBy(i => (object)(labelItems.FirstOrDefault(l => l.Point == i.Item2) ?? (object)string.Empty), i => i.Item1).ToArray();
+              }
+            }
+
+            // リスト全体をグループ化
             if (groups != null)
             {
-              groups = groups.OrderBy(g => g.Key);
+              groups = groups.Take(100);
 
               IReadOnlyList<FinderRaceHorseGroupItem> g;
               if (data.GroupKey == QueryKey.RiderCode)

@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Models.Analysis;
+﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Models.Analysis;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ namespace KmyKeiba.Models.Race.Finder
   public class FinderRaceHorseGroupItem
   {
     public string GroupKey { get; }
+
+    public MemoColor Color { get; }
 
     public ReactiveCollection<FinderRow> Rows { get; } = new();
 
@@ -36,6 +39,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public FinderRaceHorseGroupItem(IGrouping<object, RaceHorseAnalyzer> group) : this(group.Key.ToString() ?? string.Empty, group)
     {
+      if (group.Key is PointLabelItem label)
+      {
+        this.Color = label.Color;
+      }
     }
 
     public FinderRaceHorseGroupItem(IGrouping<string, RaceHorseAnalyzer> group) : this(group.Key, group)

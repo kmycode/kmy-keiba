@@ -48,7 +48,7 @@ namespace KmyKeiba.Models.Race.Finder
     {
       if (withoutFutureRaces && this._raceHorseCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
       {
-        return new FinderQueryResult<RaceHorseAnalyzer>(cache.Item2, QueryKey.Unknown);
+        return new FinderQueryResult<RaceHorseAnalyzer>(cache.Item2, QueryKey.Unknown, null);
       }
 
       using var db = new MyContext();
@@ -114,14 +114,14 @@ namespace KmyKeiba.Models.Race.Finder
         this._raceHorseCaches[keys] = (sizeMax, list);
       }
 
-      return new FinderQueryResult<RaceHorseAnalyzer>(list, raceQueries.GroupKey);
+      return new FinderQueryResult<RaceHorseAnalyzer>(list, raceQueries.GroupKey, raceQueries.MemoGroupInfo);
     }
 
     public async Task<FinderQueryResult<RaceAnalyzer>> FindRacesAsync(string keys, int sizeMax, int offset = 0, bool withoutFutureRaces = true)
     {
       if (withoutFutureRaces && this._raceCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
       {
-        return new FinderQueryResult<RaceAnalyzer>(cache.Item2, QueryKey.Unknown);
+        return new FinderQueryResult<RaceAnalyzer>(cache.Item2, QueryKey.Unknown, null);
       }
 
       using var db = new MyContext();
@@ -165,7 +165,7 @@ namespace KmyKeiba.Models.Race.Finder
         this._raceCaches[keys] = (sizeMax, list);
       }
 
-      return new FinderQueryResult<RaceAnalyzer>(list, raceQueries.GroupKey);
+      return new FinderQueryResult<RaceAnalyzer>(list, raceQueries.GroupKey, raceQueries.MemoGroupInfo);
     }
 
     private bool IsCache(string keys)
@@ -216,10 +216,13 @@ namespace KmyKeiba.Models.Race.Finder
 
     public QueryKey GroupKey { get; }
 
-    public FinderQueryResult(IReadOnlyList<T> items, QueryKey group)
+    internal ScriptKeysMemoGroupInfo? GroupInfo { get; }
+
+    internal FinderQueryResult(IReadOnlyList<T> items, QueryKey group, ScriptKeysMemoGroupInfo? groupInfo)
     {
       this.Items = items;
       this.GroupKey = group;
+      this.GroupInfo = groupInfo;
     }
   }
 }

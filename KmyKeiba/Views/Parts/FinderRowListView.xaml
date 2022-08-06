@@ -25,7 +25,8 @@
         <ComboBox.ItemTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="{Binding GroupKey}" FontSize="24" FontWeight="Bold" VerticalAlignment="Center" Width="140"/>
+              <TextBlock Text="{Binding GroupKey}" FontSize="24" FontWeight="Bold" VerticalAlignment="Center" Width="140"
+                         Foreground="{Binding Color,Converter={StaticResource MemoColorBrushConv}}"/>
               <TextBlock Text="件数" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
               <TextBlock Text="{Binding Grades.AllCount}" FontSize="24" VerticalAlignment="Center" Width="60"/>
               <TextBlock Text="１着" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
@@ -91,5 +92,15 @@
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
+    
+    <!--ローディング-->
+    <Grid Grid.RowSpan="3" Visibility="{Binding FinderModel.IsLoading.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+          Background="{StaticResource BaseBackground}">
+      <up:MyProgressBar HorizontalAlignment="Center" VerticalAlignment="Center">
+        <up:MyProgressBar.RenderTransform>
+          <TranslateTransform X="-40" Y="-16"/>
+        </up:MyProgressBar.RenderTransform>
+      </up:MyProgressBar>
+    </Grid>
   </Grid>
 </UserControl>

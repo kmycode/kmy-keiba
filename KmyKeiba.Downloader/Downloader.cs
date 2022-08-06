@@ -343,6 +343,7 @@ namespace KmyKeiba.Downloader
 
       var start = new DateTime(year, month, day);
       var today = DateTime.Today;
+      var now = DateTime.Now;
 
       int.TryParse(skip, out var skipCount);
       var query = db.Races!
@@ -375,6 +376,11 @@ namespace KmyKeiba.Downloader
           if (today.DayOfWeek == DayOfWeek.Saturday && r.StartTime.DayOfWeek == DayOfWeek.Sunday)
           {
             // 日曜日のレースは土曜日発売
+            return true;
+          }
+          if (today.DayOfWeek == DayOfWeek.Friday && r.StartTime.DayOfWeek == DayOfWeek.Saturday && now.Hour >= 12)
+          {
+            // 夕方から売ってることがある
             return true;
           }
 
@@ -434,7 +440,6 @@ namespace KmyKeiba.Downloader
           }
           else if (dataspecs[i] == JVLinkDataspec.RB41)
           {
-            var now = DateTime.Now;
             var latestTimeline = oddsTImeline.Where(o => o.RaceKey == race.Key).OrderByDescending(o => o.Time).FirstOrDefault();
             if (!(latestTimeline == null || (race.Course <= RaceCourse.CentralMaxValue ? latestTimeline.Time < race.StartTime : latestTimeline.Time < race.StartTime.AddMinutes(-1))))
             {

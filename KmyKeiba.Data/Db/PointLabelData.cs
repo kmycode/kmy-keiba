@@ -44,6 +44,11 @@ namespace KmyKeiba.Data.Db
 
     [JsonPropertyName("point")]
     public short Point { get; set; }
+
+    public override string ToString()
+    {
+      return this.Label;
+    }
   }
 
   public enum MemoColor : short
