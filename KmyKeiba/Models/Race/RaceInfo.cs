@@ -75,6 +75,12 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveCollection<RaceCorner> Corners { get; } = new();
 
+    public ReactiveCollection<RaceLapTime> LapTimes { get; } = new();
+
+    public bool HasLapTimes { get; }
+
+    public bool HasHaronTimes { get; }
+
     public RaceCourseSummaryImage CourseSummaryImage { get; } = new();
 
     public RaceSubjectInfo Subject { get; }
@@ -150,6 +156,14 @@ namespace KmyKeiba.Models.Race
       {
         this.CourseDetails.Add(detail);
       }
+
+      foreach (var lapTime in RaceLapTime.GetAsList(race))
+      {
+        this.LapTimes.Add(lapTime);
+      }
+      this.HasLapTimes = this.LapTimes.Any();
+      this.HasHaronTimes = race.AfterHaronTime3 != default || race.AfterHaronTime4 != default ||
+        race.BeforeHaronTime3 != default || race.BeforeHaronTime4 != default;
 
       this.TrendAnalyzers = new RaceTrendAnalysisSelector(race);
       this.WinnerTrendAnalyzers = new RaceWinnerHorseTrendAnalysisSelector(race);
@@ -587,10 +601,10 @@ namespace KmyKeiba.Models.Race
 
       var info = new RaceInfo(race, payoff);
 
-      AddCorner(info.Corners, race.Corner1Result, race.Corner1Number, race.Corner1Position, race.Corner1LapTime);
-      AddCorner(info.Corners, race.Corner2Result, race.Corner2Number, race.Corner2Position, race.Corner2LapTime);
-      AddCorner(info.Corners, race.Corner3Result, race.Corner3Number, race.Corner3Position, race.Corner3LapTime);
-      AddCorner(info.Corners, race.Corner4Result, race.Corner4Number, race.Corner4Position, race.Corner4LapTime);
+      AddCorner(info.Corners, race.Corner1Result, race.Corner1Number, race.Corner1Position);
+      AddCorner(info.Corners, race.Corner2Result, race.Corner2Number, race.Corner2Position);
+      AddCorner(info.Corners, race.Corner3Result, race.Corner3Number, race.Corner3Position);
+      AddCorner(info.Corners, race.Corner4Result, race.Corner4Number, race.Corner4Position);
 
       // 以降の情報は遅延読み込み
       _ = Task.Run(async () =>
@@ -827,7 +841,7 @@ namespace KmyKeiba.Models.Race
       return info;
     }
 
-    private static void AddCorner(IList<RaceCorner> corners, string result, int num, int pos, TimeSpan lap)
+    private static void AddCorner(IList<RaceCorner> corners, string result, int num, int pos)
     {
       if (string.IsNullOrWhiteSpace(result))
       {
@@ -837,7 +851,6 @@ namespace KmyKeiba.Models.Race
       var corner = RaceCorner.FromString(result);
       corner.Number = num;
       corner.Position = pos;
-      corner.LapTime = lap;
 
       corners.Add(corner);
     }

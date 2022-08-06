@@ -111,19 +111,11 @@ namespace KmyKeiba.JVLink.Entities
 
     public short Corner1Number { get; set; }
 
-    public TimeSpan Corner1LapTime { get; set; }
-
-    public short Corner1LapTimeValue { get; set; }
-
     public string Corner2Result { get; set; } = string.Empty;
 
     public short Corner2Position { get; set; }
 
     public short Corner2Number { get; set; }
-
-    public TimeSpan Corner2LapTime { get; set; }
-
-    public short Corner2LapTimeValue { get; set; }
 
     public string Corner3Result { get; set; } = string.Empty;
 
@@ -131,19 +123,13 @@ namespace KmyKeiba.JVLink.Entities
 
     public short Corner3Number { get; set; }
 
-    public TimeSpan Corner3LapTime { get; set; }
-
-    public short Corner3LapTimeValue { get; set; }
-
     public string Corner4Result { get; set; } = string.Empty;
 
     public short Corner4Position { get; set; }
 
     public short Corner4Number { get; set; }
 
-    public TimeSpan Corner4LapTime { get; set; }
-
-    public short Corner4LapTimeValue { get; set; }
+    public short[] LapTimes { get; set; } = Array.Empty<short>();
 
     public int PrizeMoney1 { get; set; }
 
@@ -168,6 +154,16 @@ namespace KmyKeiba.JVLink.Entities
     public int ExtraPrizeMoney4 { get; set; }
 
     public int ExtraPrizeMoney5 { get; set; }
+
+    public short BeforeHaronTime3 { get; set; }
+
+    public short BeforeHaronTime4 { get; set; }
+
+    public short AfterHaronTime3 { get; set; }
+
+    public short AfterHaronTime4 { get; set; }
+
+    public short SteeplechaseMileTime { get; set; }
 
     internal Race()
     {
@@ -251,10 +247,11 @@ namespace KmyKeiba.JVLink.Entities
       short.TryParse(race.CornerInfo[3].Syukaisu, out var cnum4);
       short.TryParse(race.CornerInfo[3].Corner, out var cn4);
 
-      int.TryParse(race.LapTime[0], out var lap1);
-      int.TryParse(race.LapTime[1], out var lap2);
-      int.TryParse(race.LapTime[2], out var lap3);
-      int.TryParse(race.LapTime[3], out var lap4);
+      short.TryParse(race.HaronTimeS3, out var haronb3);
+      short.TryParse(race.HaronTimeS4, out var haronb4);
+      short.TryParse(race.HaronTimeL3, out var haron3);
+      short.TryParse(race.HaronTimeL4, out var haron4);
+      short.TryParse(race.SyogaiMileTime, out var mile);
 
       int.TryParse(race.Honsyokin[0], out var money1);
       int.TryParse(race.Honsyokin[1], out var money2);
@@ -294,23 +291,20 @@ namespace KmyKeiba.JVLink.Entities
         Corner1Position = cn1,
         Corner1Number = cnum1,
         Corner1Result = race.CornerInfo[0].Jyuni.Trim(),
-        Corner1LapTime = new TimeSpan(0, 0, 0, lap1 / 10, lap1 % 10 * 100),
-        Corner1LapTimeValue = (short)lap1,
         Corner2Position = cn2,
         Corner2Number = cnum2,
         Corner2Result = race.CornerInfo[1].Jyuni.Trim(),
-        Corner2LapTime = new TimeSpan(0, 0, 0, lap2 / 10, lap1 % 10 * 100),
-        Corner2LapTimeValue = (short)lap2,
         Corner3Position = cn3,
         Corner3Number = cnum3,
         Corner3Result = race.CornerInfo[2].Jyuni.Trim(),
-        Corner3LapTime = new TimeSpan(0, 0, 0, lap3 / 10, lap1 % 10 * 100),
-        Corner3LapTimeValue = (short)lap3,
         Corner4Position = cn4,
         Corner4Number = cnum4,
         Corner4Result = race.CornerInfo[3].Jyuni.Trim(),
-        Corner4LapTime = new TimeSpan(0, 0, 0, lap4 / 10, lap1 % 10 * 100),
-        Corner4LapTimeValue = (short)lap4,
+        LapTimes = race.LapTime.Select(lt =>
+        {
+          short.TryParse(lt, out var s);
+          return s;
+        }).Where(lt => lt != default).ToArray(),
         PrizeMoney1 = money1,
         PrizeMoney2 = money2,
         PrizeMoney3 = money3,
@@ -323,6 +317,11 @@ namespace KmyKeiba.JVLink.Entities
         ExtraPrizeMoney3 = emoney3,
         ExtraPrizeMoney4 = emoney4,
         ExtraPrizeMoney5 = emoney5,
+        BeforeHaronTime3 = haronb3,
+        BeforeHaronTime4 = haronb4,
+        AfterHaronTime3 = haron3,
+        AfterHaronTime4 = haron4,
+        SteeplechaseMileTime = mile,
       };
       return obj;
     }

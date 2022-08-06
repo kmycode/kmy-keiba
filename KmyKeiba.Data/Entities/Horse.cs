@@ -19,6 +19,10 @@ namespace KmyKeiba.JVLink.Entities
     /// </summary>
     public string Code { get; set; } = string.Empty;
 
+    public bool IsCentral => this.Belongs != HorseBelongs.Local;
+
+    public short CentralFlag => this.IsCentral ? (short)1 : (short)0;
+
     public DateTime Entried { get; set; }
 
     public DateTime Retired { get; set; }

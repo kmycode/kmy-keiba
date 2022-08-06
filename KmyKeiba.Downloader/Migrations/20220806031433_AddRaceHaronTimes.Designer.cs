@@ -3,6 +3,7 @@ using System;
 using KmyKeiba.Downloader;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KmyKeiba.Downloader.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20220806031433_AddRaceHaronTimes")]
+    partial class AddRaceHaronTimes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.5");
@@ -420,9 +422,6 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.Property<DateTime>("Born")
                         .HasColumnType("TEXT");
-
-                    b.Property<short>("CentralFlag")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -865,9 +864,6 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("TEXT");
-
-                    b.Property<short>("SteeplechaseMileTime")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("SubName")
                         .IsRequired()
@@ -1512,9 +1508,6 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<DateTime>("Born")
                         .HasColumnType("TEXT");
 
-                    b.Property<short>("CentralFlag")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(8)
@@ -1776,9 +1769,6 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.Property<DateTime>("Born")
                         .HasColumnType("TEXT");
-
-                    b.Property<short>("CentralFlag")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Code")
                         .IsRequired()

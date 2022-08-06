@@ -114,12 +114,12 @@ namespace KmyKeiba.Models.Race.Memo
       return memos.GroupJoin(caches, m => m.Id, c => c.Id, (m, cs) => cs.Any() ? cs.First() : m).ToArray();
     }
 
-    public static async Task<MemoData?> GetMemoAsync(MyContext db, RaceData race, ExpansionMemoConfig config, RaceHorseAnalyzer? horse)
+    public static async Task<MemoData?> GetMemoAsync(MyContext db, RaceData race, ExpansionMemoConfig config, RaceHorseAnalyzer? horse, bool isCache = true)
     {
-      return await GetMemoAsync(db, race, db.Memos!, config, horse);
+      return await GetMemoAsync(db, race, db.Memos!, config, horse, isCache);
     }
 
-    public static async Task<MemoData?> GetMemoAsync(MyContext db, RaceData race, IQueryable<MemoData> query, ExpansionMemoConfig config, RaceHorseAnalyzer? horse)
+    public static async Task<MemoData?> GetMemoAsync(MyContext db, RaceData race, IQueryable<MemoData> query, ExpansionMemoConfig config, RaceHorseAnalyzer? horse, bool isCache = true)
     {
       var q = await GetMemoQueryAsync(db, race, MemoCaches.Select(c => c.Data), config, horse);
       var cache = q.FirstOrDefault();
@@ -127,7 +127,7 @@ namespace KmyKeiba.Models.Race.Memo
       {
         var qq = await GetMemoQueryAsync(db, race, query, config, horse);
         var data = await qq.FirstOrDefaultAsync();
-        if (data != null)
+        if (data != null && isCache)
         {
           MemoCaches.Add(new RaceMemoItem(data, config));
         }

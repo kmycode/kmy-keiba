@@ -99,36 +99,64 @@ namespace KmyKeiba.Models.Race.Finder
             };
             groups?.OrderBy(g => g.Key);
 
+            IEnumerable<IEnumerable<RaceHorseAnalyzer>> SplitData(int size)
+            {
+              if (data == null)
+              {
+                return Enumerable.Empty<IEnumerable<RaceHorseAnalyzer>>();
+              }
+
+              var lists = new List<List<RaceHorseAnalyzer>>();
+              for (var i = 0; i < size; i++)
+              {
+                lists.Add(new());
+              }
+              for (var i = 0; i < data.Items.Count; i++)
+              {
+                lists[i % size].Add(data.Items[i]);
+              }
+
+              return lists;
+            }
+
             // ラベルでグループ化
             if (data.GroupInfo != null)
             {
               // メモのポイントでグループ化する処理
-              using var db = new MyContext();
               var list = new List<(RaceHorseAnalyzer, short)>();
 
               ExpansionMemoConfig? memoConfig = null;
               PointLabelData? labelConfig = null;
               IReadOnlyList<PointLabelItem>? labelItems = null;
 
-              foreach (var item in data.Items)
+              var tasks = SplitData(3).Select(items =>
               {
-                if (memoConfig == null)
+                return Task.Run(async () =>
                 {
-                  memoConfig = MemoUtil.GetMemoConfig(data.GroupInfo.Target1, data.GroupInfo.Target2, data.GroupInfo.Target3, data.GroupInfo.MemoNumber);
-                  if (memoConfig == null)
-                  {
-                    break;
-                  }
-                  labelConfig = MemoUtil.GetPointLabelConfig(memoConfig);
-                  labelItems = labelConfig?.GetItems();
-                }
+                  using var db = new MyContext();
 
-                var memo = await MemoUtil.GetMemoAsync(db, item.Race, memoConfig, item);
-                if (memo != null)
-                {
-                  list.Add((item, memo.Point));
-                }
-              }
+                  foreach (var item in items)
+                  {
+                    if (memoConfig == null)
+                    {
+                      memoConfig = MemoUtil.GetMemoConfig(data.GroupInfo.Target1, data.GroupInfo.Target2, data.GroupInfo.Target3, data.GroupInfo.MemoNumber);
+                      if (memoConfig == null)
+                      {
+                        break;
+                      }
+                      labelConfig = MemoUtil.GetPointLabelConfig(memoConfig);
+                      labelItems = labelConfig?.GetItems();
+                    }
+
+                    var memo = await MemoUtil.GetMemoAsync(db, item.Race, memoConfig, item, false);
+                    if (memo != null)
+                    {
+                      list.Add((item, memo.Point));
+                    }
+                  }
+                });
+              }).ToArray();
+              await Task.WhenAll(tasks);
 
               if (labelItems == null)
               {

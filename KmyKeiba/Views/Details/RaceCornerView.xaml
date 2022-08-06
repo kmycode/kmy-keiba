@@ -12,9 +12,7 @@
   <StackPanel HorizontalAlignment="Left">
     <TextBlock FontSize="16">
       <Run FontWeight="Bold" FontSize="24" Text="{Binding RaceCorner.Number,ElementName=Root}"/>周
-      第<Run FontWeight="Bold" FontSize="24" Text="{Binding RaceCorner.Position,ElementName=Root}"/>コーナー　　LAP <Run
-        Text="{Binding RaceCorner.LapTime,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=mm\\:ss}"
-        FontSize="24" FontWeight="Bold"/>
+      第<Run FontWeight="Bold" FontSize="24" Text="{Binding RaceCorner.Position,ElementName=Root}"/>コーナー
     </TextBlock>
     <skia:SKElement>
       <i:Interaction.Behaviors>

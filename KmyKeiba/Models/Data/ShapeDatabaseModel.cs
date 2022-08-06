@@ -640,16 +640,15 @@ namespace KmyKeiba.Models.Data
         await db.TryBeginTransactionAsync();
 
         var raceHorses = db.RaceHorses!.Where(rh => rh.ResultTimeValue == default && rh.ResultOrder > 0 && rh.Popular > 0 && rh.ResultLength1 != default);
-        var races = db.Races!.Where(rh => rh.Corner4LapTimeValue == default && rh.CornerPositionInfos != default && rh.DataStatus >= RaceDataStatus.PreliminaryGrade3 && rh.Course != RaceCourse.ObihiroBannei && rh.TrackCornerDirection != TrackCornerDirection.Straight && rh.Course < RaceCourse.Foreign);
 
-        if (!(await raceHorses.AnyAsync()) && !(await races.AnyAsync()))
+        if (!(await raceHorses.AnyAsync()))
         {
           return;
         }
 
         if (progressMax != null)
         {
-          progressMax.Value = await raceHorses.CountAsync() + await races.CountAsync();
+          progressMax.Value = await raceHorses.CountAsync();
         }
         if (progress != null)
         {
@@ -673,34 +672,6 @@ namespace KmyKeiba.Models.Data
               return;
             }
 
-            if (progress != null)
-            {
-              progress.Value += i;
-            }
-            i = 0;
-          }
-        }
-        foreach (var race in races)
-        {
-          race.Corner1LapTimeValue = (short)(race.Corner1LapTime.Ticks / 1_000_000);
-          race.Corner2LapTimeValue = (short)(race.Corner2LapTime.Ticks / 1_000_000);
-          race.Corner3LapTimeValue = (short)(race.Corner3LapTime.Ticks / 1_000_000);
-          race.Corner4LapTimeValue = (short)(race.Corner4LapTime.Ticks / 1_000_000);
-          if (race.Corner4LapTimeValue == default)
-          {
-            race.Corner4LapTimeValue = -1;
-          }
-          i++;
-
-          if (i >= 10000)
-          {
-            await db.SaveChangesAsync();
-            await db.CommitAsync();
-
-            if (isCanceled?.Value == true)
-            {
-              return;
-            }
             if (progress != null)
             {
               progress.Value += i;

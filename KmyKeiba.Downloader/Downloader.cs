@@ -188,8 +188,8 @@ namespace KmyKeiba.Downloader
         return;
       }
 
-      var specs1 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "BT", "JC", "HC", "WC", "HR", "NR", "NS", };
-      var specs2 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", };
+      var specs1 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "BT", "JC", "HC", "WC", "KS", "CH", };
+      var specs2 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", "HR", };
       var dataspec1 = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku;
       if (parameters[2] == "central")
       {

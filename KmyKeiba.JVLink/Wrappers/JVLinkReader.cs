@@ -295,7 +295,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 var item = Horse.FromJV(a);
 
                 // Read(item, data.Horses, (a, b) => a.Code == b.Code, new ComparableComparer<Horse>(x => x?.Code));
-                ReadDic(item, data.Horses, item.Code);
+                ReadDic(item, data.Horses, item.Code + item.CentralFlag);
                 break;
               }
             case "HN":
@@ -466,6 +466,24 @@ namespace KmyKeiba.JVLink.Wrappers
                 ReadDic(item, data.TestRaceHorses, item.Key + item.RaceKey);
                 break;
               }
+            case "KS":
+              {
+                var a = new JVData_Struct.JV_KS_KISYU();
+                a.SetDataB(ref d);
+                var item = Rider.FromJV(a);
+
+                ReadDic(item, data.Riders, item.Code + item.CentralFlag);
+                break;
+              }
+            case "CH":
+              {
+                var a = new JVData_Struct.JV_CH_CHOKYOSI();
+                a.SetDataB(ref d);
+                var item = Trainer.FromJV(a);
+
+                ReadDic(item, data.Trainers, item.Code + item.CentralFlag);
+                break;
+              }
             default:
               this.ReadedEntityCount--;
               if (!this.isRealTime)
@@ -543,6 +561,10 @@ namespace KmyKeiba.JVLink.Wrappers
     public Dictionary<string, TestRace> TestRaces { get; internal set; } = new();
 
     public Dictionary<string, TestRaceHorse> TestRaceHorses { get; internal set; } = new();
+
+    public Dictionary<string, Rider> Riders { get; internal set; } = new();
+
+    public Dictionary<string, Trainer> Trainers { get; internal set; } = new();
 
     public List<HorseWeight> HorseWeights { get; internal set; } = new();
 

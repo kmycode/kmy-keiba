@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,15 @@ namespace KmyKeiba.Data.Db
   {
     [StringLength(16)]
     public string Code { get; set; } = string.Empty;
+
+    [NotMapped]
+    public bool IsCentral
+    {
+      get => this.CentralFlag != 0;
+      set => this.CentralFlag = value ? (short)1 : (short)0;
+    }
+
+    public short CentralFlag { get; set; }
 
     public DateTime Entried { get; set; }
 
@@ -93,6 +103,7 @@ namespace KmyKeiba.Data.Db
     {
       this.LastModified = horse.LastModified;
       this.DataStatus = horse.DataStatus;
+      this.IsCentral = horse.IsCentral;
       this.Code = horse.Code;
       this.Entried = horse.Entried;
       this.Retired = horse.Retired;
@@ -121,6 +132,16 @@ namespace KmyKeiba.Data.Db
       this.InviteFrom = horse.InviteFrom;
       this.ProducingCode = horse.ProducingCode;
       this.OwnerCode = horse.OwnerCode;
+    }
+
+    public override bool IsEquals(DataBase<Horse> b)
+    {
+      return ((HorseData)b).Code == this.Code && ((HorseData)b).IsCentral == this.IsCentral;
+    }
+
+    public override int GetHashCode()
+    {
+      return (this.Code + this.IsCentral).GetHashCode();
     }
   }
 }

@@ -359,12 +359,40 @@ namespace KmyKeiba.Models.Race.Finder
           return false;
         }
 
+        bool AddBelongsQuery()
+        {
+          if (!q!.Contains('='))
+          {
+            return false;
+          }
+          var value = q!.Split('=')[1];
+
+          var key = GetKeyInfo(q!.Split('=')[0]);
+          if (key.Item1 == QueryKey.HorseBelongs)
+          {
+            queries!.Add(new HorseBelongsScriptKeyQuery(value));
+            return true;
+          }
+          if (key.Item1 == QueryKey.RiderBelongs)
+          {
+            queries!.Add(new RiderBelongsScriptKeyQuery(value));
+            return true;
+          }
+          if (key.Item1 == QueryKey.TrainerBelongs)
+          {
+            queries!.Add(new TrainerBelongsScriptKeyQuery(value));
+            return true;
+          }
+          return false;
+        }
+
         var hr = true;
         hr = hr && !CheckAttributes();
         hr = hr && !CheckForCurrentRaceItems();
         hr = hr && !AddMemoQuery();
         hr = hr && !AddBloodQuery();
         hr = hr && !AddPlaceHorseQuery();
+        hr = hr && !AddBelongsQuery();
         hr = hr && !AddQuery("<>", QueryType.NotEquals);
         hr = hr && !AddQuery("<=", QueryType.LessThanOrEqual);
         hr = hr && !AddQuery(">=", QueryType.GreaterThanOrEqual);
@@ -397,6 +425,9 @@ namespace KmyKeiba.Models.Race.Finder
                     ApplicationConfiguration.Current.Value.NearDistanceDiffCentral :
                     ApplicationConfiguration.Current.Value.NearDistanceDiffLocal;
                   queries.Add(new RaceLambdaScriptKeyQuery(r => r.Distance >= race.Distance - diff && r.Distance <= race.Distance + diff));
+                  break;
+                case QueryKey.TrackType:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.TrackType == race.TrackType));
                   break;
                 case QueryKey.Direction:
                   queries.Add(new RaceLambdaScriptKeyQuery(r => r.TrackCornerDirection == race.TrackCornerDirection));
@@ -814,6 +845,69 @@ namespace KmyKeiba.Models.Race.Finder
     {
       this.InitializeCaches(db);
       return query.Where(h => this._riders!.Contains(h.OwnerCode));
+    }
+  }
+
+  class HorseBelongsScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  {
+    private readonly IReadOnlyList<HorseBelongs> _belongs;
+    private readonly bool _isAlive;
+
+    internal static IReadOnlyList<HorseBelongs> GetBelongs(string value)
+    {
+      if (value.StartsWith('@'))
+      {
+        value = value[1..];
+      }
+      var values = value.Split(',').Select(v =>
+      {
+        short.TryParse(v, out var num);
+        return (HorseBelongs)num;
+      }).Where(v => v != default);
+      return values.ToArray();
+    }
+
+    public HorseBelongsScriptKeyQuery(string value)
+    {
+      this._isAlive = value.StartsWith('@');
+      this._belongs = GetBelongs(value);
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      var source = db.Horses!.Where(h => this._belongs.Contains(h.Belongs));
+      if (this._isAlive) source = source.Where(h => h.Retired == default);
+      return query.Join(source, rh => rh.Key, h => h.Code, (rh, h) => rh);
+    }
+  }
+
+  class RiderBelongsScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  {
+    private readonly IReadOnlyList<HorseBelongs> _belongs;
+
+    public RiderBelongsScriptKeyQuery(string value)
+    {
+      this._belongs = HorseBelongsScriptKeyQuery.GetBelongs(value);
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      return query.Join(db.Riders!.Where(h => this._belongs.Contains(h.Belongs)), rh => rh.RiderCode, h => h.Code, (rh, h) => rh);
+    }
+  }
+
+  class TrainerBelongsScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  {
+    private readonly IReadOnlyList<HorseBelongs> _belongs;
+
+    public TrainerBelongsScriptKeyQuery(string value)
+    {
+      this._belongs = HorseBelongsScriptKeyQuery.GetBelongs(value);
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      return query.Join(db.Trainers!.Where(h => this._belongs.Contains(h.Belongs)), rh => rh.TrainerCode, h => h.Code, (rh, h) => rh);
     }
   }
 
@@ -1258,6 +1352,10 @@ namespace KmyKeiba.Models.Race.Finder
           query = query.Where(this.BuildEnumValuesQuery<RaceData, TrackCornerDirection>
             (nameof(RaceData.TrackCornerDirection), this.Values.Select(v => (TrackCornerDirection)v)));
           break;
+        case QueryKey.TrackType:
+          query = query.Where(this.BuildEnumValuesQuery<RaceData, TrackType>
+            (nameof(RaceData.TrackType), this.Values.Select(v => (TrackType)v)));
+          break;
         case QueryKey.Distance:
           query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.Distance)));
           break;
@@ -1658,6 +1756,8 @@ namespace KmyKeiba.Models.Race.Finder
     Distance,
     [EnumQueryKey("direction")]
     Direction,
+    [EnumQueryKey("tracktype")]
+    TrackType,
     [NumericQueryKey("day")]
     Day,
     [NumericQueryKey("month")]
@@ -1686,14 +1786,6 @@ namespace KmyKeiba.Models.Race.Finder
     Grades,
     [QueryKey("prize1")]
     PrizeMoney1,
-    [QueryKey("prize2")]
-    PrizeMoney2,
-    [QueryKey("prize3")]
-    PrizeMoney3,
-    [QueryKey("prize4")]
-    PrizeMoney4,
-    [QueryKey("prize5")]
-    PrizeMoney5,
 
     [StringQueryKey("horse")]
     HorseKey,
@@ -1759,6 +1851,12 @@ namespace KmyKeiba.Models.Race.Finder
     RunningStyle,
     [NumericQueryKey("prevdays")]
     PreviousRaceDays,
+    [QueryKey("horsebelongs")]
+    HorseBelongs,
+    [QueryKey("riderbelongs")]
+    RiderBelongs,
+    [QueryKey("trainerbelongs")]
+    TrainerBelongs,
 
     [StringQueryKey("f")]
     Father,

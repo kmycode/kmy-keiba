@@ -454,7 +454,7 @@ namespace KmyKeiba.Downloader
       this.SaveSize = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count
         + data.FrameNumberOdds.Count + data.QuinellaOdds.Count + data.QuinellaPlaceOdds.Count +
          data.TrifectaOdds.Count + data.TrioOdds.Count + data.BornHorses.Count +
-         data.TestRaces.Count + data.TestRaceHorses.Count +
+         data.Riders.Count + data.Trainers.Count +
         data.Refunds.Count + data.Trainings.Count + data.WoodtipTrainings.Count + data.Horses.Count + data.HorseBloods.Count;
       logger.Info($"保存数: {this.SaveSize}");
 
@@ -626,9 +626,9 @@ namespace KmyKeiba.Downloader
       logger.Info($"Horsesの保存を開始 {data.Horses.Count}");
       await SaveDicAsync(data.Horses,
         db.Horses!,
-        (e) => e.Code,
-        (d) => d.Code,
-        (list) => e => list.Contains(e.Code));
+        (e) => e.Code + e.CentralFlag,
+        (d) => d.Code + d.CentralFlag,
+        (list) => e => list.Contains(e.Code + e.CentralFlag));
       logger.Info($"HorseBloodsの保存を開始 {data.HorseBloods.Count}");
       await SaveDicAsync(data.HorseBloods,
         db.HorseBloods!,
@@ -650,19 +650,19 @@ namespace KmyKeiba.Downloader
         (d) => d.Code,
         (list) => e => list.Contains(e.Code));
       await db.CommitAsync();
-      logger.Info($"TestRacesの保存を開始 {data.TestRaces.Count}");
-      await SaveDicAsync(data.TestRaces,
-        db.TestRaces!,
-        (e) => e.Key,
-        (d) => d.Key,
-        (list) => e => list.Contains(e.Key));
+      logger.Info($"Ridersの保存を開始 {data.Riders.Count}");
+      await SaveDicAsync(data.Riders,
+        db.Riders!,
+        (e) => e.Code + e.CentralFlag,
+        (d) => d.Code + d.CentralFlag,
+        (list) => e => list.Contains(e.Code + e.CentralFlag));
       await db.CommitAsync();
-      logger.Info($"TestRaceHorsesの保存を開始 {data.TestRaceHorses.Count}");
-      await SaveDicAsync(data.TestRaceHorses,
-        db.TestRaceHorses!,
-        (e) => e.RaceKey + e.Key,
-        (d) => d.RaceKey + d.Key,
-        (list) => e => list.Contains(e.RaceKey + e.Key));
+      logger.Info($"Trainersの保存を開始 {data.Trainers.Count}");
+      await SaveDicAsync(data.Trainers,
+        db.Trainers!,
+        (e) => e.Code + e.CentralFlag,
+        (d) => d.Code + d.CentralFlag,
+        (list) => e => list.Contains(e.Code + e.CentralFlag));
       await db.CommitAsync();
 
       logger.Info($"FrameNumberOddsの保存を開始 {data.FrameNumberOdds.Count}");
