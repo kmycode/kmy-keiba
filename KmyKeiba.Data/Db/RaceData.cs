@@ -10,11 +10,41 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  [Index(nameof(StartTime), nameof(Key), nameof(Course))]
+  [Index(nameof(StartTime))]
+  [Index(nameof(Key))]
+  [Index(nameof(Course))]
   public class RaceData : DataBase<Race>
   {
     [StringLength(20)]
     public string Key { get; set; } = string.Empty;
+
+    [NotMapped]
+    public short Kaiji
+    {
+      get
+      {
+        if (this.Key.Length >= 12)
+        {
+          short.TryParse(this.Key.Substring(10, 2), out var value);
+          return value;
+        }
+        return default;
+      }
+    }
+
+    [NotMapped]
+    public short Nichiji
+    {
+      get
+      {
+        if (this.Key.Length >= 14)
+        {
+          short.TryParse(this.Key.Substring(12, 2), out var value);
+          return value;
+        }
+        return default;
+      }
+    }
 
     [StringLength(120)]
     public string Name { get; set; } = string.Empty;
@@ -69,6 +99,8 @@ namespace KmyKeiba.Data.Db
     public RaceSubjectType SubjectAgeYounger { get; set; }
 
     public short HorsesCount { get; set; }
+
+    public short ResultHorsesCount { get; set; }
 
     public DateTime StartTime { get; set; }
 
@@ -155,6 +187,7 @@ namespace KmyKeiba.Data.Db
       this.Distance = race.Distance;
       this.CourseRaceNumber = race.CourseRaceNumber;
       this.HorsesCount = race.HorsesCount;
+      this.ResultHorsesCount = race.ResultHorsesCount;
       this.StartTime = race.StartTime;
       this.CornerPositionInfos =
         race.Corner1Position * 10_00_00_00 + race.Corner1Number * 1_00_00_00 +

@@ -61,6 +61,16 @@ namespace KmyKeiba.JVLink.Entities
     public short ResultOrder { get; set; }
 
     /// <summary>
+    /// 入線順位
+    /// </summary>
+    public short GoalOrder { get; set; }
+
+    /// <summary>
+    /// １着とのタイム差（１着の場合は２着との差）
+    /// </summary>
+    public short TimeDifference { get; set; }
+
+    /// <summary>
     /// 異常結果
     /// </summary>
     public RaceAbnormality AbnormalResult { get; set; }
@@ -166,6 +176,7 @@ namespace KmyKeiba.JVLink.Entities
       short.TryParse(uma.UmaKigoCD, out short tc);
       short.TryParse(uma.Wakuban.Trim(), out short wakuNum);
       short.TryParse(uma.KakuteiJyuni.Trim(), out short result);
+      short.TryParse(uma.NyusenJyuni.Trim(), out short result2);
       short.TryParse(uma.Ninki.Trim(), out short pop);
       short.TryParse(uma.Jyuni1c.Trim(), out short corner1);
       short.TryParse(uma.Jyuni2c.Trim(), out short corner2);
@@ -179,6 +190,7 @@ namespace KmyKeiba.JVLink.Entities
       int.TryParse(uma.KyakusituKubun.Trim(), out int runningStyle);
       int.TryParse(uma.id.JyoCD.Trim(), out int course);
       short.TryParse(uma.KeiroCD, out var color);
+      short.TryParse(uma.TimeDiff, out var timeDiff);
 
       int.TryParse(uma.Time.Substring(0, 1), out int timeMinutes);
       int.TryParse(uma.Time.Substring(1, 2), out int timeSeconds);
@@ -242,6 +254,8 @@ namespace KmyKeiba.JVLink.Entities
         Number = num,
         FrameNumber = wakuNum,
         ResultOrder = result,
+        GoalOrder = result2,
+        TimeDifference = timeDiff,
         ResultLength1 = GetLength(uma.ChakusaCD),
         ResultLength2 = GetLength(uma.ChakusaCDP),
         ResultLength3 = GetLength(uma.ChakusaCDPP),

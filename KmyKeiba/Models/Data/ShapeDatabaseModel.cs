@@ -320,7 +320,7 @@ namespace KmyKeiba.Models.Data
       //await db.BeginTransactionAsync();
 
       var query = db.RaceHorses!
-        .Where(rh => rh.PreviousRaceDays == 0)
+        .Where(rh => rh.PreviousRaceDays == 0 || rh.RaceCount == 0)
         .Where(rh => rh.Key != "0000000000" && rh.Key != "" && rh.RaceKey != "");
       if (date != null)
       {
@@ -342,7 +342,7 @@ namespace KmyKeiba.Models.Data
         {
           var targetHorses = await db.RaceHorses!
             .Where(rh => targets.Contains(rh.Key))
-            .Select(rh => new { rh.Id, rh.Key, rh.RaceKey, })
+            .Select(rh => new { rh.Id, rh.Key, rh.RaceKey, rh.AbnormalResult, })
             .ToArrayAsync();
 
           foreach (var horse in targets)
@@ -351,6 +351,9 @@ namespace KmyKeiba.Models.Data
             var beforeRaceDh = DateTime.MinValue;
             var isFirst = true;
 
+            var raceCount = 1;
+            var raceCountWithinRunning = 0;
+            var raceCountCompletely = 0;
             foreach (var race in races)
             {
               var y = race.RaceKey.Substring(0, 4);
@@ -373,8 +376,27 @@ namespace KmyKeiba.Models.Data
                 isFirst = false;
               }
 
+              attach.RaceCount = (short)raceCount;
+
+              attach.RaceCountWithinRunning = -2;
+              attach.RaceCountWithinRunningCompletely = -2;
+              if (race.AbnormalResult == RaceAbnormality.Unknown || race.AbnormalResult > RaceAbnormality.ExcludedByStewards)
+              {
+                // とりあえず走った
+                raceCountWithinRunning++;
+                attach.RaceCountWithinRunning = (short)raceCountWithinRunning;
+
+                // ちゃんとゴールできた
+                if (race.AbnormalResult == RaceAbnormality.Unknown)
+                {
+                  raceCountCompletely++;
+                  attach.RaceCountWithinRunningCompletely = (short)raceCountCompletely;
+                }
+              }
+
               beforeRaceDh = dh;
               count++;
+              raceCount++;
             }
           }
           progress.Value = count;

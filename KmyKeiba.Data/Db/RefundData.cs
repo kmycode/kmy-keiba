@@ -394,6 +394,32 @@ namespace KmyKeiba.Data.Db
       i++;
     }
 
+    public IReadOnlyList<(short, int)> GetPlaceBetsResults()
+    {
+      return new List<(short, int)>
+      {
+        (this.PlaceNumber1, this.PlaceNumber1Money),
+        (this.PlaceNumber2, this.PlaceNumber2Money),
+        (this.PlaceNumber3, this.PlaceNumber3Money),
+        (this.PlaceNumber4, this.PlaceNumber4Money),
+        (this.PlaceNumber5, this.PlaceNumber5Money),
+      }.Where(d => d.Item1 != default).ToArray();
+    }
+
+    public IReadOnlyList<(short, short, int)> GetQuinellaPlaceResults()
+    {
+      return new List<(short, short, int)>
+      {
+        (this.QuinellaPlace1Number1, this.QuinellaPlace2Number1, this.QuinellaPlaceNumber1Money),
+        (this.QuinellaPlace1Number2, this.QuinellaPlace2Number2, this.QuinellaPlaceNumber2Money),
+        (this.QuinellaPlace1Number3, this.QuinellaPlace2Number3, this.QuinellaPlaceNumber3Money),
+        (this.QuinellaPlace1Number4, this.QuinellaPlace2Number4, this.QuinellaPlaceNumber4Money),
+        (this.QuinellaPlace1Number5, this.QuinellaPlace2Number5, this.QuinellaPlaceNumber5Money),
+        (this.QuinellaPlace1Number6, this.QuinellaPlace2Number6, this.QuinellaPlaceNumber6Money),
+        (this.QuinellaPlace1Number7, this.QuinellaPlace2Number7, this.QuinellaPlaceNumber7Money),
+      }.Where(d => d.Item1 != default).ToArray();
+    }
+
     public override int GetHashCode()
       => this.RaceKey.GetHashCode();
 

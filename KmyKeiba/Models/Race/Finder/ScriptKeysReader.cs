@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,10 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public IReadOnlyList<ScriptKeyQuery> Queries { get; }
 
+    public IReadOnlyList<ExpressionScriptKeyQuery> DiffQueries { get; }
+
+    public IReadOnlyList<ExpressionScriptKeyQuery> DiffQueriesBetweenCurrent { get; }
+
     public QueryKey GroupKey { get; }
 
     public int Limit { get; }
@@ -24,12 +29,14 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ScriptKeysMemoGroupInfo? MemoGroupInfo { get; set; }
 
-    public ScriptKeysParseResult(IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0)
+    public ScriptKeysParseResult(IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueries = null, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueriesBetweenCurrent = null)
     {
       this.Queries = queries;
       this.GroupKey = groupKey;
       this.Limit = limit;
       this.Offset = offset;
+      this.DiffQueries = diffQueries ?? Array.Empty<ExpressionScriptKeyQuery>();
+      this.DiffQueriesBetweenCurrent = diffQueriesBetweenCurrent ?? Array.Empty<ExpressionScriptKeyQuery>();
     }
   }
 
@@ -71,6 +78,8 @@ namespace KmyKeiba.Models.Race.Finder
       ScriptKeysMemoGroupInfo? memoGroupInfo = null;
 
       var queries = new List<ScriptKeyQuery>();
+      var diffQueries = new List<ExpressionScriptKeyQuery>();
+      var diffQueriesBetweenCurrent = new List<ExpressionScriptKeyQuery>();
       foreach (var qu in keys.Split('|'))
       {
         var q = qu;
@@ -80,10 +89,32 @@ namespace KmyKeiba.Models.Race.Finder
           if (q.Contains(split))
           {
             var data = q.Split(split);
-            var query = GetQuery(type, data[0], data[1]);
-            if (query != null)
+
+            if (data[1].StartsWith("$$"))
             {
-              queries!.Add(query);
+              data[1] = data[1][2..];
+              var query = GetQuery(type, data[0], data[1]);
+              if (query != null && query is ExpressionScriptKeyQuery exp)
+              {
+                diffQueriesBetweenCurrent!.Add(exp);
+              }
+            }
+            else if (data[1].StartsWith('$'))
+            {
+              data[1] = data[1][1..];
+              var query = GetQuery(type, data[0], data[1]);
+              if (query != null && query is ExpressionScriptKeyQuery exp)
+              {
+                diffQueries!.Add(exp);
+              }
+            }
+            else
+            {
+              var query = GetQuery(type, data[0], data[1]);
+              if (query != null)
+              {
+                queries!.Add(query);
+              }
             }
             return true;
           }
@@ -292,6 +323,67 @@ namespace KmyKeiba.Models.Race.Finder
           return true;
         }
 
+        bool AddBeforeRacesQuery()
+        {
+          if (!q!.StartsWith("(before"))
+          {
+            return false;
+          }
+
+          var endIndex = q.IndexOf(')');
+          if (endIndex < 0)
+          {
+            return false;
+          }
+
+          var tagEndIndex = q.IndexOf('>');
+
+          var countRule = HorseBeforeRacesScriptKeyQuery.RaceCountRule.All;
+          if (endIndex > 8 && q.StartsWith("(before<"))
+          {
+            if (tagEndIndex < 0)
+            {
+              return false;
+            }
+            var countRuleStr = q.Substring(8, tagEndIndex - 8);
+            countRule = countRuleStr switch
+            {
+              "run" => HorseBeforeRacesScriptKeyQuery.RaceCountRule.AnywaysRun,
+              "complete" => HorseBeforeRacesScriptKeyQuery.RaceCountRule.Completely,
+              _ => HorseBeforeRacesScriptKeyQuery.RaceCountRule.All,
+            };
+          }
+
+          var beforeSize = 1;
+          var compareTargetSize = 0;
+          if (endIndex > 8 && (tagEndIndex > 0 || q.StartsWith("(before:")))
+          {
+            var paramStartIndex = tagEndIndex > 0 ? tagEndIndex + 2 : 8;
+            if (endIndex > paramStartIndex)
+            {
+              var beforeSizeStr = q.Substring(paramStartIndex, endIndex - paramStartIndex);
+              if (beforeSizeStr.Contains(','))
+              {
+                if (!int.TryParse(beforeSizeStr.Split(',')[0], out beforeSize)) beforeSize = 1;
+                if (!int.TryParse(beforeSizeStr.Split(',')[1], out compareTargetSize)) compareTargetSize = 0;
+              }
+              else
+              {
+                if (!int.TryParse(beforeSizeStr, out beforeSize))
+                {
+                  beforeSize = 1;
+                }
+              }
+            }
+          }
+
+          var keys = q.Substring(endIndex + 1).Replace(';', '|');
+          var qs = GetQueries(keys, race, horse);
+
+          queries!.Add(new HorseBeforeRacesScriptKeyQuery(countRule, beforeSize, compareTargetSize, qs.Queries, qs.DiffQueries, qs.DiffQueriesBetweenCurrent));
+          return true;
+        }
+
         bool CheckAttributes()
         {
           if (q.StartsWith("[group]"))
@@ -361,26 +453,38 @@ namespace KmyKeiba.Models.Race.Finder
 
         bool AddBelongsQuery()
         {
-          if (!q!.Contains('='))
+          QueryType type;
+          string spliter;
+          if (q!.Contains('='))
+          {
+            type = QueryType.Equals;
+            spliter = "=";
+          }
+          else if (q!.Contains("<>"))
+          {
+            type = QueryType.NotEquals;
+            spliter = "<>";
+          }
+          else
           {
             return false;
           }
-          var value = q!.Split('=')[1];
+          var value = q!.Split(spliter)[1];
 
-          var key = GetKeyInfo(q!.Split('=')[0]);
+          var key = GetKeyInfo(q!.Split(spliter)[0]);
           if (key.Item1 == QueryKey.HorseBelongs)
           {
-            queries!.Add(new HorseBelongsScriptKeyQuery(value));
+            queries!.Add(new HorseBelongsScriptKeyQuery(value, type));
             return true;
           }
-          if (key.Item1 == QueryKey.RiderBelongs)
+          else if (key.Item1 == QueryKey.RiderBelongs)
           {
-            queries!.Add(new RiderBelongsScriptKeyQuery(value));
+            queries!.Add(new RiderBelongsScriptKeyQuery(value, type));
             return true;
           }
-          if (key.Item1 == QueryKey.TrainerBelongs)
+          else if (key.Item1 == QueryKey.TrainerBelongs)
           {
-            queries!.Add(new TrainerBelongsScriptKeyQuery(value));
+            queries!.Add(new TrainerBelongsScriptKeyQuery(value, type));
             return true;
           }
           return false;
@@ -392,14 +496,15 @@ namespace KmyKeiba.Models.Race.Finder
         hr = hr && !AddMemoQuery();
         hr = hr && !AddBloodQuery();
         hr = hr && !AddPlaceHorseQuery();
+        hr = hr && !AddBeforeRacesQuery();
         hr = hr && !AddBelongsQuery();
         hr = hr && !AddQuery("<>", QueryType.NotEquals);
         hr = hr && !AddQuery("<=", QueryType.LessThanOrEqual);
         hr = hr && !AddQuery(">=", QueryType.GreaterThanOrEqual);
+        hr = hr && !AddQuery("@=", QueryType.Contains);
+        hr = hr && !AddQuery("@<", QueryType.StartsWith);
+        hr = hr && !AddQuery("@>", QueryType.EndsWith);
         hr = hr && !AddQuery("=", QueryType.Equals);
-        hr = hr && !AddQuery("@<", QueryType.Contains);
-        hr = hr && !AddQuery("@:", QueryType.StartsWith);
-        hr = hr && !AddQuery("@;", QueryType.EndsWith);
         hr = hr && !AddQuery("<", QueryType.LessThan);
         hr = hr && !AddQuery(">", QueryType.GreaterThan);
 
@@ -554,7 +659,7 @@ namespace KmyKeiba.Models.Race.Finder
         queries.Add(new DefaultLambdaScriptKeyQuery());
       }
 
-      return new ScriptKeysParseResult(queries, groupKey, limit, offset)
+      return new ScriptKeysParseResult(queries, groupKey, limit, offset, diffQueries: diffQueries, diffQueriesBetweenCurrent: diffQueriesBetweenCurrent)
       {
         MemoGroupInfo = memoGroupInfo,
       };
@@ -596,7 +701,7 @@ namespace KmyKeiba.Models.Race.Finder
         }
         else if (value.IndexOf('-', 1) > 0)  // マイナス記号で始まっていた場合にそなえて
         {
-          var spliter = value.IndexOf('-', 1);
+          var spliter = value.IndexOf('-', 1);  // 最大値がマイナス値だった場合のためにSplitは使わない
           var data = new string[] { value[..spliter], value[(spliter + 1)..], };
           if (int.TryParse(data[0], out var min) && int.TryParse(data[1], out var max))
           {
@@ -853,7 +958,7 @@ namespace KmyKeiba.Models.Race.Finder
     private readonly IReadOnlyList<HorseBelongs> _belongs;
     private readonly bool _isAlive;
 
-    internal static IReadOnlyList<HorseBelongs> GetBelongs(string value)
+    internal static IReadOnlyList<HorseBelongs> GetBelongs(string value, QueryType type)
     {
       if (value.StartsWith('@'))
       {
@@ -864,13 +969,19 @@ namespace KmyKeiba.Models.Race.Finder
         short.TryParse(v, out var num);
         return (HorseBelongs)num;
       }).Where(v => v != default);
+
+      if (type == QueryType.NotEquals)
+      {
+        values = Enum.GetValues<HorseBelongs>().Where(v => v != HorseBelongs.Unknown).Except(values);
+      }
+
       return values.ToArray();
     }
 
-    public HorseBelongsScriptKeyQuery(string value)
+    public HorseBelongsScriptKeyQuery(string value, QueryType type)
     {
       this._isAlive = value.StartsWith('@');
-      this._belongs = GetBelongs(value);
+      this._belongs = GetBelongs(value, type);
     }
 
     public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
@@ -885,9 +996,9 @@ namespace KmyKeiba.Models.Race.Finder
   {
     private readonly IReadOnlyList<HorseBelongs> _belongs;
 
-    public RiderBelongsScriptKeyQuery(string value)
+    public RiderBelongsScriptKeyQuery(string value, QueryType type)
     {
-      this._belongs = HorseBelongsScriptKeyQuery.GetBelongs(value);
+      this._belongs = HorseBelongsScriptKeyQuery.GetBelongs(value, type);
     }
 
     public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
@@ -900,9 +1011,9 @@ namespace KmyKeiba.Models.Race.Finder
   {
     private readonly IReadOnlyList<HorseBelongs> _belongs;
 
-    public TrainerBelongsScriptKeyQuery(string value)
+    public TrainerBelongsScriptKeyQuery(string value, QueryType type)
     {
-      this._belongs = HorseBelongsScriptKeyQuery.GetBelongs(value);
+      this._belongs = HorseBelongsScriptKeyQuery.GetBelongs(value, type);
     }
 
     public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
@@ -1223,6 +1334,265 @@ namespace KmyKeiba.Models.Race.Finder
       {
         // すべてを焼き尽くす
         query = query.Where(r => false);
+      }
+
+      return query;
+    }
+  }
+
+  class HorseBeforeRacesScriptKeyQuery : ScriptKeyQuery
+  {
+    private readonly IReadOnlyList<ScriptKeyQuery> _queries;
+    private readonly IReadOnlyList<ExpressionScriptKeyQuery> _diffQueries;
+    private readonly IReadOnlyList<ExpressionScriptKeyQuery> _diffQueriesBetweenCurrent;
+    private readonly int _beforeSize;
+    private readonly int _compareTargetSize;
+    private readonly RaceCountRule _countRule;
+
+    internal enum RaceCountRule
+    {
+      All,
+      AnywaysRun,
+      Completely,
+    }
+
+    public HorseBeforeRacesScriptKeyQuery(RaceCountRule countRule, int beforeSize, int compareTargetSize, IReadOnlyList<ScriptKeyQuery> queries, IReadOnlyList<ExpressionScriptKeyQuery> diffQueries, IReadOnlyList<ExpressionScriptKeyQuery> diffQueriesBetweenCurrent)
+    {
+      this._countRule = countRule;
+      this._beforeSize = beforeSize;
+      this._compareTargetSize = compareTargetSize;
+      this._queries = queries;
+
+      if (compareTargetSize == 0)
+      {
+        // $のついたクエリは現在のレースと比較
+        this._diffQueries = Array.Empty<ExpressionScriptKeyQuery>();
+        this._diffQueriesBetweenCurrent = diffQueries.Concat(diffQueriesBetweenCurrent).ToArray();
+      }
+      else
+      {
+        this._diffQueries = diffQueries;
+        this._diffQueriesBetweenCurrent = diffQueriesBetweenCurrent;
+      }
+    }
+
+    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
+    {
+      return query;
+    }
+
+    public override IQueryable<MemoData> Apply(MyContext db, IQueryable<MemoData> query)
+    {
+      return query;
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      var races = (IQueryable<RaceData>)db.Races!;
+      var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
+
+      if (!this._queries.Any())
+      {
+        query = query.Join(horses, q => new { q.Key, q.RaceCount, }, h => new { h.Key, RaceCount = (short)(h.RaceCount + this._beforeSize), }, (q, h) => q);
+      }
+      else
+      {
+        foreach (var q in this._queries)
+        {
+          horses = q.Apply(db, horses);
+          races = q.Apply(db, races);
+        }
+        var tmpr = horses.Join(races, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, });
+
+        Expression<Func<T, bool>> Compare<T>(IQueryable<T> obj, QueryType type, bool isRace, string propertyName, int value, string propertyPrefix = "Compare", bool isShort = true, bool isEnum = false)
+        {
+          var param = Expression.Parameter(typeof(T), "x");
+          var before = Expression.Property(param, "Before");
+          var beforeRace = Expression.Property(param, "BeforeRace");
+          var current = Expression.Property(param, propertyPrefix);
+          var currentRace = Expression.Property(param, propertyPrefix + "Race");
+
+          var beforeObj = isRace ? beforeRace : before;
+          var currentObj = isRace ? currentRace : current;
+          Expression valueObj = Expression.Constant(value);
+          if (isShort)
+          {
+            valueObj = Expression.Convert(valueObj, typeof(short));
+          }
+          Expression beforeProperty = Expression.Property(beforeObj, propertyName);
+          Expression currentProperty = Expression.Property(currentObj, propertyName);
+          if (isEnum)
+          {
+            beforeProperty = Expression.Convert(beforeProperty, typeof(short));
+            currentProperty = Expression.Convert(currentProperty, typeof(short));
+          }
+          beforeProperty = Expression.Add(beforeProperty, valueObj);
+
+          switch (type)
+          {
+            case QueryType.Equals:
+              return Expression.Lambda<Func<T, bool>>(Expression.Equal(currentProperty, beforeProperty), param);
+            case QueryType.NotEquals:
+              return Expression.Lambda<Func<T, bool>>(Expression.NotEqual(currentProperty, beforeProperty), param);
+            case QueryType.GreaterThan:
+              return Expression.Lambda<Func<T, bool>>(Expression.GreaterThan(currentProperty, beforeProperty), param);
+            case QueryType.GreaterThanOrEqual:
+              return Expression.Lambda<Func<T, bool>>(Expression.GreaterThanOrEqual(currentProperty, beforeProperty), param);
+            case QueryType.LessThan:
+              return Expression.Lambda<Func<T, bool>>(Expression.LessThan(currentProperty, beforeProperty), param);
+            case QueryType.LessThanOrEqual:
+              return Expression.Lambda<Func<T, bool>>(Expression.LessThanOrEqual(currentProperty, beforeProperty), param);
+          }
+          return t => true;
+        }
+
+        IQueryable<T> ApplyQueries<T>(IQueryable<T> tmpQuery)
+        {
+          foreach (var q in this._diffQueries.Select(qq => new { Query = qq, IsCurrent = false, })
+            .Concat(this._diffQueriesBetweenCurrent.Select(qq => new { Query = qq, IsCurrent = true, })))
+          {
+            var type = q.Query.Type;
+            var value = q.Query.Value;
+            var prefix = q.IsCurrent ? "Current" : "Compare";
+            switch (q.Query.Key)
+            {
+              case QueryKey.Distance:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.Distance), value, propertyPrefix: prefix, isShort: true));
+                break;
+              case QueryKey.Weather:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.TrackWeather), value, propertyPrefix: prefix, isShort: true, isEnum: true));
+                break;
+              case QueryKey.Condition:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.TrackCondition), value, propertyPrefix: prefix, isShort: true, isEnum: true));
+                break;
+              case QueryKey.Course:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.Course), value, propertyPrefix: prefix, isShort: true, isEnum: true));
+                break;
+              case QueryKey.Ground:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.TrackGround), value, propertyPrefix: prefix, isShort: true, isEnum: true));
+                break;
+              case QueryKey.Direction:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.TrackCornerDirection), value, propertyPrefix: prefix, isShort: true, isEnum: true));
+                break;
+              case QueryKey.Grade:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.Grade), value, propertyPrefix: prefix, isShort: true, isEnum: true));
+                break;
+              case QueryKey.Popular:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceHorseData.Popular), value, propertyPrefix: prefix, isShort: true));
+                break;
+              case QueryKey.Place:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceHorseData.ResultOrder), value, propertyPrefix: prefix, isShort: true));
+                break;
+              case QueryKey.ResultLength:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceHorseData.ResultLength1), value, propertyPrefix: prefix, isShort: true));
+                break;
+              case QueryKey.RunningStyle:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceHorseData.RunningStyle), value, propertyPrefix: prefix, isShort: true, isEnum: true));
+                break;
+            }
+          }
+
+          return tmpQuery;
+        }
+
+        if (this._diffQueries.Any() || this._diffQueriesBetweenCurrent.Any())
+        {
+          if (!this._diffQueries.Any())
+          {
+            // Compare, CompareRaceがいらない
+            switch (this._countRule)
+            {
+              case RaceCountRule.All:
+                {
+                  var tmp = query
+                    .Join(db.Races!, q => q.RaceKey, r => r.Key, (q, r) => new { RaceHorse = q, Race = r, })
+                    .Join(tmpr, q => new { q.RaceHorse.Key, q.RaceHorse.RaceCount, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCount + this._beforeSize), }, (q, h) => new { BeforeRace = h.Race, Before = h.RaceHorse, CurrentRace = q.Race, Current = q.RaceHorse, });
+                  query = ApplyQueries(tmp).Select(t => t.Current);
+                }
+                break;
+              case RaceCountRule.AnywaysRun:
+                {
+                  var tmp = query
+                    .Join(db.Races!, q => q.RaceKey, r => r.Key, (q, r) => new { RaceHorse = q, Race = r, })
+                    .Join(tmpr, q => new { q.RaceHorse.Key, RaceCount = q.RaceHorse.RaceCountWithinRunning, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunning + this._beforeSize), }, (q, h) => new { BeforeRace = h.Race, Before = h.RaceHorse, CurrentRace = q.Race, Current = q.RaceHorse, });
+                  query = ApplyQueries(tmp).Select(t => t.Current);
+                }
+                break;
+              case RaceCountRule.Completely:
+                {
+                  var tmp = query
+                    .Join(db.Races!, q => q.RaceKey, r => r.Key, (q, r) => new { RaceHorse = q, Race = r, })
+                    .Join(tmpr, q => new { q.RaceHorse.Key, RaceCount = q.RaceHorse.RaceCountWithinRunningCompletely, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunningCompletely + this._beforeSize), }, (q, h) => new { BeforeRace = h.Race, Before = h.RaceHorse, CurrentRace = q.Race, Current = q.RaceHorse, });
+                  query = ApplyQueries(tmp).Select(t => t.Current);
+                }
+                break;
+            }
+          }
+          else
+          {
+            switch (this._countRule)
+            {
+              case RaceCountRule.All:
+                {
+                  var tmp = query
+                    .Join(db.Races!, q => q.RaceKey, r => r.Key, (q, r) => new { RaceHorse = q, Race = r, })
+                    .Join(tmpr, q => new { q.RaceHorse.Key, q.RaceHorse.RaceCount, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCount + this._beforeSize), }, (q, h) => new { BeforeRace = h.Race, Before = h.RaceHorse, CurrentRace = q.Race, Current = q.RaceHorse, })
+                    .Join(tmpr, q => new { q.Current.Key, q.Current.RaceCount, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCount + this._compareTargetSize), }, (q, h) => new { q.BeforeRace, q.Before, q.CurrentRace, q.Current, Compare = h.RaceHorse, CompareRace = h.Race, });
+                  query = ApplyQueries(tmp).Select(t => t.Current);
+                }
+                break;
+              case RaceCountRule.AnywaysRun:
+                {
+                  var tmp = query
+                    .Join(db.Races!, q => q.RaceKey, r => r.Key, (q, r) => new { RaceHorse = q, Race = r, })
+                    .Join(tmpr, q => new { q.RaceHorse.Key, RaceCount = q.RaceHorse.RaceCountWithinRunning, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunning + this._beforeSize), }, (q, h) => new { BeforeRace = h.Race, Before = h.RaceHorse, CurrentRace = q.Race, Current = q.RaceHorse, })
+                    .Join(tmpr, q => new { q.Current.Key, RaceCount = q.Current.RaceCountWithinRunning, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunning + this._compareTargetSize), }, (q, h) => new { q.BeforeRace, q.Before, q.CurrentRace, q.Current, Compare = h.RaceHorse, CompareRace = h.Race, });
+                  query = ApplyQueries(tmp).Select(t => t.Current);
+                }
+                break;
+              case RaceCountRule.Completely:
+                {
+                  var tmp = query
+                    .Join(db.Races!, q => q.RaceKey, r => r.Key, (q, r) => new { RaceHorse = q, Race = r, })
+                    .Join(tmpr, q => new { q.RaceHorse.Key, RaceCount = q.RaceHorse.RaceCountWithinRunningCompletely, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunningCompletely + this._beforeSize), }, (q, h) => new { BeforeRace = h.Race, Before = h.RaceHorse, CurrentRace = q.Race, Current = q.RaceHorse, })
+                    .Join(tmpr, q => new { q.Current.Key, RaceCount = q.Current.RaceCountWithinRunningCompletely, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunningCompletely + this._compareTargetSize), }, (q, h) => new { q.BeforeRace, q.Before, q.CurrentRace, q.Current, Compare = h.RaceHorse, CompareRace = h.Race, });
+                  query = ApplyQueries(tmp).Select(t => t.Current);
+                }
+                break;
+            }
+          }
+        }
+        else
+        {
+          // 過去レース存在確認または固定値比較
+          switch (this._countRule)
+          {
+            case RaceCountRule.All:
+              {
+                var tmp = query
+                  .Join(db.Races!, q => q.RaceKey, r => r.Key, (q, r) => q)
+                  .Join(tmpr, q => new { q.Key, q.RaceCount, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCount + this._beforeSize), }, (q, h) => q);
+                query = tmp.Select(t => t);
+              }
+              break;
+            case RaceCountRule.AnywaysRun:
+              {
+                var tmp = query
+                  .Join(db.Races!, q => q.RaceKey, r => r.Key, (q, r) => q)
+                  .Join(tmpr, q => new { q.Key, RaceCount = q.RaceCountWithinRunning, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunning + this._beforeSize), }, (q, h) => q);
+                query = tmp.Select(t => t);
+              }
+              break;
+            case RaceCountRule.Completely:
+              {
+                var tmp = query
+                  .Join(db.Races!, q => q.RaceKey, r => r.Key, (q, r) => q)
+                  .Join(tmpr, q => new { q.Key, RaceCount = q.RaceCountWithinRunningCompletely, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunningCompletely + this._beforeSize), }, (q, h) => q);
+                query = tmp.Select(t => t);
+              }
+              break;
+          }
+        }
       }
 
       return query;

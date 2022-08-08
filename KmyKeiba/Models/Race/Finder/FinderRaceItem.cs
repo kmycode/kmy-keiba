@@ -18,7 +18,7 @@ namespace KmyKeiba.Models.Race.Finder
     public FinderRaceItem(RaceAnalyzer analyzer)
     {
       this.Analyzer = analyzer;
-      this.TopHorses = analyzer.TopHorses.Select(rh => new FinderRaceHorseItem(rh)).ToArray();
+      this.TopHorses = analyzer.TopHorses.Select(rh => new FinderRaceHorseItem(rh, null)).ToArray();
 
       if (this.TopHorses.Any())
       {

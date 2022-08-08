@@ -22,22 +22,33 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ResultOrderGradeMap Grades { get; }
 
-    public FinderRaceHorseGroupItem(string key, IEnumerable<RaceHorseAnalyzer> group)
+    public double PlaceBetsRecoveryRate { get; }
+
+    public double QuinellaPlaceRecoveryRate { get; }
+
+    public FinderRaceHorseGroupItem(string key, IEnumerable<FinderRaceHorseItem> group)
     {
       this.GroupKey = key;
-      this.Grades = new ResultOrderGradeMap(group.ToArray());
+      this.Grades = new ResultOrderGradeMap(group.Select(g => g.Analyzer).ToArray());
 
       foreach (var item in group)
       {
-        this.Items.Add(new FinderRaceHorseItem(item));
+        this.Items.Add(item);
+      }
+
+      if (group.Any())
+      {
+        this.PlaceBetsRecoveryRate = group.Sum(g => g.PlaceBetsPayoff) / ((double)group.Count() * 100);
+        this.QuinellaPlaceRecoveryRate = group.Sum(g => g.QuinellaPlacePayoff) /
+          (double)(group.Sum(g => g.Analyzer.Race.ResultHorsesCount > 0 ? g.Analyzer.Race.ResultHorsesCount : g.Analyzer.Race.HorsesCount) * 100);
       }
     }
 
-    public FinderRaceHorseGroupItem(IEnumerable<RaceHorseAnalyzer> group) : this("デフォルト", group)
+    public FinderRaceHorseGroupItem(IEnumerable<FinderRaceHorseItem> group) : this("デフォルト", group)
     {
     }
 
-    public FinderRaceHorseGroupItem(IGrouping<object, RaceHorseAnalyzer> group) : this(group.Key.ToString() ?? string.Empty, group)
+    public FinderRaceHorseGroupItem(IGrouping<object, FinderRaceHorseItem> group) : this(group.Key.ToString() ?? string.Empty, group)
     {
       if (group.Key is PointLabelItem label)
       {
@@ -45,11 +56,11 @@ namespace KmyKeiba.Models.Race.Finder
       }
     }
 
-    public FinderRaceHorseGroupItem(IGrouping<string, RaceHorseAnalyzer> group) : this(group.Key, group)
+    public FinderRaceHorseGroupItem(IGrouping<string, FinderRaceHorseItem> group) : this(group.Key, group)
     {
     }
 
-    public FinderRaceHorseGroupItem(IGrouping<int, RaceHorseAnalyzer> group) : this(group.Key.ToString(), group)
+    public FinderRaceHorseGroupItem(IGrouping<int, FinderRaceHorseItem> group) : this(group.Key.ToString(), group)
     {
     }
   }

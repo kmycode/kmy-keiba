@@ -3,6 +3,7 @@ using System;
 using KmyKeiba.Downloader;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KmyKeiba.Downloader.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20220808031323_AddRaceCountsIndex")]
+    partial class AddRaceCountsIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.5");
@@ -996,11 +998,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Course");
-
-                    b.HasIndex("Key");
-
-                    b.HasIndex("StartTime");
+                    b.HasIndex("StartTime", "Key", "Course");
 
                     b.ToTable("Races");
                 });
@@ -1187,13 +1185,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RiderCode");
-
-                    b.HasIndex("TrainerCode");
-
-                    b.HasIndex("RaceKey", "Key");
-
-                    b.HasIndex("Key", "RaceCount", "RaceCountWithinRunning", "RaceCountWithinRunningCompletely");
+                    b.HasIndex("RaceKey", "Key", "RiderCode", "TrainerCode", "RaceCount", "RaceCountWithinRunning", "RaceCountWithinRunningCompletely");
 
                     b.ToTable("RaceHorses");
                 });

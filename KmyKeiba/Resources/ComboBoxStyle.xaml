@@ -137,6 +137,7 @@
     <Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
     <Setter Property="MinWidth" Value="40"/>
     <Setter Property="MinHeight" Value="20"/>
+    <Setter Property="MaxDropDownHeight" Value="500"/>
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ComboBox">

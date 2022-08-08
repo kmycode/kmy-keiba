@@ -10,7 +10,10 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  [Index(nameof(RaceKey), nameof(Key), nameof(RiderCode), nameof(TrainerCode), nameof(Course))]
+  [Index(nameof(RaceKey), nameof(Key))]
+  [Index(nameof(RiderCode))]
+  [Index(nameof(TrainerCode))]
+  [Index(nameof(Key), nameof(RaceCount), nameof(RaceCountWithinRunning), nameof(RaceCountWithinRunningCompletely))]
   public class RaceHorseData : DataBase<RaceHorse>
   {
     [StringLength(16)]
@@ -52,6 +55,16 @@ namespace KmyKeiba.Data.Db
     /// 着順
     /// </summary>
     public short ResultOrder { get; set; }
+
+    /// <summary>
+    /// 入線順位
+    /// </summary>
+    public short GoalOrder { get; set; }
+
+    /// <summary>
+    /// １着とのタイム差（１着の場合は２着との差）
+    /// </summary>
+    public short TimeDifference { get; set; }
 
     /// <summary>
     /// 着差
@@ -169,6 +182,23 @@ namespace KmyKeiba.Data.Db
     public short PreviousRaceDays { get; set; }
 
     /// <summary>
+    /// この馬にとって何度目のレースか
+    /// </summary>
+    public short RaceCount { get; set; }
+
+    /// <summary>
+    ///  競走除外とかでそもそも走らなかったレースを除く回数
+    ///  走らなかったレースでは-2が設定される
+    /// </summary>
+    public short RaceCountWithinRunning { get; set; }
+
+    /// <summary>
+    ///  とにかく失敗したレースを除く回数
+    ///  走らなかったレースでは-2が設定される
+    /// </summary>
+    public short RaceCountWithinRunningCompletely { get; set; }
+
+    /// <summary>
     /// 騎手の勝率マスターデータにこのデータは含まれているか
     /// </summary>
     public bool IsContainsRiderWinRate { get; set; }
@@ -198,6 +228,8 @@ namespace KmyKeiba.Data.Db
       this.RaceKey = entity.RaceKey;
       this.Course = entity.Course;
       this.ResultOrder = entity.ResultOrder;
+      this.GoalOrder = entity.GoalOrder;
+      this.TimeDifference = entity.TimeDifference;
       this.ResultTime = entity.ResultTime;
       this.ResultTimeValue = entity.ResultTimeValue;
       this.ResultLength1 = entity.ResultLength1;

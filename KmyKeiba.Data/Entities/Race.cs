@@ -101,6 +101,11 @@ namespace KmyKeiba.JVLink.Entities
     public short HorsesCount { get; set; }
 
     /// <summary>
+    /// 入選数
+    /// </summary>
+    public short ResultHorsesCount { get; set; }
+
+    /// <summary>
     /// 出走日時
     /// </summary>
     public DateTime StartTime { get; set; }
@@ -228,6 +233,7 @@ namespace KmyKeiba.JVLink.Entities
       short.TryParse(race.RaceInfo.TokuNum, out var gradeId);
       short.TryParse(race.id.RaceNum, out short courseRaceNum);
       short.TryParse(race.TorokuTosu, out short horsesCount);
+      short.TryParse(race.NyusenTosu, out short horsesCount2);
       short.TryParse(race.Kyori, out short distance);
 
       int.TryParse(race.TrackCD, out int track);
@@ -287,6 +293,7 @@ namespace KmyKeiba.JVLink.Entities
         CourseRaceNumber = courseRaceNum,
         Subject = subject,
         HorsesCount = horsesCount,
+        ResultHorsesCount = horsesCount2,
         StartTime = startTime,
         Corner1Position = cn1,
         Corner1Number = cnum1,

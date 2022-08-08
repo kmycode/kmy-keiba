@@ -16,9 +16,9 @@ namespace KmyKeiba.Models.Race.Finder
       return rows.Select(r => new FinderRow(r.Cells, r.Race, null)).ToArray();
     }
 
-    public static IReadOnlyList<FinderRow> ToFinderRows(this IEnumerable<RaceHorseAnalyzer> data, IEnumerable<FinderColumnDefinition<FinderRaceHorseItem>> columns)
+    public static IReadOnlyList<FinderRow> ToFinderRows(this IEnumerable<FinderRaceHorseItem> data, IEnumerable<FinderColumnDefinition<FinderRaceHorseItem>> columns)
     {
-      var rows = data.Select(d => new FinderRaceHorseItem(d))
+      var rows = data.Select(d => d)
         .Select(a => new { Cells = columns.Select(c => c.CreateCell(a)).ToArray(), Horse = a.Analyzer, });
       return rows.Select(r => new FinderRow(r.Cells, null, r.Horse)).ToArray();
     }

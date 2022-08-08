@@ -75,6 +75,10 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<PointLabelData>? PointLabels { get; set; }
 
+    public DbSet<ExternalNumberData>? ExternalNumbers { get; set; }
+
+    public DbSet<ExternalNumberConfig>? ExternalNumberConfigs { get; set; }
+
     #endregion
 
     private IDbContextTransaction? _transaction;
