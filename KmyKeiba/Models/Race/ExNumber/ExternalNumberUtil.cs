@@ -443,10 +443,8 @@ namespace KmyKeiba.Models.Race.ExNumber
         .Replace("%W1", new CultureInfo("ja-JP").Calendar.GetWeekOfYear(race.StartTime, CalendarWeekRule.FirstDay, DayOfWeek.Sunday).ToString("00"))
         .Replace("%W5", race.StartTime.DayOfWeek.ToString().ToLower().Substring(0, 3))
         .TryReplace("%P6", () => GetKolCode(race.Course).ToString("00"))
-        .TryReplace("%P7", () => GetKolCode(race.Course).ToString());
-
-        // 非対応:
-        //   %TC	JRA-VANのトラックコード(JV)半角数字2桁
+        .TryReplace("%P7", () => GetKolCode(race.Course).ToString())
+        .Replace("%TC", race.TrackCode.ToString("00"));
     }
   }
 }

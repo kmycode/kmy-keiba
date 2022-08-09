@@ -589,6 +589,7 @@ namespace KmyKeiba.JVLink.Entities
     Steeplechase = 4,
     Listed = 5,
     Others = 6,
+    LocalOpen = 7,
   }
 
   public enum RaceGrade
@@ -626,6 +627,21 @@ namespace KmyKeiba.JVLink.Entities
     [RaceGradeInfo(" ", RaceGradeType.Others, "")]
     Others = 10,
 
+    [RaceGradeInfo("P", RaceGradeType.Grade, "Jpn1")]
+    LocalGrade1_UC = 11,
+
+    [RaceGradeInfo("Q", RaceGradeType.Grade, "Jpn2")]
+    LocalGrade2_UC = 12,
+
+    [RaceGradeInfo("R", RaceGradeType.Grade, "Jpn3")]
+    LocalGrade3_UC = 13,
+
+    [RaceGradeInfo("S", RaceGradeType.NoNamedGrade, "L-G")]
+    LocalGrade_UC = 14,
+
+    [RaceGradeInfo("T", RaceGradeType.LocalOpen, "L-OP")]
+    LocalOpen_UC = 15,
+
     [RaceGradeInfo("Jpn1", RaceGradeType.Grade, "Jpn1")]
     LocalGrade1 = 101,
 
@@ -644,13 +660,13 @@ namespace KmyKeiba.JVLink.Entities
     [RaceGradeInfo("JpnL", RaceGradeType.Listed, "L")]
     LocalListed = 109,
 
-    [RaceGradeInfo("For1", RaceGradeType.Grade, "外1")]
+    [RaceGradeInfo("For1", RaceGradeType.Grade, "F-G1")]
     ForeignGrade1 = 201,
 
-    [RaceGradeInfo("For2", RaceGradeType.Grade, "外2")]
+    [RaceGradeInfo("For2", RaceGradeType.Grade, "F-G2")]
     ForeignGrade2 = 202,
 
-    [RaceGradeInfo("For3", RaceGradeType.Grade, "外3")]
+    [RaceGradeInfo("For3", RaceGradeType.Grade, "F-G3")]
     ForeignGrade3 = 203,
   }
 

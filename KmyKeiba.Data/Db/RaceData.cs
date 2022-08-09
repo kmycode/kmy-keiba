@@ -31,20 +31,7 @@ namespace KmyKeiba.Data.Db
         return default;
       }
     }
-
-    [NotMapped]
-    public short Nichiji
-    {
-      get
-      {
-        if (this.Key.Length >= 14)
-        {
-          short.TryParse(this.Key.Substring(12, 2), out var value);
-          return value;
-        }
-        return default;
-      }
-    }
+    public short Nichiji { get; set; }
 
     [StringLength(120)]
     public string Name { get; set; } = string.Empty;
@@ -62,6 +49,8 @@ namespace KmyKeiba.Data.Db
     [StringLength(4)]
     public string CourseType { get; set; } = string.Empty;
 
+    public short TrackCode { get; set; }
+
     public TrackGround TrackGround { get; set; }
 
     public TrackCornerDirection TrackCornerDirection { get; set; }
@@ -78,6 +67,14 @@ namespace KmyKeiba.Data.Db
 
     public bool IsConditionSetManually { get; set; }
 
+    public RaceRiderWeightRule RiderWeight { get; set; }
+
+    public RaceHorseAreaRule Area { get; set; }
+
+    public RaceHorseSexRule Sex { get; set; }
+
+    public RaceCrossRaceRule Cross { get; set; }
+
     public short Distance { get; set; }
 
     public short CourseRaceNumber { get; set; }
@@ -85,6 +82,10 @@ namespace KmyKeiba.Data.Db
     public string SubjectName { get; set; } = string.Empty;
 
     public string SubjectDisplayInfo { get; set; } = string.Empty;
+
+    public string SubjectInfo1 { get; set; } = string.Empty;
+
+    public string SubjectInfo2 { get; set; } = string.Empty;
 
     public RaceGrade Grade { get; set; }
 
@@ -180,10 +181,16 @@ namespace KmyKeiba.Data.Db
       this.GradeId = race.GradeId;
       this.Course = race.Course;
       this.CourseType = race.CourseType;
+      this.Nichiji = race.Nichiji;
+      this.TrackCode = race.TrackCode;
       this.TrackGround = race.TrackGround;
       this.TrackCornerDirection = race.TrackCornerDirection;
       this.TrackType = race.TrackType;
       this.TrackOption = race.TrackOption;
+      this.RiderWeight = race.RiderWeight;
+      this.Area = race.Area;
+      this.Sex = race.Sex;
+      this.Cross = race.Cross;
       this.Distance = race.Distance;
       this.CourseRaceNumber = race.CourseRaceNumber;
       this.HorsesCount = race.HorsesCount;

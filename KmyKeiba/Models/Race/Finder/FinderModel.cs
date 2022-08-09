@@ -17,6 +17,8 @@ namespace KmyKeiba.Models.Race.Finder
   {
     private readonly RaceFinder _finder;
 
+    public FinderQueryInput Input { get; } = new();
+
     public ReactiveProperty<IEnumerable<IFinderColumnDefinition>> Columns { get; } = new();
 
     public ReactiveCollection<FinderColumnDefinition<FinderRaceItem>> RaceColumns { get; } = new();
@@ -29,7 +31,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<FinderRaceHorseGroupItem?> CurrentGroup { get; } = new();
 
-    public ReactiveProperty<string> Keys { get; } = new("place>0");
+    public ReactiveProperty<string> Keys => this.Input.Query;
 
     public ReactiveProperty<bool> IsSearchRaces { get; } = new();
 
@@ -81,25 +83,6 @@ namespace KmyKeiba.Models.Race.Finder
             var data = await this._finder.FindRaceHorsesAsync(this.Keys.Value, 3000, withoutFutureRaces: false);
             var allItems = data.AsItems();
 
-            IEnumerable<IGrouping<object, FinderRaceHorseItem>>? groups = data.GroupKey switch
-            {
-              QueryKey.RiderName => allItems.GroupBy(d => d.Analyzer.Data.RiderName),
-              QueryKey.RiderCode => allItems.GroupBy(d => d.Analyzer.Data.RiderCode),
-              QueryKey.TrainerName => allItems.GroupBy(d => d.Analyzer.Data.TrainerName),
-              QueryKey.TrainerCode => allItems.GroupBy(d => d.Analyzer.Data.TrainerCode),
-              QueryKey.OwnerName => allItems.GroupBy(d => d.Analyzer.Data.OwnerName),
-              QueryKey.OwnerCode => allItems.GroupBy(d => d.Analyzer.Data.OwnerCode),
-              QueryKey.Course => allItems.GroupBy(d => (object)d.Analyzer.Data.Course),
-              QueryKey.Weather => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackWeather),
-              QueryKey.Condition => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackCondition),
-              QueryKey.HorseKey => allItems.GroupBy(d => d.Analyzer.Data.Key),
-              QueryKey.HorseName => allItems.GroupBy(d => d.Analyzer.Data.Name),
-              QueryKey.FrameNumber => allItems.GroupBy(d => d.Analyzer.Data.FrameNumber.ToString()),
-              QueryKey.HorseNumber => allItems.GroupBy(d => d.Analyzer.Data.Number.ToString()),
-              _ => null,
-            };
-            groups?.OrderBy(g => g.Key);
-
             IEnumerable<IEnumerable<FinderRaceHorseItem>> SplitData(int size)
             {
               if (data == null)
@@ -120,99 +103,126 @@ namespace KmyKeiba.Models.Race.Finder
               return lists;
             }
 
-            // ラベルでグループ化
-            if (data.GroupInfo != null)
+            // TODO: グループのネスト
             {
-              // メモのポイントでグループ化する処理
-              var list = new List<(FinderRaceHorseItem, short)>();
-
-              ExpansionMemoConfig? memoConfig = null;
-              PointLabelData? labelConfig = null;
-              IReadOnlyList<PointLabelItem>? labelItems = null;
-
-              var tasks = SplitData(3).Select(items =>
+              IEnumerable<IGrouping<object, FinderRaceHorseItem>>? groups = data.GroupKey switch
               {
-                return Task.Run(async () =>
-                {
-                  using var db = new MyContext();
+                QueryKey.RiderName => allItems.GroupBy(d => d.Analyzer.Data.RiderName),
+                QueryKey.RiderCode => allItems.GroupBy(d => d.Analyzer.Data.RiderCode),
+                QueryKey.TrainerName => allItems.GroupBy(d => d.Analyzer.Data.TrainerName),
+                QueryKey.TrainerCode => allItems.GroupBy(d => d.Analyzer.Data.TrainerCode),
+                QueryKey.OwnerName => allItems.GroupBy(d => d.Analyzer.Data.OwnerName),
+                QueryKey.OwnerCode => allItems.GroupBy(d => d.Analyzer.Data.OwnerCode),
+                QueryKey.Course => allItems.GroupBy(d => (object)d.Analyzer.Data.Course),
+                QueryKey.Weather => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackWeather),
+                QueryKey.Condition => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackCondition),
+                QueryKey.Grade => allItems.GroupBy(d => (object)d.Analyzer.Race.Grade),
+                QueryKey.HorseKey => allItems.GroupBy(d => d.Analyzer.Data.Key),
+                QueryKey.HorseName => allItems.GroupBy(d => d.Analyzer.Data.Name),
+                QueryKey.FrameNumber => allItems.GroupBy(d => d.Analyzer.Data.FrameNumber.ToString()),
+                QueryKey.HorseNumber => allItems.GroupBy(d => d.Analyzer.Data.Number.ToString()),
+                _ => null,
+              };
+              groups?.OrderBy(g => g.Key);
 
-                  foreach (var item in items)
+              // ラベルでグループ化
+              if (data.GroupInfo != null)
+              {
+                // メモのポイントでグループ化する処理
+                var list = new List<(FinderRaceHorseItem, short)>();
+
+                ExpansionMemoConfig? memoConfig = null;
+                PointLabelData? labelConfig = null;
+                IReadOnlyList<PointLabelItem>? labelItems = null;
+
+                var tasks = SplitData(3).Select(items =>
+                {
+                  return Task.Run(async () =>
                   {
-                    if (memoConfig == null)
+                    using var db = new MyContext();
+
+                    foreach (var item in items)
                     {
-                      memoConfig = MemoUtil.GetMemoConfig(data.GroupInfo.Target1, data.GroupInfo.Target2, data.GroupInfo.Target3, data.GroupInfo.MemoNumber);
                       if (memoConfig == null)
                       {
-                        break;
+                        memoConfig = MemoUtil.GetMemoConfig(data.GroupInfo.Target1, data.GroupInfo.Target2, data.GroupInfo.Target3, data.GroupInfo.MemoNumber);
+                        if (memoConfig == null)
+                        {
+                          break;
+                        }
+                        labelConfig = MemoUtil.GetPointLabelConfig(memoConfig);
+                        labelItems = labelConfig?.GetItems();
                       }
-                      labelConfig = MemoUtil.GetPointLabelConfig(memoConfig);
-                      labelItems = labelConfig?.GetItems();
-                    }
 
-                    var memo = await MemoUtil.GetMemoAsync(db, item.Analyzer.Race, memoConfig, item.Analyzer, false);
-                    if (memo != null)
-                    {
-                      list.Add((item, memo.Point));
+                      var memo = await MemoUtil.GetMemoAsync(db, item.Analyzer.Race, memoConfig, item.Analyzer, false);
+                      if (memo != null)
+                      {
+                        list.Add((item, memo.Point));
+                      }
                     }
-                  }
-                });
-              }).ToArray();
-              await Task.WhenAll(tasks);
+                  });
+                }).ToArray();
+                await Task.WhenAll(tasks);
 
-              if (labelItems == null)
+                if (labelItems == null)
+                {
+                  groups = list.OrderBy(i => i.Item2).GroupBy(i => (object)i.Item2, i => i.Item1).ToArray();
+                }
+                else
+                {
+                  groups = list.OrderBy(i => i.Item2).GroupBy(i => (object)(labelItems.FirstOrDefault(l => l.Point == i.Item2) ?? (object)string.Empty), i => i.Item1).ToArray();
+                }
+              }
+
+              // リスト全体をグループ化
+              if (groups != null)
               {
-                groups = list.OrderBy(i => i.Item2).GroupBy(i => (object)i.Item2, i => i.Item1).ToArray();
+                groups = groups.Take(100);
+
+                IReadOnlyList<FinderRaceHorseGroupItem> g;
+                if (data.GroupKey == QueryKey.RiderCode)
+                {
+                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.RiderName, g)).ToArray();
+                }
+                else if (data.GroupKey == QueryKey.TrainerCode)
+                {
+                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.TrainerName, g)).ToArray();
+                }
+                else if (data.GroupKey == QueryKey.OwnerCode)
+                {
+                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.OwnerName, g)).ToArray();
+                }
+                else if (data.GroupKey == QueryKey.Course)
+                {
+                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.Course.GetName() ?? string.Empty, g)).ToArray();
+                }
+                else if (data.GroupKey == QueryKey.Weather)
+                {
+                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.TrackWeather.ToString() ?? string.Empty, g)).ToArray();
+                }
+                else if (data.GroupKey == QueryKey.Condition)
+                {
+                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.TrackCondition.ToString() ?? string.Empty, g)).ToArray();
+                }
+                else if (data.GroupKey == QueryKey.Grade)
+                {
+                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.Grade.GetLabel() ?? string.Empty, g)).ToArray();
+                }
+                else if (data.GroupKey == QueryKey.HorseKey)
+                {
+                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.Name, g)).ToArray();
+                }
+                else
+                {
+                  g = groups.Select(g => new FinderRaceHorseGroupItem(g)).ToArray();
+                }
+                this.UpdateGroups(g);
               }
               else
               {
-                groups = list.OrderBy(i => i.Item2).GroupBy(i => (object)(labelItems.FirstOrDefault(l => l.Point == i.Item2) ?? (object)string.Empty), i => i.Item1).ToArray();
+                var group = new FinderRaceHorseGroupItem(allItems);
+                this.UpdateGroups(new[] { group, });
               }
-            }
-
-            // リスト全体をグループ化
-            if (groups != null)
-            {
-              groups = groups.Take(100);
-
-              IReadOnlyList<FinderRaceHorseGroupItem> g;
-              if (data.GroupKey == QueryKey.RiderCode)
-              {
-                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.RiderName, g)).ToArray();
-              }
-              else if (data.GroupKey == QueryKey.TrainerCode)
-              {
-                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.TrainerName, g)).ToArray();
-              }
-              else if (data.GroupKey == QueryKey.OwnerCode)
-              {
-                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.OwnerName, g)).ToArray();
-              }
-              else if (data.GroupKey == QueryKey.Course)
-              {
-                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.Course.GetName() ?? string.Empty, g)).ToArray();
-              }
-              else if (data.GroupKey == QueryKey.Weather)
-              {
-                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.TrackWeather.ToString() ?? string.Empty, g)).ToArray();
-              }
-              else if (data.GroupKey == QueryKey.Condition)
-              {
-                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.TrackCondition.ToString() ?? string.Empty, g)).ToArray();
-              }
-              else if (data.GroupKey == QueryKey.HorseKey)
-              {
-                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.Name, g)).ToArray();
-              }
-              else
-              {
-                g = groups.Select(g => new FinderRaceHorseGroupItem(g)).ToArray();
-              }
-              this.UpdateGroups(g);
-            }
-            else
-            {
-              var group = new FinderRaceHorseGroupItem(allItems);
-              this.UpdateGroups(new[] { group, });
             }
           }
         }

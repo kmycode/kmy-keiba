@@ -3,6 +3,7 @@ using System;
 using KmyKeiba.Downloader;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KmyKeiba.Downloader.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20220808041416_DivideRaceSubjects")]
+    partial class DivideRaceSubjects
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.5");
@@ -846,9 +848,6 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<short>("AfterHaronTime4")
                         .HasColumnType("INTEGER");
 
-                    b.Property<short>("Area")
-                        .HasColumnType("INTEGER");
-
                     b.Property<short>("BeforeHaronTime3")
                         .HasColumnType("INTEGER");
 
@@ -888,9 +887,6 @@ namespace KmyKeiba.Downloader.Migrations
                         .IsRequired()
                         .HasMaxLength(4)
                         .HasColumnType("TEXT");
-
-                    b.Property<short>("Cross")
-                        .HasColumnType("INTEGER");
 
                     b.Property<short>("DataStatus")
                         .HasColumnType("INTEGER");
@@ -938,9 +934,6 @@ namespace KmyKeiba.Downloader.Migrations
                         .HasMaxLength(24)
                         .HasColumnType("TEXT");
 
-                    b.Property<short>("Nichiji")
-                        .HasColumnType("INTEGER");
-
                     b.Property<byte[]>("PrizeMoney")
                         .IsRequired()
                         .HasColumnType("BLOB");
@@ -949,12 +942,6 @@ namespace KmyKeiba.Downloader.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<short>("ResultHorsesCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("RiderWeight")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<short>("Sex")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("StartTime")
@@ -1130,9 +1117,6 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<short>("RaceCount")
                         .HasColumnType("INTEGER");
 
-                    b.Property<short>("RaceCountAfterLastRest")
-                        .HasColumnType("INTEGER");
-
                     b.Property<short>("RaceCountWithinRunning")
                         .HasColumnType("INTEGER");
 
@@ -1222,7 +1206,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey", "Key");
 
-                    b.HasIndex("Key", "RaceCount", "RaceCountWithinRunning", "RaceCountWithinRunningCompletely", "RaceCountAfterLastRest");
+                    b.HasIndex("Key", "RaceCount", "RaceCountWithinRunning", "RaceCountWithinRunningCompletely");
 
                     b.ToTable("RaceHorses");
                 });

@@ -304,7 +304,7 @@ namespace KmyKeiba.Models.Data
       }
     }
 
-    public static async Task SetPreviousRaceDaysAsync(DateOnly? date = null, ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
+    public static async Task SetHorseExtraDataAsync(DateOnly? date = null, ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
     {
       var count = 0;
       var prevCommitCount = 0;
@@ -354,6 +354,7 @@ namespace KmyKeiba.Models.Data
             var raceCount = 1;
             var raceCountWithinRunning = 0;
             var raceCountCompletely = 0;
+            var raceCountAfterRest = 1;
             foreach (var race in races)
             {
               var y = race.RaceKey.Substring(0, 4);
@@ -375,6 +376,10 @@ namespace KmyKeiba.Models.Data
                 attach.PreviousRaceDays = -1;
                 isFirst = false;
               }
+              if (attach.PreviousRaceDays >= 90)
+              {
+                raceCountAfterRest = 1;
+              }
 
               attach.RaceCount = (short)raceCount;
 
@@ -385,6 +390,8 @@ namespace KmyKeiba.Models.Data
                 // とりあえず走った
                 raceCountWithinRunning++;
                 attach.RaceCountWithinRunning = (short)raceCountWithinRunning;
+                attach.RaceCountAfterLastRest = (short)raceCountAfterRest;
+                raceCountAfterRest++;
 
                 // ちゃんとゴールできた
                 if (race.AbnormalResult == RaceAbnormality.Unknown)
@@ -412,6 +419,7 @@ namespace KmyKeiba.Models.Data
           if (count >= prevCommitCount + 10000)
           {
             await db.CommitAsync();
+            db.ChangeTracker.Clear();
             prevCommitCount = count;
           }
           logger.Debug($"馬のInterval日数計算完了: {count} / {progressMax.Value}");
@@ -630,7 +638,11 @@ namespace KmyKeiba.Models.Data
         foreach (var race in races)
         {
           var subject = new RaceSubjectInfo(race);
-          race.SubjectDisplayInfo = $"{subject.Subject.DisplayClass}/{subject.Subject.SecondaryClass ?? string.Empty}/{subject.Subject.ClassName}";
+          var cls1 = subject.Subject.DisplayClass.ToString()?.ToLower() ?? string.Empty;
+          var cls2 = subject.Subject.SecondaryClass?.ToString()?.ToLower() ?? string.Empty;
+          race.SubjectDisplayInfo = $"{cls1}/{cls2}/{subject.Subject.ClassName}";
+          race.SubjectInfo1 = cls1;
+          race.SubjectInfo2 = cls2;
           count++;
 
           if (count > 10000)
@@ -662,15 +674,16 @@ namespace KmyKeiba.Models.Data
         await db.TryBeginTransactionAsync();
 
         var raceHorses = db.RaceHorses!.Where(rh => rh.ResultTimeValue == default && rh.ResultOrder > 0 && rh.Popular > 0 && rh.ResultLength1 != default);
+        var races = db.Races!.Where(r => r.SubjectDisplayInfo != string.Empty && r.SubjectInfo1 == string.Empty);
 
-        if (!(await raceHorses.AnyAsync()))
+        if (!(await raceHorses.AnyAsync()))   // racesの確認はしない（マイグレーション後、処理を実行したデータが引っかかる場合がある）
         {
           return;
         }
 
         if (progressMax != null)
         {
-          progressMax.Value = await raceHorses.CountAsync();
+          progressMax.Value = await raceHorses.CountAsync() + await races.CountAsync();
         }
         if (progress != null)
         {
@@ -682,6 +695,28 @@ namespace KmyKeiba.Models.Data
         {
           horse.ResultTimeValue = (short)(horse.ResultTime.Ticks / 1_000_000);
           horse.AfterThirdHalongTimeValue = (short)(horse.AfterThirdHalongTime.Ticks / 1_000_000);
+          i++;
+
+          if (i >= 10000)
+          {
+            await db.SaveChangesAsync();
+            await db.CommitAsync();
+
+            if (isCanceled?.Value == true)
+            {
+              return;
+            }
+
+            if (progress != null)
+            {
+              progress.Value += i;
+            }
+            i = 0;
+          }
+        }
+        foreach (var race in races)
+        {
+          race.SubjectDisplayInfo = string.Empty;
           i++;
 
           if (i >= 10000)

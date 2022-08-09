@@ -13,7 +13,7 @@ namespace KmyKeiba.Data.Db
   [Index(nameof(RaceKey), nameof(Key))]
   [Index(nameof(RiderCode))]
   [Index(nameof(TrainerCode))]
-  [Index(nameof(Key), nameof(RaceCount), nameof(RaceCountWithinRunning), nameof(RaceCountWithinRunningCompletely))]
+  [Index(nameof(Key), nameof(RaceCount), nameof(RaceCountWithinRunning), nameof(RaceCountWithinRunningCompletely), nameof(RaceCountAfterLastRest))]
   public class RaceHorseData : DataBase<RaceHorse>
   {
     [StringLength(16)]
@@ -197,6 +197,11 @@ namespace KmyKeiba.Data.Db
     ///  走らなかったレースでは-2が設定される
     /// </summary>
     public short RaceCountWithinRunningCompletely { get; set; }
+
+    /// <summary>
+    /// 一定日以上レース間隔のあいた直後のレースを 1 として、休養後のレース回数をカウントしていく
+    /// </summary>
+    public short RaceCountAfterLastRest { get; set; }
 
     /// <summary>
     /// 騎手の勝率マスターデータにこのデータは含まれているか

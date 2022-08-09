@@ -15,6 +15,10 @@ namespace KmyKeiba.Converters
     {
       if (value is string str)
       {
+        if (parameter?.ToString() == "Negative")
+        {
+          return !string.IsNullOrEmpty(str) ? Visibility.Visible : Visibility.Collapsed;
+        }
         return string.IsNullOrEmpty(str) ? Visibility.Visible : Visibility.Collapsed;
       }
       return Visibility.Visible;

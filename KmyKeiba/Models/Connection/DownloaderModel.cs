@@ -608,7 +608,7 @@ namespace KmyKeiba.Models.Connection
           try
           {
             this.HasProcessingProgress.Value = true;
-            await ShapeDatabaseModel.SetPreviousRaceDaysAsync(isCanceled: this.IsCancelProcessing,
+            await ShapeDatabaseModel.SetHorseExtraDataAsync(isCanceled: this.IsCancelProcessing,
               progress: this.ProcessingProgress, progressMax: this.ProcessingProgressMax);
           }
           // catch は不要
@@ -772,7 +772,7 @@ namespace KmyKeiba.Models.Connection
 
         this.RTProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
         logger.Info($"RTダウンロード/後処理進捗変更: {this.RTProcessingStep.Value}, リンク: {link}");
-        await ShapeDatabaseModel.SetPreviousRaceDaysAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
+        await ShapeDatabaseModel.SetHorseExtraDataAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
 
         this.RTProcessingStep.Value = Connection.ProcessingStep.RiderWinRates;
         logger.Info($"RTダウンロード/後処理進捗変更: {this.RTProcessingStep.Value}, リンク: {link}");

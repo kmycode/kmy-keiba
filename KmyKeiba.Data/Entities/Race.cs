@@ -14,6 +14,8 @@ namespace KmyKeiba.JVLink.Entities
   {
     public string Key { get; set; } = string.Empty;
 
+    public short Nichiji { get; set; }
+
     /// <summary>
     /// レースの名前
     /// </summary>
@@ -38,6 +40,11 @@ namespace KmyKeiba.JVLink.Entities
     /// 競馬場
     /// </summary>
     public RaceCourse Course { get; set; }
+
+    /// <summary>
+    /// トラックコード（外部指数の内部変数置換に使う）
+    /// </summary>
+    public short TrackCode { get; set; }
 
     /// <summary>
     /// 競馬場の地面
@@ -68,6 +75,14 @@ namespace KmyKeiba.JVLink.Entities
     /// 馬場の状態
     /// </summary>
     public RaceCourseCondition TrackCondition { get; set; }
+
+    public RaceRiderWeightRule RiderWeight { get; set; }
+
+    public RaceHorseAreaRule Area { get; set; }
+
+    public RaceHorseSexRule Sex { get; set; }
+
+    public RaceCrossRaceRule Cross { get; set; }
 
     /// <summary>
     /// 距離
@@ -215,6 +230,7 @@ namespace KmyKeiba.JVLink.Entities
       }
 
       var startTime = DateTime.ParseExact($"{race.id.Year}{race.id.MonthDay}{race.HassoTime}", "yyyyMMddHHmm", null);
+      short.TryParse(race.id.Nichiji, out var nichiji);
 
       var course = RaceCourse.Unknown;
       if (int.TryParse(race.id.JyoCD, out int courseNum))
@@ -243,6 +259,20 @@ namespace KmyKeiba.JVLink.Entities
 
       // 地方競馬DATAは、盛岡の芝もダートとして配信し、SibaBabaCDには何も設定しないみたい
       int.TryParse((trackGround == TrackGround.Turf && course <= RaceCourse.CentralMaxValue) ? race.TenkoBaba.SibaBabaCD : race.TenkoBaba.DirtBabaCD, out int condition);
+
+      short.TryParse(race.JyokenInfo.JyuryoCD, out var riderWeight);
+      var kigo1 = (RaceHorseAreaRule)(short)(race.JyokenInfo.KigoCD.ToLower()[0] - 'a' + 1);
+      var kigo2 = (RaceHorseSexRule)(short)(race.JyokenInfo.KigoCD.ToLower()[1] - '0');
+      RaceCrossRaceRule kigo3;
+      var kigo3Char = race.JyokenInfo.KigoCD.ToLower()[2];
+      if (kigo3Char <= '9')
+      {
+        kigo3 = (RaceCrossRaceRule)(short)(kigo3Char - '0');
+      }
+      else
+      {
+        kigo3 = (RaceCrossRaceRule)(short)(kigo3Char - 'a' + 1 + 9);
+      }
 
       short.TryParse(race.CornerInfo[0].Syukaisu, out var cnum1);
       short.TryParse(race.CornerInfo[0].Corner, out var cn1);
@@ -276,6 +306,7 @@ namespace KmyKeiba.JVLink.Entities
       {
         LastModified = race.head.MakeDate.ToDateTime(),
         Key = race.id.ToRaceKey(),
+        Nichiji = nichiji,
         DataStatus = race.head.DataKubun.ToDataStatus(),
         Name = name,
         Name6Chars = name6,
@@ -283,12 +314,17 @@ namespace KmyKeiba.JVLink.Entities
         GradeId = gradeId,
         Course = course,
         CourseType = race.CourseKubunCD.Trim(),
+        TrackCode = (short)track,
         TrackGround = trackGround,
         TrackType = trackType,
         TrackCornerDirection = trackCornerDirection,
         TrackOption = trackOption,
         TrackWeather = (RaceCourseWeather)weather,
         TrackCondition = (RaceCourseCondition)condition,
+        RiderWeight = (RaceRiderWeightRule)riderWeight,
+        Area = kigo1,
+        Sex = kigo2,
+        Cross = kigo3,
         Distance = distance,
         CourseRaceNumber = courseRaceNum,
         Subject = subject,
@@ -805,5 +841,155 @@ namespace KmyKeiba.JVLink.Entities
     Good = 2,
     Yielding = 3,
     Soft = 4,
+  }
+
+  public enum RaceRiderWeightRule : short
+  {
+    Unset = 0,
+
+    /// <summary>
+    /// ハンデ（実績などで重量を決定）
+    /// </summary>
+    Handicap = 1,
+
+    /// <summary>
+    /// 別定（レースごとに負担を決める基準がある）
+    /// </summary>
+    SpecialWeight = 2,
+
+    /// <summary>
+    /// 馬齢（性別や年齢で重量を決定）
+    /// </summary>
+    WeightForAge = 3,
+
+    /// <summary>
+    /// 定量（別定、かつ性別や年齢で重量を決定）
+    /// </summary>
+    SpecialWeightForAge = 4,
+  }
+
+  public enum RaceHorseAreaRule : short
+  {
+    Unknown = 0,
+
+    /// <summary>
+    /// 混合（A）
+    /// </summary>
+    Mixed = 1,
+
+    /// <summary>
+    /// 父（B）
+    /// </summary>
+    Father = 2,
+
+    /// <summary>
+    /// 市（C）
+    /// </summary>
+    Market = 3,
+
+    /// <summary>
+    /// 抽（D）
+    /// </summary>
+    Lottery = 4,
+
+    /// <summary>
+    /// 「抽」（E）
+    /// </summary>
+    Lottery2 = 5,
+
+    /// <summary>
+    /// 市抽（F）
+    /// </summary>
+    MarketLottery = 6,
+
+    /// <summary>
+    /// 抽・関西（G）
+    /// </summary>
+    LotteryWest = 7,
+
+    /// <summary>
+    /// 抽・関東（H）
+    /// </summary>
+    LotteryEast = 8,
+
+    /// <summary>
+    /// 「抽」・関西（I）
+    /// </summary>
+    Lottery2West = 9,
+
+    /// <summary>
+    /// 「抽」・関東（J）
+    /// </summary>
+    Lottery2East = 10,
+
+    MarketLotteryWest = 11,
+
+    MarketLotteryEast = 12,
+
+    Kyushu = 13,
+
+    International = 14,
+
+    O = 15,
+
+    /// <summary>
+    /// 兵庫（一部に佐賀などを含む）リミテッド
+    /// </summary>
+    LimitedHyogo = 16,
+
+    Q = 17,
+    R = 18,
+    S = 19,
+    T = 20,
+    U = 21,
+    V = 22,
+    W = 23,
+
+    /// <summary>
+    /// JRA認定競走（X）地方競馬のみに設定
+    /// </summary>
+    JraCertificated = 24,
+
+    /// <summary>
+    /// 南関東リミテッド
+    /// </summary>
+    LimitedSouthKanto = 25,
+
+    Z = 26,
+  }
+
+  public enum RaceHorseSexRule : short
+  {
+    Unknown = 0,
+
+    Male = 1,
+    Female = 2,
+    MaleCastrated = 3,
+    MaleFemale = 4,
+  }
+
+  public enum RaceCrossRaceRule : short
+  {
+    Unknown = 0,
+
+    /// <summary>
+    /// 指定
+    /// </summary>
+    Specificated = 1,
+
+    /// <summary>
+    /// 見習い騎手
+    /// </summary>
+    BeginnerRider = 2,
+
+    /// <summary>
+    /// 「指定」
+    /// </summary>
+    Specificated2 = 3,
+
+    /// <summary>
+    /// 特別指定
+    /// </summary>
+    Special = 4,
   }
 }
