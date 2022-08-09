@@ -76,7 +76,8 @@
               <RowDefinition Height="auto"/>
               <RowDefinition/>
             </Grid.RowDefinitions>
-            <TextBlock Text="競馬場" FontSize="20" Margin="0,0,0,8"/>
+            <TextBlock Text="競馬場" FontSize="20" Margin="0,0,0,8"
+                       Background="{Binding FinderModel.Input.Course.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}"/>
             <UniformGrid Columns="2" Grid.Row="1" Margin="0,0,0,4">
               <RadioButton Content="中央" GroupName="{Binding UniqueId2,ElementName=Root}"
                            IsChecked="{Binding FinderModel.Input.Course.IsCentral.Value,ElementName=Root,Mode=TwoWay}"/>
@@ -92,19 +93,40 @@
               <RowDefinition Height="auto"/>
               <RowDefinition/>
             </Grid.RowDefinitions>
-            <TextBlock Text="月" FontSize="20" Margin="0,0,0,8"/>
+            <TextBlock Text="月" FontSize="20" Margin="0,0,0,8"
+                       Background="{Binding FinderModel.Input.Month.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}"/>
             <ListBox Grid.Row="1" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.Month.Items,ElementName=Root}"/>
-            <TextBlock Grid.Row="2" Text="年" FontSize="20" Margin="0,8,0,8"/>
+            <TextBlock Grid.Row="2" Text="年" FontSize="20" Margin="0,8,0,8"
+                       Background="{Binding FinderModel.Input.Year.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}"/>
             <ListBox Grid.Row="3" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.Year.Items,ElementName=Root}"/>
           </Grid>
-          <Grid Width="120" Margin="8,0,0,0">
+          <Grid Width="100" Margin="8,0,0,0">
             <Grid.RowDefinitions>
               <RowDefinition Height="auto"/>
+              <RowDefinition Height="2.29*"/>
               <RowDefinition Height="auto"/>
               <RowDefinition/>
             </Grid.RowDefinitions>
-            <TextBlock Text="日次" FontSize="20" Margin="0,0,0,8"/>
-            <ListBox Grid.Row="2" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.Nichiji.Items,ElementName=Root}"/>
+            <TextBlock Text="日次" FontSize="20" Margin="0,0,0,8"
+                       Background="{Binding FinderModel.Input.Nichiji.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}"/>
+            <ListBox Grid.Row="1" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.Nichiji.Items,ElementName=Root}"/>
+            <TextBlock Grid.Row="2" Text="重量" FontSize="20" Margin="0,8,0,8"
+                       Background="{Binding FinderModel.Input.RiderWeightRule.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}"/>
+            <ListBox Grid.Row="3" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.RiderWeightRule.Items,ElementName=Root}"/>
+          </Grid>
+          <Grid Width="100" Margin="8,0,0,0">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="auto"/>
+              <RowDefinition Height="2.29*"/>
+              <RowDefinition Height="auto"/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="R" FontSize="20" Margin="0,0,0,8"
+                       Background="{Binding FinderModel.Input.RaceNumber.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}"/>
+            <ListBox Grid.Row="1" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.RaceNumber.Items,ElementName=Root}"/>
+            <TextBlock Grid.Row="2" Text="騎手制限" FontSize="20" Margin="0,8,0,8"
+                       Background="{Binding FinderModel.Input.Cross.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}"/>
+            <ListBox Grid.Row="3" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.Cross.Items,ElementName=Root}"/>
           </Grid>
           <Grid Width="120" Margin="8,0,0,0">
             <Grid.RowDefinitions>
@@ -113,49 +135,37 @@
               <RowDefinition Height="auto"/>
               <RowDefinition/>
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Text="R" FontSize="20" Margin="0,0,0,8"/>
-            <ListBox Grid.Row="1" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.RaceNumber.Items,ElementName=Root}"/>
-            <TextBlock Grid.Row="2" Text="重量" FontSize="20" Margin="0,8,0,8"/>
-            <ListBox Grid.Row="3" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.RiderWeightRule.Items,ElementName=Root}"/>
-          </Grid>
-          <Grid Width="120" Margin="8,0,0,0">
-            <Grid.RowDefinitions>
-              <RowDefinition Height="auto"/>
-              <RowDefinition Height="auto"/>
-              <RowDefinition/>
-            </Grid.RowDefinitions>
-            <TextBlock Text="条件・クラス" FontSize="20" Margin="0,0,0,8"/>
-            <ListBox Grid.Row="2"></ListBox>
-          </Grid>
-          <Grid Width="120" Margin="8,0,0,0">
-            <Grid.RowDefinitions>
-              <RowDefinition Height="auto"/>
-              <RowDefinition/>
-              <RowDefinition Height="auto"/>
-              <RowDefinition/>
-            </Grid.RowDefinitions>
-            <TextBlock Text="グレード" FontSize="20" Margin="0,0,0,8"/>
-            <ListBox Grid.Row="1"></ListBox>
-            <TextBlock Grid.Row="2" FontSize="20" Margin="0,8,0,8">
+            <TextBlock Text="条件・クラス" FontSize="20" Margin="0,0,0,8"
+                       Background="{Binding FinderModel.Input.Subject.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}"/>
+            <ListBox Grid.Row="1" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.Subject.Items,ElementName=Root}"/>
+            <TextBlock Grid.Row="2" FontSize="20" Margin="0,8,0,8"
+                       Background="{Binding FinderModel.Input.RaceAge.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}">
               年齢 <Run Text="(中央のみ)" FontSize="14"/>
             </TextBlock>
-            <ListBox Grid.Row="3"></ListBox>
+            <ListBox Grid.Row="3" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.RaceAge.Items,ElementName=Root}"/>
+          </Grid>
+          <Grid Width="120" Margin="8,0,0,0">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="auto"/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="グレード" FontSize="20" Margin="0,0,0,8"
+                       Background="{Binding FinderModel.Input.Grade.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}"/>
+            <ListBox Grid.Row="1" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.Grade.Items,ElementName=Root}"/>
           </Grid>
           <Grid Width="120" Margin="8,0,0,0">
             <Grid.RowDefinitions>
               <RowDefinition Height="auto"/>
               <RowDefinition/>
               <RowDefinition Height="auto"/>
-              <RowDefinition/>
-              <RowDefinition Height="auto"/>
-              <RowDefinition/>
+              <RowDefinition Height="2.36*"/>
             </Grid.RowDefinitions>
-            <TextBlock Text="性別" FontSize="20" Margin="0,0,0,8"/>
+            <TextBlock Text="性別" FontSize="20" Margin="0,0,0,8"
+                       Background="{Binding FinderModel.Input.SexRule.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}"/>
             <ListBox Grid.Row="1" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.SexRule.Items,ElementName=Root}"/>
-            <TextBlock Grid.Row="2" Text="産地・買条件" FontSize="20" Margin="0,8,0,8"/>
+            <TextBlock Grid.Row="2" Text="産地・買条件" FontSize="20" Margin="0,8,0,8"
+                       Background="{Binding FinderModel.Input.AreaRule.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}"/>
             <ListBox Grid.Row="3" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.AreaRule.Items,ElementName=Root}"/>
-            <TextBlock Grid.Row="4" Text="騎手制限" FontSize="20" Margin="0,8,0,8"/>
-            <ListBox Grid.Row="5"></ListBox>
           </Grid>
         </StackPanel>
       </ScrollViewer>

@@ -1536,4 +1536,40 @@ namespace KmyKeiba.Models.Race.Finder
       return query;
     }
   }
+
+  class RaceAgeScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  {
+    private readonly IReadOnlyList<short> _ages;
+
+    public RaceAgeScriptKeyQuery(IReadOnlyList<short> ages)
+    {
+      this._ages = ages;
+    }
+
+    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
+    {
+      if (!this._ages.Any())
+      {
+        return query;
+      }
+
+      var unknown = Expression.Constant((short)RaceSubjectType.Unknown);
+
+      for (var i = 2; i <= 5; i++)
+      {
+        var param = Expression.Parameter(typeof(RaceData), "x");
+        var property = Expression.Convert(Expression.Property(param, "SubjectAge" + i), typeof(short));
+        Expression result;
+
+        // 指定の年齢が含まれていないレースを除外する
+        if (!this._ages.Contains((short)i))
+        {
+          result = Expression.Equal(property, unknown);
+          query = query.Where(Expression.Lambda<Func<RaceData, bool>>(result, param));
+        }
+      }
+
+      return query;
+    }
+  }
 }

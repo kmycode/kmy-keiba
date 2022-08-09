@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
@@ -605,15 +606,6 @@ namespace KmyKeiba.Models.Race
       AddCorner(info.Corners, race.Corner2Result, race.Corner2Number, race.Corner2Position);
       AddCorner(info.Corners, race.Corner3Result, race.Corner3Number, race.Corner3Position);
       AddCorner(info.Corners, race.Corner4Result, race.Corner4Number, race.Corner4Position);
-
-      try
-      {
-        var count = 0;
-      }
-      catch (Exception ex)
-      {
-
-      }
 
       // 以降の情報は遅延読み込み
       _ = Task.Run(async () =>

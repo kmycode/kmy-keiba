@@ -691,10 +691,9 @@ namespace KmyKeiba.Models.Data
         }
 
         var i = 0;
-        foreach (var horse in raceHorses)
+        foreach (var race in races)
         {
-          horse.ResultTimeValue = (short)(horse.ResultTime.Ticks / 1_000_000);
-          horse.AfterThirdHalongTimeValue = (short)(horse.AfterThirdHalongTime.Ticks / 1_000_000);
+          race.SubjectDisplayInfo = string.Empty;
           i++;
 
           if (i >= 10000)
@@ -714,9 +713,10 @@ namespace KmyKeiba.Models.Data
             i = 0;
           }
         }
-        foreach (var race in races)
+        foreach (var horse in raceHorses)
         {
-          race.SubjectDisplayInfo = string.Empty;
+          horse.ResultTimeValue = (short)(horse.ResultTime.Ticks / 1_000_000);
+          horse.AfterThirdHalongTimeValue = (short)(horse.AfterThirdHalongTime.Ticks / 1_000_000);
           i++;
 
           if (i >= 10000)

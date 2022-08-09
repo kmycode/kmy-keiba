@@ -627,28 +627,28 @@ namespace KmyKeiba.JVLink.Entities
     [RaceGradeInfo(" ", RaceGradeType.Others, "")]
     Others = 10,
 
-    [RaceGradeInfo("P", RaceGradeType.Grade, "Jpn1")]
+    [RaceGradeInfo("P", RaceGradeType.Grade, "L-G1")]
     LocalGrade1_UC = 11,
 
-    [RaceGradeInfo("Q", RaceGradeType.Grade, "Jpn2")]
+    [RaceGradeInfo("Q", RaceGradeType.Grade, "L-G2")]
     LocalGrade2_UC = 12,
 
-    [RaceGradeInfo("R", RaceGradeType.Grade, "Jpn3")]
+    [RaceGradeInfo("R", RaceGradeType.Grade, "L-G3")]
     LocalGrade3_UC = 13,
 
     [RaceGradeInfo("S", RaceGradeType.NoNamedGrade, "L-G")]
     LocalGrade_UC = 14,
 
-    [RaceGradeInfo("T", RaceGradeType.LocalOpen, "L-OP")]
+    [RaceGradeInfo("T", RaceGradeType.LocalOpen, "L-PreG")]
     LocalOpen_UC = 15,
 
-    [RaceGradeInfo("Jpn1", RaceGradeType.Grade, "Jpn1")]
+    [RaceGradeInfo("Jpn1", RaceGradeType.Grade, "交-G1")]
     LocalGrade1 = 101,
 
-    [RaceGradeInfo("Jpn2", RaceGradeType.Grade, "Jpn2")]
+    [RaceGradeInfo("Jpn2", RaceGradeType.Grade, "交-G2")]
     LocalGrade2 = 102,
 
-    [RaceGradeInfo("Jpn3", RaceGradeType.Grade, "Jpn3")]
+    [RaceGradeInfo("Jpn3", RaceGradeType.Grade, "交-G3")]
     LocalGrade3 = 103,
 
     [RaceGradeInfo("JpnD", RaceGradeType.NoNamedGrade, "G")]

@@ -232,6 +232,29 @@ namespace KmyKeiba.Data.Db
       }
 
       this.Grade = race.Subject.Grade;
+      if (race.Course >= RaceCourse.Foreign)
+      {
+        if (this.Grade == RaceGrade.Grade1)
+          this.Grade = RaceGrade.ForeignGrade1;
+        if (this.Grade == RaceGrade.Grade2)
+          this.Grade = RaceGrade.ForeignGrade2;
+        if (this.Grade == RaceGrade.Grade3)
+          this.Grade = RaceGrade.ForeignGrade3;
+      }
+      else if (race.Course >= RaceCourse.LocalMinValue && race.Course < RaceCourse.Foreign)
+      {
+        if (this.Grade == RaceGrade.Grade1)
+          this.Grade = RaceGrade.LocalGrade1;
+        if (this.Grade == RaceGrade.Grade2)
+          this.Grade = RaceGrade.LocalGrade2;
+        if (this.Grade == RaceGrade.Grade3)
+          this.Grade = RaceGrade.LocalGrade3;
+        if (this.Grade == RaceGrade.NoNamedGrade)
+          this.Grade = RaceGrade.LocalNoNamedGrade;
+        if (this.Grade == RaceGrade.NonGradeSpecial)
+          this.Grade = RaceGrade.LocalNonGradeSpecial;
+      }
+
       foreach (var sub in race.Subject.AgeSubjects)
       {
         switch (sub.Age)

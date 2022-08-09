@@ -139,7 +139,10 @@ namespace KmyKeiba.Models.Race.Memo
       await UpdateConfigsAsync(db);
       try
       {
-        await db.BeginTransactionAsync();
+        if (DownloaderModel.Instance.CanSaveOthers.Value)
+        {
+          await db.BeginTransactionAsync();
+        }
       }
       catch
       {

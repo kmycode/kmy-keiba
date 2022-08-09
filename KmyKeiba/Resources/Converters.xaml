@@ -45,4 +45,5 @@
   <cv:CellTextAlignmentConverter x:Key="CellTextAlignmentConv"/>
 
   <cv:BooleanBrushConverter x:Key="BooleanForegroundSubOrBaseConv" TrueBrush="{StaticResource SubForeground}" FalseBrush="{StaticResource BaseForeground}"/>
+  <cv:BooleanBrushConverter x:Key="BooleanForegroundCustomizedCategoryConv" TrueBrush="{StaticResource GoodBackground}" FalseBrush="{StaticResource BaseBackground}"/>
 </ResourceDictionary>

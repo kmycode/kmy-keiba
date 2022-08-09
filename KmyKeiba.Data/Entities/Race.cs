@@ -262,7 +262,22 @@ namespace KmyKeiba.JVLink.Entities
 
       short.TryParse(race.JyokenInfo.JyuryoCD, out var riderWeight);
       var kigo1 = (RaceHorseAreaRule)(short)(race.JyokenInfo.KigoCD.ToLower()[0] - 'a' + 1);
-      var kigo2 = (RaceHorseSexRule)(short)(race.JyokenInfo.KigoCD.ToLower()[1] - '0');
+      RaceHorseSexRule kigo2;
+      {
+        var k = race.JyokenInfo.KigoCD.ToLower()[1];
+        if (k == 'a')
+        {
+          kigo2 = RaceHorseSexRule.A;
+        }
+        else if (k == 'b')
+        {
+          kigo2 = RaceHorseSexRule.B;
+        }
+        else
+        {
+          kigo2 = (RaceHorseSexRule)(short)(-'0');
+        }
+      }
       RaceCrossRaceRule kigo3;
       var kigo3Char = race.JyokenInfo.KigoCD.ToLower()[2];
       if (kigo3Char <= '9')
@@ -966,6 +981,9 @@ namespace KmyKeiba.JVLink.Entities
     Female = 2,
     MaleCastrated = 3,
     MaleFemale = 4,
+
+    A = 11,
+    B = 12,
   }
 
   public enum RaceCrossRaceRule : short

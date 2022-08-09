@@ -551,6 +551,51 @@ namespace KmyKeiba.Models.Race.Finder
           if (centrals.Any() || locals.Any())
           {
             queries!.Add(new RaceSubjectScriptKeyQuery(type, centrals, locals));
+            return true;
+          }
+
+          return false;
+        }
+
+        bool AddRaceAgeSubjectQuery()
+        {
+          if (!q!.StartsWith("subjectage"))
+          {
+            return false;
+          }
+
+          var type = QueryType.Equals;
+          var split = "=";
+          if (q.Contains("<>"))
+          {
+            type = QueryType.NotEquals;
+            split = "<>";
+          }
+          else if (!q.Contains('='))
+          {
+            return false;
+          }
+
+          var value = q.Split(split)[1];
+          var values = value.Split(',');
+
+          var ages = new List<short>();
+          foreach (var v in values)
+          {
+            if (short.TryParse(v, out var num))
+            {
+              ages.Add(num);
+            }
+          }
+
+          if (ages.Any())
+          {
+            if (type == QueryType.NotEquals)
+            {
+              ages = Enumerable.Range(2, 4).Select(v => (short)v).Except(ages).ToList();
+            }
+            queries!.Add(new RaceAgeScriptKeyQuery(ages));
+            return true;
           }
 
           return false;
@@ -565,6 +610,8 @@ namespace KmyKeiba.Models.Race.Finder
         hr = hr && !AddPlaceHorseQuery();
         hr = hr && !AddBeforeRacesQuery();
         hr = hr && !AddBelongsQuery();
+        hr = hr && !AddRaceAgeSubjectQuery();
+        hr = hr && !AddRaceSubjectQuery();
         hr = hr && !AddQuery("<>", QueryType.NotEquals);
         hr = hr && !AddQuery("<=", QueryType.LessThanOrEqual);
         hr = hr && !AddQuery(">=", QueryType.GreaterThanOrEqual);

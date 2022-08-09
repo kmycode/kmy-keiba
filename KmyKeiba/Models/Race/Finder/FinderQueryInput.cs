@@ -33,6 +33,14 @@ namespace KmyKeiba.Models.Race.Finder
 
     public RaceSexRuleInputCategory SexRule { get; }
 
+    public RaceGradeInputCategory Grade { get; }
+
+    public RaceAgeInputCategory RaceAge { get; }
+
+    public RaceSubjectInputCategory Subject { get; }
+
+    public RaceCrossInputCategory Cross { get; }
+
     public ReactiveProperty<string> Query { get; } = new();
 
     public FinderQueryInput()
@@ -45,6 +53,10 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.RiderWeightRule = new RiderWeightRuleInputCategory());
       this._categories.Add(this.AreaRule = new RaceAreaRuleInputCategory());
       this._categories.Add(this.SexRule = new RaceSexRuleInputCategory());
+      this._categories.Add(this.Grade = new RaceGradeInputCategory());
+      this._categories.Add(this.RaceAge = new RaceAgeInputCategory());
+      this._categories.Add(this.Subject = new RaceSubjectInputCategory());
+      this._categories.Add(this.Cross = new RaceCrossInputCategory());
 
       foreach (var category in this._categories)
       {

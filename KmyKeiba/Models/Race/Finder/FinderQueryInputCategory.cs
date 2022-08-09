@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,14 +15,25 @@ namespace KmyKeiba.Models.Race.Finder
   public interface IFinderQueryInputCategory : IDisposable
   {
     ReactiveProperty<string> Query { get; }
+
+    ReadOnlyReactiveProperty<bool> IsCustomized { get; }
   }
 
   public abstract class FinderQueryInputCategory : IFinderQueryInputCategory
   {
     protected CompositeDisposable Disposables { get; } = new();
 
-
     public ReactiveProperty<string> Query { get; } = new();
+
+    public ReadOnlyReactiveProperty<bool> IsCustomized { get; }
+
+    protected FinderQueryInputCategory()
+    {
+      this.IsCustomized = this.Query
+        .Select(q => !string.IsNullOrEmpty(q))
+        .ToReadOnlyReactiveProperty()
+        .AddTo(this.Disposables);
+    }
 
     protected void UpdateQuery()
     {
@@ -185,6 +197,11 @@ namespace KmyKeiba.Models.Race.Finder
       var query = base.GetQuery();
       var values = this.Items.GetCheckedValues();
 
+      if (this.Items.IsAll() || this.Items.IsEmpty())
+      {
+        return string.Empty;
+      }
+
       if (values.Any(v => v == RaceCourse.Foreign))
       {
         values = values.Where(v => v != RaceCourse.Foreign);
@@ -282,7 +299,7 @@ namespace KmyKeiba.Models.Race.Finder
     {
       this.SetItems(new List<FinderQueryInputListItem<RaceHorseAreaRule>>
       {
-        new FinderQueryInputListItem<RaceHorseAreaRule>("なし", RaceHorseAreaRule.Unknown),
+        new FinderQueryInputListItem<RaceHorseAreaRule>("限定なし", RaceHorseAreaRule.Unknown),
         new FinderQueryInputListItem<RaceHorseAreaRule>("混合", RaceHorseAreaRule.Mixed),
         new FinderQueryInputListItem<RaceHorseAreaRule>("（父）", RaceHorseAreaRule.Father),
         new FinderQueryInputListItem<RaceHorseAreaRule>("（市）", RaceHorseAreaRule.Market),
@@ -308,6 +325,11 @@ namespace KmyKeiba.Models.Race.Finder
       var query = base.GetQuery();
       var values = this.Items.GetCheckedValues();
 
+      if (this.Items.IsAll() || this.Items.IsEmpty())
+      {
+        return string.Empty;
+      }
+
       if (values.Any(v => v > RaceHorseAreaRule.International))
       {
         return $"{this.Key}={string.Join(',', values.Select(v => this.ToQueryValue(v)))}";
@@ -328,7 +350,7 @@ namespace KmyKeiba.Models.Race.Finder
     {
       this.SetItems(new List<FinderQueryInputListItem<RaceHorseSexRule>>
       {
-        new FinderQueryInputListItem<RaceHorseSexRule>("なし", RaceHorseSexRule.Unknown),
+        new FinderQueryInputListItem<RaceHorseSexRule>("限定なし", RaceHorseSexRule.Unknown),
         new FinderQueryInputListItem<RaceHorseSexRule>("牡", RaceHorseSexRule.Male),
         new FinderQueryInputListItem<RaceHorseSexRule>("牝", RaceHorseSexRule.Female),
         new FinderQueryInputListItem<RaceHorseSexRule>("牡／騸", RaceHorseSexRule.MaleCastrated),
@@ -337,6 +359,164 @@ namespace KmyKeiba.Models.Race.Finder
     }
 
     protected override string ToQueryValue(RaceHorseSexRule value)
+    {
+      return ((short)value).ToString();
+    }
+  }
+
+  public class RaceGradeInputCategory : ListBoxInputCategoryBase<RaceGrade>
+  {
+    public RaceGradeInputCategory() : base("grade")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<RaceGrade>>
+      {
+        new FinderQueryInputListItem<RaceGrade>("なし", RaceGrade.Unknown),
+        new FinderQueryInputListItem<RaceGrade>("G1", RaceGrade.Grade1),
+        new FinderQueryInputListItem<RaceGrade>("G2", RaceGrade.Grade2),
+        new FinderQueryInputListItem<RaceGrade>("G3", RaceGrade.Grade3),
+        new FinderQueryInputListItem<RaceGrade>("G", RaceGrade.NoNamedGrade),
+        new FinderQueryInputListItem<RaceGrade>("特別", RaceGrade.NonGradeSpecial),
+        new FinderQueryInputListItem<RaceGrade>("障害G1", RaceGrade.Steeplechase1),
+        new FinderQueryInputListItem<RaceGrade>("障害G2", RaceGrade.Steeplechase2),
+        new FinderQueryInputListItem<RaceGrade>("障害G3", RaceGrade.Steeplechase3),
+        new FinderQueryInputListItem<RaceGrade>("リステッド", RaceGrade.Listed),
+        new FinderQueryInputListItem<RaceGrade>("その他", RaceGrade.Others),
+        new FinderQueryInputListItem<RaceGrade>("海外G1", RaceGrade.ForeignGrade1),
+        new FinderQueryInputListItem<RaceGrade>("海外G2", RaceGrade.ForeignGrade2),
+        new FinderQueryInputListItem<RaceGrade>("海外G3", RaceGrade.ForeignGrade3),
+        new FinderQueryInputListItem<RaceGrade>("地交流G1", RaceGrade.LocalGrade1),
+        new FinderQueryInputListItem<RaceGrade>("地交流G2", RaceGrade.LocalGrade2),
+        new FinderQueryInputListItem<RaceGrade>("地交流G3", RaceGrade.LocalGrade3),
+        new FinderQueryInputListItem<RaceGrade>("地方G1", RaceGrade.LocalGrade1_UC),
+        new FinderQueryInputListItem<RaceGrade>("地方G2", RaceGrade.LocalGrade2_UC),
+        new FinderQueryInputListItem<RaceGrade>("地方G3", RaceGrade.LocalGrade3_UC),
+        new FinderQueryInputListItem<RaceGrade>("地方重賞", RaceGrade.LocalGrade_UC),
+        new FinderQueryInputListItem<RaceGrade>("地方OP", RaceGrade.LocalOpen_UC),
+      });
+    }
+
+    protected override string ToQueryValue(RaceGrade value)
+    {
+      return ((short)value).ToString();
+    }
+
+    protected override string GetQuery()
+    {
+      var query = base.GetQuery();
+      var values = this.Items.GetCheckedValues();
+
+      if (this.Items.IsAll() || this.Items.IsEmpty())
+      {
+        return string.Empty;
+      }
+
+      if (values.Any(v => (short)v >= 100))
+      {
+        return $"{this.Key}={string.Join(',', values.Select(v => this.ToQueryValue(v)))}";
+      }
+
+      return query;
+    }
+  }
+
+  public class RaceAgeInputCategory : ListBoxInputCategoryBase<short>
+  {
+    public RaceAgeInputCategory() : base("subjectage")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<short>>
+      {
+        new FinderQueryInputListItem<short>(2),
+        new FinderQueryInputListItem<short>(3),
+        new FinderQueryInputListItem<short>(4),
+        new FinderQueryInputListItem<short>(5),
+      });
+    }
+  }
+
+  public class RaceSubjectInputCategory : ListBoxInputCategoryBase<object>
+  {
+    public RaceSubjectInputCategory() : base("subject")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<object>>
+      {
+        new FinderQueryInputListItem<object>("新馬戦", RaceSubjectType.NewComer),
+        new FinderQueryInputListItem<object>("未出走", RaceSubjectType.Unraced),
+        new FinderQueryInputListItem<object>("未勝利", RaceSubjectType.Maiden),
+        new FinderQueryInputListItem<object>("オープン", RaceSubjectType.Open),
+        new FinderQueryInputListItem<object>("１勝クラス", RaceSubjectType.Win1),
+        new FinderQueryInputListItem<object>("２勝クラス", RaceSubjectType.Win2),
+        new FinderQueryInputListItem<object>("３勝クラス", RaceSubjectType.Win3),
+        new FinderQueryInputListItem<object>("地・Aクラス", RaceClass.ClassA),
+        new FinderQueryInputListItem<object>("地・Bクラス", RaceClass.ClassB),
+        new FinderQueryInputListItem<object>("地・Cクラス", RaceClass.ClassC),
+        new FinderQueryInputListItem<object>("ば・Dクラス", RaceClass.ClassD),
+        new FinderQueryInputListItem<object>("地・賞金", RaceClass.Money),
+        new FinderQueryInputListItem<object>("地・年齢", RaceClass.Age),
+      });
+    }
+
+    protected override string ToQueryValue(object value)
+    {
+      if (value is RaceSubjectType type)
+      {
+        return ((int)type).ToString();
+      }
+      if (value is RaceClass cls)
+      {
+        return cls.ToString().ToLower();
+      }
+      return base.ToQueryValue(value);
+    }
+
+    protected override string GetQuery()
+    {
+      if (this.Items.IsEmpty())
+      {
+        return string.Empty;
+      }
+
+      var values = this.Items.GetCheckedValues().ToArray();
+      var queryValues = values
+        .Select(v =>
+        {
+          switch (v)
+          {
+            case RaceSubjectType.NewComer:
+            case RaceSubjectType.Unraced:
+            case RaceSubjectType.Maiden:
+            case RaceSubjectType.Open:
+              return $"{(int)v},{v.ToString()!.ToLower()}";
+            case RaceSubjectType.Win1:
+            case RaceSubjectType.Win2:
+            case RaceSubjectType.Win3:
+              return ((int)v).ToString();
+            case RaceClass:
+              return v.ToString()!.ToLower();
+            default:
+              return string.Empty;
+          }
+        })
+        .Where(v => !string.IsNullOrEmpty(v));
+
+      return $"{this.Key}={string.Join(',', queryValues)}";
+    }
+  }
+
+  public class RaceCrossInputCategory : ListBoxInputCategoryBase<RaceCrossRaceRule>
+  {
+    public RaceCrossInputCategory() : base("crossrule")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<RaceCrossRaceRule>>
+        {
+          new FinderQueryInputListItem<RaceCrossRaceRule>("限定なし", RaceCrossRaceRule.Unknown),
+          new FinderQueryInputListItem<RaceCrossRaceRule>("指定", RaceCrossRaceRule.Specificated),
+          new FinderQueryInputListItem<RaceCrossRaceRule>("見習", RaceCrossRaceRule.BeginnerRider),
+          new FinderQueryInputListItem<RaceCrossRaceRule>("「指定」", RaceCrossRaceRule.Specificated2),
+          new FinderQueryInputListItem<RaceCrossRaceRule>("特指", RaceCrossRaceRule.Special),
+        });
+    }
+
+    protected override string ToQueryValue(RaceCrossRaceRule value)
     {
       return ((short)value).ToString();
     }
