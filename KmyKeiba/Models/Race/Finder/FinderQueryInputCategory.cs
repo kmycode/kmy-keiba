@@ -1,5 +1,8 @@
-﻿using KmyKeiba.Data.Wrappers;
+﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Data;
+using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -9,6 +12,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace KmyKeiba.Models.Race.Finder
 {
@@ -96,6 +100,139 @@ namespace KmyKeiba.Models.Race.Finder
       return $"{this.Key}={string.Join(',', this.Items.GetCheckedValues().Select(v => this.ToQueryValue(v)))}";
     }
   }
+
+  public class StringInputCategoryBase : FinderQueryInputCategory
+  {
+    protected string Key { get; }
+
+    public FinderQueryStringInput Input { get; } = new();
+
+    protected StringInputCategoryBase(string key)
+    {
+      this.Key = key;
+
+      this.Input.Value.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsEqual.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsStartsWith.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsEndsWith.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsContains.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
+    }
+
+    protected override string GetQuery()
+    {
+      var right = this.Input.GetRightQuery();
+      if (string.IsNullOrEmpty(right))
+      {
+        return string.Empty;
+      }
+      return $"{this.Key}{right}";
+    }
+  }
+
+  public class StringInputCategoryWithTestBase<T> : StringInputCategoryBase
+  {
+    public ReactiveCollection<T> TestResult { get; } = new();
+
+    public ReactiveProperty<bool> IsTestError { get; } = new();
+
+    protected StringInputCategoryWithTestBase(string key) : base(key)
+    {
+    }
+
+    protected virtual Task TestAsync()
+    {
+      return Task.CompletedTask;
+    }
+
+    public ICommand TestCommand =>
+      this._testCommand ??= new AsyncReactiveCommand<object>().WithSubscribe(async _ =>
+      {
+        this.TestResult.Clear();
+        this.IsTestError.Value = false;
+
+        if (string.IsNullOrWhiteSpace(this.Input.Value.Value))
+        {
+          return;
+        }
+
+        try
+        {
+          await this.TestAsync();
+        }
+        catch
+        {
+          this.IsTestError.Value = true;
+        }
+      }).AddTo(this.Disposables);
+    private ICommand? _testCommand;
+  }
+
+  public class NumberInputCategoryBase : FinderQueryInputCategory
+  {
+    protected string Key { get; }
+
+    public FinderQueryNumberInput Input { get; } = new();
+
+    protected NumberInputCategoryBase(string key)
+    {
+      this.Key = key;
+
+      this.Input.Value.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.MaxValue.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsRange.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsEqual.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsGreaterThan.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsGreaterThanOrEqual.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsLessThan.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsLessThanOrEqual.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsNotEqual.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+    }
+
+    protected override string GetQuery()
+    {
+      var right = this.Input.GetRightQuery();
+      if (string.IsNullOrEmpty(right))
+      {
+        return string.Empty;
+      }
+      return $"{this.Key}{right}";
+    }
+  }
+
+  public class FloatNumberInputCategoryBase : FinderQueryInputCategory
+  {
+    protected string Key { get; }
+
+    public FinderQueryFloatNumberInput Input { get; }
+
+    protected FloatNumberInputCategoryBase(string key, int digit)
+    {
+      this.Key = key;
+      this.Input = new FinderQueryFloatNumberInput(digit);
+
+      this.Input.Value.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.MaxValue.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsRange.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsEqual.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsGreaterThan.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsGreaterThanOrEqual.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsLessThan.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsLessThanOrEqual.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.IsNotEqual.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+    }
+
+    protected override string GetQuery()
+    {
+      var right = this.Input.GetRightQuery();
+      if (string.IsNullOrEmpty(right))
+      {
+        return string.Empty;
+      }
+      return $"{this.Key}{right}";
+    }
+  }
+
+  #region レース１
 
   public class CourseInputCategory : ListBoxInputCategoryBase<RaceCourse>
   {
@@ -358,6 +495,17 @@ namespace KmyKeiba.Models.Race.Finder
       });
     }
 
+    protected override string GetQuery()
+    {
+      var values = this.Items.GetCheckedValues().ToArray();
+      if (values.Contains(RaceHorseSexRule.Female))
+      {
+        return $"{this.Key}={string.Join(',', values.Append(RaceHorseSexRule.A).Append(RaceHorseSexRule.B).Select(v => this.ToQueryValue(v)))}";
+      }
+
+      return base.GetQuery();
+    }
+
     protected override string ToQueryValue(RaceHorseSexRule value)
     {
       return ((short)value).ToString();
@@ -521,4 +669,540 @@ namespace KmyKeiba.Models.Race.Finder
       return ((short)value).ToString();
     }
   }
+
+  #endregion
+
+  #region レース２
+
+  public class RaceNameInputCategory : StringInputCategoryWithTestBase<RaceNameInputCategory.TestItem>
+  {
+    public RaceNameInputCategory() : base("racename")
+    {
+    }
+
+    protected override string GetQuery()
+    {
+      var right = this.Input.GetRightQuery();
+      if (string.IsNullOrEmpty(right))
+      {
+        return string.Empty;
+      }
+      return $"racename{right}";
+    }
+
+    protected override async Task TestAsync()
+    {
+      using var db = new MyContext();
+      IQueryable<RaceData> query = db.Races!;
+      var value = this.Input.Value.Value;
+      if (this.Input.IsEqual.Value)
+      {
+        query = query.Where(r => r.Name == value);
+      }
+      else if (this.Input.IsContains.Value)
+      {
+        query = query.Where(r => r.Name.Contains(value));
+      }
+      else if (this.Input.IsStartsWith.Value)
+      {
+        query = query.Where(r => r.Name.StartsWith(value));
+      }
+      else if (this.Input.IsEndsWith.Value)
+      {
+        query = query.Where(r => r.Name.EndsWith(value));
+      }
+
+      try
+      {
+        var names = await query
+          .OrderByDescending(q => q.StartTime)
+          .GroupBy(q => q.Name)
+          .Select(q => q.Key)
+          .Take(30)
+          .ToArrayAsync();
+        foreach (var n in names)
+        {
+          this.TestResult.Add(new TestItem
+          {
+            RaceName = n,
+          });
+        }
+      }
+      catch
+      {
+        this.IsTestError.Value = true;
+      }
+    }
+
+    public class TestItem
+    {
+      public string RaceName { get; set; } = string.Empty;
+    }
+  }
+
+  public class RaceFirstPrizeInputCategory : NumberInputCategoryBase
+  {
+    public RaceFirstPrizeInputCategory() : base("prize1")
+    {
+    }
+  }
+
+  public class RaceHorsesCountInputCategory : ListBoxInputCategoryBase<short>
+  {
+    public RaceHorsesCountInputCategory() : base("horsescount")
+    {
+      // 最大１８頭になったのは１９９２年から。１９８６～１９９１年のレース検索は
+      // 現代のレース予想として利用するにはデータの信頼性がないので、このままで問題はなさそう
+      this.SetItems(Enumerable.Range(1, 18)
+        .Select(v => (short)v)
+        .Select(v => new FinderQueryInputListItem<short>(v))
+        .ToList());
+    }
+  }
+
+  public class RaceHorsesGoalCountInputCategory : ListBoxInputCategoryBase<short>
+  {
+    public RaceHorsesGoalCountInputCategory() : base("goalhorsescount")
+    {
+      this.SetItems(Enumerable.Range(1, 18)
+        .Select(v => (short)v)
+        .Select(v => new FinderQueryInputListItem<short>(v))
+        .ToList());
+    }
+  }
+
+  #endregion
+
+  #region トラック
+
+  public class TrackGroundInputCategory : ListBoxInputCategoryBase<TrackGround>
+  {
+    public TrackGroundInputCategory() : base("ground")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<TrackGround>>
+      {
+        new FinderQueryInputListItem<TrackGround>("芝", TrackGround.Turf),
+        new FinderQueryInputListItem<TrackGround>("ダート", TrackGround.Dirt),
+        new FinderQueryInputListItem<TrackGround>("芝→ダ", TrackGround.TurfToDirt),
+        new FinderQueryInputListItem<TrackGround>("サンド", TrackGround.Sand),
+      });
+    }
+
+    protected override string ToQueryValue(TrackGround value)
+    {
+      return ((short)value).ToString();
+    }
+  }
+
+  public class TrackCornerDirectionInputCategory : ListBoxInputCategoryBase<TrackCornerDirection>
+  {
+    public TrackCornerDirectionInputCategory() : base("direction")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<TrackCornerDirection>>
+      {
+        new FinderQueryInputListItem<TrackCornerDirection>("左", TrackCornerDirection.Left),
+        new FinderQueryInputListItem<TrackCornerDirection>("右", TrackCornerDirection.Right),
+        new FinderQueryInputListItem<TrackCornerDirection>("直線", TrackCornerDirection.Straight),
+      });
+    }
+
+    protected override string ToQueryValue(TrackCornerDirection value)
+    {
+      return ((short)value).ToString();
+    }
+  }
+
+  public class TrackOptionInputCategory : ListBoxInputCategoryBase<TrackOption>
+  {
+    public TrackOptionInputCategory() : base("trackoption")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<TrackOption>>
+      {
+        new FinderQueryInputListItem<TrackOption>("分類なし", TrackOption.Unknown),
+        new FinderQueryInputListItem<TrackOption>("外", TrackOption.Outside),
+        new FinderQueryInputListItem<TrackOption>("内", TrackOption.Inside),
+        new FinderQueryInputListItem<TrackOption>("外→内", TrackOption.OutsideToInside),
+        new FinderQueryInputListItem<TrackOption>("内→外", TrackOption.InsideToOutside),
+        new FinderQueryInputListItem<TrackOption>("外２周", TrackOption.Outside2),
+        new FinderQueryInputListItem<TrackOption>("内２周", TrackOption.Inside2),
+      });
+    }
+
+    protected override string ToQueryValue(TrackOption value)
+    {
+      return ((short)value).ToString();
+    }
+  }
+
+  public class TrackTypeInputCategory : ListBoxInputCategoryBase<TrackType>
+  {
+    public TrackTypeInputCategory() : base("tracktype")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<TrackType>>
+      {
+        new FinderQueryInputListItem<TrackType>("平地", TrackType.Flat),
+        new FinderQueryInputListItem<TrackType>("障害", TrackType.Steeplechase),
+      });
+    }
+
+    protected override string ToQueryValue(TrackType value)
+    {
+      return ((short)value).ToString();
+    }
+  }
+
+  public class TrackConditionInputCategory : ListBoxInputCategoryBase<RaceCourseCondition>
+  {
+    public TrackConditionInputCategory() : base("condition")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<RaceCourseCondition>>
+      {
+        new FinderQueryInputListItem<RaceCourseCondition>("良", RaceCourseCondition.Standard),
+        new FinderQueryInputListItem<RaceCourseCondition>("稍重", RaceCourseCondition.Good),
+        new FinderQueryInputListItem<RaceCourseCondition>("重", RaceCourseCondition.Yielding),
+        new FinderQueryInputListItem<RaceCourseCondition>("不良", RaceCourseCondition.Soft),
+      });
+    }
+
+    protected override string ToQueryValue(RaceCourseCondition value)
+    {
+      return ((short)value).ToString();
+    }
+  }
+
+  public class TrackWeatherInputCategory : ListBoxInputCategoryBase<RaceCourseWeather>
+  {
+    public TrackWeatherInputCategory() : base("weather")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<RaceCourseWeather>>
+      {
+        new FinderQueryInputListItem<RaceCourseWeather>("晴れ", RaceCourseWeather.Fine),
+        new FinderQueryInputListItem<RaceCourseWeather>("曇り", RaceCourseWeather.Cloudy),
+        new FinderQueryInputListItem<RaceCourseWeather>("雨", RaceCourseWeather.Rainy),
+        new FinderQueryInputListItem<RaceCourseWeather>("大雨", RaceCourseWeather.Drizzle),
+        new FinderQueryInputListItem<RaceCourseWeather>("雪", RaceCourseWeather.Snow),
+        new FinderQueryInputListItem<RaceCourseWeather>("小雪", RaceCourseWeather.LightSnow),
+      });
+    }
+
+    protected override string ToQueryValue(RaceCourseWeather value)
+    {
+      return ((short)value).ToString();
+    }
+  }
+
+  public class TrackDistanceInputCategory : NumberInputCategoryBase
+  {
+    public TrackDistanceInputCategory() : base("distance")
+    {
+    }
+  }
+
+  #endregion
+
+  #region 本レース出場馬
+
+  public class HorseOfCurrentRaceInputCategory : FinderQueryInputCategory
+  {
+    public bool IsEnabled => this.Horses.Any();
+
+    public ReactiveProperty<bool> IsUnspecified { get; } = new(true);
+
+    public ReactiveProperty<bool> IsAllHorses { get; } = new();
+
+    public ReactiveProperty<bool> IsHorseNumber { get; } = new();
+
+    public ReactiveCollection<HorseItem> Horses { get; } = new();
+
+    public ReactiveProperty<HorseItem?> SelectedHorse { get; } = new();
+
+    public HorseOfCurrentRaceInputCategory(IReadOnlyList<RaceHorseData>? raceHorses)
+    {
+      if (raceHorses != null)
+      {
+        foreach (var horse in raceHorses)
+        {
+          this.Horses.Add(new HorseItem
+          {
+            Name = horse.Name,
+            Number = horse.Number,
+            Key = horse.Key,
+          });
+        }
+      }
+
+      this.IsUnspecified.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsAllHorses.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsHorseNumber.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.SelectedHorse.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+    }
+
+    protected override string GetQuery()
+    {
+      if (this.IsUnspecified.Value)
+      {
+        return string.Empty;
+      }
+      if (this.IsAllHorses.Value)
+      {
+        return "horse#";
+      }
+      if (this.IsHorseNumber.Value)
+      {
+        if (this.SelectedHorse.Value != null)
+        {
+          return $"horse={this.SelectedHorse.Value.Key}";
+        }
+      }
+
+      return string.Empty;
+    }
+
+    public class HorseItem
+    {
+      public string Name { get; init; } = string.Empty;
+
+      public short Number { get; init; }
+
+      public string Key { get; init; }
+    }
+  }
+
+  #endregion
+
+  #region 馬
+
+  public class HorseNameInputCategory : StringInputCategoryWithTestBase<HorseNameInputCategory.TestItem>
+  {
+    public HorseNameInputCategory() : base("horsename")
+    {
+    }
+
+    protected override string GetQuery()
+    {
+      var right = this.Input.GetRightQuery();
+      if (string.IsNullOrEmpty(right))
+      {
+        return string.Empty;
+      }
+      return $"horsename{right}";
+    }
+
+    protected override async Task TestAsync()
+    {
+      using var db = new MyContext();
+      IQueryable<RaceHorseData> query = db.RaceHorses!;
+      var value = this.Input.Value.Value;
+      if (this.Input.IsEqual.Value)
+      {
+        query = query.Where(r => r.Name == value);
+      }
+      else if (this.Input.IsContains.Value)
+      {
+        query = query.Where(r => r.Name.Contains(value));
+      }
+      else if (this.Input.IsStartsWith.Value)
+      {
+        query = query.Where(r => r.Name.StartsWith(value));
+      }
+      else if (this.Input.IsEndsWith.Value)
+      {
+        query = query.Where(r => r.Name.EndsWith(value));
+      }
+
+      try
+      {
+        var names = await query
+          .OrderByDescending(q => q.LastModified)
+          .GroupBy(q => q.Name)
+          .Select(q => q.Key)
+          .Take(50)
+          .ToArrayAsync();
+        foreach (var n in names)
+        {
+          this.TestResult.Add(new TestItem
+          {
+            Name = n,
+          });
+        }
+      }
+      catch
+      {
+        this.IsTestError.Value = true;
+      }
+    }
+
+    public class TestItem
+    {
+      public string Name { get; set; } = string.Empty;
+    }
+  }
+
+  public class HorseAgeInputCategory : ListBoxInputCategoryBase<short>
+  {
+    public HorseAgeInputCategory() : base("age")
+    {
+      this.SetItems(Enumerable.Range(2, 17)
+        .Select(v => (short)v)
+        .Select(v => new FinderQueryInputListItem<short>(v))
+        .ToList());
+    }
+  }
+
+  public class HorseSexInputCategory : ListBoxInputCategoryBase<HorseSex>
+  {
+    public HorseSexInputCategory() : base("sex")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<HorseSex>>
+      {
+        new FinderQueryInputListItem<HorseSex>("牡", HorseSex.Male),
+        new FinderQueryInputListItem<HorseSex>("牝", HorseSex.Female),
+        new FinderQueryInputListItem<HorseSex>("騸", HorseSex.Castrated),
+      });
+    }
+
+    protected override string ToQueryValue(HorseSex value)
+    {
+      return ((short)value).ToString();
+    }
+  }
+
+  public class HorseColorInputCategory : ListBoxInputCategoryBase<HorseBodyColor>
+  {
+    public HorseColorInputCategory() : base("color")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<HorseBodyColor>>
+      {
+        new FinderQueryInputListItem<HorseBodyColor>("栗", HorseBodyColor.Chestnut),
+        new FinderQueryInputListItem<HorseBodyColor>("栃栗", HorseBodyColor.DarkChestnut),
+        new FinderQueryInputListItem<HorseBodyColor>("鹿", HorseBodyColor.Bay),
+        new FinderQueryInputListItem<HorseBodyColor>("黒鹿", HorseBodyColor.DarkBay),
+        new FinderQueryInputListItem<HorseBodyColor>("青鹿", HorseBodyColor.Brown),
+        new FinderQueryInputListItem<HorseBodyColor>("青", HorseBodyColor.Black),
+        new FinderQueryInputListItem<HorseBodyColor>("芦", HorseBodyColor.Grey),
+        new FinderQueryInputListItem<HorseBodyColor>("栗かす", HorseBodyColor.DregChestnut),
+        new FinderQueryInputListItem<HorseBodyColor>("鹿かす", HorseBodyColor.DregBay),
+        new FinderQueryInputListItem<HorseBodyColor>("青かす", HorseBodyColor.DregBlack),
+        new FinderQueryInputListItem<HorseBodyColor>("白", HorseBodyColor.White),
+      });
+    }
+
+    protected override string ToQueryValue(HorseBodyColor value)
+    {
+      return ((short)value).ToString();
+    }
+  }
+
+  public class HorseNumberInputCategory : ListBoxInputCategoryBase<short>
+  {
+    public HorseNumberInputCategory() : base("number")
+    {
+      this.SetItems(Enumerable.Range(1, 18)
+        .Select(v => (short)v)
+        .Select(v => new FinderQueryInputListItem<short>(v))
+        .ToList());
+    }
+  }
+
+  public class HorsePopularInputCategory : ListBoxInputCategoryBase<short>
+  {
+    public HorsePopularInputCategory() : base("popular")
+    {
+      this.SetItems(Enumerable.Range(1, 18)
+        .Select(v => (short)v)
+        .Select(v => new FinderQueryInputListItem<short>(v))
+        .ToList());
+    }
+  }
+
+  public class HorseBelongsInputCategory : ListBoxInputCategoryBase<HorseBelongs>
+  {
+    public HorseBelongsInputCategory() : base("horsebelongs")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<HorseBelongs>>
+      {
+        new FinderQueryInputListItem<HorseBelongs>("なし", HorseBelongs.Unknown),
+        new FinderQueryInputListItem<HorseBelongs>("美浦", HorseBelongs.Miho),
+        new FinderQueryInputListItem<HorseBelongs>("栗東", HorseBelongs.Ritto),
+        new FinderQueryInputListItem<HorseBelongs>("地方", HorseBelongs.Local),
+        new FinderQueryInputListItem<HorseBelongs>("海外", HorseBelongs.Foreign),
+      });
+    }
+
+    protected override string ToQueryValue(HorseBelongs value)
+    {
+      return ((short)value).ToString();
+    }
+  }
+
+  public class HorseMarkInputCategory : FinderQueryInputCategory
+  {
+    public ReactiveProperty<bool> IsDoubleCircle { get; } = new();
+
+    public ReactiveProperty<bool> IsCircle { get; } = new();
+
+    public ReactiveProperty<bool> IsFilledTriangle { get; } = new();
+
+    public ReactiveProperty<bool> IsTriangle { get; } = new();
+
+    public ReactiveProperty<bool> IsStar { get; } = new();
+
+    public ReactiveProperty<bool> IsDelete { get; } = new();
+
+    public HorseMarkInputCategory()
+    {
+      this.IsDoubleCircle.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsCircle.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsFilledTriangle.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsTriangle.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsStar.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsDelete.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+    }
+
+    protected override string GetQuery()
+    {
+      var values = new List<RaceHorseMark>();
+      if (this.IsDoubleCircle.Value) values.Add(RaceHorseMark.DoubleCircle);
+      if (this.IsCircle.Value) values.Add(RaceHorseMark.Circle);
+      if (this.IsFilledTriangle.Value) values.Add(RaceHorseMark.FilledTriangle);
+      if (this.IsTriangle.Value) values.Add(RaceHorseMark.Triangle);
+      if (this.IsStar.Value) values.Add(RaceHorseMark.Star);
+      if (this.IsDelete.Value) values.Add(RaceHorseMark.Deleted);
+
+      if (!values.Any())
+      {
+        return string.Empty;
+      }
+
+      return $"mark={string.Join(',', values.Select(v => (short)v))}";
+    }
+  }
+
+  #endregion
+
+  #region 馬（結果）
+
+  public class HorsePlaceInputCategory : ListBoxInputCategoryBase<short>
+  {
+    public HorsePlaceInputCategory() : base("place")
+    {
+      this.SetItems(Enumerable.Range(1, 18)
+        .Select(v => (short)v)
+        .Select(v => new FinderQueryInputListItem<short>(v))
+        .ToList());
+    }
+  }
+
+  public class HorseGoalPlaceInputCategory : ListBoxInputCategoryBase<short>
+  {
+    public HorseGoalPlaceInputCategory() : base("goalplace")
+    {
+      this.SetItems(Enumerable.Range(1, 18)
+        .Select(v => (short)v)
+        .Select(v => new FinderQueryInputListItem<short>(v))
+        .ToList());
+    }
+  }
+
+  #endregion
 }

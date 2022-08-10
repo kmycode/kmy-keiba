@@ -37,6 +37,7 @@ namespace KmyKeiba.Views.Parts.FinderQuery
     public Guid UniqueId { get; } = Guid.NewGuid();
     public Guid UniqueId2 { get; } = Guid.NewGuid();
     public Guid UniqueId3 { get; } = Guid.NewGuid();
+    public Guid UniqueId4 { get; } = Guid.NewGuid();
 
     public FinderQueryView()
     {

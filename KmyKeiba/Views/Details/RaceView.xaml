@@ -364,8 +364,8 @@
               <RowDefinition Height="auto"/>
               <RowDefinition/>
             </Grid.RowDefinitions>
-            <up:FinderKeyInputView FinderModel="{Binding Race.FinderModel,ElementName=Root}" Margin="0,0,0,24"/>
-            <up:FinderRowListView FinderModel="{Binding Race.FinderModel,ElementName=Root}" Grid.Row="1"/>
+            <up:FinderKeyInputView FinderModel="{Binding Race.FinderModel.Value,ElementName=Root}" Margin="0,0,0,24"/>
+            <up:FinderRowListView FinderModel="{Binding Race.FinderModel.Value,ElementName=Root}" Grid.Row="1"/>
           </Grid>
         </Grid>
 

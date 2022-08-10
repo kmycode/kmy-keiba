@@ -17,7 +17,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     private readonly RaceFinder _finder;
 
-    public FinderQueryInput Input { get; } = new();
+    public FinderQueryInput Input { get; }
 
     public ReactiveProperty<IEnumerable<IFinderColumnDefinition>> Columns { get; } = new();
 
@@ -43,10 +43,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     public RaceHorseAnalyzer? RaceHorse { get; }
 
-    public FinderModel(RaceData? race, RaceHorseAnalyzer? horse)
+    public FinderModel(RaceData? race, RaceHorseAnalyzer? horse, IEnumerable<RaceHorseAnalyzer>? horses)
     {
       this._finder = new RaceFinder(race, horse?.Data);
       this.RaceHorse = horse;
+      this.Input = new FinderQueryInput(race, horse?.Data, horses?.Select(h => h.Data).ToArray());
 
       // TODO いずれカスタマイズできるように
       foreach (var preset in DatabasePresetModel.GetFinderRaceHorseColumns())

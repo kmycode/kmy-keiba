@@ -868,6 +868,8 @@ namespace KmyKeiba.Models.Race.Finder
     Direction,
     [EnumQueryKey("tracktype")]
     TrackType,
+    [EnumQueryKey("trackoption")]
+    TrackOption,
     [EnumQueryKey("riderweightrule")]
     RiderWeightRule,
     [EnumQueryKey("arearule")]
@@ -898,12 +900,16 @@ namespace KmyKeiba.Models.Race.Finder
     SubjectAge5,
     [EnumQueryKey("grade")]
     Grade,
-    [QueryKey("gradeid")]
+    [NumericQueryKey("gradeid")]
     GradeId,
     [QueryKey("grades")]
     Grades,
-    [QueryKey("prize1")]
+    [NumericQueryKey("prize1")]
     PrizeMoney1,
+    [EnumQueryKey("horsescount")]
+    HorsesCount,
+    [EnumQueryKey("goalhorsescount")]
+    GoalHorsesCount,
 
     [StringQueryKey("horse")]
     HorseKey,
@@ -927,6 +933,8 @@ namespace KmyKeiba.Models.Race.Finder
     RiderName,
     [EnumQueryKey("place")]
     Place,
+    [EnumQueryKey("goalplace")]
+    GoalPlace,
     [EnumQueryKey("resultlength")]
     ResultLength,
     [EnumQueryKey("abnormal")]
@@ -975,6 +983,8 @@ namespace KmyKeiba.Models.Race.Finder
     RiderBelongs,
     [QueryKey("trainerbelongs")]
     TrainerBelongs,
+    [EnumQueryKey("mark")]
+    Mark,
 
     [StringQueryKey("f")]
     Father,

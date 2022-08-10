@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Data.Wrappers;
+﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Generic;
 using Reactive.Bindings;
@@ -41,9 +42,49 @@ namespace KmyKeiba.Models.Race.Finder
 
     public RaceCrossInputCategory Cross { get; }
 
+    public RaceNameInputCategory RaceName { get; }
+
+    public RaceFirstPrizeInputCategory Prize1 { get; }
+
+    public RaceHorsesCountInputCategory HorsesCount { get; }
+
+    public RaceHorsesGoalCountInputCategory ResultHorsesCount { get; }
+
+    public TrackDistanceInputCategory Distance { get; }
+
+    public TrackGroundInputCategory Ground { get; }
+
+    public TrackCornerDirectionInputCategory CornerDirection { get; }
+
+    public TrackOptionInputCategory TrackOption { get; }
+
+    public TrackTypeInputCategory TrackType { get; }
+
+    public TrackConditionInputCategory TrackCondition { get; }
+
+    public TrackWeatherInputCategory Weather { get; }
+
+    public HorseOfCurrentRaceInputCategory HorseOfCurrentRace { get; }
+
+    public HorseNameInputCategory HorseName { get; }
+
+    public HorseAgeInputCategory Age { get; }
+
+    public HorseColorInputCategory Color { get; }
+
+    public HorseSexInputCategory Sex { get; }
+
+    public HorseNumberInputCategory Number { get; }
+
+    public HorsePopularInputCategory Popular { get; }
+
+    public HorsePlaceInputCategory Place { get; }
+
+    public HorseGoalPlaceInputCategory GoalPlace { get; }
+
     public ReactiveProperty<string> Query { get; } = new();
 
-    public FinderQueryInput()
+    public FinderQueryInput(RaceData? race, RaceHorseData? horse, IReadOnlyList<RaceHorseData>? raceHorses)
     {
       this._categories.Add(this.Course = new CourseInputCategory());
       this._categories.Add(this.Month = new MonthInputCategory());
@@ -57,6 +98,26 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.RaceAge = new RaceAgeInputCategory());
       this._categories.Add(this.Subject = new RaceSubjectInputCategory());
       this._categories.Add(this.Cross = new RaceCrossInputCategory());
+      this._categories.Add(this.RaceName = new RaceNameInputCategory());
+      this._categories.Add(this.Prize1 = new RaceFirstPrizeInputCategory());
+      this._categories.Add(this.HorsesCount = new RaceHorsesCountInputCategory());
+      this._categories.Add(this.ResultHorsesCount = new RaceHorsesGoalCountInputCategory());
+      this._categories.Add(this.Distance = new TrackDistanceInputCategory());
+      this._categories.Add(this.Ground = new TrackGroundInputCategory());
+      this._categories.Add(this.CornerDirection = new TrackCornerDirectionInputCategory());
+      this._categories.Add(this.TrackOption = new TrackOptionInputCategory());
+      this._categories.Add(this.TrackType = new TrackTypeInputCategory());
+      this._categories.Add(this.TrackCondition = new TrackConditionInputCategory());
+      this._categories.Add(this.Weather = new TrackWeatherInputCategory());
+      this._categories.Add(this.HorseOfCurrentRace = new HorseOfCurrentRaceInputCategory(raceHorses));
+      this._categories.Add(this.HorseName = new HorseNameInputCategory());
+      this._categories.Add(this.Place = new HorsePlaceInputCategory());
+      this._categories.Add(this.GoalPlace = new HorseGoalPlaceInputCategory());
+      this._categories.Add(this.Age = new HorseAgeInputCategory());
+      this._categories.Add(this.Color = new HorseColorInputCategory());
+      this._categories.Add(this.Sex = new HorseSexInputCategory());
+      this._categories.Add(this.Number = new HorseNumberInputCategory());
+      this._categories.Add(this.Popular = new HorsePopularInputCategory());
 
       foreach (var category in this._categories)
       {

@@ -98,7 +98,7 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<RaceMemoModel?> MemoEx { get; } = new();
 
-    public FinderModel FinderModel { get; }
+    public ReactiveProperty<FinderModel?> FinderModel { get; } = new();
 
     public ScriptManager Script { get; }
 
@@ -169,7 +169,6 @@ namespace KmyKeiba.Models.Race
       this.TrendAnalyzers = new RaceTrendAnalysisSelector(race);
       this.WinnerTrendAnalyzers = new RaceWinnerHorseTrendAnalysisSelector(race);
       this.Finder = new RaceFinder(race);
-      this.FinderModel = new FinderModel(race, null);
       this.CourseSummaryImage.Race = race;
 
       this.AnalysisTables.ObserveAddChanged().Subscribe(_ => this.HasAnalysisTables.Value = true).AddTo(this._disposables);
@@ -237,9 +236,11 @@ namespace KmyKeiba.Models.Race
 
     private void SetHorsesDelay(IReadOnlyList<RaceHorseAnalyzer> horses, RaceStandardTimeMasterData standardTime)
     {
+      var sortedHorses = horses.All(h => h.Data.Number == default) ? horses.OrderBy(h => h.Data.Name) : horses.OrderBy(h => h.Data.Number);
+      this.FinderModel.Value = new FinderModel(this.Data, null, sortedHorses);
+
       ThreadUtil.InvokeOnUiThread(() =>
       {
-        var sortedHorses = horses.All(h => h.Data.Number == default) ? horses.OrderBy(h => h.Data.Name) : horses.OrderBy(h => h.Data.Number);
         foreach (var horse in sortedHorses)
         {
           this.Horses.Add(horse);

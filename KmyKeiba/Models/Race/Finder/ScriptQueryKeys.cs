@@ -1033,6 +1033,9 @@ namespace KmyKeiba.Models.Race.Finder
         case QueryKey.TrackType:
           query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackType), isEnum: true));
           break;
+        case QueryKey.TrackOption:
+          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackOption), isEnum: true));
+          break;
         case QueryKey.Distance:
           query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.Distance)));
           break;
@@ -1096,6 +1099,12 @@ namespace KmyKeiba.Models.Race.Finder
         case QueryKey.PrizeMoney1:
           query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.PrizeMoney1), isShort: false));
           break;
+        case QueryKey.HorsesCount:
+          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.HorsesCount), isShort: true));
+          break;
+        case QueryKey.GoalHorsesCount:
+          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.ResultHorsesCount), isShort: true));
+          break;
       }
       return query;
     }
@@ -1148,6 +1157,9 @@ namespace KmyKeiba.Models.Race.Finder
           break;
         case QueryKey.Place:
           query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ResultOrder)));
+          break;
+        case QueryKey.GoalPlace:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.GoalOrder)));
           break;
         case QueryKey.ResultLength:
           query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ResultLength1)));

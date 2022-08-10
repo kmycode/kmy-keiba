@@ -73,6 +73,12 @@
     <Compile Update="Views\Parts\FinderQuery\FinderQueryView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Parts\FinderQuery\InputNumberView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\FinderQuery\InputStringView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Parts\FinderRowListView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -193,6 +199,12 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Parts\FinderQuery\FinderQueryView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\FinderQuery\InputNumberView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\FinderQuery\InputStringView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Parts\FinderRowListView.xaml">
