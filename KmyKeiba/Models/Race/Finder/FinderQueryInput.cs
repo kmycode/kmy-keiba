@@ -74,9 +74,27 @@ namespace KmyKeiba.Models.Race.Finder
 
     public HorseSexInputCategory Sex { get; }
 
+    public HorseBelongsInputCategory HorseBelongs { get; }
+
+    public HorseWeightInputCategory Weight { get; }
+
+    public HorseWeightDiffInputCategory WeightDiff { get; }
+
+    public RiderWeightInputCategory RiderWeight { get; }
+
+    public HorseMarkInputCategory Mark { get; }
+
     public HorseNumberInputCategory Number { get; }
 
+    public HorseFrameNumberInputCategory FrameNumber { get; }
+
     public HorsePopularInputCategory Popular { get; }
+
+    public OddsInputCategory Odds { get; }
+
+    public PlaceOddsMinInputCategory PlaceOddsMin { get; }
+
+    public PlaceOddsMaxInputCategory PlaceOddsMax { get; }
 
     public HorsePlaceInputCategory Place { get; }
 
@@ -116,8 +134,17 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.Age = new HorseAgeInputCategory());
       this._categories.Add(this.Color = new HorseColorInputCategory());
       this._categories.Add(this.Sex = new HorseSexInputCategory());
+      this._categories.Add(this.HorseBelongs = new HorseBelongsInputCategory());
+      this._categories.Add(this.Weight = new HorseWeightInputCategory());
+      this._categories.Add(this.WeightDiff = new HorseWeightDiffInputCategory());
+      this._categories.Add(this.RiderWeight = new RiderWeightInputCategory());
+      this._categories.Add(this.Mark = new HorseMarkInputCategory());
       this._categories.Add(this.Number = new HorseNumberInputCategory());
+      this._categories.Add(this.FrameNumber = new HorseFrameNumberInputCategory());
       this._categories.Add(this.Popular = new HorsePopularInputCategory());
+      this._categories.Add(this.Odds = new OddsInputCategory());
+      this._categories.Add(this.PlaceOddsMin = new PlaceOddsMinInputCategory());
+      this._categories.Add(this.PlaceOddsMax = new PlaceOddsMaxInputCategory());
 
       foreach (var category in this._categories)
       {

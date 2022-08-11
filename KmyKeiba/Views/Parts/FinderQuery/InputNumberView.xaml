@@ -13,7 +13,7 @@
         <ColumnDefinition Width="0.5*"/>
         <ColumnDefinition/>
       </Grid.ColumnDefinitions>
-      <TextBox Text="{Binding Input.Value.Value,ElementName=Root,Mode=TwoWay}" FontSize="20" TextAlignment="Center"/>
+      <TextBox Text="{Binding Input.Value.Value,ElementName=Root,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" FontSize="20" TextAlignment="Center"/>
       <TextBlock Grid.Column="1" Text="～" FontSize="16" Foreground="{StaticResource SubForeground}" TextAlignment="Center" VerticalAlignment="Center"
                  Visibility="{Binding Input.IsRange.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
       <TextBox Grid.Column="2" Text="{Binding Input.MaxValue.Value,ElementName=Root,Mode=TwoWay}" FontSize="20" TextAlignment="Center"

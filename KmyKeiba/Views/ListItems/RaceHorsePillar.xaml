@@ -195,7 +195,7 @@
           <TextBlock FontSize="14" TextAlignment="Left"
                      Text="{Binding Horse.Data.RiderName,ElementName=Root}"/>
           <TextBlock Grid.Column="1" TextAlignment="Center" FontSize="16" FontWeight="Bold"
-                     Text="{Binding Horse.Data.RiderWeight,ElementName=Root}"
+                     Text="{Binding Horse.Data.RiderWeight,ElementName=Root,Converter={StaticResource DigitMinusConv}}"
                      Foreground="{Binding Horse.CurrentRace.RiderWeightComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
           <up:RaceResultOrderGradeRow Grid.Row="1" Grid.ColumnSpan="2" Header="同馬" FontSize="12" Grade="{Binding Horse.History.SameRiderGrade,ElementName=Root}"/>
         </Grid>

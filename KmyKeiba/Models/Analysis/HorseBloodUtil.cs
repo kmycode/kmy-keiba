@@ -133,6 +133,50 @@ namespace KmyKeiba.Models.Analysis
       return null;
     }
 
+    public static string ToStringCode(this BloodType type)
+    {
+      return type switch
+      {
+        BloodType.Father => "f",
+        BloodType.FatherFather => "ff",
+        BloodType.FatherFatherFather => "fff",
+        BloodType.FatherFatherMother => "ffm",
+        BloodType.FatherMother => "fm",
+        BloodType.FatherMotherFather => "fmf",
+        BloodType.FatherMotherMother => "fmm",
+        BloodType.Mother => "m",
+        BloodType.MotherFather => "mf",
+        BloodType.MotherFatherFather => "mff",
+        BloodType.MotherFatherMother => "mfm",
+        BloodType.MotherMother => "mm",
+        BloodType.MotherMotherFather => "mmf",
+        BloodType.MotherMotherMother => "mmm",
+        _ => string.Empty,
+      };
+    }
+
+    public static BloodType ToBloodType(string type)
+    {
+      return type switch
+      {
+        "f" => BloodType.Father,
+        "ff" => BloodType.FatherFather,
+        "fff" => BloodType.FatherFatherFather,
+        "ffm" => BloodType.FatherFatherMother,
+        "fm" => BloodType.FatherMother,
+        "fmf" => BloodType.FatherMotherFather,
+        "fmm" => BloodType.FatherMotherMother,
+        "m" => BloodType.Mother,
+        "mf" => BloodType.MotherFather,
+        "mff" => BloodType.MotherFatherFather,
+        "mfm" => BloodType.MotherFatherMother,
+        "mm" => BloodType.MotherMother,
+        "mmf" => BloodType.MotherMotherFather,
+        "mmm" => BloodType.MotherMotherMother,
+        _ => BloodType.Unknown,
+      };
+    }
+
     private class BloodItem
     {
       public string? HorseKey { get; set; }

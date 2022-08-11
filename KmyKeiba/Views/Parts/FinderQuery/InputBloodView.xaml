@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Parts.FinderQuery.InputBloodView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KmyKeiba.Views.Parts.FinderQuery"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Name="Root">
+  <StackPanel>
+    <UniformGrid Columns="7" Rows="2">
+      <UniformGrid.Resources>
+        <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
+          <Setter Property="FontSize" Value="12"/>
+          <Setter Property="GroupName" Value="{Binding UniqueId,ElementName=Root}"/>
+          <Setter Property="Padding" Value="0,3"/>
+          <Setter Property="MinHeight" Value="0"/>
+        </Style>
+      </UniformGrid.Resources>
+      <RadioButton Content="父" IsChecked="{Binding Input.Father.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="父父" IsChecked="{Binding Input.FatherFather.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="父父父" IsChecked="{Binding Input.FatherFatherFather.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="父父母" IsChecked="{Binding Input.FatherFatherMother.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="父母" IsChecked="{Binding Input.FatherMother.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="父母父" IsChecked="{Binding Input.FatherMotherFather.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="父母母" IsChecked="{Binding Input.FatherMotherMother.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="母" IsChecked="{Binding Input.Mother.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="母父" IsChecked="{Binding Input.MotherFather.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="母父父" IsChecked="{Binding Input.MotherFatherFather.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="母父母" IsChecked="{Binding Input.MotherFatherMother.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="母母" IsChecked="{Binding Input.MotherMother.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="母母父" IsChecked="{Binding Input.MotherMotherFather.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="母母母" IsChecked="{Binding Input.MotherMotherMother.Value,ElementName=Root,Mode=TwoWay}"/>
+    </UniformGrid>
+  </StackPanel>
+</UserControl>

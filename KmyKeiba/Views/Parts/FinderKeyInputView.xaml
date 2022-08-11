@@ -45,7 +45,7 @@
     </ToggleButton>
     <local:ImePopup StaysOpen="False" IsOpen="{Binding IsChecked,ElementName=Toggle,Mode=TwoWay}"
                     PlacementTarget="{Binding ElementName=Toggle}" Placement="Bottom">
-      <Border Width="{Binding ActualWidth,Mode=OneWay,ElementName=Toggle}" Height="650" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Padding="16,8"
+      <Border Width="{Binding ActualWidth,Mode=OneWay,ElementName=Toggle}" Height="660" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Padding="16,8"
               Background="{StaticResource BaseBackground}">
         <fq:FinderQueryView FinderModel="{Binding FinderModel,ElementName=Root}"/>
       </Border>

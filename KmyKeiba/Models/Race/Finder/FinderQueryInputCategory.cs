@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
@@ -177,15 +178,8 @@ namespace KmyKeiba.Models.Race.Finder
     {
       this.Key = key;
 
-      this.Input.Value.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.MaxValue.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsRange.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsEqual.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsGreaterThan.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsGreaterThanOrEqual.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsLessThan.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsLessThanOrEqual.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsNotEqual.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.AddTo(this.Disposables);
+      this.Input.ToObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
     }
 
     protected override string GetQuery()
@@ -912,6 +906,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsHorseNumber { get; } = new();
 
+    public ReactiveProperty<bool> IsHorseBlood { get; } = new();
+
+    public FinderQueryBloodRelationInput BloodInput { get; } = new();
+
     public ReactiveCollection<HorseItem> Horses { get; } = new();
 
     public ReactiveProperty<HorseItem?> SelectedHorse { get; } = new();
@@ -934,7 +932,10 @@ namespace KmyKeiba.Models.Race.Finder
       this.IsUnspecified.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsAllHorses.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsHorseNumber.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsHorseBlood.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.SelectedHorse.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.BloodInput.AddTo(this.Disposables);
+      this.BloodInput.ToObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
     }
 
     protected override string GetQuery()
@@ -951,7 +952,31 @@ namespace KmyKeiba.Models.Race.Finder
       {
         if (this.SelectedHorse.Value != null)
         {
-          return $"horse={this.SelectedHorse.Value.Key}";
+          // 最初からKeyを使えよといわれるかもしれないが、
+          // 検索条件の保存機能、読み込み機能を考慮してこのようにしている
+          // （Keyを使っちゃうと、他のレースで検索条件を読み込んだ時に意図しない動きをするかもしれない）
+          if (this.SelectedHorse.Value.Number != 0)
+          {
+            return $"horse#{this.SelectedHorse.Value.Number}";
+          }
+          else
+          {
+            return $"horse={this.SelectedHorse.Value.Key}";
+          }
+        }
+      }
+      if (this.IsHorseBlood.Value)
+      {
+        if (this.SelectedHorse.Value != null)
+        {
+          if (this.SelectedHorse.Value.Number != 0)
+          {
+            return $"{HorseBloodUtil.ToStringCode(this.BloodInput.GetBloodType())}:#{this.SelectedHorse.Value.Number}";
+          }
+          else
+          {
+            return $"{HorseBloodUtil.ToStringCode(this.BloodInput.GetBloodType())}:{this.SelectedHorse.Value.Key}";
+          }
         }
       }
 
@@ -964,7 +989,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       public short Number { get; init; }
 
-      public string Key { get; init; }
+      public string Key { get; init; } = string.Empty;
     }
   }
 
@@ -1104,6 +1129,17 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
+  public class HorseFrameNumberInputCategory : ListBoxInputCategoryBase<short>
+  {
+    public HorseFrameNumberInputCategory() : base("framenumber")
+    {
+      this.SetItems(Enumerable.Range(1, 8)
+        .Select(v => (short)v)
+        .Select(v => new FinderQueryInputListItem<short>(v))
+        .ToList());
+    }
+  }
+
   public class HorsePopularInputCategory : ListBoxInputCategoryBase<short>
   {
     public HorsePopularInputCategory() : base("popular")
@@ -1121,7 +1157,6 @@ namespace KmyKeiba.Models.Race.Finder
     {
       this.SetItems(new List<FinderQueryInputListItem<HorseBelongs>>
       {
-        new FinderQueryInputListItem<HorseBelongs>("なし", HorseBelongs.Unknown),
         new FinderQueryInputListItem<HorseBelongs>("美浦", HorseBelongs.Miho),
         new FinderQueryInputListItem<HorseBelongs>("栗東", HorseBelongs.Ritto),
         new FinderQueryInputListItem<HorseBelongs>("地方", HorseBelongs.Local),
@@ -1175,6 +1210,48 @@ namespace KmyKeiba.Models.Race.Finder
       }
 
       return $"mark={string.Join(',', values.Select(v => (short)v))}";
+    }
+  }
+
+  public class HorseWeightInputCategory : NumberInputCategoryBase
+  {
+    public HorseWeightInputCategory() : base("weight")
+    {
+    }
+  }
+
+  public class HorseWeightDiffInputCategory : NumberInputCategoryBase
+  {
+    public HorseWeightDiffInputCategory() : base("weightdiff")
+    {
+    }
+  }
+
+  public class RiderWeightInputCategory : FloatNumberInputCategoryBase
+  {
+    public RiderWeightInputCategory() : base("riderweight", 1)
+    {
+    }
+  }
+
+  public class OddsInputCategory : FloatNumberInputCategoryBase
+  {
+    public OddsInputCategory() : base("odds", 1)
+    {
+    }
+  }
+
+  public class PlaceOddsMinInputCategory : FloatNumberInputCategoryBase
+  {
+    public PlaceOddsMinInputCategory() : base("placeoddsmin", 1)
+    {
+    }
+  }
+
+  public class PlaceOddsMaxInputCategory : FloatNumberInputCategoryBase
+  {
+    public PlaceOddsMaxInputCategory() : base("placeoddsmax", 1)
+    {
     }
   }
 

@@ -1137,6 +1137,9 @@ namespace KmyKeiba.Models.Race.Finder
         case QueryKey.FrameNumber:
           query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.FrameNumber)));
           break;
+        case QueryKey.Mark:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Mark), isEnum: true));
+          break;
         case QueryKey.RiderCode:
           if (!string.IsNullOrEmpty(this.StringValue))
           {

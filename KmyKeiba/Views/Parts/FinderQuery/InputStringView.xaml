@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
   <StackPanel>
-    <TextBox Text="{Binding Input.Value.Value,ElementName=Root,Mode=TwoWay}" FontSize="20"/>
+    <TextBox Text="{Binding Input.Value.Value,ElementName=Root,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" FontSize="20"/>
     <UniformGrid Columns="4">
       <UniformGrid.Resources>
         <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">

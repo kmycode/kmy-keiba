@@ -259,7 +259,7 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceHorseBloodTrendAnalysisSelector? GetSelector(string scriptType)
     {
-      var type = this.KeysToBloodType(scriptType);
+      var type = HorseBloodUtil.ToBloodType(scriptType);
       return this.GetSelector(type);
     }
 
@@ -268,28 +268,6 @@ namespace KmyKeiba.Models.Analysis
       using var db = new MyContext();
       await this.InitializeBloodListAsync(db);
       return this.GetSelector(scriptType) ?? new RaceHorseBloodTrendAnalysisSelector(this, this.Race, this.RaceHorse, string.Empty, string.Empty, BloodType.Unknown, string.Empty);
-    }
-
-    private BloodType KeysToBloodType(string keys)
-    {
-      return keys switch
-      {
-        "f" => BloodType.Father,
-        "ff" => BloodType.FatherFather,
-        "fff" => BloodType.FatherFatherFather,
-        "ffm" => BloodType.FatherFatherMother,
-        "fm" => BloodType.FatherMother,
-        "fmf" => BloodType.FatherMotherFather,
-        "fmm" => BloodType.FatherMotherMother,
-        "m" => BloodType.Mother,
-        "mf" => BloodType.MotherFather,
-        "mff" => BloodType.MotherFatherFather,
-        "mfm" => BloodType.MotherFatherMother,
-        "mm" => BloodType.MotherMother,
-        "mmf" => BloodType.MotherMotherFather,
-        "mmm" => BloodType.MotherMotherMother,
-        _ => BloodType.Unknown,
-      };
     }
 
     public class MenuItem : ICheckableItem
