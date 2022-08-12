@@ -350,6 +350,7 @@ namespace KmyKeiba.Models.Data
             var races = targetHorses.Where(rh => rh.Key == horse).OrderBy(rh => rh.RaceKey);
             var beforeRaceDh = DateTime.MinValue;
             var isFirst = true;
+            var isRested = false;
 
             var raceCount = 1;
             var raceCountWithinRunning = 0;
@@ -379,6 +380,7 @@ namespace KmyKeiba.Models.Data
               if (attach.PreviousRaceDays >= 90)
               {
                 raceCountAfterRest = 1;
+                isRested = true;
               }
 
               attach.RaceCount = (short)raceCount;
@@ -390,8 +392,16 @@ namespace KmyKeiba.Models.Data
                 // とりあえず走った
                 raceCountWithinRunning++;
                 attach.RaceCountWithinRunning = (short)raceCountWithinRunning;
-                attach.RaceCountAfterLastRest = (short)raceCountAfterRest;
-                raceCountAfterRest++;
+
+                if (isRested)
+                {
+                  attach.RaceCountAfterLastRest = (short)raceCountAfterRest;
+                  raceCountAfterRest++;
+                }
+                else
+                {
+                  attach.RaceCountAfterLastRest = -2;
+                }
 
                 // ちゃんとゴールできた
                 if (race.AbnormalResult == RaceAbnormality.Unknown)

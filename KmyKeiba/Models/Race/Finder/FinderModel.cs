@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race.Finder
 {
-  public class FinderModel
+  public class FinderModel : IDisposable
   {
     private readonly RaceFinder _finder;
 
@@ -270,6 +270,11 @@ namespace KmyKeiba.Models.Race.Finder
           group.Rows.Add(row);
         }
       });
+    }
+
+    public void Dispose()
+    {
+      this.Input.Dispose();
     }
   }
 

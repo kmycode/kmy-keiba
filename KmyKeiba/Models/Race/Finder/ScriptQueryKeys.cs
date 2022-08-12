@@ -110,7 +110,7 @@ namespace KmyKeiba.Models.Race.Finder
     public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
     {
       this.InitializeCaches(db);
-      return query.Where(h => this._riders!.Contains(h.Key));
+      return query.Where(h => this._riders!.Contains(h.Key)).Distinct();
     }
   }
 
@@ -905,7 +905,7 @@ namespace KmyKeiba.Models.Race.Finder
         horses = q.Apply(db, horses);
       }
 
-      query = query.Join(horses, r => r.Key, rh => rh.RaceKey, (r, rh) => r);
+      query = query.Join(horses, r => r.Key, rh => rh.RaceKey, (r, rh) => r).Distinct();
 
       return query;
     }
@@ -1176,6 +1176,9 @@ namespace KmyKeiba.Models.Race.Finder
         case QueryKey.ResultTime:
           query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ResultTimeValue)));
           break;
+        case QueryKey.ResultTimeDiff:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.TimeDifference)));
+          break;
         case QueryKey.CornerPlace1:
           query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.FirstCornerOrder)));
           break;
@@ -1214,6 +1217,18 @@ namespace KmyKeiba.Models.Race.Finder
           break;
         case QueryKey.PreviousRaceDays:
           query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.PreviousRaceDays)));
+          break;
+        case QueryKey.RaceCount:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RaceCount)));
+          break;
+        case QueryKey.RaceCountWithinRunning:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RaceCountWithinRunning)));
+          break;
+        case QueryKey.RaceCountWithinRunningCompletely:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RaceCountWithinRunningCompletely)));
+          break;
+        case QueryKey.RaceCountAfterLastRest:
+          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RaceCountAfterLastRest)));
           break;
         case QueryKey.HorseName:
           query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.Name)));

@@ -45,14 +45,16 @@
     </ToggleButton>
     <local:ImePopup StaysOpen="False" IsOpen="{Binding IsChecked,ElementName=Toggle,Mode=TwoWay}"
                     PlacementTarget="{Binding ElementName=Toggle}" Placement="Bottom">
-      <Border Width="{Binding ActualWidth,Mode=OneWay,ElementName=Toggle}" Height="660" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Padding="16,8"
+      <Border Width="{Binding ActualWidth,Mode=OneWay,ElementName=Toggle}" MinWidth="1200" Height="660" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Padding="16,8"
               Background="{StaticResource BaseBackground}">
-        <fq:FinderQueryView FinderModel="{Binding FinderModel,ElementName=Root}"/>
+        <fq:FinderQueryView FinderModel="{Binding FinderModel,ElementName=Root}" IsSubView="{Binding IsSubView,ElementName=Root}"/>
       </Border>
     </local:ImePopup>
     <TextBox Grid.Row="1" Text="{Binding FinderModel.Keys.Value,ElementName=Root,Mode=TwoWay}" FontSize="16" Padding="4,2"
-             VerticalAlignment="Center"/>
+             VerticalAlignment="Center"
+             Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
     <Button Content="検索" Grid.Column="1" FontSize="16" Width="100"
-            x:Name="SearchButton" IsEnabled="{Binding FinderModel.IsLoading.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+            x:Name="SearchButton" IsEnabled="{Binding FinderModel.IsLoading.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"
+            Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
   </Grid>
 </UserControl>

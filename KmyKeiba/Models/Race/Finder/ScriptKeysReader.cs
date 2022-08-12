@@ -334,7 +334,7 @@ namespace KmyKeiba.Models.Race.Finder
             return false;
           }
 
-          var keys = q.Substring(13).Replace(';', '|');
+          var keys = q.Substring(6).Replace(';', '|');
           var qs = GetQueries(keys, race, horse);
 
           queries.Add(new TopHorsesScriptKeyQuery(qs.Queries));
@@ -943,6 +943,8 @@ namespace KmyKeiba.Models.Race.Finder
     Popular,
     [NumericQueryKey("resulttime")]
     ResultTime,
+    [NumericQueryKey("resulttimediff")]
+    ResultTimeDiff,
     [EnumQueryKey("corner1")]
     CornerPlace1,
     [EnumQueryKey("corner2")]
@@ -977,6 +979,14 @@ namespace KmyKeiba.Models.Race.Finder
     RunningStyle,
     [NumericQueryKey("prevdays")]
     PreviousRaceDays,
+    [NumericQueryKey("racecount")]
+    RaceCount,
+    [NumericQueryKey("racecount_run")]
+    RaceCountWithinRunning,
+    [NumericQueryKey("racecount_complete")]
+    RaceCountWithinRunningCompletely,
+    [NumericQueryKey("racecount_rest")]
+    RaceCountAfterLastRest,
     [QueryKey("horsebelongs")]
     HorseBelongs,
     [QueryKey("riderbelongs")]

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -84,6 +85,16 @@ namespace KmyKeiba.Models.Race.Finder
 
     public HorseMarkInputCategory Mark { get; }
 
+    public PreviousRaceDaysInputCategory PreviousRaceDays { get; }
+
+    public HorseRaceCountInputCategory RaceCount { get; }
+
+    public HorseRaceCountRunInputCategory RaceCountRun { get; }
+
+    public HorseRaceCountCompleteInputCategory RaceCountComplete { get; }
+
+    public HorseRaceCountRestInputCategory RaceCountRest { get; }
+
     public HorseNumberInputCategory Number { get; }
 
     public HorseFrameNumberInputCategory FrameNumber { get; }
@@ -96,9 +107,24 @@ namespace KmyKeiba.Models.Race.Finder
 
     public PlaceOddsMaxInputCategory PlaceOddsMax { get; }
 
+    public ResultTimeInputCategory ResultTime { get; }
+
+    public ResultTimeDiffInputCategory ResultTimeDiff { get; }
+
+    public A3HResultTimeInputCategory A3HResultTime { get; }
+
     public HorsePlaceInputCategory Place { get; }
 
     public HorseGoalPlaceInputCategory GoalPlace { get; }
+
+    public AbnormalResultInputCategory AbnormalResult { get; }
+
+    public CornerResultInputCategory Corner1 { get; }
+    public CornerResultInputCategory Corner2 { get; }
+    public CornerResultInputCategory Corner3 { get; }
+    public CornerResultInputCategory Corner4 { get; }
+
+    public SameRaceHorseInputCategory SameRaceHorse { get; }
 
     public ReactiveProperty<string> Query { get; } = new();
 
@@ -139,12 +165,36 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.WeightDiff = new HorseWeightDiffInputCategory());
       this._categories.Add(this.RiderWeight = new RiderWeightInputCategory());
       this._categories.Add(this.Mark = new HorseMarkInputCategory());
+      this._categories.Add(this.PreviousRaceDays = new PreviousRaceDaysInputCategory());
+      this._categories.Add(this.RaceCount = new HorseRaceCountInputCategory());
+      this._categories.Add(this.RaceCountRun = new HorseRaceCountRunInputCategory());
+      this._categories.Add(this.RaceCountComplete = new HorseRaceCountCompleteInputCategory());
+      this._categories.Add(this.RaceCountRest = new HorseRaceCountRestInputCategory());
       this._categories.Add(this.Number = new HorseNumberInputCategory());
       this._categories.Add(this.FrameNumber = new HorseFrameNumberInputCategory());
       this._categories.Add(this.Popular = new HorsePopularInputCategory());
       this._categories.Add(this.Odds = new OddsInputCategory());
+      this._categories.Add(this.AbnormalResult = new AbnormalResultInputCategory());
+      this._categories.Add(this.ResultTime = new ResultTimeInputCategory());
+      this._categories.Add(this.ResultTimeDiff = new ResultTimeDiffInputCategory());
+      this._categories.Add(this.A3HResultTime = new A3HResultTimeInputCategory());
       this._categories.Add(this.PlaceOddsMin = new PlaceOddsMinInputCategory());
       this._categories.Add(this.PlaceOddsMax = new PlaceOddsMaxInputCategory());
+      this._categories.Add(this.Corner1 = new CornerResultInputCategory(1));
+      this._categories.Add(this.Corner2 = new CornerResultInputCategory(2));
+      this._categories.Add(this.Corner3 = new CornerResultInputCategory(3));
+      this._categories.Add(this.Corner4 = new CornerResultInputCategory(4));
+      this._categories.Add(this.SameRaceHorse = new SameRaceHorseInputCategory(race));
+
+      try
+      {
+        //var a = this.Serialize(false);
+        //this.Deserialize(a);
+      }
+      catch (Exception ex)
+      {
+
+      }
 
       foreach (var category in this._categories)
       {
@@ -157,6 +207,82 @@ namespace KmyKeiba.Models.Race.Finder
       this.Query.Value = string.Join('|', this._categories
         .Select(c => c.Query.Value)
         .Where(q => !string.IsNullOrEmpty(q)));
+    }
+
+    public string Serialize(bool isIndent)
+    {
+      var indent = isIndent ? " " : string.Empty;
+
+      var text = new StringBuilder();
+      foreach (var property in this.GetType()
+        .GetProperties(BindingFlags.Public | BindingFlags.Instance))
+      {
+        var category = property.GetValue(this) as IFinderQueryInputCategory;
+        if (category == null)
+        {
+          continue;
+        }
+
+        text.Append(indent);
+        text.Append(':');
+        text.Append(property.Name);
+        text.AppendLine();
+
+        var serialized = category.Serialize();
+        if (!isIndent)
+        {
+          text.Append(indent);
+          text.Append(serialized);
+          text.AppendLine();
+        }
+        else
+        {
+          var lines = serialized.Split(Environment.NewLine);
+          foreach (var line in lines)
+          {
+            text.Append(indent);
+            text.Append(line);
+            text.AppendLine();
+          }
+        }
+      }
+
+      return text.ToString();
+    }
+
+    public void Deserialize(string text)
+    {
+      var lines = text.Split(Environment.NewLine);
+
+      var propertyName = string.Empty;
+      var categoryLines = new StringBuilder();
+      for (var i = 0; i < lines.Length; i++)
+      {
+        var line = lines[i];
+
+        if (line.StartsWith(':'))
+        {
+          if (!string.IsNullOrEmpty(propertyName))
+          {
+            var property = this.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+            if (property != null)
+            {
+              var category = property.GetValue(this) as IFinderQueryInputCategory;
+              if (category != null)
+              {
+                category.Deserialize(categoryLines.ToString());
+              }
+            }
+          }
+
+          propertyName = line[1..];
+          categoryLines.Clear();
+        }
+        else
+        {
+          categoryLines.AppendLine(line);
+        }
+      }
     }
 
     public void Dispose()

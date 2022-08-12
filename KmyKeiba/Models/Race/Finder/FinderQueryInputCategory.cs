@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -22,6 +23,10 @@ namespace KmyKeiba.Models.Race.Finder
     ReactiveProperty<string> Query { get; }
 
     ReadOnlyReactiveProperty<bool> IsCustomized { get; }
+
+    string Serialize();
+
+    void Deserialize(string data);
   }
 
   public abstract class FinderQueryInputCategory : IFinderQueryInputCategory
@@ -57,6 +62,212 @@ namespace KmyKeiba.Models.Race.Finder
     public void Dispose()
     {
       this.Disposables.Dispose();
+    }
+
+    protected virtual bool IsIgnorePropertyToSerializing(string propertyName)
+    {
+      if (propertyName == nameof(Query) || propertyName == "Key" || propertyName == nameof(IsCustomized))
+      {
+        return true;
+      }
+      return false;
+    }
+
+    protected virtual void PropertyToString(PropertyInfo property, StringBuilder text, object obj)
+    {
+      var type = property.PropertyType;
+      if (type == typeof(ReactiveProperty<bool>))
+      {
+        text.Append(property.Name);
+        text.Append('=');
+        text.Append(((ReactiveProperty<bool>)property.GetValue(obj)!).Value.ToString().ToLower());
+        text.AppendLine();
+      }
+      else if (type == typeof(ReactiveProperty<int>))
+      {
+        text.Append(property.Name);
+        text.Append('=');
+        text.Append(((ReactiveProperty<int>)property.GetValue(obj)!).Value);
+        text.AppendLine();
+      }
+      else if (type == typeof(ReactiveProperty<string>))
+      {
+        text.Append(property.Name);
+        text.Append('=');
+        text.Append(((ReactiveProperty<string>)property.GetValue(obj)!).Value ?? string.Empty);
+        text.AppendLine();
+      }
+      else if (type == typeof(bool))
+      {
+        text.Append(property.Name);
+        text.Append('=');
+        text.Append(((bool)property.GetValue(obj)!).ToString().ToLower());
+        text.AppendLine();
+      }
+      else if (type == typeof(int))
+      {
+        text.Append(property.Name);
+        text.Append('=');
+        text.Append(((int)property.GetValue(obj)!));
+        text.AppendLine();
+      }
+      else if (type == typeof(string))
+      {
+        text.Append(property.Name);
+        text.Append('=');
+        text.Append((property.GetValue(obj)!));
+        text.AppendLine();
+      }
+      else if (type == typeof(FinderQueryNumberInput) || type == typeof(FinderQueryFloatNumberInput) || type == typeof(FinderQueryStringInput) || type == typeof(FinderQueryBloodRelationInput))
+      {
+        text.Append("@@");
+        text.Append(property.Name);
+        text.AppendLine();
+        this.SerializeObject(text, property.GetValue(obj)!);
+        text.Append("@@");
+        text.AppendLine();
+      }
+    }
+
+    private void SerializeObject(StringBuilder text, object obj)
+    {
+      foreach (var property in obj.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+      {
+        if (!this.IsIgnorePropertyToSerializing(property.Name))
+        {
+          this.PropertyToString(property, text, obj);
+        }
+      }
+    }
+
+    public string Serialize()
+    {
+      var text = new StringBuilder();
+
+      this.SerializeObject(text, this);
+
+      return text.ToString();
+    }
+
+    public void Deserialize(string value)
+    {
+      var lines = value.Split(Environment.NewLine);
+
+      object? subObject = null;
+      var selfProperties = this.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+      PropertyInfo? GetProperty(string propertyName)
+      {
+        if (this.IsIgnorePropertyToSerializing(propertyName))
+        {
+          return null;
+        }
+        var property = selfProperties!.FirstOrDefault(p => p.Name == propertyName);
+        return property;
+      }
+
+      for (var i = 0; i < lines.Length; i++)
+      {
+        var line = lines[i];
+
+        if (line.StartsWith("@@"))
+        {
+          var property = GetProperty(line[2..]);
+          if (property == null)
+          {
+            continue;
+          }
+
+          subObject = property.GetValue(this);
+          if (subObject != null)
+          {
+            i += this.DeserializeObject(subObject, lines.Skip(i + 1));
+          }
+        }
+        else if (line.Contains('='))
+        {
+          var d = line.Split('=');
+          var property = GetProperty(d[0]);
+          if (property == null)
+          {
+            continue;
+          }
+
+          this.StringToProperty(property, d[1], this);
+        }
+      }
+    }
+
+    private int DeserializeObject(object obj, IEnumerable<string> lines)
+    {
+      var i = 0;
+
+      foreach (var line in lines)
+      {
+        i++;
+
+        if (line.StartsWith('@'))
+        {
+          return i;
+        }
+        if (!line.Contains('='))
+        {
+          continue;
+        }
+
+        var d = line.Split('=');
+        var property = obj.GetType().GetProperty(d[0], BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        if (property == null)
+        {
+          continue;
+        }
+
+        this.StringToProperty(property, d[1], obj);
+      }
+
+      return i;
+    }
+
+    protected virtual void StringToProperty(PropertyInfo property, string data, object obj)
+    {
+      var type = property.PropertyType;
+
+      if (type == typeof(ReactiveProperty<bool>))
+      {
+        var value = data == "true";
+        var rp = property.GetValue(obj);
+        rp!.GetType().GetProperty("Value")!.SetValue(rp, value);
+      }
+      else if (type == typeof(ReactiveProperty<int>))
+      {
+        int.TryParse(data, out var value);
+        var rp = property.GetValue(obj);
+        rp!.GetType().GetProperty("Value")!.SetValue(rp, value);
+      }
+      else if (type == typeof(ReactiveProperty<string>))
+      {
+        var value = data;
+        var rp = property.GetValue(obj);
+        rp!.GetType().GetProperty("Value")!.SetValue(rp, value);
+      }
+      else if (property.GetSetMethod() != null)
+      {
+        if (type == typeof(bool))
+        {
+          var value = data == "true";
+          property.SetValue(obj, value);
+        }
+        else if (type == typeof(int))
+        {
+          int.TryParse(data, out var value);
+          property.SetValue(obj, value);
+        }
+        else if (type == typeof(string))
+        {
+          var value = data;
+          property.SetValue(obj, value);
+        }
+      }
     }
   }
 
@@ -100,6 +311,36 @@ namespace KmyKeiba.Models.Race.Finder
 
       return $"{this.Key}={string.Join(',', this.Items.GetCheckedValues().Select(v => this.ToQueryValue(v)))}";
     }
+
+    protected override void PropertyToString(PropertyInfo property, StringBuilder text, object obj)
+    {
+      base.PropertyToString(property, text, obj);
+
+      var type = property.PropertyType;
+      if (obj == this && type == typeof(FinderQueryInputListItemCollection<T>))
+      {
+        text.Append(property.Name);
+        text.Append("=");
+        text.Append(string.Join(',', this.Items.GetCheckedValues().Select(v => this.ToQueryValue(v))));
+        text.AppendLine();
+      }
+    }
+
+    protected override void StringToProperty(PropertyInfo property, string data, object obj)
+    {
+      base.StringToProperty(property, data, obj);
+
+      var type = property.PropertyType;
+      if (obj == this && type == typeof(FinderQueryInputListItemCollection<T>))
+      {
+        var values = data.Split(',');
+        foreach (var item in this.Items
+          .Join(values, i => this.ToQueryValue(i.Value), v => v, (i, v) => i))
+        {
+          item.IsChecked.Value = true;
+        }
+      }
+    }
   }
 
   public class StringInputCategoryBase : FinderQueryInputCategory
@@ -138,6 +379,21 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected StringInputCategoryWithTestBase(string key) : base(key)
     {
+    }
+
+    protected override bool IsIgnorePropertyToSerializing(string propertyName)
+    {
+      var v = base.IsIgnorePropertyToSerializing(propertyName);
+      if (v)
+      {
+        return v;
+      }
+
+      if (propertyName == nameof(IsTestError))
+      {
+        return true;
+      }
+      return false;
     }
 
     protected virtual Task TestAsync()
@@ -1120,7 +1376,7 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class HorseNumberInputCategory : ListBoxInputCategoryBase<short>
   {
-    public HorseNumberInputCategory() : base("number")
+    public HorseNumberInputCategory() : base("horsenumber")
     {
       this.SetItems(Enumerable.Range(1, 18)
         .Select(v => (short)v)
@@ -1257,7 +1513,67 @@ namespace KmyKeiba.Models.Race.Finder
 
   #endregion
 
+  #region 馬（ローテーション）
+
+  public class PreviousRaceDaysInputCategory : NumberInputCategoryBase
+  {
+    public PreviousRaceDaysInputCategory() : base("prevdays")
+    {
+    }
+  }
+
+  public class HorseRaceCountInputCategory : NumberInputCategoryBase
+  {
+    public HorseRaceCountInputCategory() : base("racecount")
+    {
+    }
+  }
+
+  public class HorseRaceCountRunInputCategory : NumberInputCategoryBase
+  {
+    public HorseRaceCountRunInputCategory() : base("racecount_run")
+    {
+    }
+  }
+
+  public class HorseRaceCountCompleteInputCategory : NumberInputCategoryBase
+  {
+    public HorseRaceCountCompleteInputCategory() : base("racecount_complete")
+    {
+    }
+  }
+
+  public class HorseRaceCountRestInputCategory : NumberInputCategoryBase
+  {
+    public HorseRaceCountRestInputCategory() : base("racecount_rest")
+    {
+    }
+  }
+
+  #endregion
+
   #region 馬（結果）
+
+  public class ResultTimeInputCategory : FloatNumberInputCategoryBase
+  {
+    public ResultTimeInputCategory() : base("resulttime", 1)
+    {
+    }
+  }
+
+  public class A3HResultTimeInputCategory : FloatNumberInputCategoryBase
+  {
+    public A3HResultTimeInputCategory() : base("a3htime", 1)
+    {
+    }
+  }
+
+  public class ResultTimeDiffInputCategory : FloatNumberInputCategoryBase
+  {
+    public ResultTimeDiffInputCategory() : base("resulttimediff", 1)
+    {
+    }
+  }
 
   public class HorsePlaceInputCategory : ListBoxInputCategoryBase<short>
   {
@@ -1278,6 +1594,154 @@ namespace KmyKeiba.Models.Race.Finder
         .Select(v => (short)v)
         .Select(v => new FinderQueryInputListItem<short>(v))
         .ToList());
+    }
+  }
+
+  public class AbnormalResultInputCategory : ListBoxInputCategoryBase<RaceAbnormality>
+  {
+    public AbnormalResultInputCategory() : base("abnormal")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<RaceAbnormality>>
+      {
+        new FinderQueryInputListItem<RaceAbnormality>("なし", RaceAbnormality.Unknown),
+        new FinderQueryInputListItem<RaceAbnormality>("出走取消", RaceAbnormality.Scratched),
+        new FinderQueryInputListItem<RaceAbnormality>("発走除外", RaceAbnormality.ExcludedByStarters),
+        new FinderQueryInputListItem<RaceAbnormality>("競走除外", RaceAbnormality.ExcludedByStewards),
+        new FinderQueryInputListItem<RaceAbnormality>("競走中止", RaceAbnormality.FailToFinish),
+        new FinderQueryInputListItem<RaceAbnormality>("失格", RaceAbnormality.Disqualified),
+        new FinderQueryInputListItem<RaceAbnormality>("再騎乗", RaceAbnormality.Remount),
+        new FinderQueryInputListItem<RaceAbnormality>("降着", RaceAbnormality.DisqualifiedAndPlaced),
+      });
+    }
+
+    protected override string ToQueryValue(RaceAbnormality value)
+    {
+      return ((short)value).ToString();
+    }
+  }
+
+  public class CornerResultInputCategory : ListBoxInputCategoryBase<short>
+  {
+    public CornerResultInputCategory(int cornerNumber) : base("corner" + cornerNumber)
+    {
+      this.SetItems(Enumerable.Range(1, 18)
+        .Select(v => (short)v)
+        .Select(v => new FinderQueryInputListItem<short>(v))
+        .ToList());
+    }
+  }
+
+  #endregion
+
+  #region レース出走する他馬
+
+  public class SameRaceHorseInputCategory : FinderQueryInputCategory
+  {
+    public RaceData? Race { get; }
+
+    public IReadOnlyList<RaceHorseAnalyzer>? RaceHorses { get; }
+
+    public ReactiveCollection<FinderModelItem> Items { get; } = new();
+
+    public SameRaceHorseInputCategory(RaceData? race)
+    {
+      this.Race = race;
+    }
+
+    public void AddItem()
+    {
+      var model = new FinderModel(this.Race, null, this.RaceHorses).AddTo(this.Disposables);
+      model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Items.Add(new FinderModelItem(model));
+    }
+
+    public ICommand AddItemCommand =>
+      this._addItemCommand ??= new ReactiveCommand().WithSubscribe(() => this.AddItem()).AddTo(this.Disposables);
+    private ICommand? _addItemCommand;
+
+    public ICommand RemoveItemCommand =>
+      this._removeItemCommand ??= new ReactiveCommand<FinderModelItem>().WithSubscribe(i =>
+      {
+        this.Items.Remove(i);
+        i.Model.Dispose();
+        this.Disposables.Remove(i.Model);
+      }).AddTo(this.Disposables);
+    private ICommand? _removeItemCommand;
+
+    protected override string GetQuery()
+    {
+      return string.Join('|', this.Items.Select(i => i.GetQuery()));
+    }
+
+    protected override void PropertyToString(PropertyInfo property, StringBuilder text, object obj)
+    {
+      base.PropertyToString(property, text, obj);
+
+      if (obj == this && property.Name == nameof(Items))
+      {
+        foreach (var item in this.Items)
+        {
+          var serialized = item.Model.Input.Serialize(false)
+            .Replace(Environment.NewLine, ";");
+          text.Append(item.Name);
+          text.Append(";");
+          text.Append(serialized);
+          text.Append('|');
+        }
+      }
+    }
+
+    protected override void StringToProperty(PropertyInfo property, string data, object obj)
+    {
+      base.StringToProperty(property, data, obj);
+
+      if (obj == this && property.Name == nameof(Items))
+      {
+        var items = data.Split('|');
+        foreach (var item in items)
+        {
+          var nameSeparator = item.IndexOf(';');
+          if (nameSeparator < 0)
+          {
+            continue;
+          }
+          var name = item[..nameSeparator];
+
+          var model = new FinderModel(this.Race, null, this.RaceHorses).AddTo(this.Disposables);
+          model.Input.Deserialize(item[nameSeparator..].Replace(";", Environment.NewLine));
+          model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+
+          this.Items.Add(new FinderModelItem(model)
+          {
+            Name =
+            {
+              Value = name,
+            }
+          });
+        }
+      }
+    }
+
+    public class FinderModelItem
+    {
+      public ReactiveProperty<string> Name { get; } = new(string.Empty);
+
+      public FinderModel Model { get; }
+
+      public FinderModelItem(FinderModel model)
+      {
+        this.Model = model;
+      }
+
+      public string GetQuery()
+      {
+        var query = this.Model.Input.Query.Value.Replace('|', ';');
+        if (string.IsNullOrEmpty(query))
+        {
+          return string.Empty;
+        }
+        return "(race)" + query;
+      }
     }
   }
 

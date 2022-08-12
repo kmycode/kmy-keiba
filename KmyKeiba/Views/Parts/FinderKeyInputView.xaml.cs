@@ -34,6 +34,19 @@ namespace KmyKeiba.Views.Parts
       set { SetValue(FinderModelProperty, value); }
     }
 
+    public static readonly DependencyProperty IsSubViewProperty
+= DependencyProperty.Register(
+ nameof(IsSubView),
+ typeof(bool),
+ typeof(FinderKeyInputView),
+ new PropertyMetadata(false));
+
+    public bool IsSubView
+    {
+      get { return (bool)GetValue(IsSubViewProperty); }
+      set { SetValue(IsSubViewProperty, value); }
+    }
+
     public FinderKeyInputView()
     {
       InitializeComponent();

@@ -34,6 +34,32 @@ namespace KmyKeiba.Views.Parts.FinderQuery
       set { SetValue(FinderModelProperty, value); }
     }
 
+    public static readonly DependencyProperty IsSubViewProperty
+= DependencyProperty.Register(
+ nameof(IsSubView),
+ typeof(bool),
+ typeof(FinderQueryView),
+ new PropertyMetadata(false, (sender, e) =>
+ {
+   if (sender is FinderQueryView view && e.NewValue is bool b)
+   {
+     if (b)
+     {
+       view.S_Horse.IsChecked = true;
+     }
+     else
+     {
+       view.S_RaceSubject.IsChecked = true;
+     }
+   }
+ }));
+
+    public bool IsSubView
+    {
+      get { return (bool)GetValue(IsSubViewProperty); }
+      set { SetValue(IsSubViewProperty, value); }
+    }
+
     public Guid UniqueId { get; } = Guid.NewGuid();
     public Guid UniqueId2 { get; } = Guid.NewGuid();
     public Guid UniqueId3 { get; } = Guid.NewGuid();
