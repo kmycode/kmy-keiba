@@ -75,7 +75,7 @@ namespace KmyKeiba.Models.Race.Finder
     {
       property.Subscribe(value =>
       {
-        var text = this.EscapeCharacters(value);
+        var text = this.EscapeCharacters(value ?? string.Empty);
         if (text != value)
         {
           property.Value = text;
@@ -1700,7 +1700,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveCollection<HorseBloodConfigItem> Configs { get; } = new();
 
-    public ReactiveProperty<bool> IsSameBloods { get; } = new();
+    public ReactiveProperty<bool> IsSameBloods { get; } = new(true);
 
     public ReactiveProperty<bool> IsSelfBloods { get; } = new();
 
@@ -1996,6 +1996,182 @@ namespace KmyKeiba.Models.Race.Finder
           return string.Empty;
         }
         return "(race)" + query;
+      }
+    }
+  }
+
+  #endregion
+
+  #region 前走
+
+  public class BeforeRaceInputCategory : FinderQueryInputCategory
+  {
+    public RaceData? Race { get; }
+
+    public ReactiveCollection<FinderModelItem> Items { get; } = new();
+
+    public BeforeRaceInputCategory(RaceData? race)
+    {
+      this.Race = race;
+    }
+
+    public void AddItem()
+    {
+      var model = new FinderModel(this.Race, null, null).AddTo(this.Disposables);
+      model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      var i = new FinderModelItem(model).AddTo(this.Disposables);
+      this.AddTextCheckForEscape(i.BeforeRaceCount);
+      this.AddTextCheckForEscape(i.TargetRaceCount);
+      this.Items.Add(i);
+
+      Observable.FromEventPattern(ev => i.Updated += ev, ev => i.Updated -= ev)
+        .Subscribe(_ => this.UpdateQuery())
+        .AddTo(this.Disposables);
+    }
+
+    public ICommand AddItemCommand =>
+      this._addItemCommand ??= new ReactiveCommand().WithSubscribe(() => this.AddItem()).AddTo(this.Disposables);
+    private ICommand? _addItemCommand;
+
+    public ICommand RemoveItemCommand =>
+      this._removeItemCommand ??= new ReactiveCommand<FinderModelItem>().WithSubscribe(i =>
+      {
+        this.Items.Remove(i);
+        i.Model.Dispose();
+        this.Disposables.Remove(i.Model);
+      }).AddTo(this.Disposables);
+    private ICommand? _removeItemCommand;
+
+    protected override string GetQuery()
+    {
+      return string.Join('|', this.Items.Select(i => i.GetQuery()));
+    }
+
+    protected override void PropertyToString(PropertyInfo property, StringBuilder text, object obj)
+    {
+      base.PropertyToString(property, text, obj);
+
+      if (obj == this && property.Name == nameof(Items))
+      {
+        foreach (var item in this.Items)
+        {
+          var serialized = item.Model.Input.Serialize(false)
+            .Replace(Environment.NewLine, ";");
+          text.Append("[CUSTOM]Items/");
+          text.Append(item.BeforeRaceCount.Value);
+          text.Append(';');
+          text.Append(item.TargetRaceCount.Value);
+          text.Append(";");
+          text.Append(item.IsCountCompletedRaces.Value ? "complete" : item.IsCountRunningRaces.Value ? "run" : "all");
+          text.Append(";");
+          text.Append(serialized);
+          text.Append('|');
+        }
+      }
+    }
+
+    protected override void StringToProperty(PropertyInfo property, string data, object obj)
+    {
+      base.StringToProperty(property, data, obj);
+
+      if (obj == this && property.Name == nameof(Items))
+      {
+        var items = data.Split('|');
+        foreach (var item in items)
+        {
+          var separator1 = item.IndexOf(';');
+          if (separator1 < 0) continue;
+          var beforeCount = item[..separator1];
+
+          var separator2 = item.IndexOf(';', separator1 + 1);
+          if (separator2 < 0) continue;
+          var targetCount = item[(separator1 + 1)..(separator2 - separator1)];
+
+          var separator3 = item.IndexOf(';', separator2 + 1);
+          if (separator3 < 0) continue;
+          var option = item[(separator2 + 1)..(separator3 - separator2)];
+
+          var model = new FinderModel(this.Race, null, null).AddTo(this.Disposables);
+          model.Input.Deserialize(item[separator3..].Replace(";", Environment.NewLine));
+          model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+          model.Input.BeforeRace.UpdateQuery();
+
+          var i = new FinderModelItem(model)
+          {
+            BeforeRaceCount = { Value = beforeCount, },
+            TargetRaceCount = { Value = targetCount, },
+            IsCountCompletedRaces = { Value = option == "complete", },
+            IsCountRunningRaces = { Value = option == "run", },
+            IsCountAllRaces = { Value = (option != "complete" && option != "run"), },
+          }.AddTo(this.Disposables);
+          this.AddTextCheckForEscape(i.BeforeRaceCount);
+          this.AddTextCheckForEscape(i.TargetRaceCount);
+          this.Items.Add(i);
+
+          Observable.FromEventPattern(ev => i.Updated += ev, ev => i.Updated -= ev)
+            .Subscribe(_ => this.UpdateQuery())
+            .AddTo(this.Disposables);
+        }
+
+        this.UpdateQuery();
+      }
+    }
+
+    public class FinderModelItem : IDisposable
+    {
+      private readonly CompositeDisposable _disposables = new();
+
+      public FinderModel Model { get; }
+
+      public ReactiveProperty<string> BeforeRaceCount { get; } = new("1");
+
+      public ReactiveProperty<string> TargetRaceCount { get; } = new();
+
+      public ReactiveProperty<bool> IsCountAllRaces { get; } = new(true);
+
+      public ReactiveProperty<bool> IsCountRunningRaces { get; } = new();
+
+      public ReactiveProperty<bool> IsCountCompletedRaces { get; } = new();
+
+      public event EventHandler? Updated;
+
+      public FinderModelItem(FinderModel model)
+      {
+        this.Model = model;
+
+        this.BeforeRaceCount
+          .CombineLatest(this.TargetRaceCount)
+          .CombineLatest(this.IsCountAllRaces)
+          .CombineLatest(this.IsCountRunningRaces)
+          .CombineLatest(this.IsCountCompletedRaces)
+          .Subscribe(_ => this.Updated?.Invoke(this, EventArgs.Empty))
+          .AddTo(this._disposables);
+      }
+
+      public string GetQuery()
+      {
+        var r1 = int.TryParse(this.BeforeRaceCount.Value, out var beforeCount);
+        var r2 = int.TryParse(this.TargetRaceCount.Value, out var targetCount);
+        if (!r1)
+        {
+          return string.Empty;
+        }
+
+        var query = this.Model.Input.Query.Value.Replace('|', ';');
+        if (string.IsNullOrEmpty(query))
+        {
+          return string.Empty;
+        }
+
+        var option = this.IsCountRunningRaces.Value ? "run" :
+          this.IsCountCompletedRaces.Value ? "complete" : "all";
+
+        return $"(before<{option}>:{beforeCount},{targetCount}){query}";
+      }
+
+      public void Dispose()
+      {
+        this._disposables.Dispose();
       }
     }
   }

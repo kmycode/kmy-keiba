@@ -131,7 +131,7 @@ namespace KmyKeiba.Models.Connection
 
       this.DownloadingStatus =
         this.ProcessingStep
-          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates)
+          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates && p != Connection.ProcessingStep.MigrationFrom250)
           .CombineLatest(this.LoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
           .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
           .ToReactiveProperty().AddTo(this._disposables);
@@ -360,8 +360,9 @@ namespace KmyKeiba.Models.Connection
         var day = 0;
         var lastStandardTimeUpdatedYear = 0;
 
+        using var db = new MyContext();
+
         {
-          using var db = new MyContext();
           lastLaunchDay = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastLaunchDate);
           year = lastLaunchDay / 10000;
           month = lastLaunchDay / 100 % 100;
@@ -370,6 +371,14 @@ namespace KmyKeiba.Models.Connection
           lastStandardTimeUpdatedYear = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastUpdateStandardTimeYear);
         }
         logger.Info($"最後に標準タイムを更新した年: {lastStandardTimeUpdatedYear}");
+
+        // データベースのマイグレーション処理を自動的に開始
+        var dbver = await ConfigUtil.GetIntValueAsync(db, SettingKey.DatabaseVersion);
+        if (dbver < 250)
+        {
+          await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.MigrationFrom250);
+          await ConfigUtil.SetIntValueAsync(db, SettingKey.DatabaseVersion, 250);
+        }
 
         // 最初に最終起動からの差分を落とす
         // （真っ先にやらないと、ユーザーが先に過去データダウンロードを開始する可能性あり）
@@ -572,6 +581,21 @@ namespace KmyKeiba.Models.Connection
           step.Value = Connection.ProcessingStep.InvalidData;
           logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}");
           await ShapeDatabaseModel.RemoveInvalidDataAsync();
+        }
+        if (steps.HasFlag(Connection.ProcessingStep.MigrationFrom250) && !this.IsCancelProcessing.Value)
+        {
+          step.Value = Connection.ProcessingStep.MigrationFrom250;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
+          try
+          {
+            this.HasProcessingProgress.Value = true;
+            await ShapeDatabaseModel.MigrateFrom250Async(isCanceled: this.IsCancelProcessing,
+                progress: this.ProcessingProgress, progressMax: this.ProcessingProgressMax);
+          }
+          finally
+          {
+            this.HasProcessingProgress.Value = false;
+          }
         }
         if (steps.HasFlag(Connection.ProcessingStep.RunningStyle) && !this.IsCancelProcessing.Value)
         {
@@ -1028,6 +1052,9 @@ namespace KmyKeiba.Models.Connection
     [Label("地方競馬のレース条件を解析中")]
     RaceSubjectInfos = 32,
 
-    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos,
+    [Label("データをマイグレーション中 (from 2.5.0)")]
+    MigrationFrom250 = 64,
+
+    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | MigrationFrom250,
   }
 }

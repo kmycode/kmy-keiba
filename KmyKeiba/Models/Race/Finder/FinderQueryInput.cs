@@ -128,6 +128,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public SameRaceHorseInputCategory SameRaceHorse { get; }
 
+    public BeforeRaceInputCategory BeforeRace { get; }
+
     public ReactiveProperty<string> Query { get; } = new();
 
     public FinderQueryInput(RaceData? race, RaceHorseData? horse, IReadOnlyList<RaceHorseData>? raceHorses)
@@ -188,17 +190,20 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.Corner4 = new CornerResultInputCategory(4));
       this._categories.Add(this.HorseBlood = new HorseBloodInputCategory());
       this._categories.Add(this.SameRaceHorse = new SameRaceHorseInputCategory(race));
+      this._categories.Add(this.BeforeRace = new BeforeRaceInputCategory(race));
 
       try
       {
         if (raceHorses != null)
         {
+          /*
           var m = new SameRaceHorseInputCategory.FinderModelItem(new FinderModel(race, null, null));
           m.Model.Input.Age.Items[4].IsChecked.Value = true;
           this.SameRaceHorse.Items.Add(m);
           var a = this.Serialize(false);
           this.SameRaceHorse.Items.Clear();
           this.Deserialize(a);
+          */
         }
       }
       catch (Exception ex)

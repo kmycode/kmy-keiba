@@ -83,6 +83,9 @@ namespace KmyKeiba.Models.Race.Finder
         .CombineLatest(this.IsNotEqual)
         .CombineLatest(this.Value)
         .CombineLatest(this.MaxValue)
+        .CombineLatest(this.IsCompareWithCurrentRace)
+        .CombineLatest(this.IsCompareWithFixedValue)
+        .CombineLatest(this.IsCompareWithTargetRace)
         .Subscribe(_ =>
         {
           this.Updated?.Invoke(this, EventArgs.Empty);
