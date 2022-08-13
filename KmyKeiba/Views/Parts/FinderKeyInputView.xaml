@@ -47,7 +47,8 @@
                     PlacementTarget="{Binding ElementName=Toggle}" Placement="Bottom">
       <Border Width="{Binding ActualWidth,Mode=OneWay,ElementName=Toggle}" MinWidth="1200" Height="660" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Padding="16,8"
               Background="{StaticResource BaseBackground}">
-        <fq:FinderQueryView FinderModel="{Binding FinderModel,ElementName=Root}" IsSubView="{Binding IsSubView,ElementName=Root}"/>
+        <fq:FinderQueryView FinderModel="{Binding FinderModel,ElementName=Root}" IsSubView="{Binding IsSubView,ElementName=Root}"
+                            IsSubViewSameRaceHorse="{Binding IsSubViewSameRaceHorse,ElementName=Root}" IsSubViewBeforeRace="{Binding IsSubViewBeforeRace,ElementName=Root}"/>
       </Border>
     </local:ImePopup>
     <TextBox Grid.Row="1" Text="{Binding FinderModel.Keys.Value,ElementName=Root,Mode=TwoWay}" FontSize="16" Padding="4,2"

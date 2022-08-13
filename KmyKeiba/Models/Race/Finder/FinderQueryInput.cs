@@ -124,6 +124,8 @@ namespace KmyKeiba.Models.Race.Finder
     public CornerResultInputCategory Corner3 { get; }
     public CornerResultInputCategory Corner4 { get; }
 
+    public HorseBloodInputCategory HorseBlood { get; }
+
     public SameRaceHorseInputCategory SameRaceHorse { get; }
 
     public ReactiveProperty<string> Query { get; } = new();
@@ -184,12 +186,20 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.Corner2 = new CornerResultInputCategory(2));
       this._categories.Add(this.Corner3 = new CornerResultInputCategory(3));
       this._categories.Add(this.Corner4 = new CornerResultInputCategory(4));
+      this._categories.Add(this.HorseBlood = new HorseBloodInputCategory());
       this._categories.Add(this.SameRaceHorse = new SameRaceHorseInputCategory(race));
 
       try
       {
-        //var a = this.Serialize(false);
-        //this.Deserialize(a);
+        if (raceHorses != null)
+        {
+          var m = new SameRaceHorseInputCategory.FinderModelItem(new FinderModel(race, null, null));
+          m.Model.Input.Age.Items[4].IsChecked.Value = true;
+          this.SameRaceHorse.Items.Add(m);
+          var a = this.Serialize(false);
+          this.SameRaceHorse.Items.Clear();
+          this.Deserialize(a);
+        }
       }
       catch (Exception ex)
       {
@@ -260,7 +270,7 @@ namespace KmyKeiba.Models.Race.Finder
       {
         var line = lines[i];
 
-        if (line.StartsWith(':'))
+        if (line.StartsWith(':') || i == lines.Length - 1)
         {
           if (!string.IsNullOrEmpty(propertyName))
           {
@@ -275,8 +285,11 @@ namespace KmyKeiba.Models.Race.Finder
             }
           }
 
-          propertyName = line[1..];
-          categoryLines.Clear();
+          if (!string.IsNullOrEmpty(line))
+          {
+            propertyName = line[1..];
+            categoryLines.Clear();
+          }
         }
         else
         {

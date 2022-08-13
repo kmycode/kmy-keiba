@@ -65,6 +65,12 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsNotEqual { get; } = new();
 
+    public ReactiveProperty<bool> IsCompareWithFixedValue { get; } = new(true);
+
+    public ReactiveProperty<bool> IsCompareWithCurrentRace { get; } = new();
+
+    public ReactiveProperty<bool> IsCompareWithTargetRace { get; } = new();
+
     public FinderQueryNumberInput()
     {
       this.IsUnset
@@ -119,8 +125,10 @@ namespace KmyKeiba.Models.Race.Finder
         this.IsLessThanOrEqual.Value ? "<=" :
         this.IsNotEqual.Value ? "<>" :
         "=";
+      var prefix = this.IsCompareWithCurrentRace.Value ? "$$" :
+        this.IsCompareWithTargetRace.Value ? "$" : string.Empty;
 
-      return sign + this.Value.Value;
+      return sign + prefix + this.Value.Value;
     }
 
     public IObservable<EventPattern<object>> ToObservable()

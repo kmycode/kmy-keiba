@@ -30,17 +30,17 @@
           </Style>
         </StackPanel.Resources>
         <RadioButton Content="レース１" IsChecked="True" x:Name="S_RaceSubject"
-                     Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+                     Visibility="{Binding IsSubViewSameRaceHorse,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <RadioButton Content="レース２" Name="S_RaceSubject2"
-                     Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+                     Visibility="{Binding IsSubViewSameRaceHorse,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <RadioButton Content="馬（選択レース）" Name="S_SearchTarget"
                      Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <RadioButton Content="馬" x:Name="S_Horse"/>
         <RadioButton Content="馬（ローテーション）" Name="S_HorseRotation"/>
         <RadioButton Content="馬（レース直前）" Name="S_HorseRace"/>
         <RadioButton Content="馬（レース結果）" Name="S_HorseResult"/>
-        <RadioButton Content="血統"
-                     Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+        <RadioButton Content="血統" Name="S_HorseBlood"
+                     Visibility="{Binding IsSubViewBeforeRace,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <RadioButton Content="騎手／調教師"/>
         <RadioButton Content="レース出場の他馬" Name="S_RaceOtherHorses"
                      Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
@@ -611,6 +611,84 @@
       </ScrollViewer>
 
       <!--馬（同じレースに出走する他の馬）-->
+      <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_HorseBlood,Converter={StaticResource BooleanVisibilityConv}}"
+                    VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <Grid Width="450">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="auto"/>
+              <RowDefinition Height="auto"/>
+              <RowDefinition/>
+              <RowDefinition Height="auto"/>
+              <RowDefinition Height="auto"/>
+              <RowDefinition Height="auto"/>
+              <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition/>
+              <ColumnDefinition Width="0.5*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="血統" FontSize="20"/>
+            <Button Grid.Column="1" Content="検索 (100件)" Command="{Binding FinderModel.Input.HorseBlood.SearchHorsesCommand,ElementName=Root}"
+                    FontSize="16"/>
+            <local:InputStringView Grid.Row="1" Grid.ColumnSpan="2" Margin="0,8"
+                                   Input="{Binding FinderModel.Input.HorseBlood.HorseName,ElementName=Root}"/>
+            <Border Grid.Row="2" Grid.ColumnSpan="2" BorderBrush="{StaticResource SubBorderBrush}" BorderThickness="1">
+              <ListBox ItemsSource="{Binding FinderModel.Input.HorseBlood.Horses,ElementName=Root}"
+                       SelectedItem="{Binding FinderModel.Input.HorseBlood.SelectedHorse.Value,ElementName=Root,Mode=TwoWay}"
+                       SelectionMode="Single">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock FontSize="16" Text="{Binding Name}"/>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </Border>
+            <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Foreground="{StaticResource ErrorForeground}"
+                       Text="エラーが発生しました" Visibility="{Binding FinderModel.Input.HorseBlood.IsSearchError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+            <local:InputBloodView Grid.Row="4" Grid.ColumnSpan="2" Input="{Binding FinderModel.Input.HorseBlood.HorseBlood,ElementName=Root}"/>
+            <Grid Margin="0,8" Grid.Row="5" Grid.ColumnSpan="2">
+              <Grid.Resources>
+                <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}"/>
+              </Grid.Resources>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+              </Grid.ColumnDefinitions>
+              <RadioButton GroupName="{Binding UniqueId5,ElementName=Root}" FontSize="16"
+                           Content="自身の血統" IsChecked="{Binding FinderModel.Input.HorseBlood.IsSelfBloods.Value,ElementName=Root,Mode=TwoWay}"/>
+              <RadioButton Grid.Column="1" GroupName="{Binding UniqueId5,ElementName=Root}" FontSize="16"
+                           Content="自分と同じ血統" IsChecked="{Binding FinderModel.Input.HorseBlood.IsSameBloods.Value,ElementName=Root,Mode=TwoWay}"/>
+            </Grid>
+            <Button Grid.Row="6" Grid.ColumnSpan="2" FontSize="16" Content="追加" Margin="0,4,0,0"
+                    Command="{Binding FinderModel.Input.HorseBlood.AddConfigCommand,ElementName=Root}"/>
+          </Grid>
+          <Grid Width="400" Margin="16,0,0,0">
+            <ItemsControl Style="{StaticResource TableList}" ItemsSource="{Binding FinderModel.Input.HorseBlood.Configs,ElementName=Root}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition/>
+                      <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock FontSize="16" Visibility="{Binding IsSelfBlood,Converter={StaticResource NegativeVisibilityConv}}" VerticalAlignment="Center">
+                      <Run Text="{Binding Name}"/> と同じ <Run Text="{Binding Type,Converter={StaticResource LabelConv}}"/> を持つ馬
+                    </TextBlock>
+                    <TextBlock FontSize="16" Visibility="{Binding IsSelfBlood,Converter={StaticResource BooleanVisibilityConv}}" VerticalAlignment="Center">
+                      <Run Text="{Binding Name}"/> が <Run Text="{Binding Type,Converter={StaticResource LabelConv}}"/> である馬
+                    </TextBlock>
+                    <Button Grid.Column="1" FontSize="14" Content="削除" Command="{Binding FinderModel.Input.HorseBlood.RemoveConfigCommand,ElementName=Root}"
+                            CommandParameter="{Binding}"/>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Grid>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!--馬（同じレースに出走する他の馬）-->
       <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_RaceOtherHorses,Converter={StaticResource BooleanVisibilityConv}}"
                     VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
@@ -626,14 +704,16 @@
                   <StackPanel Margin="0,0,0,16">
                     <Grid>
                       <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
                         <ColumnDefinition/>
                         <ColumnDefinition Width="auto"/>
                       </Grid.ColumnDefinitions>
-                      <TextBox FontSize="16" Text="{Binding Name.Value}"/>
-                      <Button Grid.Column="1" FontSize="14" Content="削除"
+                      <TextBlock Text="設定名" FontSize="14" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                      <TextBox Grid.Column="1" FontSize="16" Text="{Binding Name.Value}"/>
+                      <Button Grid.Column="2" FontSize="14" Content="削除"
                               Command="{Binding FinderModel.Input.SameRaceHorse.RemoveItemCommand,ElementName=Root}" CommandParameter="{Binding}"/>
                     </Grid>
-                    <up:FinderKeyInputView FinderModel="{Binding Model}" IsSubView="True"/>
+                    <up:FinderKeyInputView FinderModel="{Binding Model}" IsSubView="True" IsSubViewSameRaceHorse="True"/>
                   </StackPanel>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>

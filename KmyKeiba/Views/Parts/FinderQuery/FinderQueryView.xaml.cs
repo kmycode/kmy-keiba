@@ -60,10 +60,37 @@ namespace KmyKeiba.Views.Parts.FinderQuery
       set { SetValue(IsSubViewProperty, value); }
     }
 
+    public static readonly DependencyProperty IsSubViewSameRaceHorseProperty
+= DependencyProperty.Register(
+ nameof(IsSubViewSameRaceHorse),
+ typeof(bool),
+ typeof(FinderQueryView),
+ new PropertyMetadata(false));
+
+    public bool IsSubViewSameRaceHorse
+    {
+      get { return (bool)GetValue(IsSubViewSameRaceHorseProperty); }
+      set { SetValue(IsSubViewSameRaceHorseProperty, value); }
+    }
+
+    public static readonly DependencyProperty IsSubViewBeforeRaceProperty
+= DependencyProperty.Register(
+ nameof(IsSubViewBeforeRace),
+ typeof(bool),
+ typeof(FinderQueryView),
+ new PropertyMetadata(false));
+
+    public bool IsSubViewBeforeRace
+    {
+      get { return (bool)GetValue(IsSubViewBeforeRaceProperty); }
+      set { SetValue(IsSubViewBeforeRaceProperty, value); }
+    }
+
     public Guid UniqueId { get; } = Guid.NewGuid();
     public Guid UniqueId2 { get; } = Guid.NewGuid();
     public Guid UniqueId3 { get; } = Guid.NewGuid();
     public Guid UniqueId4 { get; } = Guid.NewGuid();
+    public Guid UniqueId5 { get; } = Guid.NewGuid();
 
     public FinderQueryView()
     {

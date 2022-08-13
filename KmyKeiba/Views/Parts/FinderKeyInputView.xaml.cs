@@ -47,6 +47,32 @@ namespace KmyKeiba.Views.Parts
       set { SetValue(IsSubViewProperty, value); }
     }
 
+    public static readonly DependencyProperty IsSubViewSameRaceHorseProperty
+= DependencyProperty.Register(
+ nameof(IsSubViewSameRaceHorse),
+ typeof(bool),
+ typeof(FinderKeyInputView),
+ new PropertyMetadata(false));
+
+    public bool IsSubViewSameRaceHorse
+    {
+      get { return (bool)GetValue(IsSubViewSameRaceHorseProperty); }
+      set { SetValue(IsSubViewSameRaceHorseProperty, value); }
+    }
+
+    public static readonly DependencyProperty IsSubViewBeforeRaceProperty
+= DependencyProperty.Register(
+ nameof(IsSubViewBeforeRace),
+ typeof(bool),
+ typeof(FinderKeyInputView),
+ new PropertyMetadata(false));
+
+    public bool IsSubViewBeforeRace
+    {
+      get { return (bool)GetValue(IsSubViewBeforeRaceProperty); }
+      set { SetValue(IsSubViewBeforeRaceProperty, value); }
+    }
+
     public FinderKeyInputView()
     {
       InitializeComponent();

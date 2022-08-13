@@ -59,6 +59,30 @@ namespace KmyKeiba.Models.Race.Finder
       return string.Empty;
     }
 
+    private string EscapeCharacters(string text)
+    {
+      return text.Replace("=", string.Empty)
+        .Replace("@", string.Empty)
+        .Replace(":", string.Empty)
+        .Replace(">", string.Empty)
+        .Replace("<", string.Empty)
+        .Replace(";", string.Empty)
+        .Replace("/", string.Empty)
+        .Replace(",", string.Empty);
+    }
+
+    protected void AddTextCheckForEscape(ReactiveProperty<string> property)
+    {
+      property.Subscribe(value =>
+      {
+        var text = this.EscapeCharacters(value);
+        if (text != value)
+        {
+          property.Value = text;
+        }
+      }).AddTo(this.Disposables);
+    }
+
     public void Dispose()
     {
       this.Disposables.Dispose();
@@ -94,7 +118,7 @@ namespace KmyKeiba.Models.Race.Finder
       {
         text.Append(property.Name);
         text.Append('=');
-        text.Append(((ReactiveProperty<string>)property.GetValue(obj)!).Value ?? string.Empty);
+        text.Append(this.EscapeCharacters(((ReactiveProperty<string>)property.GetValue(obj)!).Value ?? string.Empty));
         text.AppendLine();
       }
       else if (type == typeof(bool))
@@ -116,6 +140,13 @@ namespace KmyKeiba.Models.Race.Finder
         text.Append(property.Name);
         text.Append('=');
         text.Append((property.GetValue(obj)!));
+        text.AppendLine();
+      }
+      else if (type == typeof(BloodType))
+      {
+        text.Append(property.Name);
+        text.Append('=');
+        text.Append(((int)(BloodType)property.GetValue(obj)!));
         text.AppendLine();
       }
       else if (type == typeof(FinderQueryNumberInput) || type == typeof(FinderQueryFloatNumberInput) || type == typeof(FinderQueryStringInput) || type == typeof(FinderQueryBloodRelationInput))
@@ -182,6 +213,23 @@ namespace KmyKeiba.Models.Race.Finder
           if (subObject != null)
           {
             i += this.DeserializeObject(subObject, lines.Skip(i + 1));
+          }
+        }
+        else if (line.StartsWith("[CUSTOM]"))
+        {
+          var propertyNameIndex = line.IndexOf('/');
+          if (propertyNameIndex > 0)
+          {
+            var propertyName = line.Substring(8, propertyNameIndex - 8);
+            var p = this.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (p == null)
+            {
+              continue;
+            }
+
+            this.StringToProperty(p, line[(propertyNameIndex + 1)..], this);
+
+            continue;
           }
         }
         else if (line.Contains('='))
@@ -266,6 +314,11 @@ namespace KmyKeiba.Models.Race.Finder
         {
           var value = data;
           property.SetValue(obj, value);
+        }
+        else if (type == typeof(BloodType))
+        {
+          int.TryParse(data, out var value);
+          property.SetValue(obj, (BloodType)value);
         }
       }
     }
@@ -1633,6 +1686,202 @@ namespace KmyKeiba.Models.Race.Finder
 
   #endregion
 
+  #region 血統
+
+  public class HorseBloodInputCategory : FinderQueryInputCategory
+  {
+    public FinderQueryStringInput HorseName { get; } = new();
+
+    public FinderQueryBloodRelationInput HorseBlood { get; } = new();
+
+    public ReactiveCollection<HorseBloodItem> Horses { get; } = new();
+
+    public ReactiveProperty<HorseBloodItem?> SelectedHorse { get; } = new();
+
+    public ReactiveCollection<HorseBloodConfigItem> Configs { get; } = new();
+
+    public ReactiveProperty<bool> IsSameBloods { get; } = new();
+
+    public ReactiveProperty<bool> IsSelfBloods { get; } = new();
+
+    public ReactiveProperty<bool> IsSearchError { get; } = new();
+
+    public HorseBloodInputCategory()
+    {
+      this.Configs.CollectionChangedAsObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+    }
+
+    public ICommand SearchHorsesCommand =>
+      this._searchHorsesCommand ??= new AsyncReactiveCommand().WithSubscribe(async () =>
+      {
+        this.IsSearchError.Value = false;
+        this.Horses.Clear();
+
+        var value = this.HorseName.Value.Value;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+          return;
+        }
+
+        try
+        {
+          using var db = new MyContext();
+          IQueryable<HorseBloodData> horses = db.HorseBloods!;
+
+          if (this.HorseName.IsEqual.Value)
+          {
+            horses = horses.Where(h => h.Name == value);
+          }
+          else if (this.HorseName.IsEndsWith.Value)
+          {
+            horses = horses.Where(h => h.Name.EndsWith(value));
+          }
+          else if (this.HorseName.IsStartsWith.Value)
+          {
+            horses = horses.Where(h => h.Name.StartsWith(value));
+          }
+          else if (this.HorseName.IsContains.Value)
+          {
+            horses = horses.Where(h => h.Name.Contains(value));
+          }
+          else
+          {
+            return;
+          }
+
+          var result = await horses.Take(500).ToArrayAsync();
+          foreach (var item in result)
+          {
+            this.Horses.Add(new HorseBloodItem(item.Code, item.Name));
+          }
+        }
+        catch (Exception ex)
+        {
+          this.IsSearchError.Value = true;
+        }
+      });
+    private ICommand? _searchHorsesCommand;
+
+    public ICommand AddConfigCommand =>
+      this._addConfigCommand ??= new ReactiveCommand().WithSubscribe(() =>
+      {
+        var horse = this.SelectedHorse.Value;
+        if (horse != null)
+        {
+          this.Configs.Add(new HorseBloodConfigItem
+          {
+            Key = horse.Key,
+            Name = horse.Name,
+            Type = this.HorseBlood.GetBloodType(),
+            IsSelfBlood = this.IsSelfBloods.Value,
+          });
+        }
+      }).AddTo(this.Disposables);
+    private ICommand? _addConfigCommand;
+
+    public ICommand RemoveConfigCommand =>
+      this._removeConfigCommand ??= new ReactiveCommand<HorseBloodConfigItem>().WithSubscribe(item =>
+      {
+        this.Configs.Remove(item);
+      }).AddTo(this.Disposables);
+    private ICommand? _removeConfigCommand;
+
+    protected override string GetQuery()
+    {
+      return string.Join('|', this.Configs.Select(c => c.ToQuery()));
+    }
+
+    protected override bool IsIgnorePropertyToSerializing(string propertyName)
+    {
+      var r = base.IsIgnorePropertyToSerializing(propertyName);
+      r = r || propertyName == nameof(HorseName);
+      r = r || propertyName == nameof(HorseBlood);
+      r = r || propertyName == nameof(IsSameBloods);
+      r = r || propertyName == nameof(IsSelfBloods);
+      return r;
+    }
+
+    protected override void PropertyToString(PropertyInfo property, StringBuilder text, object obj)
+    {
+      base.PropertyToString(property, text, obj);
+
+      if (obj == this && property.Name == nameof(Configs))
+      {
+        var values = string.Join('|', this.Configs.Select(c => c.Serialize()));
+        text.Append(values);
+      }
+    }
+
+    protected override void StringToProperty(PropertyInfo property, string data, object obj)
+    {
+      base.StringToProperty(property, data, obj);
+
+      if (obj == this && property.Name == nameof(Configs))
+      {
+        var values = data.Split('|');
+        foreach (var value in values)
+        {
+          var config = new HorseBloodConfigItem();
+          config.Deserialize(value);
+          if (!string.IsNullOrEmpty(config.Key))
+          {
+            this.Configs.Add(config);
+          }
+        }
+      }
+    }
+
+    public class HorseBloodItem
+    {
+      public string Name { get; }
+
+      public string Key { get; }
+
+      public HorseBloodItem(string key, string name)
+      {
+        this.Key = key;
+        this.Name = name;
+      }
+    }
+
+    public class HorseBloodConfigItem
+    {
+      public string Key { get; set; } = string.Empty;
+
+      public string Name { get; set; } = string.Empty;
+
+      public BloodType Type { get; set; }
+
+      public bool IsSelfBlood { get; set; }
+
+      public string ToQuery()
+      {
+        return $"{this.Type.ToStringCode()}:{(this.IsSelfBlood ? "@" : string.Empty)}{this.Key}";
+      }
+
+      public string Serialize()
+      {
+        return $"{this.Key},{this.Name},{(int)this.Type},{this.IsSelfBlood.ToString().ToLower()}";
+      }
+
+      public void Deserialize(string data)
+      {
+        var d = data.Split(',');
+        if (d.Length < 4)
+        {
+          return;
+        }
+        this.Key = d[0];
+        this.Name = d[1];
+        int.TryParse(d[2], out var type);
+        this.Type = (BloodType)type;
+        this.IsSelfBlood = d[3] == "true";
+      }
+    }
+  }
+
+  #endregion
+
   #region レース出走する他馬
 
   public class SameRaceHorseInputCategory : FinderQueryInputCategory
@@ -1683,7 +1932,8 @@ namespace KmyKeiba.Models.Race.Finder
         {
           var serialized = item.Model.Input.Serialize(false)
             .Replace(Environment.NewLine, ";");
-          text.Append(item.Name);
+          text.Append("[CUSTOM]Items/");
+          text.Append(item.Name.Value);
           text.Append(";");
           text.Append(serialized);
           text.Append('|');
@@ -1710,15 +1960,20 @@ namespace KmyKeiba.Models.Race.Finder
           var model = new FinderModel(this.Race, null, this.RaceHorses).AddTo(this.Disposables);
           model.Input.Deserialize(item[nameSeparator..].Replace(";", Environment.NewLine));
           model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+          model.Input.SameRaceHorse.UpdateQuery();
 
-          this.Items.Add(new FinderModelItem(model)
+          var i = new FinderModelItem(model)
           {
             Name =
             {
               Value = name,
             }
-          });
+          };
+          this.AddTextCheckForEscape(i.Name);
+          this.Items.Add(i);
         }
+
+        this.UpdateQuery();
       }
     }
 

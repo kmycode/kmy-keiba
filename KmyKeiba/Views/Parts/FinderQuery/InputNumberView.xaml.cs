@@ -34,7 +34,21 @@ namespace KmyKeiba.Views.Parts.FinderQuery
       set { SetValue(InputProperty, value); }
     }
 
+    public static readonly DependencyProperty IsComparableProperty
+= DependencyProperty.Register(
+ nameof(IsComparable),
+ typeof(bool),
+ typeof(InputNumberView),
+ new PropertyMetadata(false));
+
+    public bool IsComparable
+    {
+      get { return (bool)GetValue(IsComparableProperty); }
+      set { SetValue(IsComparableProperty, value); }
+    }
+
     public Guid UniqueId { get; } = Guid.NewGuid();
+    public Guid UniqueId2 { get; } = Guid.NewGuid();
 
     public InputNumberView()
     {
