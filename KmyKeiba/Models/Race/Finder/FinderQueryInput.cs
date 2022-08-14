@@ -129,6 +129,14 @@ namespace KmyKeiba.Models.Race.Finder
 
     public HorseBloodInputCategory HorseBlood { get; }
 
+    public RiderNameInputCategory RiderName { get; }
+
+    public RiderBelongsInputCategory RiderBelongs { get; }
+
+    public TrainerNameInputCategory TrainerName { get; }
+
+    public TrainerBelongsInputCategory TrainerBelongs { get; }
+
     public SameRaceHorseInputCategory SameRaceHorse { get; }
 
     public BeforeRaceInputCategory BeforeRace { get; }
@@ -138,6 +146,8 @@ namespace KmyKeiba.Models.Race.Finder
     public ExternalNumberInputCategory ExternalNumber { get; }
 
     public GroupByCategoryInput GroupBy { get; }
+
+    public OtherSettingInputCategory OtherSetting { get; }
 
     public ReactiveCollection<FinderConfigData> Configs { get; } = new();
 
@@ -205,11 +215,16 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.Corner4 = new CornerResultInputCategory(4));
       this._categories.Add(this.RunningStyle = new RunningStyleInputCategory());
       this._categories.Add(this.HorseBlood = new HorseBloodInputCategory());
+      this._categories.Add(this.RiderName = new RiderNameInputCategory());
+      this._categories.Add(this.RiderBelongs = new RiderBelongsInputCategory());
+      this._categories.Add(this.TrainerName = new TrainerNameInputCategory());
+      this._categories.Add(this.TrainerBelongs = new TrainerBelongsInputCategory());
       this._categories.Add(this.SameRaceHorse = new SameRaceHorseInputCategory(race));
       this._categories.Add(this.BeforeRace = new BeforeRaceInputCategory(race));
       this._categories.Add(this.Memo = new MemoInputCategory());
       this._categories.Add(this.ExternalNumber = new ExternalNumberInputCategory());
       this._categories.Add(this.GroupBy = new GroupByCategoryInput());
+      this._categories.Add(this.OtherSetting = new OtherSettingInputCategory());
 
       foreach (var category in this._categories)
       {

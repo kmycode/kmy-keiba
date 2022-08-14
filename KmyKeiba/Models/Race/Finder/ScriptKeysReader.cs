@@ -884,6 +884,8 @@ namespace KmyKeiba.Models.Race.Finder
     HorsesCount,
     [EnumQueryKey("goalhorsescount")]
     GoalHorsesCount,
+    [EnumQueryKey("datastatus")]
+    DataStatus,
 
     [StringQueryKey("horse")]
     HorseKey,

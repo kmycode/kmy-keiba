@@ -449,6 +449,16 @@ namespace KmyKeiba.Models.Race.Finder
     {
     }
 
+    protected override string GetQuery()
+    {
+      var right = this.Input.GetRightQuery();
+      if (string.IsNullOrEmpty(right))
+      {
+        return string.Empty;
+      }
+      return $"{this.Key}{right}";
+    }
+
     protected override bool IsIgnorePropertyToSerializing(string propertyName)
     {
       var v = base.IsIgnorePropertyToSerializing(propertyName);
@@ -998,16 +1008,6 @@ namespace KmyKeiba.Models.Race.Finder
     {
     }
 
-    protected override string GetQuery()
-    {
-      var right = this.Input.GetRightQuery();
-      if (string.IsNullOrEmpty(right))
-      {
-        return string.Empty;
-      }
-      return $"racename{right}";
-    }
-
     protected override async Task TestAsync()
     {
       using var db = new MyContext();
@@ -1232,6 +1232,14 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsHorseBlood { get; } = new();
 
+    public ReactiveProperty<bool> IsAllRiders { get; } = new();
+
+    public ReactiveProperty<bool> IsRider { get; } = new();
+
+    public ReactiveProperty<bool> IsAllTrainers { get; } = new();
+
+    public ReactiveProperty<bool> IsTrainer { get; } = new();
+
     public FinderQueryBloodRelationInput BloodInput { get; } = new();
 
     public ReactiveCollection<HorseItem> Horses { get; } = new();
@@ -1257,6 +1265,10 @@ namespace KmyKeiba.Models.Race.Finder
       this.IsAllHorses.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsHorseNumber.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsHorseBlood.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsAllRiders.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsRider.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsAllTrainers.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsTrainer.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.SelectedHorse.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.BloodInput.AddTo(this.Disposables);
       this.BloodInput.ToObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
@@ -1272,8 +1284,18 @@ namespace KmyKeiba.Models.Race.Finder
       {
         return "horse#";
       }
-      if (this.IsHorseNumber.Value)
+      if (this.IsAllRiders.Value)
       {
+        return "rider#";
+      }
+      if (this.IsAllTrainers.Value)
+      {
+        return "trainer#";
+      }
+      if (this.IsHorseNumber.Value || this.IsRider.Value || this.IsTrainer.Value)
+      {
+        var key = this.IsHorseNumber.Value ? "horse" : this.IsRider.Value ? "rider" : "trainer";
+
         if (this.SelectedHorse.Value != null)
         {
           // 最初からKeyを使えよといわれるかもしれないが、
@@ -1281,11 +1303,11 @@ namespace KmyKeiba.Models.Race.Finder
           // （Keyを使っちゃうと、他のレースで検索条件を読み込んだ時に意図しない動きをするかもしれない）
           if (this.SelectedHorse.Value.Number != 0)
           {
-            return $"horse#{this.SelectedHorse.Value.Number}";
+            return $"{key}#{this.SelectedHorse.Value.Number}";
           }
           else
           {
-            return $"horse={this.SelectedHorse.Value.Key}";
+            return $"{key}={this.SelectedHorse.Value.Key}";
           }
         }
       }
@@ -1325,16 +1347,6 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public HorseNameInputCategory() : base("horsename")
     {
-    }
-
-    protected override string GetQuery()
-    {
-      var right = this.Input.GetRightQuery();
-      if (string.IsNullOrEmpty(right))
-      {
-        return string.Empty;
-      }
-      return $"horsename{right}";
     }
 
     protected override async Task TestAsync()
@@ -1477,7 +1489,11 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class HorseBelongsInputCategory : ListBoxInputCategoryBase<HorseBelongs>
   {
-    public HorseBelongsInputCategory() : base("horsebelongs")
+    public HorseBelongsInputCategory() : this("horsebelongs")
+    {
+    }
+
+    protected HorseBelongsInputCategory(string key): base(key)
     {
       this.SetItems(new List<FinderQueryInputListItem<HorseBelongs>>
       {
@@ -1921,6 +1937,136 @@ namespace KmyKeiba.Models.Race.Finder
         this.Type = (BloodType)type;
         this.IsSelfBlood = d[3] == "true";
       }
+    }
+  }
+
+  #endregion
+
+  #region 騎手／調教師
+
+  public class RiderNameInputCategory : StringInputCategoryWithTestBase<RiderNameInputCategory.TestItem>
+  {
+    public RiderNameInputCategory() : base("ridername")
+    {
+    }
+
+    protected override async Task TestAsync()
+    {
+      using var db = new MyContext();
+      IQueryable<RaceHorseData> query = db.RaceHorses!;
+      var value = this.Input.Value.Value;
+      if (this.Input.IsEqual.Value)
+      {
+        query = query.Where(r => r.RiderName == value);
+      }
+      else if (this.Input.IsContains.Value)
+      {
+        query = query.Where(r => r.RiderName.Contains(value));
+      }
+      else if (this.Input.IsStartsWith.Value)
+      {
+        query = query.Where(r => r.RiderName.StartsWith(value));
+      }
+      else if (this.Input.IsEndsWith.Value)
+      {
+        query = query.Where(r => r.RiderName.EndsWith(value));
+      }
+
+      try
+      {
+        var names = await query
+          .OrderByDescending(q => q.LastModified)
+          .GroupBy(q => q.RiderName)
+          .Select(q => q.Key)
+          .Take(50)
+          .ToArrayAsync();
+        foreach (var n in names)
+        {
+          this.TestResult.Add(new TestItem
+          {
+            Name = n,
+          });
+        }
+      }
+      catch
+      {
+        this.IsTestError.Value = true;
+      }
+    }
+
+    public class TestItem
+    {
+      public string Name { get; set; } = string.Empty;
+    }
+  }
+
+  public class RiderBelongsInputCategory : HorseBelongsInputCategory
+  {
+    public RiderBelongsInputCategory() : base("riderbelongs")
+    {
+    }
+  }
+
+  public class TrainerNameInputCategory : StringInputCategoryWithTestBase<TrainerNameInputCategory.TestItem>
+  {
+    public TrainerNameInputCategory() : base("trainername")
+    {
+    }
+
+    protected override async Task TestAsync()
+    {
+      using var db = new MyContext();
+      IQueryable<RaceHorseData> query = db.RaceHorses!;
+      var value = this.Input.Value.Value;
+      if (this.Input.IsEqual.Value)
+      {
+        query = query.Where(r => r.TrainerName == value);
+      }
+      else if (this.Input.IsContains.Value)
+      {
+        query = query.Where(r => r.TrainerName.Contains(value));
+      }
+      else if (this.Input.IsStartsWith.Value)
+      {
+        query = query.Where(r => r.TrainerName.StartsWith(value));
+      }
+      else if (this.Input.IsEndsWith.Value)
+      {
+        query = query.Where(r => r.TrainerName.EndsWith(value));
+      }
+
+      try
+      {
+        var names = await query
+          .OrderByDescending(q => q.LastModified)
+          .GroupBy(q => q.TrainerName)
+          .Select(q => q.Key)
+          .Take(50)
+          .ToArrayAsync();
+        foreach (var n in names)
+        {
+          this.TestResult.Add(new TestItem
+          {
+            Name = n,
+          });
+        }
+      }
+      catch
+      {
+        this.IsTestError.Value = true;
+      }
+    }
+
+    public class TestItem
+    {
+      public string Name { get; set; } = string.Empty;
+    }
+  }
+
+  public class TrainerBelongsInputCategory : HorseBelongsInputCategory
+  {
+    public TrainerBelongsInputCategory() : base("trainerbelongs")
+    {
     }
   }
 
@@ -2829,6 +2975,40 @@ namespace KmyKeiba.Models.Race.Finder
         return string.Empty;
       }
       return $"[group]{groups[0]}";
+    }
+  }
+
+  #endregion
+
+  #region その他の設定
+
+  public class OtherSettingInputCategory : FinderQueryInputCategory
+  {
+    public ReactiveProperty<bool> IsFinishedRaceOnly { get; } = new();
+
+    public ReactiveProperty<string> LimitBy { get; } = new("3000");
+
+    public OtherSettingInputCategory()
+    {
+      this.IsFinishedRaceOnly
+        .CombineLatest(this.LimitBy)
+        .Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+    }
+
+    protected override string GetQuery()
+    {
+      var queries = new List<string>();
+
+      if (this.IsFinishedRaceOnly.Value)
+      {
+        queries.Add("datastatus=5-7");
+      }
+      if (uint.TryParse(this.LimitBy.Value, out var limit) && limit != 3000)
+      {
+        queries.Add($"[limit]{limit}");
+      }
+
+      return string.Join('|', queries);
     }
   }
 

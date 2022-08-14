@@ -274,7 +274,13 @@ namespace KmyKeiba.Models.Race.Finder
 
     public void Dispose()
     {
-      this.Input.Dispose();
+      // なぜかUIスレッドでないと、前走／同レース他馬を検索条件に追加してからレースを切り替えるとエラーになる
+      // FinderModel.Disposeメソッドが悪さをしている様子だがReactiveCollectionの変更ロジックはもちろん
+      // Disposeの中に含まれていないため、原因不明
+      ThreadUtil.InvokeOnUiThread(() =>
+      {
+        this.Input.Dispose();
+      });
     }
   }
 

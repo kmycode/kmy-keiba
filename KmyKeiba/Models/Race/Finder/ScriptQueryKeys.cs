@@ -1205,6 +1205,9 @@ namespace KmyKeiba.Models.Race.Finder
         case QueryKey.GoalHorsesCount:
           query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.ResultHorsesCount), isShort: true));
           break;
+        case QueryKey.DataStatus:
+          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.DataStatus), isShort: true, isEnum: true));
+          break;
       }
       return query;
     }

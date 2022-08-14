@@ -110,21 +110,25 @@
                     </MultiBinding>
                   </TextBox.IsReadOnly>
                 </TextBox>
-                <ItemsControl Grid.Column="1" ItemsSource="{Binding Race.MemoEx.Value.Groups,ElementName=Root}"
-                              VerticalAlignment="Bottom" Margin="0,0,4,4">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                      <StackPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <RadioButton Content="{Binding GroupNumber}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                                   IsChecked="{Binding IsChecked.Value,Mode=TwoWay}" Style="{StaticResource ToggleButtonDefault}"
-                                   FontSize="16"/>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <StackPanel Grid.Column="1" VerticalAlignment="Bottom">
+                  <TextBlock Text="拡張メモ" Foreground="{StaticResource SubForeground}" FontSize="16"
+                             Margin="0,0,0,4"/>
+                  <ItemsControl Grid.Column="1" ItemsSource="{Binding Race.MemoEx.Value.Groups,ElementName=Root}"
+                                VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,4,4">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <RadioButton Content="{Binding GroupNumber}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                                     IsChecked="{Binding IsChecked.Value,Mode=TwoWay}" Style="{StaticResource ToggleButtonDefault}"
+                                     FontSize="16"/>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
                 <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Height="320">
                   <ItemsControl Width="900" ItemsSource="{Binding Horse.MemoEx.Value.Memos,ElementName=Root}">
                     <ItemsControl.ItemsPanel>
