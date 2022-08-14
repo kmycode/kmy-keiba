@@ -46,7 +46,7 @@
       <ScrollViewer>
         <StackPanel>
           <Border Height="260">
-            <ul:RaceHorsePillar Horse="{Binding RaceHorse,ElementName=Root}" IsAllRaces="True"/>
+            <ul:RaceHorsePillar Horse="{Binding RaceHorse,ElementName=Root}" IsAllRaces="True" Race="{Binding Race,RelativeSource={RelativeSource AncestorType=uc:RaceExpectHorseView}}"/>
           </Border>
           <Grid Margin="24,32,0,0">
             <Grid.ColumnDefinitions>

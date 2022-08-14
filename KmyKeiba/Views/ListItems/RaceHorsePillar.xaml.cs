@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Race;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +33,19 @@ namespace KmyKeiba.Views.ListItems
     {
       get { return (RaceHorseAnalyzer)GetValue(HorseProperty); }
       set { SetValue(HorseProperty, value); }
+    }
+
+    public static readonly DependencyProperty RaceProperty
+    = DependencyProperty.Register(
+        nameof(Race),
+        typeof(RaceInfo),
+        typeof(RaceHorsePillar),
+        new PropertyMetadata(null));
+
+    public RaceInfo? Race
+    {
+      get { return (RaceInfo)GetValue(RaceProperty); }
+      set { SetValue(RaceProperty, value); }
     }
 
     public static readonly DependencyProperty IsResultProperty
@@ -69,6 +83,8 @@ namespace KmyKeiba.Views.ListItems
       get { return (bool)GetValue(IsAllRacesProperty); }
       set { SetValue(IsAllRacesProperty, value); }
     }
+
+    public Guid UniqueId3 { get; } = Guid.NewGuid();
 
     public RaceHorsePillar()
     {

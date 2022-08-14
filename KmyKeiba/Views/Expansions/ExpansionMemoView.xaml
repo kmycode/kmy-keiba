@@ -194,61 +194,8 @@
     <Grid Grid.Row="3" Margin="8,0,0,0">
       <Grid.Resources>
         <DataTemplate x:Key="MemoCell">
-          <Grid Width="300" Height="152" Visibility="{Binding IsGroupVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
-            <Grid Margin="8,8,8,24">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="auto"/>
-              </Grid.ColumnDefinitions>
-              <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition/>
-              </Grid.RowDefinitions>
-              <TextBlock FontSize="16" Grid.ColumnSpan="2" Text="{Binding Name.Value}"/>
-              <TextBlock Text="{Binding Header.Value}" FontSize="14" Grid.ColumnSpan="2" Margin="8,2"
-                         Foreground="{StaticResource SubForeground}" Grid.Row="1"/>
-              <Button Grid.Column="2" Grid.RowSpan="2" Content="設定" VerticalAlignment="Top"
-                            Padding="6,2" FontSize="12"
-                            Command="{Binding DataContext.EditMemoConfigCommand,ElementName=Root}" CommandParameter="{Binding}"/>
-              <StackPanel Grid.Row="2" VerticalAlignment="Center" Width="62" Margin="0,0,8,0"
-                          Visibility="{Binding IsPointVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
-                <TextBox Text="{Binding Point.Value,Mode=TwoWay}" FontSize="20" TextAlignment="Center"
-                         Visibility="{Binding IsUseLabel.Value,Converter={StaticResource NegativeVisibilityConv}}"
-                         IsReadOnly="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
-                <ComboBox ItemsSource="{Binding LabelConfig.Value.Items}" SelectedItem="{Binding SelectedLabel.Value,Mode=TwoWay}"
-                          Visibility="{Binding IsUseLabel.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                          IsEnabled="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root}">
-                  <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                      <TextBlock Text="{Binding Label.Value}" FontSize="18" Foreground="{Binding Color.Value,Converter={StaticResource MemoColorBrushConv}}"
-                                 TextAlignment="Center" Width="40"/>
-                    </DataTemplate>
-                  </ComboBox.ItemTemplate>
-                </ComboBox>
-              </StackPanel>
-              <ToggleButton Name="Toggle" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Padding="0" BorderBrush="{StaticResource SubBorderBrush}"
-                            Visibility="{Binding IsMemoVisible.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                            HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
-                <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                  <TextBlock Text="{Binding Memo.Value}" FontSize="14" Margin="4,2"
-                             TextWrapping="Wrap" Name="MemoEdit" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
-                  <TextBlock Visibility="{Binding Memo.Value,Mode=OneWay,Converter={StaticResource StringEmptyVisibilityConv}}"
-                             Text="編集" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
-                             Foreground="{StaticResource SubForeground}"/>
-                </Grid>
-              </ToggleButton>
-              <up:ImePopup Width="500" Height="200" PlacementTarget="{Binding ElementName=Toggle}"
-                           IsOpen="{Binding IsChecked,ElementName=Toggle,Mode=TwoWay}" StaysOpen="False">
-                <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1">
-                  <TextBox Margin="8,4" Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="16"
-                           AcceptsReturn="True" TextWrapping="Wrap" Name="PopupEdit"
-                           IsReadOnly="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
-                </Border>
-              </up:ImePopup>
-            </Grid>
-          </Grid>
+          <up:ExpansionMemoItem MemoItem="{Binding}" CanSave="{Binding Race.MemoEx.Value.CanSave.Value,RelativeSource={RelativeSource AncestorType=local:ExpansionMemoView}}"
+                                CanEditConfig="True" EditMemoConfigCommand="{Binding DataContext.EditMemoConfigCommand,RelativeSource={RelativeSource AncestorType=local:ExpansionMemoView}}"/>
         </DataTemplate>
       </Grid.Resources>
       

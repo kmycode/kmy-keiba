@@ -24,6 +24,7 @@ namespace KmyKeiba.Models.Race.Memo
     private readonly CompositeDisposable _disposables = new();
     private static bool _isRaceTab = true;
     private static bool _isRaceHorseTab;
+    private static int _groupNumber = 1;
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
 
@@ -36,6 +37,7 @@ namespace KmyKeiba.Models.Race.Memo
       {
         await MemoUtil.InitializeAsync(db);
         await PointLabelModel.InitializeAsync(db);
+        _isInitialized = true;
       }
     }
 
@@ -114,10 +116,19 @@ namespace KmyKeiba.Models.Race.Memo
         group.IsChecked.Where(c => c).Subscribe(c =>
         {
           this.ChangeGroup(group.GroupNumber, this.RaceHorseMemos);
+          _groupNumber = group.GroupNumber;
         }).AddTo(this._disposables);
         this.Groups.Add(group);
       }
-      this.Groups.First().IsChecked.Value = true;
+      var defaultGroup = this.Groups.FirstOrDefault(g => g.GroupNumber == _groupNumber);
+      if (defaultGroup != null)
+      {
+        defaultGroup.IsChecked.Value = true;
+      }
+      else
+      {
+        this.Groups.First().IsChecked.Value = true;
+      }
     }
 
     private void ChangeGroup(int num, IEnumerable<RaceHorseMemoItem> horses)
@@ -194,7 +205,6 @@ namespace KmyKeiba.Models.Race.Memo
         {
           var horseMemo = new RaceHorseMemoItem(Race, horse).AddTo(this._disposables);
           raceHorseMemos.Add(horseMemo);
-          horse.MemoEx.Value = horseMemo;
 
           foreach (var config in MemoUtil.Configs!.Where(c => c.Type == MemoType.RaceHorse).OrderBy(c => c.Id).OrderBy(c => c.Order))
           {
@@ -234,6 +244,8 @@ namespace KmyKeiba.Models.Race.Memo
               MemoUtil.MemoCaches.Add(newItem);
             }
           }
+
+          horse.MemoEx.Value = horseMemo;
         }
 
         this.ChangeGroup(this.GetCurrentGroup(), raceHorseMemos);

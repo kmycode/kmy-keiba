@@ -61,7 +61,7 @@
                   <ColumnDefinition Width="auto"/>
                   <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <ul:RaceHorsePillar Grid.Column="1" Horse="{Binding}"/>
+                <ul:RaceHorsePillar Grid.Column="1" Horse="{Binding}" Race="{Binding Race,RelativeSource={RelativeSource AncestorType=uc:RaceExpectAllView}}"/>
               </Grid>
             </DataTemplate>
           </ItemsControl.ItemTemplate>

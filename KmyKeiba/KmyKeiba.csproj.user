@@ -67,6 +67,9 @@
     <Compile Update="Views\Main\WindowMenu.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Parts\ExpansionMemoItem.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Parts\FinderKeyInputView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -196,6 +199,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Main\WindowMenu.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\ExpansionMemoItem.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Parts\FinderKeyInputView.xaml">

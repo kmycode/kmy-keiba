@@ -2331,6 +2331,8 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (obj == this && property.Name == nameof(Items))
       {
+        text.Append("Items=");
+
         foreach (var item in this.Items)
         {
           text.Append(item.Config.Id);
@@ -2351,6 +2353,8 @@ namespace KmyKeiba.Models.Race.Finder
 
           text.Append('|');
         }
+
+        text.AppendLine();
       }
     }
 
@@ -2375,7 +2379,7 @@ namespace KmyKeiba.Models.Race.Finder
           {
             continue;
           }
-          var configType = value[(configIdIndex + 1)..(configTypeIndex - configIdIndex)];
+          var configType = value[(configIdIndex + 1)..configTypeIndex];
           var raw = value[(configTypeIndex + 1)..];
 
           var config = MemoUtil.Configs.FirstOrDefault(c => c.Id == configId);
