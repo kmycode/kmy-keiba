@@ -17,7 +17,28 @@
       <RowDefinition/>
     </Grid.RowDefinitions>
 
-    <TextBlock Grid.ColumnSpan="2" FontSize="24" FontWeight="Bold" Text="検索条件を入力" Margin="0,8,0,24"/>
+    <Grid Grid.ColumnSpan="2">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition Width="auto"/>
+      </Grid.ColumnDefinitions>
+      <TextBlock FontSize="24" FontWeight="Bold" Text="検索条件を入力" Margin="0,8,0,24"/>
+      <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Top" Margin="0,8,8,0">
+        <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0" Text="検索条件の保存" VerticalAlignment="Center"/>
+        <TextBox FontSize="16" Text="{Binding FinderModel.Input.ConfigName.Value,ElementName=Root,Mode=TwoWay}" Width="180"/>
+        <Button FontSize="16" Content="追加" Command="{Binding AddFinderConfigCommand}"/>
+        <Button FontSize="16" Content="読込" Margin="16,0,0,0" Command="{Binding LoadFinderConfigCommand}"/>
+        <ComboBox ItemsSource="{Binding FinderModel.Input.Configs,ElementName=Root}" Width="200"
+                  SelectedItem="{Binding FinderModel.Input.SelectedConfig.Value,ElementName=Root,Mode=TwoWay}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock FontSize="16" Text="{Binding Name}"/>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <Button FontSize="16" Content="削除" Command="{Binding RemoveFinderConfigCommand}"/>
+      </StackPanel>
+    </Grid>
 
     <ScrollViewer Grid.Row="1">
       <StackPanel Width="160">

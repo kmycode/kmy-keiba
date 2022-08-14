@@ -614,6 +614,7 @@ namespace KmyKeiba.Models.Race
         try
         {
           var cache = RaceInfoCacheManager.TryGetCache(race.Key);
+          await FinderConfigUtil.InitializeAsync(db);
 
           var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == race.Key).ToArrayAsync();
           logger.Info($"馬の数: {horses.Length}, レース情報に記録されている馬の数: {race.HorsesCount}");

@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Generic;
+using KmyKeiba.Models.Data;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -138,6 +139,12 @@ namespace KmyKeiba.Models.Race.Finder
 
     public GroupByCategoryInput GroupBy { get; }
 
+    public ReactiveCollection<FinderConfigData> Configs { get; } = new();
+
+    public ReactiveProperty<FinderConfigData?> SelectedConfig { get; } = new();
+
+    public ReactiveProperty<string> ConfigName { get; } = new();
+
     public ReactiveProperty<string> Query { get; } = new();
 
     public FinderQueryInput(RaceData? race, RaceHorseData? horse, IReadOnlyList<RaceHorseData>? raceHorses)
@@ -204,29 +211,12 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.ExternalNumber = new ExternalNumberInputCategory());
       this._categories.Add(this.GroupBy = new GroupByCategoryInput());
 
-      try
-      {
-        if (raceHorses != null)
-        {
-          /*
-          var m = new SameRaceHorseInputCategory.FinderModelItem(new FinderModel(race, null, null));
-          m.Model.Input.Age.Items[4].IsChecked.Value = true;
-          this.SameRaceHorse.Items.Add(m);
-          var a = this.Serialize(false);
-          this.SameRaceHorse.Items.Clear();
-          this.Deserialize(a);
-          */
-        }
-      }
-      catch (Exception ex)
-      {
-
-      }
-
       foreach (var category in this._categories)
       {
         category.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this._disposables);
       }
+
+      this.UpdateConfigs();
     }
 
     private void UpdateQuery()
@@ -312,6 +302,76 @@ namespace KmyKeiba.Models.Race.Finder
         {
           categoryLines.AppendLine(line);
         }
+      }
+    }
+
+    public void UpdateConfigs()
+    {
+      this.SelectedConfig.Value = null;
+      this.Configs.Clear();
+      foreach (var config in FinderConfigUtil.Configs)
+      {
+        this.Configs.Add(config);
+      }
+    }
+
+    public async Task AddConfigAsync()
+    {
+      var config = new FinderConfigData
+      {
+        Name = this.ConfigName.Value,
+        Config = this.Serialize(false),
+      };
+
+      try
+      {
+        using var db = new MyContext();
+        await FinderConfigUtil.AddAsync(db, config);
+        this.Configs.Add(config);
+
+        this.SelectedConfig.Value = config;
+        this.ConfigName.Value = string.Empty;
+      }
+      catch (Exception ex)
+      {
+        // TODO
+      }
+    }
+
+    public async Task RemoveConfigAsync()
+    {
+      if (this.SelectedConfig.Value == null)
+      {
+        return;
+      }
+
+      try
+      {
+        using var db = new MyContext();
+        await FinderConfigUtil.RemoveAsync(db, this.SelectedConfig.Value);
+        this.Configs.Remove(this.SelectedConfig.Value);
+        this.SelectedConfig.Value = null;
+      }
+      catch (Exception ex)
+      {
+        // TODO
+      }
+    }
+
+    public void LoadConfig()
+    {
+      if (this.SelectedConfig.Value == null)
+      {
+        return;
+      }
+
+      try
+      {
+        this.Deserialize(this.SelectedConfig.Value.Config);
+      }
+      catch (Exception ex)
+      {
+        // TODO
       }
     }
 

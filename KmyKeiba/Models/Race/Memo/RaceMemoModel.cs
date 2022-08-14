@@ -194,6 +194,7 @@ namespace KmyKeiba.Models.Race.Memo
         {
           var horseMemo = new RaceHorseMemoItem(Race, horse).AddTo(this._disposables);
           raceHorseMemos.Add(horseMemo);
+          horse.MemoEx.Value = horseMemo;
 
           foreach (var config in MemoUtil.Configs!.Where(c => c.Type == MemoType.RaceHorse).OrderBy(c => c.Id).OrderBy(c => c.Order))
           {

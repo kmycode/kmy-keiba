@@ -79,6 +79,8 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<ExternalNumberConfig>? ExternalNumberConfigs { get; set; }
 
+    public DbSet<FinderConfigData>? FinderConfigs { get; set; }
+
     #endregion
 
     private IDbContextTransaction? _transaction;

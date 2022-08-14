@@ -200,6 +200,8 @@ namespace KmyKeiba.Models.Race.Finder
         return property;
       }
 
+      this.ResetForce();
+
       for (var i = 0; i < lines.Length; i++)
       {
         var line = lines[i];
@@ -247,6 +249,8 @@ namespace KmyKeiba.Models.Race.Finder
           this.StringToProperty(property, d[1], this);
         }
       }
+
+      this.UpdateQuery();
     }
 
     private int DeserializeObject(object obj, IEnumerable<string> lines)
@@ -325,6 +329,10 @@ namespace KmyKeiba.Models.Race.Finder
         }
       }
     }
+
+    protected virtual void ResetForce()
+    {
+    }
   }
 
   public class ListBoxInputCategoryBase<T> : FinderQueryInputCategory
@@ -390,6 +398,10 @@ namespace KmyKeiba.Models.Race.Finder
       if (obj == this && type == typeof(FinderQueryInputListItemCollection<T>))
       {
         var values = data.Split(',');
+        foreach (var item in this.Items)
+        {
+          item.IsChecked.Value = false;
+        }
         foreach (var item in this.Items
           .Join(values, i => this.ToQueryValue(i.Value), v => v, (i, v) => i))
         {
@@ -1831,7 +1843,9 @@ namespace KmyKeiba.Models.Race.Finder
       if (obj == this && property.Name == nameof(Configs))
       {
         var values = string.Join('|', this.Configs.Select(c => c.Serialize()));
+        text.Append("Configs=");
         text.Append(values);
+        text.AppendLine();
       }
     }
 
@@ -1841,6 +1855,8 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (obj == this && property.Name == nameof(Configs))
       {
+        this.Configs.Clear();
+
         var values = data.Split('|');
         foreach (var value in values)
         {
@@ -1852,6 +1868,11 @@ namespace KmyKeiba.Models.Race.Finder
           }
         }
       }
+    }
+
+    protected override void ResetForce()
+    {
+      this.Configs.Clear();
     }
 
     public class HorseBloodItem
@@ -1970,6 +1991,8 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (obj == this && property.Name == nameof(Items))
       {
+        this.Items.Clear();
+
         var items = data.Split('|');
         foreach (var item in items)
         {
@@ -1998,6 +2021,11 @@ namespace KmyKeiba.Models.Race.Finder
 
         this.UpdateQuery();
       }
+    }
+
+    protected override void ResetForce()
+    {
+      this.Items.Clear();
     }
 
     public class FinderModelItem
@@ -2099,6 +2127,8 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (obj == this && property.Name == nameof(Items))
       {
+        this.Items.Clear();
+
         var items = data.Split('|');
         foreach (var item in items)
         {
@@ -2108,11 +2138,11 @@ namespace KmyKeiba.Models.Race.Finder
 
           var separator2 = item.IndexOf(';', separator1 + 1);
           if (separator2 < 0) continue;
-          var targetCount = item[(separator1 + 1)..(separator2 - separator1)];
+          var targetCount = item[(separator1 + 1)..separator2];
 
           var separator3 = item.IndexOf(';', separator2 + 1);
           if (separator3 < 0) continue;
-          var option = item[(separator2 + 1)..(separator3 - separator2)];
+          var option = item[(separator2 + 1)..separator3];
 
           var model = new FinderModel(this.Race, null, null).AddTo(this.Disposables);
           model.Input.Deserialize(item[separator3..].Replace(";", Environment.NewLine));
@@ -2138,6 +2168,11 @@ namespace KmyKeiba.Models.Race.Finder
 
         this.UpdateQuery();
       }
+    }
+
+    protected override void ResetForce()
+    {
+      this.Items.Clear();
     }
 
     public class FinderModelItem : IDisposable
@@ -2325,6 +2360,8 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (obj == this && property.Name == nameof(Items))
       {
+        this.Items.Clear();
+
         var values = data.Split('|');
         foreach (var value in values)
         {
@@ -2381,6 +2418,11 @@ namespace KmyKeiba.Models.Race.Finder
           this.Items.Add(item);
         }
       }
+    }
+
+    protected override void ResetForce()
+    {
+      this.Items.Clear();
     }
 
     public class MemoConfigItem
@@ -2594,6 +2636,8 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (obj == this && property.Name == nameof(Configs))
       {
+        this.Configs.Clear();
+
         var values = data.Split('|');
         foreach (var value in values)
         {
@@ -2617,6 +2661,11 @@ namespace KmyKeiba.Models.Race.Finder
           this.Items.Add(item);
         }
       }
+    }
+
+    protected override void ResetForce()
+    {
+      this.Items.Clear();
     }
 
     public class ExternalNumberConfigItem

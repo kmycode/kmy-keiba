@@ -47,6 +47,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<TrainingAnalyzer?> Training { get; } = new();
 
+    public ReactiveProperty<Race.Memo.RaceHorseMemoItem?> MemoEx { get; } = new();
+
     public ReactiveProperty<RaceHorseMark> Mark { get; } = new();
 
     public ReactiveProperty<string> Memo { get; } = new();
