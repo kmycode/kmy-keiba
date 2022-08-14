@@ -46,9 +46,9 @@
                      Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <RadioButton Content="前走" Name="S_BeforeRace"
                      Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
-        <RadioButton Content="拡張メモ"/>
-        <RadioButton Content="外部指数"/>
-        <RadioButton Content="グループ化"
+        <RadioButton Content="拡張メモ" Name="S_Memo"/>
+        <RadioButton Content="外部指数" Name="S_ExNumber" Visibility="Collapsed"/>
+        <RadioButton Content="グループ化" Name="S_GroupBy"
                      Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <RadioButton Content="その他の設定"
                      Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
@@ -583,11 +583,16 @@
           <Grid Width="100" Margin="8,0,0,0">
             <Grid.RowDefinitions>
               <RowDefinition Height="auto"/>
+              <RowDefinition Height="2.29*"/>
+              <RowDefinition Height="auto"/>
               <RowDefinition/>
             </Grid.RowDefinitions>
             <TextBlock Text="異常" FontSize="20" Margin="0,0,0,8"
                        Background="{Binding FinderModel.Input.AbnormalResult.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}"/>
             <ListBox Grid.Row="1" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.AbnormalResult.Items,ElementName=Root}"/>
+            <TextBlock Grid.Row="2" Text="脚質判定" FontSize="20" Margin="0,8,0,8"
+                       Background="{Binding FinderModel.Input.RunningStyle.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv}}"/>
+            <ListBox Grid.Row="3" ItemTemplate="{StaticResource ListEnumItem}" ItemsSource="{Binding FinderModel.Input.RunningStyle.Items,ElementName=Root}"/>
           </Grid>
           <Grid Width="100" Margin="8,0,0,0">
             <Grid.RowDefinitions>
@@ -803,6 +808,164 @@
             </ItemsControl>
             <Button Grid.Row="1" Margin="0,8,0,0" FontSize="16" Content="追加" Command="{Binding FinderModel.Input.BeforeRace.AddItemCommand,ElementName=Root}"/>
           </Grid>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!--拡張メモ-->
+      <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_Memo,Converter={StaticResource BooleanVisibilityConv}}"
+                    VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition/>
+              <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+              <ItemsControl ItemsSource="{Binding FinderModel.Input.Memo.Items,ElementName=Root}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Vertical"/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel Margin="0,0,8,16" MaxWidth="450">
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition/>
+                          <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock FontSize="20" Text="{Binding ConfigHeader.Value}" Margin="0,0,0,8"
+                                   Width="140" HorizontalAlignment="Left"/>
+                        <Button FontSize="14" Content="削除" Margin="0,0,0,8" Grid.Column="1"
+                                Command="{Binding FinderModel.Input.Memo.RemoveItemCommand,ElementName=Root}"
+                                CommandParameter="{Binding}"/>
+                      </Grid>
+                      <local:InputNumberView Input="{Binding Point}" Visibility="{Binding IsLabel.Value,Converter={StaticResource NegativeVisibilityConv}}"
+                                             Width="450"/>
+                      <ListBox Visibility="{Binding IsLabel.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                               ItemsSource="{Binding Labels}" Height="200" Width="200">
+                        <ListBox.ItemTemplate>
+                          <DataTemplate>
+                            <TextBlock Text="{Binding Value.Label}" Foreground="{Binding Value.Color,Converter={StaticResource MemoColorBrushConv}}"
+                                       FontSize="16"/>
+                          </DataTemplate>
+                        </ListBox.ItemTemplate>
+                      </ListBox>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+            <StackPanel Grid.Row="1" HorizontalAlignment="Left" Orientation="Horizontal">
+              <ComboBox ItemsSource="{Binding FinderModel.Input.Memo.Configs,ElementName=Root}" SelectedItem="{Binding FinderModel.Input.Memo.SelectedConfig.Value,ElementName=Root,Mode=TwoWay}"
+                        Width="300">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock FontSize="16" Text="{Binding Header}"/>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <Button FontSize="16" Width="70" Content="追加" Command="{Binding FinderModel.Input.Memo.AddItemCommand,ElementName=Root}"/>
+              <Button FontSize="14" Width="120" Content="メモ設定更新" Command="{Binding FinderModel.Input.Memo.UpdateConfigsCommand,ElementName=Root}"/>
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!--外部指数-->
+      <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_ExNumber,Converter={StaticResource BooleanVisibilityConv}}"
+                    VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition/>
+              <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+              <ItemsControl ItemsSource="{Binding FinderModel.Input.ExternalNumber.Items,ElementName=Root}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Vertical"/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel Margin="0,0,8,16" MaxWidth="450">
+                      <Grid>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition/>
+                          <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock FontSize="20" Text="{Binding ConfigHeader.Value}" Margin="0,0,0,8"/>
+                        <Button FontSize="14" Content="削除" Margin="0,0,0,8" Grid.Column="1"
+                                Command="{Binding FinderModel.Input.ExternalNumber.RemoveItemCommand,ElementName=Root}"
+                                CommandParameter="{Binding}"/>
+                      </Grid>
+                      <local:InputNumberView Input="{Binding Point}" Width="450"/>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+            <StackPanel Grid.Row="1" HorizontalAlignment="Left" Orientation="Horizontal">
+              <ComboBox ItemsSource="{Binding FinderModel.Input.ExternalNumber.Configs,ElementName=Root}" SelectedItem="{Binding FinderModel.Input.ExternalNumber.SelectedConfig.Value,ElementName=Root,Mode=TwoWay}"
+                        Width="300">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock FontSize="16" Text="{Binding Header}"/>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <Button FontSize="16" Width="70" Content="追加" Command="{Binding FinderModel.Input.ExternalNumber.AddItemCommand,ElementName=Root}"/>
+              <Button FontSize="14" Width="120" Content="メモ設定更新" Command="{Binding FinderModel.Input.ExternalNumber.UpdateConfigsCommand,ElementName=Root}"/>
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!--グループ-->
+      <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_GroupBy,Converter={StaticResource BooleanVisibilityConv}}"
+                    VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <WrapPanel Width="600" Orientation="Horizontal">
+            <WrapPanel.Resources>
+              <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
+                <Setter Property="Width" Value="100"/>
+                <Setter Property="Height" Value="30"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="Padding" Value="0,2"/>
+                <Setter Property="Margin" Value="0,0,4,16"/>
+                <Setter Property="GroupName" Value="{Binding UniqueId7,ElementName=Root}"/>
+              </Style>
+            </WrapPanel.Resources>
+            <RadioButton Content="なし" IsChecked="{Binding FinderModel.Input.GroupBy.NotGroups.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="馬" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorse.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="騎手" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByRider.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="調教師" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByTrainer.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="馬主" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByOwner.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="競馬場" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByCourse.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="天気" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByWeather.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="馬場状態" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByCondition.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="重賞分類" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByGrade.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="枠番" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByFrameNumber.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="馬番" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorseNumber.Value,ElementName=Root,Mode=TwoWay}"/>
+            <StackPanel Orientation="Horizontal" Width="420" Height="30" Margin="0,0,4,16">
+              <RadioButton Content="メモ" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByMemo.Value,ElementName=Root,Mode=TwoWay}"
+                           Height="30" VerticalAlignment="Center" Margin="0"/>
+              <ComboBox Width="200" Height="30" Visibility="{Binding FinderModel.Input.GroupBy.IsGroupByMemo.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                        ItemsSource="{Binding FinderModel.Input.GroupBy.MemoConfigs,ElementName=Root}" SelectedItem="{Binding FinderModel.Input.GroupBy.SelectedMemoConfig.Value,ElementName=Root,Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock FontSize="16" Text="{Binding Header}"/>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <Button Width="120" FontSize="14" Content="メモ一覧更新"
+                      Command="{Binding FinderModel.Input.GroupBy.UpdateConfigsCommand,ElementName=Root}"
+                      Visibility="{Binding FinderModel.Input.GroupBy.IsGroupByMemo.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+            </StackPanel>
+          </WrapPanel>
         </StackPanel>
       </ScrollViewer>
     </Grid>

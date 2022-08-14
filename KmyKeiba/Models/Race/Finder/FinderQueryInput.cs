@@ -124,11 +124,19 @@ namespace KmyKeiba.Models.Race.Finder
     public CornerResultInputCategory Corner3 { get; }
     public CornerResultInputCategory Corner4 { get; }
 
+    public RunningStyleInputCategory RunningStyle { get; }
+
     public HorseBloodInputCategory HorseBlood { get; }
 
     public SameRaceHorseInputCategory SameRaceHorse { get; }
 
     public BeforeRaceInputCategory BeforeRace { get; }
+
+    public MemoInputCategory Memo { get; }
+
+    public ExternalNumberInputCategory ExternalNumber { get; }
+
+    public GroupByCategoryInput GroupBy { get; }
 
     public ReactiveProperty<string> Query { get; } = new();
 
@@ -188,9 +196,13 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.Corner2 = new CornerResultInputCategory(2));
       this._categories.Add(this.Corner3 = new CornerResultInputCategory(3));
       this._categories.Add(this.Corner4 = new CornerResultInputCategory(4));
+      this._categories.Add(this.RunningStyle = new RunningStyleInputCategory());
       this._categories.Add(this.HorseBlood = new HorseBloodInputCategory());
       this._categories.Add(this.SameRaceHorse = new SameRaceHorseInputCategory(race));
       this._categories.Add(this.BeforeRace = new BeforeRaceInputCategory(race));
+      this._categories.Add(this.Memo = new MemoInputCategory());
+      this._categories.Add(this.ExternalNumber = new ExternalNumberInputCategory());
+      this._categories.Add(this.GroupBy = new GroupByCategoryInput());
 
       try
       {

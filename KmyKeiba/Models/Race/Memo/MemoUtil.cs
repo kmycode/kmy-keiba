@@ -233,5 +233,53 @@ namespace KmyKeiba.Models.Race.Memo
       return Expression.Lambda<Func<MemoData, bool>>(Expression.Constant(false), memo);
     }
 
+    public static string GetMemoTarget(MemoTarget target)
+    {
+      return target switch
+      {
+        MemoTarget.Race => "race",
+        MemoTarget.Course => "course",
+        MemoTarget.Distance => "distance",
+        MemoTarget.Day => "day",
+        MemoTarget.Direction => "direction",
+        MemoTarget.Grades => "grades",
+        MemoTarget.Horse => "horse",
+        MemoTarget.Rider => "rider",
+        MemoTarget.Trainer => "trainer",
+        MemoTarget.Owner => "owner",
+        MemoTarget.Father => "f",
+        MemoTarget.MotherFather => "mf",
+        (MemoTarget)(short)-1 => "point",
+        (MemoTarget)(short)-2 => "number",
+        _ => string.Empty,
+      };
+    }
+
+    public static MemoTarget GetMemoTarget(string key)
+    {
+      var pointTarget = (MemoTarget)(short)-1;
+      var numberTarget = (MemoTarget)(short)-2;
+
+      return key switch
+      {
+        "race" => MemoTarget.Race,
+        "course" => MemoTarget.Course,
+        "distance" => MemoTarget.Distance,
+        "day" => MemoTarget.Day,
+        "direction" => MemoTarget.Direction,
+        "grades" => MemoTarget.Grades,
+        "horse" => MemoTarget.Horse,
+        "rider" => MemoTarget.Rider,
+        "trainer" => MemoTarget.Trainer,
+        "owner" => MemoTarget.Owner,
+        "f" => MemoTarget.Father,
+        "m" => MemoTarget.Mother,
+        "mf" => MemoTarget.MotherFather,
+        "point" => pointTarget,
+        "" => pointTarget,
+        "number" => numberTarget,
+        _ => MemoTarget.Unknown,
+      };
+    }
   }
 }

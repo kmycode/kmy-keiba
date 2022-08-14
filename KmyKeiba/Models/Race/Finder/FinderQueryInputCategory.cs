@@ -2,7 +2,10 @@
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
+using KmyKeiba.Models.Race.ExNumber;
+using KmyKeiba.Models.Race.Memo;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -1684,6 +1687,26 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
+  public class RunningStyleInputCategory : ListBoxInputCategoryBase<RunningStyle>
+  {
+    public RunningStyleInputCategory() : base("runningstyle")
+    {
+      this.SetItems(new List<FinderQueryInputListItem<RunningStyle>>
+      {
+        new FinderQueryInputListItem<RunningStyle>("不明", RunningStyle.Unknown),
+        new FinderQueryInputListItem<RunningStyle>("逃げ", RunningStyle.FrontRunner),
+        new FinderQueryInputListItem<RunningStyle>("先行", RunningStyle.Stalker),
+        new FinderQueryInputListItem<RunningStyle>("差し", RunningStyle.Sotp),
+        new FinderQueryInputListItem<RunningStyle>("追込", RunningStyle.SaveRunner),
+      });
+    }
+
+    protected override string ToQueryValue(RunningStyle value)
+    {
+      return ((short)value).ToString();
+    }
+  }
+
   #endregion
 
   #region 血統
@@ -2173,6 +2196,586 @@ namespace KmyKeiba.Models.Race.Finder
       {
         this._disposables.Dispose();
       }
+    }
+  }
+
+  #endregion
+
+  #region 拡張メモ
+
+  public class MemoInputCategory : FinderQueryInputCategory
+  {
+    public ReactiveCollection<MemoConfigItem> Items { get; } = new();
+
+    public ReactiveCollection<ExpansionMemoConfig> Configs { get; } = new();
+
+    public ReactiveProperty<ExpansionMemoConfig?> SelectedConfig { get; } = new();
+
+    public ReactiveProperty<bool> IsUpdateRequested { get; } = new();
+
+    public MemoInputCategory()
+    {
+      this.Items.CollectionChangedAsObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Update();
+    }
+
+    private MemoConfigItem SetConfigItemEvents(MemoConfigItem item)
+    {
+      item.Point.AddTo(this.Disposables);
+      item.Labels.ChangedItemObservable.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      item.Point.ToObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      return item;
+    }
+
+    private void Update()
+    {
+      this.Configs.Clear();
+      this.SelectedConfig.Value = null;
+
+      foreach (var config in MemoUtil.Configs.Where(c => c.Style != MemoStyle.Memo))
+      {
+        this.Configs.Add(config);
+      }
+
+      foreach (var item in this.Items.ToArray())
+      {
+        if (!item.Update())
+        {
+          this.Items.Remove(item);
+        }
+      }
+
+      this.UpdateQuery();
+      this.IsUpdateRequested.Value = false;
+    }
+
+    public ICommand UpdateConfigsCommand =>
+      this._updateConfigsCommand ??= new ReactiveCommand().WithSubscribe(() => this.Update()).AddTo(this.Disposables);
+    private ICommand? _updateConfigsCommand;
+
+    public ICommand AddItemCommand =>
+      this._addItemCommand ??= new ReactiveCommand().WithSubscribe(() =>
+      {
+        var config = this.SelectedConfig.Value;
+        if (config != null && !this.Items.Any(i => i.Config.Id == config.Id))
+        {
+          if (MemoUtil.Configs.Any(c => c.Id == config.Id))
+          {
+            this.Items.Add(this.SetConfigItemEvents(new MemoConfigItem(config)));
+          }
+          else
+          {
+            this.IsUpdateRequested.Value = true;
+          }
+        }
+      }).AddTo(this.Disposables);
+    private ICommand? _addItemCommand;
+
+    public ICommand RemoveItemCommand =>
+      this._removeItemCommand ??= new ReactiveCommand<MemoConfigItem>().WithSubscribe(item =>
+      {
+        this.Items.Remove(item);
+      }).AddTo(this.Disposables);
+    private ICommand? _removeItemCommand;
+
+    protected override string GetQuery()
+    {
+      return string.Join('|', this.Items.Select(c => c.ToQuery()).Where(q => !string.IsNullOrEmpty(q)));
+    }
+
+    protected override bool IsIgnorePropertyToSerializing(string propertyName)
+    {
+      var r = base.IsIgnorePropertyToSerializing(propertyName);
+      r = r || propertyName == nameof(IsUpdateRequested);
+      return r;
+    }
+
+    protected override void PropertyToString(PropertyInfo property, StringBuilder text, object obj)
+    {
+      base.PropertyToString(property, text, obj);
+
+      if (obj == this && property.Name == nameof(Items))
+      {
+        foreach (var item in this.Items)
+        {
+          text.Append(item.Config.Id);
+          text.Append(',');
+
+          if (item.LabelConfig != null)
+          {
+            text.Append("A,");
+            var values = string.Join(',', item.Labels.GetCheckedValues().Select(v => v.Point));
+            text.Append(values);
+          }
+          else
+          {
+            text.Append("B,");
+            base.PropertyToString(item.GetType().GetProperty(nameof(MemoConfigItem.Point), BindingFlags.Instance | BindingFlags.Public)!,
+              text, item);
+          }
+
+          text.Append('|');
+        }
+      }
+    }
+
+    protected override void StringToProperty(PropertyInfo property, string data, object obj)
+    {
+      base.StringToProperty(property, data, obj);
+
+      if (obj == this && property.Name == nameof(Items))
+      {
+        var values = data.Split('|');
+        foreach (var value in values)
+        {
+          var configIdIndex = value.IndexOf(',');
+          if (configIdIndex <= 0 || !uint.TryParse(value[..configIdIndex], out var configId))
+          {
+            continue;
+          }
+          var configTypeIndex = value.IndexOf(',', configIdIndex + 1);
+          if (configTypeIndex <= 0)
+          {
+            continue;
+          }
+          var configType = value[(configIdIndex + 1)..(configTypeIndex - configIdIndex)];
+          var raw = value[(configTypeIndex + 1)..];
+
+          var config = MemoUtil.Configs.FirstOrDefault(c => c.Id == configId);
+          if (config == null)
+          {
+            continue;
+          }
+          var item = this.SetConfigItemEvents(new MemoConfigItem(config));
+
+          if (configType == "A")
+          {
+            {
+              var label = PointLabelModel.Default.Configs.FirstOrDefault(c => c.Data.Id == (uint)config.PointLabelId);
+              if (label == null)
+              {
+                continue;
+              }
+            }
+            var points = raw.Split(',').Select(v =>
+            {
+              short.TryParse(v, out var point);
+              return point;
+            }).Where(v => v != default).ToArray();
+
+            foreach (var lv in points)
+            {
+              var checkItem = item.Labels.FirstOrDefault(l => l.Value.Point == lv);
+              if (checkItem != null)
+              {
+                checkItem.IsChecked.Value = true;
+              }
+            }
+          }
+          else
+          {
+            this.StringToProperty(item.GetType().GetProperty(nameof(MemoConfigItem.Point), BindingFlags.Instance | BindingFlags.Public)!,
+              raw, item);
+          }
+
+          this.Items.Add(item);
+        }
+      }
+    }
+
+    public class MemoConfigItem
+    {
+      public ExpansionMemoConfig Config { get; }
+
+      public PointLabelConfig? LabelConfig { get; set; }
+
+      public FinderQueryNumberInput Point { get; } = new();
+
+      public FinderQueryInputListItemCollection<MemoConfigLabelItem> Labels { get; } = new();
+
+      public ReactiveProperty<bool> IsLabel { get; } = new();
+
+      public ReactiveProperty<string> ConfigHeader { get; } = new();
+
+      public MemoConfigItem(ExpansionMemoConfig config)
+      {
+        this.Config = config;
+        this.Update();
+      }
+
+      public bool Update()
+      {
+        var config = MemoUtil.Configs.FirstOrDefault(c => c.Id == this.Config.Id);
+        if (config == null || config.Style == MemoStyle.Memo)
+        {
+          return false;
+        }
+        this.ConfigHeader.Value = config.Header;
+
+        var oldValues = this.Labels.GetCheckedValues().Select(v => v.Point).ToArray();
+        this.Labels.Clear();
+
+        this.LabelConfig = PointLabelModel.Default.Configs.FirstOrDefault(c => c.Data.Id == (uint)this.Config.PointLabelId);
+        if (this.LabelConfig != null)
+        {
+          foreach (var item in this.LabelConfig.Data.GetItems())
+          {
+            var i = new FinderQueryInputListItem<MemoConfigLabelItem>(new MemoConfigLabelItem(item));
+            this.Labels.Add(i);
+
+            if (oldValues.Contains(item.Point))
+            {
+              i.IsChecked.Value = true;
+            }
+          }
+          this.IsLabel.Value = true;
+        }
+        else
+        {
+          this.IsLabel.Value = false;
+        }
+
+        return true;
+      }
+
+      public class MemoConfigLabelItem
+      {
+        public string Label { get; }
+
+        public short Point { get; }
+
+        public MemoColor Color { get; }
+
+        public MemoConfigLabelItem(PointLabelItem label)
+        {
+          this.Label = label.Label;
+          this.Color = label.Color;
+          this.Point = label.Point;
+        }
+      }
+
+      public string ToQuery()
+      {
+        var targets = new[] { this.Config.Target1, this.Config.Target2, this.Config.Target3 };
+        var targets2 = targets.Where(t => t != MemoTarget.Unknown).Select(t => MemoUtil.GetMemoTarget(t));
+
+        string point;
+        if (this.LabelConfig != null)
+        {
+          var raw = string.Join(',', this.Labels.GetCheckedValues().Select(v => v.Point));
+          if (string.IsNullOrEmpty(raw))
+          {
+            return string.Empty;
+          }
+          point = "point=" + raw;
+        }
+        else
+        {
+          point = "point" + this.Point.GetRightQuery();
+        }
+
+        return $"memo/{string.Join('/', targets2)}/number:{this.Config.MemoNumber}/:{point}";
+      }
+    }
+  }
+
+  #endregion
+
+  #region 外部指数
+
+  public class ExternalNumberInputCategory : FinderQueryInputCategory
+  {
+    public ReactiveCollection<ExternalNumberConfigItem> Items { get; } = new();
+
+    public ReactiveCollection<ExternalNumberConfig> Configs { get; } = new();
+
+    public ReactiveProperty<ExternalNumberConfig?> SelectedConfig { get; } = new();
+
+    public ReactiveProperty<bool> IsUpdateRequested { get; } = new();
+
+    public ExternalNumberInputCategory()
+    {
+      this.Items.CollectionChangedAsObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Update();
+    }
+
+    private ExternalNumberConfigItem SetConfigItemEvents(ExternalNumberConfigItem item)
+    {
+      item.Point.AddTo(this.Disposables);
+      item.Point.ToObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      return item;
+    }
+
+    private void Update()
+    {
+      this.Configs.Clear();
+      this.SelectedConfig.Value = null;
+
+      foreach (var config in ExternalNumberUtil.Configs)
+      {
+        this.Configs.Add(config);
+      }
+
+      foreach (var item in this.Items.ToArray())
+      {
+        if (!item.Update())
+        {
+          this.Items.Remove(item);
+        }
+      }
+
+      this.UpdateQuery();
+      this.IsUpdateRequested.Value = false;
+    }
+
+    public ICommand UpdateConfigsCommand =>
+      this._updateConfigsCommand ??= new ReactiveCommand().WithSubscribe(() => this.Update()).AddTo(this.Disposables);
+    private ICommand? _updateConfigsCommand;
+
+    public ICommand AddItemCommand =>
+      this._addItemCommand ??= new ReactiveCommand().WithSubscribe(() =>
+      {
+        var config = this.SelectedConfig.Value;
+        if (config != null && !this.Items.Any(i => i.Config.Id == config.Id))
+        {
+          if (ExternalNumberUtil.Configs.Any(c => c.Id == config.Id))
+          {
+            this.Items.Add(this.SetConfigItemEvents(new ExternalNumberConfigItem(config)));
+          }
+          else
+          {
+            this.IsUpdateRequested.Value = true;
+          }
+        }
+      }).AddTo(this.Disposables);
+    private ICommand? _addItemCommand;
+
+    public ICommand RemoveItemCommand =>
+      this._removeItemCommand ??= new ReactiveCommand<ExternalNumberConfigItem>().WithSubscribe(item =>
+      {
+        this.Items.Remove(item);
+      }).AddTo(this.Disposables);
+    private ICommand? _removeItemCommand;
+
+    protected override string GetQuery()
+    {
+      return string.Join('|', this.Items.Select(c => c.ToQuery()).Where(q => !string.IsNullOrEmpty(q)));
+    }
+
+    protected override bool IsIgnorePropertyToSerializing(string propertyName)
+    {
+      var r = base.IsIgnorePropertyToSerializing(propertyName);
+      r = r || propertyName == nameof(IsUpdateRequested);
+      return r;
+    }
+
+    protected override void PropertyToString(PropertyInfo property, StringBuilder text, object obj)
+    {
+      base.PropertyToString(property, text, obj);
+
+      if (obj == this && property.Name == nameof(Items))
+      {
+        foreach (var item in this.Items)
+        {
+          text.Append(item.Config.Id);
+          text.Append(',');
+
+          base.PropertyToString(item.GetType().GetProperty(nameof(ExternalNumberConfigItem.Point), BindingFlags.Instance | BindingFlags.Public)!,
+            text, item);
+
+          text.Append('|');
+        }
+      }
+    }
+
+    protected override void StringToProperty(PropertyInfo property, string data, object obj)
+    {
+      base.StringToProperty(property, data, obj);
+
+      if (obj == this && property.Name == nameof(Configs))
+      {
+        var values = data.Split('|');
+        foreach (var value in values)
+        {
+          var configIdIndex = value.IndexOf(',');
+          if (configIdIndex <= 0 || !uint.TryParse(value[..configIdIndex], out var configId))
+          {
+            continue;
+          }
+          var raw = value[(configIdIndex + 1)..];
+
+          var config = ExternalNumberUtil.Configs.FirstOrDefault(c => c.Id == configId);
+          if (config == null)
+          {
+            continue;
+          }
+          var item = this.SetConfigItemEvents(new ExternalNumberConfigItem(config));
+
+          this.StringToProperty(item.GetType().GetProperty(nameof(ExternalNumberConfigItem.Point), BindingFlags.Instance | BindingFlags.Public)!,
+            raw, item);
+
+          this.Items.Add(item);
+        }
+      }
+    }
+
+    public class ExternalNumberConfigItem
+    {
+      public ExternalNumberConfig Config { get; }
+
+      public FinderQueryNumberInput Point { get; } = new();
+
+      public ReactiveProperty<string> ConfigHeader { get; } = new();
+
+      public ExternalNumberConfigItem(ExternalNumberConfig config)
+      {
+        this.Config = config;
+        this.Update();
+      }
+
+      public bool Update()
+      {
+        var config = ExternalNumberUtil.Configs.FirstOrDefault(c => c.Id == this.Config.Id);
+        if (config == null)
+        {
+          return false;
+        }
+        this.ConfigHeader.Value = config.Name;
+
+        return true;
+      }
+
+      public string ToQuery()
+      {
+        var point = "point" + this.Point.GetRightQuery();
+        return $"ext:{this.Config.Id}/:{point}";
+      }
+    }
+  }
+
+  #endregion
+
+  #region グループ化
+
+  public class GroupByCategoryInput : FinderQueryInputCategory
+  {
+    public ReactiveProperty<bool> NotGroups { get; } = new(true);
+    public ReactiveProperty<bool> IsGroupByHorse { get; } = new();
+    public ReactiveProperty<bool> IsGroupByRider { get; } = new();
+    public ReactiveProperty<bool> IsGroupByTrainer { get; } = new();
+    public ReactiveProperty<bool> IsGroupByOwner { get; } = new();
+    public ReactiveProperty<bool> IsGroupByCourse { get; } = new();
+    public ReactiveProperty<bool> IsGroupByWeather { get; } = new();
+    public ReactiveProperty<bool> IsGroupByCondition { get; } = new();
+    public ReactiveProperty<bool> IsGroupByGrade { get; } = new();
+    public ReactiveProperty<bool> IsGroupByFrameNumber { get; } = new();
+    public ReactiveProperty<bool> IsGroupByHorseNumber { get; } = new();
+    public ReactiveProperty<bool> IsGroupByMemo { get; } = new();
+
+    public ReactiveCollection<ExpansionMemoConfig> MemoConfigs { get; } = new();
+
+    public ReactiveProperty<ExpansionMemoConfig?> SelectedMemoConfig { get; } = new();
+
+    public GroupByCategoryInput()
+    {
+      this.Update();
+      this.NotGroups
+        .CombineLatest(this.IsGroupByHorse)
+        .CombineLatest(this.IsGroupByRider)
+        .CombineLatest(this.IsGroupByTrainer)
+        .CombineLatest(this.IsGroupByOwner)
+        .CombineLatest(this.IsGroupByCourse)
+        .CombineLatest(this.IsGroupByWeather)
+        .CombineLatest(this.IsGroupByCondition)
+        .CombineLatest(this.IsGroupByGrade)
+        .CombineLatest(this.IsGroupByFrameNumber)
+        .CombineLatest(this.IsGroupByHorseNumber)
+        .CombineLatest(this.IsGroupByMemo)
+        .CombineLatest(this.SelectedMemoConfig)
+        .Subscribe(_ => this.UpdateQuery())
+        .AddTo(this.Disposables);
+    }
+
+    public void Update()
+    {
+      this.MemoConfigs.Clear();
+      this.SelectedMemoConfig.Value = null;
+      foreach (var config in MemoUtil.Configs.Where(c => c.Style != MemoStyle.Memo))
+      {
+        this.MemoConfigs.Add(config);
+      }
+      this.UpdateQuery();
+    }
+
+    public ICommand UpdateConfigsCommand =>
+      this._updateConfigsCommand ??= new ReactiveCommand().WithSubscribe(() => this.Update()).AddTo(this.Disposables);
+    private ICommand? _updateConfigsCommand;
+
+    protected override string GetQuery()
+    {
+      var groups = new List<string>();
+
+      if (this.IsGroupByHorse.Value)
+      {
+        groups.Add("horse");
+      }
+      if (this.IsGroupByRider.Value)
+      {
+        groups.Add("rider");
+      }
+      if (this.IsGroupByTrainer.Value)
+      {
+        groups.Add("trainer");
+      }
+      if (this.IsGroupByOwner.Value)
+      {
+        groups.Add("owner");
+      }
+      if (this.IsGroupByCourse.Value)
+      {
+        groups.Add("course");
+      }
+      if (this.IsGroupByWeather.Value)
+      {
+        groups.Add("weather");
+      }
+      if (this.IsGroupByCondition.Value)
+      {
+        groups.Add("condition");
+      }
+      if (this.IsGroupByGrade.Value)
+      {
+        groups.Add("grade");
+      }
+      if (this.IsGroupByHorseNumber.Value)
+      {
+        groups.Add("horsenumber");
+      }
+      if (this.IsGroupByFrameNumber.Value)
+      {
+        groups.Add("framenumber");
+      }
+      if (this.IsGroupByMemo.Value)
+      {
+        if (this.SelectedMemoConfig.Value != null)
+        {
+          var config = this.SelectedMemoConfig.Value;
+          var targets = new[] { config.Target1, config.Target2, config.Target3 }
+            .Select(t => MemoUtil.GetMemoTarget(t))
+            .Where(t => !string.IsNullOrEmpty(t))
+            .ToArray();
+          if (targets.Any())
+          {
+            groups.Add($"memo/{string.Join('/', targets)}/number:{config.MemoNumber}");
+          }
+        }
+      }
+
+      if (!groups.Any())
+      {
+        return string.Empty;
+      }
+      return $"[group]{groups[0]}";
     }
   }
 

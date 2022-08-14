@@ -4,6 +4,7 @@ using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race.ExNumber;
+using KmyKeiba.Models.Race.Memo;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -122,33 +123,6 @@ namespace KmyKeiba.Models.Race.Finder
           return false;
         }
 
-        MemoTarget GetMemoTarget(string key)
-        {
-          var pointTarget = (MemoTarget)(short)-1;
-          var numberTarget = (MemoTarget)(short)-2;
-
-          return key switch
-          {
-            "race" => MemoTarget.Race,
-            "course" => MemoTarget.Course,
-            "distance" => MemoTarget.Distance,
-            "day" => MemoTarget.Day,
-            "direction" => MemoTarget.Direction,
-            "grades" => MemoTarget.Grades,
-            "horse" => MemoTarget.Horse,
-            "rider" => MemoTarget.Rider,
-            "trainer" => MemoTarget.Trainer,
-            "owner" => MemoTarget.Owner,
-            "f" => MemoTarget.Father,
-            "m" => MemoTarget.Mother,
-            "mf" => MemoTarget.MotherFather,
-            "point" => pointTarget,
-            "" => pointTarget,
-            "number" => numberTarget,
-            _ => MemoTarget.Unknown,
-          };
-        }
-
         bool AddMemoQuery()
         {
           var isGroup = false;
@@ -171,7 +145,7 @@ namespace KmyKeiba.Models.Race.Finder
             .Select(d => d.Split(':'))
             .Select(d =>
             {
-              var key = GetMemoTarget(d[0]);
+              var key = MemoUtil.GetMemoTarget(d[0]);
               return (Key: key, Value: d.ElementAtOrDefault(1) ?? string.Empty);
             })
             .Where(d => d.Key != MemoTarget.Unknown)
