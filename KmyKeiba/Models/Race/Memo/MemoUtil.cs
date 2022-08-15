@@ -22,10 +22,10 @@ namespace KmyKeiba.Models.Race.Memo
     {
       if (!_isInitialized)
       {
+        _isInitialized = true;
         var configs = await db.MemoConfigs!.ToListAsync();
         Configs.AddRange(configs);
         await PointLabelModel.InitializeAsync(db);
-        _isInitialized = true;
       }
     }
 
