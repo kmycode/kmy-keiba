@@ -177,57 +177,57 @@ namespace KmyKeiba.ViewModels
 
     public ICommand SaveMemoConfigCommand =>
       this._saveMemoConfigCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.UpdateConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.UpdateConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _saveMemoConfigCommand;
 
     public ICommand UpMemoOrderCommand =>
       this._upMemoOrderCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.UpConfigOrderAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.UpConfigOrderAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _upMemoOrderCommand;
 
     public ICommand DownMemoOrderCommand =>
       this._downMemoOrderCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.DownConfigOrderAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.DownConfigOrderAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _downMemoOrderCommand;
 
     public ICommand DeleteMemoConfigCommand =>
       this._deleteMemoConfigCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.DeleteConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.DeleteConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _deleteMemoConfigCommand;
 
     public ICommand AddLabelConfigCommand =>
       this._addLabelConfigCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _addLabelConfigCommand;
 
     public ICommand AddLabelConfigItemCommand =>
       this._addLabelConfigItemCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.ActiveConfig.Value?.AddItemAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.ActiveConfig.Value?.AddItemAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _addLabelConfigItemCommand;
 
     public ICommand DeleteLabelConfigItemCommand =>
       this._deleteLabelConfigItemCommand ??=
-        new AsyncReactiveCommand<PointLabelConfigItem>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.ActiveConfig.Value?.RemoveItemAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<PointLabelConfigItem>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.ActiveConfig.Value?.RemoveItemAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _deleteLabelConfigItemCommand;
 
     public ICommand UpLabelConfigItemCommand =>
       this._upLabelConfigItemCommand ??=
-        new AsyncReactiveCommand<PointLabelConfigItem>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.ActiveConfig.Value?.UpItemAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<PointLabelConfigItem>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.ActiveConfig.Value?.UpItemAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _upLabelConfigItemCommand;
 
     public ICommand DownLabelConfigItemCommand =>
       this._downLabelConfigItemCommand ??=
-        new AsyncReactiveCommand<PointLabelConfigItem>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.ActiveConfig.Value?.DownItemAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<PointLabelConfigItem>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.ActiveConfig.Value?.DownItemAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _downLabelConfigItemCommand;
 
     public ICommand DeleteLabelConfigCommand =>
       this._deleteLabelConfigCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.DeleteConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.DeleteConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _deleteLabelConfigCommand;
 
     public ICommand AddFinderConfigCommand =>
       this._addFinderConfigCommand ??=
-        new AsyncReactiveCommand().WithSubscribe(_ => this.model.Info.Value?.FinderModel.Value?.Input.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.model.Info.Value?.FinderModel.Value?.Input.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _addFinderConfigCommand;
 
     public ICommand LoadFinderConfigCommand =>
@@ -237,7 +237,7 @@ namespace KmyKeiba.ViewModels
 
     public ICommand RemoveFinderConfigCommand =>
       this._removeFinderConfigCommand ??=
-        new AsyncReactiveCommand().WithSubscribe(_ => this.model.Info.Value?.FinderModel.Value?.Input.RemoveConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.model.Info.Value?.FinderModel.Value?.Input.RemoveConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _removeFinderConfigCommand;
 
     public ICommand OpenRaceWindowCommand =>
