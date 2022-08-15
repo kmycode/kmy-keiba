@@ -277,14 +277,6 @@ namespace KmyKeiba.Data.Db
         }
       }
 
-      if (this.TrackOption == TrackOption.Unknown)
-      {
-        if (this.Course != RaceCourse.ObihiroBannei)
-        {
-          this.TrackOption = TrackOption.Inside;
-        }
-      }
-
       var prizeMoney = new byte[12 * 4];
       var prizeMoneyIndex = 0;
       void SetPrizeMoney(int money)
