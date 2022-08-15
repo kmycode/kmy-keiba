@@ -2118,11 +2118,11 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (obj == this && property.Name == nameof(Items))
       {
+        text.Append("[CUSTOM]Items/");
         foreach (var item in this.Items)
         {
           var serialized = item.Model.Input.Serialize(false)
             .Replace(Environment.NewLine, ";");
-          text.Append("[CUSTOM]Items/");
           text.Append(item.Name.Value);
           text.Append(";");
           text.Append(serialized);
@@ -2250,11 +2250,11 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (obj == this && property.Name == nameof(Items))
       {
+        text.Append("[CUSTOM]Items/");
         foreach (var item in this.Items)
         {
           var serialized = item.Model.Input.Serialize(false)
             .Replace(Environment.NewLine, ";");
-          text.Append("[CUSTOM]Items/");
           text.Append(item.BeforeRaceCount.Value);
           text.Append(';');
           text.Append(item.TargetRaceCount.Value);
