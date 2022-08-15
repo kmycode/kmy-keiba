@@ -741,10 +741,11 @@ namespace KmyKeiba.Downloader
       {
         var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.Value.RaceKey).ToArray();
         var oddsRaceHorses = await db.RaceHorses!
-          .Where((r) => oddsRaceKeys.Contains(r.RaceKey) && r.DataStatus < RaceDataStatus.PreliminaryGrade3)
+          .Where((r) => oddsRaceKeys.Contains(r.RaceKey))
           .ToListAsync();
 
         logger.Info($"単勝・複勝オッズの各馬への設定を開始します {data.SingleAndDoubleWinOdds.Count}");
+        logger.Debug($"{oddsRaceHorses.Count} / {oddsRaceKeys.Length})");
         foreach (var odds in data.SingleAndDoubleWinOdds.OrderByDescending(o => o.Value.Time))
         {
           var horses = oddsRaceHorses
@@ -773,6 +774,7 @@ namespace KmyKeiba.Downloader
         }
 
         await db.SaveChangesAsync();
+        await db.CommitAsync();
       }
 
       if (isRealtime)
