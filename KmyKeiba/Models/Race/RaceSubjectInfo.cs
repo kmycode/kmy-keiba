@@ -62,14 +62,6 @@ namespace KmyKeiba.Models.Race
           Type = race.SubjectAge5,
         });
       }
-      if (race.SubjectAgeYounger != RaceSubjectType.Unknown)
-      {
-        this.Subject.AgeSubjects.Add(new RaceSubject.SubjectTypeItem
-        {
-          Age = 6,
-          Type = race.SubjectAgeYounger,
-        });
-      }
 
       if (race.Course >= RaceCourse.LocalMinValue)
       {
