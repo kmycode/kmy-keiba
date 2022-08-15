@@ -43,11 +43,13 @@
         </StackPanel>
         <TextBlock FontSize="16" Style="{StaticResource SubTextBlock}" Margin="16,8,0,0">
           大量データの取得処理には数日かかることがあります。<LineBreak/>
-          インストール後はマスターデータの手動更新が必要です。
+          <Run FontWeight="Bold" TextDecorations="Underline">インストール後はマスターデータの手動更新が必要です。</Run>
         </TextBlock>
       </StackPanel>
       <Grid Grid.Column="1">
         <Grid.RowDefinitions>
+          <RowDefinition Height="auto"/>
+          <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>
@@ -58,18 +60,24 @@
           <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
         <Border Grid.Column="1" Width="80" Margin="4,0,0,0"/>
-        <TextBlock Grid.ColumnSpan="2" FontSize="28" Text="対象" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16"/>
+        <TextBlock Grid.ColumnSpan="2" FontSize="28" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16">
+          ステップ<LineBreak/><Run FontSize="14">中央・地方はいずれかまたは両方</Run>
+        </TextBlock>
         <RadioButton Grid.Row="1" FontSize="16" Content="中央競馬" Width="100" Style="{StaticResource ToggleButtonDefault}"
                      IsChecked="{Binding Downloader.IsDownloadCentral.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
         <Button Grid.Row="1" Grid.Column="1" FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
                 Visibility="{Binding Downloader.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
                 Command="{Binding OpenJvlinkConfigCommand}"/>
-        <RadioButton Grid.Row="2" FontSize="16" Content="地方競馬" Width="100" Margin="0,20,0,0" Style="{StaticResource ToggleButtonDefault}"
+        <Polygon Grid.Row="2" Fill="{StaticResource SubForeground}" Points="0,0 20,0 10,14" Margin="0,8"
+                 HorizontalAlignment="Center"/>
+        <RadioButton Grid.Row="3" FontSize="16" Content="地方競馬" Width="100" Style="{StaticResource ToggleButtonDefault}"
                      IsChecked="{Binding Downloader.IsDownloadLocal.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
-        <Button Grid.Row="2" Grid.Column="1" FontSize="16" Content="設定" Width="80" Margin="4,20,0,0"
+        <Button Grid.Row="3" Grid.Column="1" FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
                 Visibility="{Binding Downloader.IsDownloadLocal.Value,Converter={StaticResource BooleanVisibilityConv}}"
                 Command="{Binding OpenNvlinkConfigCommand}"/>
-        <RadioButton Grid.Row="3" Grid.ColumnSpan="2" FontSize="16" Content="マスターデータ作成／更新" Width="186" Margin="0,20,0,0" Style="{StaticResource ToggleButtonDefault}"
+        <Polygon Grid.Row="4" Fill="{StaticResource SubForeground}" Points="0,0 20,0 10,14" Margin="0,8"
+                 HorizontalAlignment="Center"/>
+        <RadioButton Grid.Row="5" Grid.ColumnSpan="2" FontSize="16" Content="マスターデータ作成／更新" Width="186" Style="{StaticResource ToggleButtonDefault}"
                      IsChecked="{Binding Downloader.IsBuildMasterData.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
       </Grid>
     </Grid>
