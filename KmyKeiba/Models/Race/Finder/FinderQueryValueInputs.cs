@@ -71,6 +71,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsCompareWithTargetRace { get; } = new();
 
+    public ReactiveProperty<bool> IsUseCurrentRaceValue { get; } = new();
+
     public FinderQueryNumberInput()
     {
       this.IsUnset
@@ -86,6 +88,7 @@ namespace KmyKeiba.Models.Race.Finder
         .CombineLatest(this.IsCompareWithCurrentRace)
         .CombineLatest(this.IsCompareWithFixedValue)
         .CombineLatest(this.IsCompareWithTargetRace)
+        .CombineLatest(this.IsUseCurrentRaceValue)
         .Subscribe(_ =>
         {
           this.Updated?.Invoke(this, EventArgs.Empty);
@@ -99,6 +102,12 @@ namespace KmyKeiba.Models.Race.Finder
       if (this.IsUnset.Value)
       {
         return string.Empty;
+      }
+
+      if (this.IsUseCurrentRaceValue.Value)
+      {
+        // horses#など以外の末尾の＃は解析時に無視される
+        return "#";
       }
 
       if (!int.TryParse(this.Value.Value, out var min))

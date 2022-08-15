@@ -1,0 +1,93 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Parts.FinderQuery.InputListBoxView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
+             xmlns:local="clr-namespace:KmyKeiba.Views.Parts.FinderQuery"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Name="Root">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto"/>
+      <RowDefinition/>
+    </Grid.RowDefinitions>
+    <ToggleButton Name="HeaderToggle" Style="{StaticResource ListItemToggle}" Margin="0,0,0,8">
+      <ToggleButton.Template>
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}">
+            <TextBlock FontSize="20"
+                       Foreground="{Binding Input.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv2}}">
+              <Run Text="{Binding Header,ElementName=Root}"/> <Run Text="{Binding Comment,ElementName=Root}" FontSize="14"/>
+            </TextBlock>
+          </Border>
+        </ControlTemplate>
+      </ToggleButton.Template>
+    </ToggleButton>
+    <up:ImePopup IsOpen="{Binding IsChecked,ElementName=HeaderToggle}" StaysOpen="False"
+                 PlacementTarget="{Binding ElementName=HeaderToggle}">
+      <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Background="{StaticResource BaseBackground}"
+              Width="auto" Height="auto">
+        <StackPanel Margin="4,8">
+          <StackPanel.Resources>
+            <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
+              <Setter Property="GroupName" Value="{Binding UniqueId,ElementName=Root}"/>
+              <Setter Property="FontSize" Value="16"/>
+              <Setter Property="Margin" Value="0,2"/>
+              <Setter Property="Width" Value="180"/>
+              <Setter Property="HorizontalAlignment" Value="Left"/>
+            </Style>
+          </StackPanel.Resources>
+          <RadioButton Content="リスト選択値で検索" IsChecked="{Binding Input.IsSetListValue.Value,ElementName=Root,Mode=TwoWay}"/>
+          <RadioButton Content="現在のレースの値を適用" IsChecked="{Binding Input.IsSetCurrentRaceValue.Value,ElementName=Root,Mode=TwoWay}"
+                       Visibility="{Binding Input.IsCompareWithHorse,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+          <RadioButton Content="現在の馬の値を適用" IsChecked="{Binding Input.IsSetCurrentRaceValue.Value,ElementName=Root,Mode=TwoWay}"
+                       Visibility="{Binding Input.IsCompareWithHorse,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+          <RadioButton Content="数値で比較" IsChecked="{Binding Input.IsSetNumericComparation.Value,ElementName=Root,Mode=TwoWay}"
+                       Visibility="{Binding Input.CanInputNumber,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+          <local:InputNumberView Width="450" Margin="0,16,0,0" Visibility="{Binding Input.IsSetNumericComparation.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                                 Input="{Binding Input.NumberInput,ElementName=Root}" IsComparable="{Binding IsComparable,ElementName=Root}"/>
+        </StackPanel>
+      </Border>
+    </up:ImePopup>
+    <Grid Grid.Row="1">
+      <ListBox ItemsSource="{Binding Input.Items,ElementName=Root}" MinWidth="1" SelectionMode="Multiple"
+               IsEnabled="{Binding Input.IsSetListValue.Value,ElementName=Root}">
+        <ListBox.ItemContainerStyle>
+          <Style TargetType="ListBoxItem" BasedOn="{StaticResource ListBoxItemDefault}">
+            <Setter Property="IsSelected" Value="{Binding IsChecked.Value,Mode=TwoWay}"/>
+            <EventSetter Event="MouseEnter" Handler="ListBoxItem_MouseEnter"/>
+          </Style>
+        </ListBox.ItemContainerStyle>
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <TextBlock FontSize="16" Text="{Binding Label}"/>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+      <TextBlock Foreground="{StaticResource WarningForeground}" Text="現在のレースと比較" FontSize="16"
+                 HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap">
+        <TextBlock.Visibility>
+          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+            <Binding Path="Input.IsSetCurrentRaceValue.Value" ElementName="Root"/>
+            <Binding Path="Input.IsCompareWithHorse" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+          </MultiBinding>
+        </TextBlock.Visibility>
+      </TextBlock>
+      <TextBlock Foreground="{StaticResource WarningForeground}" Text="現在の馬と比較" FontSize="16"
+                 HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap">
+        <TextBlock.Visibility>
+          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+            <Binding Path="Input.IsSetCurrentRaceValue.Value" ElementName="Root"/>
+            <Binding Path="Input.IsCompareWithHorse" ElementName="Root"/>
+          </MultiBinding>
+        </TextBlock.Visibility>
+      </TextBlock>
+      <TextBlock Foreground="{StaticResource WarningForeground}" FontSize="16"
+                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Visibility="{Binding Input.IsSetNumericComparation.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+        数値で比較<LineBreak/><LineBreak/><Run Text="{Binding Input.Query.Value,ElementName=Root}" FontSize="14"/>
+      </TextBlock>
+    </Grid>
+  </Grid>
+</UserControl>

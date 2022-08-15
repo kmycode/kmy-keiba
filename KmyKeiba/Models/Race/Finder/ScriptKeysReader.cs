@@ -598,6 +598,11 @@ namespace KmyKeiba.Models.Race.Finder
 
         if (hr)
         {
+          if (q.EndsWith('#'))
+          {
+            q = q[..-1];
+          }
+
           var key = GetKeyInfo(q);
 
           // 条件式指定がないときのデフォルト値を指定

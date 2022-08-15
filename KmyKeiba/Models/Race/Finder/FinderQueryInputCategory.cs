@@ -335,16 +335,62 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  public class ListBoxInputCategoryBase<T> : FinderQueryInputCategory
+  public interface IListBoxInputCategory : IFinderQueryInputCategory
+  {
+    IEnumerable<object> Items { get; }
+
+    ReactiveProperty<bool> IsSetListValue { get; }
+
+    ReactiveProperty<bool> IsSetCurrentRaceValue { get; }
+
+    ReactiveProperty<bool> IsSetNumericComparation { get; }
+
+    FinderQueryNumberInput NumberInput { get; }
+
+    bool CanInputNumber { get; }
+
+    bool IsCompareWithHorse { get; }
+  }
+
+  public class ListBoxInputCategoryBase<T> : FinderQueryInputCategory, IListBoxInputCategory
   {
     public FinderQueryInputListItemCollection<T> Items { get; } = new FinderQueryInputListItemCollection<T>();
 
+    IEnumerable<object> IListBoxInputCategory.Items => ((ListBoxInputCategoryBase<T>)this).Items;
+
     public string Key { get; }
 
-    protected ListBoxInputCategoryBase(string key)
+    public ReactiveProperty<bool> IsSetListValue { get; } = new(true);
+
+    public ReactiveProperty<bool> IsSetCurrentRaceValue { get; } = new();
+
+    public ReactiveProperty<bool> IsSetNumericComparation { get; } = new();
+
+    public FinderQueryNumberInput NumberInput { get; } = new();
+
+    public bool CanInputNumber { get; }
+
+    public bool IsCompareWithHorse { get; }
+
+    protected ListBoxInputCategoryBase(string key) : this(key, true, false)
+    {
+    }
+
+    protected ListBoxInputCategoryBase(string key, bool canInputNumber) : this(key, canInputNumber, false)
+    {
+    }
+
+    protected ListBoxInputCategoryBase(string key, bool canInputNumber, bool isCompareWithHorse)
     {
       this.Key = key;
       this.Items.ChangedItemObservable.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsSetListValue.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsSetCurrentRaceValue.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsSetNumericComparation.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
+      this.NumberInput.ToObservable().Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
+      this.NumberInput.AddTo(this.Disposables);
+      this.CanInputNumber = canInputNumber;
+      this.IsCompareWithHorse = isCompareWithHorse;
     }
 
     protected void SetItems(IEnumerable<FinderQueryInputListItem<T>> items)
@@ -362,6 +408,20 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected override string GetQuery()
     {
+      if (this.IsSetCurrentRaceValue.Value)
+      {
+        return this.Key;
+      }
+      if (this.IsSetNumericComparation.Value)
+      {
+        var right = this.NumberInput.GetRightQuery();
+        if (string.IsNullOrEmpty(right))
+        {
+          return right;
+        }
+        return $"{this.Key}{right}";
+      }
+
       if (this.Items.IsEmpty() || this.Items.IsAll())
       {
         return string.Empty;
@@ -897,7 +957,7 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class RaceAgeInputCategory : ListBoxInputCategoryBase<short>
   {
-    public RaceAgeInputCategory() : base("subjectage")
+    public RaceAgeInputCategory() : base("subjectage", false)
     {
       this.SetItems(new List<FinderQueryInputListItem<short>>
       {
@@ -911,7 +971,7 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class RaceSubjectInputCategory : ListBoxInputCategoryBase<object>
   {
-    public RaceSubjectInputCategory() : base("subject")
+    public RaceSubjectInputCategory() : base("subject", false)
     {
       this.SetItems(new List<FinderQueryInputListItem<object>>
       {
@@ -2104,6 +2164,7 @@ namespace KmyKeiba.Models.Race.Finder
         this.Items.Remove(i);
         i.Model.Dispose();
         this.Disposables.Remove(i.Model);
+        this.UpdateQuery();
       }).AddTo(this.Disposables);
     private ICommand? _removeItemCommand;
 
@@ -2236,6 +2297,7 @@ namespace KmyKeiba.Models.Race.Finder
         this.Items.Remove(i);
         i.Model.Dispose();
         this.Disposables.Remove(i.Model);
+        this.UpdateQuery();
       }).AddTo(this.Disposables);
     private ICommand? _removeItemCommand;
 
@@ -3001,7 +3063,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (this.IsFinishedRaceOnly.Value)
       {
-        queries.Add("datastatus=5-7");
+        queries.Add("datastatus=5,6,7,101,102");
       }
       if (uint.TryParse(this.LimitBy.Value, out var limit) && limit != 3000)
       {

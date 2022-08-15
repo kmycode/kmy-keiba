@@ -14,13 +14,14 @@
         <ColumnDefinition/>
         <ColumnDefinition Width="auto"/>
       </Grid.ColumnDefinitions>
-      <TextBox Text="{Binding Input.Value.Value,ElementName=Root,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" FontSize="20" TextAlignment="Center"/>
+      <TextBox Text="{Binding Input.Value.Value,ElementName=Root,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" FontSize="20" TextAlignment="Center"
+               IsEnabled="{Binding Input.IsUseCurrentRaceValue.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
       <TextBlock Grid.Column="1" Text="～" FontSize="16" Foreground="{StaticResource SubForeground}" TextAlignment="Center" VerticalAlignment="Center"
                  Visibility="{Binding Input.IsRange.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
       <TextBox Grid.Column="2" Text="{Binding Input.MaxValue.Value,ElementName=Root,Mode=TwoWay}" FontSize="20" TextAlignment="Center"
-               Visibility="{Binding Input.IsRange.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
-      <ToggleButton Grid.Column="3" Name="ComparationOption" Width="60" Padding="0"
-                    Visibility="{Binding IsComparable,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+               Visibility="{Binding Input.IsRange.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+               IsEnabled="{Binding Input.IsUseCurrentRaceValue.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+      <ToggleButton Grid.Column="3" Name="ComparationOption" Width="60" Padding="0">
         <Grid>
           <Grid.Resources>
             <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
@@ -29,30 +30,36 @@
             </Style>
           </Grid.Resources>
           <TextBlock Text="固定値" Visibility="{Binding Input.IsCompareWithFixedValue.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
-          <TextBlock Text="現在" Visibility="{Binding Input.IsCompareWithCurrentRace.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
-          <TextBlock Text="比較対象" Visibility="{Binding Input.IsCompareWithTargetRace.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+          <TextBlock Text="現在" Visibility="{Binding Input.IsCompareWithCurrentRace.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                     Foreground="{StaticResource WarningForeground}"/>
+          <TextBlock Text="比較対象" Visibility="{Binding Input.IsCompareWithTargetRace.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                     Foreground="{StaticResource WarningForeground}"/>
+          <TextBlock Text="現レ値" Visibility="{Binding Input.IsUseCurrentRaceValue.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                     Foreground="{StaticResource GoodForeground}"/>
         </Grid>
       </ToggleButton>
       <Popup PlacementTarget="{Binding ElementName=ComparationOption}" Placement="Right"
              IsOpen="{Binding IsChecked,ElementName=ComparationOption,Mode=TwoWay}" StaysOpen="False">
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="470">
-          <StackPanel Orientation="Horizontal" Margin="2,4">
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="160" Height="auto">
+          <StackPanel Margin="2,4">
             <StackPanel.Resources>
               <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
                 <Setter Property="GroupName" Value="{Binding UniqueId2,ElementName=Root}"/>
                 <Setter Property="FontSize" Value="14"/>
-                <Setter Property="Width" Value="150"/>
                 <Setter Property="Margin" Value="2,4"/>
               </Style>
             </StackPanel.Resources>
             <RadioButton Content="固定値と比較" IsChecked="{Binding Input.IsCompareWithFixedValue.Value,ElementName=Root,Mode=TwoWay}"/>
-            <RadioButton Content="現在レースと比較" IsChecked="{Binding Input.IsCompareWithCurrentRace.Value,ElementName=Root,Mode=TwoWay}"/>
-            <RadioButton Content="比較対象レースと比較" IsChecked="{Binding Input.IsCompareWithTargetRace.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="現在レースの値を使用" IsChecked="{Binding Input.IsUseCurrentRaceValue.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="現在レースと比較" IsChecked="{Binding Input.IsCompareWithCurrentRace.Value,ElementName=Root,Mode=TwoWay}"
+                         Visibility="{Binding IsComparable,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+            <RadioButton Content="比較対象レースと比較" IsChecked="{Binding Input.IsCompareWithTargetRace.Value,ElementName=Root,Mode=TwoWay}"
+                         Visibility="{Binding IsComparable,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
           </StackPanel>
         </Border>
       </Popup>
     </Grid>
-    <UniformGrid Columns="7">
+    <UniformGrid Columns="7" IsEnabled="{Binding Input.IsUseCurrentRaceValue.Value,ElementName=Root,Converter={StaticResource NegativeConv}}">
       <UniformGrid.Resources>
         <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
           <Setter Property="FontSize" Value="12"/>
