@@ -29,9 +29,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     public int Offset { get; }
 
+    public bool IsContainsFutureRaces { get; }
+
     public ScriptKeysMemoGroupInfo? MemoGroupInfo { get; set; }
 
-    public ScriptKeysParseResult(IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueries = null, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueriesBetweenCurrent = null)
+    public ScriptKeysParseResult(IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueries = null, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueriesBetweenCurrent = null, bool isContainsFutureRaces = false)
     {
       this.Queries = queries;
       this.GroupKey = groupKey;
@@ -39,6 +41,7 @@ namespace KmyKeiba.Models.Race.Finder
       this.Offset = offset;
       this.DiffQueries = diffQueries ?? Array.Empty<ExpressionScriptKeyQuery>();
       this.DiffQueriesBetweenCurrent = diffQueriesBetweenCurrent ?? Array.Empty<ExpressionScriptKeyQuery>();
+      this.IsContainsFutureRaces = isContainsFutureRaces;
     }
   }
 
@@ -77,6 +80,7 @@ namespace KmyKeiba.Models.Race.Finder
       var groupKey = QueryKey.Unknown;
       var limit = 0;
       var offset = 0;
+      var isContainsFutureRaces = false;
       ScriptKeysMemoGroupInfo? memoGroupInfo = null;
 
       var queries = new List<ScriptKeyQuery>();
@@ -401,6 +405,11 @@ namespace KmyKeiba.Models.Race.Finder
           if (q.StartsWith("[offset]") && int.TryParse(q[7..], out var off))
           {
             offset = off;
+            return true;
+          }
+          if (q.StartsWith("[future]"))
+          {
+            isContainsFutureRaces = true;
             return true;
           }
 
@@ -752,7 +761,7 @@ namespace KmyKeiba.Models.Race.Finder
         queries.Add(new DefaultLambdaScriptKeyQuery());
       }
 
-      return new ScriptKeysParseResult(queries, groupKey, limit, offset, diffQueries: diffQueries, diffQueriesBetweenCurrent: diffQueriesBetweenCurrent)
+      return new ScriptKeysParseResult(queries, groupKey, limit, offset, diffQueries: diffQueries, diffQueriesBetweenCurrent: diffQueriesBetweenCurrent, isContainsFutureRaces: isContainsFutureRaces)
       {
         MemoGroupInfo = memoGroupInfo,
       };

@@ -422,7 +422,7 @@ namespace KmyKeiba.Models.Race.Finder
         var right = this.NumberInput.GetRightQuery();
         if (string.IsNullOrEmpty(right))
         {
-          return right;
+          return string.Empty;
         }
         return $"{this.Key}{right}";
       }
@@ -473,6 +473,17 @@ namespace KmyKeiba.Models.Race.Finder
           item.IsChecked.Value = true;
         }
       }
+    }
+
+    protected override bool IsIgnorePropertyToSerializing(string propertyName)
+    {
+      var r = base.IsIgnorePropertyToSerializing(propertyName);
+      if (!this.CanInputNumber)
+      {
+        r = r || propertyName == nameof(NumberInput);
+        r = r || propertyName == nameof(IsSetNumericComparation);
+      }
+      return r;
     }
 
     public ICommand ResetCommand =>
@@ -3094,12 +3105,15 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public ReactiveProperty<bool> IsFinishedRaceOnly { get; } = new();
 
+    public ReactiveProperty<bool> IsContainsFutureRaces { get; } = new();
+
     public ReactiveProperty<string> LimitBy { get; } = new("3000");
 
     public OtherSettingInputCategory()
     {
       this.IsFinishedRaceOnly
         .CombineLatest(this.LimitBy)
+        .CombineLatest(this.IsContainsFutureRaces)
         .Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
     }
 
@@ -3110,6 +3124,10 @@ namespace KmyKeiba.Models.Race.Finder
       if (this.IsFinishedRaceOnly.Value)
       {
         queries.Add("datastatus=5,6,7,101,102");
+      }
+      if (this.IsContainsFutureRaces.Value)
+      {
+        queries.Add("[future]");
       }
       if (uint.TryParse(this.LimitBy.Value, out var limit) && limit != 3000)
       {

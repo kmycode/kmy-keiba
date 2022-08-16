@@ -79,13 +79,13 @@ namespace KmyKeiba.Models.Race.Finder
           if (this.IsSearchRaces.Value)
           {
             this.Columns.Value = this.RaceColumns;
-            var data = await this._finder.FindRacesAsync(this.Keys.Value, 3000, withoutFutureRaces: false);
+            var data = await this._finder.FindRacesAsync(this.Keys.Value, 3000);
             this.UpdateRows(data.Items.ToFinderRows(this.RaceColumns));
           }
           else if (this.IsSearchRaceHorses.Value)
           {
             this.Columns.Value = this.RaceHorseColumns;
-            var data = await this._finder.FindRaceHorsesAsync(this.Keys.Value, 3000, withoutFutureRaces: false);
+            var data = await this._finder.FindRaceHorsesAsync(this.Keys.Value, 3000);
             var allItems = data.AsItems();
 
             IEnumerable<IEnumerable<FinderRaceHorseItem>> SplitData(int size)

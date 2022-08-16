@@ -47,7 +47,7 @@ namespace KmyKeiba.Models.Race.Finder
       this.RaceHorse = raceHorse;
     }
 
-    public async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true)
+    public async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false)
     {
       //if (withoutFutureRaces && this._raceHorseCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
       //{
@@ -57,34 +57,24 @@ namespace KmyKeiba.Models.Race.Finder
       using var db = new MyContext();
       var reader = new ScriptKeysReader(keys);
 
-      if (DownloaderModel.Instance.CanSaveOthers.Value)
-      {
-        try
-        {
-          //await db.BeginTransactionAsync();
-        }
-        catch
-        {
-        }
-      }
+      var raceQueries = reader.GetQueries(this.Race, this.RaceHorse);
+      if (raceQueries.Limit != default) sizeMax = raceQueries.Limit;
+      if (raceQueries.Offset != default) offset = raceQueries.Offset;
+      if (raceQueries.IsContainsFutureRaces && !withoutFutureRacesForce) withoutFutureRaces = false;
 
       IQueryable<RaceData> races = db.Races!;
       if (withoutFutureRaces)
       {
         if (this.Race != null)
         {
-          races = races.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
+          races = races.Where(r => r.StartTime < this.Race.StartTime);
         }
         else
         {
-          races = races.Where(r => r.StartTime < DateTime.Now && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
+          races = races.Where(r => r.StartTime < DateTime.Now);
         }
       }
       var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
-
-      var raceQueries = reader.GetQueries(this.Race, this.RaceHorse);
-      if (raceQueries.Limit != default) sizeMax = raceQueries.Limit;
-      if (raceQueries.Offset != default) offset = raceQueries.Offset;
 
       foreach (var q in raceQueries.Queries)
       {
@@ -92,10 +82,6 @@ namespace KmyKeiba.Models.Race.Finder
         horses = q.Apply(db, horses);
       }
 
-      if (withoutFutureRaces)
-      {
-        horses = horses.Where(rh => rh.DataStatus >= RaceDataStatus.PreliminaryGrade);
-      }
       var query = horses
         .Join(races, rh => rh.RaceKey, r => r.Key, (rh, r) => new { RaceHorse = rh, Race = r, });
 
@@ -132,7 +118,7 @@ namespace KmyKeiba.Models.Race.Finder
       return new RaceHorseFinderQueryResult(list, raceQueries.GroupKey, raceQueries.MemoGroupInfo, refunds);
     }
 
-    public async Task<FinderQueryResult<RaceAnalyzer>> FindRacesAsync(string keys, int sizeMax, int offset = 0, bool withoutFutureRaces = true)
+    public async Task<FinderQueryResult<RaceAnalyzer>> FindRacesAsync(string keys, int sizeMax, int offset = 0, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false)
     {
       if (withoutFutureRaces && this._raceCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
       {
@@ -142,22 +128,23 @@ namespace KmyKeiba.Models.Race.Finder
       using var db = new MyContext();
       var reader = new ScriptKeysReader(keys);
 
+      var raceQueries = reader.GetQueries(this.Race);
+      if (raceQueries.Limit != default) sizeMax = raceQueries.Limit;
+      if (raceQueries.Offset != default) offset = raceQueries.Offset;
+      if (raceQueries.IsContainsFutureRaces && !withoutFutureRacesForce) withoutFutureRaces = false;
+
       IQueryable<RaceData> races = db.Races!;
       if (withoutFutureRaces)
       {
         if (this.Race != null)
         {
-          races = races.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
+          races = races.Where(r => r.StartTime < this.Race.StartTime);
         }
         else
         {
-          races = races.Where(r => r.StartTime < DateTime.Now && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType);
+          races = races.Where(r => r.StartTime < DateTime.Now);
         }
       }
-
-      var raceQueries = reader.GetQueries(this.Race);
-      if (raceQueries.Limit != default) sizeMax = raceQueries.Limit;
-      if (raceQueries.Offset != default) offset = raceQueries.Offset;
 
       foreach (var q in raceQueries.Queries)
       {

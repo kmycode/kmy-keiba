@@ -989,8 +989,10 @@
                     VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
           <StackPanel Orientation="Vertical" Width="500">
+            <ToggleButton IsChecked="{Binding FinderModel.Input.OtherSetting.IsContainsFutureRaces.Value,ElementName=Root,Mode=TwoWay}"
+                          FontSize="16" Content="このレースより後に開催されたレースも含めて検索する"/>
             <ToggleButton IsChecked="{Binding FinderModel.Input.OtherSetting.IsFinishedRaceOnly.Value,ElementName=Root,Mode=TwoWay}"
-                          FontSize="16" Content="結果の届いたレースに限って検索する"/>
+                          FontSize="16" Content="結果の届いたレースに限って検索する" Margin="0,8,0,0"/>
             <Grid Margin="0,24,0,0">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
