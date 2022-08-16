@@ -287,10 +287,8 @@
             </StackPanel.Resources>
             <RadioButton Content="指定なし" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsUnspecified.Value,ElementName=Root,Mode=TwoWay}"/>
             <StackPanel Visibility="{Binding FinderModel.HasRaceHorse,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
-              <RadioButton Content="現在の馬" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveHorse.Value,ElementName=Root,Mode=TwoWay}"/>
+              <RadioButton Content="現在の馬関係" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveHorse.Value,ElementName=Root,Mode=TwoWay}"/>
               <RadioButton Content="現在の馬の血統" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveHorseBlood.Value,ElementName=Root,Mode=TwoWay}"/>
-              <RadioButton Content="現在の馬の騎手" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveRider.Value,ElementName=Root,Mode=TwoWay}"/>
-              <RadioButton Content="現在の馬の調教師" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveTrainer.Value,ElementName=Root,Mode=TwoWay}"/>
             </StackPanel>
             <RadioButton Content="本レース出場馬全て" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsAllHorses.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="本レース出場馬" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsHorseNumber.Value,ElementName=Root,Mode=TwoWay}"/>
@@ -300,6 +298,20 @@
             <RadioButton Content="本レース関連調教師全て" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsAllTrainers.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="本レース関連調教師" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsTrainer.Value,ElementName=Root,Mode=TwoWay}"/>
           </StackPanel>
+          <Grid Margin="16,0,0,0" Visibility="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveHorse.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+            <StackPanel Width="200">
+              <StackPanel.Resources>
+                <Style TargetType="ToggleButton" BasedOn="{StaticResource ToggleButtonDefault}">
+                  <Setter Property="FontSize" Value="16"/>
+                  <Setter Property="Margin" Value="0,0,0,0"/>
+                  <Setter Property="Padding" Value="0,6"/>
+                </Style>
+              </StackPanel.Resources>
+              <ToggleButton Content="馬" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value,ElementName=Root}"/>
+              <ToggleButton Content="騎手" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveHorseRider.Value,ElementName=Root}"/>
+              <ToggleButton Content="調教師" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveHorseTrainer.Value,ElementName=Root}"/>
+            </StackPanel>
+          </Grid>
           <Grid Width="450" Margin="16,0,0,0">
             <Grid.Visibility>
               <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">

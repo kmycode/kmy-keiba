@@ -363,12 +363,10 @@ namespace KmyKeiba.Models.Race.Finder
       if (!this._hasHorse)
       {
         if (this.HorseOfCurrentRace.IsActiveHorse.Value ||
-          this.HorseOfCurrentRace.IsActiveRider.Value ||
-          this.HorseOfCurrentRace.IsActiveTrainer.Value)
+          this.HorseOfCurrentRace.IsActiveHorseBlood.Value)
         {
           this.HorseOfCurrentRace.IsActiveHorse.Value =
-            this.HorseOfCurrentRace.IsActiveRider.Value =
-            this.HorseOfCurrentRace.IsActiveTrainer.Value = false;
+            this.HorseOfCurrentRace.IsActiveHorseBlood.Value = false;
           this.HorseOfCurrentRace.IsUnspecified.Value = true;
         }
         foreach (var category in this._categories)

@@ -1343,9 +1343,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsActiveHorseBlood { get; } = new();
 
-    public ReactiveProperty<bool> IsActiveRider { get; } = new();
+    public ReactiveProperty<bool> IsActiveHorseSelf { get; } = new(true);
 
-    public ReactiveProperty<bool> IsActiveTrainer { get; } = new();
+    public ReactiveProperty<bool> IsActiveHorseRider { get; } = new();
+
+    public ReactiveProperty<bool> IsActiveHorseTrainer { get; } = new();
 
     public FinderQueryBloodRelationInput BloodInput { get; } = new();
 
@@ -1378,8 +1380,9 @@ namespace KmyKeiba.Models.Race.Finder
       this.IsTrainer.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsActiveHorse.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsActiveHorseBlood.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
-      this.IsActiveRider.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
-      this.IsActiveTrainer.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsActiveHorseSelf.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsActiveHorseRider.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsActiveHorseTrainer.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.SelectedHorse.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.BloodInput.AddTo(this.Disposables);
       this.BloodInput.ToObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
@@ -1405,15 +1408,20 @@ namespace KmyKeiba.Models.Race.Finder
       }
       if (this.IsActiveHorse.Value)
       {
-        return "horse";
-      }
-      if (this.IsActiveRider.Value)
-      {
-        return "rider";
-      }
-      if (this.IsActiveTrainer.Value)
-      {
-        return "trainer";
+        var queries = new List<string>();
+        if (this.IsActiveHorseSelf.Value)
+        {
+          queries.Add("horse");
+        }
+        if (this.IsActiveHorseRider.Value)
+        {
+          queries.Add("rider");
+        } 
+        if (this.IsActiveHorseTrainer.Value)
+        {
+          queries.Add("trainer");
+        }
+        return string.Join('|', queries);
       }
       if (this.IsHorseNumber.Value || this.IsRider.Value || this.IsTrainer.Value)
       {

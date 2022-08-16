@@ -294,6 +294,15 @@ namespace KmyKeiba.Models.Race
       // 遅延でデータ読み込み
       if (this.ActiveHorse.Value != null)
       {
+        if (this.ActiveHorse.Value.FinderModel.Value != null)
+        {
+          var model = this.ActiveHorse.Value.FinderModel.Value;
+          model.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+          model.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+          model.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = true;
+          model.BeginLoad();
+        }
+
         Task.Run(async () => {
           if (this.ActiveHorse.Value.BloodSelectors?.IsRequestedInitialization == true)
           {
@@ -727,9 +736,6 @@ namespace KmyKeiba.Models.Race
 
               var sortedHorses = horseInfos.All(h => h.Data.Number == default) ? horseInfos.OrderBy(h => h.Data.Name) : horseInfos.OrderBy(h => h.Data.Number);
               horse.FinderModel.Value = new FinderModel(race, horse, sortedHorses);
-              horse.FinderModel.Value.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
-              horse.FinderModel.Value.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
-              horse.FinderModel.Value.BeginLoad();
             }
           }
           logger.Debug("馬のタイム指数相対評価を設定");
