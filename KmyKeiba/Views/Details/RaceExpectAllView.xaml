@@ -214,7 +214,7 @@
             </ItemsControl.ItemTemplate>
           </ItemsControl>
         </Grid>
-        
+
         <Grid Grid.ColumnSpan="2">
           <Grid.ColumnDefinitions>
             <ColumnDefinition/>
@@ -240,23 +240,6 @@
           <RadioButton Grid.Column="6" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId2,ElementName=Root}"
                        Content="三連単" Name="SO_Trifecta"/>
         </Grid>
-
-        <!--フィルター（バグあり）-->
-        <!--
-        <ScrollViewer Grid.Row="1">
-          <ItemsControl ItemsSource="{Binding Race.Odds.Value.Filters,ElementName=Root}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <ToggleButton IsChecked="{Binding IsChecked.Value,Mode=TwoWay}">
-                  <Border>
-                    <TextBlock Text="{Binding Number}" FontSize="24"/>
-                  </Border>
-                </ToggleButton>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </ScrollViewer>
-        -->
 
         <ScrollViewer Grid.Row="1" Grid.Column="1" Visibility="{Binding IsChecked,ElementName=SO_Single,Converter={StaticResource BooleanVisibilityConv}}">
           <StackPanel>

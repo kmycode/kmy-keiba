@@ -41,8 +41,6 @@ namespace KmyKeiba.Models.Race
     public ReactiveProperty<OddsBlockGroup<TrifectaOdds.OddsData>?> Trifectas { get; } = new();
     public ReactiveProperty<OddsBlock<TrifectaOdds.OddsData>?> CurrentTrifectas { get; } = new();
 
-    public CheckableCollection<OddsFilterItem> Filters { get; } = new();
-
     public FrameNumberOddsData? Frame { get; }
     public QuinellaPlaceOddsData? QuinellaPlace { get; }
     public QuinellaOddsData? Quinella { get; }
@@ -95,29 +93,6 @@ namespace KmyKeiba.Models.Race
         this.CurrentTrifectas.Value = block.Blocks.FirstOrDefault();
       }
 
-      // フィルター
-      var horseFrames = horses.Select(h => new { h.Number, h.FrameNumber, }).ToArray();
-      AddRange(this.Filters, horses.OrderBy(h => h.Number).Select(h => new OddsFilterItem
-      {
-        Number = h.Number,
-        IsChecked = { Value = true, },
-      }));
-      this.Filters.ChangedItemObservable.Subscribe(h =>
-      {
-        this.Singles.Value = this._singles.Filtering(this.Filters, t => t.Number1);
-        this.Frames.Value = this._frames?.Filtering(this.Filters, o =>
-        {
-          return horseFrames
-            .Where(hf => hf.FrameNumber == o.Frame1 || hf.FrameNumber == o.Frame2)
-            .Select(hf => hf.FrameNumber);
-        });
-        this.QuinellaPlaces.Value = this._quinellaPlaces?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, });
-        this.Quinellas.Value = this._quinellas?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, });
-        this.Exactas.Value = this._exactas?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, });
-        this.Trios.Value = this._trios?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, o.HorseNumber3, });
-        this.Trifectas.Value = this._trifectas?.Filtering(this.Filters, o => new[] { o.HorseNumber1, o.HorseNumber2, o.HorseNumber3, });
-      }).AddTo(this._disposables);
-
       this.Frame = frame;
       this.Quinella = quinella;
       this.QuinellaPlace = quinellaPlace;
@@ -137,7 +112,6 @@ namespace KmyKeiba.Models.Race
     public void Dispose()
     {
       this._disposables.Dispose();
-      this.Filters.Dispose();
     }
   }
 
@@ -208,21 +182,6 @@ namespace KmyKeiba.Models.Race
       {
         this.Numbers = Array.Empty<short>();
       }
-    }
-
-    public OddsBlock<T> Filtering(IReadOnlyList<OddsFilterItem> filters, Func<T, IEnumerable<short>> itemNumbers)
-    {
-      var items = this.Columns
-        .Where(c => filters.Where(f => f.IsChecked.Value).Any(f => f.Number == c.Number))
-        .Select(c => c.Filtering(filters, itemNumbers))
-        .ToArray();
-      var numbers = filters.OrderBy(f => f.Number).Where(f => f.IsChecked.Value).Select(f => f.Number).ToArray();
-      return new OddsBlock<T>()
-      {
-        Numbers = Numbers,
-        NumberInGroup = this.NumberInGroup,
-        Columns = items,
-      };
     }
   }
 
@@ -437,18 +396,6 @@ namespace KmyKeiba.Models.Race
   public class OddsBlockGroup<T>
   {
     public IReadOnlyList<OddsBlock<T>> Blocks { get; init; } = Array.Empty<OddsBlock<T>>();
-
-    public OddsBlockGroup<T> Filtering(IReadOnlyList<OddsFilterItem> filters, Func<T, IEnumerable<short>> itemNumbers)
-    {
-      var items = this.Blocks
-        .Where(b => filters.Where(f => f.IsChecked.Value).Any(f => f.Number == b.NumberInGroup))
-        .Select(b => b.Filtering(filters, itemNumbers))
-        .ToArray();
-      return new OddsBlockGroup<T>
-      {
-        Blocks = items,
-      };
-    }
   }
 
   public class OddsFilterItem : IMultipleCheckableItem
