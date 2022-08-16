@@ -43,6 +43,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public RaceHorseAnalyzer? RaceHorse { get; }
 
+    public bool HasRace => this.Race != null;
+
+    public bool HasRaceHorse => this.RaceHorse != null;
+
     public FinderModel(RaceData? race, RaceHorseAnalyzer? horse, IEnumerable<RaceHorseAnalyzer>? horses)
     {
       this._finder = new RaceFinder(race, horse?.Data);
@@ -238,6 +242,16 @@ namespace KmyKeiba.Models.Race.Finder
       });
     }
 
+    internal Task<FinderQueryResult<RaceAnalyzer>> FindRacesAsync(string keys, int count, int offset)
+    {
+      return this._finder.FindRacesAsync(keys, count, offset);
+    }
+
+    internal Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(string keys, int count, int offset)
+    {
+      return this._finder.FindRaceHorsesAsync(keys, count, offset);
+    }
+
     private void UpdateGroups(IEnumerable<FinderRaceHorseGroupItem> groups)
     {
       ThreadUtil.InvokeOnUiThread(() =>
@@ -270,6 +284,21 @@ namespace KmyKeiba.Models.Race.Finder
           group.Rows.Add(row);
         }
       });
+    }
+
+    public void ReplaceFrom(FinderModel model)
+    {
+      this._finder.ReplaceFrom(model._finder);
+    }
+
+    public void ReplaceFrom(RaceFinder finder)
+    {
+      this._finder.ReplaceFrom(finder);
+    }
+
+    public RaceHorseTrendAnalysisSelectorWrapper AsTrendAnalysisSelector()
+    {
+      return this._finder.AsTrendAnalysisSelector();
     }
 
     public void Dispose()

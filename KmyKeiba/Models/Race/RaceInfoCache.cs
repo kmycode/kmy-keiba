@@ -118,7 +118,7 @@ namespace KmyKeiba.Models.Race
         if (horse.Old.RaceHorseBloodAnalyzers != null)
           horse.New.BloodSelectors?.CopyFrom(horse.Old.RaceHorseBloodAnalyzers);
         if (horse.Old.Finder != null)
-          horse.New.Finder.ReplaceFrom(horse.Old.Finder);
+          horse.New.FinderModel.Value?.ReplaceFrom(horse.Old.Finder);
       }
 
       return true;
@@ -181,7 +181,7 @@ namespace KmyKeiba.Models.Race
           RaceRiderAnalyzers = horse.RiderTrendAnalyzers,
           RaceTrainerAnalyzers = horse.TrainerTrendAnalyzers,
           RaceHorseBloodAnalyzers = horse.BloodSelectors,
-          Finder = horse.Finder,
+          Finder = horse.FinderModel.Value,
         });
       }
     }
@@ -196,7 +196,7 @@ namespace KmyKeiba.Models.Race
 
       public RaceHorseBloodTrendAnalysisSelectorMenu? RaceHorseBloodAnalyzers { get; set; }
 
-      public RaceFinder? Finder { get; set; }
+      public FinderModel? Finder { get; set; }
 
       public RaceInfoHorseCache(RaceHorseData horse)
       {

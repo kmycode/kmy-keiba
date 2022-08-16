@@ -35,7 +35,7 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceSubjectInfo Subject { get; }
 
-    public RaceFinder Finder { get; }
+    public ReactiveProperty<FinderModel?> FinderModel { get; } = new();
 
     public RaceHorseBloodTrendAnalysisSelectorMenu? BloodSelectors { get; init; }
 
@@ -389,7 +389,6 @@ namespace KmyKeiba.Models.Analysis
       this.ResultTimePerMeter = (double)horse.ResultTime.TotalSeconds / race.Distance;
       this.ResultOrderComparation = horse.ResultOrder >= 1 && horse.ResultOrder <= 3 ? ValueComparation.Good :
         horse.ResultOrder >= 8 || horse.ResultOrder >= race.HorsesCount * 0.7f ? ValueComparation.Bad : ValueComparation.Standard;
-      this.Finder = new RaceFinder(race, horse);
       if (race.Distance >= 800)
       {
         this.UntilA3HResultTime = horse.ResultTime - horse.AfterThirdHalongTime;
@@ -614,7 +613,7 @@ namespace KmyKeiba.Models.Analysis
       this.RiderTrendAnalyzers?.Dispose();
       this.TrainerTrendAnalyzers?.Dispose();
       this.TrendAnalyzers?.Dispose();
-      this.Finder.Dispose();
+      this.FinderModel.Dispose();
 
       this.IsDisposed = true;
     }

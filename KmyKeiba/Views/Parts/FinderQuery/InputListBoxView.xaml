@@ -28,25 +28,41 @@
                  PlacementTarget="{Binding ElementName=HeaderToggle}">
       <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Background="{StaticResource BaseBackground}"
               Width="auto" Height="auto">
-        <StackPanel Margin="4,8">
+        <StackPanel Margin="2,4">
           <StackPanel.Resources>
             <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
               <Setter Property="GroupName" Value="{Binding UniqueId,ElementName=Root}"/>
-              <Setter Property="FontSize" Value="16"/>
+              <Setter Property="FontSize" Value="14"/>
               <Setter Property="Margin" Value="0,2"/>
               <Setter Property="Width" Value="180"/>
               <Setter Property="HorizontalAlignment" Value="Left"/>
             </Style>
           </StackPanel.Resources>
           <RadioButton Content="リスト選択値で検索" IsChecked="{Binding Input.IsSetListValue.Value,ElementName=Root,Mode=TwoWay}"/>
-          <RadioButton Content="現在のレースの値を適用" IsChecked="{Binding Input.IsSetCurrentRaceValue.Value,ElementName=Root,Mode=TwoWay}"
-                       Visibility="{Binding Input.IsCompareWithHorse,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
-          <RadioButton Content="現在の馬の値を適用" IsChecked="{Binding Input.IsSetCurrentRaceValue.Value,ElementName=Root,Mode=TwoWay}"
-                       Visibility="{Binding Input.IsCompareWithHorse,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+          <RadioButton Content="現在のレースの値を適用" IsChecked="{Binding Input.IsSetCurrentRaceValue.Value,ElementName=Root,Mode=TwoWay}">
+            <RadioButton.Visibility>
+              <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                <Binding Path="HasRace" ElementName="Root"/>
+                <Binding Path="CanCompareWithCurrentRace" ElementName="Root"/>
+                <Binding Path="Input.IsCompareWithHorse" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+              </MultiBinding>
+            </RadioButton.Visibility>
+          </RadioButton>
+          <RadioButton Content="現在の馬の値を適用" IsChecked="{Binding Input.IsSetCurrentRaceHorseValue.Value,ElementName=Root,Mode=TwoWay}">
+            <RadioButton.Visibility>
+              <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                <Binding Path="HasRaceHorse" ElementName="Root"/>
+                <Binding Path="CanCompareWithCurrentRace" ElementName="Root"/>
+                <Binding Path="Input.IsCompareWithHorse" ElementName="Root"/>
+              </MultiBinding>
+            </RadioButton.Visibility>
+          </RadioButton>
           <RadioButton Content="数値で比較" IsChecked="{Binding Input.IsSetNumericComparation.Value,ElementName=Root,Mode=TwoWay}"
                        Visibility="{Binding Input.CanInputNumber,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
-          <local:InputNumberView Width="450" Margin="0,16,0,0" Visibility="{Binding Input.IsSetNumericComparation.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+          <local:InputNumberView Width="450" Margin="0,-16,0,0" Visibility="{Binding Input.IsSetNumericComparation.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
                                  Input="{Binding Input.NumberInput,ElementName=Root}" IsComparable="{Binding IsComparable,ElementName=Root}"/>
+
+          <Button Content="リセット" Width="180" HorizontalAlignment="Left" FontSize="14" Margin="0,16,0,0" Command="{Binding Input.ResetCommand,ElementName=Root}"/>
         </StackPanel>
       </Border>
     </up:ImePopup>
@@ -78,7 +94,7 @@
                  HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap">
         <TextBlock.Visibility>
           <MultiBinding Converter="{StaticResource MultiBooleanConv}">
-            <Binding Path="Input.IsSetCurrentRaceValue.Value" ElementName="Root"/>
+            <Binding Path="Input.IsSetCurrentRaceHorseValue.Value" ElementName="Root"/>
             <Binding Path="Input.IsCompareWithHorse" ElementName="Root"/>
           </MultiBinding>
         </TextBlock.Visibility>

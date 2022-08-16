@@ -9,6 +9,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace KmyKeiba.Models.Race.Finder
 {
@@ -45,6 +46,8 @@ namespace KmyKeiba.Models.Race.Finder
     private readonly CompositeDisposable _disposables = new();
     public event EventHandler? Updated;
 
+    public ReactiveProperty<bool> IsCustomized { get; } = new();
+
     public ReactiveProperty<string> Value { get; } = new();
 
     public ReactiveProperty<string> MaxValue { get; } = new();
@@ -73,8 +76,14 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsUseCurrentRaceValue { get; } = new();
 
-    public FinderQueryNumberInput()
+    public ReactiveProperty<bool> IsUseCurrentRaceHorseValue { get; } = new();
+
+    public bool IsCompareWithHorse { get; }
+
+    public FinderQueryNumberInput(bool isCompareWithHorse)
     {
+      this.IsCompareWithHorse = isCompareWithHorse;
+
       this.IsUnset
         .CombineLatest(this.IsRange)
         .CombineLatest(this.IsGreaterThan)
@@ -89,6 +98,7 @@ namespace KmyKeiba.Models.Race.Finder
         .CombineLatest(this.IsCompareWithFixedValue)
         .CombineLatest(this.IsCompareWithTargetRace)
         .CombineLatest(this.IsUseCurrentRaceValue)
+        .CombineLatest(this.IsUseCurrentRaceHorseValue)
         .Subscribe(_ =>
         {
           this.Updated?.Invoke(this, EventArgs.Empty);
@@ -97,16 +107,23 @@ namespace KmyKeiba.Models.Race.Finder
       this.Value.Skip(1).Where(_ => this.IsUnset.Value).Subscribe(_ => this.IsEqual.Value = true).AddTo(this._disposables);
     }
 
+    public FinderQueryNumberInput() : this(false)
+    {
+    }
+
     public virtual string GetRightQuery()
     {
+      this.IsCustomized.Value = false;
+
       if (this.IsUnset.Value)
       {
         return string.Empty;
       }
 
-      if (this.IsUseCurrentRaceValue.Value)
+      if (this.IsUseCurrentRaceValue.Value || this.IsUseCurrentRaceHorseValue.Value)
       {
         // horses#など以外の末尾の＃は解析時に無視される
+        this.IsCustomized.Value = true;
         return "#";
       }
 
@@ -128,6 +145,7 @@ namespace KmyKeiba.Models.Race.Finder
           max = tmp;
         }
 
+        this.IsCustomized.Value = true;
         return $"={min}-{max}";
       }
 
@@ -140,6 +158,7 @@ namespace KmyKeiba.Models.Race.Finder
       var prefix = this.IsCompareWithCurrentRace.Value ? "$$" :
         this.IsCompareWithTargetRace.Value ? "$" : string.Empty;
 
+      this.IsCustomized.Value = true;
       return sign + prefix + this.Value.Value;
     }
 
@@ -152,13 +171,26 @@ namespace KmyKeiba.Models.Race.Finder
     {
       this._disposables.Dispose();
     }
+
+    public ICommand ResetCommand =>
+      this._resetCommand ??= new ReactiveCommand().WithSubscribe(() =>
+      {
+        this.IsEqual.Value = true;
+        this.IsCompareWithFixedValue.Value = true;
+        this.Value.Value = this.MaxValue.Value = string.Empty;
+      }).AddTo(this._disposables);
+    private ICommand? _resetCommand;
   }
 
   public class FinderQueryFloatNumberInput : FinderQueryNumberInput
   {
     public int Digit { get; }
 
-    public FinderQueryFloatNumberInput(int digit)
+    public FinderQueryFloatNumberInput(int digit) : this(digit, false)
+    {
+    }
+
+    public FinderQueryFloatNumberInput(int digit, bool isCompareWithHorse) : base(isCompareWithHorse)
     {
       this.Digit = digit;
     }
@@ -184,6 +216,14 @@ namespace KmyKeiba.Models.Race.Finder
 
     public override string GetRightQuery()
     {
+      this.IsCustomized.Value = false;
+
+      if (this.IsUseCurrentRaceValue.Value || this.IsUseCurrentRaceHorseValue.Value)
+      {
+        this.IsCustomized.Value = true;
+        return "#";
+      }
+
       if (!decimal.TryParse(this.Value.Value, out var min))
       {
         return string.Empty;
@@ -204,6 +244,7 @@ namespace KmyKeiba.Models.Race.Finder
           max = tmp;
         }
 
+        this.IsCustomized.Value = true;
         return $"={min}-{max}";
       }
 
@@ -214,6 +255,7 @@ namespace KmyKeiba.Models.Race.Finder
         this.IsNotEqual.Value ? "<>" :
         "=";
 
+      this.IsCustomized.Value = true;
       return sign + min;
     }
   }

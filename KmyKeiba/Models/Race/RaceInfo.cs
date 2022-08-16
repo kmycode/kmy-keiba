@@ -724,6 +724,8 @@ namespace KmyKeiba.Models.Race
                 horse.RiderPlaceBitsRateComparation = horse.RiderPlaceBitsRate + 0.02 >= riderPlaceRateMax ? ValueComparation.Good :
                 horse.RiderPlaceBitsRate - 0.02 <= riderPlaceRateMin ? ValueComparation.Bad : ValueComparation.Standard;
               }
+
+              horse.FinderModel.Value = new FinderModel(race, horse, horseInfos);
             }
           }
           logger.Debug("馬のタイム指数相対評価を設定");

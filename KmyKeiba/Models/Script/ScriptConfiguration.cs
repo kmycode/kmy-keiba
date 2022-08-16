@@ -151,7 +151,7 @@ namespace KmyKeiba.Models.Script
       {
         return Task.FromResult(new AnalysisTableRow(name, race, (race, horse) =>
         {
-          var selector = horse.Finder.AsTrendAnalysisSelector();
+          var selector = horse.FinderModel.Value?.AsTrendAnalysisSelector() ?? new RaceHorseTrendAnalysisSelectorWrapper(new Race.Finder.RaceFinder());
           return new LambdaAnalysisWithFinderTableCell(
             horse, h => selector, keys,
             (analyzer, cell) => this.SetValueOfRaceHorseAnalyzer(value, analyzer, cell));

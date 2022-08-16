@@ -343,6 +343,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     ReactiveProperty<bool> IsSetCurrentRaceValue { get; }
 
+    ReactiveProperty<bool> IsSetCurrentRaceHorseValue { get; }
+
     ReactiveProperty<bool> IsSetNumericComparation { get; }
 
     FinderQueryNumberInput NumberInput { get; }
@@ -363,6 +365,8 @@ namespace KmyKeiba.Models.Race.Finder
     public ReactiveProperty<bool> IsSetListValue { get; } = new(true);
 
     public ReactiveProperty<bool> IsSetCurrentRaceValue { get; } = new();
+
+    public ReactiveProperty<bool> IsSetCurrentRaceHorseValue { get; } = new();
 
     public ReactiveProperty<bool> IsSetNumericComparation { get; } = new();
 
@@ -386,6 +390,7 @@ namespace KmyKeiba.Models.Race.Finder
       this.Items.ChangedItemObservable.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsSetListValue.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsSetCurrentRaceValue.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsSetCurrentRaceHorseValue.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsSetNumericComparation.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
       this.NumberInput.ToObservable().Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
       this.NumberInput.AddTo(this.Disposables);
@@ -408,7 +413,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected override string GetQuery()
     {
-      if (this.IsSetCurrentRaceValue.Value)
+      if (this.IsSetCurrentRaceValue.Value || this.IsSetCurrentRaceHorseValue.Value)
       {
         return this.Key;
       }
@@ -469,6 +474,17 @@ namespace KmyKeiba.Models.Race.Finder
         }
       }
     }
+
+    public ICommand ResetCommand =>
+      this._resetCommand ??= new ReactiveCommand().WithSubscribe(() =>
+      {
+        foreach (var item in this.Items.Where(i => i.IsChecked.Value))
+        {
+          item.IsChecked.Value = false;
+        }
+        this.IsSetListValue.Value = true;
+      }).AddTo(this.Disposables);
+    private ICommand? _resetCommand;
   }
 
   public class StringInputCategoryBase : FinderQueryInputCategory
@@ -566,11 +582,16 @@ namespace KmyKeiba.Models.Race.Finder
   {
     protected string Key { get; }
 
-    public FinderQueryNumberInput Input { get; } = new();
+    public FinderQueryNumberInput Input { get; }
 
-    protected NumberInputCategoryBase(string key)
+    protected NumberInputCategoryBase(string key) : this(key, false)
+    {
+    }
+
+    protected NumberInputCategoryBase(string key, bool isCompareWithHorse)
     {
       this.Key = key;
+      this.Input = new FinderQueryNumberInput(isCompareWithHorse);
 
       this.Input.AddTo(this.Disposables);
       this.Input.ToObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
@@ -593,10 +614,14 @@ namespace KmyKeiba.Models.Race.Finder
 
     public FinderQueryFloatNumberInput Input { get; }
 
-    protected FloatNumberInputCategoryBase(string key, int digit)
+    protected FloatNumberInputCategoryBase(string key, int digit) : this(key, digit, false)
+    {
+    }
+
+    protected FloatNumberInputCategoryBase(string key, int digit, bool isCompareWithHorse)
     {
       this.Key = key;
-      this.Input = new FinderQueryFloatNumberInput(digit);
+      this.Input = new FinderQueryFloatNumberInput(digit, isCompareWithHorse);
 
       this.Input.Value.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
       this.Input.MaxValue.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
@@ -1300,6 +1325,12 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsTrainer { get; } = new();
 
+    public ReactiveProperty<bool> IsActiveHorse { get; } = new();
+
+    public ReactiveProperty<bool> IsActiveRider { get; } = new();
+
+    public ReactiveProperty<bool> IsActiveTrainer { get; } = new();
+
     public FinderQueryBloodRelationInput BloodInput { get; } = new();
 
     public ReactiveCollection<HorseItem> Horses { get; } = new();
@@ -1329,6 +1360,9 @@ namespace KmyKeiba.Models.Race.Finder
       this.IsRider.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsAllTrainers.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsTrainer.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsActiveHorse.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsActiveRider.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsActiveTrainer.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.SelectedHorse.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.BloodInput.AddTo(this.Disposables);
       this.BloodInput.ToObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
@@ -1351,6 +1385,18 @@ namespace KmyKeiba.Models.Race.Finder
       if (this.IsAllTrainers.Value)
       {
         return "trainer#";
+      }
+      if (this.IsActiveHorse.Value)
+      {
+        return "horse";
+      }
+      if (this.IsActiveRider.Value)
+      {
+        return "rider";
+      }
+      if (this.IsActiveTrainer.Value)
+      {
+        return "trainer";
       }
       if (this.IsHorseNumber.Value || this.IsRider.Value || this.IsTrainer.Value)
       {
@@ -1461,7 +1507,7 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class HorseAgeInputCategory : ListBoxInputCategoryBase<short>
   {
-    public HorseAgeInputCategory() : base("age")
+    public HorseAgeInputCategory() : base("age", true, true)
     {
       this.SetItems(Enumerable.Range(2, 17)
         .Select(v => (short)v)
@@ -1472,7 +1518,7 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class HorseSexInputCategory : ListBoxInputCategoryBase<HorseSex>
   {
-    public HorseSexInputCategory() : base("sex")
+    public HorseSexInputCategory() : base("sex", true, true)
     {
       this.SetItems(new List<FinderQueryInputListItem<HorseSex>>
       {
@@ -1490,7 +1536,7 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class HorseColorInputCategory : ListBoxInputCategoryBase<HorseBodyColor>
   {
-    public HorseColorInputCategory() : base("color")
+    public HorseColorInputCategory() : base("color", true, true)
     {
       this.SetItems(new List<FinderQueryInputListItem<HorseBodyColor>>
       {
@@ -1516,7 +1562,7 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class HorseNumberInputCategory : ListBoxInputCategoryBase<short>
   {
-    public HorseNumberInputCategory() : base("horsenumber")
+    public HorseNumberInputCategory() : base("horsenumber", true, true)
     {
       this.SetItems(Enumerable.Range(1, 18)
         .Select(v => (short)v)
@@ -1527,7 +1573,7 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class HorseFrameNumberInputCategory : ListBoxInputCategoryBase<short>
   {
-    public HorseFrameNumberInputCategory() : base("framenumber")
+    public HorseFrameNumberInputCategory() : base("framenumber", true, true)
     {
       this.SetItems(Enumerable.Range(1, 8)
         .Select(v => (short)v)
@@ -1538,7 +1584,7 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class HorsePopularInputCategory : ListBoxInputCategoryBase<short>
   {
-    public HorsePopularInputCategory() : base("popular")
+    public HorsePopularInputCategory() : base("popular", true, true)
     {
       this.SetItems(Enumerable.Range(1, 18)
         .Select(v => (short)v)
@@ -1553,7 +1599,7 @@ namespace KmyKeiba.Models.Race.Finder
     {
     }
 
-    protected HorseBelongsInputCategory(string key): base(key)
+    protected HorseBelongsInputCategory(string key): base(key, true, true)
     {
       this.SetItems(new List<FinderQueryInputListItem<HorseBelongs>>
       {
@@ -1615,42 +1661,42 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class HorseWeightInputCategory : NumberInputCategoryBase
   {
-    public HorseWeightInputCategory() : base("weight")
+    public HorseWeightInputCategory() : base("weight", true)
     {
     }
   }
 
   public class HorseWeightDiffInputCategory : NumberInputCategoryBase
   {
-    public HorseWeightDiffInputCategory() : base("weightdiff")
+    public HorseWeightDiffInputCategory() : base("weightdiff", true)
     {
     }
   }
 
   public class RiderWeightInputCategory : FloatNumberInputCategoryBase
   {
-    public RiderWeightInputCategory() : base("riderweight", 1)
+    public RiderWeightInputCategory() : base("riderweight", 1, true)
     {
     }
   }
 
   public class OddsInputCategory : FloatNumberInputCategoryBase
   {
-    public OddsInputCategory() : base("odds", 1)
+    public OddsInputCategory() : base("odds", 1, true)
     {
     }
   }
 
   public class PlaceOddsMinInputCategory : FloatNumberInputCategoryBase
   {
-    public PlaceOddsMinInputCategory() : base("placeoddsmin", 1)
+    public PlaceOddsMinInputCategory() : base("placeoddsmin", 1, true)
     {
     }
   }
 
   public class PlaceOddsMaxInputCategory : FloatNumberInputCategoryBase
   {
-    public PlaceOddsMaxInputCategory() : base("placeoddsmax", 1)
+    public PlaceOddsMaxInputCategory() : base("placeoddsmax", 1, true)
     {
     }
   }
@@ -1661,35 +1707,35 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class PreviousRaceDaysInputCategory : NumberInputCategoryBase
   {
-    public PreviousRaceDaysInputCategory() : base("prevdays")
+    public PreviousRaceDaysInputCategory() : base("prevdays", true)
     {
     }
   }
 
   public class HorseRaceCountInputCategory : NumberInputCategoryBase
   {
-    public HorseRaceCountInputCategory() : base("racecount")
+    public HorseRaceCountInputCategory() : base("racecount", true)
     {
     }
   }
 
   public class HorseRaceCountRunInputCategory : NumberInputCategoryBase
   {
-    public HorseRaceCountRunInputCategory() : base("racecount_run")
+    public HorseRaceCountRunInputCategory() : base("racecount_run", true)
     {
     }
   }
 
   public class HorseRaceCountCompleteInputCategory : NumberInputCategoryBase
   {
-    public HorseRaceCountCompleteInputCategory() : base("racecount_complete")
+    public HorseRaceCountCompleteInputCategory() : base("racecount_complete", true)
     {
     }
   }
 
   public class HorseRaceCountRestInputCategory : NumberInputCategoryBase
   {
-    public HorseRaceCountRestInputCategory() : base("racecount_rest")
+    public HorseRaceCountRestInputCategory() : base("racecount_rest", true)
     {
     }
   }
@@ -1700,28 +1746,28 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class ResultTimeInputCategory : FloatNumberInputCategoryBase
   {
-    public ResultTimeInputCategory() : base("resulttime", 1)
+    public ResultTimeInputCategory() : base("resulttime", 1, true)
     {
     }
   }
 
   public class A3HResultTimeInputCategory : FloatNumberInputCategoryBase
   {
-    public A3HResultTimeInputCategory() : base("a3htime", 1)
+    public A3HResultTimeInputCategory() : base("a3htime", 1, true)
     {
     }
   }
 
   public class ResultTimeDiffInputCategory : FloatNumberInputCategoryBase
   {
-    public ResultTimeDiffInputCategory() : base("resulttimediff", 1)
+    public ResultTimeDiffInputCategory() : base("resulttimediff", 1, true)
     {
     }
   }
 
   public class HorsePlaceInputCategory : ListBoxInputCategoryBase<short>
   {
-    public HorsePlaceInputCategory() : base("place")
+    public HorsePlaceInputCategory() : base("place", true, true)
     {
       this.SetItems(Enumerable.Range(1, 18)
         .Select(v => (short)v)
@@ -1732,7 +1778,7 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class HorseGoalPlaceInputCategory : ListBoxInputCategoryBase<short>
   {
-    public HorseGoalPlaceInputCategory() : base("goalplace")
+    public HorseGoalPlaceInputCategory() : base("goalplace", true, true)
     {
       this.SetItems(Enumerable.Range(1, 18)
         .Select(v => (short)v)
@@ -1743,7 +1789,7 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class AbnormalResultInputCategory : ListBoxInputCategoryBase<RaceAbnormality>
   {
-    public AbnormalResultInputCategory() : base("abnormal")
+    public AbnormalResultInputCategory() : base("abnormal", true, true)
     {
       this.SetItems(new List<FinderQueryInputListItem<RaceAbnormality>>
       {
@@ -1766,7 +1812,7 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class CornerResultInputCategory : ListBoxInputCategoryBase<short>
   {
-    public CornerResultInputCategory(int cornerNumber) : base("corner" + cornerNumber)
+    public CornerResultInputCategory(int cornerNumber) : base("corner" + cornerNumber, true, true)
     {
       this.SetItems(Enumerable.Range(1, 18)
         .Select(v => (short)v)
@@ -1777,7 +1823,7 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class RunningStyleInputCategory : ListBoxInputCategoryBase<RunningStyle>
   {
-    public RunningStyleInputCategory() : base("runningstyle")
+    public RunningStyleInputCategory() : base("runningstyle", true, true)
     {
       this.SetItems(new List<FinderQueryInputListItem<RunningStyle>>
       {

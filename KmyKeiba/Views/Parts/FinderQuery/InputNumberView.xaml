@@ -7,6 +7,10 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
   <StackPanel>
+    <TextBlock FontSize="20" Margin="0,0,0,4"
+               Foreground="{Binding Input.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv2}}">
+      <Run Text="{Binding Header,ElementName=Root}"/> <Run Text="{Binding Comment,ElementName=Root}" FontSize="14"/>
+    </TextBlock>
     <Grid>
       <Grid.ColumnDefinitions>
         <ColumnDefinition/>
@@ -36,6 +40,8 @@
                      Foreground="{StaticResource WarningForeground}"/>
           <TextBlock Text="現レ値" Visibility="{Binding Input.IsUseCurrentRaceValue.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
                      Foreground="{StaticResource GoodForeground}"/>
+          <TextBlock Text="現馬値" Visibility="{Binding Input.IsUseCurrentRaceHorseValue.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                     Foreground="{StaticResource GoodForeground}"/>
         </Grid>
       </ToggleButton>
       <Popup PlacementTarget="{Binding ElementName=ComparationOption}" Placement="Right"
@@ -46,20 +52,45 @@
               <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
                 <Setter Property="GroupName" Value="{Binding UniqueId2,ElementName=Root}"/>
                 <Setter Property="FontSize" Value="14"/>
-                <Setter Property="Margin" Value="2,4"/>
+                <Setter Property="Margin" Value="0,2"/>
               </Style>
             </StackPanel.Resources>
             <RadioButton Content="固定値と比較" IsChecked="{Binding Input.IsCompareWithFixedValue.Value,ElementName=Root,Mode=TwoWay}"/>
-            <RadioButton Content="現在レースの値を使用" IsChecked="{Binding Input.IsUseCurrentRaceValue.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="現在レースの値を使用" IsChecked="{Binding Input.IsUseCurrentRaceValue.Value,ElementName=Root,Mode=TwoWay}">
+              <RadioButton.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                  <Binding Path="HasRace" ElementName="Root"/>
+                  <Binding Path="CanCompareWithCurrentRace" ElementName="Root"/>
+                  <Binding Path="Input.IsCompareWithHorse" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                </MultiBinding>
+              </RadioButton.Visibility>
+            </RadioButton>
+            <RadioButton Content="現在の馬の値を使用" IsChecked="{Binding Input.IsUseCurrentRaceHorseValue.Value,ElementName=Root,Mode=TwoWay}">
+              <RadioButton.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                  <Binding Path="HasRaceHorse" ElementName="Root"/>
+                  <Binding Path="CanCompareWithCurrentRace" ElementName="Root"/>
+                  <Binding Path="Input.IsCompareWithHorse" ElementName="Root"/>
+                </MultiBinding>
+              </RadioButton.Visibility>
+            </RadioButton>
             <RadioButton Content="現在レースと比較" IsChecked="{Binding Input.IsCompareWithCurrentRace.Value,ElementName=Root,Mode=TwoWay}"
                          Visibility="{Binding IsComparable,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
             <RadioButton Content="比較対象レースと比較" IsChecked="{Binding Input.IsCompareWithTargetRace.Value,ElementName=Root,Mode=TwoWay}"
                          Visibility="{Binding IsComparable,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+
+            <Button Content="リセット" FontSize="14" Margin="0,16,0,0" Command="{Binding Input.ResetCommand,ElementName=Root}"/>
           </StackPanel>
         </Border>
       </Popup>
     </Grid>
-    <UniformGrid Columns="7" IsEnabled="{Binding Input.IsUseCurrentRaceValue.Value,ElementName=Root,Converter={StaticResource NegativeConv}}">
+    <UniformGrid Columns="7">
+      <UniformGrid.IsEnabled>
+        <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+          <Binding Path="Input.IsUseCurrentRaceValue.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+          <Binding Path="Input.IsUseCurrentRaceHorseValue.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+        </MultiBinding>
+      </UniformGrid.IsEnabled>
       <UniformGrid.Resources>
         <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
           <Setter Property="FontSize" Value="12"/>

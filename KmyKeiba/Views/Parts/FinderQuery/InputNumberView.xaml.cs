@@ -34,6 +34,32 @@ namespace KmyKeiba.Views.Parts.FinderQuery
       set { SetValue(InputProperty, value); }
     }
 
+    public static readonly DependencyProperty HeaderProperty
+= DependencyProperty.Register(
+nameof(Header),
+typeof(string),
+typeof(InputNumberView),
+new PropertyMetadata(null));
+
+    public string? Header
+    {
+      get { return (string)GetValue(HeaderProperty); }
+      set { SetValue(HeaderProperty, value); }
+    }
+
+    public static readonly DependencyProperty CommentProperty
+= DependencyProperty.Register(
+nameof(Comment),
+typeof(string),
+typeof(InputNumberView),
+new PropertyMetadata(null));
+
+    public string? Comment
+    {
+      get { return (string)GetValue(CommentProperty); }
+      set { SetValue(CommentProperty, value); }
+    }
+
     public static readonly DependencyProperty IsComparableProperty
 = DependencyProperty.Register(
  nameof(IsComparable),
@@ -45,6 +71,45 @@ namespace KmyKeiba.Views.Parts.FinderQuery
     {
       get { return (bool)GetValue(IsComparableProperty); }
       set { SetValue(IsComparableProperty, value); }
+    }
+
+    public static readonly DependencyProperty HasRaceProperty
+= DependencyProperty.Register(
+ nameof(HasRace),
+ typeof(bool),
+ typeof(InputNumberView),
+ new PropertyMetadata(false));
+
+    public bool HasRace
+    {
+      get { return (bool)GetValue(HasRaceProperty); }
+      set { SetValue(HasRaceProperty, value); }
+    }
+
+    public static readonly DependencyProperty HasRaceHorseProperty
+= DependencyProperty.Register(
+ nameof(HasRaceHorse),
+ typeof(bool),
+ typeof(InputNumberView),
+ new PropertyMetadata(false));
+
+    public bool HasRaceHorse
+    {
+      get { return (bool)GetValue(HasRaceHorseProperty); }
+      set { SetValue(HasRaceHorseProperty, value); }
+    }
+
+    public static readonly DependencyProperty CanCompareWithCurrentRaceProperty
+= DependencyProperty.Register(
+ nameof(CanCompareWithCurrentRace),
+ typeof(bool),
+ typeof(InputNumberView),
+ new PropertyMetadata(true));
+
+    public bool CanCompareWithCurrentRace
+    {
+      get { return (bool)GetValue(CanCompareWithCurrentRaceProperty); }
+      set { SetValue(CanCompareWithCurrentRaceProperty, value); }
     }
 
     public Guid UniqueId { get; } = Guid.NewGuid();

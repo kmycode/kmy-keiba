@@ -73,6 +73,45 @@ new PropertyMetadata(null));
       set { SetValue(IsComparableProperty, value); }
     }
 
+    public static readonly DependencyProperty HasRaceProperty
+= DependencyProperty.Register(
+ nameof(HasRace),
+ typeof(bool),
+ typeof(InputListBoxView),
+ new PropertyMetadata(false));
+
+    public bool HasRace
+    {
+      get { return (bool)GetValue(HasRaceProperty); }
+      set { SetValue(HasRaceProperty, value); }
+    }
+
+    public static readonly DependencyProperty HasRaceHorseProperty
+= DependencyProperty.Register(
+ nameof(HasRaceHorse),
+ typeof(bool),
+ typeof(InputListBoxView),
+ new PropertyMetadata(false));
+
+    public bool HasRaceHorse
+    {
+      get { return (bool)GetValue(HasRaceHorseProperty); }
+      set { SetValue(HasRaceHorseProperty, value); }
+    }
+
+    public static readonly DependencyProperty CanCompareWithCurrentRaceProperty
+= DependencyProperty.Register(
+ nameof(CanCompareWithCurrentRace),
+ typeof(bool),
+ typeof(InputListBoxView),
+ new PropertyMetadata(true));
+
+    public bool CanCompareWithCurrentRace
+    {
+      get { return (bool)GetValue(CanCompareWithCurrentRaceProperty); }
+      set { SetValue(CanCompareWithCurrentRaceProperty, value); }
+    }
+
     public Guid UniqueId { get; } = Guid.NewGuid();
 
     public InputListBoxView()

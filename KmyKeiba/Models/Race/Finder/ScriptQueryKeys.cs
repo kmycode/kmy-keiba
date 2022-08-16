@@ -739,25 +739,25 @@ namespace KmyKeiba.Models.Race.Finder
                 tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.StartTime), value, propertyPrefix: prefix, isShort: false, subPropertyName: nameof(DateTime.Year)));
                 break;
               case QueryKey.Nichiji:
-                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceData.Nichiji), value, propertyPrefix: prefix, isShort: true));
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.Nichiji), value, propertyPrefix: prefix, isShort: true));
                 break;
               case QueryKey.RaceNumber:
-                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceData.CourseRaceNumber), value, propertyPrefix: prefix, isShort: true));
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.CourseRaceNumber), value, propertyPrefix: prefix, isShort: true));
                 break;
               case QueryKey.RiderWeightRule:
-                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceData.RiderWeight), value, propertyPrefix: prefix, isShort: true, isEnum: true));
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.RiderWeight), value, propertyPrefix: prefix, isShort: true, isEnum: true));
                 break;
               case QueryKey.SexRule:
-                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceData.Sex), value, propertyPrefix: prefix, isShort: true, isEnum: true));
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.Sex), value, propertyPrefix: prefix, isShort: true, isEnum: true));
                 break;
               case QueryKey.AreaRule:
-                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceData.Area), value, propertyPrefix: prefix, isShort: true, isEnum: true));
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.Area), value, propertyPrefix: prefix, isShort: true, isEnum: true));
                 break;
               case QueryKey.HorsesCount:
-                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceData.HorsesCount), value, propertyPrefix: prefix, isShort: true));
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.HorsesCount), value, propertyPrefix: prefix, isShort: true));
                 break;
               case QueryKey.GoalHorsesCount:
-                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceData.ResultHorsesCount), value, propertyPrefix: prefix, isShort: true));
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.ResultHorsesCount), value, propertyPrefix: prefix, isShort: true));
                 break;
               case QueryKey.Ground:
                 tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.TrackGround), value, propertyPrefix: prefix, isShort: true, isEnum: true));

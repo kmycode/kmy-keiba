@@ -73,6 +73,19 @@ namespace KmyKeiba.Views.Parts
       set { SetValue(IsSubViewBeforeRaceProperty, value); }
     }
 
+    public static readonly DependencyProperty CanCompareWithCurrentRaceProperty
+= DependencyProperty.Register(
+ nameof(CanCompareWithCurrentRace),
+ typeof(bool),
+ typeof(FinderKeyInputView),
+ new PropertyMetadata(true));
+
+    public bool CanCompareWithCurrentRace
+    {
+      get { return (bool)GetValue(CanCompareWithCurrentRaceProperty); }
+      set { SetValue(CanCompareWithCurrentRaceProperty, value); }
+    }
+
     public FinderKeyInputView()
     {
       InitializeComponent();
