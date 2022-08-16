@@ -726,6 +726,9 @@ namespace KmyKeiba.Models.Race
               }
 
               horse.FinderModel.Value = new FinderModel(race, horse, horseInfos);
+              horse.FinderModel.Value.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+              horse.FinderModel.Value.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+              horse.FinderModel.Value.BeginLoad();
             }
           }
           logger.Debug("馬のタイム指数相対評価を設定");

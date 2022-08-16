@@ -251,7 +251,7 @@ namespace KmyKeiba.Models.Data
         FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.Text, 70, "日付", h => h.Analyzer.Race.StartTime.ToString("yy/MM/dd")),
         FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.Text, 50, "馬場", h => h.Analyzer.Race.Course.GetName()),
         FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.CourseInfo, 70, "コース", h => h.Analyzer.Race),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.Text, 120, "馬名", h => h.Analyzer.Data.Name),
+        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.HorseName, 120, "馬名", h => new { h.Analyzer.Data.Name, h.Analyzer.Memo }),
         FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.NumericText, 30, "人", h => h.Analyzer.Data.Popular, (h, v) => AnalysisUtil.CompareValue((short)v, h.Analyzer.Race.HorsesCount < 7 ? 2 : 3, 6, true)),
         FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.NumericText, 30, "着", h => h.Analyzer.Data.ResultOrder, (h, v) => AnalysisUtil.CompareValue((short)v, h.Analyzer.Race.HorsesCount < 7 ? 2 : 3, 6, true)),
         FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.NumericText, 50, "タイム", h => h.Analyzer.Data.ResultTime.ToString("mm\\:ss"), (h, v) => AnalysisUtil.CompareValue(h.Analyzer.ResultTimeDeviationValue, 65, 35)),

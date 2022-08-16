@@ -609,7 +609,7 @@ namespace KmyKeiba.Models.Race.Finder
         {
           if (q.EndsWith('#'))
           {
-            q = q[..-1];
+            q = q[..(q.Length - 1)];
           }
 
           var key = GetKeyInfo(q);

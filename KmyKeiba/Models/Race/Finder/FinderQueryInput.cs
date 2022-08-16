@@ -157,8 +157,14 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<string> Query { get; } = new();
 
+    private readonly bool _hasRace;
+    private readonly bool _hasHorse;
+
     public FinderQueryInput(RaceData? race, RaceHorseData? horse, IReadOnlyList<RaceHorseData>? raceHorses)
     {
+      this._hasRace = race != null;
+      this._hasHorse = horse != null;
+
       this._categories.Add(this.Course = new CourseInputCategory());
       this._categories.Add(this.Month = new MonthInputCategory());
       this._categories.Add(this.Year = new YearInputCategory());
@@ -316,6 +322,73 @@ namespace KmyKeiba.Models.Race.Finder
         else
         {
           categoryLines.AppendLine(line);
+        }
+      }
+
+      if (!this._hasRace)
+      {
+        if (this.HorseOfCurrentRace.IsAllHorses.Value ||
+          this.HorseOfCurrentRace.IsHorseNumber.Value ||
+          this.HorseOfCurrentRace.IsHorseBlood.Value ||
+          this.HorseOfCurrentRace.IsAllRiders.Value ||
+          this.HorseOfCurrentRace.IsAllTrainers.Value)
+        {
+          this.HorseOfCurrentRace.IsAllHorses.Value =
+            this.HorseOfCurrentRace.IsHorseNumber.Value =
+            this.HorseOfCurrentRace.IsHorseBlood.Value =
+            this.HorseOfCurrentRace.IsAllRiders.Value =
+            this.HorseOfCurrentRace.IsAllTrainers.Value = false;
+          this.HorseOfCurrentRace.IsUnspecified.Value = true;
+        }
+        foreach (var category in this._categories)
+        {
+          if (category is IListBoxInputCategory listbox)
+          {
+            if (listbox.NumberInput.IsUseCurrentRaceValue.Value)
+            {
+              listbox.NumberInput.IsUseCurrentRaceValue.Value = false;
+              listbox.NumberInput.IsCompareWithFixedValue.Value = true;
+            }
+          }
+          if (category is NumberInputCategoryBase num)
+          {
+            if (num.Input.IsUseCurrentRaceValue.Value)
+            {
+              num.Input.IsUseCurrentRaceValue.Value = false;
+              num.Input.IsCompareWithFixedValue.Value = true;
+            }
+          }
+        }
+      }
+      if (!this._hasHorse)
+      {
+        if (this.HorseOfCurrentRace.IsActiveHorse.Value ||
+          this.HorseOfCurrentRace.IsActiveRider.Value ||
+          this.HorseOfCurrentRace.IsActiveTrainer.Value)
+        {
+          this.HorseOfCurrentRace.IsActiveHorse.Value =
+            this.HorseOfCurrentRace.IsActiveRider.Value =
+            this.HorseOfCurrentRace.IsActiveTrainer.Value = false;
+          this.HorseOfCurrentRace.IsUnspecified.Value = true;
+        }
+        foreach (var category in this._categories)
+        {
+          if (category is IListBoxInputCategory listbox)
+          {
+            if (listbox.NumberInput.IsUseCurrentRaceHorseValue.Value)
+            {
+              listbox.NumberInput.IsUseCurrentRaceHorseValue.Value = false;
+              listbox.NumberInput.IsCompareWithFixedValue.Value = true;
+            }
+          }
+          if (category is NumberInputCategoryBase num)
+          {
+            if (num.Input.IsUseCurrentRaceHorseValue.Value)
+            {
+              num.Input.IsUseCurrentRaceHorseValue.Value = false;
+              num.Input.IsCompareWithFixedValue.Value = true;
+            }
+          }
         }
       }
     }

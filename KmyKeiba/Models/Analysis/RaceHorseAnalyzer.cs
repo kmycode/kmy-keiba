@@ -613,7 +613,7 @@ namespace KmyKeiba.Models.Analysis
       this.RiderTrendAnalyzers?.Dispose();
       this.TrainerTrendAnalyzers?.Dispose();
       this.TrendAnalyzers?.Dispose();
-      this.FinderModel.Dispose();
+      this.FinderModel.Value?.Dispose();
 
       this.IsDisposed = true;
     }

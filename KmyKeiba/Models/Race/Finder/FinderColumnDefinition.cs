@@ -121,6 +121,7 @@ namespace KmyKeiba.Models.Race.Finder
     CornerPlaces,
     RaceSubject,
     CourseInfo,
+    HorseName,
   }
 
   public enum CellTextAlignment

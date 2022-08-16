@@ -24,20 +24,14 @@
         <ColumnDefinition/>
         <ColumnDefinition/>
         <ColumnDefinition/>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
       </Grid.ColumnDefinitions>
       <RadioButton Grid.Column="0" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="概要" Name="S_Summary" IsChecked="True"/>
       <RadioButton Grid.Column="1" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="傾向" Name="S_HorseTrend"/>
+                   Content="検索" Name="S_Finder"/>
       <RadioButton Grid.Column="2" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="騎手" Name="S_Rider"/>
-      <RadioButton Grid.Column="3" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="調教師" Name="S_Trainer"/>
-      <RadioButton Grid.Column="4" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="血統" Name="S_HorseBlood"/>
-      <RadioButton Grid.Column="5" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="3" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="調教" Name="S_Training"/>
     </Grid>
 
@@ -206,19 +200,14 @@
       </ScrollViewer>
     </Grid>
 
-    <!-- 騎手傾向 -->
-    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Rider,Converter={StaticResource BooleanVisibilityConv}}">
-      <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.RiderTrendAnalyzers,ElementName=Root}"/>
-    </Grid>
-
-    <!-- 調教師傾向 -->
-    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Trainer,Converter={StaticResource BooleanVisibilityConv}}">
-      <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.TrainerTrendAnalyzers,ElementName=Root}"/>
-    </Grid>
-
-    <!-- 傾向 -->
-    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseTrend,Converter={StaticResource BooleanVisibilityConv}}">
-      <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.TrendAnalyzers,ElementName=Root}"/>
+    <!--拡張検索-->
+    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Finder,Converter={StaticResource BooleanVisibilityConv}}">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="auto"/>
+        <RowDefinition/>
+      </Grid.RowDefinitions>
+      <up:FinderKeyInputView FinderModel="{Binding RaceHorse.FinderModel.Value,ElementName=Root}" Margin="0,0,0,24"/>
+      <up:FinderRowListView FinderModel="{Binding RaceHorse.FinderModel.Value,ElementName=Root}" Grid.Row="1"/>
     </Grid>
 
     <!-- 血統 -->

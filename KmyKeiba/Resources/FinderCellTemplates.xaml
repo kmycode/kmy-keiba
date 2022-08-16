@@ -9,6 +9,16 @@
                    Width="{Binding Column.Width}" FontSize="16" TextAlignment="Left" Margin="0,0,8,0"/>
       </DataTemplate>
     </ui:FinderRowTemplateSelector.TextTemplate>
+    <ui:FinderRowTemplateSelector.HorseNameTemplate>
+      <DataTemplate>
+        <Grid>
+          <TextBlock Text="{Binding Value.Name}" Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                     Width="{Binding Column.Width}" FontSize="16" TextAlignment="Left" Margin="0,0,8,0"/>
+          <Ellipse Grid.Column="1" Width="8" Height="8" Fill="{StaticResource NoticeForeground}" Margin="4,0,0,0" VerticalAlignment="Center"
+                   Visibility="{Binding Value.Memo.Value,Converter={StaticResource NonNullVisibilityConv}}" HorizontalAlignment="Right"/>
+        </Grid>
+      </DataTemplate>
+    </ui:FinderRowTemplateSelector.HorseNameTemplate>
     <ui:FinderRowTemplateSelector.NumericTextTemplate>
       <DataTemplate>
         <TextBlock Text="{Binding Value}" Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv}}"

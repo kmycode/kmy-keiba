@@ -31,7 +31,7 @@
       </StackPanel>
       <TextBlock Grid.Column="1" FontSize="18" Margin="4,8,4,4" Text="{Binding Horse.Data.Name,ElementName=Root}" TextAlignment="Left" Foreground="{StaticResource BaseForeground}"/>
       <ScrollViewer Grid.Column="1" Grid.Row="1" Margin="8,4,4,0">
-        <TextBox Background="{StaticResource BaseBackground}" Text="{Binding Memo.Value,Mode=TwoWay}" FontSize="14" TextWrapping="Wrap" Foreground="{StaticResource BaseForeground}"
+        <TextBox Background="{StaticResource BaseBackground}" Text="{Binding Horse.Memo.Value,ElementName=Root,Mode=TwoWay}" FontSize="14" TextWrapping="Wrap" Foreground="{StaticResource BaseForeground}"
                  AcceptsReturn="True">
           <TextBox.IsReadOnly>
             <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
