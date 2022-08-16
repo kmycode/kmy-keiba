@@ -133,7 +133,8 @@ namespace KmyKeiba.Models.Analysis
         .Where(h => h.Race.DataStatus != RaceDataStatus.Canceled && !h.IsAbnormalResult)
         .GroupBy(history => history.Race.Key)
         .Where(h => h.ElementAtOrDefault(1) != null)
-        .Take(20))
+        .OrderByDescending(h => h.Key)
+        .Take(30))
       {
         var match = new RaceHorseMatchResult(raceData.First().Race);
         match.RaceAnalyzer._matchResult = match;

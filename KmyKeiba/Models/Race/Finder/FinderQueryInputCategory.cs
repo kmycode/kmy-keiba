@@ -945,7 +945,6 @@ namespace KmyKeiba.Models.Race.Finder
     {
       this.SetItems(new List<FinderQueryInputListItem<RaceGrade>>
       {
-        new FinderQueryInputListItem<RaceGrade>("なし", RaceGrade.Unknown),
         new FinderQueryInputListItem<RaceGrade>("G1", RaceGrade.Grade1),
         new FinderQueryInputListItem<RaceGrade>("G2", RaceGrade.Grade2),
         new FinderQueryInputListItem<RaceGrade>("G3", RaceGrade.Grade3),
@@ -955,7 +954,7 @@ namespace KmyKeiba.Models.Race.Finder
         new FinderQueryInputListItem<RaceGrade>("障害G2", RaceGrade.Steeplechase2),
         new FinderQueryInputListItem<RaceGrade>("障害G3", RaceGrade.Steeplechase3),
         new FinderQueryInputListItem<RaceGrade>("リステッド", RaceGrade.Listed),
-        new FinderQueryInputListItem<RaceGrade>("その他", RaceGrade.Others),
+        new FinderQueryInputListItem<RaceGrade>("条件レース", RaceGrade.Others),
         new FinderQueryInputListItem<RaceGrade>("海外G1", RaceGrade.ForeignGrade1),
         new FinderQueryInputListItem<RaceGrade>("海外G2", RaceGrade.ForeignGrade2),
         new FinderQueryInputListItem<RaceGrade>("海外G3", RaceGrade.ForeignGrade3),

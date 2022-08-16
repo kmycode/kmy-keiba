@@ -738,7 +738,7 @@ namespace KmyKeiba.Models.Analysis
         var won = source.Where(s => s.Data.ResultOrder == 1 && s.Data.Odds != default);
         if (won.Any())
         {
-          this.RecoveryRate = won.Sum(w => w.Data.Odds * 10) / (float)(source.Count(s => s.Data.ResultOrder > 1) * 100);
+          this.RecoveryRate = won.Sum(w => w.Data.Odds * 10) / (float)(source.Count(s => s.Data.ResultOrder >= 1) * 100);
         }
       }
     }
