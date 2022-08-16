@@ -48,4 +48,5 @@
   <cv:BooleanBrushConverter x:Key="BooleanForegroundCustomizedCategoryConv" TrueBrush="{StaticResource GoodBackground}" FalseBrush="Transparent"/>
   <cv:BooleanBrushConverter x:Key="BooleanForegroundCustomizedCategoryConv2" TrueBrush="{StaticResource GoodForeground}" FalseBrush="{StaticResource BaseForeground}"/>
   <cv:BooleanBrushConverter x:Key="BooleanBackgroundIsMaleConv" TrueBrush="{StaticResource MaleBackground}" FalseBrush="{StaticResource FemaleBackground}"/>
+  <cv:BooleanBrushConverter x:Key="BooleanForegroundActiveConv" TrueBrush="{StaticResource GoodForeground}" FalseBrush="{StaticResource BaseForeground}"/>
 </ResourceDictionary>

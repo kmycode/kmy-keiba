@@ -246,10 +246,11 @@
                   <RadioButton Command="{Binding DataContext.ChangeActiveHorseCommand,ElementName=Root}" CommandParameter="{Binding Data.Id}"
                                Style="{StaticResource HalfToggleButtonDefault}"
                                GroupName="{Binding UniqueId,ElementName=Root}">
-                    <Border>
+                    <Grid>
                       <StackPanel Orientation="Horizontal">
                         <Border Width="6" Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
-                        <TextBlock FontSize="20" Text="{Binding Data.Number}" Width="30" TextAlignment="Right" Margin="0,0,4,0"/>
+                        <TextBlock FontSize="20" Text="{Binding Data.Number}" Width="30" TextAlignment="Right" Margin="0,0,4,0"
+                                   Foreground="{Binding IsActive.Value,Converter={StaticResource BooleanForegroundActiveConv}}"/>
                         <ContentControl Template="{Binding Mark.Value,Converter={StaticResource HorseMarkConv}}">
                           <ContentControl.RenderTransform>
                             <TransformGroup>
@@ -259,7 +260,7 @@
                           </ContentControl.RenderTransform>
                         </ContentControl>
                       </StackPanel>
-                    </Border>
+                    </Grid>
                   </RadioButton>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
