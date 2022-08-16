@@ -12,6 +12,7 @@ namespace KmyKeiba.Models.Analysis
   internal static class HorseBloodUtil
   {
     private static readonly Dictionary<string, Dictionary<BloodType, BloodItem>> _caches = new();
+    private static readonly Dictionary<string, Dictionary<BloodType, BloodItem>> _codeCaches = new();
     private static readonly Dictionary<string, BloodItem> _bloodItems = new();
 
     public static async Task<string> GetNameAsync(MyContext db, string horseKey, BloodType type)
@@ -32,6 +33,143 @@ namespace KmyKeiba.Models.Analysis
         return item.BloodCode ?? string.Empty;
       }
       return string.Empty;
+    }
+
+    public static async Task<string> GetNameFromCodeAsync(MyContext db, string horseKey, BloodType type)
+    {
+      var item = await GetBloodItemFromCodeAsync(db, horseKey, type);
+      if (item != null)
+      {
+        return item.Name ?? string.Empty;
+      }
+      return string.Empty;
+    }
+
+    public static async Task<string> GetBloodCodeFromCodeAsync(MyContext db, string horseKey, BloodType type)
+    {
+      var item = await GetBloodItemFromCodeAsync(db, horseKey, type);
+      if (item != null)
+      {
+        return item.BloodCode ?? string.Empty;
+      }
+      return string.Empty;
+    }
+
+    private static async Task<BloodItem?> GetBloodItemFromCodeAsync(MyContext db, string horseKey, BloodType type)
+    {
+      if (!_caches.ContainsKey(horseKey))
+      {
+        async Task<(string?, string?, string?)> GetParentsAsync(string key)
+        {
+          var myHorse = await db.HorseBloods!.FirstOrDefaultAsync(h => h.Key == key);
+          if (myHorse != null)
+          {
+            return (myHorse.FatherKey, myHorse.MotherKey, myHorse.Name);
+          }
+
+          return default;
+        }
+
+        var blood = await db.HorseBloods!.FirstOrDefaultAsync(h => h.Key == horseKey);
+        if (blood != null)
+        {
+          var dic = new Dictionary<BloodType, BloodItem>();
+          dic[BloodType.Father] = new BloodItem { BloodCode = blood.FatherKey, };
+          dic[BloodType.Mother] = new BloodItem { BloodCode = blood.MotherKey, };
+          if (blood.FatherKey != null)
+          {
+            var (ff, fm, n) = await GetParentsAsync(blood.FatherKey);
+            if (ff != null) dic[BloodType.FatherFather] = new BloodItem { BloodCode = ff, };
+            if (fm != null) dic[BloodType.FatherMother] = new BloodItem { BloodCode = fm, };
+            if (n != null) dic[BloodType.Father].Name = n;
+            if (ff != null)
+            {
+              var (fff, ffm, fn) = await GetParentsAsync(ff);
+              if (fff != null) dic[BloodType.FatherFatherFather] = new BloodItem { BloodCode = fff, };
+              if (ffm != null) dic[BloodType.FatherFatherMother] = new BloodItem { BloodCode = ffm, };
+              if (fn != null) dic[BloodType.FatherFather].Name = fn;
+              if (fff != null)
+              {
+                var (_, _, ffn) = await GetParentsAsync(fff);
+                if (ffn != null) dic[BloodType.FatherFatherFather].Name = ffn;
+              }
+              if (ffm != null)
+              {
+                var (_, _, ffmn) = await GetParentsAsync(ffm);
+                if (ffmn != null) dic[BloodType.FatherFatherMother].Name = ffmn;
+              }
+            }
+            if (fm != null)
+            {
+              var (fmf, fmm, mn) = await GetParentsAsync(fm);
+              if (fmf != null) dic[BloodType.FatherMotherFather] = new BloodItem { BloodCode = fmf, };
+              if (fmm != null) dic[BloodType.FatherMotherMother] = new BloodItem { BloodCode = fmm, };
+              if (mn != null) dic[BloodType.FatherMother].Name = mn;
+              if (fmf != null)
+              {
+                var (_, _, fmn) = await GetParentsAsync(fmf);
+                if (fmn != null) dic[BloodType.FatherMotherFather].Name = fmn;
+              }
+              if (fmm != null)
+              {
+                var (_, _, mmn) = await GetParentsAsync(fmm);
+                if (mmn != null) dic[BloodType.FatherMotherMother].Name = mmn;
+              }
+            }
+          }
+          if (blood.MotherKey != null)
+          {
+            var (mf, mm, n) = await GetParentsAsync(blood.MotherKey);
+            if (mf != null) dic[BloodType.MotherFather] = new BloodItem { BloodCode = mf, };
+            if (mm != null) dic[BloodType.MotherMother] = new BloodItem { BloodCode = mm, };
+            if (n != null) dic[BloodType.Mother].Name = n;
+            if (mf != null)
+            {
+              var (mff, mfm, fn) = await GetParentsAsync(mf);
+              if (mff != null) dic[BloodType.MotherFatherFather] = new BloodItem { BloodCode = mff, };
+              if (mfm != null) dic[BloodType.MotherFatherMother] = new BloodItem { BloodCode = mfm, };
+              if (fn != null) dic[BloodType.MotherFather].Name = fn;
+              if (mff != null)
+              {
+                var (_, _, ffn) = await GetParentsAsync(mff);
+                if (ffn != null) dic[BloodType.MotherFatherFather].Name = ffn;
+              }
+              if (mfm != null)
+              {
+                var (_, _, ffmn) = await GetParentsAsync(mfm);
+                if (ffmn != null) dic[BloodType.MotherFatherMother].Name = ffmn;
+              }
+            }
+            if (mm != null)
+            {
+              var (mmf, mmm, mn) = await GetParentsAsync(mm);
+              if (mmf != null) dic[BloodType.MotherMotherFather] = new BloodItem { BloodCode = mmf, };
+              if (mmm != null) dic[BloodType.MotherMotherMother] = new BloodItem { BloodCode = mmm, };
+              if (mn != null) dic[BloodType.MotherMother].Name = mn;
+              if (mmf != null)
+              {
+                var (_, _, fmn) = await GetParentsAsync(mmf);
+                if (fmn != null) dic[BloodType.MotherMotherFather].Name = fmn;
+              }
+              if (mmm != null)
+              {
+                var (_, _, mmn) = await GetParentsAsync(mmm);
+                if (mmn != null) dic[BloodType.MotherMotherMother].Name = mmn;
+              }
+            }
+          }
+
+          _codeCaches[horseKey] = dic;
+        }
+      }
+
+      _codeCaches.TryGetValue(horseKey, out var item);
+      if (item != null)
+      {
+        item.TryGetValue(type, out var value);
+        return value;
+      }
+      return null;
     }
 
     private static async Task<BloodItem?> GetBloodItemAsync(MyContext db, string horseKey, BloodType type)

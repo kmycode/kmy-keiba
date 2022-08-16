@@ -725,7 +725,8 @@ namespace KmyKeiba.Models.Race
                 horse.RiderPlaceBitsRate - 0.02 <= riderPlaceRateMin ? ValueComparation.Bad : ValueComparation.Standard;
               }
 
-              horse.FinderModel.Value = new FinderModel(race, horse, horseInfos);
+              var sortedHorses = horseInfos.All(h => h.Data.Number == default) ? horseInfos.OrderBy(h => h.Data.Name) : horseInfos.OrderBy(h => h.Data.Number);
+              horse.FinderModel.Value = new FinderModel(race, horse, sortedHorses);
               horse.FinderModel.Value.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
               horse.FinderModel.Value.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
               horse.FinderModel.Value.BeginLoad();

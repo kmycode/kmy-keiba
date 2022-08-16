@@ -60,6 +60,8 @@
 
   <SolidColorBrush x:Key="MaleForeground" Color="#aaaaff"/>
   <SolidColorBrush x:Key="FemaleForeground" Color="#ffaaaa"/>
+  <SolidColorBrush x:Key="MaleBackground" Color="#333366"/>
+  <SolidColorBrush x:Key="FemaleBackground" Color="#663333"/>
   <SolidColorBrush x:Key="CastratedForeground" Color="#aaffaa"/>
   <SolidColorBrush x:Key="TCMiuraForeground" Color="#ffccff"/>
   <SolidColorBrush x:Key="TCRittoForeground" Color="#bbffcc"/>

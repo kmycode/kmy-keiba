@@ -28,6 +28,25 @@ namespace KmyKeiba.Models.Analysis
 
     public CheckableCollection<MenuItem> MenuItems { get; } = new();
 
+    public ReactiveProperty<MenuItem?> Father { get; } = new();
+    public ReactiveProperty<MenuItem?> FatherFather { get; } = new();
+    public ReactiveProperty<MenuItem?> FatherFatherFather { get; } = new();
+    public ReactiveProperty<MenuItem?> FatherFatherMother { get; } = new();
+    public ReactiveProperty<MenuItem?> FatherMother { get; } = new();
+    public ReactiveProperty<MenuItem?> FatherMotherFather { get; } = new();
+    public ReactiveProperty<MenuItem?> FatherMotherMother { get; } = new();
+    public ReactiveProperty<MenuItem?> Mother { get; } = new();
+    public ReactiveProperty<MenuItem?> MotherFather { get; } = new();
+    public ReactiveProperty<MenuItem?> MotherFatherFather { get; } = new();
+    public ReactiveProperty<MenuItem?> MotherFatherMother { get; } = new();
+    public ReactiveProperty<MenuItem?> MotherMother { get; } = new();
+    public ReactiveProperty<MenuItem?> MotherMotherFather { get; } = new();
+    public ReactiveProperty<MenuItem?> MotherMotherMother { get; } = new();
+
+    public ReactiveProperty<GeneralBloodItem[]> FourthGenerations { get; } = new();
+    public ReactiveProperty<GeneralBloodItem[]> FifthGenerations { get; } = new();
+    public ReactiveProperty<GeneralBloodItem[]> SixthGenerations { get; } = new();
+
     public ReactiveProperty<RaceHorseBloodTrendAnalysisSelector?> CurrentSelector { get; } = new();
 
     public bool IsRequestedInitialization => this._bloodCode == null;
@@ -79,6 +98,10 @@ namespace KmyKeiba.Models.Analysis
         }
         this.SetMenu(items);
         this.CurrentSelector.Value = items.FirstOrDefault(i => i.IsChecked.Value)?.Selector;
+
+        this.FifthGenerations.Value = old.FifthGenerations.Value;
+        this.FourthGenerations.Value = old.FourthGenerations.Value;
+        this.SixthGenerations.Value = old.SixthGenerations.Value;
       }
       else
       {
@@ -235,6 +258,7 @@ namespace KmyKeiba.Models.Analysis
         }
 
         this.SetMenu(items);
+        _ = this.UpdateGenerationsAsync();
       }
     }
 
@@ -250,6 +274,113 @@ namespace KmyKeiba.Models.Analysis
           firstItem.IsChecked.Value = true;
         }
       });
+
+      foreach (var item in items)
+      {
+        switch (item.Type)
+        {
+          case BloodType.Father:
+            this.Father.Value = item;
+            break;
+          case BloodType.FatherFather:
+            this.FatherFather.Value = item;
+            break;
+          case BloodType.FatherFatherFather:
+            this.FatherFatherFather.Value = item;
+            break;
+          case BloodType.FatherFatherMother:
+            this.FatherFatherMother.Value = item;
+            break;
+          case BloodType.FatherMother:
+            this.FatherMother.Value = item;
+            break;
+          case BloodType.FatherMotherFather:
+            this.FatherMotherFather.Value = item;
+            break;
+          case BloodType.FatherMotherMother:
+            this.FatherMotherMother.Value = item;
+            break;
+          case BloodType.Mother:
+            this.Mother.Value = item;
+            break;
+          case BloodType.MotherFather:
+            this.MotherFather.Value = item;
+            break;
+          case BloodType.MotherFatherFather:
+            this.MotherFatherFather.Value = item;
+            break;
+          case BloodType.MotherFatherMother:
+            this.MotherFatherMother.Value = item;
+            break;
+          case BloodType.MotherMother:
+            this.MotherMother.Value = item;
+            break;
+          case BloodType.MotherMotherFather:
+            this.MotherMotherFather.Value = item;
+            break;
+          case BloodType.MotherMotherMother:
+            this.MotherMotherMother.Value = item;
+            break;
+        }
+      }
+    }
+
+    private async Task UpdateGenerationsAsync()
+    {
+      using var db = new MyContext();
+      var arr4 = new GeneralBloodItem[16];
+      var arr5 = new GeneralBloodItem[32];
+      var arr6 = new GeneralBloodItem[64];
+
+      async Task<GeneralBloodItem> GenerateItem(string targetKey, BloodType type, bool isMale)
+      {
+        return new GeneralBloodItem
+        {
+          Key = await HorseBloodUtil.GetBloodCodeFromCodeAsync(db!, targetKey, type),
+          Name = await HorseBloodUtil.GetNameFromCodeAsync(db!, targetKey, type),
+          IsMale = isMale,
+        };
+      }
+
+      async Task SetGenerationsAsync(string targetKey, int index)
+      {
+        arr4![index * 2] = await GenerateItem(targetKey, BloodType.Father, true);
+        arr4![index * 2 + 1] = await GenerateItem(targetKey, BloodType.Mother, false);
+        arr5![index * 4] = await GenerateItem(targetKey, BloodType.FatherFather, true);
+        arr5![index * 4 + 1] = await GenerateItem(targetKey, BloodType.FatherMother, false);
+        arr5![index * 4 + 2] = await GenerateItem(targetKey, BloodType.MotherFather, true);
+        arr5![index * 4 + 3] = await GenerateItem(targetKey, BloodType.MotherMother, false);
+        arr6![index * 8] = await GenerateItem(targetKey, BloodType.FatherFatherFather, true);
+        arr6![index * 8 + 1] = await GenerateItem(targetKey, BloodType.FatherFatherMother, false);
+        arr6![index * 8 + 2] = await GenerateItem(targetKey, BloodType.FatherMotherFather, true);
+        arr6![index * 8 + 3] = await GenerateItem(targetKey, BloodType.FatherMotherMother, false);
+        arr6![index * 8 + 4] = await GenerateItem(targetKey, BloodType.MotherFatherFather, true);
+        arr6![index * 8 + 5] = await GenerateItem(targetKey, BloodType.MotherFatherMother, false);
+        arr6![index * 8 + 6] = await GenerateItem(targetKey, BloodType.MotherMotherFather, true);
+        arr6![index * 8 + 7] = await GenerateItem(targetKey, BloodType.MotherMotherMother, false);
+      }
+
+      async Task SetTypeAsync(int index, BloodType type)
+      {
+        var item = this.MenuItems.FirstOrDefault(i => i.Type == type);
+        if (!string.IsNullOrEmpty(item?.Selector.Name))
+        {
+          await SetGenerationsAsync(item.Selector.BloodKey, index);
+        }
+      }
+
+      await SetTypeAsync(0, BloodType.FatherFatherFather);
+      await SetTypeAsync(1, BloodType.FatherFatherMother);
+      await SetTypeAsync(2, BloodType.FatherMotherFather);
+      await SetTypeAsync(3, BloodType.FatherMotherMother);
+      await SetTypeAsync(4, BloodType.MotherFatherFather);
+      await SetTypeAsync(5, BloodType.MotherFatherMother);
+      await SetTypeAsync(6, BloodType.MotherMotherFather);
+      await SetTypeAsync(7, BloodType.MotherMotherMother);
+
+      this.FourthGenerations.Value = arr4;
+      this.FifthGenerations.Value = arr5;
+      this.SixthGenerations.Value = arr6;
     }
 
     public RaceHorseBloodTrendAnalysisSelector? GetSelector(BloodType type)
@@ -284,6 +415,15 @@ namespace KmyKeiba.Models.Analysis
       {
         this.Selector = selector;
       }
+    }
+
+    public class GeneralBloodItem
+    {
+      public string Name { get; init; } = string.Empty;
+
+      public string Key { get; init; } = string.Empty;
+
+      public bool IsMale { get; init; }
     }
   }
 

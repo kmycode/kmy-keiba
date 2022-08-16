@@ -288,6 +288,7 @@
             <RadioButton Content="指定なし" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsUnspecified.Value,ElementName=Root,Mode=TwoWay}"/>
             <StackPanel Visibility="{Binding FinderModel.HasRaceHorse,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
               <RadioButton Content="現在の馬" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveHorse.Value,ElementName=Root,Mode=TwoWay}"/>
+              <RadioButton Content="現在の馬の血統" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveHorseBlood.Value,ElementName=Root,Mode=TwoWay}"/>
               <RadioButton Content="現在の馬の騎手" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveRider.Value,ElementName=Root,Mode=TwoWay}"/>
               <RadioButton Content="現在の馬の調教師" IsChecked="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveTrainer.Value,ElementName=Root,Mode=TwoWay}"/>
             </StackPanel>
@@ -350,6 +351,18 @@
             <local:InputBloodView Input="{Binding FinderModel.Input.HorseOfCurrentRace.BloodInput,ElementName=Root}"
                                   Grid.Row="1"/>
             <TextBlock Grid.Row="2" FontSize="16" Margin="0,16,0,0">
+              選択されている馬と <Run FontSize="20" Text="同じ"/><Run FontSize="20" Text="{Binding FinderModel.Input.HorseOfCurrentRace.BloodInput.SelectedBloodType.Value,Converter={StaticResource LabelConv},ElementName=Root}"/> を持つ馬を検索
+            </TextBlock>
+          </Grid>
+          <Grid Width="450" Margin="16,0,0,0" Visibility="{Binding FinderModel.Input.HorseOfCurrentRace.IsActiveHorseBlood.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="auto"/>
+              <RowDefinition Height="40"/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+            <local:InputBloodView Input="{Binding FinderModel.Input.HorseOfCurrentRace.BloodInput,ElementName=Root}"
+                                  Grid.Row="0"/>
+            <TextBlock Grid.Row="1" FontSize="16" Margin="0,16,0,0">
               選択されている馬と <Run FontSize="20" Text="同じ"/><Run FontSize="20" Text="{Binding FinderModel.Input.HorseOfCurrentRace.BloodInput.SelectedBloodType.Value,Converter={StaticResource LabelConv},ElementName=Root}"/> を持つ馬を検索
             </TextBlock>
           </Grid>

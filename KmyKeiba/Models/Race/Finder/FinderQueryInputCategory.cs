@@ -1338,6 +1338,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsActiveHorse { get; } = new();
 
+    public ReactiveProperty<bool> IsActiveHorseBlood { get; } = new();
+
     public ReactiveProperty<bool> IsActiveRider { get; } = new();
 
     public ReactiveProperty<bool> IsActiveTrainer { get; } = new();
@@ -1372,6 +1374,7 @@ namespace KmyKeiba.Models.Race.Finder
       this.IsAllTrainers.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsTrainer.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsActiveHorse.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsActiveHorseBlood.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsActiveRider.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsActiveTrainer.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.SelectedHorse.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
@@ -1441,6 +1444,10 @@ namespace KmyKeiba.Models.Race.Finder
             return $"{HorseBloodUtil.ToStringCode(this.BloodInput.GetBloodType())}:{this.SelectedHorse.Value.Key}";
           }
         }
+      }
+      if (this.IsActiveHorseBlood.Value)
+      {
+        return $"{HorseBloodUtil.ToStringCode(this.BloodInput.GetBloodType())}:#";
       }
 
       return string.Empty;

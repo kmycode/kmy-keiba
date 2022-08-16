@@ -212,49 +212,127 @@
 
     <!-- 血統 -->
     <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseBlood,Converter={StaticResource BooleanVisibilityConv}}">
-      <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value,ElementName=Root}">
-        <uc:TrendAnalyzerAnalysisView.MenuContent>
-          <Grid DataContext="{Binding RelativeSource={RelativeSource FindAncestor,AncestorType=uc:RaceExpectHorseView}}">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition/>
-              <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="auto"/>
-              <RowDefinition/>
-            </Grid.RowDefinitions>
-            <Border Height="40">
-              <RadioButton FontSize="18" Content="血統馬" GroupName="{Binding UniqueId3}" Style="{StaticResource ToggleButtonDefault}"
-                           IsChecked="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value.IsSameChildren.Value,Mode=TwoWay,Converter={StaticResource NegativeConv}}"
-                           IsEnabled="{Binding RaceHorse.BloodSelectors.MenuItems.ActiveItem.Value.IsEnabled}"
-                           Visibility="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
+      <Grid.RowDefinitions>
+        <RowDefinition/>
+        <RowDefinition/>
+        <RowDefinition/>
+        <RowDefinition/>
+        <RowDefinition/>
+        <RowDefinition/>
+        <RowDefinition/>
+      </Grid.RowDefinitions>
+      <Grid.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+          <Setter Property="HorizontalAlignment" Value="Center"/>
+          <Setter Property="VerticalAlignment" Value="Center"/>
+          <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+      </Grid.Resources>
+      <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource BaseBackground}" BorderThickness="1">
+        <TextBlock Text="{Binding RaceHorse.Data.Name,ElementName=Root}" FontSize="40" FontWeight="Bold"/>
+      </Border>
+      <UniformGrid Columns="2" Grid.Row="1">
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.Father.Value.Selector.Name,ElementName=Root}" FontSize="32"/>
+        </Border>
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.Mother.Value.Selector.Name,ElementName=Root}" FontSize="32"/>
+        </Border>
+      </UniformGrid>
+      <UniformGrid Columns="4" Grid.Row="2">
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.FatherFather.Value.Selector.Name,ElementName=Root}" FontSize="32"/>
+        </Border>
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.FatherMother.Value.Selector.Name,ElementName=Root}" FontSize="32"/>
+        </Border>
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.MotherFather.Value.Selector.Name,ElementName=Root}" FontSize="32"/>
+        </Border>
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.MotherMother.Value.Selector.Name,ElementName=Root}" FontSize="32"/>
+        </Border>
+      </UniformGrid>
+      <UniformGrid Columns="8" Grid.Row="3">
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.FatherFatherFather.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
+        </Border>
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.FatherFatherMother.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
+        </Border>
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.FatherMotherFather.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
+        </Border>
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.FatherMotherMother.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
+        </Border>
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.MotherFatherFather.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
+        </Border>
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.MotherFatherMother.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
+        </Border>
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.MotherMotherFather.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
+        </Border>
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
+          <TextBlock Text="{Binding RaceHorse.BloodSelectors.MotherMotherMother.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
+        </Border>
+      </UniformGrid>
+      <ItemsControl Grid.Row="4" ItemsSource="{Binding RaceHorse.BloodSelectors.FourthGenerations.Value,ElementName=Root}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <UniformGrid Columns="16"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{Binding IsMale,Converter={StaticResource BooleanBackgroundIsMaleConv}}" BorderThickness="1">
+              <TextBlock Text="{Binding Name}" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Border>
-            <Border Height="40" Grid.Column="1">
-              <RadioButton FontSize="18" Content="同系馬" GroupName="{Binding UniqueId3}" Style="{StaticResource ToggleButtonDefault}" IsChecked="True"
-                           Visibility="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <ItemsControl Grid.Row="5" ItemsSource="{Binding RaceHorse.BloodSelectors.FifthGenerations.Value,ElementName=Root}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <UniformGrid Columns="32"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{Binding IsMale,Converter={StaticResource BooleanBackgroundIsMaleConv}}" BorderThickness="1">
+              <Border.ToolTip>
+                <ToolTip Background="{StaticResource BaseBackground}">
+                  <TextBlock Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
+                             FontSize="16" Text="{Binding Name}"/>
+                </ToolTip>
+              </Border.ToolTip>
+              <TextBlock Text="{Binding Name}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Border>
-            <ItemsControl Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding RaceHorse.BloodSelectors.MenuItems}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <RadioButton IsChecked="{Binding IsChecked.Value,Mode=TwoWay}" GroupName="{Binding UniqueId2,RelativeSource={RelativeSource FindAncestor,AncestorType=uc:RaceExpectHorseView}}"
-                               Style="{StaticResource ToggleButtonDefault}">
-                    <Grid Width="145">
-                      <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="0.5*"/>
-                        <ColumnDefinition/>
-                      </Grid.ColumnDefinitions>
-                      <TextBlock Text="{Binding Selector.Type,Converter={StaticResource LabelConv}}"
-                                 FontSize="14" Foreground="{StaticResource SubForeground}"/>
-                      <TextBlock Grid.Column="1" Text="{Binding Selector.Name}"
-                                 FontSize="14" FontWeight="Bold"/>
-                    </Grid>
-                  </RadioButton>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </Grid>
-        </uc:TrendAnalyzerAnalysisView.MenuContent>
-      </uc:TrendAnalyzerAnalysisView>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <ItemsControl Grid.Row="6" ItemsSource="{Binding RaceHorse.BloodSelectors.SixthGenerations.Value,ElementName=Root}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <UniformGrid Columns="64"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{Binding IsMale,Converter={StaticResource BooleanBackgroundIsMaleConv}}" BorderThickness="1">
+              <Border.ToolTip>
+                <ToolTip Background="{StaticResource BaseBackground}">
+                  <TextBlock Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
+                             FontSize="16" Text="{Binding Name}"/>
+                </ToolTip>
+              </Border.ToolTip>
+              <TextBlock Text="{Binding Name}" FontSize="10" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
     </Grid>
 
     <!--調教-->

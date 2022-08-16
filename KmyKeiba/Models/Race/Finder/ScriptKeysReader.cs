@@ -275,10 +275,18 @@ namespace KmyKeiba.Models.Race.Finder
           }
 
           var horseNumber = default(short);
-          if (value.StartsWith('#') && !value.EndsWith('#'))
+          if (value.StartsWith('#'))
           {
-            var num = value.Split('#')[1];
-            short.TryParse(num, out horseNumber);
+            if (value != "#")
+            {
+              var num = value.Split('#')[1];
+              short.TryParse(num, out horseNumber);
+            }
+            else
+            {
+              // f:#の場合、現在の馬
+              value = horse?.Key ?? string.Empty;
+            }
           }
 
           string? bkey = value;
