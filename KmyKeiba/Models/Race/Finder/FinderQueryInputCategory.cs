@@ -169,7 +169,10 @@ namespace KmyKeiba.Models.Race.Finder
       {
         if (!this.IsIgnorePropertyToSerializing(property.Name))
         {
-          this.PropertyToString(property, text, obj);
+          if (obj is not FinderQueryNumberInput || property.Name != nameof(FinderQueryNumberInput.ComparationWithBeforeRaceComment))
+          {
+            this.PropertyToString(property, text, obj);
+          }
         }
       }
     }

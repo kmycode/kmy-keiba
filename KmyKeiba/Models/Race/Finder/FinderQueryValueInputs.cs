@@ -78,6 +78,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsUseCurrentRaceHorseValue { get; } = new();
 
+    public ReactiveProperty<string> ComparationWithBeforeRaceComment { get; } = new();
+
     public bool IsCompareWithHorse { get; }
 
     public FinderQueryNumberInput(bool isCompareWithHorse)
@@ -114,6 +116,7 @@ namespace KmyKeiba.Models.Race.Finder
     public virtual string GetRightQuery()
     {
       this.IsCustomized.Value = false;
+      this.ComparationWithBeforeRaceComment.Value = string.Empty;
 
       if (this.IsUnset.Value)
       {
@@ -157,6 +160,26 @@ namespace KmyKeiba.Models.Race.Finder
         "=";
       var prefix = this.IsCompareWithCurrentRace.Value ? "$$" :
         this.IsCompareWithTargetRace.Value ? "$" : string.Empty;
+
+      if (this.IsCompareWithTargetRace.Value || this.IsCompareWithCurrentRace.Value)
+      {
+        if (this.IsGreaterThan.Value || this.IsGreaterThanOrEqual.Value)
+        {
+          this.ComparationWithBeforeRaceComment.Value = $"比較対象レースの値は、本前走レースの値より {this.Value.Value} 大きい";
+        }
+        else if (this.IsLessThan.Value || this.IsLessThanOrEqual.Value)
+        {
+          this.ComparationWithBeforeRaceComment.Value = $"比較対象レースの値は、本前走レースの値より {this.Value.Value} 小さい";
+        }
+        else if (this.IsEqual.Value)
+        {
+          this.ComparationWithBeforeRaceComment.Value = $"比較対象レースの値は、本前走レースの値に {this.Value.Value} を足したものと等しい";
+        }
+        else
+        {
+          this.ComparationWithBeforeRaceComment.Value = $"比較対象レースの値は、本前走レースの値に {this.Value.Value} を足したものと等しくない";
+        }
+      }
 
       this.IsCustomized.Value = true;
       return sign + prefix + this.Value.Value;

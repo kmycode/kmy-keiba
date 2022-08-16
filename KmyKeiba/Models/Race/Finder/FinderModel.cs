@@ -5,17 +5,21 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race.Memo;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace KmyKeiba.Models.Race.Finder
 {
   public class FinderModel : IDisposable
   {
     private readonly RaceFinder _finder;
+    private readonly CompositeDisposable _disposables = new();
 
     public FinderQueryInput Input { get; }
 
@@ -182,7 +186,7 @@ namespace KmyKeiba.Models.Race.Finder
               // リスト全体をグループ化
               if (groups != null)
               {
-                groups = groups.Take(100);
+                groups = groups.OrderByDescending(g => g.Count()).Take(100);
 
                 IReadOnlyList<FinderRaceHorseGroupItem> g;
                 if (data.GroupKey == QueryKey.RiderCode)
@@ -310,7 +314,23 @@ namespace KmyKeiba.Models.Race.Finder
       {
         this.Input.Dispose();
       });
+      this._disposables.Dispose();
     }
+
+    public ICommand AddFinderConfigCommand =>
+      this._addFinderConfigCommand ??=
+        new AsyncReactiveCommand(Connection.DownloaderModel.Instance.CanSaveOthers).WithSubscribe(_ => this.Input.AddConfigAsync()).AddTo(this._disposables);
+    private ICommand? _addFinderConfigCommand;
+
+    public ICommand LoadFinderConfigCommand =>
+      this._loadFinderConfigCommand ??=
+        new ReactiveCommand().WithSubscribe(_ => this.Input.LoadConfig()).AddTo(this._disposables);
+    private ICommand? _loadFinderConfigCommand;
+
+    public ICommand RemoveFinderConfigCommand =>
+      this._removeFinderConfigCommand ??=
+        new AsyncReactiveCommand(Connection.DownloaderModel.Instance.CanSaveOthers).WithSubscribe(_ => this.Input.RemoveConfigAsync()).AddTo(this._disposables);
+    private ICommand? _removeFinderConfigCommand;
   }
 
   public class FinderRow

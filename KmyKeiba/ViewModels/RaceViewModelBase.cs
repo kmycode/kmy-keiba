@@ -225,21 +225,6 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.DeleteConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _deleteLabelConfigCommand;
 
-    public ICommand AddFinderConfigCommand =>
-      this._addFinderConfigCommand ??=
-        new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.model.Info.Value?.FinderModel.Value?.Input.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
-    private ICommand? _addFinderConfigCommand;
-
-    public ICommand LoadFinderConfigCommand =>
-      this._loadFinderConfigCommand ??=
-        new ReactiveCommand().WithSubscribe(_ => this.model.Info.Value?.FinderModel.Value?.Input.LoadConfig()).AddTo(this._disposables);
-    private ICommand? _loadFinderConfigCommand;
-
-    public ICommand RemoveFinderConfigCommand =>
-      this._removeFinderConfigCommand ??=
-        new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.model.Info.Value?.FinderModel.Value?.Input.RemoveConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
-    private ICommand? _removeFinderConfigCommand;
-
     public ICommand OpenRaceWindowCommand =>
       this._openRaceWindowCommand ??=
         new ReactiveCommand<object>().WithSubscribe(obj =>

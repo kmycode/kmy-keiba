@@ -350,14 +350,14 @@ namespace KmyKeiba.Models.Analysis
         arr5![index * 4 + 1] = await GenerateItem(targetKey, BloodType.FatherMother, false);
         arr5![index * 4 + 2] = await GenerateItem(targetKey, BloodType.MotherFather, true);
         arr5![index * 4 + 3] = await GenerateItem(targetKey, BloodType.MotherMother, false);
-        arr6![index * 8] = await GenerateItem(targetKey, BloodType.FatherFatherFather, true);
-        arr6![index * 8 + 1] = await GenerateItem(targetKey, BloodType.FatherFatherMother, false);
-        arr6![index * 8 + 2] = await GenerateItem(targetKey, BloodType.FatherMotherFather, true);
-        arr6![index * 8 + 3] = await GenerateItem(targetKey, BloodType.FatherMotherMother, false);
-        arr6![index * 8 + 4] = await GenerateItem(targetKey, BloodType.MotherFatherFather, true);
-        arr6![index * 8 + 5] = await GenerateItem(targetKey, BloodType.MotherFatherMother, false);
-        arr6![index * 8 + 6] = await GenerateItem(targetKey, BloodType.MotherMotherFather, true);
-        arr6![index * 8 + 7] = await GenerateItem(targetKey, BloodType.MotherMotherMother, false);
+        // arr6![index * 8] = await GenerateItem(targetKey, BloodType.FatherFatherFather, true);
+        // arr6![index * 8 + 1] = await GenerateItem(targetKey, BloodType.FatherFatherMother, false);
+        // arr6![index * 8 + 2] = await GenerateItem(targetKey, BloodType.FatherMotherFather, true);
+        // arr6![index * 8 + 3] = await GenerateItem(targetKey, BloodType.FatherMotherMother, false);
+        // arr6![index * 8 + 4] = await GenerateItem(targetKey, BloodType.MotherFatherFather, true);
+        // arr6![index * 8 + 5] = await GenerateItem(targetKey, BloodType.MotherFatherMother, false);
+        // arr6![index * 8 + 6] = await GenerateItem(targetKey, BloodType.MotherMotherFather, true);
+        // arr6![index * 8 + 7] = await GenerateItem(targetKey, BloodType.MotherMotherMother, false);
       }
 
       async Task SetTypeAsync(int index, BloodType type)

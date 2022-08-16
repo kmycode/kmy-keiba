@@ -149,11 +149,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     public OtherSettingInputCategory OtherSetting { get; }
 
-    public ReactiveCollection<FinderConfigData> Configs { get; } = new();
+    public ReactiveCollection<FinderConfigData> Configs => FinderConfigUtil.Configs;
 
     public ReactiveProperty<FinderConfigData?> SelectedConfig { get; } = new();
 
-    public ReactiveProperty<string> ConfigName { get; } = new();
+    public ReactiveProperty<string> ConfigName { get; } = new(string.Empty);
 
     public ReactiveProperty<string> Query { get; } = new();
 
@@ -395,12 +395,14 @@ namespace KmyKeiba.Models.Race.Finder
 
     public void UpdateConfigs()
     {
+      /*
       this.SelectedConfig.Value = null;
       this.Configs.Clear();
       foreach (var config in FinderConfigUtil.Configs)
       {
         this.Configs.Add(config);
       }
+      */
     }
 
     public async Task AddConfigAsync()
@@ -415,7 +417,7 @@ namespace KmyKeiba.Models.Race.Finder
       {
         using var db = new MyContext();
         await FinderConfigUtil.AddAsync(db, config);
-        this.Configs.Add(config);
+        //this.Configs.Add(config);
 
         this.SelectedConfig.Value = config;
         this.ConfigName.Value = string.Empty;
@@ -437,7 +439,7 @@ namespace KmyKeiba.Models.Race.Finder
       {
         using var db = new MyContext();
         await FinderConfigUtil.RemoveAsync(db, this.SelectedConfig.Value);
-        this.Configs.Remove(this.SelectedConfig.Value);
+        //this.Configs.Remove(this.SelectedConfig.Value);
         this.SelectedConfig.Value = null;
       }
       catch (Exception ex)

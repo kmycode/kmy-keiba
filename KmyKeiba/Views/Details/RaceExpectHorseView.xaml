@@ -219,7 +219,6 @@
         <RowDefinition/>
         <RowDefinition/>
         <RowDefinition/>
-        <RowDefinition/>
       </Grid.RowDefinitions>
       <Grid.Resources>
         <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
@@ -313,6 +312,7 @@
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
+      <!--
       <ItemsControl Grid.Row="6" ItemsSource="{Binding RaceHorse.BloodSelectors.SixthGenerations.Value,ElementName=Root}">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
@@ -333,6 +333,7 @@
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
+      -->
     </Grid>
 
     <!--調教-->

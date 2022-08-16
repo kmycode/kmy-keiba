@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
+using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     private static bool _isInitialized;
 
-    public static List<FinderConfigData> Configs { get; } = new();
+    public static ReactiveCollection<FinderConfigData> Configs { get; } = new();
 
     public static async Task InitializeAsync(MyContext db)
     {

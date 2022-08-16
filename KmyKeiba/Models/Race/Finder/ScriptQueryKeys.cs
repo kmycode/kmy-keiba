@@ -690,7 +690,15 @@ namespace KmyKeiba.Models.Race.Finder
             beforeProperty = Expression.Convert(beforeProperty, typeof(short));
             currentProperty = Expression.Convert(currentProperty, typeof(short));
           }
-          beforeProperty = Expression.Add(beforeProperty, valueObj);
+
+          if (type == QueryType.LessThan || type == QueryType.LessThanOrEqual)
+          {
+            beforeProperty = Expression.Subtract(beforeProperty, valueObj);
+          }
+          else
+          {
+            beforeProperty = Expression.Add(beforeProperty, valueObj);
+          }
 
           switch (type)
           {

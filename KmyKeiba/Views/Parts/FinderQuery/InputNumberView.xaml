@@ -79,6 +79,10 @@
             <RadioButton Content="比較対象レースと比較" IsChecked="{Binding Input.IsCompareWithTargetRace.Value,ElementName=Root,Mode=TwoWay}"
                          Visibility="{Binding IsComparable,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
 
+            <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" TextWrapping="Wrap"
+                       Visibility="{Binding IsComparable,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                       Text="{Binding Input.ComparationWithBeforeRaceComment.Value,ElementName=Root}"/>
+
             <Button Content="リセット" FontSize="14" Margin="0,16,0,0" Command="{Binding Input.ResetCommand,ElementName=Root}"/>
           </StackPanel>
         </Border>
