@@ -44,6 +44,7 @@
               <MultiBinding Converter="{StaticResource MultiBooleanConv}">
                 <Binding Path="HasRace" ElementName="Root"/>
                 <Binding Path="CanCompareWithCurrentRace" ElementName="Root"/>
+                <Binding Path="Input.CanCompareCurrentRaceValue" ElementName="Root"/>
                 <Binding Path="Input.IsCompareWithHorse" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
               </MultiBinding>
             </RadioButton.Visibility>
@@ -53,6 +54,7 @@
               <MultiBinding Converter="{StaticResource MultiBooleanConv}">
                 <Binding Path="HasRaceHorse" ElementName="Root"/>
                 <Binding Path="CanCompareWithCurrentRace" ElementName="Root"/>
+                <Binding Path="Input.CanCompareCurrentRaceValue" ElementName="Root"/>
                 <Binding Path="Input.IsCompareWithHorse" ElementName="Root"/>
               </MultiBinding>
             </RadioButton.Visibility>

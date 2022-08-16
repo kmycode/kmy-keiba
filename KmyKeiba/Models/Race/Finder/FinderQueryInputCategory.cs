@@ -379,6 +379,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public bool IsCompareWithHorse { get; }
 
+    public bool CanCompareCurrentRaceValue { get; protected set; } = true;
+
     protected ListBoxInputCategoryBase(string key) : this(key, true, false)
     {
     }
@@ -637,15 +639,8 @@ namespace KmyKeiba.Models.Race.Finder
       this.Key = key;
       this.Input = new FinderQueryFloatNumberInput(digit, isCompareWithHorse);
 
-      this.Input.Value.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.MaxValue.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsRange.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsEqual.Subscribe(_ => base.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsGreaterThan.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsGreaterThanOrEqual.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsLessThan.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsLessThanOrEqual.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
-      this.Input.IsNotEqual.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Input.AddTo(this.Disposables);
+      this.Input.ToObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
     }
 
     protected override string GetQuery()
@@ -886,6 +881,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected override string GetQuery()
     {
+      if (base.IsSetCurrentRaceValue.Value)
+      {
+        return this.Key;
+      }
+
       var query = base.GetQuery();
       var values = this.Items.GetCheckedValues();
 
@@ -977,6 +977,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected override string GetQuery()
     {
+      if (base.IsSetCurrentRaceValue.Value)
+      {
+        return "grade";
+      }
+
       var query = base.GetQuery();
       var values = this.Items.GetCheckedValues();
 
@@ -998,6 +1003,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public RaceAgeInputCategory() : base("subjectage", false)
     {
+      base.CanCompareCurrentRaceValue = false;
       this.SetItems(new List<FinderQueryInputListItem<short>>
       {
         new FinderQueryInputListItem<short>(2),
@@ -1012,6 +1018,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public RaceSubjectInputCategory() : base("subject", false)
     {
+      base.CanCompareCurrentRaceValue = false;
       this.SetItems(new List<FinderQueryInputListItem<object>>
       {
         new FinderQueryInputListItem<object>("新馬戦", RaceSubjectType.NewComer),
@@ -1626,6 +1633,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public HorseBelongsInputCategory() : this("horsebelongs")
     {
+      base.CanCompareCurrentRaceValue = false;
     }
 
     protected HorseBelongsInputCategory(string key): base(key, true, true)

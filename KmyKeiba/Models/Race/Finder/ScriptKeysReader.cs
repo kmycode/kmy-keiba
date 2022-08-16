@@ -647,6 +647,12 @@ namespace KmyKeiba.Models.Race.Finder
                 case QueryKey.Direction:
                   queries.Add(new RaceLambdaScriptKeyQuery(r => r.TrackCornerDirection == race.TrackCornerDirection));
                   break;
+                case QueryKey.Ground:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.TrackGround == race.TrackGround));
+                  break;
+                case QueryKey.TrackOption:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.TrackOption == race.TrackOption));
+                  break;
                 case QueryKey.Day:
                   queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Day == race.StartTime.Day));
                   break;
@@ -655,6 +661,12 @@ namespace KmyKeiba.Models.Race.Finder
                   break;
                 case QueryKey.Year:
                   queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Year == race.StartTime.Year));
+                  break;
+                case QueryKey.Nichiji:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.Nichiji == race.Nichiji));
+                  break;
+                case QueryKey.RaceNumber:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.CourseRaceNumber == race.CourseRaceNumber));
                   break;
                 case QueryKey.Subject:
                   if (race.Course <= RaceCourse.CentralMaxValue)
@@ -678,9 +690,24 @@ namespace KmyKeiba.Models.Race.Finder
                     queries.Add(new RaceLambdaScriptKeyQuery(r => r.GradeId == race.GradeId));
                   }
                   break;
+                case QueryKey.Grade:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.Grade == race.Grade));
+                  break;
                 case QueryKey.Grades:
                   queries.Add(new RaceLambdaScriptKeyQuery(r => race.Grade == RaceGrade.Grade1 || race.Grade == RaceGrade.Grade2 || race.Grade == RaceGrade.Grade3 ||
                                    race.Grade == RaceGrade.LocalGrade1 || race.Grade == RaceGrade.LocalGrade2 || race.Grade == RaceGrade.LocalGrade3));
+                  break;
+                case QueryKey.SexRule:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.Sex == race.Sex));
+                  break;
+                case QueryKey.RiderWeightRule:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.RiderWeight == race.RiderWeight));
+                  break;
+                case QueryKey.AreaRule:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.Area == race.Area));
+                  break;
+                case QueryKey.CrossRule:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.Cross == race.Cross));
                   break;
                 case QueryKey.Course:
                   queries.Add(new RaceLambdaScriptKeyQuery(r => r.Course == race.Course));
@@ -696,6 +723,15 @@ namespace KmyKeiba.Models.Race.Finder
                   break;
                 case QueryKey.Hour:
                   queries.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime.Hour == DateTime.Now.Hour));
+                  break;
+                case QueryKey.PrizeMoney1:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.PrizeMoney1 == race.PrizeMoney1));
+                  break;
+                case QueryKey.HorsesCount:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.HorsesCount == race.HorsesCount));
+                  break;
+                case QueryKey.GoalHorsesCount:
+                  queries.Add(new RaceLambdaScriptKeyQuery(r => r.ResultHorsesCount == race.ResultHorsesCount));
                   break;
               }
             }
@@ -722,11 +758,32 @@ namespace KmyKeiba.Models.Race.Finder
                 case QueryKey.FrameNumber:
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.FrameNumber == horse.FrameNumber));
                   break;
+                case QueryKey.Popular:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Popular == horse.Popular));
+                  break;
                 case QueryKey.HorseKey:
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Key == horse.Key));
                   break;
                 case QueryKey.Place:
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.ResultOrder == horse.ResultOrder));
+                  break;
+                case QueryKey.GoalPlace:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.GoalOrder == horse.GoalOrder));
+                  break;
+                case QueryKey.RunningStyle:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.RunningStyle == horse.RunningStyle));
+                  break;
+                case QueryKey.CornerPlace1:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.FirstCornerOrder == horse.FirstCornerOrder));
+                  break;
+                case QueryKey.CornerPlace2:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.SecondCornerOrder == horse.SecondCornerOrder));
+                  break;
+                case QueryKey.CornerPlace3:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.ThirdCornerOrder == horse.ThirdCornerOrder));
+                  break;
+                case QueryKey.CornerPlace4:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.FourthCornerOrder == horse.FourthCornerOrder));
                   break;
                 case QueryKey.RiderCode:
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.RiderCode == horse.RiderCode));
@@ -757,6 +814,39 @@ namespace KmyKeiba.Models.Race.Finder
                     var (min, max) = AnalysisUtil.GetOddsRange(horse.Odds);
                     queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.PlaceOddsMin >= min && rh.PlaceOddsMin < max));
                   }
+                  break;
+                case QueryKey.RaceCount:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.RaceCount == horse.RaceCount));
+                  break;
+                case QueryKey.RaceCountAfterLastRest:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.RaceCountAfterLastRest == horse.RaceCountAfterLastRest));
+                  break;
+                case QueryKey.RaceCountWithinRunning:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.RaceCountWithinRunning == horse.RaceCountWithinRunning));
+                  break;
+                case QueryKey.RaceCountWithinRunningCompletely:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.RaceCountWithinRunningCompletely == horse.RaceCountWithinRunningCompletely));
+                  break;
+                case QueryKey.PreviousRaceDays:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.PreviousRaceDays == horse.PreviousRaceDays));
+                  break;
+                case QueryKey.Weight:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Weight == horse.Weight));
+                  break;
+                case QueryKey.WeightDiff:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.WeightDiff == horse.WeightDiff));
+                  break;
+                case QueryKey.RiderWeight:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.RiderWeight == horse.RiderWeight));
+                  break;
+                case QueryKey.ResultTime:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.ResultTimeValue == horse.ResultTimeValue));
+                  break;
+                case QueryKey.ResultTimeDiff:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.TimeDifference == horse.TimeDifference));
+                  break;
+                case QueryKey.A3HTime:
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.AfterThirdHalongTimeValue == horse.AfterThirdHalongTimeValue));
                   break;
               }
             }

@@ -198,7 +198,7 @@
                 <TextBlock FontSize="22" Text="更新する" HorizontalAlignment="Center"/>
                 <TextBlock FontSize="16" Text="レース結果が届きました" Foreground="{StaticResource SubForeground}"
                            Visibility="{Binding Race.IsNewDataHasResults.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
-                <TextBlock FontSize="14" Text="傾向検索結果はリセットされます" Foreground="{StaticResource BadForeground}"
+                <TextBlock FontSize="14" Text="分析結果はリセットされます" Foreground="{StaticResource BadForeground}"
                            Visibility="{Binding Race.IsWillTrendAnalyzersResetedOnUpdate.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
               </StackPanel>
             </Button>
