@@ -7,12 +7,14 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
   <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{Binding Item.IsMale,ElementName=Root,Converter={StaticResource BooleanBackgroundIsMaleConv}}" BorderThickness="1">
+    <!--
     <Border.ToolTip>
       <ToolTip Background="{StaticResource BaseBackground}">
         <TextBlock Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
-                   FontSize="16" Text="{Binding Item.Name,RelativeSource={RelativeSource AncestorType=local:HorseBloodParentPanel}}"/>
+                   FontSize="16" Text="{Binding Item.Name,ElementName=Root}"/>
       </ToolTip>
     </Border.ToolTip>
+    -->
     <ToggleButton IsChecked="{Binding Item.IsChecked.Value,ElementName=Root,Mode=TwoWay}"
                   FontSize="32">
       <ToggleButton.Style>
