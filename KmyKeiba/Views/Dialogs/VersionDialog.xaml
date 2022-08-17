@@ -5,21 +5,25 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
-             d:DesignHeight="650" d:DesignWidth="800">
-  <Grid Width="400" Height="640" Background="{StaticResource BaseBackground}">
+             d:DesignHeight="680" d:DesignWidth="800">
+  <Grid Width="800" Height="640" Background="{StaticResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition/>
       <RowDefinition Height="auto"/>
     </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition/>
+      <ColumnDefinition/>
+    </Grid.ColumnDefinitions>
+    <Grid.Resources>
+      <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+        <Setter Property="FontSize" Value="16"/>
+      </Style>
+    </Grid.Resources>
     <TextBlock FontSize="36" FontWeight="Bold" Text="KMY競馬について" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,24"/>
     <ScrollViewer Grid.Row="1">
       <StackPanel Margin="8,0">
-        <StackPanel.Resources>
-          <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
-            <Setter Property="FontSize" Value="16"/>
-          </Style>
-        </StackPanel.Resources>
         <TextBlock FontSize="16">
           作者: KMY　　<Hyperlink NavigateUri="https://github.com/kmycode/kmy-keiba/" RequestNavigate="Hyperlink_RequestNavigate" Foreground="{StaticResource BaseForeground}">GitHub</Hyperlink>　<Hyperlink NavigateUri="https://github.com/kmycode/kmy-keiba/wiki/%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B%E5%85%88" RequestNavigate="Hyperlink_RequestNavigate" Foreground="{StaticResource BaseForeground}">お問合せ先</Hyperlink>
         </TextBlock>
@@ -47,6 +51,21 @@
         </TextBlock>
       </StackPanel>
     </ScrollViewer>
+    <StackPanel Grid.Column="1" Grid.Row="1" Margin="24,0,12,0">
+      <TextBlock FontSize="24" Margin="0,0,0,12">料金</TextBlock>
+      <TextBlock FontSize="16" TextWrapping="Wrap">
+        本アプリは無償でお使いいただけます。ただし、<Run Foreground="{StaticResource BadForeground}" Text="本アプリの出来に満足し、かつお金をどぶに捨てたい方に限り"/>作者に利用料金を支払うことができます。<LineBreak/>
+        下記免責事項に同意の上、任意量の仮想通貨「XEM」（NEM）を以下のアドレスに振り込んでください。<LineBreak/><LineBreak/>
+        なお事後報告は不要です。作者の性格的に、事後報告されますと今後の開発に悪影響が出る場合があります。<Hyperlink NavigateUri="https://twitter.com/askyqd/status/1559893618391138304" RequestNavigate="Hyperlink_RequestNavigate" Foreground="{StaticResource BaseForeground}">下記のアドレスに疑義が生じた場合は、作者に問い合わせずこのツイートと照合してください</Hyperlink>。
+      </TextBlock>
+      <TextBlock FontSize="16" Margin="0,16,0,0" Foreground="{StaticResource GoodForeground}">作者（KMY／雪あすか）のNEMウォレットアドレス</TextBlock>
+      <TextBox IsReadOnly="True" Text="ND6YD772FTH3H7RAG5BUMAJDTG5T3RRZGIFGWMTK" FontSize="14" Margin="0,0,0,32"/>
+      <TextBlock FontSize="24" Margin="0,0,0,12">免責事項</TextBlock>
+      <TextBlock FontSize="16" TextWrapping="Wrap">
+        これはあくまで<Run Foreground="{StaticResource BadForeground}" Text="これまでのご利用に対する代償"/>であり、作者に本アプリのサポートを依頼するためのものではありません。<LineBreak/>
+        お支払いいただいても、アプリのバグ修正、要望の優遇対応など、一切サポートできかねます。返金も対応できません。
+      </TextBlock>
+    </StackPanel>
     <Grid Grid.Row="2" Margin="0,0,0,16">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="auto"/>
