@@ -56,7 +56,10 @@ namespace KmyKeiba.Models.Race.Finder
         this.FramePayoff = payoff.GetFrameNumberAsList()
           .FirstOrDefault(i => i.Item1 == analyzer.Data.FrameNumber || i.Item2 == analyzer.Data.FrameNumber).Item3;
         this.QuinellaPlacePayoff = payoff.GetQuinellaPlaceAsList()
-          .FirstOrDefault(i => i.Item1 == analyzer.Data.Number || i.Item2 == analyzer.Data.Number).Item3;
+          .Where(i => i.Item1 == analyzer.Data.Number || i.Item2 == analyzer.Data.Number)
+          .Select(i => i.Item3)
+          .Append(0)
+          .Sum();
         this.QuinellaPayoff = payoff.GetQuinellaAsList()
           .FirstOrDefault(i => i.Item1 == analyzer.Data.Number || i.Item2 == analyzer.Data.Number).Item3;
         this.ExactaPayoff = payoff.GetExactaAsList()
