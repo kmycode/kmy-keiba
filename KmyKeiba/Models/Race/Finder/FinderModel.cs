@@ -182,15 +182,15 @@ namespace KmyKeiba.Models.Race.Finder
               IReadOnlyList<FinderRaceHorseGroupItem> g;
               if (data.GroupKey == QueryKey.RiderCode)
               {
-                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.RiderName, g)).ToArray();
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.Key.ToString()?.All(c => c == '0') == true ? "分類不可" : g.First().Analyzer.Data.RiderName, g)).ToArray();
               }
               else if (data.GroupKey == QueryKey.TrainerCode)
               {
-                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.TrainerName, g)).ToArray();
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.Key.ToString()?.All(c => c == '0') == true ? "分類不可" : g.First().Analyzer.Data.TrainerName, g)).ToArray();
               }
               else if (data.GroupKey == QueryKey.OwnerCode)
               {
-                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.OwnerName, g)).ToArray();
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.Key.ToString()?.All(c => c == '0') == true ? "分類不可" : g.First().Analyzer.Data.OwnerName, g)).ToArray();
               }
               else if (data.GroupKey == QueryKey.Course)
               {
@@ -210,7 +210,7 @@ namespace KmyKeiba.Models.Race.Finder
               }
               else if (data.GroupKey == QueryKey.HorseKey)
               {
-                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.Name, g)).ToArray();
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.Key.ToString()?.All(c => c == '0') == true ? "分類不可" : g.First().Analyzer.Data.Name, g)).ToArray();
               }
               else
               {
