@@ -26,8 +26,8 @@
         <RowDefinition/>
         <RowDefinition Height="auto"/>
       </Grid.RowDefinitions>
-      <TextBlock FontSize="24" FontWeight="Bold" Text="検索条件を入力" Margin="0,8,0,24"/>
-      <Grid Grid.Column="1" VerticalAlignment="Top" Margin="0,8,8,0"
+      <TextBlock FontSize="24" FontWeight="Bold" Text="検索条件を入力" Margin="0,8,0,16"/>
+      <Grid Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0"
             Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
         <Grid.RowDefinitions>
           <RowDefinition/>
