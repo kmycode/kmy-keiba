@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:b="clr-namespace:KmyKeiba.Behaviors"
              xmlns:ul="clr-namespace:KmyKeiba.Views.ListItems"
              xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
              xmlns:local="clr-namespace:KmyKeiba.Views.Parts"
@@ -106,22 +108,24 @@
       <ToggleButton FontSize="16" Padding="2" Content="1" Width="40"/>
     </StackPanel>
 
-    <ItemsControl Grid.Row="2" ItemsSource="{Binding FinderModel.Columns.Value,ElementName=Root}">
-      <ItemsControl.ItemsPanel>
-        <ItemsPanelTemplate>
-          <StackPanel Orientation="Horizontal"/>
-        </ItemsPanelTemplate>
-      </ItemsControl.ItemsPanel>
-      <ItemsControl.ItemTemplate>
-        <DataTemplate>
-          <TextBlock Foreground="{StaticResource SubForeground}" FontSize="14" Width="{Binding Width}"
-                     Text="{Binding Header}" TextAlignment="{Binding Alignment,Converter={StaticResource CellTextAlignmentConv}}" Margin="0,0,8,4"/>
-        </DataTemplate>
-      </ItemsControl.ItemTemplate>
-    </ItemsControl>
+    <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Name="Headers">
+      <ItemsControl ItemsSource="{Binding FinderModel.Columns.Value,ElementName=Root}" Margin="0,0,48,0">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <TextBlock Foreground="{StaticResource SubForeground}" FontSize="14" Width="{Binding Width}"
+                       Text="{Binding Header}" TextAlignment="{Binding Alignment,Converter={StaticResource CellTextAlignmentConv}}" Margin="0,0,8,4"/>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
 
     <ItemsControl ItemsSource="{Binding FinderModel.CurrentGroup.Value.Rows,ElementName=Root}" Style="{StaticResource TableList}"
-                  Grid.Row="3">
+                  Grid.Row="3" ScrollViewer.HorizontalScrollBarVisibility="Auto">
       <ItemsControl.ItemTemplate>
         <DataTemplate>
           <Grid Margin="0,0,0,4">
@@ -148,6 +152,9 @@
           </Grid>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
+      <i:Interaction.Behaviors>
+        <b:SyncScrollOffsetBehavior TargetElement="{Binding ElementName=Headers}"/>
+      </i:Interaction.Behaviors>
     </ItemsControl>
     
     <!--ローディング-->
