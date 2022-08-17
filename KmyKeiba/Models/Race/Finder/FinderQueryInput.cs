@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,8 @@ namespace KmyKeiba.Models.Race.Finder
 {
   public class FinderQueryInput : IDisposable
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private readonly CompositeDisposable _disposables = new();
     private readonly List<IFinderQueryInputCategory> _categories = new();
 
@@ -157,6 +160,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<string> Query { get; } = new();
 
+    public ReactiveProperty<string> ErrorMessage { get; } = new();
+
+    public ReadOnlyReactiveProperty<bool> IsError { get; }
+
     private readonly bool _hasRace;
     private readonly bool _hasHorse;
 
@@ -164,6 +171,7 @@ namespace KmyKeiba.Models.Race.Finder
     {
       this._hasRace = race != null;
       this._hasHorse = horse != null;
+      this.IsError = this.ErrorMessage.Select(m => !string.IsNullOrEmpty(m)).ToReadOnlyReactiveProperty().AddTo(this._disposables);
 
       this._categories.Add(this.Course = new CourseInputCategory());
       this._categories.Add(this.Month = new MonthInputCategory());
@@ -413,6 +421,8 @@ namespace KmyKeiba.Models.Race.Finder
 
       try
       {
+        this.ErrorMessage.Value = string.Empty;
+
         using var db = new MyContext();
         await FinderConfigUtil.AddAsync(db, config);
         //this.Configs.Add(config);
@@ -422,7 +432,8 @@ namespace KmyKeiba.Models.Race.Finder
       }
       catch (Exception ex)
       {
-        // TODO
+        logger.Error("検索条件保存でエラー発生", ex);
+        this.ErrorMessage.Value = "検索条件の保存でエラーが発生しました";
       }
     }
 
@@ -435,6 +446,8 @@ namespace KmyKeiba.Models.Race.Finder
 
       try
       {
+        this.ErrorMessage.Value = string.Empty;
+
         using var db = new MyContext();
         await FinderConfigUtil.RemoveAsync(db, this.SelectedConfig.Value);
         //this.Configs.Remove(this.SelectedConfig.Value);
@@ -442,7 +455,8 @@ namespace KmyKeiba.Models.Race.Finder
       }
       catch (Exception ex)
       {
-        // TODO
+        logger.Error("検索条件削除でエラー発生", ex);
+        this.ErrorMessage.Value = "検索条件の削除でエラーが発生しました";
       }
     }
 
@@ -455,11 +469,14 @@ namespace KmyKeiba.Models.Race.Finder
 
       try
       {
+        this.ErrorMessage.Value = string.Empty;
+
         this.Deserialize(this.SelectedConfig.Value.Config);
       }
       catch (Exception ex)
       {
-        // TODO
+        logger.Error("検索条件の読み込みでエラー発生", ex);
+        this.ErrorMessage.Value = "検索条件の読み込みでエラーが発生しました";
       }
     }
 
