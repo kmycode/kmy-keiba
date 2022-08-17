@@ -75,6 +75,8 @@ namespace KmyKeiba.JVLink.Entities
 
     public string ProducingCode { get; set; } = string.Empty;
 
+    public string ProductorName { get; set; } = string.Empty;
+
     public string OwnerCode { get; set; } = string.Empty;
 
     internal static HorseType ToHorseType(int tc)
@@ -132,6 +134,7 @@ namespace KmyKeiba.JVLink.Entities
         TrainerName = uma.ChokyosiRyakusyo.Trim(),
         InviteFrom = uma.Syotai.Trim(),
         ProducingCode = uma.BreederCode.Trim(),
+        ProductorName = uma.BreederName.Trim(),
         OwnerCode = uma.BanusiCode.Trim(),
       };
     }

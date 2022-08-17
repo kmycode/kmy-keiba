@@ -35,6 +35,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceSubjectInfo Subject { get; }
 
+    public HorseData? DetailData { get; init; }
+
     public ReactiveProperty<FinderModel?> FinderModel { get; } = new();
 
     public RaceHorseBloodTrendAnalysisSelectorMenu? BloodSelectors { get; init; }

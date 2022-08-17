@@ -46,6 +46,7 @@ namespace KmyKeiba.Models.Race
     public static void Register(RaceInfo race,
       IReadOnlyList<(RaceData Race, RaceHorseData Horse)> horseAllHistories,
       IReadOnlyList<RaceHorseData> horseHistorySameHorses,
+      IReadOnlyList<HorseData> horseDetails,
       IReadOnlyList<TrainingData> trainings,
       IReadOnlyList<WoodtipTrainingData> woodtipTrainings,
       RaceFinder finder,
@@ -69,6 +70,7 @@ namespace KmyKeiba.Models.Race
         }
       }
       cache.HorseAllHistories = horseAllHistories;
+      cache.HorseDetails = horseDetails;
       cache.HorseHistorySameHorses = horseHistorySameHorses;
       cache.Trainings = trainings;
       cache.WoodtipTrainings = woodtipTrainings;
@@ -147,6 +149,8 @@ namespace KmyKeiba.Models.Race
     public IReadOnlyList<(RaceData Race, RaceHorseData RaceHorse)>? HorseAllHistories { get; set; }
 
     public IReadOnlyList<RaceHorseData>? HorseHistorySameHorses { get; set; }
+
+    public IReadOnlyList<HorseData>? HorseDetails { get; set; }
 
     public IReadOnlyList<TrainingData>? Trainings { get; set; }
 

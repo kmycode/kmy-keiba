@@ -651,6 +651,14 @@ namespace KmyKeiba.Models.Race
           logger.Debug($"時系列オッズ {oddsTimeline.Length}件");
 
           // 各馬の情報
+          var horseDetails = cache?.HorseDetails;
+          if (horseDetails == null)
+          {
+            var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
+            horseDetails = await db.Horses!
+              .Where(h => horseKeys.Contains(h.Code))
+              .ToArrayAsync();
+          }
           var horseHistorySameHorses = cache?.HorseHistorySameHorses;
           if (horseHistorySameHorses == null)
           {
@@ -680,6 +688,7 @@ namespace KmyKeiba.Models.Race
               TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse, histories),
               TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
               BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
+              DetailData = horseDetails.FirstOrDefault(h => h.Code == horse.Key),
             };
             analyzer.RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(analyzer);
             analyzer.SetOddsTimeline(oddsTimeline);
@@ -838,7 +847,7 @@ namespace KmyKeiba.Models.Race
           // キャッシング
           if (isCache)
           {
-            RaceInfoCacheManager.Register(info, horseAllHistories, horseHistorySameHorses, trainings, woodTrainings,
+            RaceInfoCacheManager.Register(info, horseAllHistories, horseHistorySameHorses, horseDetails, trainings, woodTrainings,
                info.Finder, info.Payoff?.Payoff, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
           }
         }

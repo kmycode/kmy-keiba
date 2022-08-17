@@ -96,6 +96,8 @@ namespace KmyKeiba.Data.Db
     [StringLength(10)]
     public string ProducingCode { get; set; } = string.Empty;
 
+    public string ProductorName { get; set; } = string.Empty;
+
     [StringLength(10)]
     public string OwnerCode { get; set; } = string.Empty;
 
@@ -131,6 +133,7 @@ namespace KmyKeiba.Data.Db
       this.TrainerName = horse.TrainerName;
       this.InviteFrom = horse.InviteFrom;
       this.ProducingCode = horse.ProducingCode;
+      this.ProductorName = horse.ProductorName;
       this.OwnerCode = horse.OwnerCode;
     }
 
