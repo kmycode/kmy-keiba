@@ -26,7 +26,7 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceHorseData RaceHorse { get; }
 
-    public CheckableCollection<MenuItem> MenuItems { get; } = new();
+    public MultipleCheckableCollection<MenuItem> MenuItems { get; } = new();
 
     public ReactiveProperty<MenuItem?> Father { get; } = new();
     public ReactiveProperty<MenuItem?> FatherFather { get; } = new();
@@ -43,11 +43,11 @@ namespace KmyKeiba.Models.Analysis
     public ReactiveProperty<MenuItem?> MotherMotherFather { get; } = new();
     public ReactiveProperty<MenuItem?> MotherMotherMother { get; } = new();
 
-    public ReactiveProperty<GeneralBloodItem[]> FourthGenerations { get; } = new();
-    public ReactiveProperty<GeneralBloodItem[]> FifthGenerations { get; } = new();
-    public ReactiveProperty<GeneralBloodItem[]> SixthGenerations { get; } = new();
+    public MultipleCheckableCollection<GeneralBloodItem> FourthGenerations { get; } = new();
+    public MultipleCheckableCollection<GeneralBloodItem> FifthGenerations { get; } = new();
+    public MultipleCheckableCollection<GeneralBloodItem> SixthGenerations { get; } = new();
 
-    public ReactiveProperty<RaceHorseBloodTrendAnalysisSelector?> CurrentSelector { get; } = new();
+    public ReactiveCollection<GenerationBloodItem> GenerationInfos { get; } = new();
 
     public bool IsRequestedInitialization => this._bloodCode == null;
 
@@ -56,20 +56,55 @@ namespace KmyKeiba.Models.Analysis
       this.Race = race;
       this.RaceHorse = horse;
 
-      this.MenuItems.ActiveItem.Select(item => item?.Selector)
-        .Subscribe(selector =>
+      async Task UpdateMenuItemAsync(IBloodCheckableItem item)
+      {
+        if (item == null)
         {
-          var old = this.CurrentSelector.Value;
-          if (old != null && selector != null)
+          return;
+        }
+
+        try
+        {
+          using var db = new MyContext();
+          if (item.IsChecked.Value)
           {
-            // 絞り込み検索条件をコピーする
-            foreach (var menuItem in old.Keys.Join(selector.Keys, i => i.Key, i => i.Key, (o, n) => new { Old = o, New = n, }))
-            {
-              menuItem.New.IsChecked.Value = menuItem.Old.IsChecked.Value;
-            }
+            await CheckHorseUtil.CheckAsync(db, item.Key, HorseCheckType.CheckBlood);
+          }
+          else
+          {
+            await CheckHorseUtil.UncheckAsync(db, item.Key, HorseCheckType.CheckBlood);
           }
 
-          this.CurrentSelector.Value = selector;
+          await this.UpdateGenerationRatesAsync();
+        }
+        catch (Exception ex)
+        {
+          // TODO
+        }
+      }
+
+      this.MenuItems.ChangedItemObservable
+        .Subscribe(async item =>
+        {
+          await UpdateMenuItemAsync(item);
+        })
+        .AddTo(this._disposables);
+      this.FourthGenerations.ChangedItemObservable
+        .Subscribe(async item =>
+        {
+          await UpdateMenuItemAsync(item);
+        })
+        .AddTo(this._disposables);
+      this.FifthGenerations.ChangedItemObservable
+        .Subscribe(async item =>
+        {
+          await UpdateMenuItemAsync(item);
+        })
+        .AddTo(this._disposables);
+      this.SixthGenerations.ChangedItemObservable
+        .Subscribe(async item =>
+        {
+          await UpdateMenuItemAsync(item);
         })
         .AddTo(this._disposables);
     }
@@ -97,11 +132,25 @@ namespace KmyKeiba.Models.Analysis
           items.Add(item);
         }
         this.SetMenu(items);
-        this.CurrentSelector.Value = items.FirstOrDefault(i => i.IsChecked.Value)?.Selector;
 
-        this.FifthGenerations.Value = old.FifthGenerations.Value;
-        this.FourthGenerations.Value = old.FourthGenerations.Value;
-        this.SixthGenerations.Value = old.SixthGenerations.Value;
+        ThreadUtil.InvokeOnUiThread(() =>
+        {
+          this.FourthGenerations.Clear();
+          this.FifthGenerations.Clear();
+          this.SixthGenerations.Clear();
+          foreach (var item in old.FifthGenerations)
+          {
+            this.FourthGenerations.Add(item);
+          }
+          foreach (var item in old.FourthGenerations)
+          {
+            this.FifthGenerations.Add(item);
+          }
+          foreach (var item in old.SixthGenerations)
+          {
+            this.SixthGenerations.Add(item);
+          }
+        });
       }
       else
       {
@@ -127,6 +176,8 @@ namespace KmyKeiba.Models.Analysis
 
     public async Task InitializeBloodListAsync(MyContext db)
     {
+      await CheckHorseUtil.InitializeAsync(db);
+
       // 血統リストを作成
       if (this._bloodCode == null)
       {
@@ -267,12 +318,6 @@ namespace KmyKeiba.Models.Analysis
       ThreadUtil.InvokeOnUiThread(() =>
       {
         this.MenuItems.AddRangeOnScheduler(items.OrderBy(i => i.Type));
-
-        var firstItem = items.FirstOrDefault(i => i.Type == BloodType.MotherFather) ?? items.FirstOrDefault();
-        if (firstItem != null)
-        {
-          firstItem.IsChecked.Value = true;
-        }
       });
 
       foreach (var item in items)
@@ -378,9 +423,102 @@ namespace KmyKeiba.Models.Analysis
       await SetTypeAsync(6, BloodType.MotherMotherFather);
       await SetTypeAsync(7, BloodType.MotherMotherMother);
 
-      this.FourthGenerations.Value = arr4;
-      this.FifthGenerations.Value = arr5;
-      this.SixthGenerations.Value = arr6;
+      ThreadUtil.InvokeOnUiThread(() =>
+      {
+        this.FourthGenerations.Clear();
+        this.FifthGenerations.Clear();
+        this.SixthGenerations.Clear();
+        foreach (var item in arr4)
+        {
+          this.FourthGenerations.Add(item);
+        }
+        foreach (var item in arr5)
+        {
+          this.FifthGenerations.Add(item);
+        }
+        foreach (var item in arr6)
+        {
+          this.SixthGenerations.Add(item);
+        }
+      });
+
+      await this.UpdateGenerationRatesAsync();
+    }
+
+    private bool _isCheckingGenerationRates;
+    public async Task UpdateGenerationRatesAsync()
+    {
+      if (this._isCheckingGenerationRates)
+      {
+        return;
+      }
+      this._isCheckingGenerationRates = true;
+
+      var g1 = this.MenuItems.Where(i => i.Type == BloodType.Father || i.Type == BloodType.Mother).Cast<IBloodCheckableItem>();
+      var g2 = this.MenuItems.Where(i => i.Type == BloodType.FatherFather || i.Type == BloodType.FatherMother ||
+                                         i.Type == BloodType.MotherFather || i.Type == BloodType.MotherMother).Cast<IBloodCheckableItem>();
+      var g3 = this.MenuItems.Where(i => i.Type == BloodType.FatherFatherFather || i.Type == BloodType.FatherFatherMother ||
+                                         i.Type == BloodType.FatherMotherFather || i.Type == BloodType.FatherMotherMother ||
+                                         i.Type == BloodType.MotherFatherFather || i.Type == BloodType.MotherFatherMother ||
+                                         i.Type == BloodType.MotherMotherFather || i.Type == BloodType.MotherMotherMother).Cast<IBloodCheckableItem>();
+      var g4 = this.FourthGenerations.Cast<IBloodCheckableItem>();
+      var g5 = this.FifthGenerations.Cast<IBloodCheckableItem>();
+
+      var bloods = new Dictionary<string, GenerationBloodItem>();
+
+      GenerationBloodItem GetItem(string name)
+      {
+        if (bloods!.TryGetValue(name, out var item))
+        {
+          return item;
+        }
+
+        item = new GenerationBloodItem
+        {
+          Name = name,
+        };
+        bloods![name] = item;
+        return item;
+      }
+
+      void ProcessGeneration(IEnumerable<IBloodCheckableItem> names, double point)
+      {
+        foreach (var name in names)
+        {
+          if (!CheckHorseUtil.IsChecked(name.Key, HorseCheckType.CheckBlood))
+          {
+            if (name.IsChecked.Value)
+            {
+              name.IsChecked.Value = false;
+            }
+            continue;
+          }
+
+          var item = GetItem(name.Name);
+          item.Rate += point;
+          if (!name.IsChecked.Value)
+          {
+            name.IsChecked.Value = true;
+          }
+        }
+      }
+
+      ProcessGeneration(g1, 1.0 / 2);
+      ProcessGeneration(g2, 1.0 / 4);
+      ProcessGeneration(g3, 1.0 / 8);
+      ProcessGeneration(g4, 1.0 / 16);
+      ProcessGeneration(g5, 1.0 / 32);
+
+      ThreadUtil.InvokeOnUiThread(() =>
+      {
+        this.GenerationInfos.Clear();
+        foreach (var b in bloods.OrderByDescending(bb => bb.Value.Rate))
+        {
+          this.GenerationInfos.Add(b.Value);
+        }
+
+        this._isCheckingGenerationRates = false;
+      });
     }
 
     public RaceHorseBloodTrendAnalysisSelector? GetSelector(BloodType type)
@@ -401,13 +539,32 @@ namespace KmyKeiba.Models.Analysis
       return this.GetSelector(scriptType) ?? new RaceHorseBloodTrendAnalysisSelector(this, this.Race, this.RaceHorse, string.Empty, string.Empty, BloodType.Unknown, string.Empty);
     }
 
-    public class MenuItem : ICheckableItem
+    public interface IBloodCheckableItem : IMultipleCheckableItem
+    {
+      string Name { get; }
+
+      string Key { get; }
+
+      bool IsMale { get; }
+    }
+
+    public class MenuItem : IBloodCheckableItem
     {
       public ReactiveProperty<bool> IsChecked { get; } = new();
+
+      public string? GroupName => null;
 
       public BloodType Type { get; init; }
 
       public bool IsEnabled { get; set; }
+
+      public string Name => this.Selector.Name;
+
+      public string Key => this.Selector.BloodKey;
+
+      public bool IsMale => this.Type == BloodType.Father || this.Type == BloodType.FatherFather || this.Type == BloodType.FatherFatherFather ||
+        this.Type == BloodType.FatherMotherFather || this.Type == BloodType.MotherFather || this.Type == BloodType.MotherFatherFather ||
+        this.Type == BloodType.MotherMotherFather;
 
       public RaceHorseBloodTrendAnalysisSelector Selector { get; }
 
@@ -417,13 +574,24 @@ namespace KmyKeiba.Models.Analysis
       }
     }
 
-    public class GeneralBloodItem
+    public class GeneralBloodItem : IBloodCheckableItem
     {
+      public ReactiveProperty<bool> IsChecked { get; } = new();
+
+      public string? GroupName => null;
+
       public string Name { get; init; } = string.Empty;
 
       public string Key { get; init; } = string.Empty;
 
       public bool IsMale { get; init; }
+    }
+
+    public class GenerationBloodItem
+    {
+      public string Name { get; init; } = string.Empty;
+
+      public double Rate { get; set; }
     }
   }
 

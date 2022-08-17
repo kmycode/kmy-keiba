@@ -81,6 +81,8 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<FinderConfigData>? FinderConfigs { get; set; }
 
+    public DbSet<CheckHorseData>? CheckHorses { get; set; }
+
     #endregion
 
     private IDbContextTransaction? _transaction;

@@ -242,57 +242,42 @@
         </Style>
       </Grid.Resources>
       <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource BaseBackground}" BorderThickness="1">
-        <TextBlock Text="{Binding RaceHorse.Data.Name,ElementName=Root}" FontSize="40" FontWeight="Bold"/>
+        <Grid>
+          <TextBlock Text="{Binding RaceHorse.Data.Name,ElementName=Root}" FontSize="36" FontWeight="Bold"/>
+          <ItemsControl ItemsSource="{Binding RaceHorse.BloodSelectors.GenerationInfos,ElementName=Root}"
+                        VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="4,2">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock FontSize="14" Text="{Binding Name}" Width="120"/>
+                  <TextBlock FontSize="14" Text="{Binding Rate,Converter={StaticResource StringFormatConv},ConverterParameter=P2}" Width="50" TextAlignment="Right"/>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Grid>
       </Border>
       <UniformGrid Columns="2" Grid.Row="1">
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.Father.Value.Selector.Name,ElementName=Root}" FontSize="32"/>
-        </Border>
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.Mother.Value.Selector.Name,ElementName=Root}" FontSize="32"/>
-        </Border>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.Father.Value,ElementName=Root}" FontSize="32"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.Mother.Value,ElementName=Root}" FontSize="32"/>
       </UniformGrid>
       <UniformGrid Columns="4" Grid.Row="2">
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.FatherFather.Value.Selector.Name,ElementName=Root}" FontSize="32"/>
-        </Border>
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.FatherMother.Value.Selector.Name,ElementName=Root}" FontSize="32"/>
-        </Border>
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.MotherFather.Value.Selector.Name,ElementName=Root}" FontSize="32"/>
-        </Border>
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.MotherMother.Value.Selector.Name,ElementName=Root}" FontSize="32"/>
-        </Border>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.FatherFather.Value,ElementName=Root}" FontSize="26"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.FatherMother.Value,ElementName=Root}" FontSize="26"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.MotherFather.Value,ElementName=Root}" FontSize="26"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.MotherMother.Value,ElementName=Root}" FontSize="26"/>
       </UniformGrid>
       <UniformGrid Columns="8" Grid.Row="3">
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.FatherFatherFather.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
-        </Border>
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.FatherFatherMother.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
-        </Border>
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.FatherMotherFather.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
-        </Border>
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.FatherMotherMother.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
-        </Border>
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.MotherFatherFather.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
-        </Border>
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.MotherFatherMother.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
-        </Border>
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource MaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.MotherMotherFather.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
-        </Border>
-        <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource FemaleBackground}" BorderThickness="1">
-          <TextBlock Text="{Binding RaceHorse.BloodSelectors.MotherMotherMother.Value.Selector.Name,ElementName=Root}" FontSize="20"/>
-        </Border>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.FatherFatherFather.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.FatherFatherMother.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.FatherMotherFather.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.FatherMotherMother.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.MotherFatherFather.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.MotherFatherMother.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.MotherMotherFather.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.MotherMotherMother.Value,ElementName=Root}" FontSize="20"/>
       </UniformGrid>
-      <ItemsControl Grid.Row="4" ItemsSource="{Binding RaceHorse.BloodSelectors.FourthGenerations.Value,ElementName=Root}">
+      <ItemsControl Grid.Row="4" ItemsSource="{Binding RaceHorse.BloodSelectors.FourthGenerations,ElementName=Root}">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <UniformGrid Columns="16"/>
@@ -300,13 +285,11 @@
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{Binding IsMale,Converter={StaticResource BooleanBackgroundIsMaleConv}}" BorderThickness="1">
-              <TextBlock Text="{Binding Name}" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-            </Border>
+            <up:HorseBloodParentPanel Item="{Binding}" FontSize="16"/>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
-      <ItemsControl Grid.Row="5" ItemsSource="{Binding RaceHorse.BloodSelectors.FifthGenerations.Value,ElementName=Root}">
+      <ItemsControl Grid.Row="5" ItemsSource="{Binding RaceHorse.BloodSelectors.FifthGenerations,ElementName=Root}">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <UniformGrid Columns="32"/>
@@ -314,15 +297,7 @@
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{Binding IsMale,Converter={StaticResource BooleanBackgroundIsMaleConv}}" BorderThickness="1">
-              <Border.ToolTip>
-                <ToolTip Background="{StaticResource BaseBackground}">
-                  <TextBlock Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
-                             FontSize="16" Text="{Binding Name}"/>
-                </ToolTip>
-              </Border.ToolTip>
-              <TextBlock Text="{Binding Name}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-            </Border>
+            <up:HorseBloodParentPanel Item="{Binding}" FontSize="14"/>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>

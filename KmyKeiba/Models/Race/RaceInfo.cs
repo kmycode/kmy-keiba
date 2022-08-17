@@ -316,6 +316,10 @@ namespace KmyKeiba.Models.Race
               logger.Warn($"{this.ActiveHorse.Value.Data.Name} の血統情報がロードできませんでした", ex);
             }
           }
+          else
+          {
+            await this.ActiveHorse.Value.BloodSelectors.UpdateGenerationRatesAsync();
+          }
 
           var timeout = 0;
           while (this.ActiveHorse.Value.Training.Value == null && timeout < 30_000)
