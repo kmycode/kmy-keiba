@@ -18,14 +18,14 @@ namespace KmyKeiba.Models.Race.Finder
 {
   public class FinderModel : IDisposable
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private readonly RaceFinder _finder;
     private readonly CompositeDisposable _disposables = new();
 
     public FinderQueryInput Input { get; }
 
     public ReactiveProperty<IEnumerable<IFinderColumnDefinition>> Columns { get; } = new();
-
-    public ReactiveCollection<FinderColumnDefinition<FinderRaceItem>> RaceColumns { get; } = new();
 
     public ReactiveCollection<FinderColumnDefinition<FinderRaceHorseItem>> RaceHorseColumns { get; } = new();
 
@@ -37,11 +37,9 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<string> Keys => this.Input.Query;
 
-    public ReactiveProperty<bool> IsSearchRaces { get; } = new();
-
-    public ReactiveProperty<bool> IsSearchRaceHorses { get; } = new(true);
-
     public ReactiveProperty<bool> IsLoading { get; } = new();
+
+    public ReactiveProperty<bool> IsError { get; } = new();
 
     public RaceData? Race => this._finder.Race;
 
@@ -76,168 +74,161 @@ namespace KmyKeiba.Models.Race.Finder
     {
       Task.Run(async () =>
       {
+        this.IsError.Value = false;
         this.IsLoading.Value = true;
 
         try
         {
-          if (this.IsSearchRaces.Value)
-          {
-            this.Columns.Value = this.RaceColumns;
-            var data = await this._finder.FindRacesAsync(this.Keys.Value, 3000);
-            this.UpdateRows(data.Items.ToFinderRows(this.RaceColumns));
-          }
-          else if (this.IsSearchRaceHorses.Value)
-          {
-            this.Columns.Value = this.RaceHorseColumns;
-            var data = await this._finder.FindRaceHorsesAsync(this.Keys.Value, 3000);
-            var allItems = data.AsItems();
+          this.Columns.Value = this.RaceHorseColumns;
+          var data = await this._finder.FindRaceHorsesAsync(this.Keys.Value, 3000);
+          var allItems = data.AsItems();
 
-            IEnumerable<IEnumerable<FinderRaceHorseItem>> SplitData(int size)
+          IEnumerable<IEnumerable<FinderRaceHorseItem>> SplitData(int size)
+          {
+            if (data == null)
             {
-              if (data == null)
-              {
-                return Enumerable.Empty<IEnumerable<FinderRaceHorseItem>>();
-              }
-
-              var lists = new List<List<FinderRaceHorseItem>>();
-              for (var i = 0; i < size; i++)
-              {
-                lists.Add(new());
-              }
-              for (var i = 0; i < allItems.Count; i++)
-              {
-                lists[i % size].Add(allItems[i]);
-              }
-
-              return lists;
+              return Enumerable.Empty<IEnumerable<FinderRaceHorseItem>>();
             }
 
-            // TODO: グループのネスト
+            var lists = new List<List<FinderRaceHorseItem>>();
+            for (var i = 0; i < size; i++)
             {
-              IEnumerable<IGrouping<object, FinderRaceHorseItem>>? groups = data.GroupKey switch
+              lists.Add(new());
+            }
+            for (var i = 0; i < allItems.Count; i++)
+            {
+              lists[i % size].Add(allItems[i]);
+            }
+
+            return lists;
+          }
+
+          // TODO: グループのネスト
+          {
+            IEnumerable<IGrouping<object, FinderRaceHorseItem>>? groups = data.GroupKey switch
+            {
+              QueryKey.RiderName => allItems.GroupBy(d => d.Analyzer.Data.RiderName),
+              QueryKey.RiderCode => allItems.GroupBy(d => d.Analyzer.Data.RiderCode),
+              QueryKey.TrainerName => allItems.GroupBy(d => d.Analyzer.Data.TrainerName),
+              QueryKey.TrainerCode => allItems.GroupBy(d => d.Analyzer.Data.TrainerCode),
+              QueryKey.OwnerName => allItems.GroupBy(d => d.Analyzer.Data.OwnerName),
+              QueryKey.OwnerCode => allItems.GroupBy(d => d.Analyzer.Data.OwnerCode),
+              QueryKey.Course => allItems.GroupBy(d => (object)d.Analyzer.Data.Course),
+              QueryKey.Weather => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackWeather),
+              QueryKey.Condition => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackCondition),
+              QueryKey.Grade => allItems.GroupBy(d => (object)d.Analyzer.Race.Grade),
+              QueryKey.HorseKey => allItems.GroupBy(d => d.Analyzer.Data.Key),
+              QueryKey.HorseName => allItems.GroupBy(d => d.Analyzer.Data.Name),
+              QueryKey.FrameNumber => allItems.GroupBy(d => d.Analyzer.Data.FrameNumber.ToString()),
+              QueryKey.HorseNumber => allItems.GroupBy(d => d.Analyzer.Data.Number.ToString()),
+              _ => null,
+            };
+            groups?.OrderBy(g => g.Key);
+
+            // ラベルでグループ化
+            if (data.GroupInfo != null)
+            {
+              // メモのポイントでグループ化する処理
+              var list = new List<(FinderRaceHorseItem, short)>();
+
+              ExpansionMemoConfig? memoConfig = null;
+              PointLabelData? labelConfig = null;
+              IReadOnlyList<PointLabelItem>? labelItems = null;
+
+              var tasks = SplitData(3).Select(items =>
               {
-                QueryKey.RiderName => allItems.GroupBy(d => d.Analyzer.Data.RiderName),
-                QueryKey.RiderCode => allItems.GroupBy(d => d.Analyzer.Data.RiderCode),
-                QueryKey.TrainerName => allItems.GroupBy(d => d.Analyzer.Data.TrainerName),
-                QueryKey.TrainerCode => allItems.GroupBy(d => d.Analyzer.Data.TrainerCode),
-                QueryKey.OwnerName => allItems.GroupBy(d => d.Analyzer.Data.OwnerName),
-                QueryKey.OwnerCode => allItems.GroupBy(d => d.Analyzer.Data.OwnerCode),
-                QueryKey.Course => allItems.GroupBy(d => (object)d.Analyzer.Data.Course),
-                QueryKey.Weather => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackWeather),
-                QueryKey.Condition => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackCondition),
-                QueryKey.Grade => allItems.GroupBy(d => (object)d.Analyzer.Race.Grade),
-                QueryKey.HorseKey => allItems.GroupBy(d => d.Analyzer.Data.Key),
-                QueryKey.HorseName => allItems.GroupBy(d => d.Analyzer.Data.Name),
-                QueryKey.FrameNumber => allItems.GroupBy(d => d.Analyzer.Data.FrameNumber.ToString()),
-                QueryKey.HorseNumber => allItems.GroupBy(d => d.Analyzer.Data.Number.ToString()),
-                _ => null,
-              };
-              groups?.OrderBy(g => g.Key);
-
-              // ラベルでグループ化
-              if (data.GroupInfo != null)
-              {
-                // メモのポイントでグループ化する処理
-                var list = new List<(FinderRaceHorseItem, short)>();
-
-                ExpansionMemoConfig? memoConfig = null;
-                PointLabelData? labelConfig = null;
-                IReadOnlyList<PointLabelItem>? labelItems = null;
-
-                var tasks = SplitData(3).Select(items =>
+                return Task.Run(async () =>
                 {
-                  return Task.Run(async () =>
-                  {
-                    using var db = new MyContext();
+                  using var db = new MyContext();
 
-                    foreach (var item in items)
+                  foreach (var item in items)
+                  {
+                    if (memoConfig == null)
                     {
+                      memoConfig = MemoUtil.GetMemoConfig(data.GroupInfo.Target1, data.GroupInfo.Target2, data.GroupInfo.Target3, data.GroupInfo.MemoNumber);
                       if (memoConfig == null)
                       {
-                        memoConfig = MemoUtil.GetMemoConfig(data.GroupInfo.Target1, data.GroupInfo.Target2, data.GroupInfo.Target3, data.GroupInfo.MemoNumber);
-                        if (memoConfig == null)
-                        {
-                          break;
-                        }
-                        labelConfig = MemoUtil.GetPointLabelConfig(memoConfig);
-                        labelItems = labelConfig?.GetItems();
+                        break;
                       }
-
-                      var memo = await MemoUtil.GetMemoAsync(db, item.Analyzer.Race, memoConfig, item.Analyzer, false);
-                      if (memo != null)
-                      {
-                        list.Add((item, memo.Point));
-                      }
+                      labelConfig = MemoUtil.GetPointLabelConfig(memoConfig);
+                      labelItems = labelConfig?.GetItems();
                     }
-                  });
-                }).ToArray();
-                await Task.WhenAll(tasks);
 
-                if (labelItems == null)
-                {
-                  groups = list.OrderBy(i => i.Item2).GroupBy(i => (object)i.Item2, i => i.Item1).ToArray();
-                }
-                else
-                {
-                  groups = list.OrderBy(i => i.Item2).GroupBy(i => (object)(labelItems.FirstOrDefault(l => l.Point == i.Item2) ?? (object)string.Empty), i => i.Item1).ToArray();
-                }
-              }
+                    var memo = await MemoUtil.GetMemoAsync(db, item.Analyzer.Race, memoConfig, item.Analyzer, false);
+                    if (memo != null)
+                    {
+                      list.Add((item, memo.Point));
+                    }
+                  }
+                });
+              }).ToArray();
+              await Task.WhenAll(tasks);
 
-              // リスト全体をグループ化
-              if (groups != null)
+              if (labelItems == null)
               {
-                groups = groups.OrderByDescending(g => g.Count()).Take(100);
-
-                IReadOnlyList<FinderRaceHorseGroupItem> g;
-                if (data.GroupKey == QueryKey.RiderCode)
-                {
-                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.RiderName, g)).ToArray();
-                }
-                else if (data.GroupKey == QueryKey.TrainerCode)
-                {
-                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.TrainerName, g)).ToArray();
-                }
-                else if (data.GroupKey == QueryKey.OwnerCode)
-                {
-                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.OwnerName, g)).ToArray();
-                }
-                else if (data.GroupKey == QueryKey.Course)
-                {
-                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.Course.GetName() ?? string.Empty, g)).ToArray();
-                }
-                else if (data.GroupKey == QueryKey.Weather)
-                {
-                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.TrackWeather.ToString() ?? string.Empty, g)).ToArray();
-                }
-                else if (data.GroupKey == QueryKey.Condition)
-                {
-                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.TrackCondition.ToString() ?? string.Empty, g)).ToArray();
-                }
-                else if (data.GroupKey == QueryKey.Grade)
-                {
-                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.Grade.GetLabel() ?? string.Empty, g)).ToArray();
-                }
-                else if (data.GroupKey == QueryKey.HorseKey)
-                {
-                  g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.Name, g)).ToArray();
-                }
-                else
-                {
-                  g = groups.Select(g => new FinderRaceHorseGroupItem(g)).ToArray();
-                }
-                this.UpdateGroups(g);
+                groups = list.OrderBy(i => i.Item2).GroupBy(i => (object)i.Item2, i => i.Item1).ToArray();
               }
               else
               {
-                var group = new FinderRaceHorseGroupItem(allItems);
-                this.UpdateGroups(new[] { group, });
+                groups = list.OrderBy(i => i.Item2).GroupBy(i => (object)(labelItems.FirstOrDefault(l => l.Point == i.Item2) ?? (object)string.Empty), i => i.Item1).ToArray();
               }
+            }
+
+            // リスト全体をグループ化
+            if (groups != null)
+            {
+              groups = groups.OrderByDescending(g => g.Count()).Take(100);
+
+              IReadOnlyList<FinderRaceHorseGroupItem> g;
+              if (data.GroupKey == QueryKey.RiderCode)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.RiderName, g)).ToArray();
+              }
+              else if (data.GroupKey == QueryKey.TrainerCode)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.TrainerName, g)).ToArray();
+              }
+              else if (data.GroupKey == QueryKey.OwnerCode)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.OwnerName, g)).ToArray();
+              }
+              else if (data.GroupKey == QueryKey.Course)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.Course.GetName() ?? string.Empty, g)).ToArray();
+              }
+              else if (data.GroupKey == QueryKey.Weather)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.TrackWeather.ToString() ?? string.Empty, g)).ToArray();
+              }
+              else if (data.GroupKey == QueryKey.Condition)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.TrackCondition.ToString() ?? string.Empty, g)).ToArray();
+              }
+              else if (data.GroupKey == QueryKey.Grade)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Race.Grade.GetLabel() ?? string.Empty, g)).ToArray();
+              }
+              else if (data.GroupKey == QueryKey.HorseKey)
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g.First().Analyzer.Data.Name, g)).ToArray();
+              }
+              else
+              {
+                g = groups.Select(g => new FinderRaceHorseGroupItem(g)).ToArray();
+              }
+              this.UpdateGroups(g);
+            }
+            else
+            {
+              var group = new FinderRaceHorseGroupItem(allItems);
+              this.UpdateGroups(new[] { group, });
             }
           }
         }
         catch (Exception ex)
         {
-
+          logger.Error("検索でエラーが発生しました", ex);
+          this.IsError.Value = true;
         }
         finally
         {

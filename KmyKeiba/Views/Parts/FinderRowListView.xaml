@@ -158,13 +158,18 @@
     </ItemsControl>
     
     <!--ローディング-->
-    <Grid Grid.RowSpan="3" Visibility="{Binding FinderModel.IsLoading.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+    <Grid Grid.RowSpan="4" Visibility="{Binding FinderModel.IsLoading.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
           Background="{StaticResource BaseBackground}">
       <up:MyProgressBar HorizontalAlignment="Center" VerticalAlignment="Center">
         <up:MyProgressBar.RenderTransform>
           <TranslateTransform X="-40" Y="-16"/>
         </up:MyProgressBar.RenderTransform>
       </up:MyProgressBar>
+    </Grid>
+    <Grid Grid.RowSpan="4" Visibility="{Binding FinderModel.IsError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+          Background="{StaticResource BaseBackground}">
+      <TextBlock Foreground="{StaticResource ErrorForeground}" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Text="検索でエラーが発生しました"/>
     </Grid>
   </Grid>
 </UserControl>
