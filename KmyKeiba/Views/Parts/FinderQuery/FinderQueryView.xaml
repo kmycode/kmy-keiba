@@ -439,40 +439,6 @@
               <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Foreground="{StaticResource ErrorForeground}"
                          Text="エラーが発生しました" Visibility="{Binding FinderModel.Input.HorseName.IsTestError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
             </Grid>
-            <StackPanel Grid.Row="1" Margin="0,8,0,0">
-              <StackPanel.Resources>
-                <TransformGroup x:Key="MarkTransform">
-                  <ScaleTransform ScaleX="0.7" ScaleY="0.7"/>
-                  <TranslateTransform X="5" Y="5"/>
-                </TransformGroup>
-                <Style TargetType="ToggleButton" BasedOn="{StaticResource ToggleButtonDefault}">
-                  <Setter Property="Width" Value="40"/>
-                  <Setter Property="Padding" Value="0"/>
-                </Style>
-              </StackPanel.Resources>
-              <TextBlock Text="印" FontSize="20"
-                         Foreground="{Binding FinderModel.Input.Mark.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv2}}"/>
-              <StackPanel Orientation="Horizontal" Margin="1">
-                <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsDoubleCircle.Value,ElementName=Root,Mode=TwoWay}">
-                  <ContentControl Template="{StaticResource MarkDoubleCircle}" RenderTransform="{StaticResource MarkTransform}"/>
-                </ToggleButton>
-                <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsCircle.Value,ElementName=Root,Mode=TwoWay}">
-                  <ContentControl Template="{StaticResource MarkCircle}" RenderTransform="{StaticResource MarkTransform}"/>
-                </ToggleButton>
-                <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsFilledTriangle.Value,ElementName=Root,Mode=TwoWay}">
-                  <ContentControl Template="{StaticResource MarkFilledTriangle}" RenderTransform="{StaticResource MarkTransform}"/>
-                </ToggleButton>
-                <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsTriangle.Value,ElementName=Root,Mode=TwoWay}">
-                  <ContentControl Template="{StaticResource MarkTriangle}" RenderTransform="{StaticResource MarkTransform}"/>
-                </ToggleButton>
-                <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsStar.Value,ElementName=Root,Mode=TwoWay}">
-                  <ContentControl Template="{StaticResource MarkStar}" RenderTransform="{StaticResource MarkTransform}"/>
-                </ToggleButton>
-                <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsDelete.Value,ElementName=Root,Mode=TwoWay}">
-                  <ContentControl Template="{StaticResource MarkDeleted}" RenderTransform="{StaticResource MarkTransform}"/>
-                </ToggleButton>
-              </StackPanel>
-            </StackPanel>
           </Grid>
 
           <Grid Width="100" Margin="16,0,0,0">
@@ -543,6 +509,41 @@
           <Grid Width="100" Margin="8,0,0,0">
             <local:InputListBoxView Header="人気" Input="{Binding FinderModel.Input.Popular,ElementName=Root}"/>
           </Grid>
+          
+          <StackPanel Margin="8,0,0,0">
+            <StackPanel.Resources>
+              <TransformGroup x:Key="MarkTransform">
+                <ScaleTransform ScaleX="0.7" ScaleY="0.7"/>
+                <TranslateTransform X="5" Y="5"/>
+              </TransformGroup>
+              <Style TargetType="ToggleButton" BasedOn="{StaticResource ToggleButtonDefault}">
+                <Setter Property="Width" Value="40"/>
+                <Setter Property="Padding" Value="0"/>
+              </Style>
+            </StackPanel.Resources>
+            <TextBlock Text="印" FontSize="20" Margin="0,0,0,8"
+                       Foreground="{Binding FinderModel.Input.Mark.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv2}}"/>
+            <StackPanel Orientation="Vertical" Margin="1">
+              <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsDoubleCircle.Value,ElementName=Root,Mode=TwoWay}">
+                <ContentControl Template="{StaticResource MarkDoubleCircle}" RenderTransform="{StaticResource MarkTransform}"/>
+              </ToggleButton>
+              <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsCircle.Value,ElementName=Root,Mode=TwoWay}">
+                <ContentControl Template="{StaticResource MarkCircle}" RenderTransform="{StaticResource MarkTransform}"/>
+              </ToggleButton>
+              <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsFilledTriangle.Value,ElementName=Root,Mode=TwoWay}">
+                <ContentControl Template="{StaticResource MarkFilledTriangle}" RenderTransform="{StaticResource MarkTransform}"/>
+              </ToggleButton>
+              <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsTriangle.Value,ElementName=Root,Mode=TwoWay}">
+                <ContentControl Template="{StaticResource MarkTriangle}" RenderTransform="{StaticResource MarkTransform}"/>
+              </ToggleButton>
+              <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsStar.Value,ElementName=Root,Mode=TwoWay}">
+                <ContentControl Template="{StaticResource MarkStar}" RenderTransform="{StaticResource MarkTransform}"/>
+              </ToggleButton>
+              <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsDelete.Value,ElementName=Root,Mode=TwoWay}">
+                <ContentControl Template="{StaticResource MarkDeleted}" RenderTransform="{StaticResource MarkTransform}"/>
+              </ToggleButton>
+            </StackPanel>
+          </StackPanel>
         </StackPanel>
       </ScrollViewer>
 
