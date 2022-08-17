@@ -753,6 +753,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected override string GetQuery()
     {
+      if (this.IsSetCurrentRaceValue.Value || this.IsSetCurrentRaceHorseValue.Value)
+      {
+        return this.Key;
+      }
+
       var query = base.GetQuery();
       var values = this.Items.GetCheckedValues();
 
