@@ -10,7 +10,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Parts"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
-  <Grid>
+  <Grid Visibility="{Binding FinderModel,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="auto"/>
