@@ -867,8 +867,10 @@ namespace KmyKeiba.Downloader
               .Where((r) => r.Key.StartsWith(weather.RaceKeyWithoutRaceNum) && r.StartTime >= weather.ChangeTime)
               .Where(r => r.DataStatus < RaceDataStatus.PreliminaryGrade3)
               .ToArrayAsync();
+            logger.Debug($"Races: {races.Length} / Weather: {weather.Weather} / Condition: {weather.DirtCondition}");
             foreach (var race in races)
             {
+              logger.Debug($"Exist race / Weather: {race.TrackWeather} / Condition: {race.TrackCondition}");
               if (weather.Weather != RaceCourseWeather.Unknown)
               {
                 race.TrackWeather = weather.Weather;
