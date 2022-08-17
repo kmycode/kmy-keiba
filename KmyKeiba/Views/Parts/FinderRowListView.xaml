@@ -12,44 +12,101 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="auto"/>
+      <RowDefinition Height="auto"/>
       <RowDefinition/>
     </Grid.RowDefinitions>
 
     <Grid>
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition/>
-        <ColumnDefinition Width="auto"/>
-      </Grid.ColumnDefinitions>
-      <ComboBox Margin="8,0,0,16" ItemsSource="{Binding FinderModel.HorseGroups,ElementName=Root}"
+      <ComboBox Margin="0,0,0,4" ItemsSource="{Binding FinderModel.HorseGroups,ElementName=Root}" Height="50"
                 SelectedItem="{Binding FinderModel.CurrentGroup.Value,ElementName=Root,Mode=TwoWay}">
         <ComboBox.ItemTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="{Binding GroupKey}" FontSize="24" FontWeight="Bold" VerticalAlignment="Center" Width="140"
-                         Foreground="{Binding Color,Converter={StaticResource MemoColorBrushConv}}"/>
-              <TextBlock Text="件数" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
-              <TextBlock Text="{Binding Grades.AllCount}" FontSize="24" VerticalAlignment="Center" Width="60"/>
-              <TextBlock Text="１着" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
-              <TextBlock Text="{Binding Grades.FirstCount}" FontSize="20" VerticalAlignment="Center" Width="50"/>
-              <TextBlock Text="２着" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
-              <TextBlock Text="{Binding Grades.SecondCount}" FontSize="20" VerticalAlignment="Center" Width="50"/>
-              <TextBlock Text="３着" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
-              <TextBlock Text="{Binding Grades.ThirdCount}" FontSize="20" VerticalAlignment="Center" Width="50"/>
-              <TextBlock Text="勝率" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
-              <TextBlock Text="{Binding Grades.WinRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16" VerticalAlignment="Center" Width="60"/>
-              <TextBlock Text="連対率" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
-              <TextBlock Text="{Binding Grades.TopRatio,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16" VerticalAlignment="Center" Width="60"/>
-              <TextBlock Text="複勝率" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
-              <TextBlock Text="{Binding Grades.PlacingBetsRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16" VerticalAlignment="Center" Width="60"/>
-              <TextBlock Text="回収率" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="16,0,4,0" VerticalAlignment="Center" Width="40"/>
-              <TextBlock Text="{Binding Grades.RecoveryRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16" VerticalAlignment="Center" Width="60"/>
+              <StackPanel.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                  <Setter Property="TextAlignment" Value="Center"/>
+                </Style>
+              </StackPanel.Resources>
+              <TextBlock Text="{Binding GroupKey}" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" Width="130"
+                         Foreground="{Binding Color,Converter={StaticResource MemoColorBrushConv}}" TextAlignment="Left" Margin="4,0,0,0"/>
+              <TextBlock Text="件数" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="12,0,4,4" VerticalAlignment="Bottom" Width="30"/>
+              <TextBlock Text="{Binding Grades.AllCount}" FontSize="22" VerticalAlignment="Center" Width="65" TextAlignment="Left"/>
+              <StackPanel Width="60" VerticalAlignment="Center" Margin="8,0,0,0">
+                <TextBlock Text="１着" Foreground="{StaticResource SubForeground}" FontSize="12" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Grades.FirstCount}" FontSize="18" VerticalAlignment="Center"/>
+              </StackPanel>
+              <StackPanel Width="60" VerticalAlignment="Center">
+                <TextBlock Text="２着" Foreground="{StaticResource SubForeground}" FontSize="12" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Grades.SecondCount}" FontSize="18" VerticalAlignment="Center"/>
+              </StackPanel>
+              <StackPanel Width="60" VerticalAlignment="Center">
+                <TextBlock Text="３着" Foreground="{StaticResource SubForeground}" FontSize="12" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Grades.ThirdCount}" FontSize="18" VerticalAlignment="Center"/>
+              </StackPanel>
+              <StackPanel Width="70" VerticalAlignment="Center">
+                <TextBlock Text="勝率" Foreground="{StaticResource SubForeground}" FontSize="12" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Grades.WinRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="18" VerticalAlignment="Center"/>
+              </StackPanel>
+              <StackPanel Width="70" VerticalAlignment="Center">
+                <TextBlock Text="連対率" Foreground="{StaticResource SubForeground}" FontSize="12" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Grades.TopRatio,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="18" VerticalAlignment="Center"/>
+              </StackPanel>
+              <StackPanel Width="70" VerticalAlignment="Center">
+                <TextBlock Text="複勝率" Foreground="{StaticResource SubForeground}" FontSize="12" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Grades.PlacingBetsRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="18" VerticalAlignment="Center"/>
+              </StackPanel>
+              <StackPanel Width="70" VerticalAlignment="Center">
+                <TextBlock Text="単勝回収率" Foreground="{StaticResource SubForeground}" FontSize="12"/>
+                <TextBlock Text="{Binding Grades.RecoveryRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16"
+                           Foreground="{Binding RecoveryRateComparation,Converter={StaticResource ValueComparationForegroundConv}}"/>
+              </StackPanel>
+              <StackPanel Width="65" VerticalAlignment="Center">
+                <TextBlock Text="複勝" Foreground="{StaticResource SubForeground}" FontSize="12"/>
+                <TextBlock Text="{Binding PlaceBetsRecoveryRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16"
+                           Foreground="{Binding PlaceBetsRRComparation,Converter={StaticResource ValueComparationForegroundConv}}"/>
+              </StackPanel>
+              <StackPanel Width="65" VerticalAlignment="Center">
+                <TextBlock Text="枠連" Foreground="{StaticResource SubForeground}" FontSize="12"/>
+                <TextBlock Text="{Binding FrameRecoveryRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16"
+                           Foreground="{Binding FrameRRComparation,Converter={StaticResource ValueComparationForegroundConv}}"/>
+              </StackPanel>
+              <StackPanel Width="65" VerticalAlignment="Center">
+                <TextBlock Text="ワイド" Foreground="{StaticResource SubForeground}" FontSize="12"/>
+                <TextBlock Text="{Binding QuinellaPlaceRecoveryRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16"
+                           Foreground="{Binding QuinellaPlaceRRComparation,Converter={StaticResource ValueComparationForegroundConv}}"/>
+              </StackPanel>
+              <StackPanel Width="65" VerticalAlignment="Center">
+                <TextBlock Text="馬連" Foreground="{StaticResource SubForeground}" FontSize="12"/>
+                <TextBlock Text="{Binding QuinellaRecoveryRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16"
+                           Foreground="{Binding QuinellaRRComparation,Converter={StaticResource ValueComparationForegroundConv}}"/>
+              </StackPanel>
+              <StackPanel Width="65" VerticalAlignment="Center">
+                <TextBlock Text="馬単" Foreground="{StaticResource SubForeground}" FontSize="12"/>
+                <TextBlock Text="{Binding ExactaRecoveryRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16"
+                           Foreground="{Binding ExactaRRComparation,Converter={StaticResource ValueComparationForegroundConv}}"/>
+              </StackPanel>
+              <StackPanel Width="65" VerticalAlignment="Center">
+                <TextBlock Text="三連複" Foreground="{StaticResource SubForeground}" FontSize="12"/>
+                <TextBlock Text="{Binding TrioRecoveryRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16"
+                           Foreground="{Binding TrioRRComparation,Converter={StaticResource ValueComparationForegroundConv}}"/>
+              </StackPanel>
+              <StackPanel Width="65" VerticalAlignment="Center">
+                <TextBlock Text="三連単" Foreground="{StaticResource SubForeground}" FontSize="12"/>
+                <TextBlock Text="{Binding TrifectaRecoveryRate,Converter={StaticResource StringFormatConv},ConverterParameter=P1}" FontSize="16"
+                           Foreground="{Binding TrifectaRRComparation,Converter={StaticResource ValueComparationForegroundConv}}"/>
+              </StackPanel>
             </StackPanel>
           </DataTemplate>
         </ComboBox.ItemTemplate>
       </ComboBox>
     </Grid>
 
-    <ItemsControl Grid.Row="1" ItemsSource="{Binding FinderModel.Columns.Value,ElementName=Root}">
+    <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right" Margin="0,2,4,2"
+                Visibility="Hidden">
+      <ToggleButton FontSize="16" Padding="2" Content="1" Width="40"/>
+    </StackPanel>
+
+    <ItemsControl Grid.Row="2" ItemsSource="{Binding FinderModel.Columns.Value,ElementName=Root}">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <StackPanel Orientation="Horizontal"/>
@@ -64,7 +121,7 @@
     </ItemsControl>
 
     <ItemsControl ItemsSource="{Binding FinderModel.CurrentGroup.Value.Rows,ElementName=Root}" Style="{StaticResource TableList}"
-                  Grid.Row="2">
+                  Grid.Row="3">
       <ItemsControl.ItemTemplate>
         <DataTemplate>
           <Grid Margin="0,0,0,4">

@@ -22,7 +22,17 @@ namespace KmyKeiba.Models.Race.Finder
 
     public int PlaceBetsPayoff { get; }
 
+    public int FramePayoff { get; }
+
     public int QuinellaPlacePayoff { get; }
+
+    public int QuinellaPayoff { get; }
+
+    public int ExactaPayoff { get; }
+
+    public int TrioPayoff { get; }
+
+    public int TrifectaPayoff { get; }
 
     public FinderRaceHorseItem(RaceHorseAnalyzer analyzer, RefundData? payoff)
     {
@@ -41,10 +51,20 @@ namespace KmyKeiba.Models.Race.Finder
       this.Payoff = payoff;
       if (payoff != null)
       {
-        this.PlaceBetsPayoff = payoff.GetPlaceBetsResults()
+        this.PlaceBetsPayoff = payoff.GetPlaceBetsAsList()
           .FirstOrDefault(i => i.Item1 == analyzer.Data.Number).Item2;
-        this.QuinellaPlacePayoff = payoff.GetQuinellaPlaceResults()
+        this.FramePayoff = payoff.GetFrameNumberAsList()
+          .FirstOrDefault(i => i.Item1 == analyzer.Data.FrameNumber || i.Item2 == analyzer.Data.FrameNumber).Item3;
+        this.QuinellaPlacePayoff = payoff.GetQuinellaPlaceAsList()
           .FirstOrDefault(i => i.Item1 == analyzer.Data.Number || i.Item2 == analyzer.Data.Number).Item3;
+        this.QuinellaPayoff = payoff.GetQuinellaAsList()
+          .FirstOrDefault(i => i.Item1 == analyzer.Data.Number || i.Item2 == analyzer.Data.Number).Item3;
+        this.ExactaPayoff = payoff.GetExactaAsList()
+          .FirstOrDefault(i => i.Item1 == analyzer.Data.Number || i.Item2 == analyzer.Data.Number).Item3;
+        this.TrioPayoff = payoff.GetTrioAsList()
+          .FirstOrDefault(i => i.Item1 == analyzer.Data.Number || i.Item2 == analyzer.Data.Number || i.Item3 == analyzer.Data.Number).Item4;
+        this.TrifectaPayoff = payoff.GetTrifectaAsList()
+          .FirstOrDefault(i => i.Item1 == analyzer.Data.Number || i.Item2 == analyzer.Data.Number || i.Item3 == analyzer.Data.Number).Item4;
       }
     }
   }

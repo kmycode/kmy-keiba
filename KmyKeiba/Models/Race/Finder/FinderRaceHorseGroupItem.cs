@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using Reactive.Bindings;
 using System;
@@ -22,9 +23,35 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ResultOrderGradeMap Grades { get; }
 
+    public ValueComparation RecoveryRateComparation { get; }
+
     public double PlaceBetsRecoveryRate { get; }
 
+    public ValueComparation PlaceBetsRRComparation { get; }
+
+    public double FrameRecoveryRate { get; }
+
+    public ValueComparation FrameRRComparation { get; }
+
     public double QuinellaPlaceRecoveryRate { get; }
+
+    public ValueComparation QuinellaPlaceRRComparation { get; }
+
+    public double QuinellaRecoveryRate { get; }
+
+    public ValueComparation QuinellaRRComparation { get; }
+
+    public double ExactaRecoveryRate { get; }
+
+    public ValueComparation ExactaRRComparation { get; }
+
+    public double TrioRecoveryRate { get; }
+
+    public ValueComparation TrioRRComparation { get; }
+
+    public double TrifectaRecoveryRate { get; }
+
+    public ValueComparation TrifectaRRComparation { get; }
 
     public FinderRaceHorseGroupItem(string key, IEnumerable<FinderRaceHorseItem> group)
     {
@@ -36,11 +63,36 @@ namespace KmyKeiba.Models.Race.Finder
         this.Items.Add(item);
       }
 
-      if (group.Any())
+      var targets = group.Where(s => s.Analyzer.Data.AbnormalResult == RaceAbnormality.Unknown &&
+        s.Analyzer.Race.DataStatus != RaceDataStatus.Canceled && s.Analyzer.Race.DataStatus != RaceDataStatus.Delete).ToArray();
+      if (targets.Any())
       {
-        this.PlaceBetsRecoveryRate = group.Sum(g => g.PlaceBetsPayoff) / ((double)group.Count() * 100);
-        this.QuinellaPlaceRecoveryRate = group.Sum(g => g.QuinellaPlacePayoff) /
-          (double)(group.Sum(g => g.Analyzer.Race.ResultHorsesCount > 0 ? g.Analyzer.Race.ResultHorsesCount : g.Analyzer.Race.HorsesCount) * 100);
+        var won = targets.Where(s => s.Analyzer.Data.ResultOrder == 1 && s.Analyzer.Data.Odds != default);
+        Func<RaceData, short> horsesCount = g => g.ResultHorsesCount > 0 ? g.ResultHorsesCount : g.HorsesCount;
+
+        // 複数馬の絡むものは全流しで
+        this.PlaceBetsRecoveryRate = targets.Sum(g => g.PlaceBetsPayoff) / ((double)targets.Length * 100);
+        this.FrameRecoveryRate = targets.Sum(g => g.FramePayoff) /
+          (double)(group.Sum(g => Math.Min(horsesCount(g.Analyzer.Race), (short)8) * 100));
+        this.QuinellaPlaceRecoveryRate = targets.Sum(g => g.QuinellaPlacePayoff) /
+          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * 100));
+        this.QuinellaRecoveryRate = targets.Sum(g => g.QuinellaPayoff) /
+          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * 100));
+        this.ExactaRecoveryRate = targets.Sum(g => g.ExactaPayoff) /
+          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * 100 * 2));
+        this.TrioRecoveryRate = targets.Sum(g => g.TrioPayoff) /
+          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) * 100));
+        this.TrifectaRecoveryRate = targets.Sum(g => g.TrifectaPayoff) /
+          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) * 100 * 6));
+
+        this.RecoveryRateComparation = AnalysisUtil.CompareValue(this.Grades.RecoveryRate, 1, 0.7);
+        this.PlaceBetsRRComparation = AnalysisUtil.CompareValue(this.PlaceBetsRecoveryRate, 1, 0.7);
+        this.FrameRRComparation = AnalysisUtil.CompareValue(this.FrameRecoveryRate, 1, 0.7);
+        this.QuinellaPlaceRRComparation = AnalysisUtil.CompareValue(this.QuinellaPlaceRecoveryRate, 1, 0.7);
+        this.QuinellaRRComparation = AnalysisUtil.CompareValue(this.QuinellaRecoveryRate, 1, 0.7);
+        this.ExactaRRComparation = AnalysisUtil.CompareValue(this.ExactaRecoveryRate, 1, 0.7);
+        this.TrioRRComparation = AnalysisUtil.CompareValue(this.TrioRecoveryRate, 1, 0.7);
+        this.TrifectaRRComparation = AnalysisUtil.CompareValue(this.TrifectaRecoveryRate, 1, 0.7);
       }
     }
 
