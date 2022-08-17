@@ -87,12 +87,12 @@ namespace KmyKeiba.Models.Race.Finder
 
         this.RecoveryRateComparation = AnalysisUtil.CompareValue(this.Grades.RecoveryRate, 1, 0.7);
         this.PlaceBetsRRComparation = AnalysisUtil.CompareValue(this.PlaceBetsRecoveryRate, 1, 0.7);
-        this.FrameRRComparation = AnalysisUtil.CompareValue(this.FrameRecoveryRate, 1, 0.7);
-        this.QuinellaPlaceRRComparation = AnalysisUtil.CompareValue(this.QuinellaPlaceRecoveryRate, 1, 0.7);
-        this.QuinellaRRComparation = AnalysisUtil.CompareValue(this.QuinellaRecoveryRate, 1, 0.7);
-        this.ExactaRRComparation = AnalysisUtil.CompareValue(this.ExactaRecoveryRate, 1, 0.7);
-        this.TrioRRComparation = AnalysisUtil.CompareValue(this.TrioRecoveryRate, 1, 0.7);
-        this.TrifectaRRComparation = AnalysisUtil.CompareValue(this.TrifectaRecoveryRate, 1, 0.7);
+        this.FrameRRComparation = AnalysisUtil.CompareValue(this.FrameRecoveryRate, 0.9, 0.6);
+        this.QuinellaPlaceRRComparation = AnalysisUtil.CompareValue(this.QuinellaPlaceRecoveryRate, 0.9, 0.6);
+        this.QuinellaRRComparation = AnalysisUtil.CompareValue(this.QuinellaRecoveryRate, 0.9, 0.6);
+        this.ExactaRRComparation = AnalysisUtil.CompareValue(this.ExactaRecoveryRate, 0.9, 0.6);
+        this.TrioRRComparation = AnalysisUtil.CompareValue(this.TrioRecoveryRate, 0.85, 0.5);
+        this.TrifectaRRComparation = AnalysisUtil.CompareValue(this.TrifectaRecoveryRate, 0.85, 0.5);
       }
     }
 
