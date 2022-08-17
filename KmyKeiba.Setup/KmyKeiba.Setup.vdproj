@@ -3843,7 +3843,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=3.2.0.0, Culture=neutral, processorArchitecture=x86"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=3.2.1.0, Culture=neutral, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
                     "_0DE5948B8B144D90AAEB705FDBC9E3EC"
@@ -4825,7 +4825,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.JVLink, Version=3.2.0.0, Culture=neutral, processorArchitecture=x86"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.JVLink, Version=3.2.1.0, Culture=neutral, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
                     "_36B170CDE6D9A6B642C60BE931C3284C"
@@ -5634,7 +5634,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=3.2.0.0, Culture=neutral, processorArchitecture=x86"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=3.2.1.0, Culture=neutral, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
                     "_5CB31FF75211872D1B4FEED265A1573E"
@@ -5922,7 +5922,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba, Version=3.2.0.0, Culture=neutral, processorArchitecture=AMD64"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba, Version=3.2.1.0, Culture=neutral, processorArchitecture=AMD64"
                 "ScatterAssemblies"
                 {
                     "_6890ADF7995B4C56B5B8227009938BC4"
@@ -6536,7 +6536,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.Downloader, Version=3.2.0.0, Culture=neutral, processorArchitecture=x86"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.Downloader, Version=3.2.1.0, Culture=neutral, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
                     "_74DA06997610480B96D8DBEEEC4AD8CE"
@@ -8977,7 +8977,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=3.2.0.0, Culture=neutral, processorArchitecture=AMD64"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=3.2.1.0, Culture=neutral, processorArchitecture=AMD64"
                 "ScatterAssemblies"
                 {
                     "_CF603FEA7D9345759B8ECFF7331C4660"
@@ -9802,7 +9802,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.ML, Version=3.2.0.0, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.ML, Version=3.2.1.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_F0BD0E1E528E436B81426E477DC18C2D"
@@ -10618,15 +10618,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:KMY競馬"
-        "ProductCode" = "8:{F7A50C9A-56E9-41AF-A718-2C4BDB22D7E5}"
-        "PackageCode" = "8:{6D50C42B-3B1E-4D87-AEC4-837914CCAD35}"
+        "ProductCode" = "8:{2902ED52-34E3-42C0-A0C3-D4FC4B43C6B2}"
+        "PackageCode" = "8:{CDDD9C00-1BDB-4F09-AC97-1D735B6DAABC}"
         "UpgradeCode" = "8:{C4229F39-C86E-4932-846F-5AAB816B4C5C}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:3.2.0"
+        "ProductVersion" = "8:3.2.1"
         "Manufacturer" = "8:KMYsofts"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:https://github.com/kmycode/kmy-keiba/wiki"

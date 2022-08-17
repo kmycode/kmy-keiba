@@ -246,6 +246,11 @@
           <TextBlock Text="{Binding RaceHorse.Data.Name,ElementName=Root}" FontSize="36" FontWeight="Bold"/>
           <ItemsControl ItemsSource="{Binding RaceHorse.BloodSelectors.GenerationInfos,ElementName=Root}"
                         VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="4,2">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Vertical"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <StackPanel Orientation="Horizontal">

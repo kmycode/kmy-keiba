@@ -138,11 +138,11 @@ namespace KmyKeiba.Models.Analysis
           this.FourthGenerations.Clear();
           this.FifthGenerations.Clear();
           this.SixthGenerations.Clear();
-          foreach (var item in old.FifthGenerations)
+          foreach (var item in old.FourthGenerations)
           {
             this.FourthGenerations.Add(item);
           }
-          foreach (var item in old.FourthGenerations)
+          foreach (var item in old.FifthGenerations)
           {
             this.FifthGenerations.Add(item);
           }

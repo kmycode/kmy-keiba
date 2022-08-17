@@ -105,15 +105,15 @@
   </Style>
   <Style TargetType="ToggleButton" BasedOn="{StaticResource ToggleButtonDefault}"/>
   <Style TargetType="Button" x:Key="ListItemButton" BasedOn="{StaticResource ButtonDefault}">
-    <Setter Property="Background" Value="{x:Null}"/>
+    <Setter Property="Background" Value="Transparent"/>
   </Style>
   <Style TargetType="ToggleButton" x:Key="ListItemToggle" BasedOn="{StaticResource ToggleButtonDefault}">
-    <Setter Property="Background" Value="{x:Null}"/>
+    <Setter Property="Background" Value="Transparent"/>
   </Style>
   <Style TargetType="ToggleButton" x:Key="ListItemToggleNotDisabled" BasedOn="{StaticResource ListItemToggle}">
     <Style.Triggers>
       <Trigger Property="IsEnabled" Value="False">
-        <Setter Property="Background" Value="{x:Null}"/>
+        <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{StaticResource BaseForeground}"/>
         <Setter Property="Opacity" Value="1"/>
       </Trigger>
