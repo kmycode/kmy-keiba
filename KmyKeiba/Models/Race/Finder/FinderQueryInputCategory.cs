@@ -1671,6 +1671,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsDelete { get; } = new();
 
+    public ReactiveProperty<bool> IsDefault { get; } = new();
+
     public HorseMarkInputCategory()
     {
       this.IsDoubleCircle.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
@@ -1679,6 +1681,7 @@ namespace KmyKeiba.Models.Race.Finder
       this.IsTriangle.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsStar.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsDelete.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsDefault.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
     }
 
     protected override string GetQuery()
@@ -1690,6 +1693,7 @@ namespace KmyKeiba.Models.Race.Finder
       if (this.IsTriangle.Value) values.Add(RaceHorseMark.Triangle);
       if (this.IsStar.Value) values.Add(RaceHorseMark.Star);
       if (this.IsDelete.Value) values.Add(RaceHorseMark.Deleted);
+      if (this.IsDefault.Value) values.Add(RaceHorseMark.Default);
 
       if (!values.Any())
       {

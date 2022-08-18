@@ -524,6 +524,9 @@
             <TextBlock Text="印" FontSize="20" Margin="0,0,0,8"
                        Foreground="{Binding FinderModel.Input.Mark.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv2}}"/>
             <StackPanel Orientation="Vertical" Margin="1">
+              <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsDelete.Value,ElementName=Root,Mode=TwoWay}">
+                <ContentControl Template="{StaticResource MarkDefault}" RenderTransform="{StaticResource MarkTransform}"/>
+              </ToggleButton>
               <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsDoubleCircle.Value,ElementName=Root,Mode=TwoWay}">
                 <ContentControl Template="{StaticResource MarkDoubleCircle}" RenderTransform="{StaticResource MarkTransform}"/>
               </ToggleButton>
