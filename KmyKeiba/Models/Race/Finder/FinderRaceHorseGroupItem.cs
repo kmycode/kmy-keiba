@@ -81,9 +81,9 @@ namespace KmyKeiba.Models.Race.Finder
         this.ExactaRecoveryRate = targets.Sum(g => g.ExactaPayoff) /
           (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * 100 * 2));
         this.TrioRecoveryRate = targets.Sum(g => g.TrioPayoff) /
-          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) * 100));
+          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) / 2 * 100));
         this.TrifectaRecoveryRate = targets.Sum(g => g.TrifectaPayoff) /
-          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) * 100 * 6));
+          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) * 100 * 3));
 
         this.RecoveryRateComparation = AnalysisUtil.CompareValue(this.Grades.RecoveryRate, 1, 0.7);
         this.PlaceBetsRRComparation = AnalysisUtil.CompareValue(this.PlaceBetsRecoveryRate, 1, 0.7);
