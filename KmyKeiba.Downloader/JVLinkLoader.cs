@@ -896,6 +896,24 @@ namespace KmyKeiba.Downloader
               }
             }
 
+            // 天候馬場がなぜか正しい情報が配信されないようなので、その日にすでにレースをやっていればその情報に置き換える
+            // （上記のコードは実質デッドコードになる）
+            var todayKey = today.ToString("yyyyMMdd");
+            var todayRaces = await db.Races!.Where(r => r.Key.StartsWith(todayKey)).ToArrayAsync();
+            foreach (var courseRaces in todayRaces
+              .OrderBy(r => r.CourseRaceNumber)
+              .GroupBy(r => r.Course))
+            {
+              // 馬場状態は芝、ダート別に発表されるが、もうごっちゃでよくない
+              var lastRace = courseRaces.LastOrDefault(r => r.DataStatus >= RaceDataStatus.PreliminaryGradeFull);
+              var nextRace = courseRaces.FirstOrDefault(r => r.DataStatus < RaceDataStatus.PreliminaryGradeFull);
+              if (lastRace != null && nextRace != null)
+              {
+                nextRace.TrackWeather = lastRace.TrackWeather;
+                nextRace.TrackCondition = lastRace.TrackCondition;
+              }
+            }
+
             this.Processed++;
             Program.CheckShutdown(db);
           }
