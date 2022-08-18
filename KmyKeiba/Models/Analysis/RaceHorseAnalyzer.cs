@@ -301,7 +301,7 @@ namespace KmyKeiba.Models.Analysis
             if (data.CurrentRace != null)
             {
               order = 0;
-              foreach (var sameHorse in data.CurrentRace.TopHorses.Where(h => h.ResultOrder < data.Data.ResultOrder && h.ResultOrder > 0))
+              foreach (var sameHorse in data.CurrentRace.TopHorses.Where(h => h.ResultOrder <= data.Data.ResultOrder && h.ResultOrder > 0))
               {
                 order++;
               }
