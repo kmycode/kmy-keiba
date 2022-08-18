@@ -906,11 +906,14 @@ namespace KmyKeiba.Downloader
             {
               // 馬場状態は芝、ダート別に発表されるが、もうごっちゃでよくない
               var lastRace = courseRaces.LastOrDefault(r => r.DataStatus >= RaceDataStatus.PreliminaryGradeFull);
-              var nextRace = courseRaces.FirstOrDefault(r => r.DataStatus < RaceDataStatus.PreliminaryGradeFull);
-              if (lastRace != null && nextRace != null)
+              var nextRaces = courseRaces.Where(r => r.DataStatus < RaceDataStatus.PreliminaryGradeFull);
+              if (lastRace != null)
               {
-                nextRace.TrackWeather = lastRace.TrackWeather;
-                nextRace.TrackCondition = lastRace.TrackCondition;
+                foreach (var nextRace in nextRaces)
+                {
+                  nextRace.TrackWeather = lastRace.TrackWeather;
+                  nextRace.TrackCondition = lastRace.TrackCondition;
+                }
               }
             }
 
