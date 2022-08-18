@@ -318,7 +318,7 @@ namespace KmyKeiba.Models.Race
           }
           else
           {
-            await this.ActiveHorse.Value.BloodSelectors.UpdateGenerationRatesAsync();
+            this.ActiveHorse.Value.BloodSelectors?.UpdateGenerationRates();
           }
 
           var timeout = 0;
@@ -629,6 +629,7 @@ namespace KmyKeiba.Models.Race
         {
           var cache = RaceInfoCacheManager.TryGetCache(race.Key);
           await FinderConfigUtil.InitializeAsync(db);
+          await Race.AnalysisTable.AnalysisTableUtil.InitializeAsync(db);
 
           var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == race.Key).ToArrayAsync();
           logger.Info($"馬の数: {horses.Length}, レース情報に記録されている馬の数: {race.HorsesCount}");
@@ -790,7 +791,7 @@ namespace KmyKeiba.Models.Race
           logger.Debug($"最新情報の数: {changes.Length}");
 
           // 分析テーブル
-          var analysisTables = new List<AnalysisTable>();
+          var analysisTables = new List<Analysis.Table.AnalysisTable>();
           foreach (var table in ApplicationConfiguration.Current.Value.AnalysisTableGenerators)
           {
             analysisTables.Add(await table.GenerateAsync(info));

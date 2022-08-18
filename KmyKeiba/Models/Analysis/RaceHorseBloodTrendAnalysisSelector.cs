@@ -75,7 +75,7 @@ namespace KmyKeiba.Models.Analysis
             await CheckHorseUtil.UncheckAsync(db, item.Key, HorseCheckType.CheckBlood);
           }
 
-          await this.UpdateGenerationRatesAsync();
+          this.UpdateGenerationRates();
         }
         catch (Exception ex)
         {
@@ -412,6 +412,15 @@ namespace KmyKeiba.Models.Analysis
         {
           await SetGenerationsAsync(item.Selector.BloodKey, index);
         }
+        else
+        {
+          arr4![index * 2] = new GeneralBloodItem();
+          arr4![index * 2 + 1] = new GeneralBloodItem();
+          arr5![index * 4] = new GeneralBloodItem();
+          arr5![index * 4 + 1] = new GeneralBloodItem();
+          arr5![index * 4 + 2] = new GeneralBloodItem();
+          arr5![index * 4 + 3] = new GeneralBloodItem();
+        }
       }
 
       await SetTypeAsync(0, BloodType.FatherFatherFather);
@@ -440,13 +449,13 @@ namespace KmyKeiba.Models.Analysis
         {
           this.SixthGenerations.Add(item);
         }
-      });
 
-      await this.UpdateGenerationRatesAsync();
+        this.UpdateGenerationRates();
+      });
     }
 
     private bool _isCheckingGenerationRates;
-    public async Task UpdateGenerationRatesAsync()
+    public void UpdateGenerationRates()
     {
       if (this._isCheckingGenerationRates)
       {
@@ -585,6 +594,8 @@ namespace KmyKeiba.Models.Analysis
       public string Key { get; init; } = string.Empty;
 
       public bool IsMale { get; init; }
+
+      public bool IsDisabled => string.IsNullOrEmpty(this.Key);
     }
 
     public class GenerationBloodItem

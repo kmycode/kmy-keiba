@@ -16,6 +16,8 @@
     </Border.ToolTip>
     -->
     <ToggleButton IsChecked="{Binding Item.IsChecked.Value,ElementName=Root,Mode=TwoWay}"
+                  IsEnabled="{Binding Item.IsDisabled,ElementName=Root,Converter={StaticResource NegativeConv}}"
+                  Visibility="{Binding Item,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"
                   FontSize="32">
       <ToggleButton.Style>
         <Style TargetType="ToggleButton" BasedOn="{StaticResource ListItemToggleNotDisabled}">
