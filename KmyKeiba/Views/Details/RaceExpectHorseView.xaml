@@ -225,7 +225,8 @@
     </Grid>
 
     <!-- 血統 -->
-    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseBlood,Converter={StaticResource BooleanVisibilityConv}}">
+    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseBlood,Converter={StaticResource BooleanVisibilityConv}}"
+          IsEnabled="{Binding CanSave.Value}">
       <Grid.RowDefinitions>
         <RowDefinition/>
         <RowDefinition/>

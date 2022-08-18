@@ -18,7 +18,7 @@
     <ToggleButton IsChecked="{Binding Item.IsChecked.Value,ElementName=Root,Mode=TwoWay}"
                   FontSize="32">
       <ToggleButton.Style>
-        <Style TargetType="ToggleButton" BasedOn="{StaticResource ListItemToggle}">
+        <Style TargetType="ToggleButton" BasedOn="{StaticResource ListItemToggleNotDisabled}">
           <Style.Triggers>
             <Trigger Property="IsChecked" Value="True">
               <Setter Property="Background" Value="#4400ffff"/>
