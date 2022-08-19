@@ -218,6 +218,10 @@ namespace KmyKeiba.Models.Race
           // 現在のレースを更新した場合、必要な情報を記録する
           var oldSelectedHorseId = 0u;
           var oldInfo = this.Info.Value;
+          if (oldInfo != null)
+          {
+            oldInfo.UpdateCache();
+          }
           if (oldInfo != null && oldInfo.Data.Key == key)
           {
             if (!this.IsSelectedAllHorses.Value)

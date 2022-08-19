@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Generic;
+using KmyKeiba.Models.Analysis.Math;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race.Memo;
@@ -20,9 +21,7 @@ namespace KmyKeiba.Models.Race.Finder
 {
   public class RaceFinder
   {
-    // 外部指数の更新に対応できない＆検索速度が改善傾向にある＆キャッシュを使ったところで速度向上の実感がないので、
-    // キャッシュはとらないか別途慎重に検討する
-    //private Dictionary<string, (int, IReadOnlyList<RaceHorseAnalyzer>)> _raceHorseCaches = new();
+    private Dictionary<string, (int, RaceHorseFinderQueryResult)> _raceHorseCaches = new();
     private Dictionary<string, (int, IReadOnlyList<RaceAnalyzer>)> _raceCaches = new();
 
     public string Name => this.Subject.DisplayName;
@@ -47,13 +46,16 @@ namespace KmyKeiba.Models.Race.Finder
       this.RaceHorse = raceHorse;
     }
 
+    public static RaceFinder CopyFrom(RaceFinder old, RaceData? race = null, RaceHorseData raceHorse = null)
+    {
+      var finder = new RaceFinder(race, raceHorse);
+      finder._raceHorseCaches = old._raceHorseCaches;
+      finder._raceCaches = old._raceCaches;
+      return finder;
+    }
+
     public async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false)
     {
-      //if (withoutFutureRaces && this._raceHorseCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
-      //{
-      //  return new FinderQueryResult<RaceHorseAnalyzer>(cache.Item2, QueryKey.Unknown, null);
-      //}
-
       using var db = new MyContext();
       var reader = new ScriptKeysReader(keys);
 
@@ -63,8 +65,19 @@ namespace KmyKeiba.Models.Race.Finder
       if (raceQueries.IsContainsFutureRaces && !withoutFutureRacesForce) withoutFutureRaces = false;
 
       IQueryable<RaceData> races = db.Races!;
-      if (withoutFutureRaces)
+      if (raceQueries.IsCurrentRaceOnly && this.Race != null)
       {
+        races = races.Where(r => r.Key == this.Race.Key);
+      }
+      else if (withoutFutureRaces)
+      {
+        // キャッシュはここで返す
+        if (withoutFutureRaces && !raceQueries.IsRealtimeResult &&
+          this._raceHorseCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
+        {
+          return cache.Item2;
+        }
+
         if (this.Race != null)
         {
           races = races.Where(r => r.StartTime < this.Race.StartTime);
@@ -110,12 +123,31 @@ namespace KmyKeiba.Models.Race.Finder
             raceHorsesData.Where(rh => rh.RaceKey == race.Race.Key).ToArray(),
             await AnalysisUtil.GetRaceStandardTimeAsync(db, race.Race)));
       }
-      if (withoutFutureRaces && this.IsCache(keys))
+
+      var result = new RaceHorseFinderQueryResult(list, raceQueries.GroupKey, raceQueries.MemoGroupInfo, refunds);
+      if (withoutFutureRaces && !raceQueries.IsRealtimeResult)
       {
-      //  this._raceHorseCaches[keys] = (sizeMax, list);
+        this._raceHorseCaches[keys] = (sizeMax, result);
       }
 
-      return new RaceHorseFinderQueryResult(list, raceQueries.GroupKey, raceQueries.MemoGroupInfo, refunds);
+      return result;
+    }
+
+    public RaceHorseFinderQueryResult? TryFindRaceHorseCache(string keys)
+    {
+      var reader = new ScriptKeysReader(keys);
+      var raceQueries = reader.GetQueries(this.Race, this.RaceHorse);
+
+      if (!raceQueries.IsRealtimeResult && this._raceHorseCaches.TryGetValue(keys, out var cache))
+      {
+        return cache.Item2;
+      }
+      return null;
+    }
+
+    public bool HasRaceHorseCache(string keys)
+    {
+      return this.TryFindRaceHorseCache(keys) != null;
     }
 
     public async Task<FinderQueryResult<RaceAnalyzer>> FindRacesAsync(string keys, int sizeMax, int offset = 0, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false)
@@ -162,30 +194,12 @@ namespace KmyKeiba.Models.Race.Finder
       {
         list.Add(new RaceAnalyzer(race, Array.Empty<RaceHorseData>(), await AnalysisUtil.GetRaceStandardTimeAsync(db, race)));
       }
-      if (withoutFutureRaces && this.IsCache(keys))
+      if (withoutFutureRaces && !raceQueries.IsRealtimeResult)
       {
         this._raceCaches[keys] = (sizeMax, list);
       }
 
       return new FinderQueryResult<RaceAnalyzer>(list, raceQueries.GroupKey, raceQueries.MemoGroupInfo);
-    }
-
-    private bool IsCache(string keys)
-    {
-      // ここから先は結果が変わりようがないのでキャッシュ対象
-      if (this.Race == null || this.Race.DataStatus >= RaceDataStatus.PreliminaryGrade3)
-      {
-        return true;
-      }
-
-      // 単に「popular」とだけ書いてあって条件式が指定されていないものは、現在のオッズを参照するのでキャッシュ不可
-      var keysArr = keys.Split('|');
-      if (keysArr.Contains("popular") || keysArr.Contains("odds") || keysArr.Contains("placeoddsmin") || keysArr.Contains("placeoddsmax"))
-      {
-        return false;
-      }
-
-      return true;
     }
 
     public RaceHorseTrendAnalysisSelectorWrapper AsTrendAnalysisSelector()
@@ -231,6 +245,9 @@ namespace KmyKeiba.Models.Race.Finder
   public class RaceHorseFinderQueryResult : FinderQueryResult<RaceHorseAnalyzer>
   {
     private readonly IReadOnlyList<RefundData> _refunds;
+    private RaceHorseFinderResultAnalyzer? _analyzer;
+
+    public RaceHorseFinderResultAnalyzer Analyzer => this._analyzer ??= new RaceHorseFinderResultAnalyzer(this);
 
     internal RaceHorseFinderQueryResult(
       IReadOnlyList<RaceHorseAnalyzer> items, QueryKey group, ScriptKeysMemoGroupInfo? groupInfo,
@@ -246,6 +263,119 @@ namespace KmyKeiba.Models.Race.Finder
         .GroupJoin(this._refunds, i => i.Race.Key, r => r.RaceKey, (i, rs) => new { Analyzer = i, Refund = rs.FirstOrDefault(), })
         .Select(d => new FinderRaceHorseItem(d.Analyzer, d.Refund))
         .ToArray();
+    }
+  }
+
+  public class RaceHorseFinderResultAnalyzer
+  {
+    public double DisturbanceRate { get; }
+
+    public double TimeDeviationValue { get; }
+
+    public double A3HTimeDeviationValue { get; }
+
+    public double UntilA3HTimeDeviationValue { get; }
+
+    public double RecoveryRate { get; }
+
+    public ResultOrderGradeMap AllGrade { get; }
+
+    public ValueComparation RecoveryRateComparation { get; }
+
+    public double PlaceBetsRecoveryRate { get; }
+
+    public ValueComparation PlaceBetsRRComparation { get; }
+
+    public double FrameRecoveryRate { get; }
+
+    public ValueComparation FrameRRComparation { get; }
+
+    public double QuinellaPlaceRecoveryRate { get; }
+
+    public ValueComparation QuinellaPlaceRRComparation { get; }
+
+    public double QuinellaRecoveryRate { get; }
+
+    public ValueComparation QuinellaRRComparation { get; }
+
+    public double ExactaRecoveryRate { get; }
+
+    public ValueComparation ExactaRRComparation { get; }
+
+    public double TrioRecoveryRate { get; }
+
+    public ValueComparation TrioRRComparation { get; }
+
+    public double TrifectaRecoveryRate { get; }
+
+    public ValueComparation TrifectaRRComparation { get; }
+
+    public RaceHorseFinderResultAnalyzer(RaceHorseFinderQueryResult source) : this(source.AsItems())
+    {
+    }
+
+    public RaceHorseFinderResultAnalyzer(IReadOnlyList<FinderRaceHorseItem> source)
+    {
+      var items = source;
+
+      var sourceItems = items.Select(i => i.Analyzer).ToArray();
+      var count = sourceItems.Length;
+
+      if (count > 0)
+      {
+        // 分析
+        this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(sourceItems);
+
+        var timePoint = new StatisticSingleArray(sourceItems.Select(h => h.ResultTimeDeviationValue).Where(v => v != default).ToArray());
+        var a3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.A3HResultTimeDeviationValue).Where(v => v != default).ToArray());
+        var ua3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.UntilA3HResultTimeDeviationValue).Where(v => v != default).ToArray());
+        this.TimeDeviationValue = timePoint.Median;
+        this.A3HTimeDeviationValue = a3htimePoint.Median;
+        this.UntilA3HTimeDeviationValue = ua3htimePoint.Median;
+
+        var validRaces = sourceItems.Where(r => r.Data.ResultOrder != 0);
+        var sourceArr = sourceItems.Select(s => s.Data).ToArray();
+        this.AllGrade = new ResultOrderGradeMap(sourceItems);
+
+        // 回収率
+        if (sourceItems.Any(s => s.Data.ResultOrder == 1))
+        {
+          this.RecoveryRate = sourceItems.Where(s => s.Data.ResultOrder == 1).Sum(s => s.Data.Odds * 10) / (float)(count * 100);
+        }
+
+        // 各種馬券回収率
+        var targets = items.Where(s => s.Analyzer.Data.AbnormalResult == RaceAbnormality.Unknown &&
+          s.Analyzer.Race.DataStatus != RaceDataStatus.Canceled && s.Analyzer.Race.DataStatus != RaceDataStatus.Delete).ToArray();
+        if (targets.Any())
+        {
+          var won = targets.Where(s => s.Analyzer.Data.ResultOrder == 1 && s.Analyzer.Data.Odds != default);
+          Func<RaceData, short> horsesCount = g => g.ResultHorsesCount > 0 ? g.ResultHorsesCount : g.HorsesCount;
+
+          // 複数馬の絡むものは全流しで
+          this.PlaceBetsRecoveryRate = targets.Sum(g => g.PlaceBetsPayoff) / ((double)targets.Length * 100);
+          this.FrameRecoveryRate = targets.Sum(g => g.FramePayoff) /
+            (double)(items.Sum(g => Math.Min(horsesCount(g.Analyzer.Race), (short)8) * 100));
+          this.QuinellaPlaceRecoveryRate = targets.Sum(g => g.QuinellaPlacePayoff) /
+            (double)(items.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * 100));
+          this.QuinellaRecoveryRate = targets.Sum(g => g.QuinellaPayoff) /
+            (double)(items.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * 100));
+          this.ExactaRecoveryRate = targets.Sum(g => g.ExactaPayoff) /
+            (double)(items.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * 100 * 2));
+          this.TrioRecoveryRate = targets.Sum(g => g.TrioPayoff) /
+            (double)(items.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) / 2 * 100));
+          this.TrifectaRecoveryRate = targets.Sum(g => g.TrifectaPayoff) /
+            (double)(items.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) * 100 * 3));
+
+          this.RecoveryRateComparation = AnalysisUtil.CompareValue(this.AllGrade.RecoveryRate, 1, 0.7);
+          this.PlaceBetsRRComparation = AnalysisUtil.CompareValue(this.PlaceBetsRecoveryRate, 1, 0.7);
+          this.FrameRRComparation = AnalysisUtil.CompareValue(this.FrameRecoveryRate, 0.9, 0.6);
+          this.QuinellaPlaceRRComparation = AnalysisUtil.CompareValue(this.QuinellaPlaceRecoveryRate, 0.9, 0.6);
+          this.QuinellaRRComparation = AnalysisUtil.CompareValue(this.QuinellaRecoveryRate, 0.9, 0.6);
+          this.ExactaRRComparation = AnalysisUtil.CompareValue(this.ExactaRecoveryRate, 0.9, 0.6);
+          this.TrioRRComparation = AnalysisUtil.CompareValue(this.TrioRecoveryRate, 0.85, 0.5);
+          this.TrifectaRRComparation = AnalysisUtil.CompareValue(this.TrifectaRecoveryRate, 0.85, 0.5);
+        }
+      }
     }
   }
 }

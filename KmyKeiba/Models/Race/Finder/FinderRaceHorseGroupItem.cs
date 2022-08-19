@@ -13,6 +13,8 @@ namespace KmyKeiba.Models.Race.Finder
 {
   public class FinderRaceHorseGroupItem
   {
+    private readonly RaceHorseFinderResultAnalyzer _result;
+
     public string GroupKey { get; }
 
     public MemoColor Color { get; }
@@ -21,79 +23,48 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveCollection<FinderRaceHorseItem> Items { get; } = new();
 
-    public ResultOrderGradeMap Grades { get; }
+    public ResultOrderGradeMap Grades => this._result.AllGrade;
 
-    public ValueComparation RecoveryRateComparation { get; }
+    public ValueComparation RecoveryRateComparation => this._result.RecoveryRateComparation;
 
-    public double PlaceBetsRecoveryRate { get; }
+    public double PlaceBetsRecoveryRate => this._result.PlaceBetsRecoveryRate;
 
-    public ValueComparation PlaceBetsRRComparation { get; }
+    public ValueComparation PlaceBetsRRComparation => this._result.PlaceBetsRRComparation;
 
-    public double FrameRecoveryRate { get; }
+    public double FrameRecoveryRate => this._result.FrameRecoveryRate;
 
-    public ValueComparation FrameRRComparation { get; }
+    public ValueComparation FrameRRComparation => this._result.FrameRRComparation;
 
-    public double QuinellaPlaceRecoveryRate { get; }
+    public double QuinellaPlaceRecoveryRate => this._result.QuinellaPlaceRecoveryRate;
 
-    public ValueComparation QuinellaPlaceRRComparation { get; }
+    public ValueComparation QuinellaPlaceRRComparation => this._result.QuinellaPlaceRRComparation;
 
-    public double QuinellaRecoveryRate { get; }
+    public double QuinellaRecoveryRate => this._result.QuinellaRecoveryRate;
 
-    public ValueComparation QuinellaRRComparation { get; }
+    public ValueComparation QuinellaRRComparation => this._result.QuinellaRRComparation;
 
-    public double ExactaRecoveryRate { get; }
+    public double ExactaRecoveryRate => this._result.ExactaRecoveryRate;
 
-    public ValueComparation ExactaRRComparation { get; }
+    public ValueComparation ExactaRRComparation => this._result.ExactaRRComparation;
 
-    public double TrioRecoveryRate { get; }
+    public double TrioRecoveryRate => this._result.TrioRecoveryRate;
 
-    public ValueComparation TrioRRComparation { get; }
+    public ValueComparation TrioRRComparation => this._result.TrioRRComparation;
 
-    public double TrifectaRecoveryRate { get; }
+    public double TrifectaRecoveryRate => this._result.TrifectaRecoveryRate;
 
-    public ValueComparation TrifectaRRComparation { get; }
+    public ValueComparation TrifectaRRComparation => this._result.TrifectaRRComparation;
 
     public FinderRaceHorseGroupItem(string key, IEnumerable<FinderRaceHorseItem> group)
     {
       this.GroupKey = key;
-      this.Grades = new ResultOrderGradeMap(group.Select(g => g.Analyzer).ToArray());
 
       foreach (var item in group)
       {
         this.Items.Add(item);
       }
 
-      var targets = group.Where(s => s.Analyzer.Data.AbnormalResult == RaceAbnormality.Unknown &&
-        s.Analyzer.Race.DataStatus != RaceDataStatus.Canceled && s.Analyzer.Race.DataStatus != RaceDataStatus.Delete).ToArray();
-      if (targets.Any())
-      {
-        var won = targets.Where(s => s.Analyzer.Data.ResultOrder == 1 && s.Analyzer.Data.Odds != default);
-        Func<RaceData, short> horsesCount = g => g.ResultHorsesCount > 0 ? g.ResultHorsesCount : g.HorsesCount;
-
-        // 複数馬の絡むものは全流しで
-        this.PlaceBetsRecoveryRate = targets.Sum(g => g.PlaceBetsPayoff) / ((double)targets.Length * 100);
-        this.FrameRecoveryRate = targets.Sum(g => g.FramePayoff) /
-          (double)(group.Sum(g => Math.Min(horsesCount(g.Analyzer.Race), (short)8) * 100));
-        this.QuinellaPlaceRecoveryRate = targets.Sum(g => g.QuinellaPlacePayoff) /
-          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * 100));
-        this.QuinellaRecoveryRate = targets.Sum(g => g.QuinellaPayoff) /
-          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * 100));
-        this.ExactaRecoveryRate = targets.Sum(g => g.ExactaPayoff) /
-          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * 100 * 2));
-        this.TrioRecoveryRate = targets.Sum(g => g.TrioPayoff) /
-          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) / 2 * 100));
-        this.TrifectaRecoveryRate = targets.Sum(g => g.TrifectaPayoff) /
-          (double)(group.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) * 100 * 3));
-
-        this.RecoveryRateComparation = AnalysisUtil.CompareValue(this.Grades.RecoveryRate, 1, 0.7);
-        this.PlaceBetsRRComparation = AnalysisUtil.CompareValue(this.PlaceBetsRecoveryRate, 1, 0.7);
-        this.FrameRRComparation = AnalysisUtil.CompareValue(this.FrameRecoveryRate, 0.9, 0.6);
-        this.QuinellaPlaceRRComparation = AnalysisUtil.CompareValue(this.QuinellaPlaceRecoveryRate, 0.9, 0.6);
-        this.QuinellaRRComparation = AnalysisUtil.CompareValue(this.QuinellaRecoveryRate, 0.9, 0.6);
-        this.ExactaRRComparation = AnalysisUtil.CompareValue(this.ExactaRecoveryRate, 0.9, 0.6);
-        this.TrioRRComparation = AnalysisUtil.CompareValue(this.TrioRecoveryRate, 0.85, 0.5);
-        this.TrifectaRRComparation = AnalysisUtil.CompareValue(this.TrifectaRecoveryRate, 0.85, 0.5);
-      }
+      this._result = new RaceHorseFinderResultAnalyzer(group.ToArray());
     }
 
     public FinderRaceHorseGroupItem(IEnumerable<FinderRaceHorseItem> group) : this("デフォルト", group)

@@ -458,11 +458,18 @@ namespace KmyKeiba.Models.Analysis
     public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData? raceStandardTime)
       : this(race, horse)
     {
-      if (raceStandardTime != null && raceStandardTime.SampleCount > 0 && _timeDeviationValueCalculator != null)
+      try
       {
-        this.ResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
-        this.A3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
-        this.UntilA3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetUntilA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
+        if (raceStandardTime != null && raceStandardTime.SampleCount > 0 && _timeDeviationValueCalculator != null)
+        {
+          this.ResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
+          this.A3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
+          this.UntilA3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetUntilA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
+        }
+      }
+      catch (Exception ex)
+      {
+        logger.Error("不明なエラーが発生", ex);
       }
     }
 

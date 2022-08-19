@@ -100,6 +100,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<FinderModel?> FinderModel { get; } = new();
 
+    public ReactiveProperty<AnalysisTable.AnalysisTableModel> AnalysisTable { get; } = new();
+
     public ScriptManager Script { get; }
 
     public ReactiveProperty<bool> CanExecuteScript { get; } = new();
@@ -236,7 +238,7 @@ namespace KmyKeiba.Models.Race
 
     private void SetHorsesDelay(IReadOnlyList<RaceHorseAnalyzer> horses, RaceStandardTimeMasterData standardTime)
     {
-      var sortedHorses = horses.All(h => h.Data.Number == default) ? horses.OrderBy(h => h.Data.Name) : horses.OrderBy(h => h.Data.Number);
+      var sortedHorses = (horses.All(h => h.Data.Number == default) ? horses.OrderBy(h => h.Data.Name) : horses.OrderBy(h => h.Data.Number)).ToArray();
       this.FinderModel.Value = new FinderModel(this.Data, null, sortedHorses);
 
       ThreadUtil.InvokeOnUiThread(() =>
@@ -562,6 +564,18 @@ namespace KmyKeiba.Models.Race
         });
     }
 
+    public void UpdateCache()
+    {
+      if (!this.IsWillTrendAnalyzersResetedOnUpdate.Value)
+      {
+        RaceInfoCacheManager.UpdateCache(this.Data.Key, this.AnalysisTable.Value?.ToCache());
+      }
+      else
+      {
+        RaceInfoCacheManager.UpdateCache(this.Data.Key, null);
+      }
+    }
+
     public void Dispose()
     {
       this._disposables.Dispose();
@@ -701,6 +715,8 @@ namespace KmyKeiba.Models.Race
             horseInfos.Add(analyzer);
             logger.Debug($"馬 {horse.Name} の情報を登録");
           }
+
+          var sortedHorses = horseInfos.All(h => h.Data.Number == default) ? horseInfos.OrderBy(h => h.Data.Name) : horseInfos.OrderBy(h => h.Data.Number);
           {
             // タイム指数の相対評価
             var timedvMax = horseInfos.Select(i => i.History?.TimeDeviationValue ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
@@ -748,12 +764,12 @@ namespace KmyKeiba.Models.Race
                 horse.RiderPlaceBitsRate - 0.02 <= riderPlaceRateMin ? ValueComparation.Bad : ValueComparation.Standard;
               }
 
-              var sortedHorses = horseInfos.All(h => h.Data.Number == default) ? horseInfos.OrderBy(h => h.Data.Name) : horseInfos.OrderBy(h => h.Data.Number);
               horse.FinderModel.Value = new FinderModel(race, horse, sortedHorses);
             }
           }
           logger.Debug("馬のタイム指数相対評価を設定");
           info.SetHorsesDelay(horseInfos, standardTime);
+          info.AnalysisTable.Value = new AnalysisTable.AnalysisTableModel(info.Data, sortedHorses.ToArray(), cache?.AnalysisTable);
 
           // オッズ
           var frameOdds = cache?.Refund != null ? cache.FrameNumberOdds : await db.FrameNumberOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
@@ -853,7 +869,7 @@ namespace KmyKeiba.Models.Race
           if (isCache)
           {
             RaceInfoCacheManager.Register(info, horseAllHistories, horseHistorySameHorses, horseDetails, trainings, woodTrainings,
-               info.Finder, info.Payoff?.Payoff, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
+               info.Finder, info.AnalysisTable.Value?.ToCache(), info.Payoff?.Payoff, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
           }
         }
         catch (Exception ex)

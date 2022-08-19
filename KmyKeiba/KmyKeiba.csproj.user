@@ -52,6 +52,12 @@
     <Compile Update="Views\Dialogs\VersionDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Expansions\AnalysisTableConfigView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Expansions\ExpansionAnalysisTableView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Expansions\ExpansionMemoView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -190,6 +196,12 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Dialogs\VersionDialog.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\AnalysisTableConfigView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\ExpansionAnalysisTableView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Expansions\ExpansionMemoView.xaml">

@@ -31,9 +31,13 @@ namespace KmyKeiba.Models.Race.Finder
 
     public bool IsContainsFutureRaces { get; }
 
+    public bool IsCurrentRaceOnly { get; }
+
+    public bool IsRealtimeResult { get; }
+
     public ScriptKeysMemoGroupInfo? MemoGroupInfo { get; set; }
 
-    public ScriptKeysParseResult(IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueries = null, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueriesBetweenCurrent = null, bool isContainsFutureRaces = false)
+    public ScriptKeysParseResult(IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueries = null, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueriesBetweenCurrent = null, bool isContainsFutureRaces = false, bool isCurrentOnly = false, bool isRealtimeResult = false)
     {
       this.Queries = queries;
       this.GroupKey = groupKey;
@@ -42,6 +46,8 @@ namespace KmyKeiba.Models.Race.Finder
       this.DiffQueries = diffQueries ?? Array.Empty<ExpressionScriptKeyQuery>();
       this.DiffQueriesBetweenCurrent = diffQueriesBetweenCurrent ?? Array.Empty<ExpressionScriptKeyQuery>();
       this.IsContainsFutureRaces = isContainsFutureRaces;
+      this.IsCurrentRaceOnly = isCurrentOnly;
+      this.IsRealtimeResult = isRealtimeResult;
     }
   }
 
@@ -81,6 +87,8 @@ namespace KmyKeiba.Models.Race.Finder
       var limit = 0;
       var offset = 0;
       var isContainsFutureRaces = false;
+      var isCurrentRaceOnly = false;
+      var isRealtimeResult = false;
       ScriptKeysMemoGroupInfo? memoGroupInfo = null;
 
       var queries = new List<ScriptKeyQuery>();
@@ -418,6 +426,11 @@ namespace KmyKeiba.Models.Race.Finder
           if (q.StartsWith("[future]"))
           {
             isContainsFutureRaces = true;
+            return true;
+          }
+          if (q.StartsWith("[currentonly]"))
+          {
+            isCurrentRaceOnly = true;
             return true;
           }
 
@@ -760,6 +773,7 @@ namespace KmyKeiba.Models.Race.Finder
                   break;
                 case QueryKey.Popular:
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Popular == horse.Popular));
+                  isRealtimeResult = true;
                   break;
                 case QueryKey.HorseKey:
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Key == horse.Key));
@@ -796,23 +810,27 @@ namespace KmyKeiba.Models.Race.Finder
                   break;
                 case QueryKey.Abnormal:
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.AbnormalResult == horse.AbnormalResult));
+                  isRealtimeResult = true;
                   break;
                 case QueryKey.Odds:
                   {
                     var (min, max) = AnalysisUtil.GetOddsRange(horse.Odds);
                     queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Odds >= min && rh.Odds < max));
+                    isRealtimeResult = true;
                   }
                   break;
                 case QueryKey.PlaceOddsMax:
                   {
                     var (min, max) = AnalysisUtil.GetOddsRange(horse.Odds);
                     queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.PlaceOddsMax >= min && rh.PlaceOddsMax < max));
+                    isRealtimeResult = true;
                   }
                   break;
                 case QueryKey.PlaceOddsMin:
                   {
                     var (min, max) = AnalysisUtil.GetOddsRange(horse.Odds);
                     queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.PlaceOddsMin >= min && rh.PlaceOddsMin < max));
+                    isRealtimeResult = true;
                   }
                   break;
                 case QueryKey.RaceCount:
@@ -832,9 +850,17 @@ namespace KmyKeiba.Models.Race.Finder
                   break;
                 case QueryKey.Weight:
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Weight == horse.Weight));
+                  if (horse.Weight == default)
+                  {
+                    isRealtimeResult = true;
+                  }
                   break;
                 case QueryKey.WeightDiff:
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.WeightDiff == horse.WeightDiff));
+                  if (horse.Weight == default)
+                  {
+                    isRealtimeResult = true;
+                  }
                   break;
                 case QueryKey.RiderWeight:
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.RiderWeight == horse.RiderWeight));
@@ -859,7 +885,12 @@ namespace KmyKeiba.Models.Race.Finder
         queries.Add(new DefaultLambdaScriptKeyQuery());
       }
 
-      return new ScriptKeysParseResult(queries, groupKey, limit, offset, diffQueries: diffQueries, diffQueriesBetweenCurrent: diffQueriesBetweenCurrent, isContainsFutureRaces: isContainsFutureRaces)
+      if (race != null && race.DataStatus >= RaceDataStatus.PreliminaryGradeFull)
+      {
+        isRealtimeResult = false;
+      }
+
+      return new ScriptKeysParseResult(queries, groupKey, limit, offset, diffQueries: diffQueries, diffQueriesBetweenCurrent: diffQueriesBetweenCurrent, isContainsFutureRaces: isContainsFutureRaces, isCurrentOnly: isCurrentRaceOnly, isRealtimeResult: isRealtimeResult)
       {
         MemoGroupInfo = memoGroupInfo,
       };

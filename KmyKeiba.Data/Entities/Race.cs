@@ -275,7 +275,7 @@ namespace KmyKeiba.JVLink.Entities
         }
         else
         {
-          kigo2 = (RaceHorseSexRule)(short)(-'0');
+          kigo2 = (RaceHorseSexRule)(short)(k - '0');
         }
       }
       RaceCrossRaceRule kigo3;

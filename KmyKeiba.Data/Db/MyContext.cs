@@ -83,6 +83,12 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<CheckHorseData>? CheckHorses { get; set; }
 
+    public DbSet<AnalysisTableData>? AnalysisTables { get; set; }
+
+    public DbSet<AnalysisTableRowData>? AnalysisTableRows { get; set; }
+
+    public DbSet<AnalysisTableWeightData>? AnalysisTableWeights { get; set; }
+
     #endregion
 
     private IDbContextTransaction? _transaction;

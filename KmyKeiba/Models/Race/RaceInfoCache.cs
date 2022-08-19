@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Race.AnalysisTable;
 using KmyKeiba.Models.Race.Finder;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,9 @@ namespace KmyKeiba.Models.Race
         cache.ExactaOdds = exists.ExactaOdds;
         cache.TrioOdds = exists.TrioOdds;
         cache.TrifectaOdds = exists.TrifectaOdds;
+        cache.AnalysisTable = exists.AnalysisTable;
+        cache.Finder = exists.Finder;
+        cache.HorseDetails = exists.HorseDetails;
         _caches.Remove(exists);
       }
       _caches.Add(cache);
@@ -50,6 +54,7 @@ namespace KmyKeiba.Models.Race
       IReadOnlyList<TrainingData> trainings,
       IReadOnlyList<WoodtipTrainingData> woodtipTrainings,
       RaceFinder finder,
+      AnalysisTableCache? analysisTable,
       RefundData? refund,
       FrameNumberOddsData? frameNumberOdds,
       QuinellaPlaceOddsData? quinellaPlaceOdds,
@@ -76,6 +81,7 @@ namespace KmyKeiba.Models.Race
       cache.WoodtipTrainings = woodtipTrainings;
       cache.Refund = refund;
       cache.Finder = finder;
+      cache.AnalysisTable = analysisTable;
 
       if (refund != null)
       {
@@ -85,6 +91,15 @@ namespace KmyKeiba.Models.Race
         cache.ExactaOdds = exactaOdds;
         cache.TrioOdds = trioOdds;
         cache.TrifectaOdds = trifectaOdds;
+      }
+    }
+
+    public static void UpdateCache(string raceKey, AnalysisTableCache? analysisTable)
+    {
+      var cache = TryGetCache(raceKey);
+      if (cache != null)
+      {
+        cache.AnalysisTable = analysisTable;
       }
     }
 
@@ -145,6 +160,8 @@ namespace KmyKeiba.Models.Race
     public RaceWinnerHorseTrendAnalysisSelector? RaceWinnerAnalyzers { get; set; }
 
     public RaceFinder? Finder { get; set; }
+
+    public AnalysisTableCache? AnalysisTable { get; set; }
 
     public IReadOnlyList<(RaceData Race, RaceHorseData RaceHorse)>? HorseAllHistories { get; set; }
 

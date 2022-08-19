@@ -61,10 +61,18 @@ namespace KmyKeiba.Models.Analysis
       // 翌日のレース予定などではこれが設定されていない
       if (race.TrackCondition != RaceCourseCondition.Unknown)
       {
-        item = query.FirstOrDefault(st => st.Condition == race.TrackCondition);
-        if (item == null || item.SampleCount < 10)
+        try
         {
-          item = query.FirstOrDefault(st => st.Condition == RaceCourseCondition.Unknown);
+          item = query.FirstOrDefault(st => st.Condition == race.TrackCondition);
+
+          if (item == null || item.SampleCount < 10)
+          {
+            item = query.FirstOrDefault(st => st.Condition == RaceCourseCondition.Unknown);
+          }
+        }
+        catch (Exception ex)
+        {
+          item = null;
         }
       }
       else
