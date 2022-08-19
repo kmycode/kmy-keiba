@@ -33,6 +33,93 @@ namespace KmyKeiba.Models.Data
       }
     }
 
+    public static async Task CleanupDatabaseAsync(ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
+    {
+      using var db = new MyContext();
+      await db.TryBeginTransactionAsync();
+
+      var targets = db.Horses!
+        .GroupBy(h => h.Code, (h, hs) => new { Key = h, Count = hs.Count(), IsCentral = hs.Any(h => h.CentralFlag != 0), IsLocal = hs.Any(h => h.CentralFlag == 0), })
+        .Where(h => (h.Count == 2 && (!h.IsCentral || !h.IsLocal)) || h.Count >= 3);
+
+      try
+      {
+        if (!await targets.AnyAsync())
+        {
+          return;
+        }
+
+        var keys = await targets.Select(t => t.Key).ToArrayAsync();
+
+        if (progressMax != null)
+        {
+          progressMax.Value = keys.Length;
+        }
+        if (progress != null)
+        {
+          progress.Value = 0;
+        }
+
+        var count = 0;
+        foreach (var key in keys)
+        {
+          var horses = await db.Horses!.Where(h => h.Code == key).ToArrayAsync();
+
+          HorseData? central = null;
+          HorseData? local = null;
+
+          foreach (var horse in horses)
+          {
+            if (horse.IsCentral)
+            {
+              if (central == null)
+              {
+                central = horse;
+              }
+              else
+              {
+                db.Horses!.Remove(horse);
+              }
+            }
+            else if (!horse.IsCentral)
+            {
+              if (local == null)
+              {
+                local = horse;
+              }
+              else
+              {
+                db.Horses!.Remove(horse);
+              }
+            }
+          }
+
+          count++;
+
+          if (count >= 100)
+          {
+            await db.SaveChangesAsync();
+            await db.CommitAsync();
+
+            if (progress != null)
+            {
+              progress.Value += count;
+            }
+            count = 0;
+          }
+        }
+
+        await db.SaveChangesAsync();
+        await db.CommitAsync();
+      }
+      catch (Exception ex)
+      {
+
+      }
+
+
+    }
+
     public static void TrainRunningStyle(bool isForce = false)
     {
       StartRunningStyleTraining(isForce);
