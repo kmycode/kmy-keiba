@@ -420,6 +420,13 @@ namespace KmyKeiba.Models.Race.Memo
 
         foreach (var model in _allModels)
         {
+          foreach (var nonCacheMemo in model.RaceMemos
+            .Concat(model.RaceHorseMemos.SelectMany(m => m.Memos))
+            .Where(m => m.Data.Id == default && m.Config.Id == exists.Id))
+          {
+            SetValues(nonCacheMemo);
+          }
+
           if (config.Type == MemoType.RaceHorse)
           {
             model.ChangeGroup(model.GetCurrentGroup(), model.RaceHorseMemos);
