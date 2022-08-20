@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-  <Grid Width="600" Height="650" Background="{StaticResource BaseBackground}">
+  <Grid Width="600" Height="600" Background="{StaticResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition/>
@@ -81,9 +81,6 @@
                  HorizontalAlignment="Center"/>
         <RadioButton Grid.Row="5" Grid.ColumnSpan="2" FontSize="16" Content="マスターデータ作成／更新" Width="186" Style="{StaticResource ToggleButtonDefault}"
                      IsChecked="{Binding Downloader.IsBuildMasterData.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
-        <Border Grid.Row="6" Grid.ColumnSpan="2" Margin="0,32,0,8" Background="{StaticResource BaseBorderBrush}" Height="1"/>
-        <RadioButton Grid.Row="7" Grid.ColumnSpan="2" FontSize="16" Content="不正データのクリーンアップ" Width="186" Style="{StaticResource ToggleButtonDefault}"
-                     Margin="0,0,0,0" IsChecked="{Binding Downloader.IsCleanupInvalidData.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
       </Grid>
     </Grid>
     <Grid Grid.Row="1" Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}">

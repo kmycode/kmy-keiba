@@ -86,8 +86,6 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsBuildMasterData { get; } = new();
 
-    public ReactiveProperty<bool> IsCleanupInvalidData { get; } = new();
-
     public ReactiveProperty<bool> IsRTDownloadCentral { get; } = new();
 
     public ReactiveProperty<bool> IsRTDownloadCentralAfterThursdayOnly { get; } = new();
@@ -133,7 +131,7 @@ namespace KmyKeiba.Models.Connection
 
       this.DownloadingStatus =
         this.ProcessingStep
-          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates && p != Connection.ProcessingStep.MigrationFrom250 && p != Connection.ProcessingStep.Cleanup)
+          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates && p != Connection.ProcessingStep.MigrationFrom250 && p != Connection.ProcessingStep.MigrationFrom322)
           .CombineLatest(this.LoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
           .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
           .ToReactiveProperty().AddTo(this._disposables);
@@ -380,6 +378,13 @@ namespace KmyKeiba.Models.Connection
         {
           await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.MigrationFrom250);
           await ConfigUtil.SetIntValueAsync(db, SettingKey.DatabaseVersion, 250);
+          dbver = 250;
+        }
+        if (dbver < 322)
+        {
+          await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.MigrationFrom322);
+          await ConfigUtil.SetIntValueAsync(db, SettingKey.DatabaseVersion, 322);
+          dbver = 322;
         }
 
         // 最初に最終起動からの差分を落とす
@@ -547,11 +552,6 @@ namespace KmyKeiba.Models.Connection
           logger.Info("マスターデータ更新を開始");
           await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.All);
         }
-        else if (this.IsCleanupInvalidData.Value)
-        {
-          logger.Info("データのクリーンアップを開始");
-          await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.Cleanup);
-        }
         else
         {
           var link = (DownloadLink)0;
@@ -597,6 +597,21 @@ namespace KmyKeiba.Models.Connection
           {
             this.HasProcessingProgress.Value = true;
             await ShapeDatabaseModel.MigrateFrom250Async(isCanceled: this.IsCancelProcessing,
+                progress: this.ProcessingProgress, progressMax: this.ProcessingProgressMax);
+          }
+          finally
+          {
+            this.HasProcessingProgress.Value = false;
+          }
+        }
+        if (steps.HasFlag(Connection.ProcessingStep.MigrationFrom322) && !this.IsCancelProcessing.Value)
+        {
+          step.Value = Connection.ProcessingStep.MigrationFrom322;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
+          try
+          {
+            this.HasProcessingProgress.Value = true;
+            await ShapeDatabaseModel.MigrateFrom322Async(isCanceled: this.IsCancelProcessing,
                 progress: this.ProcessingProgress, progressMax: this.ProcessingProgressMax);
           }
           finally
@@ -651,22 +666,6 @@ namespace KmyKeiba.Models.Connection
           step.Value = Connection.ProcessingStep.RaceSubjectInfos;
           logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
           await ShapeDatabaseModel.SetRaceSubjectDisplayInfosAsync(isCanceled: this.IsCancelProcessing);
-        }
-        if (steps.HasFlag(Connection.ProcessingStep.Cleanup) && !this.IsCancelProcessing.Value)
-        {
-          step.Value = Connection.ProcessingStep.Cleanup;
-          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
-          try
-          {
-            this.HasProcessingProgress.Value = true;
-            await ShapeDatabaseModel.CleanupDatabaseAsync(isCanceled: this.IsCancelProcessing,
-              progress: this.ProcessingProgress, progressMax: this.ProcessingProgressMax);
-          }
-          // catch は不要
-          finally
-          {
-            this.HasProcessingProgress.Value = false;
-          }
         }
 
         // 途中から再開できないものは最後に
@@ -1078,9 +1077,9 @@ namespace KmyKeiba.Models.Connection
     [Label("データをマイグレーション中 (from 2.5.0)")]
     MigrationFrom250 = 64,
 
-    [Label("不正なデータをクリーンアップ中")]
-    Cleanup = 128,
+    [Label("データをマイグレーション中 (from 3.2.2)")]
+    MigrationFrom322 = 128,
 
-    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | MigrationFrom250 | Cleanup,
+    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | MigrationFrom250 | MigrationFrom322,
   }
 }
