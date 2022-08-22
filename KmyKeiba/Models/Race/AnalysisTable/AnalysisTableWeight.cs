@@ -1,6 +1,8 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
+using KmyKeiba.Models.Race.Finder;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -14,41 +16,26 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race.AnalysisTable
 {
-  public class AnalysisTableWeight : IDisposable
+  public class AnalysisTableWeight : IDisposable, ICheckableItem
   {
     private readonly CompositeDisposable _disposables = new();
-    private readonly List<IAnalysisWeight> _weights = new();
-
-    public ReactiveProperty<string> Name { get; } = new();
 
     public AnalysisTableWeightData Data { get; }
 
-    public RaceGradeAnalysisWeight Grade { get; }
+    public ReactiveProperty<string> Name { get; } = new();
 
-    public RaceDistanceAnalysisWeight Distance { get; }
+    public ReactiveCollection<AnalysisTableWeightRow> Rows { get; } = new();
+
+    public ReactiveProperty<bool> IsChecked { get; } = new();
 
     public AnalysisTableWeight(AnalysisTableWeightData data)
     {
       this.Data = data;
       this.Name.Value = data.Name;
-      this.Deserialize(data.Config);
 
-      this._weights.Add(this.Grade = new RaceGradeAnalysisWeight());
-      this._weights.Add(this.Distance = new RaceDistanceAnalysisWeight());
-
-      foreach (var weight in this._weights)
-      {
-        Observable.FromEventPattern(ev => weight.ConfigUpdated += ev, ev => weight.ConfigUpdated -= ev)
-          .Subscribe(async _ =>
-          {
-            using var db = new MyContext();
-            db.AnalysisTableWeights!.Attach(this.Data);
-            this.Data.Config = this.Serialize();
-            await db.SaveChangesAsync();
-          }).AddTo(this._disposables);
-      }
       this.Name.Skip(1).Subscribe(async value =>
       {
+        // TODO: error
         using var db = new MyContext();
         db.AnalysisTableWeights!.Attach(this.Data);
         this.Data.Name = this.Name.Value;
@@ -56,63 +43,129 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }).AddTo(this._disposables);
     }
 
-    public double CalcWeight(IReadOnlyList<RaceHorseAnalyzer> source)
+    public AnalysisTableWeightRow? GetMatchRow(RaceHorseAnalyzer horse)
     {
-      if (source.Any())
+      foreach (var row in this.Rows)
       {
-        using var db = new MyContext();
-        var weights = source.Sum(s => this._weights.Sum(w => w.GetWeight(db, s.Race) * w.GetWeight(db, s.Data)));
-        return weights * source.Count;
+        if (row.IsMatch(horse))
+        {
+          return row;
+        }
+      }
+
+      return null;
+    }
+
+    public double GetWeight(RaceHorseAnalyzer horse)
+    {
+      var row = this.GetMatchRow(horse);
+      if (row != null)
+      {
+        return row.Data.Weight;
       }
       return 1;
     }
 
-    public bool IsThroughFilter(RaceData race)
+    public double CalcWeight(IEnumerable<RaceHorseAnalyzer> horses)
     {
+      var weight = 0.0;
+      var count = 0;
+
+      foreach (var horse in horses)
+      {
+        weight += this.GetWeight(horse);
+        count++;
+      }
+
+      if (count > 0)
+      {
+        return weight / count;
+      }
+      return 1;
+    }
+
+    public void Dispose()
+    {
+      this._disposables.Dispose();
+    }
+  }
+
+  public class AnalysisTableWeightRow : IDisposable
+  {
+    private readonly CompositeDisposable _disposables = new();
+
+    public FinderModel FinderModelForConfig { get; }
+
+    public AnalysisTableWeightRowData Data { get; }
+
+    public ReactiveProperty<string> Weight { get; } = new();
+
+    public ReactiveCollection<FinderQueryParameterItem> FinderModelParameters { get; } = new();
+
+    public AnalysisTableWeightRow(AnalysisTableWeightRowData data)
+    {
+      this.Data = data;
+      this.Weight.Value = data.Weight.ToString();
+
+      this.Weight.Skip(1).Subscribe(async _ =>
+      {
+        if (!double.TryParse(this.Weight.Value, out var value))
+        {
+          return;
+        }
+        using var db = new MyContext();
+        db.AnalysisTableWeightRows!.Attach(this.Data);
+        this.Data.Weight = value;
+        await db.SaveChangesAsync();
+      }).AddTo(this._disposables);
+
+      this.FinderModelForConfig = new FinderModel(new RaceData(), RaceHorseAnalyzer.Empty, Array.Empty<RaceHorseAnalyzer>());
+      this.FinderModelForConfig.Input.Deserialize(data.FinderConfig);
+
+      this.FinderModelForConfig.Input.Query.Skip(1).Subscribe(async _ =>
+      {
+        // TODO try catch
+        using var db = new MyContext();
+        db.AnalysisTableWeightRows!.Attach(this.Data);
+        this.Data.FinderConfig = this.FinderModelForConfig.Input.Serialize(false);
+        await db.SaveChangesAsync();
+
+        this.UpdateParameters();
+      }).AddTo(this._disposables);
+
+      this.UpdateParameters();
+    }
+
+    private void UpdateParameters()
+    {
+      AnalysisTableUtil.UpdateParameters(this.FinderModelForConfig, this.FinderModelParameters);
+    }
+
+    public bool IsMatch(RaceHorseAnalyzer horse)
+    {
+      var query = this.FinderModelForConfig.Input.Query.Value;
+      var reader = new ScriptKeysReader(query);
+      var queries = reader.GetQueries(horse.Race, horse.Data, horse);
+
+      var analyzers = (IEnumerable<RaceHorseAnalyzer>)new[] { horse, };
+      var races = (IEnumerable<RaceData>)new[] { horse.Race, };
+      var horses = (IEnumerable<RaceHorseData>)new[] { horse.Data, };
       using var db = new MyContext();
-      return this._weights.All(w => w.IsThroughFilter(db, race));
-    }
-
-    public string Serialize()
-    {
-      StringBuilder text = new();
-
-      foreach (var property in this.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
+      foreach (var q in queries.Queries)
       {
-        if (property.CanRead)
+        if (q is IRaceHorseAnalyzerScriptQuery aq)
         {
-          var weight = property.GetValue(this) as IAnalysisWeight;
-          if (weight != null)
-          {
-            text.Append(property.Name);
-            text.Append('=');
-            text.Append(weight.Serialize());
-            text.AppendLine();
-          }
+          analyzers = aq.Apply(db, analyzers);
+        }
+        else
+        {
+          races = q.Apply(db, races);
+          horses = q.Apply(db, horses);
         }
       }
 
-      return text.ToString();
-    }
-
-    public void Deserialize(string data)
-    {
-      var properties = this.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => p.CanRead)
-        .Select(p => new { Info = p, Weight = p.GetValue(this) as IAnalysisWeight })
-        .Where(p => p.Weight != null);
-
-      foreach (var line in data.Split(Environment.NewLine).Where(l => l.Contains('=')))
-      {
-        var split = line.IndexOf('=');
-        var name = line[..split];
-        var d = line[(split + 1)..];
-
-        var property = properties.FirstOrDefault(p => p.Info.Name == name);
-        if (property != null)
-        {
-          property.Weight!.Deserialize(d);
-        }
-      }
+      analyzers = analyzers.Where(a => races.Any(r => r.Id == a.Race.Id) && horses.Any(h => h.Id == a.Data.Id));
+      return analyzers.Any();
     }
 
     public void Dispose()

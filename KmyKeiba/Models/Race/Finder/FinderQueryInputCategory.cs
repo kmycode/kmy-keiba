@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Data.Db;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
@@ -86,7 +87,7 @@ namespace KmyKeiba.Models.Race.Finder
       }).AddTo(this.Disposables);
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
       this.Disposables.Dispose();
     }
@@ -355,6 +356,8 @@ namespace KmyKeiba.Models.Race.Finder
     bool CanInputNumber { get; }
 
     bool IsCompareWithHorse { get; }
+
+    IReadOnlyList<string> GetSelectedItemLabels();
   }
 
   public class ListBoxInputCategoryBase<T> : FinderQueryInputCategory, IListBoxInputCategory
@@ -409,6 +412,11 @@ namespace KmyKeiba.Models.Race.Finder
       {
         this.Items.Add(item);
       }
+    }
+
+    IReadOnlyList<string> IListBoxInputCategory.GetSelectedItemLabels()
+    {
+      return this.Items.Where(i => i.IsChecked.Value).Select(i => i.Label).ToArray();
     }
 
     protected virtual string ToQueryValue(T value)
@@ -492,14 +500,14 @@ namespace KmyKeiba.Models.Race.Finder
     }
 
     public ICommand ResetCommand =>
-      this._resetCommand ??= new ReactiveCommand().WithSubscribe(() =>
+      this._resetCommand ??= new CommandBase(() =>
       {
         foreach (var item in this.Items.Where(i => i.IsChecked.Value))
         {
           item.IsChecked.Value = false;
         }
         this.IsSetListValue.Value = true;
-      }).AddTo(this.Disposables);
+      });
     private ICommand? _resetCommand;
   }
 
@@ -572,7 +580,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
 
     public ICommand TestCommand =>
-      this._testCommand ??= new AsyncReactiveCommand<object>().WithSubscribe(async _ =>
+      this._testCommand ??= new CommandBase(() =>
       {
         this.TestResult.Clear();
         this.IsTestError.Value = false;
@@ -582,15 +590,14 @@ namespace KmyKeiba.Models.Race.Finder
           return;
         }
 
-        try
+        this.TestAsync().ContinueWith(t =>
         {
-          await this.TestAsync();
-        }
-        catch
-        {
-          this.IsTestError.Value = true;
-        }
-      }).AddTo(this.Disposables);
+          if (t.IsFaulted || t.IsCanceled)
+          {
+            this.IsTestError.Value = true;
+          }
+        });
+      });
     private ICommand? _testCommand;
   }
 
@@ -1859,7 +1866,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public CornerResultInputCategory(int cornerNumber) : base("corner" + cornerNumber, true, true)
     {
-      this.SetItems(Enumerable.Range(1, 18)
+      this.SetItems(Enumerable.Range(0, 18 + 1)
         .Select(v => (short)v)
         .Select(v => new FinderQueryInputListItem<short>(v))
         .ToList());
@@ -1914,7 +1921,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
 
     public ICommand SearchHorsesCommand =>
-      this._searchHorsesCommand ??= new AsyncReactiveCommand().WithSubscribe(async () =>
+      this._searchHorsesCommand ??= new CommandBase(() =>
       {
         this.IsSearchError.Value = false;
         this.Horses.Clear();
@@ -1951,11 +1958,20 @@ namespace KmyKeiba.Models.Race.Finder
             return;
           }
 
-          var result = await horses.Take(500).ToArrayAsync();
-          foreach (var item in result)
+          horses.Take(500).ToArrayAsync().ContinueWith(t =>
           {
-            this.Horses.Add(new HorseBloodItem(item.Code, item.Name));
-          }
+            if (t.IsCompletedSuccessfully)
+            {
+              foreach (var item in t.Result)
+              {
+                this.Horses.Add(new HorseBloodItem(item.Code, item.Name));
+              }
+            }
+            else
+            {
+              this.IsSearchError.Value = true;
+            }
+          });
         }
         catch (Exception ex)
         {
@@ -1965,7 +1981,7 @@ namespace KmyKeiba.Models.Race.Finder
     private ICommand? _searchHorsesCommand;
 
     public ICommand AddConfigCommand =>
-      this._addConfigCommand ??= new ReactiveCommand().WithSubscribe(() =>
+      this._addConfigCommand ??= new CommandBase(() =>
       {
         var horse = this.SelectedHorse.Value;
         if (horse != null)
@@ -1978,14 +1994,14 @@ namespace KmyKeiba.Models.Race.Finder
             IsSelfBlood = this.IsSelfBloods.Value,
           });
         }
-      }).AddTo(this.Disposables);
+      });
     private ICommand? _addConfigCommand;
 
     public ICommand RemoveConfigCommand =>
-      this._removeConfigCommand ??= new ReactiveCommand<HorseBloodConfigItem>().WithSubscribe(item =>
+      this._removeConfigCommand ??= new CommandBase<HorseBloodConfigItem>(item =>
       {
         this.Configs.Remove(item);
-      }).AddTo(this.Disposables);
+      });
     private ICommand? _removeConfigCommand;
 
     protected override string GetQuery()
@@ -2246,17 +2262,17 @@ namespace KmyKeiba.Models.Race.Finder
     }
 
     public ICommand AddItemCommand =>
-      this._addItemCommand ??= new ReactiveCommand().WithSubscribe(() => this.AddItem()).AddTo(this.Disposables);
+      this._addItemCommand ??= new CommandBase(() => this.AddItem());
     private ICommand? _addItemCommand;
 
     public ICommand RemoveItemCommand =>
-      this._removeItemCommand ??= new ReactiveCommand<FinderModelItem>().WithSubscribe(i =>
+      this._removeItemCommand ??= new CommandBase<FinderModelItem>(i =>
       {
         this.Items.Remove(i);
         i.Model.Dispose();
         this.Disposables.Remove(i.Model);
         this.UpdateQuery();
-      }).AddTo(this.Disposables);
+      });
     private ICommand? _removeItemCommand;
 
     protected override string GetQuery()
@@ -2323,7 +2339,13 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected override void ResetForce()
     {
+      var items = this.Items.ToArray();
       this.Items.Clear();
+      foreach (var item in items)
+      {
+        item.Model.Dispose();
+        this.Disposables.Remove(item.Model);
+      }
     }
 
     public class FinderModelItem
@@ -2379,17 +2401,17 @@ namespace KmyKeiba.Models.Race.Finder
     }
 
     public ICommand AddItemCommand =>
-      this._addItemCommand ??= new ReactiveCommand().WithSubscribe(() => this.AddItem()).AddTo(this.Disposables);
+      this._addItemCommand ??= new CommandBase(() => this.AddItem());
     private ICommand? _addItemCommand;
 
     public ICommand RemoveItemCommand =>
-      this._removeItemCommand ??= new ReactiveCommand<FinderModelItem>().WithSubscribe(i =>
+      this._removeItemCommand ??= new CommandBase<FinderModelItem>(i =>
       {
         this.Items.Remove(i);
         i.Model.Dispose();
         this.Disposables.Remove(i.Model);
         this.UpdateQuery();
-      }).AddTo(this.Disposables);
+      });
     private ICommand? _removeItemCommand;
 
     protected override string GetQuery()
@@ -2471,7 +2493,14 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected override void ResetForce()
     {
+      var items = this.Items.ToArray();
       this.Items.Clear();
+      foreach (var item in items)
+      {
+        item.Model.Dispose();
+        item.Dispose();
+        this.Disposables.Remove(item);
+      }
     }
 
     public class FinderModelItem : IDisposable
@@ -2584,11 +2613,11 @@ namespace KmyKeiba.Models.Race.Finder
     }
 
     public ICommand UpdateConfigsCommand =>
-      this._updateConfigsCommand ??= new ReactiveCommand().WithSubscribe(() => this.Update()).AddTo(this.Disposables);
+      this._updateConfigsCommand ??= new CommandBase(() => this.Update());
     private ICommand? _updateConfigsCommand;
 
     public ICommand AddItemCommand =>
-      this._addItemCommand ??= new ReactiveCommand().WithSubscribe(() =>
+      this._addItemCommand ??= new CommandBase(() =>
       {
         var config = this.SelectedConfig.Value;
         if (config != null && !this.Items.Any(i => i.Config.Id == config.Id))
@@ -2602,14 +2631,14 @@ namespace KmyKeiba.Models.Race.Finder
             this.IsUpdateRequested.Value = true;
           }
         }
-      }).AddTo(this.Disposables);
+      });
     private ICommand? _addItemCommand;
 
     public ICommand RemoveItemCommand =>
-      this._removeItemCommand ??= new ReactiveCommand<MemoConfigItem>().WithSubscribe(item =>
+      this._removeItemCommand ??= new CommandBase<MemoConfigItem>(item =>
       {
         this.Items.Remove(item);
-      }).AddTo(this.Disposables);
+      });
     private ICommand? _removeItemCommand;
 
     protected override string GetQuery()
@@ -2874,11 +2903,11 @@ namespace KmyKeiba.Models.Race.Finder
     }
 
     public ICommand UpdateConfigsCommand =>
-      this._updateConfigsCommand ??= new ReactiveCommand().WithSubscribe(() => this.Update()).AddTo(this.Disposables);
+      this._updateConfigsCommand ??= new CommandBase(() => this.Update());
     private ICommand? _updateConfigsCommand;
 
     public ICommand AddItemCommand =>
-      this._addItemCommand ??= new ReactiveCommand().WithSubscribe(() =>
+      this._addItemCommand ??= new CommandBase(() =>
       {
         var config = this.SelectedConfig.Value;
         if (config != null && !this.Items.Any(i => i.Config.Id == config.Id))
@@ -2892,14 +2921,14 @@ namespace KmyKeiba.Models.Race.Finder
             this.IsUpdateRequested.Value = true;
           }
         }
-      }).AddTo(this.Disposables);
+      });
     private ICommand? _addItemCommand;
 
     public ICommand RemoveItemCommand =>
-      this._removeItemCommand ??= new ReactiveCommand<ExternalNumberConfigItem>().WithSubscribe(item =>
+      this._removeItemCommand ??= new CommandBase<ExternalNumberConfigItem>(item =>
       {
         this.Items.Remove(item);
-      }).AddTo(this.Disposables);
+      });
     private ICommand? _removeItemCommand;
 
     protected override string GetQuery()
@@ -3016,6 +3045,8 @@ namespace KmyKeiba.Models.Race.Finder
     public ReactiveProperty<bool> IsGroupByRider { get; } = new();
     public ReactiveProperty<bool> IsGroupByTrainer { get; } = new();
     public ReactiveProperty<bool> IsGroupByOwner { get; } = new();
+    public ReactiveProperty<bool> IsGroupByHorseSex { get; } = new();
+    public ReactiveProperty<bool> IsGroupByHorseBelongs { get; } = new();
     public ReactiveProperty<bool> IsGroupByCourse { get; } = new();
     public ReactiveProperty<bool> IsGroupByWeather { get; } = new();
     public ReactiveProperty<bool> IsGroupByCondition { get; } = new();
@@ -3036,6 +3067,8 @@ namespace KmyKeiba.Models.Race.Finder
         .CombineLatest(this.IsGroupByRider)
         .CombineLatest(this.IsGroupByTrainer)
         .CombineLatest(this.IsGroupByOwner)
+        .CombineLatest(this.IsGroupByHorseSex)
+        .CombineLatest(this.IsGroupByHorseBelongs)
         .CombineLatest(this.IsGroupByCourse)
         .CombineLatest(this.IsGroupByWeather)
         .CombineLatest(this.IsGroupByCondition)
@@ -3060,7 +3093,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
 
     public ICommand UpdateConfigsCommand =>
-      this._updateConfigsCommand ??= new ReactiveCommand().WithSubscribe(() => this.Update()).AddTo(this.Disposables);
+      this._updateConfigsCommand ??= new CommandBase(() => this.Update());
     private ICommand? _updateConfigsCommand;
 
     protected override string GetQuery()
@@ -3082,6 +3115,14 @@ namespace KmyKeiba.Models.Race.Finder
       if (this.IsGroupByOwner.Value)
       {
         groups.Add("owner");
+      }
+      if (this.IsGroupByHorseSex.Value)
+      {
+        groups.Add("sex");
+      }
+      if (this.IsGroupByHorseBelongs.Value)
+      {
+        groups.Add("horsebelongs");
       }
       if (this.IsGroupByCourse.Value)
       {

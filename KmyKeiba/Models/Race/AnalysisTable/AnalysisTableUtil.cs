@@ -1,5 +1,7 @@
 ﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
+using KmyKeiba.Models.Race.Finder;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using System;
@@ -20,6 +22,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public static List<AnalysisTableRowData> TableRowConfigs { get; } = new();
 
+    public static ReactiveCollection<ValueDelimiter> Delimiters { get; } = new();
+
     internal static async Task InitializeAsync(MyContext db)
     {
       if (!_isInitialized)
@@ -38,10 +42,34 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           }
         });
 
-        var weights = await db.AnalysisTableWeights!.ToArrayAsync();
-        foreach (var weight in weights)
+        var delimiters = await db.Delimiters!.ToArrayAsync();
+        var delimiterRows = await db.DelimiterRows!.ToArrayAsync();
+        foreach (var delimiter in delimiters
+          .GroupJoin(delimiterRows, d => d.Id, r => r.DelimiterId, (d, r) => new { Delimiter = d, Rows = r, }))
         {
-          Weights.Add(new AnalysisTableWeight(weight));
+          var obj = new ValueDelimiter(delimiter.Delimiter);
+
+          foreach (var row in delimiter.Rows.OrderBy(r => r.Order))
+          {
+            obj.Rows.Add(new ValueDelimiterRow(row));
+          }
+
+          Delimiters.Add(obj);
+        }
+
+        var weights = await db.AnalysisTableWeights!.ToArrayAsync();
+        var weightRows = await db.AnalysisTableWeightRows!.ToArrayAsync();
+        foreach (var weight in weights
+          .GroupJoin(weightRows, w => w.Id, r => r.WeightId, (w, r) => new { Weight = w, Rows = r, }))
+        {
+          var obj = new AnalysisTableWeight(weight.Weight);
+
+          foreach (var row in weight.Rows.OrderBy(r => r.Order))
+          {
+            obj.Rows.Add(new AnalysisTableWeightRow(row));
+          }
+
+          Weights.Add(obj);
         }
 
         var tables = await db.AnalysisTables!.ToArrayAsync();
@@ -56,30 +84,37 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           TableRowConfigs.Add(row);
         }
 
-#if DEBUG
-        // TODO: test data
-        TableConfigs.Add(new AnalysisTableData
-        {
-          Id = 1000,
-          Name = "テスト",
-          Order = 1000,
-        });
-
-        using var finder = new Finder.FinderModel(null, null, null);
-        finder.Input.Number.IsSetCurrentRaceHorseValue.Value = true;
-        TableRowConfigs.Add(new AnalysisTableRowData
-        {
-          Id = 2000,
-          Name = "わーい",
-          Order = 2000,
-          Output = AnalysisTableRowOutputType.PlaceBetsRate,
-          FinderConfig = finder.Input.Serialize(false),
-          TableId = 1000,
-          BaseWeight = 1.0,
-        });
-#endif
-
         _isInitialized = true;
+      }
+    }
+
+    internal static void UpdateParameters(FinderModel finder, IList<FinderQueryParameterItem> list)
+    {
+      var removes = new List<FinderQueryParameterItem>();
+      var index = 0;
+      var parameters = finder.Input.ToParameters();
+      foreach (var parameter in list)
+      {
+        if (!parameters.Contains(parameter))
+        {
+          removes.Add(parameter);
+        }
+      }
+      foreach (var item in removes)
+      {
+        list.Remove(item);
+      }
+
+      foreach (var parameter in parameters)
+      {
+        if (!list.Contains(parameter))
+        {
+          list.Insert(index++, parameter);
+        }
+        else
+        {
+          index++;
+        }
       }
     }
   }

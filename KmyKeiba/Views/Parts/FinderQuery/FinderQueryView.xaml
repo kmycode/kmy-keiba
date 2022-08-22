@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
              xmlns:local="clr-namespace:KmyKeiba.Views.Parts.FinderQuery"
+             xmlns:ur="clr-namespace:KmyKeiba.Views.Details"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
   <Grid>
@@ -36,8 +37,8 @@
         <StackPanel Orientation="Horizontal">
           <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0" Text="検索条件の保存" VerticalAlignment="Center"/>
           <TextBox FontSize="16" Text="{Binding FinderModel.Input.ConfigName.Value,ElementName=Root,Mode=TwoWay}" Width="180"/>
-          <Button FontSize="16" Content="追加" Command="{Binding FinderModel.AddFinderConfigCommand,ElementName=Root}"/>
-          <Button FontSize="16" Content="読込" Margin="16,0,0,0" Command="{Binding FinderModel.LoadFinderConfigCommand,ElementName=Root}"/>
+          <Button FontSize="16" Content="追加" Command="{Binding DataContext.AddFinderConfigCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding FinderModel,ElementName=Root}"/>
+          <Button FontSize="16" Content="読込" Margin="16,0,0,0" Command="{Binding DataContext.LoadFinderConfigCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding FinderModel,ElementName=Root}"/>
           <ComboBox ItemsSource="{Binding FinderModel.Input.Configs,ElementName=Root}" Width="200"
                     SelectedItem="{Binding FinderModel.Input.SelectedConfig.Value,ElementName=Root,Mode=TwoWay}">
             <ComboBox.ItemTemplate>
@@ -46,7 +47,7 @@
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
-          <Button FontSize="16" Content="削除" Command="{Binding FinderModel.RemoveFinderConfigCommand,ElementName=Root}"/>
+          <Button FontSize="16" Content="削除" Command="{Binding DataContext.RemoveFinderConfigCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding FinderModel,ElementName=Root}"/>
         </StackPanel>
         <TextBlock Grid.Row="1" Grid.Column="1" TextAlignment="Right"
                    Text="{Binding FinderModel.Input.ErrorMessage.Value,ElementName=Root}"
@@ -72,6 +73,7 @@
         <RadioButton Content="馬（選択レース）" Name="S_SearchTarget">
           <RadioButton.Visibility>
             <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsEnumerable" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
               <Binding Path="IsSubView" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
               <Binding Path="FinderModel.Race" ElementName="Root" Converter="{StaticResource NonNullVisibilityConv}"/>
             </MultiBinding>
@@ -81,21 +83,57 @@
         <RadioButton Content="馬（ローテーション）" Name="S_HorseRotation"/>
         <RadioButton Content="馬（レース直前）" Name="S_HorseRace"/>
         <RadioButton Content="馬（レース結果）" Name="S_HorseResult"/>
-        <RadioButton Content="血統" Name="S_HorseBlood"
-                     Visibility="{Binding IsSubViewBeforeRace,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
-        <RadioButton Content="騎手／調教師" Name="S_Rider"
-                     Visibility="{Binding IsSubViewBeforeRace,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
-        <RadioButton Content="レース出場の他馬" Name="S_RaceOtherHorses"
-                     Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
-        <RadioButton Content="前走" Name="S_BeforeRace"
-                     Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+        <RadioButton Content="血統" Name="S_HorseBlood">
+          <RadioButton.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsEnumerable" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="IsSubViewBeforeRace" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+            </MultiBinding>
+          </RadioButton.Visibility>
+        </RadioButton>
+        <RadioButton Content="騎手／調教師" Name="S_Rider">
+          <RadioButton.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsEnumerable" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="IsSubViewBeforeRace" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+            </MultiBinding>
+          </RadioButton.Visibility>
+        </RadioButton>
+        <RadioButton Content="レース出場の他馬" Name="S_RaceOtherHorses">
+          <RadioButton.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsEnumerable" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="IsSubView" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+            </MultiBinding>
+          </RadioButton.Visibility>
+        </RadioButton>
+        <RadioButton Content="前走" Name="S_BeforeRace">
+          <RadioButton.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsEnumerable" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="IsSubView" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+            </MultiBinding>
+          </RadioButton.Visibility>
+        </RadioButton>
         <RadioButton Content="拡張メモ" Name="S_Memo"
                      Visibility="{Binding IsSubViewBeforeRace,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <RadioButton Content="外部指数" Name="S_ExNumber" Visibility="Collapsed"/>
-        <RadioButton Content="グループ化" Name="S_GroupBy"
-                     Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
-        <RadioButton Content="その他の設定" Name="S_OtherSetting"
-                     Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+        <RadioButton Content="グループ化" Name="S_GroupBy">
+          <RadioButton.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsEnumerable" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="IsSubView" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+            </MultiBinding>
+          </RadioButton.Visibility>
+        </RadioButton>
+        <RadioButton Content="その他の設定" Name="S_OtherSetting">
+          <RadioButton.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsEnumerable" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="IsSubView" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+            </MultiBinding>
+          </RadioButton.Visibility>
+        </RadioButton>
       </StackPanel>
     </ScrollViewer>
 
@@ -457,7 +495,14 @@
             </Grid.RowDefinitions>
             <local:InputListBoxView Header="年齢" Input="{Binding FinderModel.Input.Age,ElementName=Root}"/>
             <local:InputListBoxView Grid.Row="1" Header="所属" Input="{Binding FinderModel.Input.HorseBelongs,ElementName=Root}"
-                                    Margin="0,8,0,0"/>
+                                    Margin="0,8,0,0">
+              <local:InputListBoxView.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                  <Binding Path="IsEnumerable" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                  <Binding Path="IsSubViewBeforeRace" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                </MultiBinding>
+              </local:InputListBoxView.Visibility>
+            </local:InputListBoxView>
           </Grid>
         </StackPanel>
       </ScrollViewer>
@@ -787,7 +832,7 @@
                               Command="{Binding FinderModel.Input.SameRaceHorse.RemoveItemCommand,ElementName=Root}" CommandParameter="{Binding}"/>
                     </Grid>
                     <up:FinderKeyInputView FinderModel="{Binding Model}" IsSubView="True" IsSubViewSameRaceHorse="True"
-                                           CanCompareWithCurrentRace="False"/>
+                                           CanCompareWithCurrentRace="False" IsGenerateDefaultPopup="True"/>
                   </StackPanel>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
@@ -861,7 +906,7 @@
                               Command="{Binding FinderModel.Input.BeforeRace.RemoveItemCommand,ElementName=Root}" CommandParameter="{Binding}"/>
                     </Grid>
                     <up:FinderKeyInputView FinderModel="{Binding Model}" IsSubView="True" IsSubViewBeforeRace="True"
-                                           CanCompareWithCurrentRace="False"/>
+                                           CanCompareWithCurrentRace="False" IsGenerateDefaultPopup="True"/>
                   </StackPanel>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
@@ -1004,6 +1049,8 @@
             <RadioButton Content="騎手" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByRider.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="調教師" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByTrainer.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="馬主" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByOwner.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="馬の性別" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorseSex.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="馬の所属" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorseBelongs.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="競馬場" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByCourse.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="天気" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByWeather.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="馬場状態" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByCondition.Value,ElementName=Root,Mode=TwoWay}"/>

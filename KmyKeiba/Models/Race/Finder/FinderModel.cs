@@ -1,9 +1,11 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race.Memo;
+using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -121,9 +123,49 @@ namespace KmyKeiba.Models.Race.Finder
               QueryKey.HorseName => allItems.GroupBy(d => d.Analyzer.Data.Name),
               QueryKey.FrameNumber => allItems.GroupBy(d => d.Analyzer.Data.FrameNumber.ToString()),
               QueryKey.HorseNumber => allItems.GroupBy(d => d.Analyzer.Data.Number.ToString()),
+              QueryKey.Sex => allItems.GroupBy(d => (object)d.Analyzer.Data.Sex),
               _ => null,
             };
-            groups?.OrderBy(g => g.Key);
+
+            if (data.GroupKey == QueryKey.HorseBelongs)
+            {
+              using var db = new MyContext();
+
+              var keys = allItems.Select(i => i.Analyzer.Data.Key);
+              var horses = await db.Horses!.Where(h => keys.Contains(h.Code)).ToArrayAsync();
+              var items = allItems.GroupJoin(horses, i => i.Analyzer.Data.Key, h => h.Code, (i, h) =>
+              {
+                if (h.Count() == 1)
+                {
+                  return new { Item = i, Belongs = h.First().Belongs, };
+                }
+                if (h.Count() == 0)
+                {
+                  return new { Item = i, Belongs = HorseBelongs.Unknown, };
+                }
+                var central = h.FirstOrDefault(d => d.Belongs != HorseBelongs.Local);
+                var local = h.FirstOrDefault(d => d.Belongs == HorseBelongs.Local);
+                if (central == null && local == null)
+                {
+                  return new { Item = i, Belongs = HorseBelongs.Unknown, };
+                }
+                if ((central != null && local == null) || (local != null && central == null))
+                {
+                  return new { Item = i, Belongs = (central ?? local)!.Belongs, };
+                }
+
+                if (central!.Retired != default)
+                {
+                  return new { Item = i, Belongs = central.Retired >= i.Analyzer.Race.StartTime ? central.Belongs : local!.Belongs, };
+                }
+                if (local!.Retired != default)
+                {
+                  return new { Item = i, Belongs = local.Retired >= i.Analyzer.Race.StartTime ? local.Belongs : central!.Belongs, };
+                }
+                return new { Item = i, Belongs = h.First().Belongs, };
+              });
+              groups = items.GroupBy(i => { return (object)(i.Belongs switch { HorseBelongs.Ritto => "栗東", HorseBelongs.Miho => "美浦", HorseBelongs.Local => "地方", HorseBelongs.Foreign => "海外", _ => "データなし", }); }, i => i.Item);
+            }
 
             // ラベルでグループ化
             if (data.GroupInfo != null)
@@ -303,25 +345,11 @@ namespace KmyKeiba.Models.Race.Finder
       // Disposeの中に含まれていないため、原因不明
       ThreadUtil.InvokeOnUiThread(() =>
       {
-        this.Input.Dispose();
+        //this.Input.Dispose();
       });
+      this.Input.Dispose();
       this._disposables.Dispose();
     }
-
-    public ICommand AddFinderConfigCommand =>
-      this._addFinderConfigCommand ??=
-        new AsyncReactiveCommand(Connection.DownloaderModel.Instance.CanSaveOthers).WithSubscribe(_ => this.Input.AddConfigAsync()).AddTo(this._disposables);
-    private ICommand? _addFinderConfigCommand;
-
-    public ICommand LoadFinderConfigCommand =>
-      this._loadFinderConfigCommand ??=
-        new ReactiveCommand().WithSubscribe(_ => this.Input.LoadConfig()).AddTo(this._disposables);
-    private ICommand? _loadFinderConfigCommand;
-
-    public ICommand RemoveFinderConfigCommand =>
-      this._removeFinderConfigCommand ??=
-        new AsyncReactiveCommand(Connection.DownloaderModel.Instance.CanSaveOthers).WithSubscribe(_ => this.Input.RemoveConfigAsync()).AddTo(this._disposables);
-    private ICommand? _removeFinderConfigCommand;
   }
 
   public class FinderRow

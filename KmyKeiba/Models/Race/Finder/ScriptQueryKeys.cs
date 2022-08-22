@@ -1,7 +1,9 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race.ExNumber;
+using KmyKeiba.Models.Race.Memo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +17,19 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public abstract IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query);
 
-    public abstract IQueryable<MemoData> Apply(MyContext db, IQueryable<MemoData> query);
-
     public abstract IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query);
 
+    public abstract IQueryable<MemoData> Apply(MyContext db, IQueryable<MemoData> query);
+
     public abstract IQueryable<ExternalNumberData> Apply(MyContext db, IQueryable<ExternalNumberData> query);
+
+    public abstract IEnumerable<RaceData> Apply(MyContext db, IEnumerable<RaceData> query);
+
+    public abstract IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query);
+
+    public abstract IEnumerable<MemoData> Apply(MyContext db, IEnumerable<MemoData> query);
+
+    public abstract IEnumerable<ExternalNumberData> Apply(MyContext db, IEnumerable<ExternalNumberData> query);
 
     private protected string GetScriptKey(QueryKey key)
     {
@@ -28,7 +38,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  class DefaultLambdaScriptKeyQuery : ScriptKeyQuery
+  class SimpleScriptKeyQuery : ScriptKeyQuery
   {
     public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
     {
@@ -49,9 +59,29 @@ namespace KmyKeiba.Models.Race.Finder
     {
       return query;
     }
+
+    public override IEnumerable<RaceData> Apply(MyContext db, IEnumerable<RaceData> query)
+    {
+      throw new NotSupportedException();
+    }
+
+    public override IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query)
+    {
+      throw new NotSupportedException();
+    }
+
+    public override IEnumerable<MemoData> Apply(MyContext db, IEnumerable<MemoData> query)
+    {
+      throw new NotSupportedException();
+    }
+
+    public override IEnumerable<ExternalNumberData> Apply(MyContext db, IEnumerable<ExternalNumberData> query)
+    {
+      throw new NotSupportedException();
+    }
   }
 
-  class RaceLambdaScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class RaceLambdaScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly Expression<Func<RaceData, bool>> _where;
 
@@ -66,7 +96,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  class HorseLambdaScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class HorseLambdaScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly Expression<Func<RaceHorseData, bool>> _where;
 
@@ -81,7 +111,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  class SameRaceHorseScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class SameRaceHorseScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly string _raceKey;
     private readonly short _horseNumber;
@@ -114,7 +144,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  class SameRaceRiderScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class SameRaceRiderScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly string _raceKey;
     private readonly short _horseNumber;
@@ -147,7 +177,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  class SameRaceTrainerScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class SameRaceTrainerScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly string _raceKey;
     private readonly short _horseNumber;
@@ -180,7 +210,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  class SameRaceOwnerScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class SameRaceOwnerScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly string _raceKey;
     private readonly short _horseNumber;
@@ -213,7 +243,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  class HorseBelongsScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class HorseBelongsScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly IReadOnlyList<HorseBelongs> _belongs;
     private readonly bool _isAlive;
@@ -252,7 +282,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  class RiderBelongsScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class RiderBelongsScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly IReadOnlyList<HorseBelongs> _belongs;
 
@@ -267,7 +297,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  class TrainerBelongsScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class TrainerBelongsScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly IReadOnlyList<HorseBelongs> _belongs;
 
@@ -282,7 +312,12 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  class MemoScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  interface IRaceHorseAnalyzerScriptQuery
+  {
+    IEnumerable<RaceHorseAnalyzer> Apply(MyContext db, IEnumerable<RaceHorseAnalyzer> query);
+  }
+
+  class MemoScriptKeyQuery : SimpleScriptKeyQuery, IRaceHorseAnalyzerScriptQuery
   {
     private readonly IReadOnlyList<KeyValuePair<MemoTarget, string>> _data;
     private readonly ScriptKeyQuery _query;
@@ -308,37 +343,37 @@ namespace KmyKeiba.Models.Race.Finder
       this._data = data.OrderBy(d => d.Key).ToList();
     }
 
-    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
+    private Expression<Func<MemoData, bool>> GetMemoFilter()
     {
-      var targetKeys = this._data.Where(d =>
-          d.Key == MemoTarget.Race || d.Key == MemoTarget.Course || d.Key == MemoTarget.Day)
-        .ToArray();
-      var horseKeys = this._data.Where(d =>
-          d.Key == MemoTarget.Race || d.Key == MemoTarget.Course || d.Key == MemoTarget.Day ||
-          d.Key == MemoTarget.Rider || d.Key == MemoTarget.Trainer || d.Key == MemoTarget.Owner ||
-          d.Key == MemoTarget.Horse || d.Key == MemoTarget.Father || d.Key == MemoTarget.Mother ||
-          d.Key == MemoTarget.MotherFather)
-        .ToArray();
+      var target1 = this._data.ElementAtOrDefault(0).Key;
+      var target2 = this._data.ElementAtOrDefault(1).Key;
+      var target3 = this._data.ElementAtOrDefault(2).Key;
 
-      if (!targetKeys.Any() || targetKeys.Length != horseKeys.Length)
-      {
-        return query;
-      }
-
-      var memo = Expression.Parameter(typeof(MemoData), "x");
-      var target1 = targetKeys.ElementAtOrDefault(0).Key;
-      var target2 = targetKeys.ElementAtOrDefault(1).Key;
-      var target3 = targetKeys.ElementAtOrDefault(2).Key;
-
-      var memoFilter =
-        this._query.Apply(db, db.Memos!).Where(m => m.Target1 == target1 && m.Target2 == target2 && m.Target3 == target3);
       if (this._number != default)
       {
-        memoFilter = memoFilter.Where(m => m.Number == this._number);
+        return m => m.Target1 == target1 && m.Target2 == target2 && m.Target3 == target3 && m.Number == this._number;
       }
+      return m => m.Target1 == target1 && m.Target2 == target2 && m.Target3 == target3;
+    }
+
+    private ExpansionMemoConfig? GetMemoConfig()
+    {
+      var target1 = this._data.ElementAtOrDefault(0).Key;
+      var target2 = this._data.ElementAtOrDefault(1).Key;
+      var target3 = this._data.ElementAtOrDefault(2).Key;
+
+      return MemoUtil.GetMemoConfig(target1, target2, target3, this._number);
+    }
+
+    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
+    {
+      var memo = Expression.Parameter(typeof(MemoData), "x");
+
+      var memoFilter =
+        this._query.Apply(db, db.Memos!).Where(this.GetMemoFilter());
 
       var i = 1;
-      foreach (var key in targetKeys.Take(3))
+      foreach (var key in this._data.Take(3))
       {
         var innerKey = Expression.Lambda<Func<MemoData, string>>(Expression.Property(memo, "Key" + i), memo);
         i++;
@@ -359,59 +394,28 @@ namespace KmyKeiba.Models.Race.Finder
         }
       }
 
+      if (i > 2)
+      {
+        query = query.Distinct();
+      }
+
       return query;
     }
 
     public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
     {
-      var raceKeys = this._data.Where(d =>
-          d.Key == MemoTarget.Race || d.Key == MemoTarget.Course || d.Key == MemoTarget.Day)
-        .ToArray();
-      var targetKeys = this._data.Where(d =>
-          d.Key == MemoTarget.Race || d.Key == MemoTarget.Course || d.Key == MemoTarget.Day ||
-          d.Key == MemoTarget.Rider || d.Key == MemoTarget.Trainer || d.Key == MemoTarget.Owner ||
-          d.Key == MemoTarget.Horse || d.Key == MemoTarget.Father || d.Key == MemoTarget.Mother ||
-          d.Key == MemoTarget.MotherFather)
-        .ToArray();
-
-      if (!targetKeys.Any() || raceKeys.Length == targetKeys.Length)
-      {
-        return query;
-      }
-
       var memo = Expression.Parameter(typeof(MemoData), "x");
-      var target1 = targetKeys.ElementAtOrDefault(0).Key;
-      var target2 = targetKeys.ElementAtOrDefault(1).Key;
-      var target3 = targetKeys.ElementAtOrDefault(2).Key;
 
       var memoFilter =
-        this._query.Apply(db, db.Memos!).Where(m => m.Target1 == target1 && m.Target2 == target2 && m.Target3 == target3);
-      if (this._number != default)
-      {
-        memoFilter = memoFilter.Where(m => m.Number == this._number);
-      }
+        this._query.Apply(db, db.Memos!).Where(this.GetMemoFilter());
 
       var i = 1;
-      foreach (var key in targetKeys.Take(3))
+      foreach (var key in this._data.Take(3))
       {
         var innerKey = Expression.Lambda<Func<MemoData, string>>(Expression.Property(memo, "Key" + i), memo);
         i++;
 
-        if (key.Key == MemoTarget.Course)
-        {
-          query = query.Join(memoFilter, r => r.Course, m => m.CourseKey, (r, m) => r);
-        }
-        else if (key.Key == MemoTarget.Day)
-        {
-          query = query
-            .Select(r => new { Race = r, Day = r.RaceKey.Substring(0, 8), })
-            .Join(memoFilter, r => r.Day, innerKey, (r, m) => r.Race);
-        }
-        else if (key.Key == MemoTarget.Race)
-        {
-          query = query.Join(memoFilter, r => r.RaceKey, innerKey, (r, m) => r);
-        }
-        else if (key.Key == MemoTarget.Rider)
+        if (key.Key == MemoTarget.Rider)
         {
           query = query.Join(memoFilter, h => h.RiderCode, innerKey, (r, m) => r);
         }
@@ -447,6 +451,32 @@ namespace KmyKeiba.Models.Race.Finder
         }
       }
 
+      if (i > 2)
+      {
+        query = query.Distinct();
+      }
+
+      return query;
+    }
+
+    public IEnumerable<RaceHorseAnalyzer> Apply(MyContext db, IEnumerable<RaceHorseAnalyzer> query)
+    {
+      var config = this.GetMemoConfig();
+
+      if (config != null)
+      {
+        var items = new List<RaceHorseAnalyzer>();
+        foreach (var item in query)
+        {
+          var memo = MemoUtil.GetMemoAsync(db, item.Race, config, item).Result;
+          if (memo != null && this._query.Apply(db, new[] { memo, }).Any())
+          {
+            items.Add(item);
+          }
+        }
+        return items;
+      }
+
       return query;
     }
 
@@ -456,7 +486,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  class BloodHorseScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class BloodHorseScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly QueryKey _scriptKey;
     private string? _code;
@@ -600,7 +630,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  class HorseBeforeRacesScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class HorseBeforeRacesScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly IReadOnlyList<ScriptKeyQuery> _queries;
     private readonly IReadOnlyList<ExpressionScriptKeyQuery> _diffQueries;
@@ -980,23 +1010,9 @@ namespace KmyKeiba.Models.Race.Finder
 
       return query;
     }
-
-    public override string ToString()
-    {
-      var rule = this._countRule switch
-      {
-        RaceCountRule.AnywaysRun => "run",
-        RaceCountRule.Completely => "complete",
-        _ => "all",
-      };
-      var queries = this._queries.Select(q => q.ToString())
-        .Concat(this._diffQueries.Select(q => q.ToString("$")))
-        .Concat(this._diffQueriesBetweenCurrent.Select(q => q.ToString("$$")));
-      return $"(before<{rule}>:{this._beforeSize},{this._compareTargetSize}){string.Join(';', queries)}";
-    }
   }
 
-  class TopHorsesScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class TopHorsesScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly IReadOnlyList<ScriptKeyQuery> _queries;
 
@@ -1017,14 +1033,9 @@ namespace KmyKeiba.Models.Race.Finder
 
       return query;
     }
-
-    public override string ToString()
-    {
-      return $"(race){string.Join(';', this._queries)}";
-    }
   }
 
-  class HorseExternalNumberScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class HorseExternalNumberScriptKeyQuery : SimpleScriptKeyQuery
   {
     public readonly uint _configId;
     private readonly ScriptKeyQuery _pointQuery;
@@ -1056,13 +1067,35 @@ namespace KmyKeiba.Models.Race.Finder
       return query;
     }
 
-    public override string ToString()
+    public override IEnumerable<RaceData> Apply(MyContext db, IEnumerable<RaceData> query)
     {
-      return $"ext:{this._configId}/:{this._pointQuery}";
+      return query;
+    }
+
+    public override IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query)
+    {
+      var config = ExternalNumberUtil.GetConfig(this._configId);
+      if (config != null)
+      {
+        var result = new List<RaceHorseData>();
+        foreach (var horse in query)
+        {
+          var value = ExternalNumberUtil.GetValueAsync(db, config, horse.RaceKey, horse.Number).Result;
+          if (value != null)
+          {
+            if (this._pointQuery.Apply(db, new[] { value }).Any())
+            {
+              result.Add(horse);
+            }
+          }
+        }
+        return result;
+      }
+      return query;
     }
   }
 
-  class ExpressionScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class ExpressionScriptKeyQuery : SimpleScriptKeyQuery
   {
     public QueryKey Key { get; }
 
@@ -1113,248 +1146,194 @@ namespace KmyKeiba.Models.Race.Finder
       this.StringValue = value;
     }
 
-    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
+    private Expression<Func<RaceData, bool>> GenerateRaceFilter()
     {
       switch (this.Key)
       {
         case QueryKey.RaceKey:
           if (!string.IsNullOrEmpty(this.StringValue))
           {
-            query = query.Where(this.BuildStringQuery<RaceData>(nameof(RaceData.Key)));
+            return this.BuildStringQuery<RaceData>(nameof(RaceData.Key));
           }
           break;
         case QueryKey.Weather:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackWeather), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackWeather), isEnum: true);
         case QueryKey.Condition:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackCondition), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackCondition), isEnum: true);
         case QueryKey.Course:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.Course), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.Course), isEnum: true);
         case QueryKey.Ground:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackGround), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackGround), isEnum: true);
         case QueryKey.Direction:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackCornerDirection), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackCornerDirection), isEnum: true);
         case QueryKey.TrackType:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackType), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackType), isEnum: true);
         case QueryKey.TrackOption:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackOption), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackOption), isEnum: true);
         case QueryKey.Distance:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.Distance)));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.Distance));
         case QueryKey.Day:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.StartTime), nameof(DateTime.Day), false));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.StartTime), nameof(DateTime.Day), false);
         case QueryKey.Month:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.StartTime), nameof(DateTime.Month), false));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.StartTime), nameof(DateTime.Month), false);
         case QueryKey.Year:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.StartTime), nameof(DateTime.Year), false));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.StartTime), nameof(DateTime.Year), false);
         case QueryKey.Date:
-          query = query.Where(this.BuildDateQuery<RaceData>(nameof(RaceData.StartTime)));
-          break;
+          return this.BuildDateQuery<RaceData>(nameof(RaceData.StartTime));
         case QueryKey.Hour:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.StartTime), nameof(DateTime.Hour), false));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.StartTime), nameof(DateTime.Hour), false);
         case QueryKey.Nichiji:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.Nichiji)));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.Nichiji));
         case QueryKey.RaceNumber:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.CourseRaceNumber)));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.CourseRaceNumber));
         case QueryKey.RaceName:
           if (!string.IsNullOrEmpty(this.StringValue))
           {
-            query = query.Where(this.BuildStringQuery<RaceData>(nameof(RaceData.Name)));
+            return this.BuildStringQuery<RaceData>(nameof(RaceData.Name));
           }
           break;
         case QueryKey.GradeId:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.GradeId)));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.GradeId));
         case QueryKey.SubjectAge2:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.SubjectAge2), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.SubjectAge2), isEnum: true);
         case QueryKey.SubjectAge3:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.SubjectAge3), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.SubjectAge3), isEnum: true);
         case QueryKey.SubjectAge4:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.SubjectAge4), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.SubjectAge4), isEnum: true);
         case QueryKey.SubjectAge5:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.SubjectAge5), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.SubjectAge5), isEnum: true);
         case QueryKey.Grade:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.Grade), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.Grade), isEnum: true);
         case QueryKey.RiderWeightRule:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.RiderWeight), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.RiderWeight), isEnum: true);
         case QueryKey.AreaRule:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.Area), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.Area), isEnum: true);
         case QueryKey.SexRule:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.Sex), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.Sex), isEnum: true);
         case QueryKey.CrossRule:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.Cross), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.Cross), isEnum: true);
         case QueryKey.PrizeMoney1:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.PrizeMoney1), isShort: false));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.PrizeMoney1), isShort: false);
         case QueryKey.HorsesCount:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.HorsesCount), isShort: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.HorsesCount), isShort: true);
         case QueryKey.GoalHorsesCount:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.ResultHorsesCount), isShort: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.ResultHorsesCount), isShort: true);
         case QueryKey.DataStatus:
-          query = query.Where(this.BuildNumericQuery<RaceData>(nameof(RaceData.DataStatus), isShort: true, isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.DataStatus), isShort: true, isEnum: true);
       }
-      return query;
+
+      return r => true;
     }
 
-    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
+    {
+      return query.Where(this.GenerateRaceFilter());
+    }
+
+    public override IEnumerable<RaceData> Apply(MyContext db, IEnumerable<RaceData> query)
+    {
+      return query.Where(this.GenerateRaceFilter().Compile());
+    }
+
+    private Expression<Func<RaceHorseData, bool>> GenerateRaceHorseFilter()
     {
       switch (this.Key)
       {
         case QueryKey.HorseKey:
           if (!string.IsNullOrEmpty(this.StringValue))
           {
-            query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.Key)));
+            return this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.Key));
           }
           break;
         case QueryKey.Age:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Age)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Age));
         case QueryKey.Sex:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Sex), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Sex), isEnum: true);
         case QueryKey.HorseType:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Type), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Type), isEnum: true);
         case QueryKey.Color:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Color), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Color), isEnum: true);
         case QueryKey.HorseNumber:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Number)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Number));
         case QueryKey.FrameNumber:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.FrameNumber)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.FrameNumber));
         case QueryKey.Mark:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Mark), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Mark), isEnum: true);
         case QueryKey.RiderCode:
-          if (!string.IsNullOrEmpty(this.StringValue))
-          {
-            query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.RiderCode)));
-          }
-          break;
+          return this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.RiderCode));
         case QueryKey.TrainerCode:
-          if (!string.IsNullOrEmpty(this.StringValue))
-          {
-            query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.TrainerCode)));
-          }
-          break;
+          return this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.TrainerCode));
         case QueryKey.OwnerCode:
-          if (!string.IsNullOrEmpty(this.StringValue))
-          {
-            query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.OwnerCode)));
-          }
-          break;
+          return this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.OwnerCode));
         case QueryKey.Place:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ResultOrder)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ResultOrder));
         case QueryKey.GoalPlace:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.GoalOrder)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.GoalOrder));
         case QueryKey.ResultLength:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ResultLength1)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ResultLength1));
         case QueryKey.Abnormal:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.AbnormalResult), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.AbnormalResult), isEnum: true);
         case QueryKey.Popular:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Popular)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Popular));
         case QueryKey.ResultTime:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ResultTimeValue)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ResultTimeValue));
         case QueryKey.ResultTimeDiff:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.TimeDifference)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.TimeDifference));
         case QueryKey.CornerPlace1:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.FirstCornerOrder)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.FirstCornerOrder));
         case QueryKey.CornerPlace2:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.SecondCornerOrder)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.SecondCornerOrder));
         case QueryKey.CornerPlace3:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ThirdCornerOrder)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.ThirdCornerOrder));
         case QueryKey.CornerPlace4:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.FourthCornerOrder)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.FourthCornerOrder));
         case QueryKey.Weight:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Weight)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Weight));
         case QueryKey.WeightDiff:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.WeightDiff)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.WeightDiff));
         case QueryKey.RiderWeight:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RiderWeight)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RiderWeight));
         case QueryKey.Odds:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Odds)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.Odds));
         case QueryKey.PlaceOddsMax:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.PlaceOddsMax)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.PlaceOddsMax));
         case QueryKey.PlaceOddsMin:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.PlaceOddsMin)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.PlaceOddsMin));
         case QueryKey.A3HTime:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.AfterThirdHalongTimeValue)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.AfterThirdHalongTimeValue));
         case QueryKey.RunningStyle:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RunningStyle), isEnum: true));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RunningStyle), isEnum: true);
         case QueryKey.PreviousRaceDays:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.PreviousRaceDays)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.PreviousRaceDays));
         case QueryKey.RaceCount:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RaceCount)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RaceCount));
         case QueryKey.RaceCountWithinRunning:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RaceCountWithinRunning)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RaceCountWithinRunning));
         case QueryKey.RaceCountWithinRunningCompletely:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RaceCountWithinRunningCompletely)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RaceCountWithinRunningCompletely));
         case QueryKey.RaceCountAfterLastRest:
-          query = query.Where(this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RaceCountAfterLastRest)));
-          break;
+          return this.BuildNumericQuery<RaceHorseData>(nameof(RaceHorseData.RaceCountAfterLastRest));
         case QueryKey.HorseName:
-          query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.Name)));
-          break;
+          return this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.Name));
         case QueryKey.RiderName:
-          query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.RiderName)));
-          break;
+          return this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.RiderName));
         case QueryKey.TrainerName:
-          query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.TrainerName)));
-          break;
+          return this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.TrainerName));
         case QueryKey.OwnerName:
-          query = query.Where(this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.OwnerName)));
-          break;
+          return this.BuildStringQuery<RaceHorseData>(nameof(RaceHorseData.OwnerName));
       }
-      return query;
+
+      return h => true;
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      return query.Where(this.GenerateRaceHorseFilter());
+    }
+
+    public override IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query)
+    {
+      return query.Where(this.GenerateRaceHorseFilter().Compile());
     }
 
     public override IQueryable<MemoData> Apply(MyContext db, IQueryable<MemoData> query)
@@ -1363,6 +1342,17 @@ namespace KmyKeiba.Models.Race.Finder
       {
         case QueryKey.Point:
           query = query.Where(this.BuildNumericQuery<MemoData>(nameof(MemoData.Point)));
+          break;
+      }
+      return query;
+    }
+
+    public override IEnumerable<MemoData> Apply(MyContext db, IEnumerable<MemoData> query)
+    {
+      switch (this.Key)
+      {
+        case QueryKey.Point:
+          query = query.Where(this.BuildNumericQuery<MemoData>(nameof(MemoData.Point)).Compile());
           break;
       }
       return query;
@@ -1379,72 +1369,15 @@ namespace KmyKeiba.Models.Race.Finder
       return query;
     }
 
-    [Obsolete]
-    private Expression<Func<T, bool>> BuildEnumValuesQuery<T, V>(string propertyName, IEnumerable<V> values)
+    public override IEnumerable<ExternalNumberData> Apply(MyContext db, IEnumerable<ExternalNumberData> query)
     {
-      return this.BuildEnumValuesQuery<T, V>(propertyName, null, values);
-    }
-
-    [Obsolete]
-    private Expression<Func<T, bool>> BuildEnumValuesQuery<T, V>(string propertyName, string? propertyName2, IEnumerable<V> values)
-    {
-      var param = Expression.Parameter(typeof(T), "x");
-      var property = Expression.Property(param, propertyName);
-      if (propertyName2 != null)
+      switch (this.Key)
       {
-        property = Expression.Property(property, propertyName2);
+        case QueryKey.Point:
+          query = query.Where(this.BuildNumericQuery<ExternalNumberData>(nameof(ExternalNumberData.Value), isShort: false).Compile());
+          break;
       }
-
-      var valuesExp = Expression.Constant(values.ToList());
-
-      if (values.Any())
-      {
-        if (values.Skip(1).Any())
-        {
-          if (this.Type == QueryType.Contains)
-          {
-            return Expression.Lambda<Func<T, bool>>(Expression.Call(valuesExp, "Contains", null, property), param);
-          }
-          if (this.Type == QueryType.Excepts)
-          {
-            return Expression.Lambda<Func<T, bool>>(Expression.Equal(Expression.Call(valuesExp, "Contains", null, property), Expression.Constant(false)), param);
-          }
-        }
-        else
-        {
-          var valueExp = Expression.Constant(values.First());
-          if (this.Type == QueryType.Contains || this.Type == QueryType.Equals)
-          {
-            return Expression.Lambda<Func<T, bool>>(Expression.Equal(property, valueExp), param);
-          }
-          if (this.Type == QueryType.Excepts || this.Type == QueryType.NotEquals)
-          {
-            return Expression.Lambda<Func<T, bool>>(Expression.NotEqual(property, valueExp), param);
-          }
-          if (this.Type == QueryType.GreaterThan)
-          {
-            return Expression.Lambda<Func<T, bool>>(Expression.GreaterThan(
-              Expression.Convert(property, typeof(short)), Expression.Convert(valueExp, typeof(short))), param);
-          }
-          if (this.Type == QueryType.GreaterThanOrEqual)
-          {
-            return Expression.Lambda<Func<T, bool>>(Expression.GreaterThanOrEqual(
-              Expression.Convert(property, typeof(short)), Expression.Convert(valueExp, typeof(short))), param);
-          }
-          if (this.Type == QueryType.LessThan)
-          {
-            return Expression.Lambda<Func<T, bool>>(Expression.LessThan(
-              Expression.Convert(property, typeof(short)), Expression.Convert(valueExp, typeof(short))), param);
-          }
-          if (this.Type == QueryType.LessThanOrEqual)
-          {
-            return Expression.Lambda<Func<T, bool>>(Expression.LessThanOrEqual(
-              Expression.Convert(property, typeof(short)), Expression.Convert(valueExp, typeof(short))), param);
-          }
-        }
-      }
-
-      return Expression.Lambda<Func<T, bool>>(Expression.Constant(true), param);
+      return query;
     }
 
     private Expression<Func<T, bool>> BuildNumericQuery<T>(string propertyName, bool isShort = true, bool isDouble = false, bool isEnum = false)
@@ -1538,6 +1471,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     private Expression<Func<T, bool>> BuildStringQuery<T>(string propertyName)
     {
+      if (string.IsNullOrEmpty(this.StringValue))
+      {
+        return _ => true;
+      }
+
       var param = Expression.Parameter(typeof(T), "x");
       var property = Expression.Property(param, propertyName);
       var value = Expression.Constant(this.StringValue);
@@ -1578,69 +1516,9 @@ namespace KmyKeiba.Models.Race.Finder
 
       return this.BuildNumericQuery<T>(param, property2, value, maxValue, values);
     }
-
-    public override string ToString()
-    {
-      return this.ToString(string.Empty);
-    }
-
-    public string ToString(string rightPrefix)
-    {
-      var split = this.Type switch
-      {
-        QueryType.NotEquals => "<>",
-        QueryType.LessThanOrEqual => "<=",
-        QueryType.GreaterThanOrEqual => ">=",
-        QueryType.Contains => "@=",
-        QueryType.StartsWith => "@<",
-        QueryType.EndsWith => "@>",
-        QueryType.Equals => "=",
-        QueryType.LessThan => "<",
-        QueryType.GreaterThan => ">",
-        _ => string.Empty,
-      };
-      var left = base.GetScriptKey(this.Key);
-      string right;
-
-      if (this.Values.Length > 1)
-      {
-        var max = this.Values.Max();
-        var min = this.Values.Min();
-        var isConsective = true;
-        for (var i = min; i <= max; i++)
-        {
-          if (!this.Values.Contains(i))
-          {
-            isConsective = false;
-            break;
-          }
-        }
-        if (isConsective)
-        {
-          right = $"{min}-{max}";
-        }
-        else
-        {
-          right = string.Join(',', this.Values);
-        }
-      }
-      else
-      {
-        if (this.StringValue != null)
-        {
-          right = this.StringValue;
-        }
-        else
-        {
-          right = this.Value.ToString();
-        }
-      }
-
-      return $"{left}{split}{rightPrefix}{right}";
-    }
   }
 
-  class RaceSubjectScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class RaceSubjectScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly IReadOnlyList<RaceSubjectType> _subjects;
     private readonly IReadOnlyList<string> _localSubjects;
@@ -1653,6 +1531,24 @@ namespace KmyKeiba.Models.Race.Finder
       this._localSubjects = localSubjects;
     }
 
+    private Expression<Func<RaceData, bool>> GenerateExpression()
+    {
+      if (this._type == QueryType.Equals || this._type == QueryType.Contains)
+      {
+        return r => this._subjects.Contains(r.SubjectAge2) || this._subjects.Contains(r.SubjectAge3) ||
+          this._subjects.Contains(r.SubjectAge4) || this._subjects.Contains(r.SubjectAge5) ||
+          this._subjects.Contains(r.SubjectAgeYounger) || this._localSubjects.Contains(r.SubjectInfo1) ||
+          this._localSubjects.Contains(r.SubjectInfo2);
+      }
+      else
+      {
+        return r => !this._subjects.Contains(r.SubjectAge2) && !this._subjects.Contains(r.SubjectAge3) &&
+          !this._subjects.Contains(r.SubjectAge4) && !this._subjects.Contains(r.SubjectAge5) &&
+          !this._subjects.Contains(r.SubjectAgeYounger) && !this._localSubjects.Contains(r.SubjectInfo1) &&
+          !this._localSubjects.Contains(r.SubjectInfo2);
+      }
+    }
+
     public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
     {
       if (!this._subjects.Any() && !this._localSubjects.Any())
@@ -1660,25 +1556,30 @@ namespace KmyKeiba.Models.Race.Finder
         return query;
       }
 
-      if (this._type == QueryType.Equals || this._type == QueryType.Contains)
+      query = query.Where(this.GenerateExpression());
+
+      return query;
+    }
+
+    public override IEnumerable<RaceData> Apply(MyContext db, IEnumerable<RaceData> query)
+    {
+      if (!this._subjects.Any() && !this._localSubjects.Any())
       {
-        query = query.Where(r => this._subjects.Contains(r.SubjectAge2) || this._subjects.Contains(r.SubjectAge3) ||
-          this._subjects.Contains(r.SubjectAge4) || this._subjects.Contains(r.SubjectAge5) ||
-          this._subjects.Contains(r.SubjectAgeYounger) || this._localSubjects.Contains(r.SubjectInfo1) ||
-          this._localSubjects.Contains(r.SubjectInfo2));
+        return query;
       }
-      else
-      {
-        query = query.Where(r => !this._subjects.Contains(r.SubjectAge2) && !this._subjects.Contains(r.SubjectAge3) &&
-          !this._subjects.Contains(r.SubjectAge4) && !this._subjects.Contains(r.SubjectAge5) &&
-          !this._subjects.Contains(r.SubjectAgeYounger) && !this._localSubjects.Contains(r.SubjectInfo1) &&
-          !this._localSubjects.Contains(r.SubjectInfo2));
-      }
+
+      query = query.Where(this.GenerateExpression().Compile());
+
+      return query;
+    }
+
+    public override IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query)
+    {
       return query;
     }
   }
 
-  class RaceAgeScriptKeyQuery : DefaultLambdaScriptKeyQuery
+  class RaceAgeScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly IReadOnlyList<short> _ages;
 
@@ -1687,13 +1588,8 @@ namespace KmyKeiba.Models.Race.Finder
       this._ages = ages;
     }
 
-    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
+    private Expression<Func<RaceData, bool>> GenerateExpression()
     {
-      if (!this._ages.Any())
-      {
-        return query;
-      }
-
       var unknown = Expression.Constant((short)RaceSubjectType.Unknown);
 
       for (var i = 2; i <= 5; i++)
@@ -1706,10 +1602,39 @@ namespace KmyKeiba.Models.Race.Finder
         if (!this._ages.Contains((short)i))
         {
           result = Expression.Equal(property, unknown);
-          query = query.Where(Expression.Lambda<Func<RaceData, bool>>(result, param));
+          return Expression.Lambda<Func<RaceData, bool>>(result, param);
         }
       }
 
+      return r => true;
+    }
+
+    public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
+    {
+      if (!this._ages.Any())
+      {
+        return query;
+      }
+
+      query = query.Where(this.GenerateExpression());
+
+      return query;
+    }
+
+    public override IEnumerable<RaceData> Apply(MyContext db, IEnumerable<RaceData> query)
+    {
+      if (!this._ages.Any())
+      {
+        return query;
+      }
+
+      query = query.Where(this.GenerateExpression().Compile());
+
+      return query;
+    }
+
+    public override IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query)
+    {
       return query;
     }
   }

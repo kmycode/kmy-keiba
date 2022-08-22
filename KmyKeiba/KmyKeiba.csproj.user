@@ -55,6 +55,12 @@
     <Compile Update="Views\Expansions\AnalysisTableConfigView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Expansions\AnalysisTableDelimiterConfigView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Expansions\AnalysisTableWeightConfigView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Expansions\ExpansionAnalysisTableView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -77,6 +83,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Parts\FinderKeyInputView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\FinderQueryParameterView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Parts\FinderQuery\FinderQueryView.xaml.cs">
@@ -201,6 +210,12 @@
     <Page Update="Views\Expansions\AnalysisTableConfigView.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Views\Expansions\AnalysisTableDelimiterConfigView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\AnalysisTableWeightConfigView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\Expansions\ExpansionAnalysisTableView.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -223,6 +238,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Parts\FinderKeyInputView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\FinderQueryParameterView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Parts\FinderQuery\FinderQueryView.xaml">

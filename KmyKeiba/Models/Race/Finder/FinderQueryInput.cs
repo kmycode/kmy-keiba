@@ -244,8 +244,6 @@ namespace KmyKeiba.Models.Race.Finder
       {
         category.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this._disposables);
       }
-
-      this.UpdateConfigs();
     }
 
     private void UpdateQuery()
@@ -255,7 +253,7 @@ namespace KmyKeiba.Models.Race.Finder
         .Where(q => !string.IsNullOrEmpty(q)));
     }
 
-    public string Serialize(bool isIndent)
+    public string Serialize(bool isIndent, bool isDiffOnly = false)
     {
       var indent = isIndent ? " " : string.Empty;
 
@@ -264,7 +262,7 @@ namespace KmyKeiba.Models.Race.Finder
         .GetProperties(BindingFlags.Public | BindingFlags.Instance))
       {
         var category = property.GetValue(this) as IFinderQueryInputCategory;
-        if (category == null)
+        if (category == null || (isDiffOnly && !category.IsCustomized.Value))
         {
           continue;
         }
@@ -399,18 +397,6 @@ namespace KmyKeiba.Models.Race.Finder
       }
     }
 
-    public void UpdateConfigs()
-    {
-      /*
-      this.SelectedConfig.Value = null;
-      this.Configs.Clear();
-      foreach (var config in FinderConfigUtil.Configs)
-      {
-        this.Configs.Add(config);
-      }
-      */
-    }
-
     public async Task AddConfigAsync()
     {
       var config = new FinderConfigData
@@ -480,12 +466,42 @@ namespace KmyKeiba.Models.Race.Finder
       }
     }
 
+    private readonly Dictionary<IFinderQueryInputCategory, FinderQueryParameterItem> _parameterCaches = new();
+    public IReadOnlyList<FinderQueryParameterItem> ToParameters()
+    {
+      var list = new List<FinderQueryParameterItem>();
+      foreach (var category in this._categories.Where(c => c.IsCustomized.Value))
+      {
+        if (_parameterCaches.TryGetValue(category, out var cache))
+        {
+          cache.Update();
+          list.Add(cache);
+        }
+        else
+        {
+          var item = new FinderQueryParameterItem(category, this._categories.IndexOf(category));
+          list.Add(item);
+          _parameterCaches[category] = item;
+        }
+      }
+      return list;
+    }
+
     public void Dispose()
     {
       this._disposables.Dispose();
-      foreach (var category in this._categories)
+      IFinderQueryInputCategory? cate = null;
+      try
       {
-        category.Dispose();
+        foreach (var category in this._categories)
+        {
+          cate = category;
+          category.Dispose();
+        }
+      }
+      catch (Exception ex)
+      {
+
       }
     }
   }
@@ -567,6 +583,86 @@ namespace KmyKeiba.Models.Race.Finder
     public IEnumerable<T> GetCheckedValues()
     {
       return this.Where(i => i.IsChecked.Value).Select(i => i.Value);
+    }
+  }
+
+  public class FinderQueryParameterItem
+  {
+    public IFinderQueryInputCategory Category { get; }
+
+    public string Header { get; } = string.Empty;
+
+    public ReactiveProperty<string> DisplayValue { get; } = new();
+
+    public bool IsNumber { get; }
+
+    public bool IsList { get; }
+
+    public int Order { get; }
+
+    public ReactiveProperty<bool> IsOpen { get; } = new();
+
+    public FinderQueryParameterItem(IFinderQueryInputCategory category, int order)
+    {
+      this.Category = category;
+      this.Order = order;
+
+      if (category is IListBoxInputCategory)
+      {
+        this.IsList = true;
+      }
+      else if (category is NumberInputCategoryBase || category is FloatNumberInputCategoryBase)
+      {
+        this.IsNumber = true;
+      }
+
+      this.Header = category switch
+      {
+        RaceSubjectInputCategory => "条件・クラス",
+        RaceGradeInputCategory => "グレード",
+        RaceAgeInputCategory => "年齢制限",
+        TrackDistanceInputCategory => "距離",
+        TrackConditionInputCategory => "馬場状態",
+        TrackWeatherInputCategory => "天気",
+        _ => string.Empty,
+      };
+
+      this.Update();
+    }
+
+    public void Update()
+    {
+      void SetByNumberInput(FinderQueryNumberInput num)
+      {
+        var display = num.GetRightQuery();
+        if (display.Length > 12)
+        {
+          display = display[..10] + "...";
+        }
+        this.DisplayValue.Value = display;
+      }
+
+      if (this.Category is IListBoxInputCategory list)
+      {
+        if (list.IsSetListValue.Value)
+        {
+          var labels = list.GetSelectedItemLabels();
+          var display = string.Join(',', labels);
+          if (display.Length > 12)
+          {
+            display = display[..10] + "...";
+          }
+          this.DisplayValue.Value = display;
+        }
+        else if (list.IsSetNumericComparation.Value)
+        {
+          SetByNumberInput(list.NumberInput);
+        }
+      }
+      else if (this.Category is NumberInputCategoryBase num)
+      {
+        SetByNumberInput(num.Input);
+      }
     }
   }
 }

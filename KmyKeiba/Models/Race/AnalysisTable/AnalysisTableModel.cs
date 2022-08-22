@@ -33,7 +33,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       {
         foreach (var horse in horses)
         {
-          this._finders.Add(new RaceFinder(race, horse.Data));
+          this._finders.Add(new RaceFinder(horse));
         }
       }
       else
@@ -85,17 +85,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
     }
 
-    public async Task ReloadTablesAsync()
+    public void ReloadTables()
     {
-      using var db = new MyContext();
-
       this.ClearTables();
       this.InitializeTables();
-
-      foreach (var table in this.Tables)
-      {
-        await table.AnalysisAsync(db, this._finders, this.Weights, false);
-      }
     }
 
     public async Task AnalysisTablesAsync()

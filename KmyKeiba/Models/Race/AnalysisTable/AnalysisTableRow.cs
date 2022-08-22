@@ -55,6 +55,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       finder.Input.Deserialize(data.FinderConfig);
       finder.Input.Query.Skip(1).Subscribe(async _ =>
       {
+        // TODO try catch
         using var db = new MyContext();
         db.AnalysisTableRows!.Attach(this.Data);
         this.Data.FinderConfig = this.FinderModelForConfig.Input.Serialize(false);
@@ -64,14 +65,15 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         .CombineLatest(this.Name)
         .CombineLatest(this.BaseWeight)
         .Skip(1).Subscribe(async _ =>
-      {
-        using var db = new MyContext();
-        db.AnalysisTableRows!.Attach(this.Data);
-        this.Data.Name = this.Name.Value;
-        this.Data.Output = this.Output.Value;
-        this.Data.BaseWeight = this.BaseWeight.Value;
-        await db.SaveChangesAsync();
-      }).AddTo(this._disposables);
+        {
+          // TODO try catch
+          using var db = new MyContext();
+          db.AnalysisTableRows!.Attach(this.Data);
+          this.Data.Name = this.Name.Value;
+          this.Data.Output = this.Output.Value;
+          this.Data.BaseWeight = this.BaseWeight.Value;
+          await db.SaveChangesAsync();
+        }).AddTo(this._disposables);
     }
 
     public async Task LoadAsync(RaceData race, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly = false)
@@ -82,15 +84,6 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       var keys = this.FinderModelForConfig.Input.Query.Value;
 
       var weight = weights.FirstOrDefault(w => w.Data.Id == this.Data.WeightId);
-      var filter = weights.FirstOrDefault(w => w.Data.Id == this.Data.FilterId);
-
-      if (filter != null)
-      {
-        if (!filter.IsThroughFilter(race))
-        {
-          return;
-        }
-      }
 
       foreach (var item in this.Cells.Join(finders, c => c.Horse.Data.Key, f => f.RaceHorse?.Key, (c, f) => new { Cell = c, Finder = f, }))
       {
@@ -109,6 +102,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         var cache = item.Finder.TryFindRaceHorseCache(query);
         if (cache != null)
         {
+          // OutputType = FixedValueの場合、そもそも検索はしないのでキャッシュも来ない。処理不要
+
           this.AnalysisSource(cache, weight, item.Cell, item.Finder);
           this.IsLoaded.Value = true;
           this.IsLoading.Value = false;
@@ -117,8 +112,15 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         {
           var task = Task.Run(async () =>
           {
-            var source = await item.Finder.FindRaceHorsesAsync(query, size, withoutFutureRaces: true, withoutFutureRacesForce: true);
-            this.AnalysisSource(source, weight, item.Cell, item.Finder);
+            if (this.Data.Output != AnalysisTableRowOutputType.FixedValue)
+            {
+              var source = await item.Finder.FindRaceHorsesAsync(query, size, withoutFutureRaces: true, withoutFutureRacesForce: true);
+              this.AnalysisSource(source, weight, item.Cell, item.Finder);
+            }
+            else
+            {
+              this.AnalysisFixedValue(weight, item.Cell, item.Finder);
+            }
 
             this.IsLoaded.Value = true;
             this.IsLoading.Value = false;
@@ -146,7 +148,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         cell.ComparationValue.Value = isAny ? 1 : 0;
         cell.PointCalcValue.Value = isAny ? 1 : 0;
         cell.Value.Value = isAny ? "●" : string.Empty;
-        cell.HasComparationValue.Value = true;
+        cell.HasComparationValue.Value = isAny;
         cell.SampleSize = 0;
 
         if (weight != null && isAny)
@@ -155,6 +157,15 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           cell.Weight = weightValue;
           cell.Point.Value = cell.PointCalcValue.Value * weightValue;
         }
+        else
+        {
+          cell.Point.Value = cell.PointCalcValue.Value * this.Data.BaseWeight;
+        }
+      }
+      else if (this.Data.Output == AnalysisTableRowOutputType.FixedValue)
+      {
+        // 固定値を使用。純粋に重みをそのままポイントに転換する
+        this.AnalysisFixedValue(weight, cell, finder);
       }
       else
       {
@@ -167,6 +178,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           var weightValue = weight.CalcWeight(items) * this.Data.BaseWeight;
           cell.Weight = weightValue;
           cell.Point.Value = cell.PointCalcValue.Value * weightValue;
+        }
+        else
+        {
+          cell.Point.Value = cell.PointCalcValue.Value * this.Data.BaseWeight;
         }
 
         var samples = items.Where(cell.SampleFilter).Take(10);
@@ -184,6 +199,18 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       {
         cell.Weight = 1;
         cell.Point.Value = cell.PointCalcValue.Value;
+      }
+    }
+
+    private void AnalysisFixedValue(AnalysisTableWeight? weight, AnalysisTableCell cell, RaceFinder finder)
+    {
+      if (weight != null && finder.RaceHorseAnalyzer != null)
+      {
+        var weightValue = weight.CalcWeight(new[] { finder.RaceHorseAnalyzer, }) * this.Data.BaseWeight;
+        cell.Weight = weightValue;
+        cell.PointCalcValue.Value = 1;
+        cell.Point.Value = cell.PointCalcValue.Value * weightValue;
+        cell.Value.Value = cell.Point.Value.ToString("N3");
       }
     }
 

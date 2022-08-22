@@ -17,15 +17,15 @@ using System.Windows.Shapes;
 namespace KmyKeiba.Views.Expansions
 {
   /// <summary>
-  /// AnalysisTableConfigView.xaml の相互作用ロジック
+  /// AnalysisTableDelimiterConfigView.xaml の相互作用ロジック
   /// </summary>
-  public partial class AnalysisTableConfigView : UserControl
+  public partial class AnalysisTableDelimiterConfigView : UserControl
   {
     public static readonly DependencyProperty AnalysisTableProperty
     = DependencyProperty.Register(
         nameof(AnalysisTable),
         typeof(AnalysisTableModel),
-        typeof(AnalysisTableConfigView),
+        typeof(AnalysisTableDelimiterConfigView),
         new PropertyMetadata(null));
 
     public AnalysisTableModel? AnalysisTable
@@ -34,9 +34,7 @@ namespace KmyKeiba.Views.Expansions
       set { SetValue(AnalysisTableProperty, value); }
     }
 
-    public Guid UniqueId5 { get; } = Guid.NewGuid();
-
-    public AnalysisTableConfigView()
+    public AnalysisTableDelimiterConfigView()
     {
       InitializeComponent();
     }

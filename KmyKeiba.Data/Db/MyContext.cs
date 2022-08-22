@@ -89,6 +89,12 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<AnalysisTableWeightData>? AnalysisTableWeights { get; set; }
 
+    public DbSet<AnalysisTableWeightRowData>? AnalysisTableWeightRows { get; set; }
+
+    public DbSet<DelimiterData>? Delimiters { get; set; }
+
+    public DbSet<DelimiterRowData>? DelimiterRows { get; set; }
+
     #endregion
 
     private IDbContextTransaction? _transaction;

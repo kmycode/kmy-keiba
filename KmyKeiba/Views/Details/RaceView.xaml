@@ -351,6 +351,9 @@
               <ColumnDefinition/>
               <ColumnDefinition/>
               <ColumnDefinition/>
+              <ColumnDefinition/>
+              <ColumnDefinition/>
+              <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <RadioButton Grid.Column="0" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                          Content="拡張メモ" Name="S_ExMemo" IsChecked="True"/>
@@ -360,6 +363,12 @@
                          Content="拡張分析設定" Name="S_ExAnalysisConfig"/>
             <RadioButton Grid.Column="3" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                          Content="拡張分析重み設定" Name="S_ExAnalysisWeightConfig"/>
+            <RadioButton Grid.Column="4" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Content="重み区切り設定" Name="S_ExAnalysisDelimiterConfig"/>
+            <RadioButton Grid.Column="5" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Content="拡張集計"/>
+            <RadioButton Grid.Column="6" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Content="外部指数設定"/>
           </Grid>
 
           <ex:ExpansionMemoView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExMemo,Converter={StaticResource BooleanVisibilityConv}}"
@@ -368,6 +377,10 @@
                                          Race="{Binding Race,ElementName=Root}" AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
           <ex:AnalysisTableConfigView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisConfig,Converter={StaticResource BooleanVisibilityConv}}"
                                       AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
+          <ex:AnalysisTableWeightConfigView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisWeightConfig,Converter={StaticResource BooleanVisibilityConv}}"
+                                            AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
+          <ex:AnalysisTableDelimiterConfigView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisDelimiterConfig,Converter={StaticResource BooleanVisibilityConv}}"
+                                               AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
         </Grid>
 
         <!-- 結果・全体 -->

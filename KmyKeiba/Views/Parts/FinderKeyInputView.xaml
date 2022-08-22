@@ -44,22 +44,33 @@
         </ControlTemplate>
       </ToggleButton.Template>
     </ToggleButton>
-    <local:ImePopup StaysOpen="False" IsOpen="{Binding IsChecked,ElementName=Toggle,Mode=TwoWay}"
-                    PlacementTarget="{Binding ElementName=Toggle}" Placement="Bottom">
+    <local:ImePopup StaysOpen="False" IsOpen="{Binding IsChecked,ElementName=Toggle,Mode=TwoWay}" x:Name="QueryPopup"
+                    PlacementTarget="{Binding ElementName=Toggle}" Placement="Bottom" Opened="ImePopup_Opened" Closed="ImePopup_Closed">
       <Border Width="{Binding ActualWidth,Mode=OneWay,ElementName=Toggle}" MinWidth="1200" Height="660" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Padding="16,8"
               Background="{StaticResource BaseBackground}">
-        <fq:FinderQueryView FinderModel="{Binding FinderModel,ElementName=Root}" IsSubView="{Binding IsSubView,ElementName=Root}"
-                            IsSubViewSameRaceHorse="{Binding IsSubViewSameRaceHorse,ElementName=Root}" IsSubViewBeforeRace="{Binding IsSubViewBeforeRace,ElementName=Root}"/>
+        <!--xaml.csで動的に設定-->
       </Border>
     </local:ImePopup>
     <TextBox Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding FinderModel.Keys.Value,ElementName=Root,Mode=TwoWay}" FontSize="14" Padding="4,2"
              VerticalAlignment="Center"
              Visibility="{Binding IsChecked,ElementName=ManualButton,Converter={StaticResource BooleanVisibilityConv}}"/>
     <Button Content="検索" Grid.Column="1" FontSize="16" Width="80"
-            x:Name="SearchButton" IsEnabled="{Binding FinderModel.IsLoading.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"
-            Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+            x:Name="SearchButton" IsEnabled="{Binding FinderModel.IsLoading.Value,ElementName=Root,Converter={StaticResource NegativeConv}}">
+      <Button.Visibility>
+        <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+          <Binding Path="IsSubView" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+          <Binding Path="IsShowFinderButtonOnly" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+        </MultiBinding>
+      </Button.Visibility>
+    </Button>
     <ToggleButton Content="クエリ" Grid.Column="2" FontSize="12" Width="40" Padding="0"
-            x:Name="ManualButton" IsEnabled="{Binding FinderModel.IsLoading.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"
-            Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+            x:Name="ManualButton" IsEnabled="{Binding FinderModel.IsLoading.Value,ElementName=Root,Converter={StaticResource NegativeConv}}">
+      <ToggleButton.Visibility>
+        <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+          <Binding Path="IsSubView" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+          <Binding Path="IsShowFinderButtonOnly" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+        </MultiBinding>
+      </ToggleButton.Visibility>
+    </ToggleButton>
   </Grid>
 </UserControl>

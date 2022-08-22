@@ -56,8 +56,10 @@ namespace KmyKeiba.Models.Analysis.Generic
             }
             break;
           case NotifyCollectionChangedAction.Remove:
-            if (e.OldItems is IEnumerable<T> items2)
+            if (e.OldItems != null)
             {
+              var items2 = e.OldItems.OfType<T>();
+
               foreach (var item in items2)
               {
                 if (item == null) continue;

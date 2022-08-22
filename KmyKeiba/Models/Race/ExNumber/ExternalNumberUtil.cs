@@ -19,6 +19,7 @@ namespace KmyKeiba.Models.Race.ExNumber
     public static ReactiveCollection<ExternalNumberConfig> Configs { get; } = new();
 
     private static bool _isInitialized;
+    private static readonly Dictionary<(uint, string, short), ExternalNumberData?> _cache = new();
 
     public static async Task InitializeAsync(MyContext db)
     {
@@ -35,7 +36,14 @@ namespace KmyKeiba.Models.Race.ExNumber
 
     public static async Task<ExternalNumberData?> GetValueAsync(MyContext db, ExternalNumberConfig config, string raceKey, short horseNumber)
     {
-      return await db.ExternalNumbers!.Where(n => n.ConfigId == config.Id && n.RaceKey == raceKey && n.HorseNumber == horseNumber).FirstOrDefaultAsync();
+      if (_cache.TryGetValue((config.Id, raceKey, horseNumber), out var cache))
+      {
+        return cache;
+      }
+
+      var number = await db.ExternalNumbers!.Where(n => n.ConfigId == config.Id && n.RaceKey == raceKey && n.HorseNumber == horseNumber).FirstOrDefaultAsync();
+      _cache[(config.Id, raceKey, horseNumber)] = number;
+      return number;
     }
 
     public static async Task<IReadOnlyList<ExternalNumberData>> GetValuesAsync(MyContext db, string raceKey)
@@ -57,7 +65,28 @@ namespace KmyKeiba.Models.Race.ExNumber
       return str;
     }
 
-    public static IReadOnlyList<ExternalNumberData> ReadRaceHorseValues(ExternalNumberConfig config, RaceData race)
+    public static async Task SaveRangeAsync(MyContext db, ExternalNumberConfig config, DateTime start, DateTime end)
+    {
+      var races = await db.Races!.Where(r => r.StartTime >= start && r.StartTime <= end).ToArrayAsync();
+
+      var count = 0;
+      foreach (var race in races)
+      {
+        var list = ReadRaceHorseValues(config, race);
+        await db.ExternalNumbers!.AddRangeAsync(list);
+
+        if (++count >= 1000)
+        {
+          await db.SaveChangesAsync();
+          await db.CommitAsync();
+        }
+      }
+
+      await db.SaveChangesAsync();
+      await db.CommitAsync();
+    }
+
+    private static IReadOnlyList<ExternalNumberData> ReadRaceHorseValues(ExternalNumberConfig config, RaceData race)
     {
       var fileName = GetFileName(config.FileNamePattern, race);
       if (!File.Exists(fileName))
@@ -106,6 +135,7 @@ namespace KmyKeiba.Models.Race.ExNumber
         return (short)(num * mul);
       }
 
+      // ファイルの中身をデータに変換
       var items = new List<ExternalNumberData>();
       foreach (var line in lines.Where(l => l.StartsWith(raceId)))
       {
@@ -143,6 +173,7 @@ namespace KmyKeiba.Models.Race.ExNumber
           values = vals.ToArray();
         }
 
+        // リストに登録
         if (config.FileFormat == ExternalNumberFileFormat.RaceHorseFixedLength || config.FileFormat == ExternalNumberFileFormat.RaceHorseCsv)
         {
           // keyに馬番が入ってる
@@ -205,6 +236,20 @@ namespace KmyKeiba.Models.Race.ExNumber
             }
           }
         }
+      }
+
+      // キャッシュをクリア
+      var oldCaches = new List<(uint, string, short)>();
+      foreach (var cache in _cache)
+      {
+        if (cache.Key.Item1 == config.Id)
+        {
+          oldCaches.Add(cache.Key);
+        }
+      }
+      foreach (var key in oldCaches)
+      {
+        _cache.Remove(key);
       }
 
       return items;

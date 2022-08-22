@@ -20,7 +20,9 @@ namespace KmyKeiba.Data.Db
 
     public uint WeightId { get; set; }
 
-    public uint FilterId { get; set; }  // AnalysisTableWeightData
+    public uint ParentRowId { get; set; }
+
+    public uint ExternalNumberId { get; set; }
 
     public uint Order { get; set; }
   }
@@ -43,5 +45,15 @@ namespace KmyKeiba.Data.Db
     /// 現在のレースに条件に当てはまる馬がいるか？true or falseで判定する
     /// </summary>
     Binary = 101,
+
+    /// <summary>
+    /// 固定値に対して重みをかける。重みの値のみで判定することになる
+    /// </summary>
+    FixedValue = 201,
+
+    /// <summary>
+    /// 外部指数をそのままポイントとして出力する
+    /// </summary>
+    ExternalNumber = 301,
   }
 }

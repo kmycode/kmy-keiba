@@ -70,7 +70,7 @@
     </up:ImePopup>
     <Grid Grid.Row="1">
       <ListBox ItemsSource="{Binding Input.Items,ElementName=Root}" MinWidth="1" SelectionMode="Multiple"
-               IsEnabled="{Binding Input.IsSetListValue.Value,ElementName=Root}">
+               IsEnabled="{Binding Input.IsSetListValue.Value,ElementName=Root}" Style="{StaticResource ListBoxDefault}">
         <ListBox.ItemContainerStyle>
           <Style TargetType="ListBoxItem" BasedOn="{StaticResource ListBoxItemDefault}">
             <Setter Property="IsSelected" Value="{Binding IsChecked.Value,Mode=TwoWay}"/>

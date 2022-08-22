@@ -32,6 +32,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public RaceHorseData? RaceHorse { get; }
 
+    public RaceHorseAnalyzer? RaceHorseAnalyzer { get; }
+
     public RaceFinder(RaceData? race = null, RaceHorseData? raceHorse = null)
     {
       this.Race = race;
@@ -44,6 +46,11 @@ namespace KmyKeiba.Models.Race.Finder
         this.Subject = new RaceSubjectInfo(new());
       }
       this.RaceHorse = raceHorse;
+    }
+
+    public RaceFinder(RaceHorseAnalyzer horse) : this(horse.Race, horse.Data)
+    {
+      this.RaceHorseAnalyzer = horse;
     }
 
     public static RaceFinder CopyFrom(RaceFinder old, RaceData? race = null, RaceHorseData raceHorse = null)
@@ -59,7 +66,7 @@ namespace KmyKeiba.Models.Race.Finder
       using var db = new MyContext();
       var reader = new ScriptKeysReader(keys);
 
-      var raceQueries = reader.GetQueries(this.Race, this.RaceHorse);
+      var raceQueries = reader.GetQueries(this.Race, this.RaceHorse, this.RaceHorseAnalyzer);
       if (raceQueries.Limit != default) sizeMax = raceQueries.Limit;
       if (raceQueries.Offset != default) offset = raceQueries.Offset;
       if (raceQueries.IsContainsFutureRaces && !withoutFutureRacesForce) withoutFutureRaces = false;
@@ -359,12 +366,12 @@ namespace KmyKeiba.Models.Race.Finder
             (double)(items.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * 100));
           this.QuinellaRecoveryRate = targets.Sum(g => g.QuinellaPayoff) /
             (double)(items.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * 100));
-          this.ExactaRecoveryRate = targets.Sum(g => g.ExactaPayoff) /
-            (double)(items.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * 100 * 2));
-          this.TrioRecoveryRate = targets.Sum(g => g.TrioPayoff) /
-            (double)(items.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) / 2 * 100));
-          this.TrifectaRecoveryRate = targets.Sum(g => g.TrifectaPayoff) /
-            (double)(items.Sum(g => (horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) * 100 * 3));
+          this.ExactaRecoveryRate = targets.Sum(g => (long)g.ExactaPayoff) /
+            (double)(items.Sum(g => (long)(horsesCount(g.Analyzer.Race) - 1) * 100 * 2));
+          this.TrioRecoveryRate = targets.Sum(g => (long)g.TrioPayoff) /
+            (double)(items.Sum(g => (long)(horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) / 2 * 100));
+          this.TrifectaRecoveryRate = targets.Sum(g => (long)g.TrifectaPayoff) /
+            (double)(items.Sum(g => (long)(horsesCount(g.Analyzer.Race) - 1) * (horsesCount(g.Analyzer.Race) - 2) * 100 * 3));
 
           this.RecoveryRateComparation = AnalysisUtil.CompareValue(this.AllGrade.RecoveryRate, 1, 0.7);
           this.PlaceBetsRRComparation = AnalysisUtil.CompareValue(this.PlaceBetsRecoveryRate, 1, 0.7);

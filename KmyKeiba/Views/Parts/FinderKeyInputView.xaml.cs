@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.Models.Race.Finder;
+using KmyKeiba.Views.Parts.FinderQuery;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -32,6 +34,25 @@ namespace KmyKeiba.Views.Parts
     {
       get { return (FinderModel)GetValue(FinderModelProperty); }
       set { SetValue(FinderModelProperty, value); }
+    }
+
+    public static readonly DependencyProperty IsGenerateDefaultPopupProperty
+= DependencyProperty.Register(
+ nameof(IsGenerateDefaultPopup),
+ typeof(bool),
+ typeof(FinderKeyInputView),
+ new PropertyMetadata(false, (sender, e) =>
+ {
+   if (e.NewValue is bool b && b && sender is FinderKeyInputView view)
+   {
+     view.GeneratePopup();
+   }
+ }));
+
+    public bool IsGenerateDefaultPopup
+    {
+      get { return (bool)GetValue(IsGenerateDefaultPopupProperty); }
+      set { SetValue(IsGenerateDefaultPopupProperty, value); }
     }
 
     public static readonly DependencyProperty IsSubViewProperty
@@ -86,6 +107,32 @@ namespace KmyKeiba.Views.Parts
       set { SetValue(CanCompareWithCurrentRaceProperty, value); }
     }
 
+    public static readonly DependencyProperty IsShowFinderButtonOnlyProperty
+= DependencyProperty.Register(
+ nameof(IsShowFinderButtonOnly),
+ typeof(bool),
+ typeof(FinderKeyInputView),
+ new PropertyMetadata(false));
+
+    public bool IsShowFinderButtonOnly
+    {
+      get { return (bool)GetValue(IsShowFinderButtonOnlyProperty); }
+      set { SetValue(IsShowFinderButtonOnlyProperty, value); }
+    }
+
+    public static readonly DependencyProperty IsEnumerableProperty
+= DependencyProperty.Register(
+ nameof(IsEnumerable),
+ typeof(bool),
+ typeof(FinderKeyInputView),
+ new PropertyMetadata(false));
+
+    public bool IsEnumerable
+    {
+      get { return (bool)GetValue(IsEnumerableProperty); }
+      set { SetValue(IsEnumerableProperty, value); }
+    }
+
     public FinderKeyInputView()
     {
       InitializeComponent();
@@ -93,6 +140,43 @@ namespace KmyKeiba.Views.Parts
       {
         this.FinderModel?.BeginLoad();
       };
+    }
+
+    private void GeneratePopup()
+    {
+      var popup = this.QueryPopup;
+
+      var border = (Border)popup.Child;
+      if (border.Child == null)
+      {
+        border.Child = new FinderQueryView
+        {
+          FinderModel = this.FinderModel,
+          IsSubView = this.IsSubView,
+          IsSubViewSameRaceHorse = this.IsSubViewSameRaceHorse,
+          IsSubViewBeforeRace = this.IsSubViewBeforeRace,
+          IsEnumerable = this.IsEnumerable,
+        };
+      }
+      else
+      {
+        var view = (FinderQueryView)border.Child;
+        view.FinderModel = this.FinderModel;
+        view.IsSubView = this.IsSubView;
+        view.IsSubViewBeforeRace = this.IsSubViewBeforeRace;
+        view.IsSubViewSameRaceHorse = this.IsSubViewSameRaceHorse;
+        view.IsEnumerable = this.IsEnumerable;
+      }
+    }
+
+    private void ImePopup_Opened(object sender, EventArgs e)
+    {
+      this.GeneratePopup();
+    }
+
+    private void ImePopup_Closed(object sender, EventArgs e)
+    {
+
     }
   }
 }

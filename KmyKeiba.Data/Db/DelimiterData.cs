@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  public class AnalysisTableWeightData : AppDataBase
+  public class DelimiterData : AppDataBase
   {
     public string Name { get; set; } = string.Empty;
   }

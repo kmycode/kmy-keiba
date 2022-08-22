@@ -86,6 +86,19 @@ namespace KmyKeiba.Views.Parts.FinderQuery
       set { SetValue(IsSubViewBeforeRaceProperty, value); }
     }
 
+    public static readonly DependencyProperty IsEnumerableProperty
+= DependencyProperty.Register(
+ nameof(IsEnumerable),
+ typeof(bool),
+ typeof(FinderQueryView),
+ new PropertyMetadata(false));
+
+    public bool IsEnumerable
+    {
+      get { return (bool)GetValue(IsEnumerableProperty); }
+      set { SetValue(IsEnumerableProperty, value); }
+    }
+
     public Guid UniqueId { get; } = Guid.NewGuid();
     public Guid UniqueId2 { get; } = Guid.NewGuid();
     public Guid UniqueId3 { get; } = Guid.NewGuid();

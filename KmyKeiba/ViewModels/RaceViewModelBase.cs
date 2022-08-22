@@ -5,6 +5,7 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Table;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.Race.Memo;
 using KmyKeiba.Shared;
 using Reactive.Bindings;
@@ -229,6 +230,106 @@ namespace KmyKeiba.ViewModels
       this._deleteLabelConfigCommand ??=
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.DeleteConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _deleteLabelConfigCommand;
+
+    public ICommand AddAnalysisTableConfigCommand =>
+      this._addAnalysisTableConfigCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.AddTableAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableConfigCommand;
+
+    public ICommand RemoveAnalysisTableConfigCommand =>
+      this._removeAnalysisTableConfigCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableSurface>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.RemoveTableAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeAnalysisTableConfigCommand;
+
+    public ICommand AddAnalysisTableRowConfigCommand =>
+      this._addAnalysisTableConfigItemCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.AddTableRowAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableConfigItemCommand;
+
+    public ICommand DeleteAnalysisTableRowConfigCommand =>
+      this._deleteAnalysisTableConfigItemCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.RemoveTableRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _deleteAnalysisTableConfigItemCommand;
+
+    public ICommand UpdateAnalysisTablesCommand =>
+      this._updateAnalysisTablesCommand ??=
+        new ReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.ReloadTables()).AddTo(this._disposables);
+    private ICommand? _updateAnalysisTablesCommand;
+
+    public ICommand AddAnalysisTableWeightCommand =>
+      this._addAnalysisTableWeightCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.AddWeightAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableWeightCommand;
+
+    public ICommand RemoveAnalysisTableWeightCommand =>
+      this._removeAnalysisTableWeightCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableWeight>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.RemoveWeightAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeAnalysisTableWeightCommand;
+
+    public ICommand AddAnalysisTableWeightRowCommand =>
+      this._addAnalysisTableWeightRowCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.AddWeightRowAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableWeightRowCommand;
+
+    public ICommand DeleteAnalysisTableWeightRowCommand =>
+      this._deleteAnalysisTableWeightRowCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableWeightRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.RemoveTableWeightRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _deleteAnalysisTableWeightRowCommand;
+
+    public ICommand AddAnalysisTableWeightRowBulkCommand =>
+      this._addAnalysisTableWeightRowBulkCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.AddWeightRowsBulkAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableWeightRowBulkCommand;
+
+    public ICommand ClearAnalysisTableWeightRowsCommand =>
+      this._clearAnalysisTableWeightRowsCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.ClearWeightRowsAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _clearAnalysisTableWeightRowsCommand;
+
+    public ICommand AddAnalysisTableDelimiterCommand =>
+      this._addAnalysisTableDelimiterCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.AddDelimiterAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableDelimiterCommand;
+
+    public ICommand RemoveAnalysisTableDelimiterCommand =>
+      this._removeAnalysisTableDelimiterCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.ValueDelimiter>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.RemoveDelimiterAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeAnalysisTableDelimiterCommand;
+
+    public ICommand AddAnalysisTableDelimiterRowCommand =>
+      this._addAnalysisTableDelimiterRowCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.AddDelimiterRowAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableDelimiterRowCommand;
+
+    public ICommand DeleteAnalysisTableDelimiterRowCommand =>
+      this._deleteAnalysisTableDelimiterRowCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.ValueDelimiterRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.RemoveDelimiterRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _deleteAnalysisTableDelimiterRowCommand;
+
+    public ICommand AddAnalysisTableSelectedDelimiterCommand =>
+      this._addAnalysisTableSelectedDelimiterCommand ??=
+        new ReactiveCommand().WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.AddSelectedDelimiter()).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableSelectedDelimiterCommand;
+
+    public ICommand RemoveAnalysisTableSelectedDelimiterCommand =>
+      this._removeAnalysisTableSelectedDelimiterCommand ??=
+        new ReactiveCommand().WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.RemoveSelectedDelimiter()).AddTo(this._disposables);
+    private ICommand? _removeAnalysisTableSelectedDelimiterCommand;
+
+    public ICommand AddFinderConfigCommand =>
+      this._addFinderConfigCommand ??=
+        new AsyncReactiveCommand<FinderModel>(this.CanSave).WithSubscribe(obj => obj?.Input.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addFinderConfigCommand;
+
+    public ICommand LoadFinderConfigCommand =>
+      this._loadFinderConfigCommand ??=
+        new ReactiveCommand<FinderModel>().WithSubscribe(obj => obj?.Input.LoadConfig()).AddTo(this._disposables);
+    private ICommand? _loadFinderConfigCommand;
+
+    public ICommand RemoveFinderConfigCommand =>
+      this._removeFinderConfigCommand ??=
+        new AsyncReactiveCommand<FinderModel>(this.CanSave).WithSubscribe(obj => obj?.Input.RemoveConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeFinderConfigCommand;
 
     public ICommand OpenRaceWindowCommand =>
       this._openRaceWindowCommand ??=

@@ -76,12 +76,12 @@ namespace KmyKeiba.Models.Race.Finder
       this._keys = keys;
     }
 
-    public ScriptKeysParseResult GetQueries(RaceData? race, RaceHorseData? horse = null)
+    public ScriptKeysParseResult GetQueries(RaceData? race, RaceHorseData? horse = null, RaceHorseAnalyzer? horseAnalyzer = null)
     {
-      return GetQueries(this._keys, race, horse);
+      return GetQueries(this._keys, race, horse, horseAnalyzer);
     }
 
-    public static ScriptKeysParseResult GetQueries(string keys, RaceData? race = null, RaceHorseData? horse = null)
+    public static ScriptKeysParseResult GetQueries(string keys, RaceData? race = null, RaceHorseData? horse = null, RaceHorseAnalyzer? horseAnalyzer = null)
     {
       var groupKey = QueryKey.Unknown;
       var limit = 0;
@@ -196,7 +196,7 @@ namespace KmyKeiba.Models.Race.Finder
           else
           {
             // メモのあるレースのみを検索（ポイントは比較しない）
-            queries.Add(new MemoScriptKeyQuery(parameters, new DefaultLambdaScriptKeyQuery()));
+            queries.Add(new MemoScriptKeyQuery(parameters, new SimpleScriptKeyQuery()));
             return true;
           }
 
@@ -882,7 +882,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (!queries.Any())
       {
-        queries.Add(new DefaultLambdaScriptKeyQuery());
+        queries.Add(new SimpleScriptKeyQuery());
       }
 
       if (race != null && race.DataStatus >= RaceDataStatus.PreliminaryGradeFull)
