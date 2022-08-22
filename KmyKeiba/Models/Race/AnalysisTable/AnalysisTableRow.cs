@@ -18,26 +18,38 @@ namespace KmyKeiba.Models.Race.AnalysisTable
   public class AnalysisTableRow : IDisposable
   {
     private readonly CompositeDisposable _disposables = new();
+    private bool _isInitializingParentList = false;
 
     public AnalysisTableRowData Data { get; }
+
+    public AnalysisTableSurface Table { get; }
 
     public FinderModel FinderModelForConfig { get; }
 
     public ReactiveProperty<string> Name { get; } = new();
 
-    public ReactiveProperty<double> BaseWeight { get; } = new(1.0);
+    public ReactiveProperty<string> BaseWeight { get; } = new();
 
     public ReactiveProperty<AnalysisTableRowOutputType> Output { get; } = new();
 
     public ReactiveCollection<AnalysisTableCell> Cells { get; } = new();
 
+    public ReactiveProperty<AnalysisTableWeight?> Weight { get; } = new();
+
+    public List<AnalysisTableRowOutputItem> RowOutputItems => AnalysisTableUtil.RowOutputItems;
+
+    public ReactiveProperty<AnalysisTableRowOutputItem?> SelectedOutput { get; } = new();
+
+    public ReactiveProperty<AnalysisTableRow?> SelectedParent { get; } = new();
+
     public ReactiveProperty<bool> IsLoading { get; } = new();
 
     public ReactiveProperty<bool> IsLoaded { get; } = new();
 
-    public AnalysisTableRow(AnalysisTableRowData data, IEnumerable<RaceHorseAnalyzer> horses)
+    public AnalysisTableRow(AnalysisTableRowData data, AnalysisTableSurface table, IEnumerable<RaceHorseAnalyzer> horses)
     {
       this.Data = data;
+      this.Table = table;
 
       foreach (var horse in horses.Select(h => new AnalysisTableCell(h)))
       {
@@ -50,7 +62,41 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
       this.Name.Value = data.Name;
       this.Output.Value = data.Output;
-      this.BaseWeight.Value = data.BaseWeight;
+      this.BaseWeight.Value = data.BaseWeight.ToString();
+
+      this.Weight.Value = AnalysisTableUtil.Weights.FirstOrDefault(w => w.Data.Id == data.WeightId);
+      this.Weight.Skip(1).Subscribe(async _ =>
+      {
+        // TODO try catch
+        using var db = new MyContext();
+        db.AnalysisTableRows!.Attach(this.Data);
+        this.Data.WeightId = this.Weight.Value?.Data.Id ?? 0;
+        await db.SaveChangesAsync();
+      }).AddTo(this._disposables);
+
+      this.SelectedParent.Skip(1).Subscribe(async _ =>
+      {
+        if (this._isInitializingParentList)
+        {
+          return;
+        }
+        // TODO try catch
+        using var db = new MyContext();
+        db.AnalysisTableRows!.Attach(this.Data);
+        this.Data.ParentRowId = this.SelectedParent.Value?.Data.Id ?? 0;
+        await db.SaveChangesAsync();
+      }).AddTo(this._disposables);
+
+      this.SelectedOutput.Value = this.RowOutputItems.FirstOrDefault(i => i.OutputType == data.Output);
+      if (this.SelectedOutput.Value == null)
+      {
+        this.SelectedOutput.Value = this.RowOutputItems.First();
+      }
+      this.Output.Value = this.SelectedOutput.Value.OutputType;
+      this.SelectedOutput.Skip(1).Subscribe(_ =>
+      {
+        this.Output.Value = this.SelectedOutput.Value.OutputType;
+      }).AddTo(this._disposables);
 
       finder.Input.Deserialize(data.FinderConfig);
       finder.Input.Query.Skip(1).Subscribe(async _ =>
@@ -71,7 +117,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           db.AnalysisTableRows!.Attach(this.Data);
           this.Data.Name = this.Name.Value;
           this.Data.Output = this.Output.Value;
-          this.Data.BaseWeight = this.BaseWeight.Value;
+          if (double.TryParse(this.BaseWeight.Value, out var bw))
+          {
+            this.Data.BaseWeight = bw;
+          }
           await db.SaveChangesAsync();
         }).AddTo(this._disposables);
     }
@@ -171,7 +220,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       {
         var items = source.Items;
 
-        this.SetValueOfRaceHorseAnalyzer(finder, this.Data.Output, source, cell);
+        this.SetValueOfRaceHorseAnalyzer(finder, this.Data.Output, source, cell, weight);
 
         if (weight != null)
         {
@@ -194,12 +243,6 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           }
         });
       }
-
-      if (weight == null)
-      {
-        cell.Weight = 1;
-        cell.Point.Value = cell.PointCalcValue.Value;
-      }
     }
 
     private void AnalysisFixedValue(AnalysisTableWeight? weight, AnalysisTableCell cell, RaceFinder finder)
@@ -214,7 +257,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
     }
 
-    private void SetValueOfRaceHorseAnalyzer(RaceFinder finder, AnalysisTableRowOutputType value, RaceHorseFinderQueryResult source, AnalysisTableCell cell)
+    private void SetValueOfRaceHorseAnalyzer(RaceFinder finder, AnalysisTableRowOutputType value, RaceHorseFinderQueryResult source, AnalysisTableCell cell, AnalysisTableWeight? weight)
     {
       var analyzer = source.Analyzer;
 
@@ -251,19 +294,24 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         Func<RaceHorseAnalyzer, bool> filter = s => s.Data.ResultOrder >= 1 && s.Data.ResultTime != TimeSpan.Zero && s.Race.Distance > 0;
         var timePerMeters = source.Items
           .Where(filter)
-          .Select(s => s.Data.ResultTime.TotalSeconds / s.Race.Distance * finder.Race.Distance)
-          .Select(s => TimeSpan.FromSeconds(s))
+          .Select(s => new { Time = s.Data.ResultTime.TotalSeconds / s.Race.Distance * finder.Race.Distance, Analyzer = s, })
+          .Select(s => new { Time = TimeSpan.FromSeconds(s.Time), s.Analyzer, })
           .ToArray();
         if (timePerMeters.Any())
         {
-          var shortestTime = timePerMeters.Min();
-          cell.Value.Value = shortestTime.ToString("m\\:ss\\.f");
+          var shortestTime = timePerMeters.OrderBy(s => s.Time).First();
+          cell.Value.Value = shortestTime.Time.ToString("m\\:ss\\.f");
           cell.SubValue.Value = timePerMeters.Length.ToString();
-          cell.ComparationValue.Value = (float)shortestTime.TotalSeconds * -1;
+          cell.ComparationValue.Value = (float)shortestTime.Time.TotalSeconds * -1;
           cell.HasComparationValue.Value = true;
-          cell.PointCalcValue.Value = shortestTime.TotalSeconds;
+          cell.PointCalcValue.Value = shortestTime.Time.TotalSeconds;
           cell.SampleSize = 1;
           cell.SampleFilter = filter;
+
+          if (weight != null)
+          {
+            cell.PointCalcValue.Value *= weight.GetWeight(shortestTime.Analyzer);
+          }
         }
       }
       else if (value == AnalysisTableRowOutputType.RecoveryRace)
@@ -273,30 +321,82 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         cell.HasComparationValue.Value = analyzer.AllGrade.AllCount > 0;
         cell.PointCalcValue.Value = analyzer.RecoveryRate;
         cell.SampleSize = 0;
+
+        if (weight != null && source.Items.Any())
+        {
+          var calc = 0.0;
+          foreach (var item in source.AsItems())
+          {
+            if (item.Analyzer.Data.ResultOrder == 1)
+            {
+              calc += weight.GetWeight(item.Analyzer) * item.Analyzer.Data.Odds * 10;
+            }
+          }
+          cell.PointCalcValue.Value = calc / (source.Items.Count * 100);
+        }
+      }
+      else if (value == AnalysisTableRowOutputType.FixedValuePerPastRace)
+      {
+        if (weight != null && source.Items.Any())
+        {
+          var calc = 0.0;
+          foreach (var item in source.Items)
+          {
+            calc += weight.GetWeight(item);
+          }
+          cell.PointCalcValue.Value = calc / source.Items.Count;
+
+          cell.Value.Value = cell.PointCalcValue.Value.ToString("P1");
+          cell.SubValue.Value = source.Items.Count.ToString();
+          cell.ComparationValue.Value = (float)cell.PointCalcValue.Value;
+          cell.HasComparationValue.Value = true;
+        }
       }
       else
       {
-        this.SetValueOfGradeMap(value, analyzer.AllGrade, cell);
-      }
-    }
+        var grade = source.Analyzer.AllGrade;
+        if (value == AnalysisTableRowOutputType.PlaceBetsRate)
+        {
+          cell.Value.Value = grade.PlacingBetsRate.ToString("P1");
+          cell.SubValue.Value = $"{grade.PlacingBetsCount} / {grade.AllCount}";
+          cell.ComparationValue.Value = grade.PlacingBetsRate;
+          cell.HasComparationValue.Value = grade.AllCount > 0;
+          cell.PointCalcValue.Value = grade.PlacingBetsRate;
 
-    private void SetValueOfGradeMap(AnalysisTableRowOutputType value, ResultOrderGradeMap grade, AnalysisTableCell cell)
-    {
-      if (value == AnalysisTableRowOutputType.PlaceBetsRate)
-      {
-        cell.Value.Value = grade.PlacingBetsRate.ToString("P1");
-        cell.SubValue.Value = $"{grade.PlacingBetsCount} / {grade.AllCount}";
-        cell.ComparationValue.Value = grade.PlacingBetsRate;
-        cell.HasComparationValue.Value = grade.AllCount > 0;
-        cell.PointCalcValue.Value = grade.PlacingBetsRate;
-      }
-      if (value == AnalysisTableRowOutputType.WinRate)
-      {
-        cell.Value.Value = grade.WinRate.ToString("P1");
-        cell.SubValue.Value = $"{grade.FirstCount} / {grade.AllCount}";
-        cell.ComparationValue.Value = grade.WinRate;
-        cell.HasComparationValue.Value = grade.AllCount > 0;
-        cell.PointCalcValue.Value = grade.WinRate;
+          if (weight != null && source.Items.Any())
+          {
+            var calc = 0.0;
+            foreach (var item in source.Items)
+            {
+              if (item.Data.ResultOrder > 0 && item.Data.ResultOrder <= (item.Race.ResultHorsesCount <= 7 ? 2 : 3))
+              {
+                calc += weight.GetWeight(item);
+              }
+            }
+            cell.PointCalcValue.Value = calc / source.Items.Count;
+          }
+        }
+        if (value == AnalysisTableRowOutputType.WinRate)
+        {
+          cell.Value.Value = grade.WinRate.ToString("P1");
+          cell.SubValue.Value = $"{grade.FirstCount} / {grade.AllCount}";
+          cell.ComparationValue.Value = grade.WinRate;
+          cell.HasComparationValue.Value = grade.AllCount > 0;
+          cell.PointCalcValue.Value = grade.WinRate;
+
+          if (weight != null && source.Items.Any())
+          {
+            var calc = 0.0;
+            foreach (var item in source.Items)
+            {
+              if (item.Data.ResultOrder == 1)
+              {
+                calc += weight.GetWeight(item);
+              }
+            }
+            cell.PointCalcValue.Value = calc / source.Items.Count;
+          }
+        }
       }
     }
 
@@ -314,6 +414,13 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           }
         }
       }
+    }
+
+    public void OnParentListUpdated()
+    {
+      this._isInitializingParentList = true;
+      this.SelectedParent.Value = this.Table.ParentRowSelections.FirstOrDefault(r => r.Data.Id == this.Data.Id);
+      this._isInitializingParentList = false;
     }
 
     public void Dispose()

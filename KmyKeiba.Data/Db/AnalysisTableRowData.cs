@@ -47,9 +47,14 @@ namespace KmyKeiba.Data.Db
     Binary = 101,
 
     /// <summary>
-    /// 固定値に対して重みをかける。重みの値のみで判定することになる
+    /// 【現在のレースに対して】固定値に対して重みをかける。重みの値のみで判定することになる
     /// </summary>
     FixedValue = 201,
+
+    /// <summary>
+    /// 過去のレースそれぞれに対して重みをかける点を除き、FixedValueと同じ
+    /// </summary>
+    FixedValuePerPastRace = 202,
 
     /// <summary>
     /// 外部指数をそのままポイントとして出力する

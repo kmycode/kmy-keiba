@@ -24,6 +24,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public static ReactiveCollection<ValueDelimiter> Delimiters { get; } = new();
 
+    public static List<AnalysisTableRowOutputItem> RowOutputItems { get; } = new();
+
     internal static async Task InitializeAsync(MyContext db)
     {
       if (!_isInitialized)
@@ -84,6 +86,61 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           TableRowConfigs.Add(row);
         }
 
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "複勝率",
+          OutputType = AnalysisTableRowOutputType.PlaceBetsRate,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "勝率",
+          OutputType = AnalysisTableRowOutputType.WinRate,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "持ちタイム",
+          OutputType = AnalysisTableRowOutputType.ShortestTime,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "タイム偏差値",
+          OutputType = AnalysisTableRowOutputType.Time,
+          CanApplyWeight = false,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "後３ハロンタイム偏差値",
+          OutputType = AnalysisTableRowOutputType.A3HTime,
+          CanApplyWeight = false,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "Until後３ハロンタイム偏差値",
+          OutputType = AnalysisTableRowOutputType.UA3HTime,
+          CanApplyWeight = false,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "ブーリアン",
+          OutputType = AnalysisTableRowOutputType.Binary,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "現在のレースを重みで評価",
+          OutputType = AnalysisTableRowOutputType.FixedValue,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "過去レースを重みで評価",
+          OutputType = AnalysisTableRowOutputType.FixedValuePerPastRace,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "外部指数",
+          OutputType = AnalysisTableRowOutputType.ExternalNumber,
+          CanApplyWeight = false,
+        });
+
         _isInitialized = true;
       }
     }
@@ -117,5 +174,14 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         }
       }
     }
+  }
+
+  public class AnalysisTableRowOutputItem
+  {
+    public string Label { get; init; } = string.Empty;
+
+    public bool CanApplyWeight { get; init; } = true;   // BaseWeightは全項目に適用可能
+
+    public AnalysisTableRowOutputType OutputType { get; init; }
   }
 }

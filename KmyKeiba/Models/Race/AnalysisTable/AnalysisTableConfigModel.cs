@@ -140,6 +140,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       {
         TableId = table.Data.Id,
         Output = AnalysisTableRowOutputType.PlaceBetsRate,
+        BaseWeight = 1,
       };
       await db.AnalysisTableRows!.AddAsync(row);
       await db.SaveChangesAsync();
@@ -148,7 +149,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       await db.SaveChangesAsync();
 
       AnalysisTableUtil.TableRowConfigs.Add(row);
-      table.Rows.Add(new AnalysisTableRow(row, Array.Empty<RaceHorseAnalyzer>()));
+      table.Rows.Add(new AnalysisTableRow(row, table, Array.Empty<RaceHorseAnalyzer>()));
     }
 
     public async Task RemoveTableRowAsync(AnalysisTableRow row)

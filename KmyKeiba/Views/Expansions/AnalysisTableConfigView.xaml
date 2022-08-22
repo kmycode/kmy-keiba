@@ -58,19 +58,73 @@
                 <Grid.RowDefinitions>
                   <RowDefinition/>
                   <RowDefinition/>
+                  <RowDefinition/>
                 </Grid.RowDefinitions>
-                <Grid Margin="0,0,0,8">
+                <Grid Margin="0,0,0,4">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition/>
                     <ColumnDefinition Width="auto"/>
                   </Grid.ColumnDefinitions>
-                  <TextBlock Text="名前" Foreground="{StaticResource SubForeground}" FontSize="16"/>
+                  <TextBlock Text="名前" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
+                             VerticalAlignment="Center"/>
                   <TextBox Grid.Column="1" FontSize="16" Text="{Binding Name.Value,Mode=TwoWay}"/>
                   <Button Grid.Column="2" Content="削除" FontSize="16" Padding="4,2" Command="{Binding DataContext.DeleteAnalysisTableRowConfigCommand,ElementName=Root}"
                           CommandParameter="{Binding}"/>
                 </Grid>
-                <up:FinderKeyInputView Grid.Row="1" IsShowFinderButtonOnly="True" FinderModel="{Binding FinderModelForConfig}"/>
+                <Grid Grid.Row="1" Margin="0,0,0,4" Height="28">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="種別" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
+                             VerticalAlignment="Center"/>
+                  <ComboBox Grid.Column="1" ItemsSource="{Binding RowOutputItems}" SelectedItem="{Binding SelectedOutput.Value,Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock FontSize="16" Text="{Binding Label}"/>
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <TextBlock Grid.Column="2" Text="基本重み" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
+                             VerticalAlignment="Center"/>
+                  <TextBox Grid.Column="3" FontSize="16" Width="72" Text="{Binding BaseWeight.Value,Mode=TwoWay}"
+                           VerticalContentAlignment="Center" TextAlignment="Center"/>
+                  <TextBlock Grid.Column="4" Text="重み設定" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
+                             VerticalAlignment="Center"/>
+                  <ComboBox Grid.Column="5" ItemsSource="{Binding AnalysisTable.Config.Weights,ElementName=Root}"
+                            SelectedItem="{Binding Weight.Value,Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock FontSize="16" Text="{Binding Name.Value}"/>
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <TextBlock Grid.Column="6" Text="外部指数" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
+                             VerticalAlignment="Center"/>
+                  <TextBlock Grid.Column="8" Text="親ブーリアン" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
+                             VerticalAlignment="Center"/>
+                  <ComboBox Grid.Column="9" ItemsSource="{Binding AnalysisTable.Config.ActiveTable.Value.ParentRowSelections,ElementName=Root}"
+                            SelectedItem="{Binding Weight.Value,Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock FontSize="16" Text="{Binding Name.Value}"/>
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <Button Grid.Column="10" Content="重み選択解除" FontSize="16" Padding="4,2" Command="{Binding DataContext.DeleteAnalysisTableRowConfigCommand,ElementName=Root}"
+                          CommandParameter="{Binding}" Margin="8,0,0,0"/>
+                </Grid>
+                <up:FinderKeyInputView Grid.Row="2" IsShowFinderButtonOnly="True" FinderModel="{Binding FinderModelForConfig}"/>
               </Grid>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
