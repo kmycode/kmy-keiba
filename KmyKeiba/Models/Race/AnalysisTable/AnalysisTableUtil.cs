@@ -98,6 +98,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         });
         RowOutputItems.Add(new AnalysisTableRowOutputItem
         {
+          Label = "単勝回収率",
+          OutputType = AnalysisTableRowOutputType.RecoveryRate,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
           Label = "持ちタイム",
           OutputType = AnalysisTableRowOutputType.ShortestTime,
         });
@@ -131,7 +136,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         });
         RowOutputItems.Add(new AnalysisTableRowOutputItem
         {
-          Label = "過去レースを重みで評価",
+          Label = "過去レース一覧を重みで評価",
           OutputType = AnalysisTableRowOutputType.FixedValuePerPastRace,
         });
         RowOutputItems.Add(new AnalysisTableRowOutputItem

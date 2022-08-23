@@ -5,6 +5,7 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Table;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.Race.Memo;
 using KmyKeiba.Shared;
@@ -30,6 +31,8 @@ namespace KmyKeiba.ViewModels
     protected readonly DownloaderModel downloader = DownloaderModel.Instance;
 
     public DownloaderModel Downloader => this.downloader;
+
+    public ExternalNumberConfigModel ExternalNumber => ExternalNumberConfigModel.Default;
 
     public ReactiveProperty<RaceInfo?> Race => this.model.Info;
 
@@ -89,6 +92,8 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand().WithSubscribe(() => this.model.Info.Value != null ? this.model.Info.Value.Script.UpdateAsync() : Task.CompletedTask).AddTo(this._disposables);
     private AsyncReactiveCommand? _updateScriptCommand;
 
+    #region 馬券
+
     public ICommand SetTrioBlockCommand =>
       this._setTrioBlockCommand ??=
         new ReactiveCommand<OddsBlock<TrioOdds.OddsData>>().WithSubscribe(p =>
@@ -141,6 +146,10 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Tickets.Value?.UpdateTicketCountAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private AsyncReactiveCommand<object>? _updateSelectedTicketCountsCommand;
 
+    #endregion
+
+    #region スクリプト
+
     public ICommand ApproveScriptMarksCommand =>
       this._approveScriptMarksCommand ??=
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveMarksAsync() ?? Task.CompletedTask).AddTo(this._disposables);
@@ -156,6 +165,10 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveReplacingTicketsAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private AsyncReactiveCommand<object>? _approveReplacingScriptTicketsCommand;
 
+    #endregion
+
+    #region 分析（レガシー）
+
     public ICommand LoadAnalysisTableRowCommand =>
       this._loadAnalysisTableRowCommand ??=
         new AsyncReactiveCommand<AnalysisTableRow>().WithSubscribe(async row => await row.LoadAsync()).AddTo(this._disposables);
@@ -166,10 +179,9 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<AnalysisTable>().WithSubscribe(async table => await table.LoadAllAsync()).AddTo(this._disposables);
     private AsyncReactiveCommand<AnalysisTable>? _loadAnalysisTableCommand;
 
-    public ICommand LoadExAnalysisTableCommand =>
-      this._loadExAnalysisTableCommand ??=
-        new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableSurface>().WithSubscribe(table => this.model.Info.Value?.AnalysisTable.Value?.AnalysisTableAsync(table) ?? Task.CompletedTask).AddTo(this._disposables);
-    private AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableSurface>? _loadExAnalysisTableCommand;
+    #endregion
+
+    #region 拡張メモ
 
     public ICommand AddMemoConfigCommand =>
       this._addMemoConfigCommand ??=
@@ -201,6 +213,10 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.DeleteConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _deleteMemoConfigCommand;
 
+    #endregion
+
+    #region 拡張メモのラベル
+
     public ICommand AddLabelConfigCommand =>
       this._addLabelConfigCommand ??=
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
@@ -231,6 +247,15 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.DeleteConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _deleteLabelConfigCommand;
 
+    #endregion
+
+    #region 拡張分析テーブル
+
+    public ICommand LoadExAnalysisTableCommand =>
+      this._loadExAnalysisTableCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableSurface>().WithSubscribe(table => this.model.Info.Value?.AnalysisTable.Value?.AnalysisTableAsync(table) ?? Task.CompletedTask).AddTo(this._disposables);
+    private AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableSurface>? _loadExAnalysisTableCommand;
+
     public ICommand AddAnalysisTableConfigCommand =>
       this._addAnalysisTableConfigCommand ??=
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.AddTableAsync() ?? Task.CompletedTask).AddTo(this._disposables);
@@ -255,6 +280,10 @@ namespace KmyKeiba.ViewModels
       this._updateAnalysisTablesCommand ??=
         new ReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.ReloadTables()).AddTo(this._disposables);
     private ICommand? _updateAnalysisTablesCommand;
+
+    #endregion
+
+    #region 拡張分析の重み
 
     public ICommand AddAnalysisTableWeightCommand =>
       this._addAnalysisTableWeightCommand ??=
@@ -286,6 +315,10 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.ClearWeightRowsAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _clearAnalysisTableWeightRowsCommand;
 
+    #endregion
+
+    #region 重みの区切り
+
     public ICommand AddAnalysisTableDelimiterCommand =>
       this._addAnalysisTableDelimiterCommand ??=
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.AddDelimiterAsync() ?? Task.CompletedTask).AddTo(this._disposables);
@@ -316,6 +349,26 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.RemoveSelectedDelimiter()).AddTo(this._disposables);
     private ICommand? _removeAnalysisTableSelectedDelimiterCommand;
 
+    #endregion
+
+    #region 外部指数
+
+    public ICommand AddExternalNumberConfigCommand => this._addExternalNumberConfigCommand ??=
+      new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.ExternalNumber.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addExternalNumberConfigCommand;
+
+    public ICommand RemoveExternalNumberConfigCommand => this._removeExternalNumberConfigCommand ??=
+      new AsyncReactiveCommand<ExternalNumberConfigItem>(this.CanSave).WithSubscribe(obj => this.ExternalNumber.RemoveConfigAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeExternalNumberConfigCommand;
+
+    public ICommand LoadExternalNumbersCommand => this._loadExternalNumbersCommand ??=
+      new ReactiveCommand<ExternalNumberConfigItem>(this.CanSave).WithSubscribe(obj => obj.BeginLoadDb()).AddTo(this._disposables);
+    private ICommand? _loadExternalNumbersCommand;
+
+    #endregion
+
+    #region 拡張検索
+
     public ICommand AddFinderConfigCommand =>
       this._addFinderConfigCommand ??=
         new AsyncReactiveCommand<FinderModel>(this.CanSave).WithSubscribe(obj => obj?.Input.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
@@ -330,6 +383,8 @@ namespace KmyKeiba.ViewModels
       this._removeFinderConfigCommand ??=
         new AsyncReactiveCommand<FinderModel>(this.CanSave).WithSubscribe(obj => obj?.Input.RemoveConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _removeFinderConfigCommand;
+
+    #endregion
 
     public ICommand OpenRaceWindowCommand =>
       this._openRaceWindowCommand ??=

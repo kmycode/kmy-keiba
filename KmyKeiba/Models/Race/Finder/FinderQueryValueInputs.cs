@@ -82,7 +82,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public bool IsCompareWithHorse { get; }
 
-    public bool CanCompareCurrentRaceValue { get; protected set; }
+    public bool CanCompareCurrentRaceValue { get; set; }
 
     public FinderQueryNumberInput(bool isCompareWithHorse)
     {

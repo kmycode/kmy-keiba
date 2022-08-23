@@ -36,7 +36,7 @@ namespace KmyKeiba.Data.Db
     UA3HTime = 3,
     ShortestTime = 4,
 
-    RecoveryRace = 11,
+    RecoveryRate = 11,
 
     PlaceBetsRate = 21,
     WinRate = 22,

@@ -85,6 +85,7 @@
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition/>
                     <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
                   </Grid.ColumnDefinitions>
                   <TextBlock Text="種別" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
                              VerticalAlignment="Center"/>
@@ -111,7 +112,15 @@
                   </ComboBox>
                   <TextBlock Grid.Column="6" Text="外部指数" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
                              VerticalAlignment="Center"/>
-                  <TextBlock Grid.Column="8" Text="親ブーリアン" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
+                  <ComboBox Grid.Column="7" ItemsSource="{Binding AnalysisTable.Config.ExternalNumbers,ElementName=Root}"
+                            SelectedItem="{Binding SelectedExternalNumber.Value,Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock FontSize="16" Text="{Binding Name.Value}"/>
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <TextBlock Grid.Column="8" Text="親" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
                              VerticalAlignment="Center"/>
                   <ComboBox Grid.Column="9" ItemsSource="{Binding AnalysisTable.Config.ActiveTable.Value.ParentRowSelections,ElementName=Root}"
                             SelectedItem="{Binding Weight.Value,Mode=TwoWay}">
@@ -121,10 +130,13 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
-                  <Button Grid.Column="10" Content="重み選択解除" FontSize="16" Padding="4,2" Command="{Binding DataContext.DeleteAnalysisTableRowConfigCommand,ElementName=Root}"
+                  <Button Grid.Column="10" Content="重み選択解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.DeleteAnalysisTableRowConfigCommand,ElementName=Root}"
+                          CommandParameter="{Binding}" Margin="8,0,0,0"/>
+                  <Button Grid.Column="11" Content="親選択解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.DeleteAnalysisTableRowConfigCommand,ElementName=Root}"
                           CommandParameter="{Binding}" Margin="8,0,0,0"/>
                 </Grid>
-                <up:FinderKeyInputView Grid.Row="2" IsShowFinderButtonOnly="True" FinderModel="{Binding FinderModelForConfig}"/>
+                <up:FinderKeyInputView Grid.Row="2" IsShowFinderButtonOnly="True" FinderModel="{Binding FinderModelForConfig}"
+                                       IsPopupOnMouse="True"/>
               </Grid>
             </DataTemplate>
           </ItemsControl.ItemTemplate>

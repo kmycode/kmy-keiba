@@ -152,6 +152,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public OtherSettingInputCategory OtherSetting { get; }
 
+    public ResidueInputCategory Residue { get; }
+
     public ReactiveCollection<FinderConfigData> Configs => FinderConfigUtil.Configs;
 
     public ReactiveProperty<FinderConfigData?> SelectedConfig { get; } = new();
@@ -239,6 +241,7 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.ExternalNumber = new ExternalNumberInputCategory());
       this._categories.Add(this.GroupBy = new GroupByCategoryInput());
       this._categories.Add(this.OtherSetting = new OtherSettingInputCategory());
+      this._categories.Add(this.Residue = new ResidueInputCategory());
 
       foreach (var category in this._categories)
       {
@@ -598,6 +601,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public bool IsList { get; }
 
+    public bool CanEdit { get; }
+
     public int Order { get; }
 
     public ReactiveProperty<bool> IsOpen { get; } = new();
@@ -606,6 +611,7 @@ namespace KmyKeiba.Models.Race.Finder
     {
       this.Category = category;
       this.Order = order;
+      this.CanEdit = true;
 
       if (category is IListBoxInputCategory)
       {
@@ -615,15 +621,33 @@ namespace KmyKeiba.Models.Race.Finder
       {
         this.IsNumber = true;
       }
+      else
+      {
+        this.CanEdit = false;
+      }
 
       this.Header = category switch
       {
+        CourseInputCategory => "競馬場",
+        MonthInputCategory => "月",
+        YearInputCategory => "年",
+        RaceNumberInputCategory => "R",
+        NichijiInputCategory => "日次",
+        RiderWeightRuleInputCategory => "重量制限",
+        RaceAreaRuleInputCategory => "産地条件",
         RaceSubjectInputCategory => "条件・クラス",
         RaceGradeInputCategory => "グレード",
         RaceAgeInputCategory => "年齢制限",
         TrackDistanceInputCategory => "距離",
         TrackConditionInputCategory => "馬場状態",
         TrackWeatherInputCategory => "天気",
+        RaceHorsesCountInputCategory => "登録頭数",
+        HorseGoalPlaceInputCategory => "入線頭数",
+        HorseNameInputCategory => "馬名",
+        RiderNameInputCategory => "騎手名",
+        TrainerNameInputCategory => "調教師名",
+        DropoutInputCategory => "ドロップアウト",
+        ResidueInputCategory => "件数",
         _ => string.Empty,
       };
 
@@ -662,6 +686,15 @@ namespace KmyKeiba.Models.Race.Finder
       else if (this.Category is NumberInputCategoryBase num)
       {
         SetByNumberInput(num.Input);
+      }
+      else if (this.Category is StringInputCategoryBase str)
+      {
+        var display = str.Input.GetRightQuery();
+        if (display.Length > 12)
+        {
+          display = display[..10] + "...";
+        }
+        this.DisplayValue.Value = display;
       }
     }
   }

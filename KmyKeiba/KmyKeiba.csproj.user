@@ -67,6 +67,9 @@
     <Compile Update="Views\Expansions\ExpansionMemoView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Expansions\ExternalNumberConfigView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\ListItems\RaceHorsePillar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -220,6 +223,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Expansions\ExpansionMemoView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\ExternalNumberConfigView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\ListItems\RaceHorsePillar.xaml">

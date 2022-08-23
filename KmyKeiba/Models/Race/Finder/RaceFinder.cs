@@ -96,7 +96,7 @@ namespace KmyKeiba.Models.Race.Finder
       }
       var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
 
-      foreach (var q in raceQueries.Queries)
+      foreach (var q in raceQueries.Queries.Where(q => q is not DropoutScriptKeyQuery))
       {
         races = q.Apply(db, races);
         horses = q.Apply(db, horses);
@@ -110,6 +110,22 @@ namespace KmyKeiba.Models.Race.Finder
         .Skip(offset)
         .Take(sizeMax)
         .ToArrayAsync();
+
+      // ドロップアウトの条件にマッチするか確認する
+      foreach (var q in raceQueries.Queries.Where(q => q is DropoutScriptKeyQuery))
+      {
+        var filtered = q.Apply(db, racesData.Select(r => r.RaceHorse));
+        if (!filtered.Any())
+        {
+          T[] GetAnonymousClassArray<T>(IEnumerable<T> test)
+          {
+            return Array.Empty<T>();
+          }
+
+          racesData = GetAnonymousClassArray(racesData);
+        }
+      }
+
       var raceKeys = racesData.Select(r => r.Race.Key).Distinct().ToArray();
       var raceHorsesData = Array.Empty<RaceHorseData>();
       if (isLoadSameHorses)
@@ -347,12 +363,13 @@ namespace KmyKeiba.Models.Race.Finder
         // 回収率
         if (sourceItems.Any(s => s.Data.ResultOrder == 1))
         {
-          this.RecoveryRate = sourceItems.Where(s => s.Data.ResultOrder == 1).Sum(s => s.Data.Odds * 10) / (float)(count * 100);
+          this.RecoveryRate = sourceItems.Where(s => s.Data.ResultOrder == 1).Sum(s => s.Data.Odds * 10) / (float)(sourceItems.Count(i => i.Data.ResultOrder > 0) * 100);
         }
 
         // 各種馬券回収率
         var targets = items.Where(s => s.Analyzer.Data.AbnormalResult == RaceAbnormality.Unknown &&
-          s.Analyzer.Race.DataStatus != RaceDataStatus.Canceled && s.Analyzer.Race.DataStatus != RaceDataStatus.Delete).ToArray();
+          s.Analyzer.Race.DataStatus != RaceDataStatus.Canceled && s.Analyzer.Race.DataStatus != RaceDataStatus.Delete &&
+          s.Analyzer.Data.ResultOrder > 0).ToArray();
         if (targets.Any())
         {
           var won = targets.Where(s => s.Analyzer.Data.ResultOrder == 1 && s.Analyzer.Data.Odds != default);

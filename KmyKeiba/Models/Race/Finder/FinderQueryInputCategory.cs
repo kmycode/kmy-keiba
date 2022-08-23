@@ -3213,5 +3213,21 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
+  public class DropoutInputCategory : NumberInputCategoryBase
+  {
+    public DropoutInputCategory() : base("dropout")
+    {
+      base.Input.CanCompareCurrentRaceValue = false;
+    }
+  }
+
+  public class ResidueInputCategory : NumberInputCategoryBase
+  {
+    public ResidueInputCategory() : base("residue")
+    {
+      base.Input.CanCompareCurrentRaceValue = false;
+    }
+  }
+
   #endregion
 }

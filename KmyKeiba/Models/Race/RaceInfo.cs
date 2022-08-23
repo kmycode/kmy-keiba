@@ -9,6 +9,7 @@ using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
 using KmyKeiba.Models.Injection;
+using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.Race.Memo;
 using KmyKeiba.Models.Race.Tickets;
@@ -643,6 +644,7 @@ namespace KmyKeiba.Models.Race
         {
           var cache = RaceInfoCacheManager.TryGetCache(race.Key);
           await FinderConfigUtil.InitializeAsync(db);
+          await ExternalNumberUtil.InitializeAsync(db);
           await Race.AnalysisTable.AnalysisTableUtil.InitializeAsync(db);
 
           var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == race.Key).ToArrayAsync();

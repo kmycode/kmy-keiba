@@ -44,7 +44,7 @@
         </ControlTemplate>
       </ToggleButton.Template>
     </ToggleButton>
-    <local:ImePopup StaysOpen="False" IsOpen="{Binding IsChecked,ElementName=Toggle,Mode=TwoWay}" x:Name="QueryPopup"
+    <local:ImePopup StaysOpen="False" IsOpen="{Binding IsChecked,ElementName=Toggle,Mode=TwoWay}" x:Name="QueryPopup" MinHeight="660"
                     PlacementTarget="{Binding ElementName=Toggle}" Placement="Bottom" Opened="ImePopup_Opened" Closed="ImePopup_Closed">
       <Border Width="{Binding ActualWidth,Mode=OneWay,ElementName=Toggle}" MinWidth="1200" Height="660" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Padding="16,8"
               Background="{StaticResource BaseBackground}">

@@ -62,22 +62,22 @@ namespace KmyKeiba.Models.Race.Finder
 
     public override IEnumerable<RaceData> Apply(MyContext db, IEnumerable<RaceData> query)
     {
-      throw new NotSupportedException();
+      return query;
     }
 
     public override IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query)
     {
-      throw new NotSupportedException();
+      return query;
     }
 
     public override IEnumerable<MemoData> Apply(MyContext db, IEnumerable<MemoData> query)
     {
-      throw new NotSupportedException();
+      return query;
     }
 
     public override IEnumerable<ExternalNumberData> Apply(MyContext db, IEnumerable<ExternalNumberData> query)
     {
-      throw new NotSupportedException();
+      return query;
     }
   }
 
@@ -1407,61 +1407,76 @@ namespace KmyKeiba.Models.Race.Finder
 
     private Expression<Func<T, bool>> BuildNumericQuery<T>(ParameterExpression param, Expression property, Expression value, Expression maxValue, Expression values)
     {
-      if (this.Type == QueryType.Equals)
+      return BuildNumericQuery<T>(this.Type, param, property, value, maxValue, values);
+    }
+
+    private Expression<Func<T, bool>> BuildNumericQuery<T>(IQueryable<T> test, ParameterExpression param, Expression property, Expression value, Expression maxValue, Expression values)
+    {
+      return BuildNumericQuery<T>(this.Type, param, property, value, maxValue, values);
+    }
+
+    private Expression<Func<T, bool>> BuildNumericQuery<T>(IEnumerable<T> test, ParameterExpression param, Expression property, Expression value, Expression maxValue, Expression values)
+    {
+      return BuildNumericQuery<T>(this.Type, param, property, value, maxValue, values);
+    }
+
+    internal static Expression<Func<T, bool>> BuildNumericQuery<T>(QueryType type, ParameterExpression param, Expression property, Expression value, Expression maxValue, Expression values)
+    {
+      if (type == QueryType.Equals)
       {
         return Expression.Lambda<Func<T, bool>>(Expression.Equal(property, value), param);
       }
-      if (this.Type == QueryType.NotEquals)
+      if (type == QueryType.NotEquals)
       {
         return Expression.Lambda<Func<T, bool>>(Expression.NotEqual(property, value), param);
       }
-      if (this.Type == QueryType.GreaterThan)
+      if (type == QueryType.GreaterThan)
       {
         return Expression.Lambda<Func<T, bool>>(Expression.GreaterThan(property, value), param);
       }
-      if (this.Type == QueryType.GreaterThanOrEqual)
+      if (type == QueryType.GreaterThanOrEqual)
       {
         return Expression.Lambda<Func<T, bool>>(Expression.GreaterThanOrEqual(property, value), param);
       }
-      if (this.Type == QueryType.LessThan)
+      if (type == QueryType.LessThan)
       {
         return Expression.Lambda<Func<T, bool>>(Expression.LessThan(property, value), param);
       }
-      if (this.Type == QueryType.LessThanOrEqual)
+      if (type == QueryType.LessThanOrEqual)
       {
         return Expression.Lambda<Func<T, bool>>(Expression.LessThanOrEqual(property, value), param);
       }
 
-      if (Type == QueryType.Range)
+      if (type == QueryType.Range)
       {
         return Expression.Lambda<Func<T, bool>>(
           Expression.And(Expression.GreaterThanOrEqual(property, value), Expression.LessThan(property, maxValue)),
           param);
       }
-      if (Type == QueryType.RangeOrEqual)
+      if (type == QueryType.RangeOrEqual)
       {
         return Expression.Lambda<Func<T, bool>>(
           Expression.And(Expression.GreaterThanOrEqual(property, value), Expression.LessThanOrEqual(property, maxValue)),
           param);
       }
-      if (Type == QueryType.NotRange)
+      if (type == QueryType.NotRange)
       {
         return Expression.Lambda<Func<T, bool>>(
           Expression.And(Expression.LessThan(property, value), Expression.GreaterThanOrEqual(property, maxValue)),
           param);
       }
-      if (Type == QueryType.NotRangeOrEqual)
+      if (type == QueryType.NotRangeOrEqual)
       {
         return Expression.Lambda<Func<T, bool>>(
           Expression.And(Expression.LessThan(property, value), Expression.GreaterThan(property, maxValue)),
           param);
       }
 
-      if (this.Type == QueryType.Contains)
+      if (type == QueryType.Contains)
       {
         return Expression.Lambda<Func<T, bool>>(Expression.Call(values, "Contains", null, property), param);
       }
-      if (this.Type == QueryType.Excepts)
+      if (type == QueryType.Excepts)
       {
         return Expression.Lambda<Func<T, bool>>(Expression.Equal(Expression.Call(values, "Contains", null, property), Expression.Constant(false)), param);
       }
@@ -1636,6 +1651,73 @@ namespace KmyKeiba.Models.Race.Finder
     public override IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query)
     {
       return query;
+    }
+  }
+
+  class DropoutScriptKeyQuery : SimpleScriptKeyQuery
+  {
+    private QueryType _type;
+    private int _value;
+    private int _maxValue;
+    private int[] _values;
+    protected bool IsReverse { get; set; }
+
+    public DropoutScriptKeyQuery(QueryType type, int value, int maxValue, int[]? values)
+    {
+      this._type = type;
+      this._value = value;
+      this._maxValue = maxValue;
+      this._values = values ?? Array.Empty<int>();
+    }
+
+    public static ScriptKeyQuery FromExpressionQuery(ExpressionScriptKeyQuery query)
+    {
+      return new DropoutScriptKeyQuery(query.Type, query.Value, query.MaxValue, query.Values);
+    }
+
+    private Expression<Func<int, bool>> GetExpression(int count)
+    {
+      var param = Expression.Parameter(typeof(int), "x");
+      var property = Expression.Constant(count);
+      var value = Expression.Constant(this._value);
+      var maxValue = Expression.Constant(this._maxValue);
+      var values = Expression.Constant(this._values.ToList());
+
+      var lambda = ExpressionScriptKeyQuery.BuildNumericQuery<int>(this._type, param, property, value, maxValue, values);
+      return lambda;
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      var lambda = this.GetExpression(query.Count());
+      if (lambda.Compile().Invoke(0) && !this.IsReverse)
+      {
+        return query.Where(q => false);
+      }
+      return query;
+    }
+
+    public override IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query)
+    {
+      var lambda = this.GetExpression(query.Count());
+      if (lambda.Compile().Invoke(0) && !this.IsReverse)
+      {
+        return Enumerable.Empty<RaceHorseData>();
+      }
+      return query;
+    }
+  }
+
+  class ResidueScriptKeyQuery : DropoutScriptKeyQuery
+  {
+    public ResidueScriptKeyQuery(QueryType type, int value, int maxValue, int[]? values) : base(type, value, maxValue, values)
+    {
+      base.IsReverse = true;
+    }
+
+    public static new ScriptKeyQuery FromExpressionQuery(ExpressionScriptKeyQuery query)
+    {
+      return new ResidueScriptKeyQuery(query.Type, query.Value, query.MaxValue, query.Values);
     }
   }
 }

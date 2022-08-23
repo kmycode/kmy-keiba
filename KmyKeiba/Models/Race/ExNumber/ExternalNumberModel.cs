@@ -16,6 +16,8 @@ namespace KmyKeiba.Models.Race.ExNumber
 
     public ReactiveCollection<ExternalNumberItemSet> ItemSets { get; } = new();
 
+    public ExternalNumberConfigModel Config => ExternalNumberConfigModel.Default;
+
     public ExternalNumberModel(string raceKey)
     {
       this._raceKey = raceKey;

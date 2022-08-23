@@ -125,6 +125,18 @@ namespace KmyKeiba.Models.Race.Finder
             else
             {
               var query = GetQuery(type, data[0], data[1]);
+              if (query is ExpressionScriptKeyQuery exp)
+              {
+                var key = GetKeyInfo(data[0]);
+                if (key.Item1 == QueryKey.Dropout)
+                {
+                  query = DropoutScriptKeyQuery.FromExpressionQuery(exp);
+                }
+                else if (key.Item1 == QueryKey.Residue)
+                {
+                  query = ResidueScriptKeyQuery.FromExpressionQuery(exp);
+                }
+              }
               if (query != null)
               {
                 queries!.Add(query);
@@ -1146,6 +1158,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     [EnumQueryKey("point")]
     Point,
+    [NumericQueryKey("dropout")]
+    Dropout,
+    [NumericQueryKey("residue")]
+    Residue,  // dropout の反対の働きをする
   }
 
   enum QueryType

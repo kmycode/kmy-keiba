@@ -16,7 +16,7 @@ namespace KmyKeiba.Models.Race.ExNumber
 {
   internal static class ExternalNumberUtil
   {
-    public static ReactiveCollection<ExternalNumberConfig> Configs { get; } = new();
+    public static List<ExternalNumberConfig> Configs { get; } = new();
 
     private static bool _isInitialized;
     private static readonly Dictionary<(uint, string, short), ExternalNumberData?> _cache = new();
@@ -30,6 +30,9 @@ namespace KmyKeiba.Models.Race.ExNumber
         {
           Configs.Add(config);
         }
+
+        ExternalNumberConfigModel.Default.Initialize();
+
         _isInitialized = true;
       }
     }
@@ -65,20 +68,44 @@ namespace KmyKeiba.Models.Race.ExNumber
       return str;
     }
 
-    public static async Task SaveRangeAsync(MyContext db, ExternalNumberConfig config, DateTime start, DateTime end)
+    public static async Task SaveRangeAsync(MyContext db, ExternalNumberConfig config, DateTime start, DateTime end, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
     {
+      progress ??= new ReactiveProperty<int>();
+      progressMax ??= new ReactiveProperty<int>();
+
       var races = await db.Races!.Where(r => r.StartTime >= start && r.StartTime <= end).ToArrayAsync();
+      progressMax.Value = races.Length;
+      progress.Value = 0;
 
       var count = 0;
+      var validCount = 0;
       foreach (var race in races)
       {
         var list = ReadRaceHorseValues(config, race);
-        await db.ExternalNumbers!.AddRangeAsync(list);
+        if (list.Any())
+        {
+          var olds = (IEnumerable<ExternalNumberData>)await db.ExternalNumbers!.Where(n => n.RaceKey == race.Key).ToArrayAsync();
+          var compare = list.GroupJoin(olds, n => n.HorseNumber, o => o.HorseNumber, (n, os) => new { Old = os.FirstOrDefault(), New = n, });
 
-        if (++count >= 1000)
+          var targetItems = compare
+            .Where(d => d.Old == null || d.Old.Value != d.New.Value);
+          db.ExternalNumbers!.RemoveRange(targetItems.Where(i => i.Old != null).Select(i => i.Old!));
+          await db.ExternalNumbers!.AddRangeAsync(targetItems.Select(i => i.New));
+
+          validCount++;
+        }
+
+        count++;
+        if (validCount >= 1000)
         {
           await db.SaveChangesAsync();
           await db.CommitAsync();
+          validCount = 0;
+        }
+        if (count >= 1000)
+        {
+          progress.Value += count;
+          count = 0;
         }
       }
 
@@ -127,19 +154,23 @@ namespace KmyKeiba.Models.Race.ExNumber
           race.CourseRaceNumber.ToString("00");
       }
 
-      short ValueToShort(string v)
+      int ValueToShort(string v)
       {
-        var d = v.LastIndexOf('.');
-        var mul = d == 1 ? 10 : d == 2 ? 1 : 100;
-        short.TryParse(v.Replace(".", string.Empty), out var num);
-        return (short)(num * mul);
+        var mul = 100;
+        if (v.Contains('.'))
+        {
+          var d = v.Length - v.IndexOf('.') - 1;
+          mul = d == 1 ? 10 : d == 2 ? 1 : 100;
+        }
+        int.TryParse(v.Replace(".", string.Empty), out var num);
+        return num * mul;
       }
 
       // ファイルの中身をデータに変換
       var items = new List<ExternalNumberData>();
       foreach (var line in lines.Where(l => l.StartsWith(raceId)))
       {
-        short[] values;
+        int[] values;
         string key;
         if (config.FileFormat == ExternalNumberFileFormat.RaceHorseCsv || config.FileFormat == ExternalNumberFileFormat.RaceCsv)
         {
@@ -151,7 +182,7 @@ namespace KmyKeiba.Models.Race.ExNumber
         }
         else
         {
-          var vals = new List<short>();
+          var vals = new List<int>();
           var idLen = config.FileFormat == ExternalNumberFileFormat.RaceFixedLength ? raceId.Length : raceId.Length + 2;
           key = line[0..idLen];
 
@@ -187,7 +218,7 @@ namespace KmyKeiba.Models.Race.ExNumber
             {
               ConfigId = config.Id,
               HorseNumber = horseNumber,
-              RaceKey = raceKey,
+              RaceKey = race.Key,
               Value = values.ElementAtOrDefault(1),
             });
           }
@@ -197,9 +228,9 @@ namespace KmyKeiba.Models.Race.ExNumber
             {
               ConfigId = config.Id,
               HorseNumber = horseNumber,
-              RaceKey = raceKey,
+              RaceKey = race.Key,
               Value = values.ElementAtOrDefault(1),
-              Order = values.ElementAtOrDefault(2),
+              Order = (short)values.ElementAtOrDefault(2),
             });
           }
         }
@@ -216,7 +247,7 @@ namespace KmyKeiba.Models.Race.ExNumber
               {
                 ConfigId = config.Id,
                 HorseNumber = (short)(i + 1),
-                RaceKey = raceKey,
+                RaceKey = race.Key,
                 Value = values[i],
               });
             }
@@ -229,11 +260,28 @@ namespace KmyKeiba.Models.Race.ExNumber
               {
                 ConfigId = config.Id,
                 HorseNumber = (short)(i + 1),
-                RaceKey = raceKey,
+                RaceKey = race.Key,
                 Value = values[i * 2],
-                Order = values[i * 2 + 1],
+                Order = (short)values[i * 2 + 1],
               });
             }
+          }
+        }
+
+        // 順番を登録
+        if (config.ValuesFormat == ExternalNumberValuesFormat.NumberOnly)
+        {
+          var sorted = config.SortRule switch
+          {
+            ExternalNumberSortRule.Smaller => items.OrderBy(i => i.Value),
+            ExternalNumberSortRule.Larger => items.OrderByDescending(i => i.Value),
+            ExternalNumberSortRule.SmallerWithoutZero => items.Where(i => i.Value != default).OrderBy(i => i.Value),
+            _ => Enumerable.Empty<ExternalNumberData>(),
+          };
+          var order = 1;
+          foreach (var item in sorted)
+          {
+            item.Order = (short)order++;
           }
         }
       }
@@ -242,7 +290,7 @@ namespace KmyKeiba.Models.Race.ExNumber
       var oldCaches = new List<(uint, string, short)>();
       foreach (var cache in _cache)
       {
-        if (cache.Key.Item1 == config.Id)
+        if (cache.Key.Item1 == config.Id && cache.Key.Item2 == race.Key)
         {
           oldCaches.Add(cache.Key);
         }

@@ -368,7 +368,7 @@
             <RadioButton Grid.Column="5" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                          Content="拡張集計"/>
             <RadioButton Grid.Column="6" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                         Content="外部指数設定"/>
+                         Content="外部指数設定" Name="S_ExternalNumber"/>
           </Grid>
 
           <ex:ExpansionMemoView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExMemo,Converter={StaticResource BooleanVisibilityConv}}"
@@ -381,6 +381,8 @@
                                             AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
           <ex:AnalysisTableDelimiterConfigView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisDelimiterConfig,Converter={StaticResource BooleanVisibilityConv}}"
                                                AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
+          <ex:ExternalNumberConfigView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExternalNumber,Converter={StaticResource BooleanVisibilityConv}}"
+                                       ExternalNumber="{Binding ExternalNumber}"/>
         </Grid>
 
         <!-- 結果・全体 -->

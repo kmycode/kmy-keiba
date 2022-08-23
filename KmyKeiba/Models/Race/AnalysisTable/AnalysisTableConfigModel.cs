@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
+using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
 using Reactive.Bindings;
 using System;
@@ -36,6 +37,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<ValueDelimiter?> SelectedDelimiterForAdd { get; } = new();
 
+    public CheckableCollection<ExternalNumberConfigItem> ExternalNumbers { get; } = new();
+
     public ReactiveProperty<bool> IsBulkMode { get; } = new();
 
     private AnalysisTableConfigModel()
@@ -48,6 +51,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.Tables.Clear();
       this.Weights.Clear();
       this.Delimiters.Clear();
+      this.ExternalNumbers.Clear();
       this.ActiveTable.Value = null;
       this.ActiveWeight.Value = null;
       this.ActiveDelimiter.Value = null;
@@ -77,6 +81,16 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       if (this.Delimiters.Any())
       {
         this.Delimiters.First().IsChecked.Value = true;
+      }
+
+      foreach (var en in ExternalNumberUtil.Configs)
+      {
+        this.ExternalNumbers.Add(new ExternalNumberConfigItem(en));
+      }
+
+      foreach (var row in this.Tables.SelectMany(t => t.Rows).Where(r => r.Data.Output == AnalysisTableRowOutputType.ExternalNumber))
+      {
+        row.SelectedExternalNumber.Value = this.ExternalNumbers.FirstOrDefault(e => e.Data.Id == row.Data.ExternalNumberId);
       }
     }
 

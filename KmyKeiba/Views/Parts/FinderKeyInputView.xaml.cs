@@ -133,6 +133,25 @@ namespace KmyKeiba.Views.Parts
       set { SetValue(IsEnumerableProperty, value); }
     }
 
+    public static readonly DependencyProperty IsPopupOnMouseModeProperty
+= DependencyProperty.Register(
+ nameof(IsPopupOnMouse),
+ typeof(bool),
+ typeof(FinderKeyInputView),
+ new PropertyMetadata(false, (sender, e) =>
+ {
+   if (e.NewValue is bool b && sender is FinderKeyInputView view)
+   {
+     view.QueryPopup.Placement = b ? PlacementMode.Mouse : PlacementMode.Bottom;
+   }
+ }));
+
+    public bool IsPopupOnMouse
+    {
+      get { return (bool)GetValue(IsPopupOnMouseModeProperty); }
+      set { SetValue(IsPopupOnMouseModeProperty, value); }
+    }
+
     public FinderKeyInputView()
     {
       InitializeComponent();
