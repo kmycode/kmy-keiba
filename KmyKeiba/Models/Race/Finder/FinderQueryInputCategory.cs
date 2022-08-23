@@ -3007,7 +3007,7 @@ namespace KmyKeiba.Models.Race.Finder
     {
       public ExternalNumberConfig Config { get; }
 
-      public FinderQueryNumberInput Point { get; } = new();
+      public FinderQueryFloatNumberInput Point { get; } = new(2);
 
       public ReactiveProperty<string> ConfigHeader { get; } = new();
 

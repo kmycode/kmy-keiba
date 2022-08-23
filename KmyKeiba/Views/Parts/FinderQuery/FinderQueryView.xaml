@@ -117,7 +117,8 @@
         </RadioButton>
         <RadioButton Content="拡張メモ" Name="S_Memo"
                      Visibility="{Binding IsSubViewBeforeRace,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
-        <RadioButton Content="外部指数" Name="S_ExNumber" Visibility="Collapsed"/>
+        <RadioButton Content="外部指数" Name="S_ExNumber"
+                     Visibility="{Binding IsSubViewBeforeRace,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <RadioButton Content="グループ化" Name="S_GroupBy">
           <RadioButton.Visibility>
             <MultiBinding Converter="{StaticResource MultiBooleanConv}">
@@ -995,7 +996,12 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <StackPanel Margin="0,0,8,16" MaxWidth="450">
+                    <Grid Margin="0,0,8,16" MaxWidth="450">
+                      <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                      </Grid.RowDefinitions>
+                      <local:InputNumberView Grid.Row="1" Input="{Binding Point}" Width="450" Margin="0,-32,0,0"/>
                       <Grid>
                         <Grid.ColumnDefinitions>
                           <ColumnDefinition/>
@@ -1006,8 +1012,7 @@
                                 Command="{Binding FinderModel.Input.ExternalNumber.RemoveItemCommand,ElementName=Root}"
                                 CommandParameter="{Binding}"/>
                       </Grid>
-                      <local:InputNumberView Input="{Binding Point}" Width="450"/>
-                    </StackPanel>
+                    </Grid>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
@@ -1017,7 +1022,7 @@
                         Width="300">
                 <ComboBox.ItemTemplate>
                   <DataTemplate>
-                    <TextBlock FontSize="16" Text="{Binding Header}"/>
+                    <TextBlock FontSize="16" Text="{Binding Name}"/>
                   </DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>
