@@ -232,7 +232,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
                 item.Cell.SubValue.Value = exNumber.Order.ToString();
                 item.Cell.PointCalcValue.Value = (float)exNumber.Value / 100;
                 item.Cell.Point.Value = item.Cell.PointCalcValue.Value * this.Data.BaseWeight / 100;
-                item.Cell.HasComparationValue.Value = true;
+                item.Cell.HasComparationValue.Value = exNumber.Order != default;
               }
             }
             else

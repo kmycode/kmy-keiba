@@ -88,7 +88,7 @@ namespace KmyKeiba.Models.Race.ExNumber
           var compare = list.GroupJoin(olds, n => n.HorseNumber, o => o.HorseNumber, (n, os) => new { Old = os.FirstOrDefault(), New = n, });
 
           var targetItems = compare
-            .Where(d => d.Old == null || d.Old.Value != d.New.Value);
+            .Where(d => d.Old == null || (d.Old.Value != d.New.Value || d.Old.Order != d.New.Order));
           db.ExternalNumbers!.RemoveRange(targetItems.Where(i => i.Old != null).Select(i => i.Old!));
           await db.ExternalNumbers!.AddRangeAsync(targetItems.Select(i => i.New));
 
@@ -313,6 +313,13 @@ namespace KmyKeiba.Models.Race.ExNumber
           foreach (var item in sorted)
           {
             item.Order = (short)order++;
+          }
+          if (config.SortRule == ExternalNumberSortRule.SmallerWithoutZero)
+          {
+            foreach (var item in items.Where(i => i.Value == default))
+            {
+              item.Order = default;
+            }
           }
         }
       }

@@ -257,7 +257,9 @@ namespace KmyKeiba.Models.Race.Finder
       this.UpdateQuery();
     }
 
-    private int DeserializeObject(object obj, IEnumerable<string> lines)
+    protected void DeserializeObject(object obj, string data) => this.DeserializeObject(obj, data.Split(Environment.NewLine));
+
+    protected int DeserializeObject(object obj, IEnumerable<string> lines)
     {
       var i = 0;
 
@@ -2678,8 +2680,11 @@ namespace KmyKeiba.Models.Race.Finder
           else
           {
             text.Append("B,");
+
+            var text2 = new StringBuilder();
             base.PropertyToString(item.GetType().GetProperty(nameof(MemoConfigItem.Point), BindingFlags.Instance | BindingFlags.Public)!,
-              text, item);
+              text2, item);
+            text.Append(text2.ToString().Replace(Environment.NewLine, ";"));
           }
 
           text.Append('|');
@@ -2746,8 +2751,7 @@ namespace KmyKeiba.Models.Race.Finder
           }
           else
           {
-            this.StringToProperty(item.GetType().GetProperty(nameof(MemoConfigItem.Point), BindingFlags.Instance | BindingFlags.Public)!,
-              raw, item);
+            base.DeserializeObject(item.Point, raw.Replace(";", Environment.NewLine).Split(Environment.NewLine).Skip(1));
           }
 
           this.Items.Add(item);
@@ -2952,16 +2956,22 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (obj == this && property.Name == nameof(Items))
       {
+        text.Append("[CUSTOM]Items/");
+
         foreach (var item in this.Items)
         {
           text.Append(item.Config.Id);
           text.Append(',');
 
+          var text2 = new StringBuilder();
           base.PropertyToString(item.GetType().GetProperty(nameof(ExternalNumberConfigItem.Point), BindingFlags.Instance | BindingFlags.Public)!,
-            text, item);
+            text2, item);
+          text.Append(text2.ToString().Replace(Environment.NewLine, ";"));
 
           text.Append('|');
         }
+
+        text.AppendLine();
       }
     }
 
@@ -2969,9 +2979,9 @@ namespace KmyKeiba.Models.Race.Finder
     {
       base.StringToProperty(property, data, obj);
 
-      if (obj == this && property.Name == nameof(Configs))
+      if (obj == this && property.Name == nameof(Items))
       {
-        this.Configs.Clear();
+        this.Items.Clear();
 
         var values = data.Split('|');
         foreach (var value in values)
@@ -2990,8 +3000,7 @@ namespace KmyKeiba.Models.Race.Finder
           }
           var item = this.SetConfigItemEvents(new ExternalNumberConfigItem(config));
 
-          this.StringToProperty(item.GetType().GetProperty(nameof(ExternalNumberConfigItem.Point), BindingFlags.Instance | BindingFlags.Public)!,
-            raw, item);
+          base.DeserializeObject(item.Point, raw.Replace(";", Environment.NewLine).Split(Environment.NewLine).Skip(1));
 
           this.Items.Add(item);
         }
