@@ -127,7 +127,7 @@
                   <TextBlock Grid.Column="8" Text="親" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
                              VerticalAlignment="Center"/>
                   <ComboBox Grid.Column="9" ItemsSource="{Binding AnalysisTable.Config.ActiveTable.Value.ParentRowSelections,ElementName=Root}"
-                            SelectedItem="{Binding Weight.Value,Mode=TwoWay}">
+                            SelectedItem="{Binding SelectedParent.Value,Mode=TwoWay}">
                     <ComboBox.ItemTemplate>
                       <DataTemplate>
                         <TextBlock FontSize="16" Text="{Binding Name.Value}"/>

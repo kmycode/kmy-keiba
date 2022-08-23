@@ -97,8 +97,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           }
         }
 
-        var max = table.Cells.OrderByDescending(c => c.Point.Value).ElementAtOrDefault(3)?.Point.Value ?? 0;
-        var min = table.Cells.OrderBy(c => c.Point.Value).ElementAtOrDefault(3)?.Point.Value ?? double.MaxValue;
+        var max = table.Cells.OrderByDescending(c => c.Point.Value).ElementAtOrDefault(2)?.Point.Value ?? 0;
+        var min = table.Cells.OrderBy(c => c.Point.Value).ElementAtOrDefault(2)?.Point.Value ?? double.MaxValue;
 
         foreach (var cell in table.Cells)
         {
@@ -106,8 +106,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         }
       }
 
-      var hmax = this.Horses.OrderByDescending(c => c.TotalPoint.Value).ElementAtOrDefault(3)?.TotalPoint.Value ?? 0;
-      var hmin = this.Horses.OrderBy(c => c.TotalPoint.Value).ElementAtOrDefault(3)?.TotalPoint.Value ?? double.MaxValue;
+      var hmax = this.Horses.OrderByDescending(c => c.TotalPoint.Value).ElementAtOrDefault(2)?.TotalPoint.Value ?? 0;
+      var hmin = this.Horses.OrderBy(c => c.TotalPoint.Value).ElementAtOrDefault(2)?.TotalPoint.Value ?? double.MaxValue;
       var i = 1;
       foreach (var horse in this.Horses.OrderByDescending(h => h.TotalPoint.Value))
       {
@@ -139,7 +139,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             horse.MarkSuggestion.Value = RaceHorseMark.Triangle;
           }
         }
-        else if (this.Horses.Count >= 10 && i >= this.Horses.Count - (this.Horses.Count > 15 ? 3 : 2))
+        else if (this.Horses.Count >= 10 && i > this.Horses.Count - (this.Horses.Count > 15 ? 3 : 2))
         {
           horse.MarkSuggestion.Value = RaceHorseMark.Deleted;
         }

@@ -74,7 +74,9 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.BaseWeight.Value = data.BaseWeight.ToString();
 
       this.CanSetExternalNumber = this.Output.Select(o => o == AnalysisTableRowOutputType.ExternalNumber).ToReadOnlyReactiveProperty().AddTo(this._disposables);
-      this.CanSetQuery = this.Output.Select(o => o != AnalysisTableRowOutputType.ExternalNumber).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+      this.CanSetQuery = this.Output.Select(o => o != AnalysisTableRowOutputType.ExternalNumber &&
+        o != AnalysisTableRowOutputType.FixedValue &&
+        o != AnalysisTableRowOutputType.FixedValuePerPastRace).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetWeight = this.Output.Select(o => o == AnalysisTableRowOutputType.FixedValue ||
         o == AnalysisTableRowOutputType.FixedValuePerPastRace ||
         o == AnalysisTableRowOutputType.PlaceBetsRate ||
@@ -490,7 +492,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public void OnParentListUpdated()
     {
       this._isInitializingParentList = true;
-      this.SelectedParent.Value = this.Table.ParentRowSelections.FirstOrDefault(r => r.Data.Id == this.Data.Id);
+      this.SelectedParent.Value = this.Table.ParentRowSelections.FirstOrDefault(r => r.Data.Id == this.Data.ParentRowId);
       this._isInitializingParentList = false;
     }
 

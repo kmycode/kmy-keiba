@@ -72,9 +72,13 @@ namespace KmyKeiba.Models.Race.Finder
       if (raceQueries.IsContainsFutureRaces && !withoutFutureRacesForce) withoutFutureRaces = false;
 
       IQueryable<RaceData> races = db.Races!;
-      if (raceQueries.IsCurrentRaceOnly && this.Race != null)
+      var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
+      if (raceQueries.IsCurrentRaceOnly)
       {
-        races = races.Where(r => r.Key == this.Race.Key);
+        if (this.Race != null)
+          races = races.Where(r => r.Key == this.Race.Key);
+        if (this.RaceHorse != null)
+          horses = horses.Where(h => h.Key == this.RaceHorse.Key);
       }
       else if (withoutFutureRaces)
       {
@@ -94,7 +98,6 @@ namespace KmyKeiba.Models.Race.Finder
           races = races.Where(r => r.StartTime < DateTime.Now);
         }
       }
-      var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
 
       foreach (var q in raceQueries.Queries.Where(q => q is not DropoutScriptKeyQuery))
       {
