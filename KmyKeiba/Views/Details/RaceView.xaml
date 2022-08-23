@@ -345,31 +345,26 @@
             <RowDefinition/>
           </Grid.RowDefinitions>
 
-          <Grid>
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition/>
-              <ColumnDefinition/>
-              <ColumnDefinition/>
-              <ColumnDefinition/>
-              <ColumnDefinition/>
-              <ColumnDefinition/>
-              <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <RadioButton Grid.Column="0" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+          <UniformGrid Rows="1">
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                          Content="拡張メモ" Name="S_ExMemo" IsChecked="True"/>
-            <RadioButton Grid.Column="1" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                          Content="拡張分析" Name="S_ExAnalysis"/>
-            <RadioButton Grid.Column="2" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
                          Content="拡張分析設定" Name="S_ExAnalysisConfig"/>
-            <RadioButton Grid.Column="3" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
                          Content="拡張分析重み設定" Name="S_ExAnalysisWeightConfig"/>
-            <RadioButton Grid.Column="4" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
                          Content="重み区切り設定" Name="S_ExAnalysisDelimiterConfig"/>
-            <RadioButton Grid.Column="5" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                          Content="拡張集計"/>
-            <RadioButton Grid.Column="6" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
                          Content="外部指数設定" Name="S_ExternalNumber"/>
-          </Grid>
+          </UniformGrid>
 
           <ex:ExpansionMemoView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExMemo,Converter={StaticResource BooleanVisibilityConv}}"
                                 Race="{Binding Race,ElementName=Root}"/>

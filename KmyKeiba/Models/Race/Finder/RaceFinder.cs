@@ -53,7 +53,7 @@ namespace KmyKeiba.Models.Race.Finder
       this.RaceHorseAnalyzer = horse;
     }
 
-    public static RaceFinder CopyFrom(RaceFinder old, RaceData? race = null, RaceHorseData raceHorse = null)
+    public static RaceFinder CopyFrom(RaceFinder old, RaceData? race = null, RaceHorseData? raceHorse = null)
     {
       var finder = new RaceFinder(race, raceHorse);
       finder._raceHorseCaches = old._raceHorseCaches;

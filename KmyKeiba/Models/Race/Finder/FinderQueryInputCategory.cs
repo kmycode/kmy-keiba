@@ -1962,10 +1962,13 @@ namespace KmyKeiba.Models.Race.Finder
           {
             if (t.IsCompletedSuccessfully)
             {
-              foreach (var item in t.Result)
+              ThreadUtil.InvokeOnUiThread(() =>
               {
-                this.Horses.Add(new HorseBloodItem(item.Code, item.Name));
-              }
+                foreach (var item in t.Result)
+                {
+                  this.Horses.Add(new HorseBloodItem(item.Key, item.Name));
+                }
+              });
             }
             else
             {

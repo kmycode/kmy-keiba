@@ -33,7 +33,7 @@
 
       <!--ラベル設定-->
       <Grid Grid.Column="1" Visibility="{Binding AnalysisTable.Config.ActiveDelimiter.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"
-            Margin="16,0,8,0" Grid.RowSpan="2">
+            Margin="16,0,8,0" Grid.RowSpan="2" IsEnabled="{Binding CanSave.Value}">
         <Grid.RowDefinitions>
           <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>

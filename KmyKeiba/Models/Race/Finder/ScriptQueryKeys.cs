@@ -1690,7 +1690,7 @@ namespace KmyKeiba.Models.Race.Finder
     public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
     {
       var lambda = this.GetExpression(query.Count());
-      if (lambda.Compile().Invoke(0) && !this.IsReverse)
+      if (lambda.Compile().Invoke(0) == !this.IsReverse)
       {
         return query.Where(q => false);
       }
@@ -1700,7 +1700,7 @@ namespace KmyKeiba.Models.Race.Finder
     public override IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query)
     {
       var lambda = this.GetExpression(query.Count());
-      if (lambda.Compile().Invoke(0) && !this.IsReverse)
+      if (lambda.Compile().Invoke(0) == !this.IsReverse)
       {
         return Enumerable.Empty<RaceHorseData>();
       }

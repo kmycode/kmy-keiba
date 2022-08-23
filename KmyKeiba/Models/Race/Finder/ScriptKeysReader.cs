@@ -797,7 +797,8 @@ namespace KmyKeiba.Models.Race.Finder
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.GoalOrder == horse.GoalOrder));
                   break;
                 case QueryKey.RunningStyle:
-                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.RunningStyle == horse.RunningStyle));
+                  var rs = horseAnalyzer?.History?.RunningStyle ?? horse.RunningStyle;
+                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.RunningStyle == rs));
                   break;
                 case QueryKey.CornerPlace1:
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.FirstCornerOrder == horse.FirstCornerOrder));

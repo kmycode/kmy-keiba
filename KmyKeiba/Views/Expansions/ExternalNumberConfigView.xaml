@@ -53,7 +53,7 @@
                   Command="{Binding RemoveExternalNumberConfigCommand}"/>
         </Grid>
 
-        <ScrollViewer Grid.Row="3">
+        <ScrollViewer Grid.Row="3" IsEnabled="{Binding CanSave.Value}">
           <!--設定内容-->
           <Grid>
             <Grid.ColumnDefinitions>

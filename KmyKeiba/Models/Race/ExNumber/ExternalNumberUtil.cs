@@ -81,7 +81,7 @@ namespace KmyKeiba.Models.Race.ExNumber
       var validCount = 0;
       foreach (var race in races)
       {
-        var list = ReadRaceHorseValues(config, race);
+        var list = ReadRaceHorseValues(db, config, race);
         if (list.Any())
         {
           var olds = (IEnumerable<ExternalNumberData>)await db.ExternalNumbers!.Where(n => n.RaceKey == race.Key).ToArrayAsync();
@@ -113,7 +113,7 @@ namespace KmyKeiba.Models.Race.ExNumber
       await db.CommitAsync();
     }
 
-    private static IReadOnlyList<ExternalNumberData> ReadRaceHorseValues(ExternalNumberConfig config, RaceData race)
+    private static IReadOnlyList<ExternalNumberData> ReadRaceHorseValues(MyContext db, ExternalNumberConfig config, RaceData race)
     {
       var fileName = GetFileName(config.FileNamePattern, race);
       if (!File.Exists(fileName))
@@ -166,12 +166,23 @@ namespace KmyKeiba.Models.Race.ExNumber
         return num * mul;
       }
 
+      ExternalNumberDotFormat GetDotFormat(string v)
+      {
+        if (v.Contains('.'))
+        {
+          var d = v.Length - v.IndexOf('.') - 1;
+          return d == 1 ? ExternalNumberDotFormat.Real1 : d == 2 ? ExternalNumberDotFormat.Real2 : ExternalNumberDotFormat.Auto;
+        }
+        return ExternalNumberDotFormat.IntegerWithSign;
+      }
+
       // ファイルの中身をデータに変換
       var items = new List<ExternalNumberData>();
       foreach (var line in lines.Where(l => l.StartsWith(raceId)))
       {
         int[] values;
         string key;
+        string sampleValue;
         if (config.FileFormat == ExternalNumberFileFormat.RaceHorseCsv || config.FileFormat == ExternalNumberFileFormat.RaceCsv)
         {
           key = line.Split(',')[0];
@@ -179,12 +190,14 @@ namespace KmyKeiba.Models.Race.ExNumber
             .Skip(1)
             .Select(v => ValueToShort(v))
             .ToArray();
+          sampleValue = line.Split(',').Skip(1).FirstOrDefault() ?? string.Empty;
         }
         else
         {
           var vals = new List<int>();
           var idLen = config.FileFormat == ExternalNumberFileFormat.RaceFixedLength ? raceId.Length : raceId.Length + 2;
           key = line[0..idLen];
+          sampleValue = line.Substring(idLen, 6);
 
           if (config.ValuesFormat == ExternalNumberValuesFormat.NumberOnly)
           {
@@ -202,6 +215,24 @@ namespace KmyKeiba.Models.Race.ExNumber
             }
           }
           values = vals.ToArray();
+        }
+
+        // 小数点の位置を保存
+        var dotFormat = GetDotFormat(sampleValue);
+        if (config.DotFormat != dotFormat)
+        {
+          try
+          {
+            db.ExternalNumberConfigs!.Attach(config);
+            config.DotFormat = dotFormat;
+#pragma warning disable CS0618 // 型またはメンバーが旧型式です
+            db.SaveChanges();
+#pragma warning restore CS0618 // 型またはメンバーが旧型式です
+          }
+          catch (Exception ex)
+          {
+            // TODO
+          }
         }
 
         // リストに登録

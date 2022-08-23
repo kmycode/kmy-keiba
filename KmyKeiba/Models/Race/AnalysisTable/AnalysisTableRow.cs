@@ -33,6 +33,12 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<AnalysisTableRowOutputType> Output { get; } = new();
 
+    public ReadOnlyReactiveProperty<bool> CanSetExternalNumber { get; }
+
+    public ReadOnlyReactiveProperty<bool> CanSetQuery { get; }
+
+    public ReadOnlyReactiveProperty<bool> CanSetWeight { get; }
+
     public ReactiveCollection<AnalysisTableCell> Cells { get; } = new();
 
     public ReactiveProperty<AnalysisTableWeight?> Weight { get; } = new();
@@ -66,6 +72,14 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.Name.Value = data.Name;
       this.Output.Value = data.Output;
       this.BaseWeight.Value = data.BaseWeight.ToString();
+
+      this.CanSetExternalNumber = this.Output.Select(o => o == AnalysisTableRowOutputType.ExternalNumber).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+      this.CanSetQuery = this.Output.Select(o => o != AnalysisTableRowOutputType.ExternalNumber).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+      this.CanSetWeight = this.Output.Select(o => o == AnalysisTableRowOutputType.FixedValue ||
+        o == AnalysisTableRowOutputType.FixedValuePerPastRace ||
+        o == AnalysisTableRowOutputType.PlaceBetsRate ||
+        o == AnalysisTableRowOutputType.RecoveryRate ||
+        o == AnalysisTableRowOutputType.WinRate).ToReadOnlyReactiveProperty().AddTo(this._disposables);
 
       this.Weight.Value = AnalysisTableUtil.Weights.FirstOrDefault(w => w.Data.Id == data.WeightId);
       this.Weight.Skip(1).Subscribe(async _ =>
