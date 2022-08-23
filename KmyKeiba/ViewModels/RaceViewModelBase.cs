@@ -367,6 +367,18 @@ namespace KmyKeiba.ViewModels
 
     #endregion
 
+    #region 拡張分析
+
+    public ICommand AggregateTablesCommand => this._aggregateTablesCommand ??=
+      new ReactiveCommand().WithSubscribe(() => this.model.Info.Value?.AnalysisTable.Value?.Aggregate.BeginLoad()).AddTo(this._disposables);
+    private ICommand? _aggregateTablesCommand;
+
+    public ICommand ApplyAggregateSuggestionMarksCommand => this._applyAggregateSuggestionMarksCommand ??=
+      new AsyncReactiveCommand(this.CanSave).WithSubscribe(() => this.model.Info.Value?.AnalysisTable.Value?.Aggregate.ApplyHorseMarksAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _applyAggregateSuggestionMarksCommand;
+
+    #endregion
+
     #region 拡張検索
 
     public ICommand AddFinderConfigCommand =>

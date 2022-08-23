@@ -58,6 +58,10 @@
         </up:ImePopup>
         <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="{Binding ScriptBulk.EndDate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
                    VerticalAlignment="Center" Margin="8,0,24,0"/>
+        <RadioButton Style="{StaticResource ToggleButtonDefault}" IsChecked="{Binding ScriptBulk.IsAnalysisTableMode.Value,ElementName=Root,Converter={StaticResource NegativeConv},Mode=TwoWay}"
+                     FontSize="16" GroupName="Mode" Content="スクリプト" IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+        <RadioButton Style="{StaticResource ToggleButtonDefault}" IsChecked="{Binding ScriptBulk.IsAnalysisTableMode.Value,ElementName=Root,Mode=TwoWay}"
+                     FontSize="16" GroupName="Mode" Content="拡張集計" Margin="0,0,24,0" IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
         <Button FontSize="20" Content="開始" Command="{Binding ExecuteScriptBulkCommand}" Width="120"
                 Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <Button FontSize="16" Content="中止" Command="{Binding CancelScriptBulkCommand}" Width="120"

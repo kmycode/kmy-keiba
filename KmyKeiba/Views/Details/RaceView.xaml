@@ -360,7 +360,7 @@
                          Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
                          Content="重み区切り設定" Name="S_ExAnalysisDelimiterConfig"/>
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                         Content="拡張集計"/>
+                         Content="拡張集計" Name="S_ExAggregate"/>
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                          Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
                          Content="外部指数設定" Name="S_ExternalNumber"/>
@@ -376,6 +376,8 @@
                                             AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
           <ex:AnalysisTableDelimiterConfigView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisDelimiterConfig,Converter={StaticResource BooleanVisibilityConv}}"
                                                AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
+          <ex:AnalysisTableAggregateView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExAggregate,Converter={StaticResource BooleanVisibilityConv}}"
+                                         AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
           <ex:ExternalNumberConfigView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExternalNumber,Converter={StaticResource BooleanVisibilityConv}}"
                                        ExternalNumber="{Binding ExternalNumber}"/>
         </Grid>

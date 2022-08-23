@@ -26,6 +26,9 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public async Task DoAsync(ScriptBulkModel model, IEnumerable<ScriptResultItem> items)
     {
+      this.ProgressMax.Value = new ReactiveProperty<int>(1);
+      this.Progress.Value = new ReactiveProperty<int>();
+
       foreach (var item in items)
       {
         if (item.IsCompleted.Value || item.IsExecuting.Value)
@@ -55,10 +58,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             {
               continue;
             }
-            await info.AnalysisTable.Value.AnalysisTablesAsync();
 
-            //this.ProgressMax.Value = this.Engine.Html.ProgressMaxObservable;
-            //this.Progress.Value = this.Engine.Html.ProgressObservable;
+            this.Progress.Value!.Value = 0;
+            await info.AnalysisTable.Value.Aggregate.LoadAsync();
+            this.Progress.Value!.Value = 1;
 
             // TODO: 買い目処理はここに
             //if (info.Tickets.Value != null && info.Payoff != null)
@@ -67,12 +70,13 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
             if (info.HasResults.Value)
             {
-              item.FirstHorseMark.Value = RaceHorseMark.Default;
-              item.SecondHorseMark.Value = RaceHorseMark.Default;
-              item.ThirdHorseMark.Value = RaceHorseMark.Default;
+              var sorted = info.AnalysisTable.Value.Aggregate.Horses.Where(h => h.Horse.Data.ResultOrder > 0).OrderBy(h => h.Horse.Data.ResultOrder);
+              item.FirstHorseMark.Value = sorted.FirstOrDefault(s => s.Horse.Data.ResultOrder == 1)?.MarkSuggestion.Value ?? RaceHorseMark.Default;
+              item.SecondHorseMark.Value = sorted.FirstOrDefault(s => s.Horse.Data.ResultOrder == 2)?.MarkSuggestion.Value ?? RaceHorseMark.Default;
+              item.ThirdHorseMark.Value = sorted.FirstOrDefault(s => s.Horse.Data.ResultOrder == 3)?.MarkSuggestion.Value ?? RaceHorseMark.Default;
             }
 
-            item.IsResultRead.Value = true;
+            item.IsCompleted.Value = true;
           }
           else
           {

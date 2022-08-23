@@ -25,6 +25,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<AnalysisTableSurface?> ActiveTable => this.Tables.ActiveItem;
 
+    public AnalysisTableAggregater Aggregate { get; }
+
     public AnalysisTableConfigModel Config => AnalysisTableConfigModel.Instance;
 
     public AnalysisTableModel(RaceData race, IReadOnlyList<RaceHorseAnalyzer> horses, AnalysisTableCache? cache)
@@ -47,6 +49,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this._race = race;
       this._horses = horses;
 
+      this.Aggregate = new AnalysisTableAggregater(this, horses);
       this.InitializeTables();
 
       Task.Run(() => this.AnalysisTableCacheOnly());
