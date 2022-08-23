@@ -517,7 +517,7 @@ namespace KmyKeiba.Models.Race.Finder
       return query;
     }
 
-    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    private object Apply(MyContext db, IQueryable<RaceHorseData>? query1, IEnumerable<RaceHorseData>? query2)
     {
       if (this._code == null && !this._isCheckedCode)
       {
@@ -617,16 +617,45 @@ namespace KmyKeiba.Models.Race.Finder
 
         if (subject != null)
         {
-          query = query.Join(db.BornHorses!.Where(subject), h => h.Key, b => b.Code, (h, b) => h);
+          if (query1 != null)
+          {
+            return query1.Join(db.BornHorses!.Where(subject), h => h.Key, b => b.Code, (h, b) => h);
+          }
+          else if (query2 != null)
+          {
+            var ids = query2.Select(q => q.Id).ToArray();
+            var a = db.RaceHorses!.Where(rh => ids.Contains(rh.Id))
+              .Join(db.BornHorses!.Where(subject), h => h.Key, b => b.Code, (h, b) => h)
+              .Where(rh => ids.Contains(rh.Id))
+              .ToArray();
+            return a;
+          }
         }
       }
       else
       {
         // すべてを焼き尽くす
-        query = query.Where(r => false);
+        if (query1 != null)
+        {
+          return query1.Where(r => false);
+        }
+        else if (query2 != null)
+        {
+          return Array.Empty<RaceHorseData>();
+        }
       }
 
-      return query;
+      return query1 ?? query2 ?? throw new ArgumentException("query");
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      return (IQueryable<RaceHorseData>)this.Apply(db, query, null);
+    }
+
+    public override IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query)
+    {
+      return (IEnumerable<RaceHorseData>)this.Apply(db, null, query);
     }
   }
 

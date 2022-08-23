@@ -137,6 +137,7 @@
                   <ColumnDefinition/>
                   <ColumnDefinition Width="auto"/>
                   <ColumnDefinition Width="auto"/>
+                  <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
                 <up:FinderKeyInputView IsShowFinderButtonOnly="True" FinderModel="{Binding FinderModelForConfig}"
                                        IsEnumerable="True" IsPopupOnMouse="True"/>
@@ -154,7 +155,11 @@
                 </ItemsControl>
                 <TextBox Grid.Column="2" FontSize="16" TextAlignment="Center" VerticalContentAlignment="Center" Text="{Binding Weight.Value,Mode=TwoWay}" Width="100"
                          IsReadOnly="{Binding DataContext.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
-                <Button Grid.Column="3" Content="削除" FontSize="16" Padding="4,2" Command="{Binding DataContext.DeleteAnalysisTableWeightRowCommand,ElementName=Root}"
+                <StackPanel Orientation="Horizontal" Grid.Column="3" Margin="8,0,16,0" VerticalAlignment="Center">
+                  <Button FontSize="16" Content="上へ" Command="{Binding DataContext.UpAnalysisTableWeightRowCommand,ElementName=Root}" CommandParameter="{Binding}"/>
+                  <Button FontSize="16" Content="下へ" Command="{Binding DataContext.DownAnalysisTableWeightRowCommand,ElementName=Root}" CommandParameter="{Binding}" Margin="4,0,0,0"/>
+                </StackPanel>
+                <Button Grid.Column="4" Content="削除" FontSize="16" Padding="4,2" Command="{Binding DataContext.DeleteAnalysisTableWeightRowCommand,ElementName=Root}"
                         CommandParameter="{Binding}" Margin="24,0,0,0" VerticalAlignment="Center"/>
               </Grid>
             </DataTemplate>

@@ -294,17 +294,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         var items = source.Items;
 
         this.SetValueOfRaceHorseAnalyzer(finder, this.Data.Output, source, cell, weight);
-
-        if (weight != null)
-        {
-          var weightValue = weight.CalcWeight(items) * this.Data.BaseWeight;
-          cell.Weight = weightValue;
-          cell.Point.Value = cell.PointCalcValue.Value * weightValue;
-        }
-        else
-        {
-          cell.Point.Value = cell.PointCalcValue.Value * this.Data.BaseWeight;
-        }
+        cell.Point.Value = cell.PointCalcValue.Value * this.Data.BaseWeight;
 
         var samples = items.Where(cell.SampleFilter).Take(10);
         ThreadUtil.InvokeOnUiThread(() =>

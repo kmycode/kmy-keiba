@@ -266,6 +266,16 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableSurface>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.RemoveTableAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _removeAnalysisTableConfigCommand;
 
+    public ICommand UpAnalysisTableConfigCommand =>
+      this._upAnalysisTableConfigCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableSurface>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.UpTableAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upAnalysisTableConfigCommand;
+
+    public ICommand DownAnalysisTableConfigCommand =>
+     this._downAnalysisTableConfigCommand ??=
+       new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableSurface>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.DownTableAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downAnalysisTableConfigCommand;
+
     public ICommand AddAnalysisTableRowConfigCommand =>
       this._addAnalysisTableConfigItemCommand ??=
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.AddTableRowAsync() ?? Task.CompletedTask).AddTo(this._disposables);
@@ -275,6 +285,26 @@ namespace KmyKeiba.ViewModels
       this._deleteAnalysisTableConfigItemCommand ??=
         new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.RemoveTableRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _deleteAnalysisTableConfigItemCommand;
+
+    public ICommand UpAnalysisTableRowConfigCommand =>
+      this._upAnalysisTableConfigItemCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.UpTableRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upAnalysisTableConfigItemCommand;
+
+    public ICommand DownAnalysisTableRowConfigCommand =>
+     this._downAnalysisTableConfigItemCommand ??=
+       new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.DownTableRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downAnalysisTableConfigItemCommand;
+
+    public ICommand UnselectAnalysisTableRowWeightCommand =>
+      this._unselectAnalysisTableRowWeightCommand ??=
+        new ReactiveCommand<Models.Race.AnalysisTable.AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.UnselectTableRowWeight(obj)).AddTo(this._disposables);
+    private ICommand? _unselectAnalysisTableRowWeightCommand;
+
+    public ICommand UnselectAnalysisTableRowParentCommand =>
+      this._unselectAnalysisTableRowParentCommand ??=
+        new ReactiveCommand<Models.Race.AnalysisTable.AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.UnselectTableRowParent(obj)).AddTo(this._disposables);
+    private ICommand? _unselectAnalysisTableRowParentCommand;
 
     public ICommand UpdateAnalysisTablesCommand =>
       this._updateAnalysisTablesCommand ??=
@@ -315,6 +345,16 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.ClearWeightRowsAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _clearAnalysisTableWeightRowsCommand;
 
+    public ICommand UpAnalysisTableWeightRowCommand =>
+      this._upAnalysisTableWeightRowCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableWeightRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.UpTableWeightRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upAnalysisTableWeightRowCommand;
+
+    public ICommand DownAnalysisTableWeightRowCommand =>
+      this._downAnalysisTableWeightRowCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableWeightRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.DownTableWeightRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downAnalysisTableWeightRowCommand;
+
     #endregion
 
     #region 重みの区切り
@@ -338,6 +378,16 @@ namespace KmyKeiba.ViewModels
       this._deleteAnalysisTableDelimiterRowCommand ??=
         new AsyncReactiveCommand<Models.Race.AnalysisTable.ValueDelimiterRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.RemoveDelimiterRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _deleteAnalysisTableDelimiterRowCommand;
+
+    public ICommand UpAnalysisTableDelimiterRowCommand =>
+      this._upAnalysisTableDelimiterRowCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.ValueDelimiterRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.UpDelimiterRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upAnalysisTableDelimiterRowCommand;
+
+    public ICommand DownAnalysisTableDelimiterRowCommand =>
+      this._downAnalysisTableDelimiterRowCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.ValueDelimiterRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.DownDelimiterRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downAnalysisTableDelimiterRowCommand;
 
     public ICommand AddAnalysisTableSelectedDelimiterCommand =>
       this._addAnalysisTableSelectedDelimiterCommand ??=

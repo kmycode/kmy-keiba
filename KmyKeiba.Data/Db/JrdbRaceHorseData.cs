@@ -23,16 +23,20 @@ namespace KmyKeiba.Data.Db
 
     public async Task<bool> ReadStringAsync(MyContextBase db, string raw)
     {
-      // 【警告】
-      // よく考えたらSubStringは全角文字も１つとしてカウントしてしまうので
-      // 以下のコードはJDBCには使えない。修正の必要あり
+      var bin = Encoding.GetEncoding(932).GetBytes(raw);
 
-      short.TryParse(raw[0..2], out var courseCode);
-      short.TryParse(raw.AsSpan(2, 2), out var year);
+      string AsString(int startIndex, int length)
+      {
+        var binary = bin[startIndex..(startIndex + length)];
+        return Encoding.GetEncoding(932).GetString(binary);
+      }
+
+      short.TryParse(AsString(0, 2), out var courseCode);
+      short.TryParse(AsString(2, 2), out var year);
       year += 2000;
-      short.TryParse(raw.AsSpan(4, 1), out var kaiji);
-      short.TryParse(raw.AsSpan(5, 1), NumberStyles.HexNumber, null, out var nichiji);
-      short.TryParse(raw.AsSpan(6, 2), out var courseNumber);
+      short.TryParse(AsString(4, 1), out var kaiji);
+      short.TryParse(AsString(5, 1), NumberStyles.HexNumber, null, out var nichiji);
+      short.TryParse(AsString(6, 2), out var courseNumber);
 
       var course = RaceCourse.Unknown;
       if (courseCode <= 10)
@@ -103,7 +107,7 @@ namespace KmyKeiba.Data.Db
 
       this.RaceKey = raceData.Key;
 
-      short.TryParse(raw.AsSpan(8, 2), out var horseNumber);
+      short.TryParse(AsString(8, 2), out var horseNumber);
       var horseData = await db.RaceHorses!.FirstOrDefaultAsync(rh => rh.RaceKey == this.RaceKey && rh.Number == horseNumber);
       if (horseData == null)
       {
@@ -112,126 +116,126 @@ namespace KmyKeiba.Data.Db
 
       this.Key = horseData.Key;
 
-      short.TryParse(raw.Substring(54, 5).Trim().Replace(".", string.Empty), out var idm);
-      short.TryParse(raw.Substring(59, 5).Trim().Replace(".", string.Empty), out var riderPoint);
-      short.TryParse(raw.Substring(64, 5).Trim().Replace(".", string.Empty), out var infoPoint);
-      short.TryParse(raw.Substring(84, 5).Trim().Replace(".", string.Empty), out var totalPoint);
+      short.TryParse(AsString(54, 5).Trim().Replace(".", string.Empty), out var idm);
+      short.TryParse(AsString(59, 5).Trim().Replace(".", string.Empty), out var riderPoint);
+      short.TryParse(AsString(64, 5).Trim().Replace(".", string.Empty), out var infoPoint);
+      short.TryParse(AsString(84, 5).Trim().Replace(".", string.Empty), out var totalPoint);
 
-      short.TryParse(raw.AsSpan(89, 1), out var runningStyleCode);
-      short.TryParse(raw.AsSpan(90, 1), out var distanceAptitudeCode);
-      short.TryParse(raw.AsSpan(91, 1), out var climbCode);
+      short.TryParse(AsString(89, 1), out var runningStyleCode);
+      short.TryParse(AsString(90, 1), out var distanceAptitudeCode);
+      short.TryParse(AsString(91, 1), out var climbCode);
       this.RunningStyle = (JdbcRunningStyle)runningStyleCode;
       this.DistanceAptitude = (HorseDistanceAptitude)distanceAptitudeCode;
       this.Climb = (HorseClimb)climbCode;
 
-      short.TryParse(raw.Substring(95, 5).Trim().Replace(".", string.Empty), out var baseOdds);
-      short.TryParse(raw.AsSpan(100, 2), out var basePopular);
-      short.TryParse(raw.Substring(102, 5).Trim().Replace(".", string.Empty), out var basePlaceOdds);
-      short.TryParse(raw.AsSpan(107, 2), out var basePlacePopular);
+      short.TryParse(AsString(95, 5).Trim().Replace(".", string.Empty), out var baseOdds);
+      short.TryParse(AsString(100, 2), out var basePopular);
+      short.TryParse(AsString(102, 5).Trim().Replace(".", string.Empty), out var basePlaceOdds);
+      short.TryParse(AsString(107, 2), out var basePlacePopular);
 
-      short.TryParse(raw.Substring(109, 3).Trim().Replace(".", string.Empty), out var mark11);
-      short.TryParse(raw.Substring(112, 3).Trim().Replace(".", string.Empty), out var mark12);
-      short.TryParse(raw.Substring(115, 3).Trim().Replace(".", string.Empty), out var mark13);
-      short.TryParse(raw.Substring(118, 3).Trim().Replace(".", string.Empty), out var mark14);
-      short.TryParse(raw.Substring(121, 3).Trim().Replace(".", string.Empty), out var mark15);
-      short.TryParse(raw.Substring(124, 3).Trim().Replace(".", string.Empty), out var mark21);
-      short.TryParse(raw.Substring(127, 3).Trim().Replace(".", string.Empty), out var mark22);
-      short.TryParse(raw.Substring(130, 3).Trim().Replace(".", string.Empty), out var mark23);
-      short.TryParse(raw.Substring(133, 3).Trim().Replace(".", string.Empty), out var mark24);
-      short.TryParse(raw.Substring(136, 3).Trim().Replace(".", string.Empty), out var mark25);
+      short.TryParse(AsString(109, 3).Trim().Replace(".", string.Empty), out var mark11);
+      short.TryParse(AsString(112, 3).Trim().Replace(".", string.Empty), out var mark12);
+      short.TryParse(AsString(115, 3).Trim().Replace(".", string.Empty), out var mark13);
+      short.TryParse(AsString(118, 3).Trim().Replace(".", string.Empty), out var mark14);
+      short.TryParse(AsString(121, 3).Trim().Replace(".", string.Empty), out var mark15);
+      short.TryParse(AsString(124, 3).Trim().Replace(".", string.Empty), out var mark21);
+      short.TryParse(AsString(127, 3).Trim().Replace(".", string.Empty), out var mark22);
+      short.TryParse(AsString(130, 3).Trim().Replace(".", string.Empty), out var mark23);
+      short.TryParse(AsString(133, 3).Trim().Replace(".", string.Empty), out var mark24);
+      short.TryParse(AsString(136, 3).Trim().Replace(".", string.Empty), out var mark25);
 
-      short.TryParse(raw.Substring(139, 5).Trim().Replace(".", string.Empty), out var popularPoint);
-      short.TryParse(raw.Substring(144, 5).Trim().Replace(".", string.Empty), out var trainingPoint);
-      short.TryParse(raw.Substring(149, 5).Trim().Replace(".", string.Empty), out var housePoint);
+      short.TryParse(AsString(139, 5).Trim().Replace(".", string.Empty), out var popularPoint);
+      short.TryParse(AsString(144, 5).Trim().Replace(".", string.Empty), out var trainingPoint);
+      short.TryParse(AsString(149, 5).Trim().Replace(".", string.Empty), out var housePoint);
 
-      if (raw.Length < 164)
+      if (bin.Length < 164)
       {
         this.Version = 1;
         return true;
       }
 
-      short.TryParse(raw.AsSpan(154, 1), out var trainingArrowCode);
-      short.TryParse(raw.AsSpan(155, 1), out var houseEvalutionCode);
-      short.TryParse(raw.Substring(156, 4).Trim().Replace(".", string.Empty), out var riderRentaiPoint);
-      short.TryParse(raw.AsSpan(160, 3).Trim(), out var runViolentryPoint);
-      short.TryParse(raw.AsSpan(163, 2), out var hoofCode);
-      short.TryParse(raw.AsSpan(165, 1), out var gradeAptitudeCode);
-      short.TryParse(raw.AsSpan(166, 2), out var classAptitudeCode);
+      short.TryParse(AsString(154, 1), out var trainingArrowCode);
+      short.TryParse(AsString(155, 1), out var houseEvalutionCode);
+      short.TryParse(AsString(156, 4).Trim().Replace(".", string.Empty), out var riderRentaiPoint);
+      short.TryParse(AsString(160, 3).Trim(), out var runViolentryPoint);
+      short.TryParse(AsString(163, 2), out var hoofCode);
+      short.TryParse(AsString(165, 1), out var gradeAptitudeCode);
+      short.TryParse(AsString(166, 2), out var classAptitudeCode);
 
-      if (raw.Length < 252)
+      if (bin.Length < 252)
       {
         this.Version = 3;
         return true;
       }
 
-      if (raw.Length < 331)
+      if (bin.Length < 331)
       {
         this.Version = 4;
         return true;
       }
 
-      short.TryParse(raw.AsSpan(326, 1), out var totalMarkCode);
-      short.TryParse(raw.AsSpan(327, 1), out var idmMarkCode);
-      short.TryParse(raw.AsSpan(328, 1), out var infoMarkCode);
-      short.TryParse(raw.AsSpan(329, 1), out var riderMarkCode);
-      short.TryParse(raw.AsSpan(330, 1), out var houseMarkCode);
-      short.TryParse(raw.AsSpan(331, 1), out var trainingMarkCode);
-      short.TryParse(raw.AsSpan(332, 1), out var speedMarkCode);
-      short.TryParse(raw.AsSpan(333, 1), out var turfAptitudeCode);
-      short.TryParse(raw.AsSpan(334, 1), out var dirtAptitudeCode);
+      short.TryParse(AsString(326, 1), out var totalMarkCode);
+      short.TryParse(AsString(327, 1), out var idmMarkCode);
+      short.TryParse(AsString(328, 1), out var infoMarkCode);
+      short.TryParse(AsString(329, 1), out var riderMarkCode);
+      short.TryParse(AsString(330, 1), out var houseMarkCode);
+      short.TryParse(AsString(331, 1), out var trainingMarkCode);
+      short.TryParse(AsString(332, 1), out var speedMarkCode);
+      short.TryParse(AsString(333, 1), out var turfAptitudeCode);
+      short.TryParse(AsString(334, 1), out var dirtAptitudeCode);
 
-      if (raw.Length < 374)
+      if (bin.Length < 374)
       {
         this.Version = 5;
         return true;
       }
 
-      short.TryParse(raw.Substring(358, 5).Trim().Replace(".", string.Empty), out var before3hPoint);
-      short.TryParse(raw.Substring(363, 5).Trim().Replace(".", string.Empty), out var basePoint);
-      short.TryParse(raw.Substring(368, 5).Trim().Replace(".", string.Empty), out var after3hPoint);
-      short.TryParse(raw.Substring(373, 5).Trim().Replace(".", string.Empty), out var positionPoint);
+      short.TryParse(AsString(358, 5).Trim().Replace(".", string.Empty), out var before3hPoint);
+      short.TryParse(AsString(363, 5).Trim().Replace(".", string.Empty), out var basePoint);
+      short.TryParse(AsString(368, 5).Trim().Replace(".", string.Empty), out var after3hPoint);
+      short.TryParse(AsString(373, 5).Trim().Replace(".", string.Empty), out var positionPoint);
 
-      var baseCode = raw.Substring(378, 1);
+      var baseCode = AsString(378, 1);
 
-      short.TryParse(raw.Substring(379, 2).Trim(), out var middleOrder);
-      short.TryParse(raw.Substring(381, 2).Trim(), out var middleDiff);
-      short.TryParse(raw.Substring(383, 1), out var middlePositionCode); // 内外
-      short.TryParse(raw.Substring(384, 2).Trim(), out var after3hOrder);
-      short.TryParse(raw.Substring(386, 2).Trim(), out var after3hDiff);
-      short.TryParse(raw.Substring(388, 1), out var after3hPositionCode); // 内外
-      short.TryParse(raw.Substring(389, 2).Trim(), out var goalOrder);
-      short.TryParse(raw.Substring(391, 2).Trim(), out var goalDiff);
-      short.TryParse(raw.Substring(393, 1), out var goalPositionCode); // 内外
+      short.TryParse(AsString(379, 2).Trim(), out var middleOrder);
+      short.TryParse(AsString(381, 2).Trim(), out var middleDiff);
+      short.TryParse(AsString(383, 1), out var middlePositionCode); // 内外
+      short.TryParse(AsString(384, 2).Trim(), out var after3hOrder);
+      short.TryParse(AsString(386, 2).Trim(), out var after3hDiff);
+      short.TryParse(AsString(388, 1), out var after3hPositionCode); // 内外
+      short.TryParse(AsString(389, 2).Trim(), out var goalOrder);
+      short.TryParse(AsString(391, 2).Trim(), out var goalDiff);
+      short.TryParse(AsString(393, 1), out var goalPositionCode); // 内外
 
-      var developmentCode = raw.Substring(394, 1);
+      var developmentCode = AsString(394, 1);
 
-      if (raw.Length < 400)
+      if (bin.Length < 400)
       {
         this.Version = 6;
         return true;
       }
 
-      short.TryParse(raw.Substring(396, 3).Trim(), out var beforeWeight);
-      short.TryParse(raw.Substring(399, 3).Trim().Replace(" ", string.Empty), out var beforeWeightDiff);
+      short.TryParse(AsString(396, 3).Trim(), out var beforeWeight);
+      short.TryParse(AsString(399, 3).Trim().Replace(" ", string.Empty), out var beforeWeightDiff);
 
-      short.TryParse(raw.Substring(448, 2).Trim(), out var speedPointOrder);
-      short.TryParse(raw.Substring(450, 2).Trim(), out var lsPointOrder);
-      short.TryParse(raw.Substring(452, 2).Trim(), out var before3hPointOrder);
-      short.TryParse(raw.Substring(454, 2).Trim(), out var basePointOrder);
-      short.TryParse(raw.Substring(456, 2).Trim(), out var after3hPointOrder);
-      short.TryParse(raw.Substring(458, 2).Trim(), out var positionPointOrder);
+      short.TryParse(AsString(448, 2).Trim(), out var speedPointOrder);
+      short.TryParse(AsString(450, 2).Trim(), out var lsPointOrder);
+      short.TryParse(AsString(452, 2).Trim(), out var before3hPointOrder);
+      short.TryParse(AsString(454, 2).Trim(), out var basePointOrder);
+      short.TryParse(AsString(456, 2).Trim(), out var after3hPointOrder);
+      short.TryParse(AsString(458, 2).Trim(), out var positionPointOrder);
 
-      if (raw.Length < 465)
+      if (bin.Length < 465)
       {
         this.Version = 7;
         return true;
       }
 
-      short.TryParse(raw.Substring(460, 4).Trim().Replace(".", string.Empty), out var riderExpectOdds);
-      short.TryParse(raw.Substring(464, 4).Trim().Replace(".", string.Empty), out var riderExpectPlaceBetsRate);
-      short.TryParse(raw.Substring(468, 1), out var shippingCode);
+      short.TryParse(AsString(460, 4).Trim().Replace(".", string.Empty), out var riderExpectOdds);
+      short.TryParse(AsString(464, 4).Trim().Replace(".", string.Empty), out var riderExpectPlaceBetsRate);
+      short.TryParse(AsString(468, 1), out var shippingCode);
 
-      if (raw.Length < 517)
+      if (bin.Length < 517)
       {
         this.Version = 8;
         return true;
@@ -240,49 +244,51 @@ namespace KmyKeiba.Data.Db
       // 走法データは現在採取していないとのこと
       // 体型はめんどいので省略（パドック見ればいいのでは？）
 
-      short.TryParse(raw.Substring(510, 3), out var horseNote1);
-      short.TryParse(raw.Substring(513, 3), out var horseNote2);
-      short.TryParse(raw.Substring(516, 3), out var horseNote3);
+      short.TryParse(AsString(510, 3), out var horseNote1);
+      short.TryParse(AsString(513, 3), out var horseNote2);
+      short.TryParse(AsString(516, 3), out var horseNote3);
 
-      short.TryParse(raw.Substring(519, 4).Trim().Replace(".", string.Empty), out var horseStartPoint);
-      short.TryParse(raw.Substring(523, 4).Trim().Replace(".", string.Empty), out var horseStartDelayPoint);
+      short.TryParse(AsString(519, 4).Trim().Replace(".", string.Empty), out var horseStartPoint);
+      short.TryParse(AsString(523, 4).Trim().Replace(".", string.Empty), out var horseStartDelayPoint);
 
-      short.TryParse(raw.Substring(534, 3).Trim(), out var bigTicketPoint);
-      short.TryParse(raw.Substring(537, 1), out var bigTicketMark);
+      short.TryParse(AsString(534, 3).Trim(), out var bigTicketPoint);
+      short.TryParse(AsString(537, 1), out var bigTicketMark);
 
-      if (raw.Length < 542)
+      if (bin.Length < 542)
       {
         this.Version = 9;
         return true;
       }
 
-      short.TryParse(raw.Substring(538, 1), out var lossClassSize);
-      var speedTypeCode = raw.Substring(539, 2);
-      short.TryParse(raw.Substring(541, 2), out var restReasonCode);
+      short.TryParse(AsString(538, 1), out var lossClassSize);
+      var speedTypeCode = AsString(539, 2);
+      short.TryParse(AsString(541, 2), out var restReasonCode);
 
-      if (raw.Length < 570)
+      if (bin.Length < 570)
       {
         this.Version = 10;
         return true;
       }
 
       // フラグ
-      short.TryParse(raw.Substring(543, 1), out var trackTypeFlag);
-      short.TryParse(raw.Substring(544, 1), out var distanceFlag);
-      short.TryParse(raw.Substring(545, 1), out var classFlag);
-      short.TryParse(raw.Substring(546, 1), out var changeHouseFlag);
-      short.TryParse(raw.Substring(547, 1), out var castrationFlag);
-      short.TryParse(raw.Substring(548, 1), out var changeRiderFlag);
+      short.TryParse(AsString(543, 1), out var trackTypeFlag);
+      short.TryParse(AsString(544, 1), out var distanceFlag);
+      short.TryParse(AsString(545, 1), out var classFlag);
+      short.TryParse(AsString(546, 1), out var changeHouseFlag);
+      short.TryParse(AsString(547, 1), out var castrationFlag);
+      short.TryParse(AsString(548, 1), out var changeRiderFlag);
 
-      short.TryParse(raw.Substring(559, 2).Trim(), out var currentHouseRaceNumber);
-      DateTime.TryParseExact(raw.Substring(561, 8), "yyyyMMdd", null, DateTimeStyles.None, out var houseInDate);
-      short.TryParse(raw.Substring(569, 3).Trim(), out var houseDays);
+      short.TryParse(AsString(559, 2).Trim(), out var currentHouseRaceNumber);
+      DateTime.TryParseExact(AsString(561, 8), "yyyyMMdd", null, DateTimeStyles.None, out var houseInDate);
+      short.TryParse(AsString(569, 3).Trim(), out var houseDays);
 
-      var grazingName = raw.Substring(572, 50);
-      var grazingRankCode = raw.Substring(622, 1);
-      var houseRankCode = raw.Substring(623, 1);
+      var grazingName = AsString(572, 50);
+      var grazingRankCode = AsString(622, 1);
+      var houseRankCode = AsString(623, 1);
 
-      throw new NotImplementedException();
+      this.Version = 11;
+
+      return true;
 
       // http://www.jrdb.com/program/Kyi/kyi_doc.txt 
     }

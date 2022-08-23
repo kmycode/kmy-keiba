@@ -137,6 +137,52 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       table.Dispose();
     }
 
+    public async Task UpTableAsync(AnalysisTableSurface table)
+    {
+      // TODO error
+      var index = this.Tables.IndexOf(table);
+      if (index <= 0)
+      {
+        return;
+      }
+
+      var prev = this.Tables[index - 1];
+      var tmp = prev.Data.Order;
+
+      using var db = new MyContext();
+      db.AnalysisTables!.Attach(prev.Data);
+      db.AnalysisTables!.Attach(table.Data);
+      prev.Data.Order = table.Data.Order;
+      table.Data.Order = tmp;
+      await db.SaveChangesAsync();
+
+      this.Tables.Remove(prev);
+      this.Tables.Insert(index, prev);
+    }
+
+    public async Task DownTableAsync(AnalysisTableSurface table)
+    {
+      // TODO error
+      var index = this.Tables.IndexOf(table);
+      if (index < 0 || index > this.Tables.Count - 2)
+      {
+        return;
+      }
+
+      var next = this.Tables[index + 1];
+      var tmp = next.Data.Order;
+
+      using var db = new MyContext();
+      db.AnalysisTables!.Attach(next.Data);
+      db.AnalysisTables!.Attach(table.Data);
+      next.Data.Order = table.Data.Order;
+      table.Data.Order = tmp;
+      await db.SaveChangesAsync();
+
+      this.Tables.Remove(next);
+      this.Tables.Insert(index, next);
+    }
+
     public async Task AddTableRowAsync()
     {
       if (this.ActiveTable.Value != null)
@@ -187,6 +233,74 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       AnalysisTableUtil.TableRowConfigs.Remove(row.Data);
 
       row.Dispose();
+    }
+
+    public async Task UpTableRowAsync(AnalysisTableRow row)
+    {
+      // TODO error
+      var table = this.Tables.FirstOrDefault(d => d.Rows.Contains(row));
+      if (table == null)
+      {
+        return;
+      }
+
+      var index = table.Rows.IndexOf(row);
+      if (index <= 0)
+      {
+        return;
+      }
+
+      var prev = table.Rows[index - 1];
+      var tmp = prev.Data.Order;
+
+      using var db = new MyContext();
+      db.AnalysisTableRows!.Attach(prev.Data);
+      db.AnalysisTableRows!.Attach(row.Data);
+      prev.Data.Order = row.Data.Order;
+      row.Data.Order = tmp;
+      await db.SaveChangesAsync();
+
+      table.Rows.Remove(prev);
+      table.Rows.Insert(index, prev);
+    }
+
+    public async Task DownTableRowAsync(AnalysisTableRow row)
+    {
+      // TODO error
+      var table = this.Tables.FirstOrDefault(d => d.Rows.Contains(row));
+      if (table == null)
+      {
+        return;
+      }
+
+      var index = table.Rows.IndexOf(row);
+      if (index < 0 || index > table.Rows.Count - 2)
+      {
+        return;
+      }
+
+      var next = table.Rows[index + 1];
+      var tmp = next.Data.Order;
+
+      using var db = new MyContext();
+      db.AnalysisTableRows!.Attach(next.Data);
+      db.AnalysisTableRows!.Attach(row.Data);
+      next.Data.Order = row.Data.Order;
+      row.Data.Order = tmp;
+      await db.SaveChangesAsync();
+
+      table.Rows.Remove(next);
+      table.Rows.Insert(index, next);
+    }
+
+    public void UnselectTableRowWeight(AnalysisTableRow row)
+    {
+      row.Weight.Value = null;
+    }
+
+    public void UnselectTableRowParent(AnalysisTableRow row)
+    {
+      row.SelectedParent.Value = null;
     }
 
     public async Task AddWeightAsync()
@@ -276,6 +390,64 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       row.Dispose();
     }
 
+    public async Task UpTableWeightRowAsync(AnalysisTableWeightRow row)
+    {
+      // TODO error
+      var weight = this.Weights.FirstOrDefault(d => d.Rows.Contains(row));
+      if (weight == null)
+      {
+        return;
+      }
+
+      var index = weight.Rows.IndexOf(row);
+      if (index <= 0)
+      {
+        return;
+      }
+
+      var prev = weight.Rows[index - 1];
+      var tmp = prev.Data.Order;
+
+      using var db = new MyContext();
+      db.AnalysisTableWeightRows!.Attach(prev.Data);
+      db.AnalysisTableWeightRows!.Attach(row.Data);
+      prev.Data.Order = row.Data.Order;
+      row.Data.Order = tmp;
+      await db.SaveChangesAsync();
+
+      weight.Rows.Remove(prev);
+      weight.Rows.Insert(index, prev);
+    }
+
+    public async Task DownTableWeightRowAsync(AnalysisTableWeightRow row)
+    {
+      // TODO error
+      var weight = this.Weights.FirstOrDefault(d => d.Rows.Contains(row));
+      if (weight == null)
+      {
+        return;
+      }
+
+      var index = weight.Rows.IndexOf(row);
+      if (index < 0 || index > weight.Rows.Count - 2)
+      {
+        return;
+      }
+
+      var next = weight.Rows[index + 1];
+      var tmp = next.Data.Order;
+
+      using var db = new MyContext();
+      db.AnalysisTableWeightRows!.Attach(next.Data);
+      db.AnalysisTableWeightRows!.Attach(row.Data);
+      next.Data.Order = row.Data.Order;
+      row.Data.Order = tmp;
+      await db.SaveChangesAsync();
+
+      weight.Rows.Remove(next);
+      weight.Rows.Insert(index, next);
+    }
+
     public async Task AddDelimiterAsync()
     {
       // TODO error
@@ -359,6 +531,64 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       await db.SaveChangesAsync();
 
       row.Dispose();
+    }
+
+    public async Task UpDelimiterRowAsync(ValueDelimiterRow row)
+    {
+      // TODO error
+      var delimiter = this.Delimiters.FirstOrDefault(d => d.Rows.Contains(row));
+      if (delimiter == null)
+      {
+        return;
+      }
+
+      var index = delimiter.Rows.IndexOf(row);
+      if (index <= 0)
+      {
+        return;
+      }
+
+      var prev = delimiter.Rows[index - 1];
+      var tmp = prev.Data.Order;
+
+      using var db = new MyContext();
+      db.DelimiterRows!.Attach(prev.Data);
+      db.DelimiterRows!.Attach(row.Data);
+      prev.Data.Order = row.Data.Order;
+      row.Data.Order = tmp;
+      await db.SaveChangesAsync();
+
+      delimiter.Rows.Remove(prev);
+      delimiter.Rows.Insert(index, prev);
+    }
+
+    public async Task DownDelimiterRowAsync(ValueDelimiterRow row)
+    {
+      // TODO error
+      var delimiter = this.Delimiters.FirstOrDefault(d => d.Rows.Contains(row));
+      if (delimiter == null)
+      {
+        return;
+      }
+
+      var index = delimiter.Rows.IndexOf(row);
+      if (index < 0 || index > delimiter.Rows.Count - 2)
+      {
+        return;
+      }
+
+      var next = delimiter.Rows[index + 1];
+      var tmp = next.Data.Order;
+
+      using var db = new MyContext();
+      db.DelimiterRows!.Attach(next.Data);
+      db.DelimiterRows!.Attach(row.Data);
+      next.Data.Order = row.Data.Order;
+      row.Data.Order = tmp;
+      await db.SaveChangesAsync();
+
+      delimiter.Rows.Remove(next);
+      delimiter.Rows.Insert(index, next);
     }
 
     public void AddSelectedDelimiter()

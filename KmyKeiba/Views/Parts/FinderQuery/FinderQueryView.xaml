@@ -86,7 +86,6 @@
         <RadioButton Content="血統" Name="S_HorseBlood">
           <RadioButton.Visibility>
             <MultiBinding Converter="{StaticResource MultiBooleanConv}">
-              <Binding Path="IsEnumerable" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
               <Binding Path="IsSubViewBeforeRace" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
             </MultiBinding>
           </RadioButton.Visibility>
@@ -692,6 +691,7 @@
               <RadioButton GroupName="{Binding UniqueId5,ElementName=Root}" FontSize="16"
                            Content="自身の血統" IsChecked="{Binding FinderModel.Input.HorseBlood.IsSelfBloods.Value,ElementName=Root,Mode=TwoWay}"/>
               <RadioButton Grid.Column="1" GroupName="{Binding UniqueId5,ElementName=Root}" FontSize="16"
+                           Visibility="{Binding IsEnumerable,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"
                            Content="自分と同じ血統" IsChecked="{Binding FinderModel.Input.HorseBlood.IsSameBloods.Value,ElementName=Root,Mode=TwoWay}"/>
             </Grid>
             <Button Grid.Row="6" Grid.ColumnSpan="2" FontSize="16" Content="追加" Margin="0,4,0,0"

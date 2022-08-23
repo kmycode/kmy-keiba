@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Data.Db;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis.Generic;
@@ -641,11 +642,15 @@ namespace KmyKeiba.Models.Race.Finder
         TrackDistanceInputCategory => "距離",
         TrackConditionInputCategory => "馬場状態",
         TrackWeatherInputCategory => "天気",
+        TrackTypeInputCategory => "種類",
+        TrackGroundInputCategory => "地面",
+        TrackOptionInputCategory => "周り",
         RaceHorsesCountInputCategory => "登録頭数",
         HorseGoalPlaceInputCategory => "入線頭数",
         HorseNameInputCategory => "馬名",
         RiderNameInputCategory => "騎手名",
         TrainerNameInputCategory => "調教師名",
+        HorseBloodInputCategory => "血統",
         DropoutInputCategory => "ドロップアウト",
         ResidueInputCategory => "件数",
         _ => string.Empty,
@@ -690,6 +695,15 @@ namespace KmyKeiba.Models.Race.Finder
       else if (this.Category is StringInputCategoryBase str)
       {
         var display = str.Input.GetRightQuery();
+        if (display.Length > 12)
+        {
+          display = display[..10] + "...";
+        }
+        this.DisplayValue.Value = display;
+      }
+      else if (this.Category is HorseBloodInputCategory blood)
+      {
+        var display = string.Join(", ", blood.Configs.Select(c => c.Type.GetLabel() + ":" + c.Name));
         if (display.Length > 12)
         {
           display = display[..10] + "...";

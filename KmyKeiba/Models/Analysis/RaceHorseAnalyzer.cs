@@ -201,9 +201,9 @@ namespace KmyKeiba.Models.Analysis
 
       public long PrizeMoney { get; }
 
-      public string PrizeMoneyLabel { get; }
+      public string PrizeMoneyLabel { get; } = string.Empty;
 
-      public HistoryData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseAnalyzer> raceHistory)
+      public HistoryData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseAnalyzer> raceHistory, JrdbRaceHorseData? jrdbHorse)
       {
         this.BeforeRaces = raceHistory.OrderByDescending(h => h.Race.StartTime).ToArray();
         this.BeforeFiveRaces = this.BeforeRaces.Take(5).ToArray();
@@ -455,7 +455,7 @@ namespace KmyKeiba.Models.Analysis
       this.ResultOrderComparationWithLastCorner = corners.LastOrDefault().Type;
     }
 
-    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData? raceStandardTime)
+    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData? raceStandardTime, JrdbRaceHorseData? jrdbHorse = null)
       : this(race, horse)
     {
       try
@@ -473,16 +473,16 @@ namespace KmyKeiba.Models.Analysis
       }
     }
 
-    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, RaceStandardTimeMasterData? raceStandardTime)
-      : this(race, horse, raceStandardTime)
+    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, RaceStandardTimeMasterData? raceStandardTime, JrdbRaceHorseData? jrdbHorse = null)
+      : this(race, horse, raceStandardTime, jrdbHorse)
     {
       this.CurrentRace = new CurrentRaceData(race, horse, sameRaceHorses, raceStandardTime);
     }
 
-    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalyzer> raceHistory, RaceStandardTimeMasterData? raceStandardTime, RiderWinRateMasterData riderWinRate)
+    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalyzer> raceHistory, RaceStandardTimeMasterData? raceStandardTime, RiderWinRateMasterData riderWinRate, JrdbRaceHorseData? jrdbHorse = null)
       : this(race, horse, sameRaceHorses, raceStandardTime)
     {
-      this.History = new HistoryData(race, horse, raceHistory);
+      this.History = new HistoryData(race, horse, raceHistory, jrdbHorse);
 
       short allCount, firstCount, secondCount, thirdCount;
       if (race.TrackType == TrackType.Flat)
