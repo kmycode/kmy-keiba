@@ -84,7 +84,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public async Task AnalysisAsync(MyContext db, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly)
     {
-      foreach (var row in this.Rows)
+      foreach (var row in this.Rows.OrderBy(r => r.Data.Output == AnalysisTableRowOutputType.Binary ? 0 : 1))
       {
         await row.LoadAsync(this.Race, finders, weights, isCacheOnly);
       }
