@@ -141,7 +141,8 @@ namespace KmyKeiba.Models.Connection
 
       void UpdateCanSave()
       {
-        var canSave = this.DownloadingStatus.Value != StatusFeeling.Bad && this.RTDownloadingStatus.Value != StatusFeeling.Bad;
+        var canSave = this.DownloadingStatus.Value != StatusFeeling.Bad && this.RTDownloadingStatus.Value != StatusFeeling.Bad &&
+          !JrdbDownloaderModel.Instance.CanSaveOthers.Value;
         var canCancel = canSave || this.IsProcessing.Value;
         if (this.CanSaveOthers.Value != canSave || this.CanCancel.Value != canCancel)
         {
@@ -158,6 +159,7 @@ namespace KmyKeiba.Models.Connection
       }
       this.LoadingProcess.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
       this.ProcessingStep.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
+      JrdbDownloaderModel.Instance.CanSaveOthers.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
 
       // 設定を保存
       this.IsDownloadCentral.SkipWhile(_ => !this.IsInitialized.Value).Where(_ => !this.IsBuildMasterData.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadCentral, v ? 1 : 0)).AddTo(this._disposables);

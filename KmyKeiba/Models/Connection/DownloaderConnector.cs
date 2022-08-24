@@ -65,7 +65,7 @@ namespace KmyKeiba.Models.Connection
       }).AddTo(this._disposables);
     }
 
-    private void ExecuteDownloader(DownloaderCommand command, params string[] arguments)
+    private Process? ExecuteDownloader(DownloaderCommand command, params string[] arguments)
     {
       // 32bitアプリなので、cmdを経由して起動する
       var info = new ProcessStartInfo
@@ -87,8 +87,9 @@ namespace KmyKeiba.Models.Connection
 
       try
       {
-        Process.Start(info);
+        var p = Process.Start(info);
         logger.Info("ダウンローダを起動しました");
+        return p;
       }
       catch (Exception ex)
       {
@@ -392,6 +393,19 @@ namespace KmyKeiba.Models.Connection
     public async Task OpenNvlinkConfigAsync()
     {
       await this.OpenConfigAsync(DownloaderCommand.OpenNvlinkConfigs);
+    }
+
+    public async Task UnzipLhaAsync(string path, string distDir)
+    {
+      var process = this.ExecuteDownloader(DownloaderCommand.Unlha, path, distDir);
+      if (process != null)
+      {
+        await process.WaitForExitAsync();
+      }
+      else
+      {
+        throw new Exception("LHA解凍に失敗しました");
+      }
     }
 
     public async Task CancelCurrentTaskAsync()

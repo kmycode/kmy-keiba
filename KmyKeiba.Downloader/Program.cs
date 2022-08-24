@@ -257,6 +257,15 @@ namespace KmyKeiba.Downloader
           KillMe();
         }
       }
+      else if (command == DownloaderCommand.Unlha.GetCommandText())
+      {
+        var path = args.ElementAtOrDefault(1);
+        var dist = args.ElementAtOrDefault(2);
+        if (!string.IsNullOrEmpty(dist))
+        {
+          UnlhaFile(path!, dist);
+        }
+      }
       else if (command == "kill")
       {
         _ = int.TryParse(args[1], out var beforeProcessNumber);
