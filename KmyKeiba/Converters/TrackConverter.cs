@@ -1,4 +1,5 @@
-﻿using KmyKeiba.JVLink.Entities;
+﻿using KmyKeiba.Common;
+using KmyKeiba.JVLink.Entities;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -21,12 +22,7 @@ namespace KmyKeiba.Converters
           {
             if (targetType == typeof(string))
             {
-              return type switch
-              {
-                TrackType.Flat => "平地",
-                TrackType.Steeplechase => "障害",
-                _ => string.Empty,
-              };
+              return type.ToLabelString();
             }
             if (targetType == typeof(Brush))
             {
@@ -47,14 +43,7 @@ namespace KmyKeiba.Converters
           {
             if (targetType == typeof(string))
             {
-              return ground switch
-              {
-                TrackGround.Turf => "芝",
-                TrackGround.Dirt => "ダート",
-                TrackGround.Sand => "サンド",
-                TrackGround.TurfToDirt => "芝→ダート",
-                _ => string.Empty,
-              };
+              return ground.ToLabelString();
             }
             if (targetType == typeof(Brush))
             {
@@ -77,13 +66,7 @@ namespace KmyKeiba.Converters
           {
             if (targetType == typeof(string))
             {
-              return corner switch
-              {
-                TrackCornerDirection.Left => "左",
-                TrackCornerDirection.Right => "右",
-                TrackCornerDirection.Straight => "直線",
-                _ => string.Empty,
-              };
+              return corner.ToLabelString();
             }
             if (targetType == typeof(Brush))
             {
@@ -105,16 +88,7 @@ namespace KmyKeiba.Converters
           {
             if (targetType == typeof(string))
             {
-              return wea switch
-              {
-                RaceCourseWeather.Fine => "晴",
-                RaceCourseWeather.Rainy => "雨",
-                RaceCourseWeather.Cloudy => "曇",
-                RaceCourseWeather.Drizzle => "小",
-                RaceCourseWeather.Snow => "雪",
-                RaceCourseWeather.LightSnow => "雪",
-                _ => string.Empty,
-              };
+              return wea.ToLabelString();
             }
             if (targetType == typeof(Brush))
             {
@@ -126,14 +100,7 @@ namespace KmyKeiba.Converters
           {
             if (targetType == typeof(string))
             {
-              return cod switch
-              {
-                RaceCourseCondition.Standard => "良",
-                RaceCourseCondition.Good => "稍",
-                RaceCourseCondition.Yielding => "重",
-                RaceCourseCondition.Soft => "不",
-                _ => string.Empty,
-              };
+              return cod.ToLabelString();
             }
             if (targetType == typeof(Brush))
             {
@@ -145,16 +112,7 @@ namespace KmyKeiba.Converters
           {
             if (targetType == typeof(string))
             {
-              return opt switch
-              {
-                TrackOption.Inside => "内",
-                TrackOption.Inside2 => "内2周",
-                TrackOption.InsideToOutside => "内→外",
-                TrackOption.Outside => "外",
-                TrackOption.Outside2 => "外2周",
-                TrackOption.OutsideToInside => "外→内",
-                _ => string.Empty,
-              };
+              return opt.ToLabelString();
             }
             if (targetType == typeof(Brush))
             {
@@ -172,6 +130,48 @@ namespace KmyKeiba.Converters
             if (targetType == typeof(Visibility))
             {
               return opt != TrackOption.Unknown ? Visibility.Visible : Visibility.Collapsed;
+            }
+            throw new NotSupportedException();
+          }
+        case RaceHorseSexRule sex:
+          {
+            if (targetType == typeof(Visibility))
+            {
+              var r = true;
+              switch (sex)
+              {
+                case RaceHorseSexRule.Male:
+                  r = parameter?.ToString() == "Male";
+                  break;
+                case RaceHorseSexRule.Female:
+                case RaceHorseSexRule.A:
+                case RaceHorseSexRule.B:
+                  r = parameter?.ToString() == "Female";
+                  break;
+                case RaceHorseSexRule.MaleCastrated:
+                  r = parameter?.ToString() == "Castrated" || parameter?.ToString() == "Male";
+                  break;
+                case RaceHorseSexRule.MaleFemale:
+                  r = parameter?.ToString() == "Female" || parameter?.ToString() == "Male";
+                  break;
+              }
+              return r ? Visibility.Visible : Visibility.Collapsed;
+            }
+            throw new NotSupportedException();
+          }
+        case RaceRiderWeightRule rider:
+          {
+            if (targetType == typeof(string))
+            {
+              return rider.ToLabelString();
+            }
+            throw new NotSupportedException();
+          }
+        case RaceHorseAreaRule area:
+          {
+            if (targetType == typeof(string))
+            {
+              return area.ToLabelString();
             }
             throw new NotSupportedException();
           }

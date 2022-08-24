@@ -313,23 +313,7 @@ namespace KmyKeiba.Models.Analysis
             prizeMoney += pm.ElementAtOrDefault(order - 1) + epm.ElementAtOrDefault(order - 1);
           }
           this.PrizeMoney = prizeMoney * 100;
-
-          if (this.PrizeMoney >= 1000_0000_0000)
-          {
-            this.PrizeMoneyLabel = ((double)this.PrizeMoney / 1_0000_0000_0000).ToString("F2") + "兆";
-          }
-          else if (this.PrizeMoney >= 1000_0000)
-          {
-            this.PrizeMoneyLabel = ((double)this.PrizeMoney / 1_0000_0000).ToString("F2") + "億";
-          }
-          else if (this.PrizeMoney >= 1_0000)
-          {
-            this.PrizeMoneyLabel = ((double)this.PrizeMoney / 1_0000).ToString("F2") + "万";
-          }
-          else
-          {
-            this.PrizeMoneyLabel = this.PrizeMoney.ToString();
-          }
+          this.PrizeMoneyLabel = ValueUtil.ToMoneyLabel(this.PrizeMoney);
         }
       }
     }

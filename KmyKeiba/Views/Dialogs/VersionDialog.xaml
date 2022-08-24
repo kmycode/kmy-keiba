@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
              d:DesignHeight="680" d:DesignWidth="800">
-  <Grid MinWidth="400" Height="640" Background="{StaticResource BaseBackground}">
+  <Grid MinWidth="400" Height="660" Background="{StaticResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition/>
@@ -36,6 +36,7 @@
         <TextBlock FontSize="24" Margin="0,0,0,12">オープンソース</TextBlock>
         <TextBlock Margin="8,0,0,0">
           CefSharp.Wpf.NETCore<LineBreak/>
+          FontAwesome<LineBreak/>
           Keras.NET<LineBreak/>
           Microsoft.ClearScript<LineBreak/>
           Microsoft.EntityFrameworkCore<LineBreak/>

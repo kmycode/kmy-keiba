@@ -66,6 +66,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveCollection<RaceHorseMatchResult> Matches { get; } = new();
 
+    public IReadOnlyList<PrizeMoneyItem> PrizeMoneys { get; }
+
     public RaceMovieInfo Movie => this._movie ??= new(this.Data);
     private RaceMovieInfo? _movie;
 
@@ -91,6 +93,27 @@ namespace KmyKeiba.Models.Analysis
       }, this.Memo, this.IsMemoSaving).AddTo(this._disposables);
 
       this.RoughRate = AnalysisUtil.CalcRoughRate(topHorses);
+
+      var prizeRaws = this.Data.GetPrizeMoneys();
+      var prizes = new List<PrizeMoneyItem>();
+      var i = 0;
+      for (var place = 1; place <= 5; place++)
+      {
+        var num = System.Math.Max(1, topHorses.Count(h => h.ResultOrder == place));
+        for (var n = 0; n < num; n++)
+        {
+          if (i >= prizeRaws.Length)
+          {
+            break;
+          }
+          prizes.Add(new PrizeMoneyItem
+          {
+            Place = place,
+            PrizeMoney = ValueUtil.ToMoneyLabel((long)prizeRaws[i++] * 100),
+          });
+        }
+      }
+      this.PrizeMoneys = prizes;
 
       if (topHorse != null)
       {
@@ -228,6 +251,13 @@ namespace KmyKeiba.Models.Analysis
 
       public RaceHorseAnalyzer? RaceHorse { get; init; }
     }
+  }
+
+  public class PrizeMoneyItem
+  {
+    public int Place { get; init; }
+
+    public string PrizeMoney { get; init; } = string.Empty;
   }
 
   public enum RacePace
