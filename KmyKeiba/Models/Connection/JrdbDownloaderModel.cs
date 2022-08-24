@@ -27,12 +27,11 @@ namespace KmyKeiba.Models.Connection
       // TODO: Error
       using var db = new MyContext();
 
-      // https://keibasoft.memo.wiki/d/JRDB%A4%AB%A4%E9%A4%CE%A5%C7%A1%BC%A5%BF%BC%E8%C6%C0
+      // https://keibasoft.memo.wiki/d/JRDB%a4%ab%a4%e9%a4%ce%a5%c7%a1%bc%a5%bf%bc%e8%c6%c0
 
-      var fromDateSt = from.ToString("yyMMdd");
-      var endDateSt = to.ToString("yyMMdd");
-      var url = "http://www.jrdb.com/member/data/Paci/PACI" + fromDateSt + ".lzh";
-      Console.WriteLine(url);
+      var date = from;
+      var dateFormat = from.ToString("yyMMdd");
+      var url = $"http://www.jrdb.com/member/data/Paci/PACI{dateFormat}.lzh";
 
       // Basic認証するユーザ名とパスワード
       // 後々セキュリティ
@@ -55,7 +54,14 @@ namespace KmyKeiba.Models.Connection
       Directory.CreateDirectory("test.lzh-tmp");
 
       // LHA解凍
-      await DownloaderConnector.Instance.UnzipLhaAsync("test.lzh", "testdir");
+      try
+      {
+        await DownloaderConnector.Instance.UnzipLhaAsync(@"C:\Users\tt\Documents\repo\KmyKeiba\dist\x64\Debug\test.lzh", @"C:\Users\tt\Documents\repo\KmyKeiba\dist\x64\Debug\test.lzh-tmp\");
+      }
+      catch (Exception ex)
+      {
+        // TODO
+      }
 
       // 解凍したファイルを読み込む
 

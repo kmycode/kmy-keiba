@@ -14,7 +14,7 @@ namespace KmyKeiba.Downloader
       try
       {
         var output = new StringBuilder();
-        var result = Unlha(IntPtr.Zero, $"x -r2 -jf0 -jso1 {path} {dist}", output, output.Capacity);
+        var result = Unlha(IntPtr.Zero, $"x -r2 -jf0 -jso1 \"{path}\" \"{dist}\"", output, output.Capacity);
         if (result < 0)
         {
           throw new Exception(output.ToString());
