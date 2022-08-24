@@ -173,4 +173,35 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this._disposables.Dispose();
     }
   }
+
+  internal static class AnalysisWeightExtensions
+  {
+    public static double CalcWeight(this IEnumerable<AnalysisTableWeight> weights, IReadOnlyList<RaceHorseAnalyzer> horses)
+    {
+      if (weights.Any())
+      {
+        var d = 1.0;
+        foreach (var w in weights.Select(w => w.CalcWeight(horses)))
+        {
+          d *= w;
+        }
+        return d;
+      }
+      return 1;
+    }
+
+    public static double GetWeight(this IEnumerable<AnalysisTableWeight> weights, RaceHorseAnalyzer horse)
+    {
+      if (weights.Any())
+      {
+        var d = 1.0;
+        foreach (var w in weights.Select(w => w.GetWeight(horse)))
+        {
+          d *= w;
+        }
+        return d;
+      }
+      return 1;
+    }
+  }
 }

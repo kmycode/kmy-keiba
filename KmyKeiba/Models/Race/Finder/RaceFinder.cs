@@ -272,8 +272,11 @@ namespace KmyKeiba.Models.Race.Finder
   {
     private readonly IReadOnlyList<RefundData> _refunds;
     private RaceHorseFinderResultAnalyzer? _analyzer;
+    private RaceHorseFinderResultAnalyzerSlim? _analyzerSlim;
 
-    public RaceHorseFinderResultAnalyzer Analyzer => this._analyzer ??= new RaceHorseFinderResultAnalyzer(this);
+    public RaceHorseFinderResultAnalyzer Analyzer => this._analyzer ??= new RaceHorseFinderResultAnalyzer(this.AsItems(), this._analyzerSlim);
+
+    public RaceHorseFinderResultAnalyzerSlim AnalyzerSlim => this._analyzerSlim ??= new RaceHorseFinderResultAnalyzerSlim(this.AsItems());
 
     internal RaceHorseFinderQueryResult(
       IReadOnlyList<RaceHorseAnalyzer> items, QueryKey group, ScriptKeysMemoGroupInfo? groupInfo,
@@ -292,7 +295,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  public class RaceHorseFinderResultAnalyzer
+  public class RaceHorseFinderResultAnalyzerSlim
   {
     public double DisturbanceRate { get; }
 
@@ -306,6 +309,53 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ResultOrderGradeMap AllGrade { get; }
 
+    public RaceHorseFinderResultAnalyzerSlim(IReadOnlyList<FinderRaceHorseItem> source)
+    {
+      var items = source;
+
+      var sourceItems = items.Select(i => i.Analyzer).ToArray();
+      var count = sourceItems.Length;
+
+      if (count > 0)
+      {
+        // 分析
+        this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(sourceItems);
+
+        var timePoint = new StatisticSingleArray(sourceItems.Select(h => h.ResultTimeDeviationValue).Where(v => v != default).ToArray());
+        var a3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.A3HResultTimeDeviationValue).Where(v => v != default).ToArray());
+        var ua3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.UntilA3HResultTimeDeviationValue).Where(v => v != default).ToArray());
+        this.TimeDeviationValue = timePoint.Median;
+        this.A3HTimeDeviationValue = a3htimePoint.Median;
+        this.UntilA3HTimeDeviationValue = ua3htimePoint.Median;
+
+        var validRaces = sourceItems.Where(r => r.Data.ResultOrder != 0);
+        var sourceArr = sourceItems.Select(s => s.Data).ToArray();
+        this.AllGrade = new ResultOrderGradeMap(sourceItems);
+
+        // 回収率
+        if (sourceItems.Any(s => s.Data.ResultOrder == 1))
+        {
+          this.RecoveryRate = sourceItems.Where(s => s.Data.ResultOrder == 1).Sum(s => s.Data.Odds * 10) / (float)(sourceItems.Count(i => i.Data.ResultOrder > 0) * 100);
+        }
+      }
+    }
+
+    protected RaceHorseFinderResultAnalyzerSlim(RaceHorseFinderResultAnalyzerSlim? other)
+    {
+      if (other != null)
+      {
+        this.DisturbanceRate = other.DisturbanceRate;
+        this.TimeDeviationValue = other.TimeDeviationValue;
+        this.A3HTimeDeviationValue = other.TimeDeviationValue;
+        this.UntilA3HTimeDeviationValue = other.TimeDeviationValue;
+        this.AllGrade = other.AllGrade;
+        this.RecoveryRate = other.RecoveryRate;
+      }
+    }
+  }
+
+  public class RaceHorseFinderResultAnalyzer : RaceHorseFinderResultAnalyzerSlim
+  {
     public ValueComparation RecoveryRateComparation { get; }
 
     public double PlaceBetsRecoveryRate { get; }
@@ -340,7 +390,11 @@ namespace KmyKeiba.Models.Race.Finder
     {
     }
 
-    public RaceHorseFinderResultAnalyzer(IReadOnlyList<FinderRaceHorseItem> source)
+    public RaceHorseFinderResultAnalyzer(IReadOnlyList<FinderRaceHorseItem> source) : this(source, null)
+    {
+    }
+
+    public RaceHorseFinderResultAnalyzer(IReadOnlyList<FinderRaceHorseItem> source, RaceHorseFinderResultAnalyzerSlim? slim) : base(slim)
     {
       var items = source;
 
@@ -349,26 +403,6 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (count > 0)
       {
-        // 分析
-        this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(sourceItems);
-
-        var timePoint = new StatisticSingleArray(sourceItems.Select(h => h.ResultTimeDeviationValue).Where(v => v != default).ToArray());
-        var a3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.A3HResultTimeDeviationValue).Where(v => v != default).ToArray());
-        var ua3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.UntilA3HResultTimeDeviationValue).Where(v => v != default).ToArray());
-        this.TimeDeviationValue = timePoint.Median;
-        this.A3HTimeDeviationValue = a3htimePoint.Median;
-        this.UntilA3HTimeDeviationValue = ua3htimePoint.Median;
-
-        var validRaces = sourceItems.Where(r => r.Data.ResultOrder != 0);
-        var sourceArr = sourceItems.Select(s => s.Data).ToArray();
-        this.AllGrade = new ResultOrderGradeMap(sourceItems);
-
-        // 回収率
-        if (sourceItems.Any(s => s.Data.ResultOrder == 1))
-        {
-          this.RecoveryRate = sourceItems.Where(s => s.Data.ResultOrder == 1).Sum(s => s.Data.Odds * 10) / (float)(sourceItems.Count(i => i.Data.ResultOrder > 0) * 100);
-        }
-
         // 各種馬券回収率
         var targets = items.Where(s => s.Analyzer.Data.AbnormalResult == RaceAbnormality.Unknown &&
           s.Analyzer.Race.DataStatus != RaceDataStatus.Canceled && s.Analyzer.Race.DataStatus != RaceDataStatus.Delete &&

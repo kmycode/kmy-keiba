@@ -20,11 +20,17 @@ namespace KmyKeiba.Data.Db
 
     public uint WeightId { get; set; }
 
+    public uint Weight2Id { get; set; }
+
+    public uint Weight3Id { get; set; }
+
     public uint ParentRowId { get; set; }
 
     public uint ExternalNumberId { get; set; }
 
     public uint Order { get; set; }
+
+    public short RequestedSize { get; set; }
   }
 
   public enum AnalysisTableRowOutputType : short
