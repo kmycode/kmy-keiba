@@ -124,6 +124,18 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
+                  <TextBlock Grid.Row="0" Grid.Column="4" Text="拡張メモ" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
+                             VerticalAlignment="Center"
+                             Visibility="{Binding CanSetMemoConfig.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                  <ComboBox Grid.Column="5" Grid.Row="0" ItemsSource="{Binding AnalysisTable.Config.MemoConfigs,ElementName=Root}"
+                            SelectedItem="{Binding SelectedMemoConfig.Value,Mode=TwoWay}"
+                            Visibility="{Binding CanSetMemoConfig.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock FontSize="16" Text="{Binding Header}"/>
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
                   
                   <TextBlock Grid.Column="2" Grid.Row="1" Text="必要件数" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
                              VerticalAlignment="Center"
@@ -210,10 +222,10 @@
 
                   <TextBlock Grid.Column="0" Grid.Row="3" Text="代替値" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
                              VerticalAlignment="Center"
-                             Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                             Visibility="{Binding CanSetAlternativeValue.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   <TextBox Grid.Column="1" Grid.Row="3" FontSize="16" Text="{Binding AlternativeValueIfEmpty.Value,Mode=TwoWay}"
                            VerticalContentAlignment="Center" TextAlignment="Center"
-                           Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                           Visibility="{Binding CanSetAlternativeValue.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                 </Grid>
                 <up:FinderKeyInputView Grid.Row="2" IsShowFinderButtonOnly="True" FinderModel="{Binding FinderModelForConfig}"
                                        IsPopupOnMouse="True"

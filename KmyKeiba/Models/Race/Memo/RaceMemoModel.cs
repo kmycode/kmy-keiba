@@ -4,6 +4,7 @@ using KmyKeiba.Data.Wrappers;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
+using KmyKeiba.Models.Race.AnalysisTable;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -369,6 +370,8 @@ namespace KmyKeiba.Models.Race.Memo
       }
       await ReloadAllModelsAsync(db, this);
       this.IsCreating.Value = false;
+
+      AnalysisTableConfigModel.Instance.OnMemoConfigChanged();
     }
 
     public void StartEditRaceMemoConfig(ExpansionMemoConfig config)
@@ -396,6 +399,8 @@ namespace KmyKeiba.Models.Race.Memo
           UpdateConfigs(this.editingConfig);
 
           this.IsEditing.Value = false;
+
+          AnalysisTableConfigModel.Instance.OnMemoConfigChanged();
         }
       }
     }
@@ -436,6 +441,8 @@ namespace KmyKeiba.Models.Race.Memo
             model.UpdateRaceMemoSelections();
           }
         }
+
+        AnalysisTableConfigModel.Instance.OnMemoConfigChanged();
       }
     }
 
@@ -462,6 +469,8 @@ namespace KmyKeiba.Models.Race.Memo
             cache.Dispose();
             MemoUtil.MemoCaches.Remove(cache);
           }
+
+          AnalysisTableConfigModel.Instance.OnMemoConfigChanged();
         }
         catch (Exception ex)
         {

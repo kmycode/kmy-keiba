@@ -28,6 +28,8 @@ namespace KmyKeiba.Data.Db
 
     public uint ExternalNumberId { get; set; }
 
+    public uint MemoConfigId { get; set; }
+
     public uint Order { get; set; }
 
     public short RequestedSize { get; set; }
@@ -68,5 +70,7 @@ namespace KmyKeiba.Data.Db
     /// 外部指数をそのままポイントとして出力する
     /// </summary>
     ExternalNumber = 301,
+
+    ExpansionMemo = 302,
   }
 }

@@ -141,6 +141,12 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         });
         RowOutputItems.Add(new AnalysisTableRowOutputItem
         {
+          Label = "拡張メモ",
+          OutputType = AnalysisTableRowOutputType.ExpansionMemo,
+          CanApplyWeight = false,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
           Label = "外部指数",
           OutputType = AnalysisTableRowOutputType.ExternalNumber,
           CanApplyWeight = false,

@@ -4,6 +4,7 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
+using KmyKeiba.Models.Race.Memo;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -39,11 +40,15 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReadOnlyReactiveProperty<bool> CanSetExternalNumber { get; }
 
+    public ReadOnlyReactiveProperty<bool> CanSetMemoConfig { get; }
+
     public ReadOnlyReactiveProperty<bool> CanSetQuery { get; }
 
     public ReadOnlyReactiveProperty<bool> CanSetWeight { get; }
 
     public ReadOnlyReactiveProperty<bool> CanSetLimited { get; }
+
+    public ReadOnlyReactiveProperty<bool> CanSetAlternativeValue { get; }
 
     public ReactiveCollection<AnalysisTableCell> Cells { get; } = new();
 
@@ -59,11 +64,15 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<AnalysisTableRow?> SelectedParent { get; } = new();
 
+    public ReactiveProperty<ExpansionMemoConfig?> SelectedMemoConfig { get; } = new();
+
     public ReactiveProperty<ExternalNumberConfigItem?> SelectedExternalNumber { get; } = new();
 
     public ReactiveProperty<bool> IsLoading { get; } = new();
 
     public ReactiveProperty<bool> IsLoaded { get; } = new();
+
+    public bool IsFreezeExpansionMemoConfig { get; set; }
 
     public AnalysisTableRow(AnalysisTableRowData data, AnalysisTableSurface table, IEnumerable<RaceHorseAnalyzer> horses)
     {
@@ -86,18 +95,23 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.AlternativeValueIfEmpty.Value = data.AlternativeValueIfEmpty.ToString();
 
       this.CanSetExternalNumber = this.Output.Select(o => o == AnalysisTableRowOutputType.ExternalNumber).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+      this.CanSetMemoConfig = this.Output.Select(o => o == AnalysisTableRowOutputType.ExpansionMemo).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetQuery = this.Output.Select(o => o != AnalysisTableRowOutputType.ExternalNumber &&
         o != AnalysisTableRowOutputType.FixedValue &&
-        o != AnalysisTableRowOutputType.FixedValuePerPastRace).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+        o != AnalysisTableRowOutputType.FixedValuePerPastRace && 
+        o != AnalysisTableRowOutputType.ExpansionMemo).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetWeight = this.Output.Select(o => o == AnalysisTableRowOutputType.FixedValue ||
         o == AnalysisTableRowOutputType.FixedValuePerPastRace ||
         o == AnalysisTableRowOutputType.PlaceBetsRate ||
         o == AnalysisTableRowOutputType.RecoveryRate ||
-        o == AnalysisTableRowOutputType.WinRate).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+        o == AnalysisTableRowOutputType.WinRate ||
+        o == AnalysisTableRowOutputType.ExternalNumber ||
+        o == AnalysisTableRowOutputType.ExpansionMemo).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetLimited = this.Output.Select(o => o == AnalysisTableRowOutputType.PlaceBetsRate ||
         o == AnalysisTableRowOutputType.RecoveryRate ||
         o == AnalysisTableRowOutputType.WinRate ||
         o == AnalysisTableRowOutputType.ShortestTime).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+      this.CanSetAlternativeValue = this.Output.Select(o => o != AnalysisTableRowOutputType.ExpansionMemo).ToReadOnlyReactiveProperty().AddTo(this._disposables);
 
       async Task SetWeightAsync()
       {
@@ -143,6 +157,20 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         await db.SaveChangesAsync();
       }).AddTo(this._disposables);
 
+      this.SelectedMemoConfig.Value = MemoUtil.Configs.FirstOrDefault(c => c.Id == this.Data.MemoConfigId);
+      this.SelectedMemoConfig.Skip(1).Subscribe(async _ =>
+      {
+        if (this.IsFreezeExpansionMemoConfig)
+        {
+          return;
+        }
+        // TODO try catch
+        using var db = new MyContext();
+        db.AnalysisTableRows!.Attach(this.Data);
+        this.Data.MemoConfigId = this.SelectedMemoConfig.Value?.Id ?? 0;
+        await db.SaveChangesAsync();
+      }).AddTo(this._disposables);
+
       this.SelectedOutput.Value = this.RowOutputItems.FirstOrDefault(i => i.OutputType == data.Output);
       if (this.SelectedOutput.Value == null)
       {
@@ -183,7 +211,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           {
             this.Data.RequestedSize = lm;
           }
-          if (short.TryParse(this.AlternativeValueIfEmpty.Value, out var anv))
+          if (double.TryParse(this.AlternativeValueIfEmpty.Value, out var anv))
           {
             this.Data.AlternativeValueIfEmpty = anv;
           }
@@ -263,7 +291,16 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           {
             if (this.Data.Output == AnalysisTableRowOutputType.FixedValue)
             {
-              this.AnalysisFixedValue(myWeights, item.Cell, item.Finder);
+              this.AnalysisFixedValue(1, myWeights, item.Cell, item.Finder);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.ExpansionMemo)
+            {
+              if (this.SelectedMemoConfig.Value != null && item.Finder.Race != null)
+              {
+                using var db = new MyContext();
+                var memo = await MemoUtil.GetMemoAsync(db, item.Finder.Race, this.SelectedMemoConfig.Value, item.Finder.RaceHorseAnalyzer);
+                this.AnalysisFixedValue(memo?.Point ?? 0, myWeights, item.Cell, item.Finder, digit: 0);
+              }
             }
             else if (this.Data.Output == AnalysisTableRowOutputType.ExternalNumber)
             {
@@ -277,6 +314,13 @@ namespace KmyKeiba.Models.Race.AnalysisTable
                 item.Cell.PointCalcValue.Value = (float)exNumber.Value / 100;
                 item.Cell.Point.Value = item.Cell.PointCalcValue.Value * this.Data.BaseWeight / 100;
                 item.Cell.HasComparationValue.Value = exNumber.Order != default;
+
+                if (myWeights.Any())
+                {
+                  var weightValue = myWeights.GetWeight(item.Cell.Horse) * this.Data.BaseWeight;
+                  item.Cell.Weight = weightValue;
+                  item.Cell.Point.Value = item.Cell.PointCalcValue.Value * weightValue;
+                }
               }
             }
             else
@@ -326,11 +370,6 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           cell.Point.Value = this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight;
         }
       }
-      else if (this.Data.Output == AnalysisTableRowOutputType.FixedValue)
-      {
-        // 固定値を使用。純粋に重みをそのままポイントに転換する
-        this.AnalysisFixedValue(weights, cell, finder);
-      }
       else
       {
         var items = source.Items;
@@ -344,7 +383,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         if (items.Count < this.Data.RequestedSize || items.Count == 0)
         {
           cell.Point.Value = this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight * weights.GetWeight(cell.Horse);
-          cell.Value.Value = cell.SubValue.Value = string.Empty;
+          if (items.Count == 0)
+          {
+            cell.Value.Value = cell.SubValue.Value = string.Empty;
+          }
           cell.HasComparationValue.Value = true;
         }
 
@@ -360,22 +402,22 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
     }
 
-    private void AnalysisFixedValue(IEnumerable<AnalysisTableWeight> weights, AnalysisTableCell cell, RaceFinder finder)
+    private void AnalysisFixedValue(double value, IEnumerable<AnalysisTableWeight> weights, AnalysisTableCell cell, RaceFinder finder, int digit = 3)
     {
       if (weights.Any() && finder.RaceHorseAnalyzer != null)
       {
         var weightValue = weights.CalcWeight(new[] { finder.RaceHorseAnalyzer, }) * this.Data.BaseWeight;
         cell.Weight = weightValue;
-        cell.PointCalcValue.Value = 1;
+        cell.PointCalcValue.Value = value;
         cell.Point.Value = cell.PointCalcValue.Value * weightValue;
       }
       else
       {
         cell.Weight = 1;
-        cell.PointCalcValue.Value = 1;
+        cell.PointCalcValue.Value = value;
         cell.Point.Value = cell.PointCalcValue.Value;
       }
-      cell.Value.Value = cell.Point.Value.ToString("N3");
+      cell.Value.Value = cell.Point.Value.ToString("N" + digit);
       cell.ComparationValue.Value = (float)cell.Point.Value;
       cell.SampleSize = 0;
       cell.HasComparationValue.Value = true;
@@ -545,6 +587,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this._isInitializingParentList = true;
       this.SelectedParent.Value = this.Table.ParentRowSelections.FirstOrDefault(r => r.Data.Id == this.Data.ParentRowId);
       this._isInitializingParentList = false;
+    }
+
+    public void ReloadMemoConfigProperty()
+    {
+      this.SelectedMemoConfig.Value = MemoUtil.Configs.FirstOrDefault(c => c.Id == this.Data.MemoConfigId);
     }
 
     public void Dispose()

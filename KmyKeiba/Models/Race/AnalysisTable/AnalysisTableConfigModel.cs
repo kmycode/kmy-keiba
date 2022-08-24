@@ -5,6 +5,7 @@ using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
+using KmyKeiba.Models.Race.Memo;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public ReactiveProperty<ValueDelimiter?> SelectedDelimiterForAdd { get; } = new();
 
     public CheckableCollection<ExternalNumberConfigItem> ExternalNumbers { get; } = new();
+
+    public ReactiveCollection<ExpansionMemoConfig> MemoConfigs { get; } = new();
 
     public ReactiveProperty<bool> IsBulkMode { get; } = new();
 
@@ -90,11 +93,12 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       {
         this.ExternalNumbers.Add(new ExternalNumberConfigItem(en));
       }
-
       foreach (var row in this.Tables.SelectMany(t => t.Rows).Where(r => r.Data.Output == AnalysisTableRowOutputType.ExternalNumber))
       {
         row.SelectedExternalNumber.Value = this.ExternalNumbers.FirstOrDefault(e => e.Data.Id == row.Data.ExternalNumberId);
       }
+
+      this.UpdateMemoConfigs();
     }
 
     public async Task AddTableAsync()
@@ -753,6 +757,51 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       await db.SaveChangesAsync();
 
       this.ActiveWeight.Value.Rows.Clear();
+    }
+
+    public void OnMemoConfigChanged()
+    {
+      ThreadUtil.InvokeOnUiThread(() =>
+      {
+        this.UpdateMemoConfigs();
+      });
+    }
+
+    private void UpdateMemoConfigs()
+    {
+      foreach (var row in this.Tables.SelectMany(t => t.Rows))
+      {
+        row.IsFreezeExpansionMemoConfig = true;
+      }
+
+      var olds = this.MemoConfigs.ToArray();
+      this.MemoConfigs.Clear();
+      foreach (var memoconfig in MemoUtil.Configs.Where(c => c.Style == MemoStyle.Point || c.Style == MemoStyle.MemoAndPoint))
+      {
+        var exists = olds.FirstOrDefault(o => o.Id == memoconfig.Id);
+        if (exists == null)
+        {
+          this.MemoConfigs.Add(memoconfig);
+        }
+        else
+        {
+          this.MemoConfigs.Add(exists);
+        }
+      }
+
+      foreach (var row in this.Tables.SelectMany(t => t.Rows).Where(r => r.SelectedMemoConfig.Value != null))
+      {
+        if (!this.MemoConfigs.Any(c => c.Id == row.SelectedMemoConfig.Value!.Id))
+        {
+          row.IsFreezeExpansionMemoConfig = false;
+          row.SelectedMemoConfig.Value = null;
+        }
+      }
+      foreach (var row in this.Tables.SelectMany(t => t.Rows))
+      {
+        row.ReloadMemoConfigProperty();
+        row.IsFreezeExpansionMemoConfig = false;
+      }
     }
   }
 }
