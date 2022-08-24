@@ -64,9 +64,8 @@
           </ItemsControl>
 
           <!--全読み込みボタン-->
-          <Button Margin="8,8" Content="一括読み込み" Width="120" Height="40" FontSize="16" HorizontalAlignment="Left"
-                  Command="{Binding LoadExAnalysisTableCommand}" CommandParameter="{Binding AnalysisTable.ActiveTable.Value,ElementName=Root}"
-                  Visibility="{Binding AnalysisTable.ActiveTable.Value.CanLoadAll.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+          <Button Margin="8,8" Content="分析／更新" Width="120" Height="40" FontSize="16" HorizontalAlignment="Left"
+                  Command="{Binding LoadExAnalysisTableCommand}" CommandParameter="{Binding AnalysisTable.ActiveTable.Value,ElementName=Root}"/>
         </Grid>
       </ScrollViewer>
 

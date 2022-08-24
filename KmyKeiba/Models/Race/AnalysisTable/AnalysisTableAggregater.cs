@@ -42,6 +42,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       ThreadUtil.InvokeOnUiThread(() =>
       {
         this.Tables.Clear();
+        this._model.ReloadTables();
         foreach (var table in this._model.Tables)
         {
           this.Tables.Add(new TableItem(table, this._horses));

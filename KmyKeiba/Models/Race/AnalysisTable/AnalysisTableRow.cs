@@ -345,8 +345,17 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         cell.Weight = weightValue;
         cell.PointCalcValue.Value = 1;
         cell.Point.Value = cell.PointCalcValue.Value * weightValue;
-        cell.Value.Value = cell.Point.Value.ToString("N3");
       }
+      else
+      {
+        cell.Weight = 1;
+        cell.PointCalcValue.Value = 1;
+        cell.Point.Value = cell.PointCalcValue.Value;
+      }
+      cell.Value.Value = cell.Point.Value.ToString("N3");
+      cell.ComparationValue.Value = (float)cell.Point.Value;
+      cell.SampleSize = 0;
+      cell.HasComparationValue.Value = true;
     }
 
     private void SetValueOfRaceHorseAnalyzer(RaceFinder finder, AnalysisTableRowOutputType value, RaceHorseFinderQueryResult source, AnalysisTableCell cell, IEnumerable<AnalysisTableWeight> weights)
@@ -396,7 +405,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           cell.SubValue.Value = timePerMeters.Length.ToString();
           cell.ComparationValue.Value = (float)shortestTime.Time.TotalSeconds * -1;
           cell.HasComparationValue.Value = true;
-          cell.PointCalcValue.Value = shortestTime.Time.TotalSeconds;
+          cell.PointCalcValue.Value = shortestTime.Time.TotalSeconds / 100;
           cell.SampleSize = 1;
           cell.SampleFilter = filter;
 

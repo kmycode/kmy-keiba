@@ -19,6 +19,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
   {
     private readonly CompositeDisposable _disposables = new();
     private readonly Dictionary<AnalysisTableRow, IDisposable> _disposableEvents = new();
+    private readonly IReadOnlyList<RaceHorseAnalyzer> _horses;
 
     public ReactiveProperty<bool> IsChecked { get; } = new();
 
@@ -36,6 +37,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public AnalysisTableSurface(RaceData race, AnalysisTableData data, IReadOnlyList<RaceHorseAnalyzer> horses)
     {
+      this._horses = horses;
+
       this.Race = race;
       this.Data = data;
       this.Name.Value = data.Name;
@@ -74,12 +77,18 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         }
       });
 
-      foreach (var row in AnalysisTableUtil.TableRowConfigs.Where(r => r.TableId == data.Id).OrderBy(r => r.Order))
+      this.UpdateRows();
+      this.UpdateParentRows();
+    }
+
+    public void UpdateRows()
+    {
+      this.Rows.Clear();
+      foreach (var row in AnalysisTableUtil.TableRowConfigs.Where(r => r.TableId == this.Data.Id).OrderBy(r => r.Order))
       {
-        var item = new AnalysisTableRow(row, this, horses);
+        var item = new AnalysisTableRow(row, this, this._horses);
         this.Rows.Add(item);
       }
-      this.UpdateParentRows();
     }
 
     public async Task AnalysisAsync(MyContext db, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly)

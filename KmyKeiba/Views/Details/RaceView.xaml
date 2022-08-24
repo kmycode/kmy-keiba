@@ -351,6 +351,8 @@
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                          Content="拡張分析" Name="S_ExAnalysis"/>
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Content="拡張集計" Name="S_ExAggregate"/>
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                          Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
                          Content="拡張分析設定" Name="S_ExAnalysisConfig"/>
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
@@ -359,8 +361,6 @@
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                          Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
                          Content="重み区切り設定" Name="S_ExAnalysisDelimiterConfig"/>
-            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                         Content="拡張集計" Name="S_ExAggregate"/>
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                          Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
                          Content="外部指数設定" Name="S_ExternalNumber"/>

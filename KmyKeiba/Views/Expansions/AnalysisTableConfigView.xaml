@@ -59,8 +59,9 @@
         <ItemsControl Grid.Row="2" Style="{StaticResource TableList}" ItemsSource="{Binding AnalysisTable.Config.ActiveTable.Value.Rows,ElementName=Root}">
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <Grid Margin="0,0,0,40">
+              <Grid Margin="0,0,0,32">
                 <Grid.RowDefinitions>
+                  <RowDefinition/>
                   <RowDefinition/>
                   <RowDefinition/>
                   <RowDefinition/>
@@ -209,18 +210,12 @@
                 <up:FinderKeyInputView Grid.Row="2" IsShowFinderButtonOnly="True" FinderModel="{Binding FinderModelForConfig}"
                                        IsPopupOnMouse="True"
                                        Visibility="{Binding CanSetQuery.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                <Border Grid.Row="3" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="0,3,0,0" Height="3" Margin="0,24,0,0"/>
               </Grid>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <Grid Grid.Row="3" Height="40">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-          </Grid.ColumnDefinitions>
-          <Button FontSize="16" Content="行を追加" Command="{Binding AddAnalysisTableRowConfigCommand}"/>
-          <Button Grid.Column="1" FontSize="16" Content="分析画面を更新" Command="{Binding UpdateAnalysisTablesCommand}"/>
-        </Grid>
+        <Button Grid.Row="3" Height="40" FontSize="16" Content="行を追加" Command="{Binding AddAnalysisTableRowConfigCommand}"/>
       </Grid>
     </Grid>
   </Grid>

@@ -65,10 +65,10 @@
           <StackPanel VerticalAlignment="Center">
             <Button Margin="8,8" Content="集計開始" Width="120" Height="40" FontSize="16" HorizontalAlignment="Left"
                     Command="{Binding AggregateTablesCommand}"
-                    Visibility="{Binding AnalysisTable.Aggregate.IsLoading.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+                    IsEnabled="{Binding AnalysisTable.Aggregate.IsLoading.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
             <Button Margin="8,8" Content="提案印を適用" Width="120" Height="40" FontSize="16" HorizontalAlignment="Left"
                     Command="{Binding ApplyAggregateSuggestionMarksCommand}"
-                    Visibility="{Binding AnalysisTable.Aggregate.IsLoading.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+                    IsEnabled="{Binding AnalysisTable.Aggregate.IsLoading.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
           </StackPanel>
         </Grid>
       </ScrollViewer>

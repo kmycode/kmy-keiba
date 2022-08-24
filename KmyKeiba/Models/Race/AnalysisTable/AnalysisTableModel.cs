@@ -57,11 +57,28 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     private void InitializeTables()
     {
+      var oldTables = this.Tables.ToList();
+      this.Tables.Clear();
+
       var checkedTableId = this.ActiveTable.Value?.Data.Id;
 
       foreach (var table in AnalysisTableUtil.TableConfigs.OrderBy(t => t.Order))
       {
-        this.Tables.Add(new AnalysisTableSurface(this._race, table, this._horses));
+        var old = oldTables.FirstOrDefault(t => t.Data.Id == table.Id);
+        if (old == null)
+        {
+          this.Tables.Add(new AnalysisTableSurface(this._race, table, this._horses));
+        }
+        else
+        {
+          old.UpdateRows();
+          this.Tables.Add(old);
+          oldTables.Remove(old);
+        }
+      }
+      foreach (var old in oldTables)
+      {
+        old.Dispose();
       }
 
       if (checkedTableId != default)
@@ -90,7 +107,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public void ReloadTables()
     {
-      this.ClearTables();
+      //this.ClearTables();
       this.InitializeTables();
     }
 
@@ -104,10 +121,23 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
     }
 
+    public async Task AnalysisTableWithReloadAsync(AnalysisTableSurface table)
+    {
+      this.ReloadTables();
+      await this.AnalysisTableAsync(table);
+    }
+
     public async Task AnalysisTableAsync(AnalysisTableSurface table)
     {
+      //this.ReloadTables();
+      var newTable = this.Tables.FirstOrDefault(t => t.Data.Id == table.Data.Id);
+      if (newTable == null)
+      {
+        return;
+      }
+
       using var db = new MyContext();
-      await table.AnalysisAsync(db, this._finders, this.Weights, false);
+      await newTable.AnalysisAsync(db, this._finders, this.Weights, false);
     }
 
     public AnalysisTableCache ToCache()
@@ -126,11 +156,12 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     private void ClearTables()
     {
+      var tables = this.Tables.ToArray();
       ThreadUtil.InvokeOnUiThread(() =>
       {
         this.Tables.Clear();
       });
-      foreach (var table in this.Tables)
+      foreach (var table in tables)
       {
         table.Dispose();
       }

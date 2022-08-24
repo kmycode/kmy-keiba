@@ -253,7 +253,7 @@ namespace KmyKeiba.ViewModels
 
     public ICommand LoadExAnalysisTableCommand =>
       this._loadExAnalysisTableCommand ??=
-        new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableSurface>().WithSubscribe(table => this.model.Info.Value?.AnalysisTable.Value?.AnalysisTableAsync(table) ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableSurface>().WithSubscribe(table => this.model.Info.Value?.AnalysisTable.Value?.AnalysisTableWithReloadAsync(table) ?? Task.CompletedTask).AddTo(this._disposables);
     private AsyncReactiveCommand<Models.Race.AnalysisTable.AnalysisTableSurface>? _loadExAnalysisTableCommand;
 
     public ICommand AddAnalysisTableConfigCommand =>
