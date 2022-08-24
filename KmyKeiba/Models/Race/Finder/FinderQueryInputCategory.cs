@@ -1031,7 +1031,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public RaceSubjectInputCategory() : base("subject", false)
     {
-      base.CanCompareCurrentRaceValue = false;
+      // base.CanCompareCurrentRaceValue = false;
       this.SetItems(new List<FinderQueryInputListItem<object>>
       {
         new FinderQueryInputListItem<object>("新馬戦", RaceSubjectType.NewComer),
@@ -1065,6 +1065,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected override string GetQuery()
     {
+      if (this.IsSetCurrentRaceValue.Value)
+      {
+        return this.Key;
+      }
+
       if (this.Items.IsEmpty())
       {
         return string.Empty;

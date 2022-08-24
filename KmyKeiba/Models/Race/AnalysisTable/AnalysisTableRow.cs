@@ -33,6 +33,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<string> Limited { get; } = new();
 
+    public ReactiveProperty<string> AlternativeValueIfEmpty { get; } = new();
+
     public ReactiveProperty<AnalysisTableRowOutputType> Output { get; } = new();
 
     public ReadOnlyReactiveProperty<bool> CanSetExternalNumber { get; }
@@ -81,6 +83,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.Output.Value = data.Output;
       this.BaseWeight.Value = data.BaseWeight.ToString();
       this.Limited.Value = data.RequestedSize.ToString();
+      this.AlternativeValueIfEmpty.Value = data.AlternativeValueIfEmpty.ToString();
 
       this.CanSetExternalNumber = this.Output.Select(o => o == AnalysisTableRowOutputType.ExternalNumber).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetQuery = this.Output.Select(o => o != AnalysisTableRowOutputType.ExternalNumber &&
@@ -164,6 +167,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         .CombineLatest(this.Name)
         .CombineLatest(this.BaseWeight)
         .CombineLatest(this.Limited)
+        .CombineLatest(this.AlternativeValueIfEmpty)
         .Skip(1).Subscribe(async _ =>
         {
           // TODO try catch
@@ -179,17 +183,30 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           {
             this.Data.RequestedSize = lm;
           }
+          if (short.TryParse(this.AlternativeValueIfEmpty.Value, out var anv))
+          {
+            this.Data.AlternativeValueIfEmpty = anv;
+          }
           await db.SaveChangesAsync();
         }).AddTo(this._disposables);
     }
 
-    public async Task LoadAsync(RaceData race, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly = false)
+    public async Task LoadAsync(RaceData race, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly = false, bool isBilk = false)
     {
       this.IsLoading.Value = true;
 
       List<Task> tasks = new();
       var keys = this.FinderModelForConfig.Input.Query.Value;
       var myWeights = weights.Where(w => w.Data.Id == this.Data.WeightId || w.Data.Id == this.Data.Weight2Id || w.Data.Id == this.Data.Weight3Id);
+
+      // 一括実行時は意味のない行は調べない
+      if (isBilk)
+      {
+        if (this.Data.Output != AnalysisTableRowOutputType.Binary && this.Data.BaseWeight == default)
+        {
+          return;
+        }
+      }
 
       // 外部指数は最初にまとめて取得
       var externalNumbers = (IReadOnlyList<ExternalNumberData>)Array.Empty<ExternalNumberData>();
@@ -306,7 +323,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         }
         else
         {
-          cell.Point.Value = cell.PointCalcValue.Value * this.Data.BaseWeight;
+          cell.Point.Value = this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight;
         }
       }
       else if (this.Data.Output == AnalysisTableRowOutputType.FixedValue)
@@ -323,6 +340,12 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         if (items.Count >= this.Data.RequestedSize)
         {
           cell.Point.Value = cell.PointCalcValue.Value * this.Data.BaseWeight;
+        }
+        if (items.Count < this.Data.RequestedSize || items.Count == 0)
+        {
+          cell.Point.Value = this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight * weights.GetWeight(cell.Horse);
+          cell.Value.Value = cell.SubValue.Value = string.Empty;
+          cell.HasComparationValue.Value = true;
         }
 
         var samples = items.Where(cell.SampleFilter).Take(10);

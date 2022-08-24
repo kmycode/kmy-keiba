@@ -697,7 +697,7 @@ namespace KmyKeiba.Models.Race.Finder
                   if (race.Course <= RaceCourse.CentralMaxValue)
                   {
                     queries.Add(new RaceLambdaScriptKeyQuery(r =>
-                                             r.SubjectName == race.SubjectName &&
+                                             r.SubjectDisplayInfo == race.SubjectDisplayInfo &&
                                              r.SubjectAge2 == race.SubjectAge2 &&
                                              r.SubjectAge3 == race.SubjectAge3 &&
                                              r.SubjectAge4 == race.SubjectAge4 &&
@@ -859,7 +859,10 @@ namespace KmyKeiba.Models.Race.Finder
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.RaceCountWithinRunningCompletely == horse.RaceCountWithinRunningCompletely));
                   break;
                 case QueryKey.PreviousRaceDays:
-                  queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.PreviousRaceDays == horse.PreviousRaceDays));
+                  {
+                    var days = horse.PreviousRaceDays / 14;
+                    queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.PreviousRaceDays / 14 == days));
+                  }
                   break;
                 case QueryKey.Weight:
                   queries.Add(new HorseLambdaScriptKeyQuery(rh => rh.Weight == horse.Weight));

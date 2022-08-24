@@ -33,7 +33,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       Task.Run(async () => await this.LoadAsync());
     }
 
-    public async Task LoadAsync()
+    public async Task LoadAsync(bool isBulk = false)
     {
       this.IsLoading.Value = true;
 
@@ -71,7 +71,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
       foreach (var table in this.Tables)
       {
-        await this._model.AnalysisTableAsync(table.Table);
+        await this._model.AnalysisTableAsync(table.Table, isBulk);
 
         if (!table.Cells.Any())
         {

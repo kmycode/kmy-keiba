@@ -30,7 +30,13 @@ namespace KmyKeiba.Models.Connection
       // https://keibasoft.memo.wiki/d/JRDB%a4%ab%a4%e9%a4%ce%a5%c7%a1%bc%a5%bf%bc%e8%c6%c0
 
       var date = from;
-      var dateFormat = from.ToString("yyMMdd");
+
+      await this.LoadDayAsync(from, id, password);
+    }
+
+    private async Task LoadDayAsync(DateTime day, string id, string password)
+    {
+      var dateFormat = day.ToString("yyMMdd");
       var url = $"http://www.jrdb.com/member/data/Paci/PACI{dateFormat}.lzh";
 
       // Basic認証するユーザ名とパスワード

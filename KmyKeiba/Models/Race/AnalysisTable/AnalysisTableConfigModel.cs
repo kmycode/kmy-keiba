@@ -247,6 +247,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       await db.SaveChangesAsync();
       AnalysisTableUtil.TableRowConfigs.Remove(row.Data);
 
+      foreach (var r in this.Tables.SelectMany(t => t.Rows).Where(r => r.SelectedParent.Value?.Data.ParentRowId == row.Data.Id))
+      {
+        r.SelectedParent.Value = null;
+      }
+
       row.Dispose();
     }
 

@@ -129,7 +129,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       await this.AnalysisTableAsync(table);
     }
 
-    public async Task AnalysisTableAsync(AnalysisTableSurface table)
+    public async Task AnalysisTableAsync(AnalysisTableSurface table, bool isBulk = false)
     {
       //this.ReloadTables();
       var newTable = this.Tables.FirstOrDefault(t => t.Data.Id == table.Data.Id);
@@ -139,7 +139,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
 
       using var db = new MyContext();
-      await newTable.AnalysisAsync(db, this._finders, this.Weights, false);
+      await newTable.AnalysisAsync(db, this._finders, this.Weights, false, isBulk);
     }
 
     public AnalysisTableCache ToCache()

@@ -75,7 +75,7 @@
                   </Grid.ColumnDefinitions>
                   <TextBlock Text="名前" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
                              VerticalAlignment="Center"/>
-                  <TextBox Grid.Column="1" FontSize="16" Text="{Binding Name.Value,Mode=TwoWay}"/>
+                  <TextBox Grid.Column="1" FontSize="18" Text="{Binding Name.Value,Mode=TwoWay}" VerticalContentAlignment="Center"/>
                   <StackPanel Orientation="Horizontal" Grid.Column="2" Margin="8,0,16,0" VerticalAlignment="Center">
                     <Button FontSize="16" Content="上へ" Command="{Binding DataContext.UpAnalysisTableRowConfigCommand,ElementName=Root}" CommandParameter="{Binding}"/>
                     <Button FontSize="16" Content="下へ" Command="{Binding DataContext.DownAnalysisTableRowConfigCommand,ElementName=Root}" CommandParameter="{Binding}" Margin="4,0,0,0"/>
@@ -94,6 +94,7 @@
                     <ColumnDefinition Width="120"/>
                   </Grid.ColumnDefinitions>
                   <Grid.RowDefinitions>
+                    <RowDefinition Height="28"/>
                     <RowDefinition Height="28"/>
                     <RowDefinition Height="28"/>
                     <RowDefinition Height="28"/>
@@ -206,11 +207,18 @@
                             CommandParameter="{Binding}" Margin="8,0,0,0"
                             Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </Grid>
+
+                  <TextBlock Grid.Column="0" Grid.Row="3" Text="代替値" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
+                             VerticalAlignment="Center"
+                             Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                  <TextBox Grid.Column="1" Grid.Row="3" FontSize="16" Text="{Binding AlternativeValueIfEmpty.Value,Mode=TwoWay}"
+                           VerticalContentAlignment="Center" TextAlignment="Center"
+                           Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                 </Grid>
                 <up:FinderKeyInputView Grid.Row="2" IsShowFinderButtonOnly="True" FinderModel="{Binding FinderModelForConfig}"
                                        IsPopupOnMouse="True"
                                        Visibility="{Binding CanSetQuery.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-                <Border Grid.Row="3" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="0,3,0,0" Height="3" Margin="0,24,0,0"/>
+                <Border Grid.Row="3" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="0,3,0,0" Height="3" Margin="0,12,0,0"/>
               </Grid>
             </DataTemplate>
           </ItemsControl.ItemTemplate>

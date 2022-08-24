@@ -60,7 +60,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             }
 
             this.Progress.Value!.Value = 0;
-            await info.AnalysisTable.Value.Aggregate.LoadAsync();
+            await info.AnalysisTable.Value.Aggregate.LoadAsync(isBulk: true);
             this.Progress.Value!.Value = 1;
 
             // TODO: 買い目処理はここに

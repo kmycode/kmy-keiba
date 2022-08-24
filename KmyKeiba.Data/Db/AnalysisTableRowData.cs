@@ -31,6 +31,8 @@ namespace KmyKeiba.Data.Db
     public uint Order { get; set; }
 
     public short RequestedSize { get; set; }
+
+    public double AlternativeValueIfEmpty { get; set; }
   }
 
   public enum AnalysisTableRowOutputType : short

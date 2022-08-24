@@ -91,11 +91,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
     }
 
-    public async Task AnalysisAsync(MyContext db, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly)
+    public async Task AnalysisAsync(MyContext db, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly, bool isBulk = false)
     {
       foreach (var row in this.Rows.OrderBy(r => r.Data.Output == AnalysisTableRowOutputType.Binary ? 0 : 1))
       {
-        await row.LoadAsync(this.Race, finders, weights, isCacheOnly);
+        await row.LoadAsync(this.Race, finders, weights, isCacheOnly, isBulk);
       }
       this.CanLoadAll.Value = this.Rows.Any(r => !r.IsLoaded.Value);
     }
