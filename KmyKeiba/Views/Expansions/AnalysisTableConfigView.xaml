@@ -54,7 +54,7 @@
             <Button FontSize="16" Content="下へ" Command="{Binding DownAnalysisTableConfigCommand}" CommandParameter="{Binding AnalysisTable.Config.ActiveTable.Value,ElementName=Root}" Margin="4,0,0,0"/>
           </StackPanel>
           <Button Grid.Column="2" Content="削除" VerticalAlignment="Bottom"
-                  Command="{Binding RemoveAnalysisTableConfigCommand}"/>
+                  Command="{Binding RemoveAnalysisTableConfigCommand}" CommandParameter="{Binding AnalysisTable.Config.ActiveTable.Value,ElementName=Root}"/>
         </Grid>
         <ItemsControl Grid.Row="2" Style="{StaticResource TableList}" ItemsSource="{Binding AnalysisTable.Config.ActiveTable.Value.Rows,ElementName=Root}">
           <ItemsControl.ItemTemplate>

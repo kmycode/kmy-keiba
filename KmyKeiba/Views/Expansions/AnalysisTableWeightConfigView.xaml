@@ -50,7 +50,7 @@
                    IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}"
                    FontSize="20"/>
           <Button Grid.Column="1" Content="削除" VerticalAlignment="Bottom"
-                  Command="{Binding RemoveAnalysisTableWeightCommand}"/>
+                  Command="{Binding RemoveAnalysisTableWeightCommand}" CommandParameter="{Binding AnalysisTable.Config.ActiveWeight.Value,ElementName=Root}"/>
         </Grid>
 
         <Grid Grid.Row="1">

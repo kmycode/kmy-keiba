@@ -15,6 +15,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 {
   public class AnalysisTableModel : IDisposable
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private readonly List<RaceFinder> _finders = new();
     private readonly RaceData _race;
     private readonly IReadOnlyList<RaceHorseAnalyzer> _horses;
@@ -123,7 +125,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public async Task AnalysisTableWithReloadAsync(AnalysisTableSurface table)
     {
-      this.ReloadTables();
+      table.UpdateRows();
       await this.AnalysisTableAsync(table);
     }
 

@@ -9,6 +9,7 @@ using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,6 +17,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 {
   public class AnalysisTableConfigModel
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     public static AnalysisTableConfigModel Instance => _instance ??= new AnalysisTableConfigModel();
     private static AnalysisTableConfigModel? _instance;
 
@@ -96,23 +99,29 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public async Task AddTableAsync()
     {
-      // TODO error
-      using var db = new MyContext();
-
-      var data = new AnalysisTableData();
-      await db.AnalysisTables!.AddAsync(data);
-      await db.SaveChangesAsync();
-
-      data.Order = data.Id;
-      await db.SaveChangesAsync();
-
-      AnalysisTableUtil.TableConfigs.Add(data);
-      ThreadUtil.InvokeOnUiThread(() =>
+      try
       {
-        var table = new AnalysisTableSurface(new RaceData(), data, Array.Empty<RaceHorseAnalyzer>());
-        this.Tables.Add(table);
-        table.IsChecked.Value = true;
-      });
+        using var db = new MyContext();
+
+        var data = new AnalysisTableData();
+        await db.AnalysisTables!.AddAsync(data);
+        await db.SaveChangesAsync();
+
+        data.Order = data.Id;
+        await db.SaveChangesAsync();
+
+        AnalysisTableUtil.TableConfigs.Add(data);
+        ThreadUtil.InvokeOnUiThread(() =>
+        {
+          var table = new AnalysisTableSurface(new RaceData(), data, Array.Empty<RaceHorseAnalyzer>());
+          this.Tables.Add(table);
+          table.IsChecked.Value = true;
+        });
+      }
+      catch (Exception ex)
+      {
+        logger.Error("テーブル作成でエラー", ex);
+      }
     }
 
     public async Task RemoveTableAsync(AnalysisTableSurface table)
@@ -127,14 +136,20 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         this.Tables.Remove(table);
       });
 
-      // TODO error
-      using var db = new MyContext();
+      try
+      {
+        using var db = new MyContext();
 
-      db.AnalysisTables!.Remove(table.Data);
-      await db.SaveChangesAsync();
-      AnalysisTableUtil.TableConfigs.Remove(table.Data);
+        db.AnalysisTables!.Remove(table.Data);
+        await db.SaveChangesAsync();
+        AnalysisTableUtil.TableConfigs.Remove(table.Data);
 
-      table.Dispose();
+        table.Dispose();
+      }
+      catch (Exception ex)
+      {
+        logger.Error("テーブル削除でエラー", ex);
+      }
     }
 
     public async Task UpTableAsync(AnalysisTableSurface table)
@@ -305,20 +320,26 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public async Task AddWeightAsync()
     {
-      // TODO error
-      using var db = new MyContext();
-
-      var data = new AnalysisTableWeightData();
-      await db.AnalysisTableWeights!.AddAsync(data);
-      await db.SaveChangesAsync();
-
-      var weight = new AnalysisTableWeight(data);
-      AnalysisTableUtil.Weights.Add(weight);
-      ThreadUtil.InvokeOnUiThread(() =>
+      try
       {
-        this.Weights.Add(weight);
-        weight.IsChecked.Value = true;
-      });
+        using var db = new MyContext();
+
+        var data = new AnalysisTableWeightData();
+        await db.AnalysisTableWeights!.AddAsync(data);
+        await db.SaveChangesAsync();
+
+        var weight = new AnalysisTableWeight(data);
+        AnalysisTableUtil.Weights.Add(weight);
+        ThreadUtil.InvokeOnUiThread(() =>
+        {
+          this.Weights.Add(weight);
+          weight.IsChecked.Value = true;
+        });
+      }
+      catch (Exception ex)
+      {
+        logger.Error("重みの追加でエラー", ex);
+      }
     }
 
     public async Task RemoveWeightAsync(AnalysisTableWeight weight)
@@ -333,14 +354,38 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         this.Weights.Remove(weight);
       });
 
-      // TODO error
-      using var db = new MyContext();
+      try
+      {
+        using var db = new MyContext();
 
-      db.AnalysisTableWeights!.Remove(weight.Data);
-      await db.SaveChangesAsync();
-      AnalysisTableUtil.Weights.Remove(weight);
+        db.AnalysisTableWeights!.Remove(weight.Data);
+        await db.SaveChangesAsync();
+        AnalysisTableUtil.Weights.Remove(weight);
 
-      weight.Dispose();
+        var rows = this.Tables.SelectMany(t => t.Rows).Where(r => r.Data.WeightId == weight.Data.Id ||
+          r.Data.Weight2Id == weight.Data.Id || r.Data.Weight3Id == weight.Data.Id);
+        foreach (var row in rows)
+        {
+          if (row.Weight.Value?.Data.Id == weight.Data.Id)
+          {
+            row.Weight.Value = null;
+          }
+          if (row.Weight2.Value?.Data.Id == weight.Data.Id)
+          {
+            row.Weight2.Value = null;
+          }
+          if (row.Weight3.Value?.Data.Id == weight.Data.Id)
+          {
+            row.Weight3.Value = null;
+          }
+        }
+
+        weight.Dispose();
+      }
+      catch (Exception ex)
+      {
+        logger.Error("重みの削除でエラー", ex);
+      }
     }
 
     public async Task AddWeightRowAsync()
@@ -634,7 +679,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
 
       var rows = new List<AnalysisTableWeightRowData>();
-      var delimiters = this.SelectedDelimiters.Where(d => d.Rows.Any(r => r.IsChecked.Value)).ToArray();
+      var delimiters = this.SelectedDelimiters
+        .Where(d => d.Rows.Any(r => r.IsChecked.Value))
+        .OrderBy(d => d.GetParameterOrder())
+        .ToArray();
       var keys = new ValueDelimiterRow[delimiters.Length];
 
       var maxOrder = 1;
