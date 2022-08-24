@@ -57,6 +57,12 @@ namespace KmyKeiba.Data.Db
 
     #endregion
 
+    #region Jrdb
+
+    public DbSet<JrdbRaceHorseData>? JrdbRaceHorses { get; set; }
+
+    #endregion
+
     #region App
 
     public DbSet<RaceStandardTimeMasterData>? RaceStandardTimes { get; set; }
