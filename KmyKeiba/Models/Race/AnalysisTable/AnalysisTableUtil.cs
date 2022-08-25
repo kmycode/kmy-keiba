@@ -26,6 +26,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public static List<AnalysisTableRowOutputItem> RowOutputItems { get; } = new();
 
+    public static List<AnalysisTableRowOutputItem> RowOutputSubItems { get; } = new();
+
     internal static async Task InitializeAsync(MyContext db)
     {
       if (!_isInitialized)
@@ -150,6 +152,32 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           Label = "外部指数",
           OutputType = AnalysisTableRowOutputType.ExternalNumber,
           CanApplyWeight = false,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "その他（馬の値）",
+          OutputType = AnalysisTableRowOutputType.HorseValues,
+        });
+
+        RowOutputSubItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "斤量",
+          OutputType = AnalysisTableRowOutputType.RiderWeight,
+        });
+        RowOutputSubItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "斤量から55を引いた値",
+          OutputType = AnalysisTableRowOutputType.RiderWeightDiff,
+        });
+        RowOutputSubItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "年齢",
+          OutputType = AnalysisTableRowOutputType.Age,
+        });
+        RowOutputSubItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "単勝オッズ",
+          OutputType = AnalysisTableRowOutputType.Odds,
         });
 
         _isInitialized = true;

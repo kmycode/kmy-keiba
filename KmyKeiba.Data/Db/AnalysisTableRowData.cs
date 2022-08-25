@@ -72,5 +72,21 @@ namespace KmyKeiba.Data.Db
     ExternalNumber = 301,
 
     ExpansionMemo = 302,
+
+    // ここから馬のプロパティ
+    RiderWeight = 401,
+    RiderWeightDiff = 402,
+    Odds = 403,
+    Age = 404,
+
+    /// <summary>
+    /// 通常は設定しない
+    /// </summary>
+    JrdbValues = 9998,
+
+    /// <summary>
+    /// 通常は設定しない
+    /// </summary>
+    HorseValues = 9999,
   }
 }

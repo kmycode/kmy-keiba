@@ -145,6 +145,7 @@ namespace KmyKeiba.Models.Connection
         this.ProcessingStep
           .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates && p != Connection.ProcessingStep.MigrationFrom250 && p != Connection.ProcessingStep.MigrationFrom322)
           .CombineLatest(this.LoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
+          .CombineLatest(JrdbDownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)
           .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
           .ToReactiveProperty().AddTo(this._disposables);
       this.RTDownloadingStatus =
@@ -157,8 +158,8 @@ namespace KmyKeiba.Models.Connection
       void UpdateCanSave()
       {
         var canSave = this.DownloadingStatus.Value != StatusFeeling.Bad && this.RTDownloadingStatus.Value != StatusFeeling.Bad &&
-          !JrdbDownloaderModel.Instance.CanSaveOthers.Value;
-        var canCancel = canSave || this.IsProcessing.Value;
+          JrdbDownloaderModel.Instance.CanSaveOthers.Value;
+        var canCancel = canSave || this.IsProcessing.Value || !JrdbDownloaderModel.Instance.CanSaveOthers.Value;
         if (this.CanSaveOthers.Value != canSave || this.CanCancel.Value != canCancel)
         {
           // このプロパティはViewModel内のReactiveCommandのCanExecuteにも使われる
@@ -311,7 +312,7 @@ namespace KmyKeiba.Models.Connection
           var isDownloadAfterThursday = (await ConfigUtil.GetIntValueAsync(SettingKey.IsDownloadCentralOnThursdayAfterOnly)) != 0;
           if (isDownloadAfterThursday)
           {
-            var weekday = date.DayOfWeek;
+            var weekday = today.DayOfWeek;
             isDownload = weekday == DayOfWeek.Thursday || weekday == DayOfWeek.Friday || weekday == DayOfWeek.Saturday || weekday == DayOfWeek.Sunday;
           }
           if (isDownload)
@@ -355,9 +356,20 @@ namespace KmyKeiba.Models.Connection
         }
         if (this.IsRTDownloadJrdb.Value && isSucceed)
         {
-          logger.Info("JRDBの最新情報取得を開始");
-          var date = new DateOnly(year, month, day);
-          await this.DownloadJrdbRTAsync(date, date.AddMonths(1));
+          var isDownload = true;
+          var isDownloadAfterThursday = (await ConfigUtil.GetIntValueAsync(SettingKey.IsDownloadCentralOnThursdayAfterOnly)) != 0;
+          if (isDownloadAfterThursday)
+          {
+            var weekday = today.DayOfWeek;
+            isDownload = weekday == DayOfWeek.Thursday || weekday == DayOfWeek.Friday || weekday == DayOfWeek.Saturday || weekday == DayOfWeek.Sunday;
+          }
+
+          if (isDownload)
+          {
+            logger.Info("JRDBの最新情報取得を開始");
+            var date = new DateOnly(year, month, day);
+            await this.DownloadJrdbRTAsync(date, date.AddMonths(1));
+          }
         }
         if (isSucceed)
         {

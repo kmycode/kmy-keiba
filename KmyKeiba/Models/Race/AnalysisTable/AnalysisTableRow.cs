@@ -48,6 +48,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReadOnlyReactiveProperty<bool> CanSetLimited { get; }
 
+    public ReadOnlyReactiveProperty<bool> CanSetSubOutput { get; }
+
     public ReadOnlyReactiveProperty<bool> CanSetAlternativeValue { get; }
 
     public ReactiveCollection<AnalysisTableCell> Cells { get; } = new();
@@ -60,7 +62,15 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public List<AnalysisTableRowOutputItem> RowOutputItems => AnalysisTableUtil.RowOutputItems;
 
+    public List<AnalysisTableRowOutputItem> RowOutputSubItems => AnalysisTableUtil.RowOutputSubItems;
+
+    public List<AnalysisTableRowOutputItem> RowOutputJrdbItems => AnalysisTableUtil.RowOutputSubItems;
+
     public ReactiveProperty<AnalysisTableRowOutputItem?> SelectedOutput { get; } = new();
+
+    public ReactiveProperty<AnalysisTableRowOutputItem?> SelectedSubOutput { get; } = new();
+
+    public ReactiveProperty<AnalysisTableRowOutputItem?> SelectedJrdbOutput { get; } = new();
 
     public ReactiveProperty<AnalysisTableRow?> SelectedParent { get; } = new();
 
@@ -99,19 +109,30 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.CanSetQuery = this.Output.Select(o => o != AnalysisTableRowOutputType.ExternalNumber &&
         o != AnalysisTableRowOutputType.FixedValue &&
         o != AnalysisTableRowOutputType.FixedValuePerPastRace && 
-        o != AnalysisTableRowOutputType.ExpansionMemo).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+        o != AnalysisTableRowOutputType.ExpansionMemo)
+        .CombineLatest(this.SelectedOutput.Select(o => o?.OutputType != AnalysisTableRowOutputType.HorseValues &&
+          o?.OutputType != AnalysisTableRowOutputType.JrdbValues), (a, b) => a && b)
+        .ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetWeight = this.Output.Select(o => o == AnalysisTableRowOutputType.FixedValue ||
         o == AnalysisTableRowOutputType.FixedValuePerPastRace ||
         o == AnalysisTableRowOutputType.PlaceBetsRate ||
         o == AnalysisTableRowOutputType.RecoveryRate ||
         o == AnalysisTableRowOutputType.WinRate ||
         o == AnalysisTableRowOutputType.ExternalNumber ||
-        o == AnalysisTableRowOutputType.ExpansionMemo).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+        o == AnalysisTableRowOutputType.ExpansionMemo)
+        .CombineLatest(this.SelectedOutput.Select(o => o?.OutputType == AnalysisTableRowOutputType.HorseValues ||
+          o?.OutputType == AnalysisTableRowOutputType.JrdbValues), (a, b) => a || b)
+        .ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetLimited = this.Output.Select(o => o == AnalysisTableRowOutputType.PlaceBetsRate ||
         o == AnalysisTableRowOutputType.RecoveryRate ||
         o == AnalysisTableRowOutputType.WinRate ||
         o == AnalysisTableRowOutputType.ShortestTime).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetAlternativeValue = this.Output.Select(o => o != AnalysisTableRowOutputType.ExpansionMemo).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+      this.CanSetSubOutput = this.SelectedOutput
+        .Where(o => o != null)
+        .Select(o => o!.OutputType)
+        .Select(o => o == AnalysisTableRowOutputType.HorseValues ||
+          o == AnalysisTableRowOutputType.JrdbValues).ToReadOnlyReactiveProperty().AddTo(this._disposables);
 
       async Task SetWeightAsync()
       {
@@ -174,13 +195,72 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.SelectedOutput.Value = this.RowOutputItems.FirstOrDefault(i => i.OutputType == data.Output);
       if (this.SelectedOutput.Value == null)
       {
-        this.SelectedOutput.Value = this.RowOutputItems.First();
+        if (this.RowOutputSubItems.Any(i => i.OutputType == data.Output))
+        {
+          this.SelectedSubOutput.Value = this.RowOutputSubItems.FirstOrDefault(i => i.OutputType == data.Output);
+          this.SelectedOutput.Value = this.RowOutputItems.FirstOrDefault(i => i.OutputType == AnalysisTableRowOutputType.HorseValues);
+        }
+        else if (this.RowOutputJrdbItems.Any(i => i.OutputType == data.Output))
+        {
+          this.SelectedJrdbOutput.Value = this.RowOutputJrdbItems.FirstOrDefault(i => i.OutputType == data.Output);
+          this.SelectedOutput.Value = this.RowOutputItems.FirstOrDefault(i => i.OutputType == AnalysisTableRowOutputType.JrdbValues);
+        }
+        if (this.SelectedOutput.Value == null)
+        {
+          this.SelectedOutput.Value = this.RowOutputItems.First();
+        }
       }
-      this.Output.Value = this.SelectedOutput.Value.OutputType;
-      this.SelectedOutput.Skip(1).Subscribe(_ =>
+      void UpdateOutput(AnalysisTableRowOutputItem? output)
       {
-        this.Output.Value = this.SelectedOutput.Value.OutputType;
+        if (output != null)
+        {
+          if (output.OutputType == AnalysisTableRowOutputType.JrdbValues)
+          {
+            if (this.SelectedJrdbOutput.Value != null)
+            {
+              var sub = this.SelectedJrdbOutput.Value.OutputType;
+              this.Output.Value = sub;
+            }
+          }
+          else if (output.OutputType == AnalysisTableRowOutputType.HorseValues)
+          {
+            if (this.SelectedSubOutput.Value != null)
+            {
+              var sub = this.SelectedSubOutput.Value.OutputType;
+              this.Output.Value = sub;
+            }
+          }
+          else
+          {
+            this.Output.Value = output.OutputType;
+          }
+        }
+      }
+      UpdateOutput(this.SelectedOutput.Value);
+      this.SelectedOutput.Skip(1).Subscribe(output =>
+      {
+        UpdateOutput(output);
       }).AddTo(this._disposables);
+      this.SelectedSubOutput.Skip(1).Subscribe(output =>
+      {
+        if (output != null)
+        {
+          if (this.SelectedOutput.Value?.OutputType == AnalysisTableRowOutputType.HorseValues)
+          {
+            this.Output.Value = output.OutputType;
+          }
+        }
+      });
+      this.SelectedJrdbOutput.Skip(1).Subscribe(output =>
+      {
+        if (output != null)
+        {
+          if (this.SelectedOutput.Value?.OutputType == AnalysisTableRowOutputType.JrdbValues)
+          {
+            this.Output.Value = output.OutputType;
+          }
+        }
+      });
 
       finder.Input.Deserialize(data.FinderConfig);
       finder.Input.Query.Skip(1).Subscribe(async _ =>
@@ -221,6 +301,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public async Task LoadAsync(RaceData race, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly = false, bool isBilk = false)
     {
+      this.IsLoaded.Value = false;
       this.IsLoading.Value = true;
 
       List<Task> tasks = new();
@@ -278,14 +359,23 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         var cache = item.Finder.TryFindRaceHorseCache(query);
         if (cache != null)
         {
-          // OutputType = FixedValueの場合、そもそも検索はしないのでキャッシュも来ない。処理不要
+          var type = this.SelectedOutput.Value?.OutputType;
+          if (type != AnalysisTableRowOutputType.JrdbValues &&
+            type != AnalysisTableRowOutputType.HorseValues &&
+            type != AnalysisTableRowOutputType.FixedValue &&
+            type != AnalysisTableRowOutputType.ExpansionMemo &&
+            type != AnalysisTableRowOutputType.ExternalNumber)
+          {
+            // OutputType = FixedValueの場合、そもそも検索はしないのでキャッシュも来ない。処理不要
 
-          this.AnalysisSource(cache, myWeights, item.Cell, item.Finder);
+            this.AnalysisSource(cache, myWeights, item.Cell, item.Finder);
 
-          this.IsLoaded.Value = true;
-          this.IsLoading.Value = false;
+            this.IsLoaded.Value = true;
+            this.IsLoading.Value = false;
+          }
         }
-        else if (!isCacheOnly)
+
+        if (!isCacheOnly && !this.IsLoaded.Value)
         {
           var task = Task.Run(async () =>
           {
@@ -323,6 +413,22 @@ namespace KmyKeiba.Models.Race.AnalysisTable
                 }
               }
             }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RiderWeight)
+            {
+              this.AnalysisFixedValue(item.Cell.Horse.Data.RiderWeight / 10.0, myWeights, item.Cell, item.Finder, digit: 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RiderWeightDiff)
+            {
+              this.AnalysisFixedValue(item.Cell.Horse.Data.RiderWeight / 10.0 - 55, myWeights, item.Cell, item.Finder, digit: 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.Odds)
+            {
+              this.AnalysisFixedValue(item.Cell.Horse.Data.Odds / 10.0, myWeights, item.Cell, item.Finder, digit: 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.Age)
+            {
+              this.AnalysisFixedValue(item.Cell.Horse.Data.Age, myWeights, item.Cell, item.Finder, digit: 0);
+            }
             else
             {
               var source = await item.Finder.FindRaceHorsesAsync(query, size, withoutFutureRaces: true, withoutFutureRacesForce: true);
@@ -355,7 +461,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         cell.ComparationValue.Value = isAny ? 1 : 0;
         cell.PointCalcValue.Value = isAny ? 1 : 0;
         cell.Value.Value = isAny ? "●" : string.Empty;
-        cell.HasComparationValue.Value = isAny;
+        cell.HasComparationValue.Value = true;
         cell.IsSkipped.Value = !isAny;
         cell.SampleSize = 0;
 
@@ -413,11 +519,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
       else
       {
-        cell.Weight = 1;
+        cell.Weight = this.Data.BaseWeight;
         cell.PointCalcValue.Value = value;
-        cell.Point.Value = cell.PointCalcValue.Value;
+        cell.Point.Value = cell.PointCalcValue.Value * this.Data.BaseWeight;
       }
-      cell.Value.Value = cell.Point.Value.ToString("N" + digit);
+      cell.Value.Value = value.ToString("N" + digit);
       cell.ComparationValue.Value = (float)cell.Point.Value;
       cell.SampleSize = 0;
       cell.HasComparationValue.Value = true;

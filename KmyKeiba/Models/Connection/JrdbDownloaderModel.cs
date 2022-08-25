@@ -1,5 +1,7 @@
-﻿using KmyKeiba.JVLink.Entities;
+﻿using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Data;
+using KmyKeiba.Shared;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using System;
@@ -46,13 +48,16 @@ namespace KmyKeiba.Models.Connection
 
       foreach (var day in raceDays)
       {
+        this.DownloadingYear.Value = day.Year;
+        this.DownloadingMonth.Value = day.Month;
+
         var dayText = day.ToString("yyyyMMdd");
         if (day < DateTime.Today.AddDays(-10) && await db.JrdbRaceHorses!.AnyAsync(j => j.RaceKey.StartsWith(dayText)))
         {
           continue;
         }
 
-        await this.LoadDayAsync(day, id, password);
+        await this.LoadDayAsync(db, day, id, password);
 
         if (this.IsCanceled.Value)
         {
@@ -62,10 +67,15 @@ namespace KmyKeiba.Models.Connection
       }
     }
 
-    private async Task LoadDayAsync(DateTime day, string id, string password)
+    private async Task LoadDayAsync(MyContext db, DateTime day, string id, string password)
     {
       var dateFormat = day.ToString("yyMMdd");
       var url = $"http://www.jrdb.com/member/data/Paci/PACI{dateFormat}.lzh";
+
+      var path = Constrants.AppDataDir;
+      var lzhFilePath = Path.Combine(path, "jrdbtmp.lzh");
+      var lzhDirPath = Path.Combine(path, "jrdbtmp");
+      Directory.CreateDirectory(lzhDirPath);
 
       // Basic認証するユーザ名とパスワード
       // 後々セキュリティ
@@ -84,7 +94,7 @@ namespace KmyKeiba.Models.Connection
       try
       {
         var lzh = await response.Content.ReadAsByteArrayAsync();
-        await File.WriteAllBytesAsync("test.lzh", lzh);
+        await File.WriteAllBytesAsync(lzhFilePath, lzh);
       }
       catch
       {
@@ -92,24 +102,67 @@ namespace KmyKeiba.Models.Connection
         return;
       }
 
-      // 書き出したファイルを解凍
-      Directory.CreateDirectory("test.lzh-tmp");
-
       // LHA解凍
       try
       {
-        await DownloaderConnector.Instance.UnzipLhaAsync(@"C:\Users\tt\Documents\repo\KmyKeiba\dist\x64\Debug\test.lzh", @"C:\Users\tt\Documents\repo\KmyKeiba\dist\x64\Debug\test.lzh-tmp\");
+        await DownloaderConnector.Instance.UnzipLhaAsync(lzhFilePath, lzhDirPath + "\\");
+      }
+      catch (Exception ex)
+      {
+        // TODO 解凍失敗
+        return;
+      }
+
+      // 解凍したファイルを読み込む
+      var fileName = Path.Combine(lzhDirPath, $"KYI{dateFormat}.txt");
+      if (!File.Exists(fileName))
+      {
+        return;
+      }
+
+      var binary = await File.ReadAllBytesAsync(fileName);
+      var lines = Encoding.GetEncoding(932).GetString(binary);
+
+      var dataList = new List<JrdbRaceHorseData>();
+      foreach (var line in lines.Split(Environment.NewLine).Where(l => !string.IsNullOrEmpty(l)))
+      {
+        try
+        {
+          var data = new JrdbRaceHorseData();
+          var result = await data.ReadStringAsync(db, line);
+          if (result)
+          {
+            dataList.Add(data);
+          }
+        }
+        catch (Exception ex)
+        {
+          // TODO
+        }
+      }
+
+      try
+      {
+        var keys = dataList.Select(d => d.Key + d.RaceKey).ToArray();
+        var exists = await db.JrdbRaceHorses!.Where(j => keys.Contains(j.Key + j.RaceKey)).ToArrayAsync();
+        var targets = dataList.ExceptBy(exists.Select(j => j.Key + j.RaceKey), j => j.Key + j.RaceKey).ToList();
+        await db.JrdbRaceHorses!.AddRangeAsync(targets);
+        await db.SaveChangesAsync();
       }
       catch (Exception ex)
       {
         // TODO
       }
 
-      // 解凍したファイルを読み込む
-
       // ファイルを削除
-      //File.Delete("test.lzh");
-      //Directory.Delete("testdir", true);
+      try
+      {
+        Directory.Delete(lzhDirPath, true);
+      }
+      catch (Exception ex)
+      {
+        // TODO
+      }
     }
   }
 }

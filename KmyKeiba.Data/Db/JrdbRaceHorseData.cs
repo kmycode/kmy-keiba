@@ -252,7 +252,9 @@ namespace KmyKeiba.Data.Db
         };
       }
 
-      var raceData = await db.Races!.FirstOrDefaultAsync(r => r.StartTime.Year == year && r.Kaiji == kaiji &&
+      var yearString = year.ToString();
+      var kaijiText = $"{kaiji:00}{nichiji:00}{courseNumber:00}";
+      var raceData = await db.Races!.FirstOrDefaultAsync(r => r.Key.StartsWith(yearString) && r.Key.EndsWith(kaijiText) &&
         r.Nichiji == nichiji && r.CourseRaceNumber == courseNumber && r.Course == course);
       if (raceData == null)
       {
@@ -538,7 +540,7 @@ namespace KmyKeiba.Data.Db
       DateTime.TryParseExact(AsString(561, 8), "yyyyMMdd", null, DateTimeStyles.None, out var houseInDate);
       short.TryParse(AsString(569, 3).Trim(), out var houseDays);
 
-      var grazingName = AsString(572, 50);
+      var grazingName = AsString(572, 50).Trim();
       var grazingRankCode = AsString(622, 1);
       short.TryParse(AsString(623, 1), out var houseRankCode);
       this.GrazingName = grazingName;

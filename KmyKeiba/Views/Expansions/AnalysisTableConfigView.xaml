@@ -136,7 +136,18 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
-                  
+
+                  <TextBlock Grid.Row="1" Text="種別２" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
+                             Visibility="{Binding CanSetSubOutput.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                             VerticalAlignment="Center"/>
+                  <ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding RowOutputSubItems}" SelectedItem="{Binding SelectedSubOutput.Value,Mode=TwoWay}"
+                            Visibility="{Binding CanSetSubOutput.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock FontSize="16" Text="{Binding Label}"/>
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
                   <TextBlock Grid.Column="2" Grid.Row="1" Text="必要件数" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
                              VerticalAlignment="Center"
                             Visibility="{Binding CanSetLimited.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
