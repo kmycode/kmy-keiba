@@ -1061,6 +1061,9 @@
             <RadioButton Content="重賞分類" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByGrade.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="枠番" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByFrameNumber.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="馬番" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorseNumber.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="父" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByFather.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="母" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByMother.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="母父" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByMotherFather.Value,ElementName=Root,Mode=TwoWay}"/>
             <StackPanel Orientation="Horizontal" Width="420" Height="30" Margin="0,0,4,16">
               <RadioButton Content="メモ" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByMemo.Value,ElementName=Root,Mode=TwoWay}"
                            Height="30" VerticalAlignment="Center" Margin="0"/>

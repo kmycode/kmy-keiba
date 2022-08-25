@@ -489,19 +489,16 @@ namespace KmyKeiba.Models.Race.Finder
   class BloodHorseScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly QueryKey _scriptKey;
-    private string? _code;
-    private string? _key;
-    private bool _isCheckedCode = false;
+    private IReadOnlyList<string>? _codes;
     private readonly bool _isSelfCode = false;
-    private readonly short _horseNumber;
+    private bool _isCheckedSelfCode = false;
+    private readonly int _horseNumber;
     private readonly string? _raceKey;
 
-    public BloodHorseScriptKeyQuery(QueryKey scriptKey, string? code = null, string? key = null, bool isSelfCode = false, short horseNumber = 0, string? raceKey = null)
+    public BloodHorseScriptKeyQuery(QueryKey scriptKey, IReadOnlyList<string> codes, bool isSelfCode = false, short horseNumber = 0, string? raceKey = null)
     {
       this._scriptKey = scriptKey;
-      this._code = code;
-      this._key = key;
-      this._isCheckedCode = code != null;
+      this._codes = codes;
       this._isSelfCode = isSelfCode;
       this._horseNumber = horseNumber;
       this._raceKey = raceKey;
@@ -519,99 +516,67 @@ namespace KmyKeiba.Models.Race.Finder
 
     private object Apply(MyContext db, IQueryable<RaceHorseData>? query1, IEnumerable<RaceHorseData>? query2)
     {
-      if (this._code == null && !this._isCheckedCode)
+      var type = this._scriptKey switch
       {
-        if (this._horseNumber != default && this._raceKey != null)
-        {
-          var horse = db.RaceHorses!.FirstOrDefault(rh => rh.Number == this._horseNumber && rh.RaceKey == this._raceKey);
-          if (horse != null)
-          {
-            this._key = horse.Key;
-          }
-        }
+        QueryKey.Father => BloodType.Father,
+        QueryKey.FatherFather => BloodType.FatherFather,
+        QueryKey.FatherFatherFather => BloodType.FatherFatherFather,
+        QueryKey.FatherFatherMother => BloodType.FatherFatherMother,
+        QueryKey.FatherMother => BloodType.FatherMother,
+        QueryKey.FatherMotherFather => BloodType.FatherMotherFather,
+        QueryKey.FatherMotherMother => BloodType.FatherMotherFather,
+        QueryKey.Mother => BloodType.Mother,
+        QueryKey.MotherFather => BloodType.MotherFather,
+        QueryKey.MotherFatherFather => BloodType.MotherFatherFather,
+        QueryKey.MotherFatherMother => BloodType.MotherFatherMother,
+        QueryKey.MotherMother => BloodType.MotherMother,
+        QueryKey.MotherMotherFather => BloodType.MotherMotherFather,
+        QueryKey.MotherMotherMother => BloodType.MotherMotherMother,
+        _ => default,
+      };
 
-        if (!this._isSelfCode)
+      if (this._horseNumber != default && this._raceKey != null && this._codes == null)
+      {
+        var horse = db.RaceHorses!.FirstOrDefault(rh => rh.Number == this._horseNumber && rh.RaceKey == this._raceKey);
+        if (horse != null)
         {
-          // 自分と同じ父を持つ馬を検索
-          var born = db.BornHorses!.FirstOrDefault(h => h.Code == this._key);
-          if (born != null)
-          {
-            this._code = this._scriptKey switch
-            {
-              QueryKey.Father => born.FatherBreedingCode,
-              QueryKey.FatherFather => born.FFBreedingCode,
-              QueryKey.FatherFatherFather => born.FFFBreedingCode,
-              QueryKey.FatherFatherMother => born.FFMBreedingCode,
-              QueryKey.FatherMother => born.FMBreedingCode,
-              QueryKey.FatherMotherFather => born.FMFBreedingCode,
-              QueryKey.FatherMotherMother => born.FMMBreedingCode,
-              QueryKey.Mother => born.MotherBreedingCode,
-              QueryKey.MotherFather => born.MFBreedingCode,
-              QueryKey.MotherFatherFather => born.MFFBreedingCode,
-              QueryKey.MotherFatherMother => born.MFMBreedingCode,
-              QueryKey.MotherMother => born.MMBreedingCode,
-              QueryKey.MotherMotherFather => born.MMFBreedingCode,
-              QueryKey.MotherMotherMother => born.MMMBreedingCode,
-              _ => null,
-            };
-          }
-          else
-          {
-            var horse = db.Horses!.FirstOrDefault(h => h.Code == this._key);
-            if (horse != null)
-            {
-              this._code = this._scriptKey switch
-              {
-                QueryKey.Father => horse.FatherBreedingCode,
-                QueryKey.FatherFather => horse.FFBreedingCode,
-                QueryKey.FatherFatherFather => horse.FFFBreedingCode,
-                QueryKey.FatherFatherMother => horse.FFMBreedingCode,
-                QueryKey.FatherMother => horse.FMBreedingCode,
-                QueryKey.FatherMotherFather => horse.FMFBreedingCode,
-                QueryKey.FatherMotherMother => horse.FMMBreedingCode,
-                QueryKey.Mother => horse.MotherBreedingCode,
-                QueryKey.MotherFather => horse.MFBreedingCode,
-                QueryKey.MotherFatherFather => horse.MFFBreedingCode,
-                QueryKey.MotherFatherMother => horse.MFMBreedingCode,
-                QueryKey.MotherMother => horse.MMBreedingCode,
-                QueryKey.MotherMotherFather => horse.MMFBreedingCode,
-                QueryKey.MotherMotherMother => horse.MMMBreedingCode,
-                _ => null,
-              };
-            }
-          }
+          var key = horse.Key;
+          var code = HorseBloodUtil.GetBloodCodeAsync(db, key, type).Result;
+          this._codes = new List<string> { code, };
         }
-        else
-        {
-          // 自分が父になっている馬を検索
-          var data = db.HorseBloods!.FirstOrDefault(b => b.Code == this._key);
-          if (data != null)
-          {
-            this._code = data.Key;
-          }
-        }
-
-        this._isCheckedCode = true;
       }
 
-      if (this._code != null)
+      if (this._codes != null && this._codes.Any())
       {
+        if (!this._isSelfCode && !this._isCheckedSelfCode)
+        {
+          // 自分が父になっている馬を検索
+          var list = new List<string>();
+          foreach (var code in this._codes)
+          {
+            var parentCode = HorseBloodUtil.GetBloodCodeFromCodeAsync(db, code, type).Result;
+            list.Add(parentCode);
+          }
+          this._codes = list;
+          this._isCheckedSelfCode = true;
+        }
+
         Expression<Func<BornHorseData, bool>>? subject = this._scriptKey switch
         {
-          QueryKey.Father => b => b.FatherBreedingCode == this._code,
-          QueryKey.FatherFather => b => b.FFBreedingCode == this._code,
-          QueryKey.FatherFatherFather => b => b.FFFBreedingCode == this._code,
-          QueryKey.FatherFatherMother => b => b.FFMBreedingCode == this._code,
-          QueryKey.FatherMother => b => b.FMBreedingCode == this._code,
-          QueryKey.FatherMotherFather => b => b.FMFBreedingCode == this._code,
-          QueryKey.FatherMotherMother => b => b.FMMBreedingCode == this._code,
-          QueryKey.Mother => b => b.MotherBreedingCode == this._code,
-          QueryKey.MotherFather => b => b.MFBreedingCode == this._code,
-          QueryKey.MotherFatherFather => b => b.MFFBreedingCode == this._code,
-          QueryKey.MotherFatherMother => b => b.MFMBreedingCode == this._code,
-          QueryKey.MotherMother => b => b.MMBreedingCode == this._code,
-          QueryKey.MotherMotherFather => b => b.MMFBreedingCode == this._code,
-          QueryKey.MotherMotherMother => b => b.MMMBreedingCode == this._code,
+          QueryKey.Father => b => this._codes.Contains(b.FatherBreedingCode),
+          QueryKey.FatherFather => b => this._codes.Contains(b.FFBreedingCode),
+          QueryKey.FatherFatherFather => b => this._codes.Contains(b.FFFBreedingCode),
+          QueryKey.FatherFatherMother => b => this._codes.Contains(b.FFMBreedingCode),
+          QueryKey.FatherMother => b => this._codes.Contains(b.FMBreedingCode),
+          QueryKey.FatherMotherFather => b => this._codes.Contains(b.FMFBreedingCode),
+          QueryKey.FatherMotherMother => b => this._codes.Contains(b.FMMBreedingCode),
+          QueryKey.Mother => b => this._codes.Contains(b.MotherBreedingCode),
+          QueryKey.MotherFather => b => this._codes.Contains(b.MFBreedingCode),
+          QueryKey.MotherFatherFather => b => this._codes.Contains(b.MFFBreedingCode),
+          QueryKey.MotherFatherMother => b => this._codes.Contains(b.MFMBreedingCode),
+          QueryKey.MotherMother => b => this._codes.Contains(b.MMBreedingCode),
+          QueryKey.MotherMotherFather => b => this._codes.Contains(b.MMFBreedingCode),
+          QueryKey.MotherMotherMother => b => this._codes.Contains(b.MMMBreedingCode),
           _ => null,
         };
 

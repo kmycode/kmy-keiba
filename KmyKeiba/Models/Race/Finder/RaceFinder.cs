@@ -309,38 +309,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ResultOrderGradeMap AllGrade { get; }
 
-    public RaceHorseFinderResultAnalyzerSlim(IReadOnlyList<FinderRaceHorseItem> source)
+    public RaceHorseFinderResultAnalyzerSlim(IReadOnlyList<FinderRaceHorseItem> source) : this(source, null)
     {
-      var items = source;
-
-      var sourceItems = items.Select(i => i.Analyzer).ToArray();
-      var count = sourceItems.Length;
-
-      if (count > 0)
-      {
-        // 分析
-        this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(sourceItems);
-
-        var timePoint = new StatisticSingleArray(sourceItems.Select(h => h.ResultTimeDeviationValue).Where(v => v != default).ToArray());
-        var a3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.A3HResultTimeDeviationValue).Where(v => v != default).ToArray());
-        var ua3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.UntilA3HResultTimeDeviationValue).Where(v => v != default).ToArray());
-        this.TimeDeviationValue = timePoint.Median;
-        this.A3HTimeDeviationValue = a3htimePoint.Median;
-        this.UntilA3HTimeDeviationValue = ua3htimePoint.Median;
-
-        var validRaces = sourceItems.Where(r => r.Data.ResultOrder != 0);
-        var sourceArr = sourceItems.Select(s => s.Data).ToArray();
-        this.AllGrade = new ResultOrderGradeMap(sourceItems);
-
-        // 回収率
-        if (sourceItems.Any(s => s.Data.ResultOrder == 1))
-        {
-          this.RecoveryRate = sourceItems.Where(s => s.Data.ResultOrder == 1).Sum(s => s.Data.Odds * 10) / (float)(sourceItems.Count(i => i.Data.ResultOrder > 0) * 100);
-        }
-      }
     }
 
-    protected RaceHorseFinderResultAnalyzerSlim(RaceHorseFinderResultAnalyzerSlim? other)
+    protected RaceHorseFinderResultAnalyzerSlim(IReadOnlyList<FinderRaceHorseItem> source, RaceHorseFinderResultAnalyzerSlim? other)
     {
       if (other != null)
       {
@@ -350,6 +323,36 @@ namespace KmyKeiba.Models.Race.Finder
         this.UntilA3HTimeDeviationValue = other.TimeDeviationValue;
         this.AllGrade = other.AllGrade;
         this.RecoveryRate = other.RecoveryRate;
+      }
+      else
+      {
+        var items = source;
+
+        var sourceItems = items.Select(i => i.Analyzer).ToArray();
+        var count = sourceItems.Length;
+
+        if (count > 0)
+        {
+          // 分析
+          this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(sourceItems);
+
+          var timePoint = new StatisticSingleArray(sourceItems.Select(h => h.ResultTimeDeviationValue).Where(v => v != default).ToArray());
+          var a3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.A3HResultTimeDeviationValue).Where(v => v != default).ToArray());
+          var ua3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.UntilA3HResultTimeDeviationValue).Where(v => v != default).ToArray());
+          this.TimeDeviationValue = timePoint.Median;
+          this.A3HTimeDeviationValue = a3htimePoint.Median;
+          this.UntilA3HTimeDeviationValue = ua3htimePoint.Median;
+
+          var validRaces = sourceItems.Where(r => r.Data.ResultOrder != 0);
+          var sourceArr = sourceItems.Select(s => s.Data).ToArray();
+          this.AllGrade = new ResultOrderGradeMap(sourceItems);
+
+          // 回収率
+          if (sourceItems.Any(s => s.Data.ResultOrder == 1))
+          {
+            this.RecoveryRate = sourceItems.Where(s => s.Data.ResultOrder == 1).Sum(s => s.Data.Odds * 10) / (float)(sourceItems.Count(i => i.Data.ResultOrder > 0) * 100);
+          }
+        }
       }
     }
   }
@@ -394,7 +397,7 @@ namespace KmyKeiba.Models.Race.Finder
     {
     }
 
-    public RaceHorseFinderResultAnalyzer(IReadOnlyList<FinderRaceHorseItem> source, RaceHorseFinderResultAnalyzerSlim? slim) : base(slim)
+    public RaceHorseFinderResultAnalyzer(IReadOnlyList<FinderRaceHorseItem> source, RaceHorseFinderResultAnalyzerSlim? slim) : base(source, slim)
     {
       var items = source;
 

@@ -309,18 +309,11 @@ namespace KmyKeiba.Models.Race.Finder
             }
           }
 
-          string? bkey = value;
-          string? bcode = value;
+          var values = value.Split(',');
 
-          if (bkey != null || bcode != null)
+          if (values.Any())
           {
-            if (bkey?.Length != 10) bkey = null;
-            if (bcode?.Length != 8) bcode = null;
-          }
-
-          if (bkey != null || bcode != null || horseNumber != default)
-          {
-            queries.Add(new BloodHorseScriptKeyQuery(key, key: bkey, code: bcode, isSelfCode: isSelfMode, horseNumber: horseNumber, raceKey: race?.Key));
+            queries.Add(new BloodHorseScriptKeyQuery(key, codes: values, isSelfCode: isSelfMode, horseNumber: horseNumber, raceKey: race?.Key));
             return true;
           }
 

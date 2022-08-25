@@ -2016,7 +2016,23 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected override string GetQuery()
     {
-      return string.Join('|', this.Configs.Select(c => c.ToQuery()));
+      if (!this.Configs.Any())
+      {
+        return string.Empty;
+      }
+
+      var query = string.Empty;
+      foreach (var group in this.Configs.GroupBy(c => c.Type))
+      {
+        query += group.Key.ToStringCode() + ":";
+        if (this.IsSelfBloods.Value)
+        {
+          query += "@";
+        }
+        query += string.Join(',', group.Select(i => i.Key));
+        query += "|";
+      }
+      return query[..(query.Length - 1)];
     }
 
     protected override bool IsIgnorePropertyToSerializing(string propertyName)
@@ -3071,6 +3087,9 @@ namespace KmyKeiba.Models.Race.Finder
     public ReactiveProperty<bool> IsGroupByFrameNumber { get; } = new();
     public ReactiveProperty<bool> IsGroupByHorseNumber { get; } = new();
     public ReactiveProperty<bool> IsGroupByMemo { get; } = new();
+    public ReactiveProperty<bool> IsGroupByFather { get; } = new();
+    public ReactiveProperty<bool> IsGroupByMother { get; } = new();
+    public ReactiveProperty<bool> IsGroupByMotherFather { get; } = new();
 
     public ReactiveCollection<ExpansionMemoConfig> MemoConfigs { get; } = new();
 
@@ -3094,6 +3113,9 @@ namespace KmyKeiba.Models.Race.Finder
         .CombineLatest(this.IsGroupByHorseNumber)
         .CombineLatest(this.IsGroupByMemo)
         .CombineLatest(this.SelectedMemoConfig)
+        .CombineLatest(this.IsGroupByFather)
+        .CombineLatest(this.IsGroupByMother)
+        .CombineLatest(this.IsGroupByMotherFather)
         .Subscribe(_ => this.UpdateQuery())
         .AddTo(this.Disposables);
     }
@@ -3179,6 +3201,18 @@ namespace KmyKeiba.Models.Race.Finder
             groups.Add($"memo/{string.Join('/', targets)}/number:{config.MemoNumber}");
           }
         }
+      }
+      if (this.IsGroupByFather.Value)
+      {
+        groups.Add("f");
+      }
+      if (this.IsGroupByMother.Value)
+      {
+        groups.Add("m");
+      }
+      if (this.IsGroupByMotherFather.Value)
+      {
+        groups.Add("mf");
       }
 
       if (!groups.Any())

@@ -167,6 +167,29 @@ namespace KmyKeiba.Models.Race.Finder
               groups = items.GroupBy(i => { return (object)(i.Belongs switch { HorseBelongs.Ritto => "栗東", HorseBelongs.Miho => "美浦", HorseBelongs.Local => "地方", HorseBelongs.Foreign => "海外", _ => "データなし", }); }, i => i.Item);
             }
 
+            // 血統でグループ化
+            if (data.GroupKey == QueryKey.Father || data.GroupKey == QueryKey.Mother || data.GroupKey == QueryKey.MotherFather)
+            {
+              using var db = new MyContext();
+              var horseKeys = allItems.Select(i => i.Analyzer.Data.Key).Distinct().ToArray();
+              var parents1 = db.BornHorses!.Where(h => horseKeys.Contains(h.Code));
+              var parents2 =
+                    data.GroupKey == QueryKey.Father ? parents1.Select(h => new { Key = h.Code, Parent = h.FatherBreedingCode, }) :
+                    data.GroupKey == QueryKey.Mother ? parents1.Select(h => new { Key = h.Code, Parent = h.MotherBreedingCode, }) :
+                                                       parents1.Select(h => new { Key = h.Code, Parent = h.MFBreedingCode, });
+              var parents = await parents2.ToArrayAsync();
+
+              var list = new List<IGrouping<string, FinderRaceHorseItem>>();
+              foreach (var d in parents.GroupBy(p => p.Parent))
+              {
+                var parentName = await db.HorseBloods!.Where(b => b.Key == d.Key).Select(b => b.Name).FirstOrDefaultAsync() ?? "不明";
+                var items = allItems.Where(i => d.Select(s => s.Key).Contains(i.Analyzer.Data.Key));
+                list.Add(new Grouping<string, FinderRaceHorseItem>(parentName, items));
+              }
+
+              groups = list;
+            }
+
             // ラベルでグループ化
             if (data.GroupInfo != null)
             {

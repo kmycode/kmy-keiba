@@ -120,6 +120,11 @@ namespace KmyKeiba.Views.Parts.FinderQuery
         if (sender is ListBoxItem lbi)
         {
           var listbox = this.GetListBox(lbi);
+          if (listbox?.SelectionMode != SelectionMode.Multiple)
+          {
+            return;
+          }
+
           if (!lbi.IsSelected)
           {
             lbi.IsSelected = true;
