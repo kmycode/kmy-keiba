@@ -535,7 +535,7 @@ namespace KmyKeiba.Models.Race.Finder
         _ => default,
       };
 
-      if (this._horseNumber != default && this._raceKey != null && this._codes == null)
+      if (this._horseNumber != default && this._raceKey != null && this._codes.Count == 1)
       {
         var horse = db.RaceHorses!.FirstOrDefault(rh => rh.Number == this._horseNumber && rh.RaceKey == this._raceKey);
         if (horse != null)
