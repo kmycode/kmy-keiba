@@ -107,6 +107,20 @@ namespace KmyKeiba.Common
       };
     }
 
+    public static string ToLongLabelString(this RaceCourseWeather wea)
+    {
+      return wea switch
+      {
+        RaceCourseWeather.Fine => "晴",
+        RaceCourseWeather.Rainy => "雨",
+        RaceCourseWeather.Cloudy => "曇",
+        RaceCourseWeather.Drizzle => "小雨",
+        RaceCourseWeather.Snow => "雪",
+        RaceCourseWeather.LightSnow => "小雪",
+        _ => string.Empty,
+      };
+    }
+
     public static string ToLabelString(this RaceCourseCondition condition)
     {
       return condition switch

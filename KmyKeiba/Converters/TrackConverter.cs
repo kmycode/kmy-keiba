@@ -88,6 +88,10 @@ namespace KmyKeiba.Converters
           {
             if (targetType == typeof(string))
             {
+              if (parameter?.ToString() == "Long")
+              {
+                return wea.ToLongLabelString();
+              }
               return wea.ToLabelString();
             }
             if (targetType == typeof(Brush))

@@ -73,6 +73,12 @@
   <SolidColorBrush x:Key="FirstOrderBackground" Color="#50ffff99"/>
   <SolidColorBrush x:Key="SecondOrderBackground" Color="#5044bbff"/>
   <SolidColorBrush x:Key="ThirdOrderBackground" Color="#50ff9999"/>
+  <SolidColorBrush x:Key="FineForeground" Color="#ff87a1"/>
+  <SolidColorBrush x:Key="CloudyForeground" Color="#abaab5"/>
+  <SolidColorBrush x:Key="RainyForeground" Color="#4a68ff"/>
+  <SolidColorBrush x:Key="DrizzleForeground" Color="#2bd3ed"/>
+  <SolidColorBrush x:Key="LightSnowForeground" Color="#dbcada"/>
+  <SolidColorBrush x:Key="SnowForeground" Color="#f4f4f4"/>
 
   <SolidColorBrush x:Key="SingleTicketBackground" Color="#00596b"/>
   <SolidColorBrush x:Key="PlaceTicketBackground" Color="#840027"/>
