@@ -24,17 +24,22 @@
         <ColumnDefinition/>
         <ColumnDefinition Width="200"/>
       </Grid.ColumnDefinitions>
-      <StackPanel Orientation="Horizontal">
-        <ToggleButton FontSize="16" Content="中央競馬" Width="100"
-                      IsChecked="{Binding Downloader.IsRTDownloadCentral.Value,Mode=TwoWay}"/>
-        <Button FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
-                Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                Command="{Binding OpenJvlinkConfigCommand}"/>
-        <ToggleButton FontSize="16" Content="木～日のみ稼働" Width="160" Margin="4,0,0,0"
-                      IsChecked="{Binding Downloader.IsRTDownloadCentralAfterThursdayOnly.Value,Mode=TwoWay}"
-                      Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+      <StackPanel>
+        <StackPanel Orientation="Horizontal">
+          <ToggleButton FontSize="16" Content="中央競馬" Width="100"
+                        IsChecked="{Binding Downloader.IsRTDownloadCentral.Value,Mode=TwoWay}"/>
+          <Button FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
+                  Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                  Command="{Binding OpenJvlinkConfigCommand}"/>
+          <ToggleButton FontSize="16" Content="木～日のみ稼働" Width="160" Margin="4,0,0,0"
+                        IsChecked="{Binding Downloader.IsRTDownloadCentralAfterThursdayOnly.Value,Mode=TwoWay}"
+                        Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+        </StackPanel>
+        <ToggleButton FontSize="16" Content="JRDB" Width="100" Margin="0,8,0,0" HorizontalAlignment="Left"
+                      Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                      IsChecked="{Binding Downloader.IsRTDownloadJrdb.Value,Mode=TwoWay}"/>
       </StackPanel>
-      <StackPanel Orientation="Horizontal" Grid.Column="1">
+      <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Top">
         <ToggleButton FontSize="16" Content="地方競馬" Width="100"
                       IsChecked="{Binding Downloader.IsRTDownloadLocal.Value,Mode=TwoWay}"/>
         <Button FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"

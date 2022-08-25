@@ -22,7 +22,7 @@
       </Grid.RowDefinitions>
 
       <!-- レースの正式な条件 -->
-      <TextBlock FontSize="20" Foreground="{StaticResource SubForeground}" Margin="0,0,0,48">
+      <TextBlock FontSize="20" Foreground="{StaticResource SubForeground}" Margin="0,0,0,36">
         <Run Text="{Binding Race.Data.SubName,ElementName=Root,Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding Race.Subject.DisplaySubjectName,ElementName=Root,Mode=OneWay}"/>
       </TextBlock>
 
@@ -38,7 +38,7 @@
           </skia:SKElement>
 
           <Button Command="{Binding Race.RaceAnalyzer.Value.PlayPaddockForceCommand,ElementName=Root}" Padding="4,8"
-                  Margin="0,48" Width="300">
+                  Margin="0,24,0,16" Width="300">
             <Button.Visibility>
               <MultiBinding Converter="{StaticResource MultiBooleanConv}">
                 <Binding Path="Race.RaceAnalyzer.Value.Movie.IsPaddockForceError.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
@@ -96,7 +96,7 @@
                 <Setter Property="Margin" Value="0,0,8,0"/>
               </Style>
             </StackPanel.Resources>
-            <TextBlock FontSize="24" Margin="0,48,0,0" Text="天気・馬場を変更" FontWeight="Bold"/>
+            <TextBlock FontSize="24" Margin="0,36,0,0" Text="天気・馬場を変更" FontWeight="Bold"/>
             <TextBlock FontSize="16" Margin="0,8,0,0" Text="天気データが届いておりません。実際の発表を確認して設定してください。" Style="{StaticResource SubTextBlock}"/>
             <TextBlock FontSize="16" Margin="0,0,0,8" Text="データ受信次第、下記の設定は受信された情報に置き換えられます。" Style="{StaticResource SubTextBlock}"/>
             <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
@@ -116,7 +116,7 @@
           </StackPanel>
 
           <!--レースの変更情報-->
-          <ItemsControl ItemsSource="{Binding Race.Changes,ElementName=Root}" Margin="0,24,0,0">
+          <ItemsControl ItemsSource="{Binding Race.Changes,ElementName=Root}" Margin="0,20,0,0">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <StackPanel Orientation="Horizontal">

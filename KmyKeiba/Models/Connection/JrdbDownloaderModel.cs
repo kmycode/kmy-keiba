@@ -1,4 +1,6 @@
-﻿using KmyKeiba.Models.Data;
+﻿using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Data;
+using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -18,20 +20,38 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> CanSaveOthers { get; } = new();
 
+    public ReactiveProperty<int> DownloadingYear { get; } = new();
+
+    public ReactiveProperty<int> DownloadingMonth { get; } = new();
+
     private JrdbDownloaderModel()
     {
     }
 
-    public async Task LoadTestAsync(DateTime from, DateTime to, string id, string password)
+    public async Task LoadAsync(DateTime from, DateTime to, string id, string password)
     {
       // TODO: Error
       using var db = new MyContext();
 
+      var raceDays = await db.Races!
+        .Where(r => r.StartTime >= from && r.StartTime <= to && r.Course <= RaceCourse.CentralMaxValue)
+        .Select(r => r.StartTime.Date)
+        .GroupBy(d => d)
+        .Select(g => g.Key)
+        .ToArrayAsync();
+
       // https://keibasoft.memo.wiki/d/JRDB%a4%ab%a4%e9%a4%ce%a5%c7%a1%bc%a5%bf%bc%e8%c6%c0
 
-      var date = from;
+      foreach (var day in raceDays)
+      {
+        var dayText = day.ToString("yyyyMMdd");
+        if (day < DateTime.Today.AddDays(-10) && await db.JrdbRaceHorses!.AnyAsync(j => j.RaceKey.StartsWith(dayText)))
+        {
+          continue;
+        }
 
-      await this.LoadDayAsync(from, id, password);
+        await this.LoadDayAsync(day, id, password);
+      }
     }
 
     private async Task LoadDayAsync(DateTime day, string id, string password)

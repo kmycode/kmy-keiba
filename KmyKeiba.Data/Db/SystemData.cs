@@ -34,5 +34,10 @@ namespace KmyKeiba.Data.Db
     LastUpdateStandardTimeYear = 9,
     LastDownloadNormalDataHour = 10,
     DatabaseVersion = 11,
+    IsDownloadJrdb = 12,
+    IsRTDownloadJrdb = 13,
+    LastDownloadJrdbDate = 14,
+    JrdbId = 15,
+    JrdbPassword = 16,
   }
 }
