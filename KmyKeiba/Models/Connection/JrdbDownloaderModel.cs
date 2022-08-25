@@ -20,7 +20,9 @@ namespace KmyKeiba.Models.Connection
     private static JrdbDownloaderModel? _instance;
     public static JrdbDownloaderModel Instance => _instance ??= (_instance = new JrdbDownloaderModel());
 
-    public ReactiveProperty<bool> CanSaveOthers { get; } = new();
+    public ReactiveProperty<bool> CanSaveOthers { get; } = new(true);
+
+    public ReactiveProperty<bool> IsDownloading { get; } = new();
 
     public ReactiveProperty<int> DownloadingYear { get; } = new();
 
@@ -35,35 +37,44 @@ namespace KmyKeiba.Models.Connection
     public async Task LoadAsync(DateTime from, DateTime to, string id, string password)
     {
       // TODO: Error
-      using var db = new MyContext();
-
-      var raceDays = await db.Races!
-        .Where(r => r.StartTime >= from && r.StartTime <= to && r.Course <= RaceCourse.CentralMaxValue)
-        .Select(r => r.StartTime.Date)
-        .GroupBy(d => d)
-        .Select(g => g.Key)
-        .ToArrayAsync();
-
-      // https://keibasoft.memo.wiki/d/JRDB%a4%ab%a4%e9%a4%ce%a5%c7%a1%bc%a5%bf%bc%e8%c6%c0
-
-      foreach (var day in raceDays)
+      try
       {
-        this.DownloadingYear.Value = day.Year;
-        this.DownloadingMonth.Value = day.Month;
+        this.IsDownloading.Value = true;
 
-        var dayText = day.ToString("yyyyMMdd");
-        if (day < DateTime.Today.AddDays(-10) && await db.JrdbRaceHorses!.AnyAsync(j => j.RaceKey.StartsWith(dayText)))
+        using var db = new MyContext();
+
+        var raceDays = await db.Races!
+          .Where(r => r.StartTime >= from && r.StartTime <= to && r.Course <= RaceCourse.CentralMaxValue)
+          .Select(r => r.StartTime.Date)
+          .GroupBy(d => d)
+          .Select(g => g.Key)
+          .ToArrayAsync();
+
+        // https://keibasoft.memo.wiki/d/JRDB%a4%ab%a4%e9%a4%ce%a5%c7%a1%bc%a5%bf%bc%e8%c6%c0
+
+        foreach (var day in raceDays)
         {
-          continue;
-        }
+          this.DownloadingYear.Value = day.Year;
+          this.DownloadingMonth.Value = day.Month;
 
-        await this.LoadDayAsync(db, day, id, password);
+          var dayText = day.ToString("yyyyMMdd");
+          if (day < DateTime.Today.AddDays(-10) && await db.JrdbRaceHorses!.AnyAsync(j => j.RaceKey.StartsWith(dayText)))
+          {
+            continue;
+          }
 
-        if (this.IsCanceled.Value)
-        {
-          this.IsCanceled.Value = false;
-          return;
+          await this.LoadDayAsync(db, day, id, password);
+
+          if (this.IsCanceled.Value)
+          {
+            this.IsCanceled.Value = false;
+            return;
+          }
         }
+      }
+      finally
+      {
+        this.IsDownloading.Value = false;
       }
     }
 
@@ -90,6 +101,10 @@ namespace KmyKeiba.Models.Connection
       };
 
       var response = await myweb.SendAsync(request);
+      if (!response.IsSuccessStatusCode)
+      {
+        return;
+      }
 
       try
       {
@@ -143,6 +158,8 @@ namespace KmyKeiba.Models.Connection
 
       try
       {
+        this.CanSaveOthers.Value = false;
+
         var keys = dataList.Select(d => d.Key + d.RaceKey).ToArray();
         var exists = await db.JrdbRaceHorses!.Where(j => keys.Contains(j.Key + j.RaceKey)).ToArrayAsync();
         var targets = dataList.ExceptBy(exists.Select(j => j.Key + j.RaceKey), j => j.Key + j.RaceKey).ToList();
@@ -152,6 +169,10 @@ namespace KmyKeiba.Models.Connection
       catch (Exception ex)
       {
         // TODO
+      }
+      finally
+      {
+        this.CanSaveOthers.Value = true;
       }
 
       // ファイルを削除

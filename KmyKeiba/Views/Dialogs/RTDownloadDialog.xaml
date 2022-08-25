@@ -35,9 +35,14 @@
                         IsChecked="{Binding Downloader.IsRTDownloadCentralAfterThursdayOnly.Value,Mode=TwoWay}"
                         Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
         </StackPanel>
-        <ToggleButton FontSize="16" Content="JRDB" Width="100" Margin="0,8,0,0" HorizontalAlignment="Left"
-                      Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                      IsChecked="{Binding Downloader.IsRTDownloadJrdb.Value,Mode=TwoWay}"/>
+        <StackPanel Orientation="Horizontal">
+          <ToggleButton FontSize="16" Content="JRDB" Width="100" Margin="0,8,0,0" HorizontalAlignment="Left"
+                        Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                        IsChecked="{Binding Downloader.IsRTDownloadJrdb.Value,Mode=TwoWay}"/>
+          <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Margin="12,0,0,0"
+                     Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                     Text="※JRDBは2時間に1回の更新確認になります" VerticalAlignment="Center"/>
+        </StackPanel>
       </StackPanel>
       <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Top">
         <ToggleButton FontSize="16" Content="地方競馬" Width="100"

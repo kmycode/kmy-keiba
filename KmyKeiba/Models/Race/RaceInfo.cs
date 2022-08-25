@@ -648,7 +648,8 @@ namespace KmyKeiba.Models.Race
           await Race.AnalysisTable.AnalysisTableUtil.InitializeAsync(db);
 
           var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == race.Key).ToArrayAsync();
-          logger.Info($"馬の数: {horses.Length}, レース情報に記録されている馬の数: {race.HorsesCount}");
+          var jrdbHorses = await db.JrdbRaceHorses!.Where(j => j.RaceKey == race.Key).ToArrayAsync();
+          logger.Info($"馬の数: {horses.Length}, レース情報に記録されている馬の数: {race.HorsesCount}, JRDB: {jrdbHorses.Length}");
 
           var horseKeys = horses.Select(h => h.Key).ToArray();
           var horseAllHistories = cache?.HorseAllHistories;
@@ -703,8 +704,9 @@ namespace KmyKeiba.Models.Race
             }
 
             var riderWinRate = await AnalysisUtil.GetRiderWinRateAsync(db, race, horse.RiderCode);
+            var jrdb = jrdbHorses.FirstOrDefault(j => j.Key == horse.Key);
 
-            var analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate)
+            var analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate, jrdbHorse: jrdb)
             {
               TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse, histories),
               TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),

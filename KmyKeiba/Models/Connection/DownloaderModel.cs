@@ -361,7 +361,7 @@ namespace KmyKeiba.Models.Connection
           if (isDownloadAfterThursday)
           {
             var weekday = today.DayOfWeek;
-            isDownload = weekday == DayOfWeek.Thursday || weekday == DayOfWeek.Friday || weekday == DayOfWeek.Saturday || weekday == DayOfWeek.Sunday;
+            isDownload = weekday == DayOfWeek.Friday || weekday == DayOfWeek.Saturday || weekday == DayOfWeek.Sunday;
           }
 
           if (isDownload)
@@ -537,7 +537,7 @@ namespace KmyKeiba.Models.Connection
             }
 
             // メインのダウンロード処理
-            if (this.CanSaveOthers.Value)
+            if (this.CanSaveOthers.Value && !JrdbDownloaderModel.Instance.IsDownloading.Value)
             {
               logger.Info("最新情報取得を開始");
               await DownloadRTAsync(today);
@@ -1014,7 +1014,7 @@ namespace KmyKeiba.Models.Connection
 
     public async Task CancelDownloadAsync()
     {
-      if (!JrdbDownloaderModel.Instance.CanSaveOthers.Value)
+      if (JrdbDownloaderModel.Instance.IsDownloading.Value)
       {
         JrdbDownloaderModel.Instance.IsCanceled.Value = true;
       }

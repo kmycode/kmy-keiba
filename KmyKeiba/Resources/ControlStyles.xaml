@@ -26,6 +26,11 @@
     <Setter Property="Background" Value="{StaticResource BaseBackground}"/>
   </Style>
   <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxDefault}"/>
+  <Style TargetType="PasswordBox" x:Key="PasswordBoxDefault">
+    <Setter Property="Foreground" Value="{StaticResource BaseForeground}"/>
+    <Setter Property="Background" Value="{StaticResource BaseBackground}"/>
+  </Style>
+  <Style TargetType="PasswordBox" BasedOn="{StaticResource PasswordBoxDefault}"/>
   <!--
   <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
   -->
