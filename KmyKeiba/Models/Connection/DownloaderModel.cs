@@ -1002,8 +1002,15 @@ namespace KmyKeiba.Models.Connection
 
     public async Task CancelDownloadAsync()
     {
-      await this._downloader.CancelCurrentTaskAsync();
-      this.IsCancelProcessing.Value = true;
+      if (!JrdbDownloaderModel.Instance.CanSaveOthers.Value)
+      {
+        JrdbDownloaderModel.Instance.IsCanceled.Value = true;
+      }
+      else
+      {
+        await this._downloader.CancelCurrentTaskAsync();
+        this.IsCancelProcessing.Value = true;
+      }
       logger.Warn("ダウンロードが中止されました");
     }
 

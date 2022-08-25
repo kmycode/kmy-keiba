@@ -24,6 +24,8 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<int> DownloadingMonth { get; } = new();
 
+    public ReactiveProperty<bool> IsCanceled { get; } = new();
+
     private JrdbDownloaderModel()
     {
     }
@@ -51,6 +53,12 @@ namespace KmyKeiba.Models.Connection
         }
 
         await this.LoadDayAsync(day, id, password);
+
+        if (this.IsCanceled.Value)
+        {
+          this.IsCanceled.Value = false;
+          return;
+        }
       }
     }
 
