@@ -383,6 +383,9 @@ namespace KmyKeiba.JVLink.Entities
     /// </summary>
     SaveRunner = 4,
 
+    JrdbGoodSotp = 5,
+    JrdbAll = 6,
+
     /// <summary>
     /// 不明（追い込み失敗、型なし）（独自分析用の値）
     /// </summary>

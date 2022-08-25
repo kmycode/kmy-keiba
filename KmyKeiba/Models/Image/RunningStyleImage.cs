@@ -22,6 +22,8 @@ namespace KmyKeiba.Models.Image
     private static readonly SKBitmap _stalker;
     private static readonly SKBitmap _sotp;
     private static readonly SKBitmap _saveRunner;
+    private static readonly SKBitmap _all;
+    private static readonly SKBitmap _goodSotp;
     private static readonly SKBitmap _unknown;
 
     public override float Width => 44;
@@ -41,6 +43,8 @@ namespace KmyKeiba.Models.Image
             RunningStyle.Stalker => _stalker,
             RunningStyle.Sotp => _sotp,
             RunningStyle.SaveRunner => _saveRunner,
+            RunningStyle.JrdbAll => _all,
+            RunningStyle.JrdbGoodSotp => _goodSotp,
             _ => _unknown,
           };
           this.Invalidate();
@@ -79,10 +83,20 @@ namespace KmyKeiba.Models.Image
           path.LineTo(x + width - padding, height - padding);
           path.LineTo(x + width - padding, padding);
 
+          var isDraw = style == runningStyle;
+          if (runningStyle == RunningStyle.JrdbAll)
+          {
+            isDraw = true;
+          }
+          else if (runningStyle == RunningStyle.JrdbGoodSotp)
+          {
+            isDraw = style == RunningStyle.Stalker || style == RunningStyle.Sotp;
+          }
+
           canvas?.DrawPath(path, new SKPaint
           {
             IsStroke = false,
-            Color = (style != runningStyle) ? runningStyleDisabledColor :
+            Color = !isDraw ? runningStyleDisabledColor :
                     style switch
                     {
                       RunningStyle.FrontRunner => frontRunnerColor,
@@ -106,6 +120,8 @@ namespace KmyKeiba.Models.Image
       _stalker = DrawRunningStyle(RunningStyle.Stalker);
       _sotp = DrawRunningStyle(RunningStyle.Sotp);
       _saveRunner = DrawRunningStyle(RunningStyle.SaveRunner);
+      _all = DrawRunningStyle(RunningStyle.JrdbAll);
+      _goodSotp = DrawRunningStyle(RunningStyle.JrdbGoodSotp);
       _unknown = DrawRunningStyle(RunningStyle.Unknown);
     }
 

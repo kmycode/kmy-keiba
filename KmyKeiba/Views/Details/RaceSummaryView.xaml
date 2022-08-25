@@ -86,7 +86,7 @@
           <Grid>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="auto"/>
-              <ColumnDefinition Width="auto"/>
+              <ColumnDefinition Width="38"/>
               <ColumnDefinition Width="auto"/>
               <ColumnDefinition/>
             </Grid.ColumnDefinitions>
@@ -158,10 +158,10 @@
       </StackPanel>
 
       <!--メモ-->
-      <TextBox Grid.Row="2" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+      <TextBox Grid.Row="3" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
                TextWrapping="Wrap" AcceptsReturn="True" Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
                FontSize="16" MinHeight="160" MaxHeight="160" Width="800" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto"
-               Margin="0,16,0,0" Text="{Binding Race.RaceAnalyzer.Value.Memo.Value,ElementName=Root,Mode=TwoWay}">
+               Margin="0,40,0,0" Text="{Binding Race.RaceAnalyzer.Value.Memo.Value,ElementName=Root,Mode=TwoWay}">
         <TextBox.IsReadOnly>
           <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
             <Binding Path="Race.RaceAnalyzer.Value.CanSave.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
@@ -171,7 +171,7 @@
       </TextBox>
 
       <!--レース制限-->
-      <Grid Grid.Row="3" HorizontalAlignment="Center" Margin="0,24,0,0"
+      <Grid Grid.Row="2" HorizontalAlignment="Center" Margin="0,24,0,0"
             Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="50"/>

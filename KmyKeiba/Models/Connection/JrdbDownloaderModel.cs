@@ -73,8 +73,16 @@ namespace KmyKeiba.Models.Connection
 
       var response = await myweb.SendAsync(request);
 
-      var lzh = await response.Content.ReadAsByteArrayAsync();
-      await File.WriteAllBytesAsync("test.lzh", lzh);
+      try
+      {
+        var lzh = await response.Content.ReadAsByteArrayAsync();
+        await File.WriteAllBytesAsync("test.lzh", lzh);
+      }
+      catch
+      {
+        // ダウンロード失敗
+        return;
+      }
 
       // 書き出したファイルを解凍
       Directory.CreateDirectory("test.lzh-tmp");
