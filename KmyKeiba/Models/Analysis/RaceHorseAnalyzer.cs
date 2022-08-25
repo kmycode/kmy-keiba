@@ -37,6 +37,8 @@ namespace KmyKeiba.Models.Analysis
 
     public HorseData? DetailData { get; init; }
 
+    public JrdbRaceHorseData? JrdbData { get; }
+
     public ReactiveProperty<FinderModel?> FinderModel { get; } = new();
 
     public RaceHorseBloodTrendAnalysisSelectorMenu? BloodSelectors { get; init; }
@@ -231,13 +233,20 @@ namespace KmyKeiba.Models.Analysis
           this.A3HTimeDeviationValue = MathUtil.AvoidNan(single?.A3HResultTimeDeviationValue ?? pointsa3h.CalcRegressionValue(predictValue));
           this.UntilA3HTimeDeviationValue = MathUtil.AvoidNan(single?.UntilA3HResultTimeDeviationValue ?? pointsua3h.CalcRegressionValue(predictValue));
           this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(targetRaces);
-
-          this.RunningStyle = targetRaces
-            .OrderBy(r => r.Data.ResultOrder)
-            .GroupBy(r => r.Data.RunningStyle)
-            .OrderByDescending(g => g.Count())
-            .Select(g => g.Key)
-            .FirstOrDefault();
+          
+          if (jrdbHorse != null && jrdbHorse.RunningStyle != JdbcRunningStyle.Unknown)
+          {
+            this.RunningStyle = (RunningStyle)(short)jrdbHorse.RunningStyle;
+          }
+          else
+          {
+            this.RunningStyle = targetRaces
+              .OrderBy(r => r.Data.ResultOrder)
+              .GroupBy(r => r.Data.RunningStyle)
+              .OrderByDescending(g => g.Count())
+              .Select(g => g.Key)
+              .FirstOrDefault();
+          }
 
           // 距離適性
           this.SprinterGrade = new ResultOrderGradeMap(this.BeforeRaces
@@ -460,11 +469,12 @@ namespace KmyKeiba.Models.Analysis
     public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, RaceStandardTimeMasterData? raceStandardTime, JrdbRaceHorseData? jrdbHorse = null)
       : this(race, horse, raceStandardTime, jrdbHorse)
     {
+      this.JrdbData = jrdbHorse;
       this.CurrentRace = new CurrentRaceData(race, horse, sameRaceHorses, raceStandardTime);
     }
 
     public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalyzer> raceHistory, RaceStandardTimeMasterData? raceStandardTime, RiderWinRateMasterData riderWinRate, JrdbRaceHorseData? jrdbHorse = null)
-      : this(race, horse, sameRaceHorses, raceStandardTime)
+      : this(race, horse, sameRaceHorses, raceStandardTime, jrdbHorse)
     {
       this.History = new HistoryData(race, horse, raceHistory, jrdbHorse);
 

@@ -28,6 +28,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public static List<AnalysisTableRowOutputItem> RowOutputSubItems { get; } = new();
 
+    public static List<AnalysisTableRowOutputItem> RowOutputJrdbItems { get; } = new();
+
     internal static async Task InitializeAsync(MyContext db)
     {
       if (!_isInitialized)
@@ -155,6 +157,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         });
         RowOutputItems.Add(new AnalysisTableRowOutputItem
         {
+          Label = "その他（JRDB）",
+          OutputType = AnalysisTableRowOutputType.JrdbValues,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
           Label = "その他（馬の値）",
           OutputType = AnalysisTableRowOutputType.HorseValues,
         });
@@ -178,6 +185,22 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         {
           Label = "単勝オッズ",
           OutputType = AnalysisTableRowOutputType.Odds,
+        });
+
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "騎手指数",
+          OutputType = AnalysisTableRowOutputType.RiderPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "情報指数",
+          OutputType = AnalysisTableRowOutputType.InfoPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "総合指数",
+          OutputType = AnalysisTableRowOutputType.TotalPoint,
         });
 
         _isInitialized = true;

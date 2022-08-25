@@ -79,6 +79,11 @@ namespace KmyKeiba.Data.Db
     Odds = 403,
     Age = 404,
 
+    // ここからJRDB
+    RiderPoint = 501,
+    InfoPoint = 502,
+    TotalPoint = 503,
+
     /// <summary>
     /// 通常は設定しない
     /// </summary>
