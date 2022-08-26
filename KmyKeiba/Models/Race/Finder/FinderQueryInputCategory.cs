@@ -3235,6 +3235,17 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<string> LimitBy { get; } = new("3000");
 
+    public int DefaultSize
+    {
+      get => this._defaultSize;
+      set
+      {
+        this._defaultSize = value;
+        this.LimitBy.Value = value.ToString();
+      }
+    }
+    private int _defaultSize = 3000;
+
     public OtherSettingInputCategory()
     {
       this.IsFinishedRaceOnly
@@ -3255,7 +3266,7 @@ namespace KmyKeiba.Models.Race.Finder
       {
         queries.Add("[future]");
       }
-      if (uint.TryParse(this.LimitBy.Value, out var limit) && limit != 3000)
+      if (uint.TryParse(this.LimitBy.Value, out var limit) && limit != this.DefaultSize)
       {
         queries.Add($"[limit]{limit}");
       }

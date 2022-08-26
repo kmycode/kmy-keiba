@@ -101,7 +101,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.UpdateMemoConfigs();
     }
 
-    public async Task AddTableAsync()
+    public async Task<AnalysisTableSurface?> AddTableAsync()
     {
       try
       {
@@ -115,17 +115,22 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         await db.SaveChangesAsync();
 
         AnalysisTableUtil.TableConfigs.Add(data);
+        var table = new AnalysisTableSurface(new RaceData(), data, Array.Empty<RaceHorseAnalyzer>());
+
         ThreadUtil.InvokeOnUiThread(() =>
         {
-          var table = new AnalysisTableSurface(new RaceData(), data, Array.Empty<RaceHorseAnalyzer>());
           this.Tables.Add(table);
           table.IsChecked.Value = true;
         });
+
+        return table;
       }
       catch (Exception ex)
       {
         logger.Error("テーブル作成でエラー", ex);
       }
+
+      return null;
     }
 
     public async Task RemoveTableAsync(AnalysisTableSurface table)
@@ -144,6 +149,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       {
         using var db = new MyContext();
 
+        db.AnalysisTableRows!.RemoveRange(table.Rows.Select(r => r.Data));
+
         db.AnalysisTables!.Remove(table.Data);
         await db.SaveChangesAsync();
         AnalysisTableUtil.TableConfigs.Remove(table.Data);
@@ -158,48 +165,60 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public async Task UpTableAsync(AnalysisTableSurface table)
     {
-      // TODO error
-      var index = this.Tables.IndexOf(table);
-      if (index <= 0)
+      try
       {
-        return;
+        var index = this.Tables.IndexOf(table);
+        if (index <= 0)
+        {
+          return;
+        }
+
+        var prev = this.Tables[index - 1];
+        var tmp = prev.Data.Order;
+
+        using var db = new MyContext();
+        db.AnalysisTables!.Attach(prev.Data);
+        db.AnalysisTables!.Attach(table.Data);
+        prev.Data.Order = table.Data.Order;
+        table.Data.Order = tmp;
+        await db.SaveChangesAsync();
+
+        this.Tables.Remove(prev);
+        this.Tables.Insert(index, prev);
       }
-
-      var prev = this.Tables[index - 1];
-      var tmp = prev.Data.Order;
-
-      using var db = new MyContext();
-      db.AnalysisTables!.Attach(prev.Data);
-      db.AnalysisTables!.Attach(table.Data);
-      prev.Data.Order = table.Data.Order;
-      table.Data.Order = tmp;
-      await db.SaveChangesAsync();
-
-      this.Tables.Remove(prev);
-      this.Tables.Insert(index, prev);
+      catch (Exception ex)
+      {
+        logger.Error("テーブルの並べ替えでエラー", ex);
+      }
     }
 
     public async Task DownTableAsync(AnalysisTableSurface table)
     {
-      // TODO error
       var index = this.Tables.IndexOf(table);
       if (index < 0 || index > this.Tables.Count - 2)
       {
         return;
       }
 
-      var next = this.Tables[index + 1];
-      var tmp = next.Data.Order;
+      try
+      {
+        var next = this.Tables[index + 1];
+        var tmp = next.Data.Order;
 
-      using var db = new MyContext();
-      db.AnalysisTables!.Attach(next.Data);
-      db.AnalysisTables!.Attach(table.Data);
-      next.Data.Order = table.Data.Order;
-      table.Data.Order = tmp;
-      await db.SaveChangesAsync();
+        using var db = new MyContext();
+        db.AnalysisTables!.Attach(next.Data);
+        db.AnalysisTables!.Attach(table.Data);
+        next.Data.Order = table.Data.Order;
+        table.Data.Order = tmp;
+        await db.SaveChangesAsync();
 
-      this.Tables.Remove(next);
-      this.Tables.Insert(index, next);
+        this.Tables.Remove(next);
+        this.Tables.Insert(index, next);
+      }
+      catch (Exception ex)
+      {
+        logger.Error("テーブルの並べ替えでエラー", ex);
+      }
     }
 
     public async Task AddTableRowAsync()
@@ -210,25 +229,35 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
     }
 
-    public async Task AddTableRowAsync(AnalysisTableSurface table)
+    public async Task<AnalysisTableRow?> AddTableRowAsync(AnalysisTableSurface table)
     {
-      // TODO error
-      using var db = new MyContext();
-
-      var row = new AnalysisTableRowData
+      try
       {
-        TableId = table.Data.Id,
-        Output = AnalysisTableRowOutputType.PlaceBetsRate,
-        BaseWeight = 1,
-      };
-      await db.AnalysisTableRows!.AddAsync(row);
-      await db.SaveChangesAsync();
+        using var db = new MyContext();
 
-      row.Order = row.Id;
-      await db.SaveChangesAsync();
+        var row = new AnalysisTableRowData
+        {
+          TableId = table.Data.Id,
+          Output = AnalysisTableRowOutputType.PlaceBetsRate,
+          BaseWeight = 1,
+        };
+        await db.AnalysisTableRows!.AddAsync(row);
+        await db.SaveChangesAsync();
 
-      AnalysisTableUtil.TableRowConfigs.Add(row);
-      table.Rows.Add(new AnalysisTableRow(row, table, Array.Empty<RaceHorseAnalyzer>()));
+        row.Order = row.Id;
+        await db.SaveChangesAsync();
+
+        AnalysisTableUtil.TableRowConfigs.Add(row);
+        var rowobj = new AnalysisTableRow(row, table, Array.Empty<RaceHorseAnalyzer>());
+        table.Rows.Add(rowobj);
+        return rowobj;
+      }
+      catch (Exception ex)
+      {
+        logger.Error("テーブル行作成でエラー", ex);
+      }
+
+      return null;
     }
 
     public async Task RemoveTableRowAsync(AnalysisTableRow row)
@@ -244,19 +273,27 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         table.Rows.Remove(row);
       });
 
-      // TODO error
-      using var db = new MyContext();
-
-      db.AnalysisTableRows!.Remove(row.Data);
-      await db.SaveChangesAsync();
-      AnalysisTableUtil.TableRowConfigs.Remove(row.Data);
-
-      foreach (var r in this.Tables.SelectMany(t => t.Rows).Where(r => r.SelectedParent.Value?.Data.ParentRowId == row.Data.Id))
+      try
       {
-        r.SelectedParent.Value = null;
-      }
+        using var db = new MyContext();
 
-      row.Dispose();
+        db.AnalysisTableRows!.Remove(row.Data);
+        await db.SaveChangesAsync();
+        AnalysisTableUtil.TableRowConfigs.Remove(row.Data);
+
+        foreach (var r in this.Tables.SelectMany(t => t.Rows).Where(r => r.SelectedParent.Value?.Data.ParentRowId == row.Data.Id))
+        {
+          r.SelectedParent.Value = null;
+        }
+      }
+      catch (Exception ex)
+      {
+        logger.Error("テーブル行の削除でエラー", ex);
+      }
+      finally
+      {
+        row.Dispose();
+      }
     }
 
     public async Task UpTableRowAsync(AnalysisTableRow row)
@@ -366,6 +403,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       try
       {
         using var db = new MyContext();
+
+        db.AnalysisTableWeightRows!.RemoveRange(weight.Rows.Select(r => r.Data));
 
         db.AnalysisTableWeights!.Remove(weight.Data);
         await db.SaveChangesAsync();
@@ -534,6 +573,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
       // TODO error
       using var db = new MyContext();
+
+      db.DelimiterRows!.RemoveRange(delimiter.Rows.Select(r => r.Data));
 
       db.Delimiters!.Remove(delimiter.Data);
       await db.SaveChangesAsync();

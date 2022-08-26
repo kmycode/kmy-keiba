@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Race.AnalysisTable;
 using KmyKeiba.Models.Race.Finder;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -17,6 +18,7 @@ namespace KmyKeiba.Models.Data
     {
       using var db = new MyContext();
       await SetExpansionMemoPresets(db);
+      await SetAnalysisTablePresets(db);
     }
 
     private static async Task SetExpansionMemoPresets(MyContext db)
@@ -240,6 +242,246 @@ namespace KmyKeiba.Models.Data
       }
       await db.MemoConfigs!.AddRangeAsync(presetsWithLabel.Select(l => l.Item1));
       await db.SaveChangesAsync();
+    }
+
+    private static async Task SetAnalysisTablePresets(MyContext db)
+    {
+      if (await db.AnalysisTables!.AnyAsync() || await db.AnalysisTableWeights!.AnyAsync() || await db.Delimiters!.AnyAsync())
+      {
+        return;
+      }
+
+      await AnalysisTableUtil.InitializeAsync(db);
+      var config = AnalysisTableConfigModel.Instance;
+
+      AnalysisTableSurface? table;
+      AnalysisTableRow? row;
+
+      async Task AddTableRowAsync(Action<AnalysisTableRow> data)
+      {
+        row = await config!.AddTableRowAsync(table!);
+        if (row == null) return;
+
+        data(row);
+      }
+
+      table = await config.AddTableAsync();
+      if (table == null) return;
+      table.Name.Value = "馬";
+
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "全レース複勝";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "競馬場複勝";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = true;
+        r.FinderModelForConfig.Input.Course.IsSetCurrentRaceValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "単勝回収率";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = true;
+        r.Output.Value = AnalysisTableRowOutputType.RecoveryRate;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "天気";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = true;
+        r.FinderModelForConfig.Input.Weather.IsSetCurrentRaceValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "馬場状態";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = true;
+        r.FinderModelForConfig.Input.TrackCondition.IsSetCurrentRaceValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "距離";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = true;
+        r.FinderModelForConfig.Input.Distance.Input.IsUseCurrentRaceValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "距離条件";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = true;
+        r.FinderModelForConfig.Input.Distance.Input.IsUseCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.Subject.IsSetCurrentRaceValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "間隔日数";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = true;
+        r.FinderModelForConfig.Input.PreviousRaceDays.Input.IsUseCurrentRaceHorseValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "騎手";
+        r.BaseWeight.Value = "1.2";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseRider.Value = true;
+      });
+
+      table = await config.AddTableAsync();
+      if (table == null) return;
+      table.Name.Value = "競馬場";
+
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "枠番";
+        r.FinderModelForConfig.Input.Course.IsSetCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.FrameNumber.IsSetCurrentRaceHorseValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "枠番距離";
+        r.FinderModelForConfig.Input.Course.IsSetCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.Distance.Input.IsUseCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.FrameNumber.IsSetCurrentRaceHorseValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "枠番距離馬場";
+        r.FinderModelForConfig.Input.Course.IsSetCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.TrackCondition.IsSetCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.Distance.Input.IsUseCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.FrameNumber.IsSetCurrentRaceHorseValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "脚質";
+        r.FinderModelForConfig.Input.Course.IsSetCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.RunningStyle.IsSetCurrentRaceHorseValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "脚質距離馬場";
+        r.FinderModelForConfig.Input.Course.IsSetCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.TrackCondition.IsSetCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.Distance.Input.IsUseCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.RunningStyle.IsSetCurrentRaceHorseValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "性別年齢";
+        r.FinderModelForConfig.Input.Course.IsSetCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.Sex.IsSetCurrentRaceHorseValue.Value = true;
+        r.FinderModelForConfig.Input.Age.IsSetCurrentRaceHorseValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "人気";
+        r.BaseWeight.Value = "0.8";
+        r.FinderModelForConfig.Input.Course.IsSetCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.Popular.IsSetCurrentRaceHorseValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "人気条件";
+        r.BaseWeight.Value = "0.8";
+        r.FinderModelForConfig.Input.Course.IsSetCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.Subject.IsSetCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.Popular.IsSetCurrentRaceHorseValue.Value = true;
+      });
+
+      table = await config.AddTableAsync();
+      if (table == null) return;
+      table.Name.Value = "騎手";
+
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "複勝";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseRider.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "競馬場";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseRider.Value = true;
+        r.FinderModelForConfig.Input.Course.IsSetCurrentRaceValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "馬場状態";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseRider.Value = true;
+        r.FinderModelForConfig.Input.TrackCondition.IsSetCurrentRaceValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "脚質";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseRider.Value = true;
+        r.FinderModelForConfig.Input.RunningStyle.IsSetCurrentRaceHorseValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "距離";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseRider.Value = true;
+        r.FinderModelForConfig.Input.Distance.Input.IsUseCurrentRaceValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "距離条件";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseRider.Value = true;
+        r.FinderModelForConfig.Input.Distance.Input.IsUseCurrentRaceValue.Value = true;
+        r.FinderModelForConfig.Input.Subject.IsSetCurrentRaceValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "単勝オッズ";
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseRider.Value = true;
+        r.FinderModelForConfig.Input.Odds.Input.IsUseCurrentRaceHorseValue.Value = true;
+      });
+      await AddTableRowAsync(r =>
+      {
+        r.Name.Value = "調教師回収率";
+        r.Output.Value = AnalysisTableRowOutputType.RecoveryRate;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = false;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseRider.Value = true;
+        r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseTrainer.Value = true;
+      });
     }
 
     public static IReadOnlyList<FinderColumnDefinition<FinderRaceHorseItem>> GetFinderRaceHorseColumns()

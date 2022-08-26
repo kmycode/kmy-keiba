@@ -51,6 +51,12 @@ namespace KmyKeiba.Models.Race.Finder
 
     public bool HasRaceHorse => this.RaceHorse != null;
 
+    public int DefaultSize
+    {
+      get => this.Input.OtherSetting.DefaultSize;
+      init => this.Input.OtherSetting.DefaultSize = value;
+    }
+
     public FinderModel(RaceData? race, RaceHorseAnalyzer? horse, IEnumerable<RaceHorseAnalyzer>? horses)
     {
       this._finder = new RaceFinder(race, horse?.Data);

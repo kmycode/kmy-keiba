@@ -97,7 +97,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
 
       var dummyRace = new RaceData();
-      var finder = new FinderModel(dummyRace, new Analysis.RaceHorseAnalyzer(dummyRace, new RaceHorseData(), null), null);
+      var finder = new FinderModel(dummyRace, new RaceHorseAnalyzer(dummyRace, new RaceHorseData(), null), null)
+      {
+        DefaultSize = 1000,
+      };
       this.FinderModelForConfig = finder;
 
       this.Name.Value = data.Name;
@@ -356,7 +359,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         }
 
         var query = keys;
-        var size = 3000;
+        var size = this.FinderModelForConfig.DefaultSize;
         if (this.Data.Output == AnalysisTableRowOutputType.Binary)
         {
           query += "|[currentonly]";
