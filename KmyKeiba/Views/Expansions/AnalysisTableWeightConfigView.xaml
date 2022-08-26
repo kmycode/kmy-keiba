@@ -140,7 +140,7 @@
                   <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
                 <up:FinderKeyInputView IsShowFinderButtonOnly="True" FinderModel="{Binding FinderModelForConfig}"
-                                       IsEnumerable="True" IsPopupOnMouse="True"/>
+                                       IsEnumerable="True" IsSubView="True" IsPopupOnMouse="True"/>
                 <ItemsControl Grid.Column="1" ItemsSource="{Binding FinderModelParameters}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
