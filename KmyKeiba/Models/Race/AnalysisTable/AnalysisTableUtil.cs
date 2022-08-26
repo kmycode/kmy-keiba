@@ -107,26 +107,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         });
         RowOutputItems.Add(new AnalysisTableRowOutputItem
         {
-          Label = "持ちタイム",
+          Label = "最短タイム",
           OutputType = AnalysisTableRowOutputType.ShortestTime,
-        });
-        RowOutputItems.Add(new AnalysisTableRowOutputItem
-        {
-          Label = "タイム偏差値",
-          OutputType = AnalysisTableRowOutputType.Time,
-          CanApplyWeight = false,
-        });
-        RowOutputItems.Add(new AnalysisTableRowOutputItem
-        {
-          Label = "後３ハロンタイム偏差値",
-          OutputType = AnalysisTableRowOutputType.A3HTime,
-          CanApplyWeight = false,
-        });
-        RowOutputItems.Add(new AnalysisTableRowOutputItem
-        {
-          Label = "Until後３ハロンタイム偏差値",
-          OutputType = AnalysisTableRowOutputType.UA3HTime,
-          CanApplyWeight = false,
         });
         RowOutputItems.Add(new AnalysisTableRowOutputItem
         {

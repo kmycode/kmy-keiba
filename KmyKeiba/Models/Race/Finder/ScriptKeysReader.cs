@@ -35,9 +35,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     public bool IsRealtimeResult { get; }
 
+    public bool IsExpandedResult { get; }
+
     public ScriptKeysMemoGroupInfo? MemoGroupInfo { get; set; }
 
-    public ScriptKeysParseResult(IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueries = null, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueriesBetweenCurrent = null, bool isContainsFutureRaces = false, bool isCurrentOnly = false, bool isRealtimeResult = false)
+    public ScriptKeysParseResult(IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueries = null, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueriesBetweenCurrent = null, bool isContainsFutureRaces = false, bool isCurrentOnly = false, bool isRealtimeResult = false, bool isExpandedResult = false)
     {
       this.Queries = queries;
       this.GroupKey = groupKey;
@@ -48,6 +50,7 @@ namespace KmyKeiba.Models.Race.Finder
       this.IsContainsFutureRaces = isContainsFutureRaces;
       this.IsCurrentRaceOnly = isCurrentOnly;
       this.IsRealtimeResult = isRealtimeResult;
+      this.IsExpandedResult = isExpandedResult;
     }
   }
 
@@ -89,6 +92,7 @@ namespace KmyKeiba.Models.Race.Finder
       var isContainsFutureRaces = false;
       var isCurrentRaceOnly = false;
       var isRealtimeResult = false;
+      var isExpandedResult = false;
       ScriptKeysMemoGroupInfo? memoGroupInfo = null;
 
       var queries = new List<ScriptKeyQuery>();
@@ -431,6 +435,11 @@ namespace KmyKeiba.Models.Race.Finder
           if (q.StartsWith("[future]"))
           {
             isContainsFutureRaces = true;
+            return true;
+          }
+          if (q.StartsWith("[expand]"))
+          {
+            isExpandedResult = true;
             return true;
           }
           if (q.StartsWith("[currentonly]"))
@@ -899,7 +908,7 @@ namespace KmyKeiba.Models.Race.Finder
         isRealtimeResult = false;
       }
 
-      return new ScriptKeysParseResult(queries, groupKey, limit, offset, diffQueries: diffQueries, diffQueriesBetweenCurrent: diffQueriesBetweenCurrent, isContainsFutureRaces: isContainsFutureRaces, isCurrentOnly: isCurrentRaceOnly, isRealtimeResult: isRealtimeResult)
+      return new ScriptKeysParseResult(queries, groupKey, limit, offset, diffQueries: diffQueries, diffQueriesBetweenCurrent: diffQueriesBetweenCurrent, isContainsFutureRaces: isContainsFutureRaces, isCurrentOnly: isCurrentRaceOnly, isRealtimeResult: isRealtimeResult, isExpandedResult: isExpandedResult)
       {
         MemoGroupInfo = memoGroupInfo,
       };

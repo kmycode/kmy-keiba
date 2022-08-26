@@ -18,6 +18,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public double Pci { get; }
 
+    public double Pci3 { get; }
+
+    public double Rpci { get; }
+
     public int PlaceBetsPayoff { get; }
 
     public int FramePayoff { get; }
@@ -41,8 +45,21 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (analyzer.Race.Distance >= 800)
       {
-        var baseTime = (analyzer.Data.ResultTime.TotalSeconds - analyzer.Data.AfterThirdHalongTime.TotalSeconds) / (analyzer.Race.Distance - 600) * 600;
-        this.Pci = baseTime / analyzer.Data.AfterThirdHalongTime.TotalSeconds * 100 - 50;
+        this.Pci = AnalysisUtil.CalcPci(analyzer.Race, analyzer.Data);
+
+        if (analyzer.CurrentRace != null)
+        {
+          if (analyzer.CurrentRace.TopHorses.Count >= 3)
+          {
+            this.Pci3 = analyzer.CurrentRace.TopHorses.Average(h => AnalysisUtil.CalcPci(analyzer.Race, h));
+          }
+
+          var topHorse = analyzer.CurrentRace.TopHorse;
+          if (topHorse != null)
+          {
+            this.Rpci = AnalysisUtil.CalcRpci(analyzer.Race, topHorse);
+          }
+        }
       }
 
       this.Payoff = payoff;

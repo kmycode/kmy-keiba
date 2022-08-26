@@ -283,5 +283,25 @@ namespace KmyKeiba.Models.Analysis
         });
       });
     }
+
+    public static double CalcPci(RaceData race, RaceHorseData horse)
+    {
+      if (horse.ResultOrder == default || horse.ResultTimeValue == default || horse.AfterThirdHalongTimeValue == default)
+      {
+        return default;
+      }
+      var baseTime = (horse.ResultTime.TotalSeconds - horse.AfterThirdHalongTime.TotalSeconds) / (race.Distance - 600) * 600;
+      return baseTime / horse.AfterThirdHalongTime.TotalSeconds * 100 - 50;
+    }
+
+    public static double CalcRpci(RaceData race, RaceHorseData topHorse)
+    {
+      if (race.AfterHaronTime3 == default)
+      {
+        return default;
+      }
+      var baseTime = (double)(topHorse.ResultTime.TotalSeconds * 10 - race.AfterHaronTime3) / (race.Distance - 600) * 600;
+      return baseTime / race.AfterHaronTime3 * 100 - 50;
+    }
   }
 }

@@ -70,6 +70,7 @@ namespace KmyKeiba.Models.Race.Finder
       if (raceQueries.Limit != default) sizeMax = raceQueries.Limit;
       if (raceQueries.Offset != default) offset = raceQueries.Offset;
       if (raceQueries.IsContainsFutureRaces && !withoutFutureRacesForce) withoutFutureRaces = false;
+      if (raceQueries.IsExpandedResult) isLoadSameHorses = true;
 
       IQueryable<RaceData> races = db.Races!;
       var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
@@ -134,7 +135,7 @@ namespace KmyKeiba.Models.Race.Finder
       if (isLoadSameHorses)
       {
         raceHorsesData = await db.RaceHorses!
-          .Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 5 && raceKeys.Contains(rh.RaceKey))
+          .Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 3 && raceKeys.Contains(rh.RaceKey))
           .ToArrayAsync();
       }
       var refunds = await db.Refunds!.Where(r => raceKeys.Contains(r.RaceKey)).ToArrayAsync();
@@ -150,7 +151,10 @@ namespace KmyKeiba.Models.Race.Finder
             await AnalysisUtil.GetRaceStandardTimeAsync(db, race.Race)));
       }
 
-      var result = new RaceHorseFinderQueryResult(list, raceQueries.GroupKey, raceQueries.MemoGroupInfo, refunds);
+      var result = new RaceHorseFinderQueryResult(list, raceQueries.GroupKey, raceQueries.MemoGroupInfo, refunds)
+      {
+        IsExpandedResult = raceQueries.IsExpandedResult,
+      };
       if (withoutFutureRaces && !raceQueries.IsRealtimeResult)
       {
         this._raceHorseCaches[keys] = (sizeMax, result);
@@ -277,6 +281,8 @@ namespace KmyKeiba.Models.Race.Finder
     public RaceHorseFinderResultAnalyzer Analyzer => this._analyzer ??= new RaceHorseFinderResultAnalyzer(this.AsItems(), this._analyzerSlim);
 
     public RaceHorseFinderResultAnalyzerSlim AnalyzerSlim => this._analyzerSlim ??= new RaceHorseFinderResultAnalyzerSlim(this.AsItems());
+
+    public bool IsExpandedResult { get; init; }
 
     internal RaceHorseFinderQueryResult(
       IReadOnlyList<RaceHorseAnalyzer> items, QueryKey group, ScriptKeysMemoGroupInfo? groupInfo,

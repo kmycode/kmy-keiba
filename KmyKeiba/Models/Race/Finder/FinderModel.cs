@@ -308,12 +308,23 @@ namespace KmyKeiba.Models.Race.Finder
               {
                 g = groups.Select(g => new FinderRaceHorseGroupItem(g)).ToArray();
               }
+
+              if (data.IsExpandedResult)
+              {
+                this.UpdateExpandedData(g);
+              }
               this.UpdateGroups(g);
             }
             else
             {
               var group = new FinderRaceHorseGroupItem(allItems);
-              this.UpdateGroups(new[] { group, });
+              var gs = new[] { group, };
+
+              if (data.IsExpandedResult)
+              {
+                this.UpdateExpandedData(gs);
+              }
+              this.UpdateGroups(gs);
             }
           }
 
@@ -339,6 +350,14 @@ namespace KmyKeiba.Models.Race.Finder
     internal Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(string keys, int count, int offset)
     {
       return this._finder.FindRaceHorsesAsync(keys, count, offset);
+    }
+
+    private void UpdateExpandedData(IEnumerable<FinderRaceHorseGroupItem> groups)
+    {
+      foreach (var group in groups)
+      {
+        group.ExpandedData = new FinderRaceHorseGroupExpandedData(group.Items);
+      }
     }
 
     private void UpdateGroups(IEnumerable<FinderRaceHorseGroupItem> groups)

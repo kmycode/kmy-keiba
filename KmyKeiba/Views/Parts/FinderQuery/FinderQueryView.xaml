@@ -1094,6 +1094,9 @@
             <ToggleButton IsChecked="{Binding FinderModel.Input.OtherSetting.IsFinishedRaceOnly.Value,ElementName=Root,Mode=TwoWay}"
                           FontSize="16" Content="結果の届いたレースに限って検索する" Margin="0,8,0,0"
                           Visibility="{Binding IsEnumerable,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+            <ToggleButton IsChecked="{Binding FinderModel.Input.OtherSetting.IsExpandedResult.Value,ElementName=Root,Mode=TwoWay}"
+                          FontSize="16" Content="検索結果に拡張データを含める" Margin="0,8,0,0"
+                          Visibility="{Binding IsEnumerable,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
             <Grid Margin="0,24,0,0"
                   Visibility="{Binding IsEnumerable,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
               <Grid.ColumnDefinitions>

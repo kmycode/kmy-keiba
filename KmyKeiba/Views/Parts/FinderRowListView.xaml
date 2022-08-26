@@ -103,22 +103,38 @@
       </ComboBox>
     </Grid>
 
-    <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right" Margin="0,2,4,2">
-      <ItemsControl ItemsSource="{Binding FinderModel.Tabs,ElementName=Root}">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <StackPanel Orientation="Horizontal"/>
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <RadioButton FontSize="16" GroupName="{Binding UniqueId,ElementName=Root}" Padding="2" Content="{Binding TabId}"
-                         Width="40" IsChecked="{Binding IsChecked.Value,Mode=TwoWay}" Margin="8,0,0,0"
-                         Style="{StaticResource ToggleButtonDefault}"/>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-    </StackPanel>
+    <Grid Grid.Row="1" Margin="4,2">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition Width="auto"/>
+      </Grid.ColumnDefinitions>
+      <StackPanel Orientation="Horizontal" Visibility="{Binding FinderModel.CurrentGroup.Value.ExpandedData,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}">
+        <TextBlock Foreground="{StaticResource SubForeground}" FontSize="14" Text="前3H平均" Margin="0,0,4,0"
+                   VerticalAlignment="Center"/>
+        <TextBlock FontSize="18" Text="{Binding FinderModel.CurrentGroup.Value.ExpandedData.Before3hAverage,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=N1}"
+                   Width="40" TextAlignment="Right" VerticalAlignment="Center"/>
+        <TextBlock Foreground="{StaticResource SubForeground}" FontSize="14" Text="後3H平均" Margin="24,0,4,0"
+                   VerticalAlignment="Center"/>
+        <TextBlock FontSize="18" Text="{Binding FinderModel.CurrentGroup.Value.ExpandedData.After3hAverage,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=N1}"
+                   Width="40" TextAlignment="Right" VerticalAlignment="Center"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Grid.Column="1" Margin="0,2,4,2">
+        <ItemsControl ItemsSource="{Binding FinderModel.Tabs,ElementName=Root}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <RadioButton FontSize="16" GroupName="{Binding UniqueId,ElementName=Root}" Padding="2" Content="{Binding TabId}"
+                           Width="40" IsChecked="{Binding IsChecked.Value,Mode=TwoWay}" Margin="8,0,0,0"
+                           Style="{StaticResource ToggleButtonDefault}"/>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Grid>
 
     <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Name="Headers">
       <ItemsControl ItemsSource="{Binding FinderModel.Columns.Value,ElementName=Root}" Margin="0,0,48,0">
