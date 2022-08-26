@@ -55,6 +55,9 @@
     <Compile Update="Views\Expansions\AnalysisTableAggregateView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Expansions\AnalysisTableCellDetail.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Expansions\AnalysisTableConfigView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -214,6 +217,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Expansions\AnalysisTableAggregateView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\AnalysisTableCellDetail.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Expansions\AnalysisTableConfigView.xaml">

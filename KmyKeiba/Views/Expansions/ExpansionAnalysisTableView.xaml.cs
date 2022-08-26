@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -53,6 +54,26 @@ namespace KmyKeiba.Views.Expansions
     public ExpansionAnalysisTableView()
     {
       InitializeComponent();
+    }
+
+    private void ImePopup_Opened(object sender, EventArgs e)
+    {
+      if (sender is Popup popup)
+      {
+        if (popup.Child is Border border)
+        {
+          if (border.Child == null)
+          {
+            var view = new AnalysisTableCellDetail
+            {
+              MyDataContext = this.DataContext,
+            };
+            var cell = new Binding();
+            view.SetBinding(AnalysisTableCellDetail.CellProperty, cell);
+            border.Child = view;
+          }
+        }
+      }
     }
   }
 }
