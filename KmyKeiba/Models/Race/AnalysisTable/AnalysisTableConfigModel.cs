@@ -359,6 +359,16 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       row.Weight.Value = null;
     }
 
+    public void UnselectTableRowWeight2(AnalysisTableRow row)
+    {
+      row.Weight2.Value = null;
+    }
+
+    public void UnselectTableRowWeight3(AnalysisTableRow row)
+    {
+      row.Weight3.Value = null;
+    }
+
     public void UnselectTableRowParent(AnalysisTableRow row)
     {
       row.SelectedParent.Value = null;

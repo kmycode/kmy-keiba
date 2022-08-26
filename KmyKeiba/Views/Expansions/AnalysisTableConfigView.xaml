@@ -216,7 +216,7 @@
                         </DataTemplate>
                       </ComboBox.ItemTemplate>
                     </ComboBox>
-                    <Button Grid.Column="1" Content="選択解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowWeightCommand,ElementName=Root}"
+                    <Button Grid.Column="1" Content="選択解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowWeight2Command,ElementName=Root}"
                             CommandParameter="{Binding}" Margin="8,0,0,0"
                             Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </Grid>
@@ -237,7 +237,7 @@
                         </DataTemplate>
                       </ComboBox.ItemTemplate>
                     </ComboBox>
-                    <Button Grid.Column="1" Content="選択解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowWeightCommand,ElementName=Root}"
+                    <Button Grid.Column="1" Content="選択解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowWeight3Command,ElementName=Root}"
                             CommandParameter="{Binding}" Margin="8,0,0,0"
                             Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </Grid>

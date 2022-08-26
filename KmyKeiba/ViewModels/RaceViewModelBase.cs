@@ -301,6 +301,16 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand<Models.Race.AnalysisTable.AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.UnselectTableRowWeight(obj)).AddTo(this._disposables);
     private ICommand? _unselectAnalysisTableRowWeightCommand;
 
+    public ICommand UnselectAnalysisTableRowWeight2Command =>
+      this._unselectAnalysisTableRowWeight2Command ??=
+        new ReactiveCommand<Models.Race.AnalysisTable.AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.UnselectTableRowWeight2(obj)).AddTo(this._disposables);
+    private ICommand? _unselectAnalysisTableRowWeight2Command;
+
+    public ICommand UnselectAnalysisTableRowWeight3Command =>
+      this._unselectAnalysisTableRowWeight3Command ??=
+        new ReactiveCommand<Models.Race.AnalysisTable.AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.UnselectTableRowWeight3(obj)).AddTo(this._disposables);
+    private ICommand? _unselectAnalysisTableRowWeight3Command;
+
     public ICommand UnselectAnalysisTableRowParentCommand =>
       this._unselectAnalysisTableRowParentCommand ??=
         new ReactiveCommand<Models.Race.AnalysisTable.AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.UnselectTableRowParent(obj)).AddTo(this._disposables);
