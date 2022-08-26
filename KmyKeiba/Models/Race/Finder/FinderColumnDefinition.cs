@@ -42,7 +42,9 @@ namespace KmyKeiba.Models.Race.Finder
 
     public Func<T, object, ValueComparation>? Comparation { get; }
 
-    public FinderColumnDefinition(int tab, FinderColumnType type, int width, string header, Func<T, object> value, Func<T, object, ValueComparation>? comparation)
+    public Func<object, object> ToStringFunc { get; }
+
+    public FinderColumnDefinition(int tab, FinderColumnType type, int width, string header, Func<T, object> value, Func<object, object> toString, Func<T, object, ValueComparation>? comparation)
     {
       this.Tab = tab;
       this.Type = type;
@@ -50,6 +52,7 @@ namespace KmyKeiba.Models.Race.Finder
       this.Value = value;
       this.Width = width;
       this.Comparation = comparation;
+      this.ToStringFunc = toString;
 
       this.Alignment = type == FinderColumnType.NumericText || type == FinderColumnType.BoldNumericText ||
         type == FinderColumnType.RunningStyle || type == FinderColumnType.CornerPlaces ? CellTextAlignment.Right : CellTextAlignment.Left;
@@ -57,7 +60,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public FinderColumnDefinition<T> Clone()
     {
-      var item = new FinderColumnDefinition<T>(this.Tab, this.Type, this.Width, this.Header, this.Value, this.Comparation);
+      var item = new FinderColumnDefinition<T>(this.Tab, this.Type, this.Width, this.Header, this.Value, this.ToStringFunc, this.Comparation);
       item.IsVisible.Value = this.IsVisible.Value;
       return item;
     }
@@ -66,7 +69,15 @@ namespace KmyKeiba.Models.Race.Finder
   public static class FinderColumnDefinition
   {
     public static FinderColumnDefinition<T> Create<T>(int tab, FinderColumnType type, int width, string header, Func<T, object> value, Func<T, object, ValueComparation>? comparation = null)
-      => new FinderColumnDefinition<T>(tab, type, width, header, value, comparation);
+      => new FinderColumnDefinition<T>(tab, type, width, header, value, FinderColumnToString, comparation);
+
+    public static FinderColumnDefinition<T> Create<T>(int tab, FinderColumnType type, int width, string header, Func<T, object> value, Func<object, object> toString, Func<T, object, ValueComparation>? comparation = null)
+      => new FinderColumnDefinition<T>(tab, type, width, header, value, toString, comparation);
+
+    private static object FinderColumnToString(object value)
+    {
+      return value;
+    }
 
     public static FinderColumnDefinition<T> CreateDelay<T>(int tab, FinderColumnType type, int width, string header, Func<MyContext, T, Task<object>> value)
     {
@@ -86,7 +97,7 @@ namespace KmyKeiba.Models.Race.Finder
           }
         });
         return property;
-      }, null);
+      }, FinderColumnToString, null);
     }
 
     public static FinderColumnDefinition<T> CreateDelay<T>(int tab, FinderColumnType type, int width, string header, Func<T, Task<object>> value)
@@ -106,7 +117,7 @@ namespace KmyKeiba.Models.Race.Finder
           }
         });
         return property;
-      }, null);
+      }, FinderColumnToString, null);
     }
   }
 

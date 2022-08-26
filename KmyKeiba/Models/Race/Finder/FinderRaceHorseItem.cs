@@ -18,8 +18,6 @@ namespace KmyKeiba.Models.Race.Finder
 
     public double Pci { get; }
 
-    public double Rpci { get; }
-
     public int PlaceBetsPayoff { get; }
 
     public int FramePayoff { get; }
@@ -45,7 +43,6 @@ namespace KmyKeiba.Models.Race.Finder
       {
         var baseTime = (analyzer.Data.ResultTime.TotalSeconds - analyzer.Data.AfterThirdHalongTime.TotalSeconds) / (analyzer.Race.Distance - 600) * 600;
         this.Pci = baseTime / analyzer.Data.AfterThirdHalongTime.TotalSeconds * 100 - 50;
-        this.Rpci = baseTime / analyzer.Data.AfterThirdHalongTime.TotalSeconds;
       }
 
       this.Payoff = payoff;

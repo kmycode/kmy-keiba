@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race.Memo;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +38,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<FinderRaceHorseGroupItem?> CurrentGroup { get; } = new();
 
+    public CheckableCollection<FinderTab> Tabs { get; } = new();
+
     public ReactiveProperty<string> Keys => this.Input.Query;
 
     public ReactiveProperty<bool> IsLoading { get; } = new();
@@ -67,6 +70,24 @@ namespace KmyKeiba.Models.Race.Finder
       foreach (var preset in DatabasePresetModel.GetFinderRaceHorseColumns())
       {
         this.RaceHorseColumns.Add(preset.Clone());
+      }
+
+      if (this.RaceHorseColumns.Any())
+      {
+        var maxTab = this.RaceHorseColumns.Max(c => c.Tab);
+        if (maxTab >= 1)
+        {
+          for (var i = 1; i <= maxTab; i++)
+          {
+            this.Tabs.Add(new FinderTab
+            {
+              TabId = i,
+            });
+          }
+          this.Tabs.First().IsChecked.Value = true;
+        }
+
+        this.Tabs.ActiveItem.Subscribe(_ => this.OnTabChanged());
       }
 
       this.CurrentGroup.Subscribe(g =>
@@ -295,6 +316,8 @@ namespace KmyKeiba.Models.Race.Finder
               this.UpdateGroups(new[] { group, });
             }
           }
+
+          this.OnTabChanged();
         }
         catch (Exception ex)
         {
@@ -350,6 +373,31 @@ namespace KmyKeiba.Models.Race.Finder
           group.Rows.Add(row);
         }
       });
+    }
+
+    private void ChangeTab(int tabId)
+    {
+      var tab = this.Tabs.FirstOrDefault(t => t.TabId == tabId);
+      if (tab != null)
+      {
+        tab.IsChecked.Value = true;
+        this.OnTabChanged();
+      }
+    }
+
+    private void OnTabChanged()
+    {
+      var id = this.Tabs.ActiveItem.Value?.TabId ?? 1;
+
+      if (this.Columns.Value == null)
+      {
+        return;
+      }
+
+      foreach (var column in this.Columns.Value)
+      {
+        column.IsVisible.Value = column.Tab == id;
+      }
     }
 
     public void ReplaceFrom(FinderModel model)

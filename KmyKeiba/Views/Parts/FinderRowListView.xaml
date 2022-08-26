@@ -103,9 +103,21 @@
       </ComboBox>
     </Grid>
 
-    <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right" Margin="0,2,4,2"
-                Visibility="Hidden">
-      <ToggleButton FontSize="16" Padding="2" Content="1" Width="40"/>
+    <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right" Margin="0,2,4,2">
+      <ItemsControl ItemsSource="{Binding FinderModel.Tabs,ElementName=Root}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <RadioButton FontSize="16" GroupName="{Binding UniqueId,ElementName=Root}" Padding="2" Content="{Binding TabId}"
+                         Width="40" IsChecked="{Binding IsChecked.Value,Mode=TwoWay}" Margin="8,0,0,0"
+                         Style="{StaticResource ToggleButtonDefault}"/>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
     </StackPanel>
 
     <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Name="Headers">
@@ -118,6 +130,7 @@
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <TextBlock Foreground="{StaticResource SubForeground}" FontSize="14" Width="{Binding Width}"
+                       Visibility="{Binding IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}"
                        Text="{Binding Header}" TextAlignment="{Binding Alignment,Converter={StaticResource CellTextAlignmentConv}}" Margin="0,0,8,4"/>
           </DataTemplate>
         </ItemsControl.ItemTemplate>

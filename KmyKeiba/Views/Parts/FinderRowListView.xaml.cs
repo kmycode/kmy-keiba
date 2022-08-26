@@ -34,6 +34,8 @@ namespace KmyKeiba.Views.Parts
       set { SetValue(FinderModelProperty, value); }
     }
 
+    public Guid UniqueId { get; } = Guid.NewGuid();
+
     public FinderRowListView()
     {
         InitializeComponent();

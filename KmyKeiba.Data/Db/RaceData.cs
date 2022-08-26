@@ -302,11 +302,17 @@ namespace KmyKeiba.Data.Db
       this.PrizeMoney1 = race.PrizeMoney1;
     }
 
+    private short[]? _lapTimes;
     public short[] GetLapTimes()
     {
       if (this.LapTimes == null || this.LapTimes.Length == 0)
       {
         return Array.Empty<short>();
+      }
+
+      if (this._lapTimes != null)
+      {
+        return this._lapTimes;
       }
 
       var times = new short[this.LapTimes.Length / 2];
@@ -316,6 +322,7 @@ namespace KmyKeiba.Data.Db
         times[i / 2] = (short)time;
       }
 
+      this._lapTimes = times;
       return times;
     }
 
