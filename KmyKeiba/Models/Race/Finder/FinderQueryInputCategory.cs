@@ -2022,10 +2022,10 @@ namespace KmyKeiba.Models.Race.Finder
       }
 
       var query = string.Empty;
-      foreach (var group in this.Configs.GroupBy(c => c.Type))
+      foreach (var group in this.Configs.GroupBy(c => (c.Type, c.IsSelfBlood)))
       {
-        query += group.Key.ToStringCode() + ":";
-        if (this.IsSelfBloods.Value)
+        query += group.Key.Type.ToStringCode() + ":";
+        if (group.Key.IsSelfBlood)
         {
           query += "@";
         }
