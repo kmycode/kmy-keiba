@@ -406,6 +406,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
                 var memo = await MemoUtil.GetMemoAsync(db, item.Finder.Race, this.SelectedMemoConfig.Value, item.Finder.RaceHorseAnalyzer);
                 this.AnalysisFixedValue(memo?.Point ?? 0, myWeights, item.Cell, item.Finder, digit: 0);
               }
+              else
+              {
+                this.SetPointOrEmpty(item.Cell, -1, myWeights);
+              }
             }
             else if (this.Data.Output == AnalysisTableRowOutputType.ExternalNumber)
             {
@@ -426,6 +430,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
                   item.Cell.Weight = weightValue;
                   item.Cell.Point.Value = item.Cell.PointCalcValue.Value * weightValue;
                 }
+              }
+              else
+              {
+                this.SetPointOrEmpty(item.Cell, -1, myWeights);
               }
             }
             else if (this.Data.Output == AnalysisTableRowOutputType.RiderWeight)
