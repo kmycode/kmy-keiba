@@ -912,12 +912,19 @@ namespace KmyKeiba.Models.Connection
         this.IsError.Value = false;
         this.IsDownloading.Value = true;
         this.DownloadingLink.Value = DownloadLink.Jrdb;
+        this.DownloadingType.Value = Connection.DownloadingType.Jrdb;
         await JrdbDownloaderModel.Instance.LoadAsync(from, tod, this.JrdbId.Value, this.JrdbPassword.Value);
       }
-      catch (Exception ex)
+      catch (JrdbDownloadException ex)
       {
         logger.Error("JRDBデータのダウンロードに失敗しました", ex);
         this.ErrorMessage.Value = ex.Message;
+        this.IsError.Value = true;
+      }
+      catch (Exception ex)
+      {
+        logger.Error("JRDBデータのダウンロードに失敗しました（ハンドルされていない例外）", ex);
+        this.ErrorMessage.Value = "不明なエラーが発生しました";
         this.IsError.Value = true;
       }
       finally
@@ -1106,6 +1113,9 @@ namespace KmyKeiba.Models.Connection
 
     [Label("オッズ")]
     Odds,
+
+    [Label("JRDB")]
+    Jrdb,
   }
 
   enum LoadingProcessValue

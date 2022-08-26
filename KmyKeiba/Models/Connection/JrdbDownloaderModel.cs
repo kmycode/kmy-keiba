@@ -72,6 +72,10 @@ namespace KmyKeiba.Models.Connection
           }
         }
       }
+      catch (Exception ex) when (ex is not JrdbDownloadException)
+      {
+        throw new JrdbDownloadException("接続で想定しないエラーが発生しました", ex);
+      }
       finally
       {
         this.IsDownloading.Value = false;
@@ -86,13 +90,20 @@ namespace KmyKeiba.Models.Connection
       var path = Constrants.AppDataDir;
       var lzhFilePath = Path.Combine(path, "jrdbtmp.lzh");
       var lzhDirPath = Path.Combine(path, "jrdbtmp");
-      Directory.CreateDirectory(lzhDirPath);
+
+      try
+      {
+        Directory.CreateDirectory(lzhDirPath);
+      }
+      catch (Exception ex)
+      {
+        throw new JrdbDownloadException("テンポラリディレクトリの作成に失敗しました", ex);
+      }
 
       // Basic認証するユーザ名とパスワード
       // 後々セキュリティ
 
       var myweb = new HttpClient();
-
       var request = new HttpRequestMessage
       {
         Method = HttpMethod.Post,
@@ -101,6 +112,18 @@ namespace KmyKeiba.Models.Connection
       };
 
       var response = await myweb.SendAsync(request);
+      if (response.StatusCode == HttpStatusCode.Unauthorized)
+      {
+        throw new JrdbDownloadException("IDまたはパスワードが違います");
+      }
+      if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+      {
+        throw new JrdbDownloadException("サーバーが動作していません");
+      }
+      if (response.StatusCode == HttpStatusCode.InternalServerError)
+      {
+        throw new JrdbDownloadException("サーバーが正常に動作していません");
+      }
       if (!response.IsSuccessStatusCode)
       {
         return;
@@ -113,8 +136,7 @@ namespace KmyKeiba.Models.Connection
       }
       catch
       {
-        // ダウンロード失敗
-        return;
+        throw new JrdbDownloadException("データのダウンロードに失敗しました");
       }
 
       // LHA解凍
@@ -124,14 +146,14 @@ namespace KmyKeiba.Models.Connection
       }
       catch (Exception ex)
       {
-        // TODO 解凍失敗
-        return;
+        throw new JrdbDownloadException("データの読み込みに失敗しました", ex);
       }
 
       // 解凍したファイルを読み込む
       var fileName = Path.Combine(lzhDirPath, $"KYI{dateFormat}.txt");
       if (!File.Exists(fileName))
       {
+        // 例外はいらないんでは
         return;
       }
 
@@ -152,7 +174,7 @@ namespace KmyKeiba.Models.Connection
         }
         catch (Exception ex)
         {
-          // TODO
+          throw new JrdbDownloadException("データの読み込み時に内部エラーが発生しました", ex);
         }
       }
 
@@ -168,7 +190,7 @@ namespace KmyKeiba.Models.Connection
       }
       catch (Exception ex)
       {
-        // TODO
+        throw new JrdbDownloadException("データベースへの書き込みに失敗しました", ex);
       }
       finally
       {
@@ -182,8 +204,21 @@ namespace KmyKeiba.Models.Connection
       }
       catch (Exception ex)
       {
-        // TODO
+        // キャッシュファイルの削除はそんなにクリティカルではないと思う
+        // throw new JrdbDownloadException("キャッシュファイルの削除に失敗しました", ex);
+        return;
       }
+    }
+  }
+
+  internal class JrdbDownloadException : Exception
+  {
+    public JrdbDownloadException(string message) : base(message)
+    {
+    }
+
+    public JrdbDownloadException(string message, Exception innerException) : base(message, innerException)
+    {
     }
   }
 }
