@@ -78,6 +78,8 @@ namespace KmyKeiba.Data.Db
     RiderWeightDiff = 402,
     Odds = 403,
     Age = 404,
+    MiningTime = 405,
+    MiningMatch = 406,
 
     // ここからJRDB
     RiderPoint = 501,

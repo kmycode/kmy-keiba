@@ -39,6 +39,10 @@ namespace KmyKeiba.Models.Analysis
 
     public JrdbRaceHorseData? JrdbData { get; }
 
+    public RaceHorseExtraData? ExtraData { get; set; }
+
+    public bool IsCheckedExtraData { get; set; }
+
     public ReactiveProperty<FinderModel?> FinderModel { get; } = new();
 
     public RaceHorseBloodTrendAnalysisSelectorMenu? BloodSelectors { get; init; }

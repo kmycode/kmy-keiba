@@ -5,6 +5,7 @@ using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.Race.Memo;
+using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -455,6 +456,14 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             {
               this.TrySetJrdbValue(j => j.TotalPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
             }
+            else if (this.Data.Output == AnalysisTableRowOutputType.MiningTime)
+            {
+              await this.TrySetExtraValueAsync(e => e.MiningTime / 10.0, item.Cell.Horse, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.MiningMatch)
+            {
+              await this.TrySetExtraValueAsync(e => e.MiningMatchScore / 10.0, item.Cell.Horse, myWeights, item.Cell, item.Finder, 1);
+            }
             else
             {
               var source = await item.Finder.FindRaceHorsesAsync(query, size, withoutFutureRaces: true, withoutFutureRacesForce: true);
@@ -482,6 +491,25 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       if (horse.JrdbData != null)
       {
         this.AnalysisFixedValue(point(horse.JrdbData), weights, cell, finder, digit: digit);
+      }
+      else
+      {
+        this.SetPointOrEmpty(cell, -1, weights);
+      }
+    }
+
+    private async Task TrySetExtraValueAsync(Func<RaceHorseExtraData, double> point, RaceHorseAnalyzer horse, IEnumerable<AnalysisTableWeight> weights, AnalysisTableCell cell, RaceFinder finder, int digit)
+    {
+      if (!horse.IsCheckedExtraData && horse.ExtraData == null)
+      {
+        using var db = new MyContext();
+        horse.ExtraData = await db.RaceHorseExtras!.FirstOrDefaultAsync(e => e.Key == horse.Data.Key && e.RaceKey == horse.Data.RaceKey);
+        horse.IsCheckedExtraData = true;
+      }
+
+      if (horse.ExtraData != null)
+      {
+        this.AnalysisFixedValue(point(horse.ExtraData), weights, cell, finder, digit: digit);
       }
       else
       {

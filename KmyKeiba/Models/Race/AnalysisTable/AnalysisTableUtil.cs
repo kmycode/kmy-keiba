@@ -186,6 +186,16 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           Label = "単勝オッズ",
           OutputType = AnalysisTableRowOutputType.Odds,
         });
+        RowOutputSubItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "タイム型マイニング",
+          OutputType = AnalysisTableRowOutputType.MiningTime,
+        });
+        RowOutputSubItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "対戦型マイニング",
+          OutputType = AnalysisTableRowOutputType.MiningMatch,
+        });
 
         RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
         {

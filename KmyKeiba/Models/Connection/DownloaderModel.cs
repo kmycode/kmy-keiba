@@ -101,6 +101,10 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsRTDownloadJrdb { get; } = new();
 
+    public ReactiveProperty<bool> IsDownloadSlop { get; } = new();
+
+    public ReactiveProperty<bool> IsDownloadBlod { get; } = new();
+
     public ReactiveProperty<LoadingProcessValue> LoadingProcess { get; } = new();
 
     public ReactiveProperty<LoadingProcessValue> RTLoadingProcess { get; } = new();
@@ -188,6 +192,8 @@ namespace KmyKeiba.Models.Connection
       this.IsRTDownloadCentral.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadCentral, v ? 1 : 0)).AddTo(this._disposables);
       this.IsRTDownloadLocal.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadLocal, v ? 1 : 0)).AddTo(this._disposables);
       this.IsRTDownloadJrdb.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadJrdb, v ? 1 : 0)).AddTo(this._disposables);
+      this.IsDownloadBlod.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsNotDownloadHorseBloods, v ? 0 : 1)).AddTo(this._disposables);
+      this.IsDownloadSlop.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsNotDownloadTrainings, v ? 0 : 1)).AddTo(this._disposables);
     }
 
     public async Task<bool> InitializeAsync()
@@ -212,6 +218,11 @@ namespace KmyKeiba.Models.Connection
         this.LocalDownloadedMonth.Value = local % 100;
         this.JrdbDownloadedYear.Value = jrdb / 100;
         this.JrdbDownloadedMonth.Value = jrdb % 100;
+
+        var isNotDownloadBlod = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsNotDownloadHorseBloods);
+        var isNotDownloadSlop = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsNotDownloadTrainings);
+        this.IsDownloadBlod.Value = isNotDownloadBlod == 0;
+        this.IsDownloadSlop.Value = isNotDownloadSlop == 0;
 
         logger.Info($"設定 {nameof(SettingKey.LastDownloadCentralDate)}: {central}, {nameof(SettingKey.LastDownloadLocalDate)}: {local}");
 
@@ -546,7 +557,7 @@ namespace KmyKeiba.Models.Connection
             }
 
             // レース予定データはRTではなくこっちにあるみたい。定期的にチェックする
-            if ((lastDownloadNormalData.AddMinutes(ApplicationConfiguration.Current.Value.DownloadNormalDataIntervalMinutes) < now || this._isUpdateRtHeavyForce)
+            if ((lastDownloadNormalData.AddMinutes(240) < now || this._isUpdateRtHeavyForce)
                 && !this.IsDownloading.Value)
             {
               logger.Info("翌日以降の予定を更新");
@@ -1004,6 +1015,8 @@ namespace KmyKeiba.Models.Connection
         "4" => DownloadingDataspec.RB11,
         "5" => DownloadingDataspec.RB14,
         "6" => DownloadingDataspec.RB41,
+        "7" => DownloadingDataspec.RB13,
+        "8" => DownloadingDataspec.RB17,
         _ => DownloadingDataspec.Unknown,
       };
 
@@ -1159,6 +1172,12 @@ namespace KmyKeiba.Models.Connection
 
     [Label("レース情報")]
     RB15,
+
+    [Label("タイム型MING")]
+    RB13,
+
+    [Label("対戦型MING")]
+    RB17,
 
     [Label("オッズ")]
     RB30,

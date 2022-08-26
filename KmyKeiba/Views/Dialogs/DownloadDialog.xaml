@@ -43,6 +43,22 @@
                     FontSize="16" Width="50" VerticalAlignment="Top"/>
           <TextBlock Text="月" Style="{StaticResource TextBlockDefault}" FontSize="16" Margin="4,0"/>
         </StackPanel>
+        <StackPanel>
+          <StackPanel.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+              <Binding Path="Downloader.IsDownloadCentral.Value"/>
+              <Binding Path="Downloader.IsDownloadLocal.Value"/>
+            </MultiBinding>
+          </StackPanel.Visibility>
+          <TextBlock FontSize="28" Text="ダウンロードオプション" Style="{StaticResource TextBlockDefault}" Margin="0,32,0,16"/>
+          <StackPanel Orientation="Horizontal" Margin="8,0,0,16">
+            <ToggleButton FontSize="16" Content="血統" IsChecked="{Binding Downloader.IsDownloadBlod.Value,Mode=TwoWay}"
+                          IsEnabled="{Binding CanSave.Value}"/>
+            <ToggleButton FontSize="16" Content="調教" IsChecked="{Binding Downloader.IsDownloadSlop.Value,Mode=TwoWay}"
+                          Visibility="{Binding Downloader.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                          IsEnabled="{Binding CanSave.Value}" Margin="8,0,0,0"/>
+          </StackPanel>
+        </StackPanel>
         <TextBlock FontSize="28" Text="JRDBログイン情報" Style="{StaticResource TextBlockDefault}" Margin="0,32,0,16"
                    Visibility="{Binding Downloader.IsDownloadJrdb.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
         <StackPanel Orientation="Horizontal" Margin="8,0,0,16"

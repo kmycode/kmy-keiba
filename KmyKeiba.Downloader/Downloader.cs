@@ -189,11 +189,13 @@ namespace KmyKeiba.Downloader
       }
 
       var specs1 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "BT", "JC", "HC", "WC", "KS", "CH", };
-      var specs2 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", "HR", };
+      var specs2 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", "HR", "TM", "DM", };
       var dataspec1 = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku;
+      var dataspec2 = JVLinkDataspec.Race;
       if (parameters[2] == "central")
       {
         dataspec1 |= JVLinkDataspec.Wood;
+        dataspec2 |= JVLinkDataspec.Ming;
       }
       else
       {
@@ -201,7 +203,18 @@ namespace KmyKeiba.Downloader
         // 実用性は低い
         // dataspec1 |= JVLinkDataspec.Nosi;
       }
-      var dataspec2 = JVLinkDataspec.Race;
+
+      var isNotDownloadBlod = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadHorseBloods);
+      var isNotDownloadSlop = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadTrainings);
+      if (isNotDownloadBlod != null && isNotDownloadBlod.IntValue != 0)
+      {
+        dataspec1 &= ~JVLinkDataspec.Blod;
+      }
+      if (isNotDownloadSlop != null && isNotDownloadSlop.IntValue != 0)
+      {
+        dataspec1 &= ~JVLinkDataspec.Slop;
+        dataspec1 &= ~JVLinkDataspec.Wood;
+      }
 
       if (parameters[2] == "local" && startYear < 2005)
       {
@@ -322,7 +335,17 @@ namespace KmyKeiba.Downloader
       int.TryParse(date.AsSpan(4, 2), out var month);
       int.TryParse(date.AsSpan(6, 2), out var day);
 
-      var dataspecs = new[]
+      var dataspecs = link.Type == JVLinkObjectType.Central ? new[]
+      {
+        JVLinkDataspec.RB12,
+        JVLinkDataspec.RB15,
+        JVLinkDataspec.RB30,
+        JVLinkDataspec.RB11,
+        JVLinkDataspec.RB14,
+        JVLinkDataspec.RB41,
+        JVLinkDataspec.RB13,
+        JVLinkDataspec.RB17,
+      } : new[]
       {
         JVLinkDataspec.RB12,
         JVLinkDataspec.RB15,
@@ -426,7 +449,7 @@ namespace KmyKeiba.Downloader
         foreach (var race in targets)
         {
           var useKey = race.Key;
-          if (dataspecs[i] == JVLinkDataspec.RB14 || dataspecs[i] == JVLinkDataspec.RB12 || dataspecs[i] == JVLinkDataspec.RB15 || dataspecs[i] == JVLinkDataspec.RB11)
+          if (dataspecs[i] == JVLinkDataspec.RB14 || dataspecs[i] == JVLinkDataspec.RB12 || dataspecs[i] == JVLinkDataspec.RB15 || dataspecs[i] == JVLinkDataspec.RB11 || dataspecs[i] == JVLinkDataspec.RB13 || dataspecs[i] == JVLinkDataspec.RB17)
           {
             useKey = null;
           }
