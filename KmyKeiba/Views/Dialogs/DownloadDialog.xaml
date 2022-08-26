@@ -59,18 +59,19 @@
                           IsEnabled="{Binding CanSave.Value}" Margin="8,0,0,0"/>
           </StackPanel>
         </StackPanel>
-        <TextBlock FontSize="28" Text="JRDBログイン情報" Style="{StaticResource TextBlockDefault}" Margin="0,32,0,16"
-                   Visibility="{Binding Downloader.IsDownloadJrdb.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-        <StackPanel Orientation="Horizontal" Margin="8,0,0,16"
-                    Visibility="{Binding Downloader.IsDownloadJrdb.Value,Converter={StaticResource BooleanVisibilityConv}}">
-          <TextBlock Text="ID" Style="{StaticResource SubTextBlock}" FontSize="16" Margin="4,0"/>
-          <TextBox FontSize="16" Text="{Binding Downloader.JrdbId.Value}" Width="120"/>
-          <TextBlock Text="PASS" Style="{StaticResource SubTextBlock}" FontSize="16" Margin="4,0"/>
-          <PasswordBox FontSize="16" Width="120">
-            <i:Interaction.Behaviors>
-              <b:BindingPasswordBoxBehavior Password="{Binding Downloader.JrdbPassword.Value}"/>
-            </i:Interaction.Behaviors>
-          </PasswordBox>
+        <StackPanel Visibility="{Binding Downloader.IsDownloadJrdb.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <TextBlock FontSize="28" Text="JRDBログイン情報" Style="{StaticResource TextBlockDefault}" Margin="0,32,0,16"/>
+          <StackPanel Orientation="Horizontal" Margin="8,0,0,16">
+            <TextBlock Text="ID" Style="{StaticResource SubTextBlock}" FontSize="16" Margin="4,0"/>
+            <TextBox FontSize="16" Text="{Binding Downloader.JrdbId.Value}" Width="120"/>
+            <TextBlock Text="PASS" Style="{StaticResource SubTextBlock}" FontSize="16" Margin="4,0"/>
+            <PasswordBox FontSize="16" Width="120">
+              <i:Interaction.Behaviors>
+                <b:BindingPasswordBoxBehavior Password="{Binding Downloader.JrdbPassword.Value}"/>
+              </i:Interaction.Behaviors>
+            </PasswordBox>
+          </StackPanel>
+          <TextBlock FontSize="16" Text="JRDBの利用にはUNLHA32.DLLのインストールが必要です" Margin="8,0,0,24"/>
         </StackPanel>
         <TextBlock FontSize="16" Style="{StaticResource SubTextBlock}" Margin="16,8,0,0">
           大量データの取得処理には数日かかることがあります。<LineBreak/>
