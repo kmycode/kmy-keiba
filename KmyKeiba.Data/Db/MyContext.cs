@@ -65,6 +65,8 @@ namespace KmyKeiba.Data.Db
 
     #region App
 
+    public DbSet<RaceHorseExtraData>? RaceHorseExtras { get; set; }
+
     public DbSet<RaceStandardTimeMasterData>? RaceStandardTimes { get; set; }
 
     public DbSet<RiderWinRateMasterData>? RiderWinRates { get; set; }

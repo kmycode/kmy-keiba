@@ -139,6 +139,10 @@ namespace KmyKeiba.Data.Db
 
     public ShippingStatus Shipping { get; set; }
 
+    public HorseNote BodyNote1 { get; set; }
+    public HorseNote BodyNote2 { get; set; }
+    public HorseNote BodyNote3 { get; set; }
+
     public HorseNote Note1 { get; set; }
     public HorseNote Note2 { get; set; }
     public HorseNote Note3 { get; set; }
@@ -174,6 +178,35 @@ namespace KmyKeiba.Data.Db
     public GrazingRank GrazingRank { get; set; }
 
     public StableRank StableRank { get; set; }
+
+    public HorseBodyStyle BodyStyle { get; set; }
+
+    public HorseBodyLength BodyBack { get; set; }
+
+    public HorseBodyLength BodyLength { get; set; }
+
+    public HorseBodySize BodyAss { get; set; }
+
+    public HorseBodyAngle BodyTomo { get; set; }
+
+    public HorseBodySize BodyBellyBag { get; set; }
+
+    public HorseBodySize BodyHead { get; set; }
+
+    public HorseBodyLength BodyNeck { get; set; }
+
+    public HorseBodySize BodyChest { get; set; }
+
+    public HorseBodyAngle BodyShoulder { get; set; }
+
+    public HorseBodyLength BodyFrontLength { get; set; }
+    public HorseBodyLength BodyBackLength { get; set; }
+    public HorseBodyWalkLength BodyFrontWalkLength { get; set; }
+    public HorseBodyWalkLength BodyBackWalkLength { get; set; }
+    public HorseBodyLength BodyFrontTsunagiLength { get; set; }
+    public HorseBodyLength BodyBackTsunagiLength { get; set; }
+    public HorseBodyTailAngle BodyTail { get; set; }
+    public HorseBodyTailAction BodyTailAction { get; set; }
 
     public async Task<bool> ReadStringAsync(MyContextBase db, string raw)
     {
@@ -475,11 +508,53 @@ namespace KmyKeiba.Data.Db
       }
 
       // 走法データは現在採取していないとのこと
-      // 体型はめんどいので省略（パドック見ればいいのでは？）
 
+      short.TryParse(AsString(477, 1), out var body1);
+      short.TryParse(AsString(478, 1), out var body2);
+      short.TryParse(AsString(479, 1), out var body3);
+      short.TryParse(AsString(480, 1), out var body4);
+      short.TryParse(AsString(481, 1), out var body5);
+      short.TryParse(AsString(482, 1), out var body6);
+      short.TryParse(AsString(483, 1), out var body7);
+      short.TryParse(AsString(484, 1), out var body8);
+      short.TryParse(AsString(485, 1), out var body9);
+      short.TryParse(AsString(486, 1), out var body10);
+      short.TryParse(AsString(487, 1), out var body11);
+      short.TryParse(AsString(488, 1), out var body12);
+      short.TryParse(AsString(489, 1), out var body13);
+      short.TryParse(AsString(490, 1), out var body14);
+      short.TryParse(AsString(491, 1), out var body15);
+      short.TryParse(AsString(492, 1), out var body16);
+      short.TryParse(AsString(493, 1), out var body17);
+      short.TryParse(AsString(494, 1), out var body18);
+      this.BodyStyle = (HorseBodyStyle)body1;
+      this.BodyBack = (HorseBodyLength)body2;
+      this.BodyLength = (HorseBodyLength)body3;
+      this.BodyAss = (HorseBodySize)body4;
+      this.BodyTomo = (HorseBodyAngle)body5;
+      this.BodyBellyBag = (HorseBodySize)body6;
+      this.BodyHead = (HorseBodySize)body7;
+      this.BodyNeck = (HorseBodyLength)body8;
+      this.BodyChest = (HorseBodySize)body9;
+      this.BodyShoulder = (HorseBodyAngle)body10;
+      this.BodyFrontLength = (HorseBodyLength)body11;
+      this.BodyBackLength = (HorseBodyLength)body12;
+      this.BodyFrontWalkLength = (HorseBodyWalkLength)body13;
+      this.BodyBackWalkLength = (HorseBodyWalkLength)body14;
+      this.BodyFrontTsunagiLength = (HorseBodyLength)body15;
+      this.BodyBackTsunagiLength = (HorseBodyLength)body16;
+      this.BodyTail = (HorseBodyTailAngle)body17;
+      this.BodyTailAction = (HorseBodyTailAction)body18;
+
+      short.TryParse(AsString(501, 3), out var horseBodyNote1);
+      short.TryParse(AsString(504, 3), out var horseBodyNote2);
+      short.TryParse(AsString(507, 3), out var horseBodyNote3);
       short.TryParse(AsString(510, 3), out var horseNote1);
       short.TryParse(AsString(513, 3), out var horseNote2);
       short.TryParse(AsString(516, 3), out var horseNote3);
+      this.BodyNote1 = (HorseNote)horseBodyNote1;
+      this.BodyNote2 = (HorseNote)horseBodyNote2;
+      this.BodyNote3 = (HorseNote)horseBodyNote3;
       this.Note1 = (HorseNote)horseNote1;
       this.Note2 = (HorseNote)horseNote2;
       this.Note3 = (HorseNote)horseNote3;
@@ -828,6 +903,34 @@ namespace KmyKeiba.Data.Db
   public enum RestReason : short
   {
     Unknown = 0,
+  }
+
+  public enum HorseBodyStyle : short
+  {
+  }
+
+  public enum HorseBodySize : short
+  {
+  }
+
+  public enum HorseBodyAngle : short
+  {
+  }
+
+  public enum HorseBodyWalkLength : short
+  {
+  }
+
+  public enum HorseBodyLength : short
+  {
+  }
+
+  public enum HorseBodyTailAngle : short
+  {
+  }
+
+  public enum HorseBodyTailAction : short
+  {
   }
 
   public enum JdbcFlagGround : short

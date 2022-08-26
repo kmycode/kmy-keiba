@@ -736,6 +736,62 @@ namespace KmyKeiba.Downloader
       this.ProcessSize += data.SingleAndDoubleWinOdds.Count;
       this.Process = LoadProcessing.Processing;
 
+      // マイニングを設定する
+      {
+        var extraList = new Dictionary<string, HorseExtraDataSource>();
+        foreach (var item in data.MiningTimes)
+        {
+          extraList[item.Value.RaceKey] = new HorseExtraDataSource
+          {
+            MiningTime = item.Value,
+          };
+        }
+        foreach (var item in data.MiningMatches)
+        {
+          if (extraList.ContainsKey(item.Value.RaceKey))
+          {
+            extraList[item.Value.RaceKey].MiningMatch = item.Value;
+          }
+          else
+          {
+            extraList[item.Value.RaceKey] = new HorseExtraDataSource
+            {
+              MiningMatch = item.Value,
+            };
+          }
+        }
+
+        var count = 0;
+        foreach (var item in extraList)
+        {
+          var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == item.Key).Select(rh => new { rh.Number, rh.Key, }).ToArrayAsync();
+          var extras = await db.RaceHorseExtras!.Where(e => e.RaceKey == item.Key).ToArrayAsync();
+          var adds = new List<RaceHorseExtraData>();
+          foreach (var horse in horses)
+          {
+            var extra = extras.FirstOrDefault(e => e.Key == horse.Key);
+            if (extra == null)
+            {
+              extra = new RaceHorseExtraData();
+              adds.Add(extra);
+            }
+            extra.SetData(horse.Key, item.Key, horse.Number, item.Value.MiningTime, item.Value.MiningMatch);
+          }
+
+          if (adds.Any())
+          {
+            await db.RaceHorseExtras!.AddRangeAsync(adds);
+          }
+          count++;
+
+          if (count >= 2000)
+          {
+            await db.SaveChangesAsync();
+            await db.CommitAsync();
+          }
+        }
+      }
+
       // 単勝オッズを設定する（時系列オッズでない場合）
       if (!this._specs.HasFlag(JVLinkDataspec.RB41) && data.SingleAndDoubleWinOdds.Any())
       {
@@ -997,6 +1053,13 @@ namespace KmyKeiba.Downloader
     }
 
     public event EventHandler? StartingTransaction;
+
+    private class HorseExtraDataSource
+    {
+      public MiningTime? MiningTime { get; set; }
+
+      public MiningMatch? MiningMatch { get; set; }
+    }
   }
 
   enum LoadProcessing

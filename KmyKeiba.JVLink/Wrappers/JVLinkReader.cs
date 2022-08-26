@@ -484,6 +484,24 @@ namespace KmyKeiba.JVLink.Wrappers
                 ReadDic(item, data.Trainers, item.Code + item.CentralFlag);
                 break;
               }
+            case "DM":
+              {
+                var a = new JVData_Struct.JV_DM_INFO();
+                a.SetDataB(ref d);
+                var item = MiningTime.FromJV(a);
+
+                ReadDic(item, data.MiningTimes, item.RaceKey);
+                break;
+              }
+            case "TM":
+              {
+                var a = new JVData_Struct.JV_TM_INFO();
+                a.SetDataB(ref d);
+                var item = MiningMatch.FromJV(a);
+
+                ReadDic(item, data.MiningMatches, item.RaceKey);
+                break;
+              }
             default:
               this.ReadedEntityCount--;
               if (!this.isRealTime)
@@ -581,6 +599,10 @@ namespace KmyKeiba.JVLink.Wrappers
     public Dictionary<string, Training> Trainings { get; internal set; } = new();
 
     public Dictionary<string, WoodtipTraining> WoodtipTrainings { get; internal set; } = new();
+
+    public Dictionary<string, MiningMatch> MiningMatches { get; internal set; } = new();
+
+    public Dictionary<string, MiningTime> MiningTimes { get; internal set; } = new();
   }
 
   class SimpleDistinctComparer<T> : IEqualityComparer<T>
