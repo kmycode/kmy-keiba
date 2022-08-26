@@ -108,28 +108,32 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
       this.CanSetExternalNumber = this.Output.Select(o => o == AnalysisTableRowOutputType.ExternalNumber).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetMemoConfig = this.Output.Select(o => o == AnalysisTableRowOutputType.ExpansionMemo).ToReadOnlyReactiveProperty().AddTo(this._disposables);
-      this.CanSetQuery = this.Output.Select(o => o != AnalysisTableRowOutputType.ExternalNumber &&
+      this.CanSetQuery = this.SelectedOutput.Where(o => o != null).Select(o => o!.OutputType).Select(o =>
+        o != AnalysisTableRowOutputType.ExternalNumber &&
         o != AnalysisTableRowOutputType.FixedValue &&
         o != AnalysisTableRowOutputType.FixedValuePerPastRace && 
-        o != AnalysisTableRowOutputType.ExpansionMemo)
-        .CombineLatest(this.SelectedOutput.Select(o => o?.OutputType != AnalysisTableRowOutputType.HorseValues &&
-          o?.OutputType != AnalysisTableRowOutputType.JrdbValues), (a, b) => a && b)
+        o != AnalysisTableRowOutputType.ExpansionMemo &&
+        o != AnalysisTableRowOutputType.HorseValues &&
+        o != AnalysisTableRowOutputType.JrdbValues)
         .ToReadOnlyReactiveProperty().AddTo(this._disposables);
-      this.CanSetWeight = this.Output.Select(o => o == AnalysisTableRowOutputType.FixedValue ||
+      this.CanSetWeight = this.SelectedOutput.Where(o => o != null).Select(o => o!.OutputType).Select(o =>
+        o == AnalysisTableRowOutputType.FixedValue ||
         o == AnalysisTableRowOutputType.FixedValuePerPastRace ||
         o == AnalysisTableRowOutputType.PlaceBetsRate ||
         o == AnalysisTableRowOutputType.RecoveryRate ||
         o == AnalysisTableRowOutputType.WinRate ||
         o == AnalysisTableRowOutputType.ExternalNumber ||
-        o == AnalysisTableRowOutputType.ExpansionMemo)
-        .CombineLatest(this.SelectedOutput.Select(o => o?.OutputType == AnalysisTableRowOutputType.HorseValues ||
-          o?.OutputType == AnalysisTableRowOutputType.JrdbValues), (a, b) => a || b)
+        o == AnalysisTableRowOutputType.ExpansionMemo ||
+        o == AnalysisTableRowOutputType.HorseValues ||
+        o == AnalysisTableRowOutputType.JrdbValues)
         .ToReadOnlyReactiveProperty().AddTo(this._disposables);
-      this.CanSetLimited = this.Output.Select(o => o == AnalysisTableRowOutputType.PlaceBetsRate ||
+      this.CanSetLimited = this.Output.Select(o =>
+        o == AnalysisTableRowOutputType.PlaceBetsRate ||
         o == AnalysisTableRowOutputType.RecoveryRate ||
         o == AnalysisTableRowOutputType.WinRate ||
         o == AnalysisTableRowOutputType.ShortestTime).ToReadOnlyReactiveProperty().AddTo(this._disposables);
-      this.CanSetAlternativeValue = this.Output.Select(o => o != AnalysisTableRowOutputType.ExpansionMemo &&
+      this.CanSetAlternativeValue = this.SelectedOutput.Where(o => o != null).Select(o => o!.OutputType).Select(o =>
+        o != AnalysisTableRowOutputType.ExpansionMemo &&
         o != AnalysisTableRowOutputType.HorseValues &&
         o != AnalysisTableRowOutputType.FixedValue).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetSubOutput = this.SelectedOutput
