@@ -41,7 +41,7 @@
                         IsChecked="{Binding Downloader.IsRTDownloadJrdb.Value,Mode=TwoWay}"/>
           <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Margin="12,0,0,0"
                      Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                     Text="※JRDBは2時間に1回の更新確認になります" VerticalAlignment="Center"/>
+                     Text="※JRDBは4時間に1回の更新確認になります" VerticalAlignment="Center"/>
         </StackPanel>
       </StackPanel>
       <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Top">
