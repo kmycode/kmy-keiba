@@ -157,13 +157,13 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         });
         RowOutputItems.Add(new AnalysisTableRowOutputItem
         {
-          Label = "その他（JRDB）",
-          OutputType = AnalysisTableRowOutputType.JrdbValues,
+          Label = "その他（馬の値）",
+          OutputType = AnalysisTableRowOutputType.HorseValues,
         });
         RowOutputItems.Add(new AnalysisTableRowOutputItem
         {
-          Label = "その他（馬の値）",
-          OutputType = AnalysisTableRowOutputType.HorseValues,
+          Label = "その他（JRDB）",
+          OutputType = AnalysisTableRowOutputType.JrdbValues,
         });
 
         RowOutputSubItems.Add(new AnalysisTableRowOutputItem
