@@ -328,12 +328,16 @@ namespace KmyKeiba.Models.Data
         var str = d.ToString("yyyyMMdd");
         query = query.Where(rh => rh.RaceKey.StartsWith(str));
       }
-      progressMax.Value = await query.CountAsync();
+
+      if (!(await query.AnyAsync()))
+      {
+        return;
+      }
 
       var allTargets = query
         .GroupBy(rh => rh.Key)
         .Select(g => g.Key);
-
+      progressMax.Value = await allTargets.CountAsync();
       var targets = await allTargets.Take(96).ToArrayAsync();
 
       try
@@ -416,7 +420,7 @@ namespace KmyKeiba.Models.Data
               raceCount++;
             }
           }
-          progress.Value = count;
+          progress.Value = targets.Length;
 
           await db.SaveChangesAsync();
 
