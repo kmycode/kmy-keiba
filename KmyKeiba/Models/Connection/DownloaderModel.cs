@@ -22,6 +22,7 @@ namespace KmyKeiba.Models.Connection
     private static DownloaderModel? _instance;
 
     private bool _isUpdateRtForce = false;
+    private bool _isUpdateRtHeavyForce = false;
     private readonly CompositeDisposable _disposables = new();
     private readonly DownloaderConnector _downloader = DownloaderConnector.Instance;
     public ReactiveProperty<bool> IsCancelProcessing { get; } = new();
@@ -545,7 +546,8 @@ namespace KmyKeiba.Models.Connection
             }
 
             // レース予定データはRTではなくこっちにあるみたい。定期的にチェックする
-            if (lastDownloadNormalData.AddMinutes(ApplicationConfiguration.Current.Value.DownloadNormalDataIntervalMinutes) < now && !this.IsDownloading.Value)
+            if ((lastDownloadNormalData.AddMinutes(ApplicationConfiguration.Current.Value.DownloadNormalDataIntervalMinutes) < now || this._isUpdateRtHeavyForce)
+                && !this.IsDownloading.Value)
             {
               logger.Info("翌日以降の予定を更新");
               var isSucceed = await DownloadPlanOfRacesAsync(lastDownloadNormalData.Year, lastDownloadNormalData.Month, lastDownloadNormalData.Day);
@@ -571,10 +573,11 @@ namespace KmyKeiba.Models.Connection
           finally
           {
             this._isUpdateRtForce = false;
+            this._isUpdateRtHeavyForce = false;
           }
 
           this.IsWaitingNextRTUpdate.Value = true;
-          while ((DateTime.Now - now).TotalMinutes < 5 && !this._isUpdateRtForce)
+          while ((DateTime.Now - now).TotalMinutes < 5 && !this._isUpdateRtForce && !this._isUpdateRtHeavyForce)
           {
             // ５分に１回ずつ更新する
             this.NextRTUpdateSeconds.Value = 60 * 5 - (int)(DateTime.Now - now).TotalSeconds;
@@ -585,7 +588,7 @@ namespace KmyKeiba.Models.Connection
           {
             logger.Debug("一時停止の設定を検出");
           }
-          while (this.IsRTPaused.Value && !this._isUpdateRtForce)
+          while (this.IsRTPaused.Value && !this._isUpdateRtForce && !this._isUpdateRtHeavyForce)
           {
             // 一時停止
             await Task.Delay(1000);
@@ -1063,6 +1066,11 @@ namespace KmyKeiba.Models.Connection
     public void UpdateRtDataForce()
     {
       this._isUpdateRtForce = true;
+    }
+
+    public void UpdateRtDataHeavyForce()
+    {
+      this._isUpdateRtHeavyForce = true;
     }
 
     public void Dispose()

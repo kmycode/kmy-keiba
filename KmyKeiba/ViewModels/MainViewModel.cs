@@ -182,6 +182,11 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(() => this.downloader.UpdateRtDataForce());
     private ReactiveCommand? _updateRtDataForceCommand;
 
+    public ICommand UpdateRtDataHeavyForceCommand =>
+      this._updateRtDataHeavyForceCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.downloader.UpdateRtDataHeavyForce());
+    private ReactiveCommand? _updateRtDataHeavyForceCommand;
+
     public ICommand BuyCommand =>
       this._buyCommand ??=
         new AsyncReactiveCommand<object>().WithSubscribe(_ => this.Race.Value?.BuyAsync() ?? Task.CompletedTask);

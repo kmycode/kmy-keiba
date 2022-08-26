@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
              d:DesignHeight="550" d:DesignWidth="800">
-  <Grid Width="600" Height="580" Background="{StaticResource BaseBackground}">
+  <Grid Width="660" Height="580" Background="{StaticResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="auto"/>
@@ -64,7 +64,7 @@
         </TextBlock>
         <up:MyProgressBar>
           <up:MyProgressBar.RenderTransform>
-            <TranslateTransform X="210"/>
+            <TranslateTransform X="250"/>
           </up:MyProgressBar.RenderTransform>
         </up:MyProgressBar>
       </StackPanel>
@@ -86,6 +86,7 @@
         <ColumnDefinition/>
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="auto"/>
       </Grid.ColumnDefinitions>
       <Button Content="閉じる" FontSize="16" Width="80" VerticalAlignment="Bottom" Command="{Binding CloseDialogCommand}"/>
       <TextBlock Grid.Column="1" FontSize="16" Foreground="{StaticResource SubForeground}" Margin="0,0,16,0"
@@ -95,7 +96,9 @@
       </TextBlock>
       <ToggleButton Grid.Column="2" Content="一時停止" FontSize="16" Width="100" VerticalAlignment="Bottom"
                     IsChecked="{Binding Downloader.IsRTPaused.Value,Mode=TwoWay}" Margin="0,0,8,0"/>
-      <Button Grid.Column="3" Content="今すぐ強制的に更新" FontSize="16" Width="180" VerticalAlignment="Bottom" Command="{Binding UpdateRtDataForceCommand}"
+      <Button Grid.Column="3" Content="今すぐ更新 (予定含む)" FontSize="14" Width="160" VerticalAlignment="Stretch" Command="{Binding UpdateRtDataHeavyForceCommand}"
+              IsEnabled="{Binding Downloader.IsWaitingNextRTUpdate.Value}" Margin="0,0,8,0"/>
+      <Button Grid.Column="4" Content="今すぐ更新" FontSize="16" Width="110" VerticalAlignment="Bottom" Command="{Binding UpdateRtDataForceCommand}"
               IsEnabled="{Binding Downloader.IsWaitingNextRTUpdate.Value}"/>
     </Grid>
   </Grid>
