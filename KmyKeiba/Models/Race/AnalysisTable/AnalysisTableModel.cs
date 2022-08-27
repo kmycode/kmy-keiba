@@ -42,7 +42,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
       else
       {
-        foreach (var finder in cache.Finders.Join(horses, f => f.RaceHorse?.Key, h => h.Data.Key, (f, h) => RaceFinder.CopyFrom(f, race, h.Data)))
+        foreach (var finder in cache.Finders.Join(horses, f => f.RaceHorse?.Key, h => h.Data.Key, (f, h) => RaceFinder.CopyFrom(f, null, null, h)))
         {
           this._finders.Add(finder);
         }
