@@ -815,6 +815,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         .Where(d => d.Rows.Any(r => r.IsChecked.Value))
         .OrderBy(d => d.GetParameterOrder())
         .ToArray();
+      if (!delimiters.Any())
+      {
+        return;
+      }
+
       var keys = new ValueDelimiterRow[delimiters.Length];
 
       var maxOrder = 1;
@@ -880,6 +885,30 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       await db.SaveChangesAsync();
 
       this.ActiveWeight.Value.Rows.Clear();
+    }
+
+    public async Task ReplaceWeightRowsBulkAsync()
+    {
+      var weight = this.ActiveWeight.Value;
+      if (weight == null)
+      {
+        return;
+      }
+
+      var olds = weight.Rows.ToArray();
+      await this.ClearWeightRowsAsync();
+
+      await this.AddWeightRowsBulkAsync();
+      if (!weight.Rows.Any() || !olds.Any())
+      {
+        return;
+      }
+
+      // 古いデータから新しいデータへ重みをコピー
+      foreach (var row in olds.Join(weight.Rows, o => o.FinderModelForConfig.Input.Query.Value, n => n.FinderModelForConfig.Input.Query.Value, (o, n) => new { Old = o, New = n, }))
+      {
+        row.New.Weight.Value = row.Old.Weight.Value;
+      }
     }
 
     public void OnMemoConfigChanged()

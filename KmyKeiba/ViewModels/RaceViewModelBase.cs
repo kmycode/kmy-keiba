@@ -350,6 +350,11 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.AddWeightRowsBulkAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _addAnalysisTableWeightRowBulkCommand;
 
+    public ICommand ReplaceAnalysisTableWeightRowBulkCommand =>
+      this._replaceAnalysisTableWeightRowBulkCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.ReplaceWeightRowsBulkAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _replaceAnalysisTableWeightRowBulkCommand;
+
     public ICommand ClearAnalysisTableWeightRowsCommand =>
       this._clearAnalysisTableWeightRowsCommand ??=
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.ClearWeightRowsAsync() ?? Task.CompletedTask).AddTo(this._disposables);
