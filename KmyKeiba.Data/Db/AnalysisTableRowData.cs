@@ -80,6 +80,7 @@ namespace KmyKeiba.Data.Db
     Age = 404,
     MiningTime = 405,
     MiningMatch = 406,
+    PciAverage = 407,
 
     // ここからJRDB
     RiderPoint = 501,

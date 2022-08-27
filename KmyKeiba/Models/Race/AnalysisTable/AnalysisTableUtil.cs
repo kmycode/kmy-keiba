@@ -170,6 +170,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         });
         RowOutputSubItems.Add(new AnalysisTableRowOutputItem
         {
+          Label = "PCI平均",
+          OutputType = AnalysisTableRowOutputType.PciAverage,
+        });
+        RowOutputSubItems.Add(new AnalysisTableRowOutputItem
+        {
           Label = "タイム型マイニング",
           OutputType = AnalysisTableRowOutputType.MiningTime,
         });

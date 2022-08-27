@@ -143,10 +143,13 @@ namespace KmyKeiba.Models.Analysis
       var timeMin = source.Select(s => s.ResultTimeDeviationValue).OrderBy(s => s).ElementAtOrDefault(level) + 1;
       var a3hTimeMax = source.Select(s => s.A3HResultTimeDeviationValue).OrderByDescending(s => s).ElementAtOrDefault(level) - 1;
       var a3hTimeMin = source.Select(s => s.A3HResultTimeDeviationValue).OrderBy(s => s).ElementAtOrDefault(level) + 1;
+      var pciMax = source.Select(s => s.PciDeviationValue).OrderByDescending(s => s).ElementAtOrDefault(level) - 1;
+      var pciMin = source.Select(s => s.PciDeviationValue).OrderBy(s => s).ElementAtOrDefault(level) + 1;
       foreach (var horse in source)
       {
         horse.ResultTimeDVComparation = AnalysisUtil.CompareValue(horse.ResultTimeDeviationValue, timeMax, timeMin);
         horse.ResultA3HTimeDVComparation = AnalysisUtil.CompareValue(horse.A3HResultTimeDeviationValue, a3hTimeMax, a3hTimeMin);
+        horse.PciDVComparation = AnalysisUtil.CompareValue(horse.PciDeviationValue, pciMin, pciMax, true);
       }
     }
 

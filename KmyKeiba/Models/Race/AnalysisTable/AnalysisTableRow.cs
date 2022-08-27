@@ -452,6 +452,17 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             {
               this.AnalysisFixedValue(item.Cell.Horse.Data.Age, myWeights, item.Cell, item.Finder, digit: 0);
             }
+            else if (this.Data.Output == AnalysisTableRowOutputType.PciAverage)
+            {
+              if (item.Cell.Horse.History == null)
+              {
+                this.SetPointOrEmpty(item.Cell, -1, myWeights);
+              }
+              else
+              {
+                this.AnalysisFixedValue(item.Cell.Horse.History.PciAverage, myWeights, item.Cell, item.Finder, digit: 1);
+              }
+            }
             else if (this.Data.Output == AnalysisTableRowOutputType.RiderPoint)
             {
               this.TrySetJrdbValue(j => j.RiderPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
