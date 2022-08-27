@@ -304,5 +304,7 @@ namespace KmyKeiba.Data.Db
     Triangle = 4,
     Star = 5,
     Deleted = 6,
+    Check = 7,
+    Note = 8,
   }
 }

@@ -1683,6 +1683,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsStar { get; } = new();
 
+    public ReactiveProperty<bool> IsCheck { get; } = new();
+
+    public ReactiveProperty<bool> IsNote { get; } = new();
+
     public ReactiveProperty<bool> IsDelete { get; } = new();
 
     public ReactiveProperty<bool> IsDefault { get; } = new();
@@ -1694,6 +1698,8 @@ namespace KmyKeiba.Models.Race.Finder
       this.IsFilledTriangle.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsTriangle.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsStar.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsCheck.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsNote.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsDelete.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsDefault.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
     }
@@ -1706,6 +1712,8 @@ namespace KmyKeiba.Models.Race.Finder
       if (this.IsFilledTriangle.Value) values.Add(RaceHorseMark.FilledTriangle);
       if (this.IsTriangle.Value) values.Add(RaceHorseMark.Triangle);
       if (this.IsStar.Value) values.Add(RaceHorseMark.Star);
+      if (this.IsCheck.Value) values.Add(RaceHorseMark.Check);
+      if (this.IsNote.Value) values.Add(RaceHorseMark.Note);
       if (this.IsDelete.Value) values.Add(RaceHorseMark.Deleted);
       if (this.IsDefault.Value) values.Add(RaceHorseMark.Default);
 

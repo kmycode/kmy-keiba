@@ -586,6 +586,12 @@
               <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsStar.Value,ElementName=Root,Mode=TwoWay}">
                 <ContentControl Template="{StaticResource MarkStar}" RenderTransform="{StaticResource MarkTransform}"/>
               </ToggleButton>
+              <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsCheck.Value,ElementName=Root,Mode=TwoWay}">
+                <ContentControl Template="{StaticResource MarkCheck}" RenderTransform="{StaticResource MarkTransform}"/>
+              </ToggleButton>
+              <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsNote.Value,ElementName=Root,Mode=TwoWay}">
+                <ContentControl Template="{StaticResource MarkNote}" RenderTransform="{StaticResource MarkTransform}"/>
+              </ToggleButton>
               <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsDelete.Value,ElementName=Root,Mode=TwoWay}">
                 <ContentControl Template="{StaticResource MarkDeleted}" RenderTransform="{StaticResource MarkTransform}"/>
               </ToggleButton>

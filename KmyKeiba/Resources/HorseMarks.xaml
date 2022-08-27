@@ -22,6 +22,19 @@
     <Polygon Stroke="{StaticResource HorseMarkForeground}" StrokeThickness="3"
               Points="16 4, 32 28, 0 28, 16 4" Fill="{StaticResource HorseMarkForeground}" Height="32"/>
   </ControlTemplate>
+  <ControlTemplate x:Key="MarkCheck" TargetType="ContentControl">
+    <Polyline Stroke="{StaticResource HorseMarkForeground}" StrokeThickness="6"
+              Points="4 16, 16 28, 28 4" Height="32"/>
+  </ControlTemplate>
+  <ControlTemplate x:Key="MarkNote" TargetType="ContentControl">
+    <TextBlock Foreground="{StaticResource HorseMarkForeground}" Height="32"
+               FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Center" Text="注"
+               FontFamily="MS Gothic" FontWeight="DemiBold">
+      <TextBlock.RenderTransform>
+        <TranslateTransform Y="4"/>
+      </TextBlock.RenderTransform>
+    </TextBlock>
+  </ControlTemplate>
   <ControlTemplate x:Key="MarkDeleted" TargetType="ContentControl">
     <Grid Width="32" Height="32" Margin="-2,0,0,0">
       <Polygon Stroke="{StaticResource HorseMarkDeletedForeground}" StrokeThickness="3"
