@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
              d:DesignHeight="550" d:DesignWidth="800">
-  <Grid Width="600" Height="580" Background="{StaticResource BaseBackground}">
+  <Grid Width="660" Height="580" Background="{StaticResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition Height="auto"/>
@@ -24,17 +24,27 @@
         <ColumnDefinition/>
         <ColumnDefinition Width="200"/>
       </Grid.ColumnDefinitions>
-      <StackPanel Orientation="Horizontal">
-        <ToggleButton FontSize="16" Content="中央競馬" Width="100"
-                      IsChecked="{Binding Downloader.IsRTDownloadCentral.Value,Mode=TwoWay}"/>
-        <Button FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
-                Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                Command="{Binding OpenJvlinkConfigCommand}"/>
-        <ToggleButton FontSize="16" Content="木～日のみ稼働" Width="160" Margin="4,0,0,0"
-                      IsChecked="{Binding Downloader.IsRTDownloadCentralAfterThursdayOnly.Value,Mode=TwoWay}"
-                      Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+      <StackPanel>
+        <StackPanel Orientation="Horizontal">
+          <ToggleButton FontSize="16" Content="中央競馬" Width="100"
+                        IsChecked="{Binding Downloader.IsRTDownloadCentral.Value,Mode=TwoWay}"/>
+          <Button FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
+                  Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                  Command="{Binding OpenJvlinkConfigCommand}"/>
+          <ToggleButton FontSize="16" Content="木～日のみ稼働" Width="160" Margin="4,0,0,0"
+                        IsChecked="{Binding Downloader.IsRTDownloadCentralAfterThursdayOnly.Value,Mode=TwoWay}"
+                        Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+          <ToggleButton FontSize="16" Content="JRDB" Width="100" Margin="0,8,0,0" HorizontalAlignment="Left"
+                        Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                        IsChecked="{Binding Downloader.IsRTDownloadJrdb.Value,Mode=TwoWay}"/>
+          <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Margin="12,0,0,0"
+                     Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                     Text="※JRDBは4時間に1回の更新確認になります" VerticalAlignment="Center"/>
+        </StackPanel>
       </StackPanel>
-      <StackPanel Orientation="Horizontal" Grid.Column="1">
+      <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Top">
         <ToggleButton FontSize="16" Content="地方競馬" Width="100"
                       IsChecked="{Binding Downloader.IsRTDownloadLocal.Value,Mode=TwoWay}"/>
         <Button FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
@@ -54,7 +64,7 @@
         </TextBlock>
         <up:MyProgressBar>
           <up:MyProgressBar.RenderTransform>
-            <TranslateTransform X="210"/>
+            <TranslateTransform X="250"/>
           </up:MyProgressBar.RenderTransform>
         </up:MyProgressBar>
       </StackPanel>
@@ -67,12 +77,15 @@
       処理はバックグラウンドで実行されます。問題が発生した場合は、画面下部に表示されます。<LineBreak/>
       5分に1回自動で処理が開始されます。<LineBreak/>
       平日にも中央競馬データが配信される場合がありますが、不要である場合は手動で<LineBreak/>更新を無効にしてください。<LineBreak/>
-      データベースインストールを同時実行している場合、データ保存が遅延する場合があります。
+      データベースインストールを同時実行している場合、データ保存が遅延する場合があります。<LineBreak/>
+      一時停止は次回以降の更新に適用され、現在の更新を直ちに中止するものではありません。
     </TextBlock>
     <Grid Grid.Row="6" Margin="0,0,0,16">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition/>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="auto"/>
         <ColumnDefinition Width="auto"/>
       </Grid.ColumnDefinitions>
       <Button Content="閉じる" FontSize="16" Width="80" VerticalAlignment="Bottom" Command="{Binding CloseDialogCommand}"/>
@@ -81,7 +94,11 @@
                  Visibility="{Binding Downloader.IsWaitingNextRTUpdate.Value,Converter={StaticResource BooleanVisibilityConv}}">
         次回更新まで <Run Text="{Binding Downloader.NextRTUpdateSeconds.Value}"/> 秒
       </TextBlock>
-      <Button Grid.Column="2" Content="今すぐ強制的に更新" FontSize="16" Width="180" VerticalAlignment="Bottom" Command="{Binding UpdateRtDataForceCommand}"
+      <ToggleButton Grid.Column="2" Content="一時停止" FontSize="16" Width="100" VerticalAlignment="Bottom"
+                    IsChecked="{Binding Downloader.IsRTPaused.Value,Mode=TwoWay}" Margin="0,0,8,0"/>
+      <Button Grid.Column="3" Content="今すぐ更新 (予定含む)" FontSize="14" Width="160" VerticalAlignment="Stretch" Command="{Binding UpdateRtDataHeavyForceCommand}"
+              IsEnabled="{Binding Downloader.IsWaitingNextRTUpdate.Value}" Margin="0,0,8,0"/>
+      <Button Grid.Column="4" Content="今すぐ更新" FontSize="16" Width="110" VerticalAlignment="Bottom" Command="{Binding UpdateRtDataForceCommand}"
               IsEnabled="{Binding Downloader.IsWaitingNextRTUpdate.Value}"/>
     </Grid>
   </Grid>

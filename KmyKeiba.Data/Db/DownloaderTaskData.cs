@@ -59,6 +59,9 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderCommand("killhost")]
     KillRealTimeHost = 10,
+
+    [DownloaderCommand("unlha")]
+    Unlha = 11,
   }
 
   public enum DownloaderError : short

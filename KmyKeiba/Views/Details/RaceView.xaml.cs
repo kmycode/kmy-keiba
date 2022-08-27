@@ -38,6 +38,8 @@ namespace KmyKeiba.Views.Details
 
     public Guid UniqueId2 { get; } = Guid.NewGuid();
 
+    public Guid UniqueId3 { get; } = Guid.NewGuid();
+
     public RaceView()
     {
       InitializeComponent();

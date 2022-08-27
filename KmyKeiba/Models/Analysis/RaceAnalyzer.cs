@@ -48,11 +48,17 @@ namespace KmyKeiba.Models.Analysis
 
     public double A3HResultTimeDeviationValue { get; }
 
+    public double MaxA3HResultTimeDeviationValue { get; }
+
     public double UntilA3HResultTimeDeviationValue { get; }
 
     public RacePace Pace { get; }
 
     public RacePace A3HPace { get; }
+
+    public RacePace MaxA3HPace { get; }
+
+    public short NormalizedBefore3HaronTime { get; }
 
     public ReactiveProperty<string> Memo { get; } = new();
 
@@ -61,6 +67,8 @@ namespace KmyKeiba.Models.Analysis
     public ReactiveProperty<bool> CanSave => DownloaderModel.Instance.CanSaveOthers;
 
     public ReactiveCollection<RaceHorseMatchResult> Matches { get; } = new();
+
+    public IReadOnlyList<PrizeMoneyItem> PrizeMoneys { get; }
 
     public RaceMovieInfo Movie => this._movie ??= new(this.Data);
     private RaceMovieInfo? _movie;
@@ -78,6 +86,7 @@ namespace KmyKeiba.Models.Analysis
         .Where(rs => rs != RunningStyle.Unknown)
         .ToArray();
       this.TopRunningStyle = this.RunningStyles.FirstOrDefault();
+      this.NormalizedBefore3HaronTime = AnalysisUtil.NormalizeB3FTime(race);
 
       this.Memo.Value = race.Memo ?? string.Empty;
       AnalysisUtil.SetMemoEvents(() => this.Data.Memo ?? string.Empty, (db, m) =>
@@ -87,6 +96,27 @@ namespace KmyKeiba.Models.Analysis
       }, this.Memo, this.IsMemoSaving).AddTo(this._disposables);
 
       this.RoughRate = AnalysisUtil.CalcRoughRate(topHorses);
+
+      var prizeRaws = this.Data.GetPrizeMoneys();
+      var prizes = new List<PrizeMoneyItem>();
+      var i = 0;
+      for (var place = 1; place <= 5; place++)
+      {
+        var num = System.Math.Max(1, topHorses.Count(h => h.ResultOrder == place));
+        for (var n = 0; n < num; n++)
+        {
+          if (i >= prizeRaws.Length)
+          {
+            break;
+          }
+          prizes.Add(new PrizeMoneyItem
+          {
+            Place = place,
+            PrizeMoney = ValueUtil.ToMoneyLabel((long)prizeRaws[i++] * 100),
+          });
+        }
+      }
+      this.PrizeMoneys = prizes;
 
       if (topHorse != null)
       {
@@ -103,6 +133,17 @@ namespace KmyKeiba.Models.Analysis
         this.ResultTimeDeviationValue = this.TopHorse.ResultTimeDeviationValue;
         this.A3HResultTimeDeviationValue = this.TopHorse.A3HResultTimeDeviationValue;
         this.UntilA3HResultTimeDeviationValue = this.TopHorse.UntilA3HResultTimeDeviationValue;
+
+        var maxA3HHorse = topHorses.OrderBy(h => h.AfterThirdHalongTime).FirstOrDefault();
+        if (maxA3HHorse != null)
+        {
+          var maxa3h = new RaceHorseAnalyzer(race, maxA3HHorse, raceStandardTime);
+          this.MaxA3HPace = maxa3h.A3HResultTimeDeviationValue < 38 ? RacePace.VeryLow :
+            maxa3h.A3HResultTimeDeviationValue < 45 ? RacePace.Low :
+            maxa3h.A3HResultTimeDeviationValue < 55 ? RacePace.Standard :
+            maxa3h.A3HResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
+          this.MaxA3HResultTimeDeviationValue = maxa3h.A3HResultTimeDeviationValue;
+        }
       }
     }
 
@@ -118,7 +159,8 @@ namespace KmyKeiba.Models.Analysis
         .Where(h => h.Race.DataStatus != RaceDataStatus.Canceled && !h.IsAbnormalResult)
         .GroupBy(history => history.Race.Key)
         .Where(h => h.ElementAtOrDefault(1) != null)
-        .Take(20))
+        .OrderByDescending(h => h.Key)
+        .Take(30))
       {
         var match = new RaceHorseMatchResult(raceData.First().Race);
         match.RaceAnalyzer._matchResult = match;
@@ -212,6 +254,13 @@ namespace KmyKeiba.Models.Analysis
 
       public RaceHorseAnalyzer? RaceHorse { get; init; }
     }
+  }
+
+  public class PrizeMoneyItem
+  {
+    public int Place { get; init; }
+
+    public string PrizeMoney { get; init; } = string.Empty;
   }
 
   public enum RacePace

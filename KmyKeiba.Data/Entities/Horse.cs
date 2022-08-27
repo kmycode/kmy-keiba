@@ -19,6 +19,10 @@ namespace KmyKeiba.JVLink.Entities
     /// </summary>
     public string Code { get; set; } = string.Empty;
 
+    public bool IsCentral => this.Belongs != HorseBelongs.Local;
+
+    public short CentralFlag => this.IsCentral ? (short)1 : (short)0;
+
     public DateTime Entried { get; set; }
 
     public DateTime Retired { get; set; }
@@ -70,6 +74,8 @@ namespace KmyKeiba.JVLink.Entities
     public string InviteFrom { get; set; } = string.Empty;
 
     public string ProducingCode { get; set; } = string.Empty;
+
+    public string ProductorName { get; set; } = string.Empty;
 
     public string OwnerCode { get; set; } = string.Empty;
 
@@ -128,6 +134,7 @@ namespace KmyKeiba.JVLink.Entities
         TrainerName = uma.ChokyosiRyakusyo.Trim(),
         InviteFrom = uma.Syotai.Trim(),
         ProducingCode = uma.BreederCode.Trim(),
+        ProductorName = uma.BreederName.Trim(),
         OwnerCode = uma.BanusiCode.Trim(),
       };
     }

@@ -31,8 +31,6 @@ namespace KmyKeiba.Models.Race
 
     public int Position { get; set; }
 
-    public TimeSpan LapTime { get; set; }
-
     private RaceCorner()
     {
     }

@@ -4,6 +4,7 @@ using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.AnalysisTable;
 using KmyKeiba.Models.Race.Tickets;
 using KmyKeiba.Shared;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using static KmyKeiba.Models.Script.ScriptBulkModel;
 
 namespace KmyKeiba.Models.Script
 {
@@ -23,7 +25,7 @@ namespace KmyKeiba.Models.Script
   {
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
-    private bool _isCanceled = false;
+    public bool IsCanceled { get; private set; }
 
     public ReactiveCollection<ScriptResultItem> Results { get; } = new();
 
@@ -41,17 +43,26 @@ namespace KmyKeiba.Models.Script
 
     public ReactiveProperty<ValueComparation> IncomeComparation { get; } = new();
 
+    public ReactiveProperty<bool> IsAnalysisTableMode { get; } = new();
+
     public void BeginExecute()
     {
       Task.Run(async () =>
       {
-        await this.ExecuteAsync();
+        if (this.IsAnalysisTableMode.Value)
+        {
+          await this.ExecuteAsync(() => new AnalysisTableBulkEngine());
+        }
+        else
+        {
+          await this.ExecuteAsync(() => new EngineInfo(new CompiledScriptEngineWrapper()));
+        }
       });
     }
 
-    public async Task ExecuteAsync()
+    public async Task ExecuteAsync(Func<IScriptBulkEngine> bulkEngineGenerator)
     {
-      this._isCanceled = false;
+      this.IsCanceled = false;
       this.IsExecuting.Value = true;
       this.IsError.Value = false;
       this.SumOfIncomes.Value = 0;
@@ -62,12 +73,12 @@ namespace KmyKeiba.Models.Script
         divitions = 2;
       }
 
-      var engines = new List<EngineInfo>();
+      var engines = new List<IScriptBulkEngine>();
       try
       {
         for (var s = 0; s < divitions; s++)
         {
-          engines.Add(new EngineInfo(new CompiledScriptEngineWrapper()));
+          engines.Add(bulkEngineGenerator());
         }
       }
       catch (Exception ex)
@@ -106,12 +117,12 @@ namespace KmyKeiba.Models.Script
       for (var s = 0; s < divitions; s++)
       {
         var engine = engines[s];
-        engine.Engine.BulkConfig.SetBulk(true);
+        engine.EnableBulk();
 
         var t = s;
         _ = Task.Run(async () =>
         {
-          await engine.DoAsync(this, items.Where(i => i.Index % divitions == t), t);
+          await engine.DoAsync(this, items.Where(i => i.Index % divitions == t));
         });
 
         // 同時に始めるとInjectionManagerでIBuyer取得時にエラーが発生することがある
@@ -124,21 +135,23 @@ namespace KmyKeiba.Models.Script
       }
 
       ScriptML? ml = null;
-      foreach (var engine in engines)
+      foreach (var engine in engines.OfType<IMLEngine>())
       {
         if (ml == null)
         {
-          ml = engine.Engine.ML;
+          ml = engine.ML;
         }
         else
         {
-          ml.Merge(engine.Engine.ML);
+          ml.Merge(engine.ML);
         }
-
+      }
+      foreach (var engine in engines)
+      {
         engine.Dispose();
       }
 
-      if (!this._isCanceled && ml != null && ml.HasTrainingData)
+      if (!this.IsCanceled && ml != null && ml.HasTrainingData)
       {
         var profiles = ml.AllProfileNames;
         foreach (var profile in profiles)
@@ -160,7 +173,7 @@ namespace KmyKeiba.Models.Script
       }
 
       this.IsExecuting.Value = false;
-      this._isCanceled = false;
+      this.IsCanceled = false;
     }
 
     public void Cancel()
@@ -170,10 +183,28 @@ namespace KmyKeiba.Models.Script
         return;
       }
 
-      this._isCanceled = true;
+      this.IsCanceled = true;
     }
 
-    public class EngineInfo : IDisposable
+    public interface IScriptBulkEngine : IDisposable
+    {
+      ReactiveProperty<ReactiveProperty<int>?> ProgressMax { get; }
+
+      ReactiveProperty<ReactiveProperty<int>?> Progress { get; }
+
+      public bool IsFinished { get; }
+
+      void EnableBulk();
+
+      Task DoAsync(ScriptBulkModel model, IEnumerable<ScriptResultItem> items);
+    }
+
+    public interface IMLEngine
+    {
+      ScriptML ML { get; }
+    }
+
+    public class EngineInfo : IScriptBulkEngine, IMLEngine
     {
       public ScriptEngineWrapper Engine { get; }
 
@@ -183,12 +214,19 @@ namespace KmyKeiba.Models.Script
 
       public bool IsFinished { get; set; }
 
+      public ScriptML ML => this.Engine.ML;
+
       public EngineInfo(ScriptEngineWrapper engine)
       {
         this.Engine = engine;
       }
 
-      public async Task DoAsync(ScriptBulkModel model, IEnumerable<ScriptResultItem> items, int id)
+      public void EnableBulk()
+      {
+        this.Engine.BulkConfig.SetBulk(true);
+      }
+
+      public async Task DoAsync(ScriptBulkModel model, IEnumerable<ScriptResultItem> items)
       {
         foreach (var item in items)
         {
@@ -300,7 +338,7 @@ namespace KmyKeiba.Models.Script
             item.HandlerEngine.Value = null;
           }
 
-          if (model._isCanceled)
+          if (model.IsCanceled)
           {
             break;
           }
@@ -360,7 +398,7 @@ namespace KmyKeiba.Models.Script
 
     public ReactiveProperty<ScriptBulkErrorType> ErrorType { get; } = new();
 
-    public ReactiveProperty<ScriptBulkModel.EngineInfo?> HandlerEngine { get; } = new();
+    public ReactiveProperty<IScriptBulkEngine?> HandlerEngine { get; } = new();
 
     public ScriptResultItem(int index, RaceData race)
     {

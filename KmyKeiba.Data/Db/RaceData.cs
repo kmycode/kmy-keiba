@@ -10,11 +10,28 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  [Index(nameof(Key), nameof(StartTime), nameof(Course))]
+  [Index(nameof(StartTime))]
+  [Index(nameof(Key))]
+  [Index(nameof(Course))]
   public class RaceData : DataBase<Race>
   {
     [StringLength(20)]
     public string Key { get; set; } = string.Empty;
+
+    [NotMapped]
+    public short Kaiji
+    {
+      get
+      {
+        if (this.Key.Length >= 12)
+        {
+          short.TryParse(this.Key.Substring(10, 2), out var value);
+          return value;
+        }
+        return default;
+      }
+    }
+    public short Nichiji { get; set; }
 
     [StringLength(120)]
     public string Name { get; set; } = string.Empty;
@@ -32,6 +49,8 @@ namespace KmyKeiba.Data.Db
     [StringLength(4)]
     public string CourseType { get; set; } = string.Empty;
 
+    public short TrackCode { get; set; }
+
     public TrackGround TrackGround { get; set; }
 
     public TrackCornerDirection TrackCornerDirection { get; set; }
@@ -48,6 +67,14 @@ namespace KmyKeiba.Data.Db
 
     public bool IsConditionSetManually { get; set; }
 
+    public RaceRiderWeightRule RiderWeight { get; set; }
+
+    public RaceHorseAreaRule Area { get; set; }
+
+    public RaceHorseSexRule Sex { get; set; }
+
+    public RaceCrossRaceRule Cross { get; set; }
+
     public short Distance { get; set; }
 
     public short CourseRaceNumber { get; set; }
@@ -55,6 +82,10 @@ namespace KmyKeiba.Data.Db
     public string SubjectName { get; set; } = string.Empty;
 
     public string SubjectDisplayInfo { get; set; } = string.Empty;
+
+    public string SubjectInfo1 { get; set; } = string.Empty;
+
+    public string SubjectInfo2 { get; set; } = string.Empty;
 
     public RaceGrade Grade { get; set; }
 
@@ -70,6 +101,8 @@ namespace KmyKeiba.Data.Db
 
     public short HorsesCount { get; set; }
 
+    public short ResultHorsesCount { get; set; }
+
     public DateTime StartTime { get; set; }
 
     public int CornerPositionInfos { get; set; }
@@ -83,8 +116,6 @@ namespace KmyKeiba.Data.Db
     [NotMapped]
     public short Corner1Number => (short)(this.CornerPositionInfos / 1_00_00_00 % 10);
 
-    public TimeSpan Corner1LapTime { get; set; }
-
     [StringLength(80)]
     public string Corner2Result { get; set; } = string.Empty;
 
@@ -93,8 +124,6 @@ namespace KmyKeiba.Data.Db
 
     [NotMapped]
     public short Corner2Number => (short)(this.CornerPositionInfos / 1_00_00 % 10);
-
-    public TimeSpan Corner2LapTime { get; set; }
 
     [StringLength(80)]
     public string Corner3Result { get; set; } = string.Empty;
@@ -105,8 +134,6 @@ namespace KmyKeiba.Data.Db
     [NotMapped]
     public short Corner3Number => (short)(this.CornerPositionInfos / 1_00 % 10);
 
-    public TimeSpan Corner3LapTime { get; set; }
-
     [StringLength(80)]
     public string Corner4Result { get; set; } = string.Empty;
 
@@ -116,9 +143,23 @@ namespace KmyKeiba.Data.Db
     [NotMapped]
     public short Corner4Number => (short)(this.CornerPositionInfos / 1 % 10);
 
-    public TimeSpan Corner4LapTime { get; set; }
+    public byte[] LapTimes { get; set; } = Array.Empty<byte>();
 
     public string? Memo { get; set; }
+
+    public byte[] PrizeMoney { get; set; } = Array.Empty<byte>();
+
+    public int PrizeMoney1 { get; set; }
+
+    public short BeforeHaronTime3 { get; set; }
+
+    public short BeforeHaronTime4 { get; set; }
+
+    public short AfterHaronTime3 { get; set; }
+
+    public short AfterHaronTime4 { get; set; }
+
+    public short SteeplechaseMileTime { get; set; }
 
     public override void SetEntity(Race race)
     {
@@ -140,13 +181,20 @@ namespace KmyKeiba.Data.Db
       this.GradeId = race.GradeId;
       this.Course = race.Course;
       this.CourseType = race.CourseType;
+      this.Nichiji = race.Nichiji;
+      this.TrackCode = race.TrackCode;
       this.TrackGround = race.TrackGround;
       this.TrackCornerDirection = race.TrackCornerDirection;
       this.TrackType = race.TrackType;
       this.TrackOption = race.TrackOption;
+      this.RiderWeight = race.RiderWeight;
+      this.Area = race.Area;
+      this.Sex = race.Sex;
+      this.Cross = race.Cross;
       this.Distance = race.Distance;
       this.CourseRaceNumber = race.CourseRaceNumber;
       this.HorsesCount = race.HorsesCount;
+      this.ResultHorsesCount = race.ResultHorsesCount;
       this.StartTime = race.StartTime;
       this.CornerPositionInfos =
         race.Corner1Position * 10_00_00_00 + race.Corner1Number * 1_00_00_00 +
@@ -154,13 +202,22 @@ namespace KmyKeiba.Data.Db
         race.Corner3Position * 10_00 + race.Corner3Number * 1_00 +
         race.Corner4Position * 10 + race.Corner4Number * 1;
       this.Corner1Result = race.Corner1Result;
-      this.Corner1LapTime = race.Corner1LapTime;
       this.Corner2Result = race.Corner2Result;
-      this.Corner2LapTime = race.Corner2LapTime;
       this.Corner3Result = race.Corner3Result;
-      this.Corner3LapTime = race.Corner3LapTime;
       this.Corner4Result = race.Corner4Result;
-      this.Corner4LapTime = race.Corner4LapTime;
+      this.BeforeHaronTime3 = race.BeforeHaronTime3;
+      this.BeforeHaronTime4 = race.BeforeHaronTime4;
+      this.AfterHaronTime3 = race.AfterHaronTime3;
+      this.AfterHaronTime4 = race.AfterHaronTime4;
+      this.SteeplechaseMileTime = race.SteeplechaseMileTime;
+
+      var lapTimes = new byte[race.LapTimes.Length * 2];
+      for (var i = 0; i < race.LapTimes.Length; i++)
+      {
+        lapTimes[i * 2] = (byte)((race.LapTimes[i] >> 8) & 255);
+        lapTimes[i * 2 + 1] = (byte)(race.LapTimes[i] & 255);
+      }
+      this.LapTimes = lapTimes;
 
       // NVLink（地方競馬）でRealTimeデータを取得するときに欠損していることがある
       if (race.TrackWeather != RaceCourseWeather.Unknown)
@@ -175,6 +232,29 @@ namespace KmyKeiba.Data.Db
       }
 
       this.Grade = race.Subject.Grade;
+      if (race.Course >= RaceCourse.Foreign)
+      {
+        if (this.Grade == RaceGrade.Grade1)
+          this.Grade = RaceGrade.ForeignGrade1;
+        if (this.Grade == RaceGrade.Grade2)
+          this.Grade = RaceGrade.ForeignGrade2;
+        if (this.Grade == RaceGrade.Grade3)
+          this.Grade = RaceGrade.ForeignGrade3;
+      }
+      else if (race.Course >= RaceCourse.LocalMinValue && race.Course < RaceCourse.Foreign)
+      {
+        if (this.Grade == RaceGrade.Grade1)
+          this.Grade = RaceGrade.LocalGrade1;
+        if (this.Grade == RaceGrade.Grade2)
+          this.Grade = RaceGrade.LocalGrade2;
+        if (this.Grade == RaceGrade.Grade3)
+          this.Grade = RaceGrade.LocalGrade3;
+        if (this.Grade == RaceGrade.NoNamedGrade)
+          this.Grade = RaceGrade.LocalNoNamedGrade;
+        if (this.Grade == RaceGrade.NonGradeSpecial)
+          this.Grade = RaceGrade.LocalNonGradeSpecial;
+      }
+
       foreach (var sub in race.Subject.AgeSubjects)
       {
         switch (sub.Age)
@@ -196,6 +276,84 @@ namespace KmyKeiba.Data.Db
             break;
         }
       }
+
+      var prizeMoney = new byte[12 * 4];
+      var prizeMoneyIndex = 0;
+      void SetPrizeMoney(int money)
+      {
+        prizeMoney![prizeMoneyIndex++] = (byte)(money >> 24 & 255);
+        prizeMoney![prizeMoneyIndex++] = (byte)(money >> 16 & 255);
+        prizeMoney![prizeMoneyIndex++] = (byte)(money >> 8 & 255);
+        prizeMoney![prizeMoneyIndex++] = (byte)(money & 255);
+      }
+      SetPrizeMoney(race.PrizeMoney1);
+      SetPrizeMoney(race.PrizeMoney2);
+      SetPrizeMoney(race.PrizeMoney3);
+      SetPrizeMoney(race.PrizeMoney4);
+      SetPrizeMoney(race.PrizeMoney5);
+      SetPrizeMoney(race.PrizeMoney6);
+      SetPrizeMoney(race.PrizeMoney7);
+      SetPrizeMoney(race.ExtraPrizeMoney1);
+      SetPrizeMoney(race.ExtraPrizeMoney2);
+      SetPrizeMoney(race.ExtraPrizeMoney3);
+      SetPrizeMoney(race.ExtraPrizeMoney4);
+      SetPrizeMoney(race.ExtraPrizeMoney5);
+      this.PrizeMoney = prizeMoney;
+      this.PrizeMoney1 = race.PrizeMoney1;
+    }
+
+    private short[]? _lapTimes;
+    public short[] GetLapTimes()
+    {
+      if (this.LapTimes == null || this.LapTimes.Length == 0)
+      {
+        return Array.Empty<short>();
+      }
+
+      if (this._lapTimes != null)
+      {
+        return this._lapTimes;
+      }
+
+      var times = new short[this.LapTimes.Length / 2];
+      for (var i = 0; i < this.LapTimes.Length; i += 2)
+      {
+        var time = (this.LapTimes[i] << 8) + this.LapTimes[i + 1];
+        times[i / 2] = (short)time;
+      }
+
+      this._lapTimes = times;
+      return times;
+    }
+
+    public int[] GetPrizeMoneys()
+    {
+      if (this.PrizeMoney == null || this.PrizeMoney.Length < 7 * 4)
+      {
+        return Array.Empty<int>();
+      }
+
+      var arr = new int[7];
+      for (var i = 0; i < 7 * 4; i += 4)
+      {
+        arr[i / 4] = (this.PrizeMoney[i] << 24) | (this.PrizeMoney[i + 1] << 16) | (this.PrizeMoney[i + 2] << 8) | (this.PrizeMoney[i + 3]);
+      }
+      return arr;
+    }
+
+    public int[] GetExtraPrizeMoneys()
+    {
+      if (this.PrizeMoney == null || this.PrizeMoney.Length < 12 * 4)
+      {
+        return Array.Empty<int>();
+      }
+
+      var arr = new int[5];
+      for (var i = 7 * 4; i < 12 * 4; i += 4)
+      {
+        arr[i / 4 - 7] = (this.PrizeMoney[i] << 24) | (this.PrizeMoney[i + 1] << 16) | (this.PrizeMoney[i + 2] << 8) | (this.PrizeMoney[i + 3]);
+      }
+      return arr;
     }
 
     public override bool IsEquals(DataBase<Race> b)

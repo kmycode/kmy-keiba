@@ -9,6 +9,9 @@ using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
 using KmyKeiba.Models.Injection;
+using KmyKeiba.Models.Race.ExNumber;
+using KmyKeiba.Models.Race.Finder;
+using KmyKeiba.Models.Race.Memo;
 using KmyKeiba.Models.Race.Tickets;
 using KmyKeiba.Models.Script;
 using KmyKeiba.Shared;
@@ -19,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
@@ -73,6 +77,12 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveCollection<RaceCorner> Corners { get; } = new();
 
+    public ReactiveCollection<RaceLapTime> LapTimes { get; } = new();
+
+    public bool HasLapTimes { get; }
+
+    public bool HasHaronTimes { get; }
+
     public RaceCourseSummaryImage CourseSummaryImage { get; } = new();
 
     public RaceSubjectInfo Subject { get; }
@@ -84,6 +94,14 @@ namespace KmyKeiba.Models.Race
     public ReactiveProperty<BettingTicketInfo?> Tickets { get; } = new();
 
     public ReactiveCollection<RaceChangeInfo> Changes { get; } = new();
+
+    public RaceFinder Finder { get; }
+
+    public ReactiveProperty<RaceMemoModel?> MemoEx { get; } = new();
+
+    public ReactiveProperty<FinderModel?> FinderModel { get; } = new();
+
+    public ReactiveProperty<AnalysisTable.AnalysisTableModel> AnalysisTable { get; } = new();
 
     public ScriptManager Script { get; }
 
@@ -143,8 +161,17 @@ namespace KmyKeiba.Models.Race
         this.CourseDetails.Add(detail);
       }
 
+      foreach (var lapTime in RaceLapTime.GetAsList(race))
+      {
+        this.LapTimes.Add(lapTime);
+      }
+      this.HasLapTimes = this.LapTimes.Any();
+      this.HasHaronTimes = race.AfterHaronTime3 != default || race.AfterHaronTime4 != default ||
+        race.BeforeHaronTime3 != default || race.BeforeHaronTime4 != default;
+
       this.TrendAnalyzers = new RaceTrendAnalysisSelector(race);
       this.WinnerTrendAnalyzers = new RaceWinnerHorseTrendAnalysisSelector(race);
+      this.Finder = new RaceFinder(race);
       this.CourseSummaryImage.Race = race;
 
       this.AnalysisTables.ObserveAddChanged().Subscribe(_ => this.HasAnalysisTables.Value = true).AddTo(this._disposables);
@@ -212,9 +239,11 @@ namespace KmyKeiba.Models.Race
 
     private void SetHorsesDelay(IReadOnlyList<RaceHorseAnalyzer> horses, RaceStandardTimeMasterData standardTime)
     {
+      var sortedHorses = (horses.All(h => h.Data.Number == default) ? horses.OrderBy(h => h.Data.Name) : horses.OrderBy(h => h.Data.Number)).ToArray();
+      this.FinderModel.Value = new FinderModel(this.Data, null, sortedHorses);
+
       ThreadUtil.InvokeOnUiThread(() =>
       {
-        var sortedHorses = horses.All(h => h.Data.Number == default) ? horses.OrderBy(h => h.Data.Name) : horses.OrderBy(h => h.Data.Number);
         foreach (var horse in sortedHorses)
         {
           this.Horses.Add(horse);
@@ -268,6 +297,17 @@ namespace KmyKeiba.Models.Race
       // 遅延でデータ読み込み
       if (this.ActiveHorse.Value != null)
       {
+        if (this.ActiveHorse.Value.FinderModel.Value != null)
+        {
+          // デフォルトの検索条件を設定
+          var model = this.ActiveHorse.Value.FinderModel.Value;
+          model.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
+          model.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
+          model.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = true;
+          model.Input.OtherSetting.IsExpandedResult.Value = true;
+          model.BeginLoad();
+        }
+
         Task.Run(async () => {
           if (this.ActiveHorse.Value.BloodSelectors?.IsRequestedInitialization == true)
           {
@@ -280,6 +320,10 @@ namespace KmyKeiba.Models.Race
             {
               logger.Warn($"{this.ActiveHorse.Value.Data.Name} の血統情報がロードできませんでした", ex);
             }
+          }
+          else
+          {
+            this.ActiveHorse.Value.BloodSelectors?.UpdateGenerationRates();
           }
 
           var timeout = 0;
@@ -523,12 +567,27 @@ namespace KmyKeiba.Models.Race
         });
     }
 
+    public void UpdateCache()
+    {
+      if (!this.IsWillTrendAnalyzersResetedOnUpdate.Value)
+      {
+        RaceInfoCacheManager.UpdateCache(this.Data.Key, this.AnalysisTable.Value?.ToCache());
+      }
+      else
+      {
+        RaceInfoCacheManager.UpdateCache(this.Data.Key, null);
+      }
+    }
+
     public void Dispose()
     {
       this._disposables.Dispose();
       this.RaceAnalyzer.Value?.Dispose();
       this.TrendAnalyzers.Dispose();
       this.AnalysisTables.Dispose();
+      this.Finder.Dispose();
+      this.FinderModel.Value?.Dispose();
+      this.MemoEx.Value?.Dispose();
       foreach (var h in this.Horses)
       {
         h.Dispose();
@@ -575,10 +634,10 @@ namespace KmyKeiba.Models.Race
 
       var info = new RaceInfo(race, payoff);
 
-      AddCorner(info.Corners, race.Corner1Result, race.Corner1Number, race.Corner1Position, race.Corner1LapTime);
-      AddCorner(info.Corners, race.Corner2Result, race.Corner2Number, race.Corner2Position, race.Corner2LapTime);
-      AddCorner(info.Corners, race.Corner3Result, race.Corner3Number, race.Corner3Position, race.Corner3LapTime);
-      AddCorner(info.Corners, race.Corner4Result, race.Corner4Number, race.Corner4Position, race.Corner4LapTime);
+      AddCorner(info.Corners, race.Corner1Result, race.Corner1Number, race.Corner1Position);
+      AddCorner(info.Corners, race.Corner2Result, race.Corner2Number, race.Corner2Position);
+      AddCorner(info.Corners, race.Corner3Result, race.Corner3Number, race.Corner3Position);
+      AddCorner(info.Corners, race.Corner4Result, race.Corner4Number, race.Corner4Position);
 
       // 以降の情報は遅延読み込み
       _ = Task.Run(async () =>
@@ -586,9 +645,13 @@ namespace KmyKeiba.Models.Race
         try
         {
           var cache = RaceInfoCacheManager.TryGetCache(race.Key);
+          await FinderConfigUtil.InitializeAsync(db);
+          await ExternalNumberUtil.InitializeAsync(db);
+          await Race.AnalysisTable.AnalysisTableUtil.InitializeAsync(db);
 
           var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == race.Key).ToArrayAsync();
-          logger.Info($"馬の数: {horses.Length}, レース情報に記録されている馬の数: {race.HorsesCount}");
+          var jrdbHorses = await db.JrdbRaceHorses!.Where(j => j.RaceKey == race.Key).ToArrayAsync();
+          logger.Info($"馬の数: {horses.Length}, レース情報に記録されている馬の数: {race.HorsesCount}, JRDB: {jrdbHorses.Length}");
 
           var horseKeys = horses.Select(h => h.Key).ToArray();
           var horseAllHistories = cache?.HorseAllHistories;
@@ -612,6 +675,14 @@ namespace KmyKeiba.Models.Race
           logger.Debug($"時系列オッズ {oddsTimeline.Length}件");
 
           // 各馬の情報
+          var horseDetails = cache?.HorseDetails;
+          if (horseDetails == null)
+          {
+            var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
+            horseDetails = await db.Horses!
+              .Where(h => horseKeys.Contains(h.Code))
+              .ToArrayAsync();
+          }
           var horseHistorySameHorses = cache?.HorseHistorySameHorses;
           if (horseHistorySameHorses == null)
           {
@@ -635,12 +706,14 @@ namespace KmyKeiba.Models.Race
             }
 
             var riderWinRate = await AnalysisUtil.GetRiderWinRateAsync(db, race, horse.RiderCode);
+            var jrdb = jrdbHorses.FirstOrDefault(j => j.Key == horse.Key);
 
-            var analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate)
+            var analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate, jrdbHorse: jrdb)
             {
               TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse, histories),
               TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
               BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
+              DetailData = horseDetails.FirstOrDefault(h => h.Code == horse.Key),
             };
             analyzer.RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(analyzer);
             analyzer.SetOddsTimeline(oddsTimeline);
@@ -648,6 +721,8 @@ namespace KmyKeiba.Models.Race
             horseInfos.Add(analyzer);
             logger.Debug($"馬 {horse.Name} の情報を登録");
           }
+
+          var sortedHorses = horseInfos.All(h => h.Data.Number == default) ? horseInfos.OrderBy(h => h.Data.Name) : horseInfos.OrderBy(h => h.Data.Number);
           {
             // タイム指数の相対評価
             var timedvMax = horseInfos.Select(i => i.History?.TimeDeviationValue ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
@@ -656,6 +731,10 @@ namespace KmyKeiba.Models.Race
             var a3htimedvMin = horseInfos.Select(i => i.History?.A3HTimeDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
             var ua3htimedvMax = horseInfos.Select(i => i.History?.UntilA3HTimeDeviationValue ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
             var ua3htimedvMin = horseInfos.Select(i => i.History?.UntilA3HTimeDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
+            var pciMax = horseInfos.Select(i => i.History?.PciAverage ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
+            var pciMin = horseInfos.Select(i => i.History?.PciAverage ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
+            var pcidvMax = horseInfos.Select(i => i.History?.PciDeviationValue ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
+            var pcidvMin = horseInfos.Select(i => i.History?.PciDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
             var riderPlaceRateMax = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderByDescending(v => v).Skip(2).FirstOrDefault();
             var riderPlaceRateMin = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderBy(v => v).Skip(2).FirstOrDefault();
             var resultA3hMax = horseInfos.Where(i => !i.IsAbnormalResult).Select(i => i.Data.AfterThirdHalongTime).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault().TotalSeconds + 0.001;  // 等価比較対策
@@ -677,25 +756,18 @@ namespace KmyKeiba.Models.Race
                   .Count(r => r.Race.TrackGround != race.TrackGround || r.Race.TrackType != race.TrackType || Math.Abs(r.Race.Distance - race.Distance) >= 400) >= 4)
                 {
                   // 条件の大きく異なるレース
-                  horse.History.TimeDVComparation = horse.History.A3HTimeDVComparation = horse.History.UntilA3HTimeDVComparation = ValueComparation.Warning;
+                  horse.History.TimeDVComparation = horse.History.A3HTimeDVComparation = horse.History.UntilA3HTimeDVComparation = horse.History.PciAverageComparation = ValueComparation.Warning;
                 }
                 else
                 {
-                  if (timedvMax != null && timedvMin != null)
-                  {
-                    horse.History.TimeDVComparation = horse.History.TimeDeviationValue + 0.5 >= timedvMax ? ValueComparation.Good :
-                      horse.History.TimeDeviationValue - 0.5 <= timedvMin ? ValueComparation.Bad : ValueComparation.Standard;
-                  }
-                  if (a3htimedvMax != null && a3htimedvMin != null)
-                  {
-                    horse.History.A3HTimeDVComparation = horse.History.A3HTimeDeviationValue + 0.5 >= a3htimedvMax ? ValueComparation.Good :
-                      horse.History.A3HTimeDeviationValue - 0.5 <= a3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
-                  }
-                  if (ua3htimedvMax != null && ua3htimedvMin != null)
-                  {
-                    horse.History.UntilA3HTimeDVComparation = horse.History.UntilA3HTimeDeviationValue + 0.5 >= ua3htimedvMax ? ValueComparation.Good :
-                      horse.History.UntilA3HTimeDeviationValue - 0.5 <= ua3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
-                  }
+                  horse.History.TimeDVComparation = horse.History.TimeDeviationValue + 0.5 >= timedvMax ? ValueComparation.Good :
+                    horse.History.TimeDeviationValue - 0.5 <= timedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                  horse.History.A3HTimeDVComparation = horse.History.A3HTimeDeviationValue + 0.5 >= a3htimedvMax ? ValueComparation.Good :
+                    horse.History.A3HTimeDeviationValue - 0.5 <= a3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                  horse.History.UntilA3HTimeDVComparation = horse.History.UntilA3HTimeDeviationValue + 0.5 >= ua3htimedvMax ? ValueComparation.Good :
+                    horse.History.UntilA3HTimeDeviationValue - 0.5 <= ua3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                  horse.History.PciAverageComparation = AnalysisUtil.CompareValue(horse.History.PciAverage, pciMin, pciMax, true);
+                  horse.History.PciDVComparation = AnalysisUtil.CompareValue(horse.History.PciDeviationValue, pcidvMin, pcidvMax, true);
                 }
               }
               if (riderPlaceRateMax != 0)
@@ -703,10 +775,13 @@ namespace KmyKeiba.Models.Race
                 horse.RiderPlaceBitsRateComparation = horse.RiderPlaceBitsRate + 0.02 >= riderPlaceRateMax ? ValueComparation.Good :
                 horse.RiderPlaceBitsRate - 0.02 <= riderPlaceRateMin ? ValueComparation.Bad : ValueComparation.Standard;
               }
+
+              horse.FinderModel.Value = new FinderModel(race, horse, sortedHorses);
             }
           }
           logger.Debug("馬のタイム指数相対評価を設定");
           info.SetHorsesDelay(horseInfos, standardTime);
+          info.AnalysisTable.Value = new AnalysisTable.AnalysisTableModel(info.Data, sortedHorses.ToArray(), cache?.AnalysisTable);
 
           // オッズ
           var frameOdds = cache?.Refund != null ? cache.FrameNumberOdds : await db.FrameNumberOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
@@ -728,7 +803,7 @@ namespace KmyKeiba.Models.Race
 
           // 最新情報／ついでに分析テーブル
           var changes = await db.RaceChanges!.Where(c => c.RaceKey == race.Key).ToArrayAsync();
-          ThreadUtil.InvokeOnUiThread(async () =>
+          ThreadUtil.InvokeOnUiThread(() =>
           {
             var isWeightAdded = false;
             foreach (var change in changes.Select(c => new RaceChangeInfo(c, race, horses)))
@@ -740,10 +815,20 @@ namespace KmyKeiba.Models.Race
               }
               info.Changes.Add(change);
             }
+          });
+          logger.Debug($"最新情報の数: {changes.Length}");
 
-            foreach (var table in ApplicationConfiguration.Current.Value.AnalysisTableGenerators)
+          // 分析テーブル
+          var analysisTables = new List<Analysis.Table.AnalysisTable>();
+          foreach (var table in ApplicationConfiguration.Current.Value.AnalysisTableGenerators)
+          {
+            analysisTables.Add(await table.GenerateAsync(info));
+          }
+          ThreadUtil.InvokeOnUiThread(() =>
+          {
+            foreach (var table in analysisTables)
             {
-              info.AnalysisTables.Add(await table.GenerateAsync(info));
+              info.AnalysisTables.Add(table);
             }
             var first = info.AnalysisTables.FirstOrDefault();
             if (first != null)
@@ -751,12 +836,15 @@ namespace KmyKeiba.Models.Race
               first.IsActive.Value = true;
             }
           });
-          logger.Debug($"最新情報の数: {changes.Length}");
 
           // すべてのデータ読み込み完了
           info.IsLoadCompleted.Value = true;
           info.CanExecuteScript.Value = true;
           logger.Info("レースの読み込みが完了しました");
+
+          // 拡張メモ
+          info.MemoEx.Value = new RaceMemoModel(race, horseInfos);
+          await info.MemoEx.Value.LoadAsync(db);
 
           // コーナー順位の色分け
           var firstHorse = horses.FirstOrDefault(h => h.ResultOrder == 1);
@@ -792,8 +880,8 @@ namespace KmyKeiba.Models.Race
           // キャッシング
           if (isCache)
           {
-            RaceInfoCacheManager.Register(info, horseAllHistories, horseHistorySameHorses, trainings, woodTrainings,
-              info.Payoff?.Payoff, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
+            RaceInfoCacheManager.Register(info, horseAllHistories, horseHistorySameHorses, horseDetails, trainings, woodTrainings,
+               info.Finder, info.AnalysisTable.Value?.ToCache(), info.Payoff?.Payoff, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
           }
         }
         catch (Exception ex)
@@ -811,7 +899,7 @@ namespace KmyKeiba.Models.Race
       return info;
     }
 
-    private static void AddCorner(IList<RaceCorner> corners, string result, int num, int pos, TimeSpan lap)
+    private static void AddCorner(IList<RaceCorner> corners, string result, int num, int pos)
     {
       if (string.IsNullOrWhiteSpace(result))
       {
@@ -821,7 +909,6 @@ namespace KmyKeiba.Models.Race
       var corner = RaceCorner.FromString(result);
       corner.Number = num;
       corner.Position = pos;
-      corner.LapTime = lap;
 
       corners.Add(corner);
     }

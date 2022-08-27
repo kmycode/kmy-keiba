@@ -14,6 +14,8 @@ namespace KmyKeiba.Models.Injection
     Task<double> GetA3HTimeDeviationValueAsync(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData standardTime);
 
     Task<double> GetUntilA3HTimeDeviationValueAsync(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData standardTime);
+
+    double GetPciDeviationValue(RaceData race, double pci, RaceStandardTimeMasterData standardTime);
   }
 
   public interface IInternalDataGenerator

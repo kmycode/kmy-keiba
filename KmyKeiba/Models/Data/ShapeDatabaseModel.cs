@@ -36,7 +36,6 @@ namespace KmyKeiba.Models.Data
     public static void TrainRunningStyle(bool isForce = false)
     {
       StartRunningStyleTraining(isForce);
-      StartRunningStylePredicting();
     }
 
     public static void StartRunningStyleTraining(bool isForce = false)
@@ -54,10 +53,14 @@ namespace KmyKeiba.Models.Data
       var rs = new PredictRunningStyleModel();
 
       logger.Debug("トレーニング中...");
-      rs.Training();
+      var count = rs.Training();
 
-      logger.Debug("保存中...");
-      rs.SaveFile(mmlName);
+      // トレーニングデータが一定数に満たなければ、インストーラ付属のファイルを使う
+      if (count > 500)
+      {
+        logger.Debug("保存中...");
+        rs.SaveFile(mmlName);
+      }
     }
 
     public static void StartRunningStylePredicting()
@@ -154,7 +157,7 @@ namespace KmyKeiba.Models.Data
             var targets = await db.Races!
               .Where(r => r.Course == course && r.StartTime >= startTime && r.StartTime < endTime && r.Distance > 0)
               //.Join(db.RaceHorses!.Where(rh => rh.ResultOrder == 1), r => r.Key, rh => rh.RaceKey, (r, rh) => new { rh.ResultTime, r.Distance, rh.AfterThirdHalongTime, r.TrackGround, r.TrackType, r.TrackCondition, })
-              .Select((r) => new { r.Key, r.Distance, r.TrackGround, r.TrackType, r.TrackCondition, })
+              .Select((r) => new { r.Key, r.Distance, r.TrackGround, r.TrackType, r.TrackCondition, r.AfterHaronTime3, })
               .ToArrayAsync();
             if (targets.Length == 0)
             {
@@ -164,7 +167,7 @@ namespace KmyKeiba.Models.Data
             var keys = targets.Select(r => r.Key).ToArray();
             var allHorses = await db.RaceHorses!
               .Where(rh => keys.Contains(rh.RaceKey) && rh.ResultOrder > 0)
-              .Select(rh => new { rh.ResultTime, rh.RaceKey, rh.AfterThirdHalongTime, })
+              .Select(rh => new { rh.ResultTime, rh.RaceKey, rh.AfterThirdHalongTime, rh.ResultOrder, rh.ResultTimeValue, rh.AfterThirdHalongTimeValue, })
               .ToArrayAsync();
 
             var exists = await db.RaceStandardTimes!
@@ -220,6 +223,25 @@ namespace KmyKeiba.Models.Data
                       Values = arr3,
                     };
 
+                    var topHorses = times
+                      .Select(t => new { t.Race, TopHorses = t.Horses.Where(h => h.ResultOrder >= 1 && h.ResultOrder <= 3), })
+                      .Where(t => t.TopHorses.Count() >= 3 && t.TopHorses.Any(h => h.ResultOrder == 1));
+                    var pcis = times.SelectMany(t => t.Horses.Select(h => AnalysisUtil.CalcPci(t.Race.Distance, h.ResultTimeValue, h.AfterThirdHalongTimeValue)));
+                    var pci3s = topHorses.Select(t => t.TopHorses.Select(h => AnalysisUtil.CalcPci(t.Race.Distance, h.ResultTimeValue, h.AfterThirdHalongTimeValue)).Average());
+                    var rpcis = topHorses.Select(t => AnalysisUtil.CalcRpci(t.Race.Distance, t.Race.AfterHaronTime3, t.TopHorses.First(h => h.ResultOrder == 1).ResultTimeValue, t.Race.AfterHaronTime3));
+                    var statisticPci = new StatisticSingleArray
+                    {
+                      Values = pcis.ToArray(),
+                    };
+                    var statisticPci3 = new StatisticSingleArray
+                    {
+                      Values = pci3s.ToArray(),
+                    };
+                    var statisticRpci = new StatisticSingleArray
+                    {
+                      Values = rpcis.ToArray(),
+                    };
+
                     RaceStandardTimeMasterData data;
 
                     var old = exists.FirstOrDefault(st => st.Ground == ground &&
@@ -238,6 +260,15 @@ namespace KmyKeiba.Models.Data
                       data.UntilA3FAverage = statistic3.Average;
                       data.UntilA3FMedian = statistic3.Median;
                       data.UntilA3FDeviation = statistic3.Deviation;
+                      data.PciAverage = statisticPci.Average;
+                      data.PciMedian = statisticPci.Median;
+                      data.PciDeviation = statisticPci.Deviation;
+                      data.Pci3Average = statisticPci3.Average;
+                      data.Pci3Median = statisticPci3.Median;
+                      data.Pci3Deviation = statisticPci3.Deviation;
+                      data.RpciAverage = statisticRpci.Average;
+                      data.RpciMedian = statisticRpci.Median;
+                      data.RpciDeviation = statisticRpci.Deviation;
                     }
                     else
                     {
@@ -261,6 +292,15 @@ namespace KmyKeiba.Models.Data
                         UntilA3FAverage = statistic3.Average,
                         UntilA3FMedian = statistic3.Median,
                         UntilA3FDeviation = statistic3.Deviation,
+                        PciAverage = statisticPci.Average,
+                        PciMedian = statisticPci.Median,
+                        PciDeviation = statisticPci.Deviation,
+                        Pci3Average = statisticPci3.Average,
+                        Pci3Median = statisticPci3.Median,
+                        Pci3Deviation = statisticPci3.Deviation,
+                        RpciAverage = statisticRpci.Average,
+                        RpciMedian = statisticRpci.Median,
+                        RpciDeviation = statisticRpci.Deviation,
                       };
                       await db.RaceStandardTimes!.AddAsync(data);
                     }
@@ -301,7 +341,7 @@ namespace KmyKeiba.Models.Data
       }
     }
 
-    public static async Task SetPreviousRaceDaysAsync(DateOnly? date = null, ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
+    public static async Task SetHorseExtraDataAsync(DateOnly? date = null, ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
     {
       var count = 0;
       var prevCommitCount = 0;
@@ -317,7 +357,7 @@ namespace KmyKeiba.Models.Data
       //await db.BeginTransactionAsync();
 
       var query = db.RaceHorses!
-        .Where(rh => rh.PreviousRaceDays == 0)
+        .Where(rh => rh.PreviousRaceDays == 0 || rh.RaceCount == 0)
         .Where(rh => rh.Key != "0000000000" && rh.Key != "" && rh.RaceKey != "");
       if (date != null)
       {
@@ -325,12 +365,16 @@ namespace KmyKeiba.Models.Data
         var str = d.ToString("yyyyMMdd");
         query = query.Where(rh => rh.RaceKey.StartsWith(str));
       }
-      progressMax.Value = await query.CountAsync();
+
+      if (!(await query.AnyAsync()))
+      {
+        return;
+      }
 
       var allTargets = query
         .GroupBy(rh => rh.Key)
         .Select(g => g.Key);
-
+      progressMax.Value = await allTargets.CountAsync();
       var targets = await allTargets.Take(96).ToArrayAsync();
 
       try
@@ -339,7 +383,7 @@ namespace KmyKeiba.Models.Data
         {
           var targetHorses = await db.RaceHorses!
             .Where(rh => targets.Contains(rh.Key))
-            .Select(rh => new { rh.Id, rh.Key, rh.RaceKey, })
+            .Select(rh => new { rh.Id, rh.Key, rh.RaceKey, rh.AbnormalResult, })
             .ToArrayAsync();
 
           foreach (var horse in targets)
@@ -347,7 +391,12 @@ namespace KmyKeiba.Models.Data
             var races = targetHorses.Where(rh => rh.Key == horse).OrderBy(rh => rh.RaceKey);
             var beforeRaceDh = DateTime.MinValue;
             var isFirst = true;
+            var isRested = false;
 
+            var raceCount = 1;
+            var raceCountWithinRunning = 0;
+            var raceCountCompletely = 0;
+            var raceCountAfterRest = 1;
             foreach (var race in races)
             {
               var y = race.RaceKey.Substring(0, 4);
@@ -369,12 +418,46 @@ namespace KmyKeiba.Models.Data
                 attach.PreviousRaceDays = -1;
                 isFirst = false;
               }
+              if (attach.PreviousRaceDays >= 90)
+              {
+                raceCountAfterRest = 1;
+                isRested = true;
+              }
+
+              attach.RaceCount = (short)raceCount;
+
+              attach.RaceCountWithinRunning = -2;
+              attach.RaceCountWithinRunningCompletely = -2;
+              if (race.AbnormalResult == RaceAbnormality.Unknown || race.AbnormalResult > RaceAbnormality.ExcludedByStewards)
+              {
+                // とりあえず走った
+                raceCountWithinRunning++;
+                attach.RaceCountWithinRunning = (short)raceCountWithinRunning;
+
+                if (isRested)
+                {
+                  attach.RaceCountAfterLastRest = (short)raceCountAfterRest;
+                  raceCountAfterRest++;
+                }
+                else
+                {
+                  attach.RaceCountAfterLastRest = -2;
+                }
+
+                // ちゃんとゴールできた
+                if (race.AbnormalResult == RaceAbnormality.Unknown)
+                {
+                  raceCountCompletely++;
+                  attach.RaceCountWithinRunningCompletely = (short)raceCountCompletely;
+                }
+              }
 
               beforeRaceDh = dh;
               count++;
+              raceCount++;
             }
           }
-          progress.Value = count;
+          progress.Value += targets.Length;
 
           await db.SaveChangesAsync();
 
@@ -387,6 +470,7 @@ namespace KmyKeiba.Models.Data
           if (count >= prevCommitCount + 10000)
           {
             await db.CommitAsync();
+            db.ChangeTracker.Clear();
             prevCommitCount = count;
           }
           logger.Debug($"馬のInterval日数計算完了: {count} / {progressMax.Value}");
@@ -605,7 +689,11 @@ namespace KmyKeiba.Models.Data
         foreach (var race in races)
         {
           var subject = new RaceSubjectInfo(race);
-          race.SubjectDisplayInfo = $"{subject.Subject.DisplayClass}/{subject.Subject.SecondaryClass ?? string.Empty}/{subject.Subject.ClassName}";
+          var cls1 = subject.Subject.DisplayClass.ToString()?.ToLower() ?? string.Empty;
+          var cls2 = subject.Subject.SecondaryClass?.ToString()?.ToLower() ?? string.Empty;
+          race.SubjectDisplayInfo = $"{cls1}/{cls2}/{subject.Subject.ClassName}";
+          race.SubjectInfo1 = cls1;
+          race.SubjectInfo2 = cls2;
           count++;
 
           if (count > 10000)
@@ -626,6 +714,147 @@ namespace KmyKeiba.Models.Data
       catch (Exception ex)
       {
         logger.Error("レースの条件解析中にエラー", ex);
+      }
+    }
+
+    public static async Task MigrateFrom250Async(ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
+    {
+      try
+      {
+        using var db = new MyContext();
+        await db.TryBeginTransactionAsync();
+
+        var races = db.Races!.Where(r => r.SubjectDisplayInfo != string.Empty && r.SubjectInfo1 == string.Empty);
+
+        if (!(await races.AnyAsync()))
+        {
+          return;
+        }
+
+        if (progressMax != null)
+        {
+          progressMax.Value = await races.CountAsync();
+        }
+        if (progress != null)
+        {
+          progress.Value = 0;
+        }
+
+        var i = 0;
+        foreach (var race in races)
+        {
+          race.SubjectDisplayInfo = string.Empty;
+          i++;
+
+          if (i >= 10000)
+          {
+            await db.SaveChangesAsync();
+            await db.CommitAsync();
+
+            if (isCanceled?.Value == true)
+            {
+              return;
+            }
+
+            if (progress != null)
+            {
+              progress.Value += i;
+            }
+            i = 0;
+          }
+        }
+
+        await db.SaveChangesAsync();
+        await db.CommitAsync();
+      }
+      catch (Exception ex)
+      {
+        logger.Error("2.5.0からのマイグレーション中にエラー", ex);
+      }
+    }
+
+    public static async Task MigrateFrom322Async(ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
+    {
+      using var db = new MyContext();
+      await db.TryBeginTransactionAsync();
+
+      var targets = db.Horses!
+        .GroupBy(h => h.Code, (h, hs) => new { Key = h, Count = hs.Count(), IsCentral = hs.Any(h => h.CentralFlag != 0), IsLocal = hs.Any(h => h.CentralFlag == 0), })
+        .Where(h => h.Count >= 2);
+
+      try
+      {
+        if (!await targets.AnyAsync())
+        {
+          return;
+        }
+
+        var keys = await targets.Select(t => t.Key).ToArrayAsync();
+
+        if (progressMax != null)
+        {
+          progressMax.Value = keys.Length;
+        }
+        if (progress != null)
+        {
+          progress.Value = 0;
+        }
+
+        var count = 0;
+        foreach (var key in keys)
+        {
+          var horses = await db.Horses!.Where(h => h.Code == key).ToArrayAsync();
+
+          HorseData? central = null;
+          HorseData? local = null;
+
+          foreach (var horse in horses)
+          {
+            if (horse.IsCentral)
+            {
+              if (central == null && horse.Belongs != HorseBelongs.Local)
+              {
+                central = horse;
+              }
+              else
+              {
+                db.Horses!.Remove(horse);
+              }
+            }
+            else if (!horse.IsCentral)
+            {
+              if (local == null && horse.Belongs == HorseBelongs.Local)
+              {
+                local = horse;
+              }
+              else
+              {
+                db.Horses!.Remove(horse);
+              }
+            }
+          }
+
+          count++;
+
+          if (count >= 100)
+          {
+            await db.SaveChangesAsync();
+            await db.CommitAsync();
+
+            if (progress != null)
+            {
+              progress.Value += count;
+            }
+            count = 0;
+          }
+        }
+
+        await db.SaveChangesAsync();
+        await db.CommitAsync();
+      }
+      catch (Exception ex)
+      {
+        logger.Error("3.2.2からのマイグレーションでエラー", ex);
       }
     }
   }

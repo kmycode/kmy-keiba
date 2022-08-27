@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Injection;
+using KmyKeiba.Models.Race.Memo;
 using KmyKeiba.Models.RList;
 using KmyKeiba.Shared;
 using Reactive.Bindings;
@@ -24,6 +25,7 @@ namespace KmyKeiba.Models.Race
 
     private readonly CompositeDisposable _disposables = new();
     private IDisposable? ticketUpdated;
+    private IDisposable? memoChanged;
 
     public ReactiveProperty<string> RaceKey { get; } = new(string.Empty);
 
@@ -216,6 +218,10 @@ namespace KmyKeiba.Models.Race
           // 現在のレースを更新した場合、必要な情報を記録する
           var oldSelectedHorseId = 0u;
           var oldInfo = this.Info.Value;
+          if (oldInfo != null)
+          {
+            oldInfo.UpdateCache();
+          }
           if (oldInfo != null && oldInfo.Data.Key == key)
           {
             if (!this.IsSelectedAllHorses.Value)
@@ -231,6 +237,7 @@ namespace KmyKeiba.Models.Race
           }
 
           this.ticketUpdated?.Dispose();
+          this.memoChanged?.Dispose();
 
           var raceKey = key ?? this.RaceKey.Value;
 
@@ -315,6 +322,25 @@ namespace KmyKeiba.Models.Race
             oldInfo.Dispose();
             logger.Debug("旧オブジェクトの破棄完了");
           }
+
+          while (race.MemoEx.Value == null)
+          {
+            await Task.Delay(100);
+          }
+          this.memoChanged = Observable.FromEventPattern<PointLabelChangedEventArgs>(
+            ev => race.MemoEx.Value.PointLabelChangedForRaceList += ev,
+            ev => race.MemoEx.Value.PointLabelChangedForRaceList -= ev)
+          .Subscribe(ev =>
+          {
+            this.RaceList.UpdateColor(ev.EventArgs.Color, ev.EventArgs.IsVisible);
+          });
+          this.memoChanged = Observable.FromEventPattern(
+            ev => race.MemoEx.Value.PointLabelOrderChangedForRaceList += ev,
+            ev => race.MemoEx.Value.PointLabelOrderChangedForRaceList -= ev)
+          .Subscribe(async _ =>
+          {
+            await this.RaceList.UpdateAllColorsAsync();
+          });
         }
         catch (Exception ex)
         {

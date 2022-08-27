@@ -356,7 +356,7 @@ namespace KmyKeiba.JVLink.Entities
         return false;
       }
 
-      if (text.Contains("新馬") || raceName.Contains("新馬") || text.Contains("初出走") || raceName.Contains("初出走"))
+      if (text.Contains("新馬") || raceName.Contains("新馬") || text.Contains("初出走") || raceName.Contains("初出走") || text.Contains("ｽﾊﾟｰｷﾝｸﾞﾃﾞﾋﾞｭｰ") || raceName.Contains("ｽﾊﾟｰｷﾝｸﾞﾃﾞﾋﾞｭｰ"))
       {
         subject.IsNewHorses = true;
 
@@ -589,6 +589,7 @@ namespace KmyKeiba.JVLink.Entities
     Steeplechase = 4,
     Listed = 5,
     Others = 6,
+    LocalOpen = 7,
   }
 
   public enum RaceGrade
@@ -626,13 +627,28 @@ namespace KmyKeiba.JVLink.Entities
     [RaceGradeInfo(" ", RaceGradeType.Others, "")]
     Others = 10,
 
-    [RaceGradeInfo("Jpn1", RaceGradeType.Grade, "Jpn1")]
+    [RaceGradeInfo("P", RaceGradeType.Grade, "L-G1")]
+    LocalGrade1_UC = 11,
+
+    [RaceGradeInfo("Q", RaceGradeType.Grade, "L-G2")]
+    LocalGrade2_UC = 12,
+
+    [RaceGradeInfo("R", RaceGradeType.Grade, "L-G3")]
+    LocalGrade3_UC = 13,
+
+    [RaceGradeInfo("S", RaceGradeType.NoNamedGrade, "L-G")]
+    LocalGrade_UC = 14,
+
+    [RaceGradeInfo("T", RaceGradeType.LocalOpen, "L-PreG")]
+    LocalOpen_UC = 15,
+
+    [RaceGradeInfo("Jpn1", RaceGradeType.Grade, "交-G1")]
     LocalGrade1 = 101,
 
-    [RaceGradeInfo("Jpn2", RaceGradeType.Grade, "Jpn2")]
+    [RaceGradeInfo("Jpn2", RaceGradeType.Grade, "交-G2")]
     LocalGrade2 = 102,
 
-    [RaceGradeInfo("Jpn3", RaceGradeType.Grade, "Jpn3")]
+    [RaceGradeInfo("Jpn3", RaceGradeType.Grade, "交-G3")]
     LocalGrade3 = 103,
 
     [RaceGradeInfo("JpnD", RaceGradeType.NoNamedGrade, "G")]
@@ -643,6 +659,15 @@ namespace KmyKeiba.JVLink.Entities
 
     [RaceGradeInfo("JpnL", RaceGradeType.Listed, "L")]
     LocalListed = 109,
+
+    [RaceGradeInfo("For1", RaceGradeType.Grade, "F-G1")]
+    ForeignGrade1 = 201,
+
+    [RaceGradeInfo("For2", RaceGradeType.Grade, "F-G2")]
+    ForeignGrade2 = 202,
+
+    [RaceGradeInfo("For3", RaceGradeType.Grade, "F-G3")]
+    ForeignGrade3 = 203,
   }
 
   class RaceSubjectTypeInfoAttribute : Attribute

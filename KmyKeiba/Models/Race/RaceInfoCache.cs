@@ -1,6 +1,8 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Race.AnalysisTable;
+using KmyKeiba.Models.Race.Finder;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +34,9 @@ namespace KmyKeiba.Models.Race
         cache.ExactaOdds = exists.ExactaOdds;
         cache.TrioOdds = exists.TrioOdds;
         cache.TrifectaOdds = exists.TrifectaOdds;
+        cache.AnalysisTable = exists.AnalysisTable;
+        cache.Finder = exists.Finder;
+        cache.HorseDetails = exists.HorseDetails;
         _caches.Remove(exists);
       }
       _caches.Add(cache);
@@ -45,8 +50,11 @@ namespace KmyKeiba.Models.Race
     public static void Register(RaceInfo race,
       IReadOnlyList<(RaceData Race, RaceHorseData Horse)> horseAllHistories,
       IReadOnlyList<RaceHorseData> horseHistorySameHorses,
+      IReadOnlyList<HorseData> horseDetails,
       IReadOnlyList<TrainingData> trainings,
       IReadOnlyList<WoodtipTrainingData> woodtipTrainings,
+      RaceFinder finder,
+      AnalysisTableCache? analysisTable,
       RefundData? refund,
       FrameNumberOddsData? frameNumberOdds,
       QuinellaPlaceOddsData? quinellaPlaceOdds,
@@ -67,10 +75,13 @@ namespace KmyKeiba.Models.Race
         }
       }
       cache.HorseAllHistories = horseAllHistories;
+      cache.HorseDetails = horseDetails;
       cache.HorseHistorySameHorses = horseHistorySameHorses;
       cache.Trainings = trainings;
       cache.WoodtipTrainings = woodtipTrainings;
       cache.Refund = refund;
+      cache.Finder = finder;
+      cache.AnalysisTable = analysisTable;
 
       if (refund != null)
       {
@@ -80,6 +91,15 @@ namespace KmyKeiba.Models.Race
         cache.ExactaOdds = exactaOdds;
         cache.TrioOdds = trioOdds;
         cache.TrifectaOdds = trifectaOdds;
+      }
+    }
+
+    public static void UpdateCache(string raceKey, AnalysisTableCache? analysisTable)
+    {
+      var cache = TryGetCache(raceKey);
+      if (cache != null)
+      {
+        cache.AnalysisTable = analysisTable;
       }
     }
 
@@ -105,6 +125,7 @@ namespace KmyKeiba.Models.Race
 
       if (cache.RaceAnalyzers != null) race.TrendAnalyzers.CopyFrom(cache.RaceAnalyzers);
       if (cache.RaceWinnerAnalyzers != null) race.WinnerTrendAnalyzers.CopyFrom(cache.RaceWinnerAnalyzers);
+      if (cache.Finder != null) race.Finder.ReplaceFrom(cache.Finder);
       foreach (var horse in race.Horses.Join(cache.Horses, r => r.Data.Id, c => c.Data.Id, (r, c) => new { New = r, Old = c, }))
       {
         if (horse.Old.RaceRiderAnalyzers != null && horse.New.Data.RiderCode == horse.Old.Data.RiderCode)
@@ -113,6 +134,8 @@ namespace KmyKeiba.Models.Race
           horse.New.TrainerTrendAnalyzers?.CopyFrom(horse.Old.RaceTrainerAnalyzers);
         if (horse.Old.RaceHorseBloodAnalyzers != null)
           horse.New.BloodSelectors?.CopyFrom(horse.Old.RaceHorseBloodAnalyzers);
+        if (horse.Old.Finder != null)
+          horse.New.FinderModel.Value?.ReplaceFrom(horse.Old.Finder);
       }
 
       return true;
@@ -136,9 +159,15 @@ namespace KmyKeiba.Models.Race
 
     public RaceWinnerHorseTrendAnalysisSelector? RaceWinnerAnalyzers { get; set; }
 
+    public RaceFinder? Finder { get; set; }
+
+    public AnalysisTableCache? AnalysisTable { get; set; }
+
     public IReadOnlyList<(RaceData Race, RaceHorseData RaceHorse)>? HorseAllHistories { get; set; }
 
     public IReadOnlyList<RaceHorseData>? HorseHistorySameHorses { get; set; }
+
+    public IReadOnlyList<HorseData>? HorseDetails { get; set; }
 
     public IReadOnlyList<TrainingData>? Trainings { get; set; }
 
@@ -173,6 +202,7 @@ namespace KmyKeiba.Models.Race
           RaceRiderAnalyzers = horse.RiderTrendAnalyzers,
           RaceTrainerAnalyzers = horse.TrainerTrendAnalyzers,
           RaceHorseBloodAnalyzers = horse.BloodSelectors,
+          Finder = horse.FinderModel.Value,
         });
       }
     }
@@ -186,6 +216,8 @@ namespace KmyKeiba.Models.Race
       public RaceTrainerTrendAnalysisSelector? RaceTrainerAnalyzers { get; set; }
 
       public RaceHorseBloodTrendAnalysisSelectorMenu? RaceHorseBloodAnalyzers { get; set; }
+
+      public FinderModel? Finder { get; set; }
 
       public RaceInfoHorseCache(RaceHorseData horse)
       {

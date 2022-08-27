@@ -131,6 +131,22 @@ namespace KmyKeiba.Models.Script
       return "[]";
     }
 
+    [ScriptMember("findRacesAsync")]
+    public async Task<string> FindRacesAsync(string keys, int count, int offset = 0)
+    {
+      var result = await this._race.Finder.FindRacesAsync(keys, count, offset, withoutFutureRacesForce: true);
+      return JsonSerializer.Serialize(
+        result.Items.Select(s => new ScriptRace(s.Data)).Take(count).ToArray(), ScriptManager.JsonOptions);
+    }
+
+    [ScriptMember("findRaceHorsesAsync")]
+    public async Task<string> FindRaceHorsesAsync(string keys, int count, int offset = 0)
+    {
+      var result = await this._race.Finder.FindRaceHorsesAsync(keys, count, offset, withoutFutureRacesForce: true);
+      return JsonSerializer.Serialize(
+        result.Items.Select(s => new ScriptRaceHorse(string.Empty, s.Data)).Take(count).ToArray(), ScriptManager.JsonOptions);
+    }
+
     [ScriptMember("getFrameNumberOdds")]
     public string GetFrameNumberOdds()
     {
@@ -197,26 +213,14 @@ namespace KmyKeiba.Models.Script
     [JsonPropertyName("cornerRanking1")]
     public string CornerRanking1 => this._race.Data.Corner1Result;
 
-    [JsonPropertyName("cornerLapTime1")]
-    public short CornerLapTime1 => (short)(this._race.Data.Corner1LapTime.TotalSeconds * 10);
-
     [JsonPropertyName("cornerRanking2")]
     public string CornerRanking2 => this._race.Data.Corner2Result;
-
-    [JsonPropertyName("cornerLapTime2")]
-    public short CornerLapTime2 => (short)(this._race.Data.Corner2LapTime.TotalSeconds * 10);
 
     [JsonPropertyName("cornerRanking3")]
     public string CornerRanking3 => this._race.Data.Corner3Result;
 
-    [JsonPropertyName("cornerLapTime3")]
-    public short CornerLapTime3 => (short)(this._race.Data.Corner3LapTime.TotalSeconds * 10);
-
     [JsonPropertyName("cornerRanking4")]
     public string CornerRanking4 => this._race.Data.Corner4Result;
-
-    [JsonPropertyName("cornerLapTime4")]
-    public short CornerLapTime4 => (short)(this._race.Data.Corner4LapTime.TotalSeconds * 10);
 
     [JsonIgnore]
     [ScriptMember("horses")]
@@ -315,26 +319,14 @@ namespace KmyKeiba.Models.Script
     [JsonPropertyName("cornerRanking1")]
     public string CornerRanking1 => this._race.Corner1Result;
 
-    [JsonPropertyName("cornerLapTime1")]
-    public short CornerLapTime1 => (short)(this._race.Corner1LapTime.TotalSeconds * 10);
-
     [JsonPropertyName("cornerRanking2")]
     public string CornerRanking2 => this._race.Corner2Result;
-
-    [JsonPropertyName("cornerLapTime2")]
-    public short CornerLapTime2 => (short)(this._race.Corner2LapTime.TotalSeconds * 10);
 
     [JsonPropertyName("cornerRanking3")]
     public string CornerRanking3 => this._race.Corner3Result;
 
-    [JsonPropertyName("cornerLapTime3")]
-    public short CornerLapTime3 => (short)(this._race.Corner3LapTime.TotalSeconds * 10);
-
     [JsonPropertyName("cornerRanking4")]
     public string CornerRanking4 => this._race.Corner4Result;
-
-    [JsonPropertyName("cornerLapTime4")]
-    public short CornerLapTime4 => (short)(this._race.Corner4LapTime.TotalSeconds * 10);
 
     [JsonPropertyName("topHorses")]
     public ScriptRaceHorse[]? TopHorses =>

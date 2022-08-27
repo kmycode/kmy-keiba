@@ -61,6 +61,7 @@ namespace KmyKeiba.Downloader
       {
         object oldArgs = args;
 
+        //args = new[] { "nvconfig", "8080" };
         //args = new[] { "dwrt", "31", };
         //args = new[] { "movie", "1266", };
         //args = new[] { "movielist", "94" };
@@ -254,6 +255,15 @@ namespace KmyKeiba.Downloader
           currentTask = task;
           KillHost();
           KillMe();
+        }
+      }
+      else if (command == DownloaderCommand.Unlha.GetCommandText())
+      {
+        var path = args.ElementAtOrDefault(1);
+        var dist = args.ElementAtOrDefault(2);
+        if (!string.IsNullOrEmpty(dist))
+        {
+          UnlhaFile(path!, dist);
         }
       }
       else if (command == "kill")

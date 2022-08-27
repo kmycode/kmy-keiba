@@ -2,12 +2,14 @@
 (function () {
   //
   // 分析画面の項目
+  // ※そのレースの発走より前のデータが集計されます
   //
   // [value] --- place        : 複勝率
   //             win          : 単勝率
   //             shortesttime : 最短タイム
   //             time         : タイム偏差値平均
   //             a3htime      : 後3ハロンタイム偏差値平均
+  //             recovery     : 単勝回収率
   // [target] --- frame        : 枠番
   //              age          : 年齢
   //              color        : 色
@@ -21,6 +23,7 @@
   // useRiderAnalyzer([name], [keys], [value])
   // useTrainerAnalyzer([name], [keys], [value])
   // useBloodAnalyzer([name], [relation], [keys], [value])
+  // useFinder([name], [keys], [value])
   const horseTable = appconfig.createAnalysisTable('馬');
   horseTable.useHorseAnalyzer('全レース複勝', '', 'place');
   horseTable.useHorseAnalyzer('全レースタイム偏差値', '', 'time');
@@ -83,4 +86,7 @@
 
   // 起動時のメッセージを表示するか（true/false）
   appconfig.isFirstMessageVisible = true;
+
+  // 拡張メモにおける馬メモのグループ数。1未満を指定した場合は1を下限とする
+  appconfig.expansionMemoGroupSize = 8;
 });

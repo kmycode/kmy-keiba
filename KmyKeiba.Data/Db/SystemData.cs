@@ -33,5 +33,13 @@ namespace KmyKeiba.Data.Db
     IsDownloadCentralOnThursdayAfterOnly = 8,
     LastUpdateStandardTimeYear = 9,
     LastDownloadNormalDataHour = 10,
+    DatabaseVersion = 11,
+    IsDownloadJrdb = 12,
+    IsRTDownloadJrdb = 13,
+    LastDownloadJrdbDate = 14,
+    JrdbId = 15,
+    JrdbPassword = 16,
+    IsNotDownloadHorseBloods = 17,
+    IsNotDownloadTrainings = 18,
   }
 }

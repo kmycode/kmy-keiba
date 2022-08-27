@@ -226,6 +226,30 @@ namespace KmyKeiba.Models.Script
       return "[]";
     }
 
+    [ScriptMember("findRacesAsync")]
+    public async Task<string> FindRacesAsync(string keys, int count, int offset = 0)
+    {
+      if (this._analyzer?.FinderModel.Value != null)
+      {
+        var result = await this._analyzer.FinderModel.Value.FindRacesAsync(keys, count, offset);
+        return JsonSerializer.Serialize(
+          result.Items.Select(s => new ScriptRace(s.Data)).Take(count).ToArray(), ScriptManager.JsonOptions);
+      }
+      return "[]";
+    }
+
+    [ScriptMember("findRaceHorsesAsync")]
+    public async Task<string> FindRaceHorsesAsync(string keys, int count, int offset = 0)
+    {
+      if (this._analyzer?.FinderModel.Value != null)
+      {
+        var result = await this._analyzer.FinderModel.Value.FindRaceHorsesAsync(keys, count, offset);
+        return JsonSerializer.Serialize(
+          result.Items.Select(s => new ScriptRaceHorse(string.Empty, s.Data)).Take(count).ToArray(), ScriptManager.JsonOptions);
+      }
+      return "[]";
+    }
+
     [ScriptMember("getTrainings")]
     public string GetTrainings()
     {

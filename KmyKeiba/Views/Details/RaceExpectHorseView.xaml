@@ -24,20 +24,14 @@
         <ColumnDefinition/>
         <ColumnDefinition/>
         <ColumnDefinition/>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
       </Grid.ColumnDefinitions>
       <RadioButton Grid.Column="0" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="概要" Name="S_Summary" IsChecked="True"/>
       <RadioButton Grid.Column="1" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="傾向" Name="S_HorseTrend"/>
+                   Content="検索" Name="S_Finder"/>
       <RadioButton Grid.Column="2" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="騎手" Name="S_Rider"/>
-      <RadioButton Grid.Column="3" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
-                   Content="調教師" Name="S_Trainer"/>
-      <RadioButton Grid.Column="4" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="血統" Name="S_HorseBlood"/>
-      <RadioButton Grid.Column="5" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Grid.Column="3" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="調教" Name="S_Training"/>
     </Grid>
 
@@ -46,7 +40,7 @@
       <ScrollViewer>
         <StackPanel>
           <Border Height="260">
-            <ul:RaceHorsePillar Horse="{Binding RaceHorse,ElementName=Root}" IsAllRaces="True"/>
+            <ul:RaceHorsePillar Horse="{Binding RaceHorse,ElementName=Root}" IsAllRaces="True" Race="{Binding Race,RelativeSource={RelativeSource AncestorType=uc:RaceExpectHorseView}}"/>
           </Border>
           <Grid Margin="24,32,0,0">
             <Grid.ColumnDefinitions>
@@ -58,6 +52,7 @@
               <ColumnDefinition Width="0.4*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
+              <RowDefinition/>
               <RowDefinition/>
               <RowDefinition/>
               <RowDefinition/>
@@ -89,11 +84,9 @@
             <TextBlock Grid.Column="2" Text="距離２" Grid.Row="1" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
             <TextBlock Grid.Column="3" Grid.Row="1" FontSize="24" Margin="0,8,0,0"
                        Text="{Binding RaceHorse.History.SecondDistance,ElementName=Root,Converter={StaticResource LabelConv}}"/>
-            <TextBlock Grid.Column="2" Grid.Row="2" Text="その他" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
-            <StackPanel Grid.Column="3" Grid.Row="2" Orientation="Horizontal">
-              <TextBlock FontSize="18" Visibility="{Binding RaceHorse.Data.IsBlinkers,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
-                         Text="ブリンカー" Margin="0,8,16,0"/>
-            </StackPanel>
+            <TextBlock Grid.Column="2" Text="賞金" Grid.Row="2" Foreground="{StaticResource SubForeground}" FontSize="14"/>
+            <TextBlock Grid.Column="3" Grid.Row="2" FontSize="24" Margin="0,8,0,0"
+                       Text="{Binding RaceHorse.History.PrizeMoneyLabel,ElementName=Root}"/>
 
             <TextBlock Grid.Column="4" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,0,24,0">
               同距離・地面<LineBreak/>騎手複勝
@@ -106,6 +99,24 @@
               <Run Text="３着" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderThirdCount,ElementName=Root,Mode=OneWay}"/>　
               <Run Text="着外" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderLosedCount,ElementName=Root,Mode=OneWay}"/>
             </TextBlock>
+            <TextBlock Grid.Column="4" Grid.Row="2" Text="その他" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
+            <StackPanel Grid.Column="5" Grid.Row="2" Orientation="Horizontal">
+              <TextBlock FontSize="18" Visibility="{Binding RaceHorse.Data.IsBlinkers,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                         Text="ブリンカー" Margin="0,8,16,0"/>
+            </StackPanel>
+
+            <TextBlock Grid.Column="0" Grid.Row="3" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,16,24,0"
+                       Text="馬主"/>
+            <TextBlock Grid.Column="1" Grid.Row="3" FontSize="18" Margin="0,16,0,0"
+                       Text="{Binding RaceHorse.Data.OwnerName,ElementName=Root}"/>
+            <TextBlock Grid.Column="2" Grid.Row="3" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,16,24,0"
+                       Text="生産地"/>
+            <TextBlock Grid.Column="3" Grid.Row="3" FontSize="18" Margin="0,16,0,0"
+                       Text="{Binding RaceHorse.DetailData.ProductorName,ElementName=Root}"/>
+            <TextBlock Grid.Column="4" Grid.Row="3" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,16,24,0"
+                       Text="招待"/>
+            <TextBlock Grid.Column="5" Grid.Row="3" FontSize="18" Margin="0,16,0,0"
+                       Text="{Binding RaceHorse.DetailData.InviteFrom,ElementName=Root}"/>
           </Grid>
 
           <StackPanel Margin="8,36,0,36" Visibility="{Binding RaceHorse.History.HasCourseGrades,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
@@ -156,7 +167,7 @@
                             <TextBlock Text="{Binding ShortestTimeRace.Distance}" FontSize="14" TextAlignment="Left" Margin="2,0,0,0"/>
                           </StackPanel>
                         </Border>
-                        <TextBlock Width="60" Text="{Binding ShortestTime,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss}"/>
+                        <TextBlock Width="60" Text="{Binding ShortestTime,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss\\.f}"/>
                         <TextBlock Width="90" Text="{Binding ShortestTimeNormalized,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss\\.f}" FontSize="24"/>
                         <TextBlock Width="60" Text="{Binding ShortestTimeRaceHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
                         <TextBlock Width="60" Text="{Binding ShortestTimeRaceTopHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
@@ -164,8 +175,22 @@
                         <TextBlock Width="50" Text="{Binding ShortestTimeRaceHorse.RiderWeight,Converter={StaticResource DigitMinusConv}}"/>
                         <TextBlock Width="30" Text="{Binding ShortestTimeRaceHorse.Age}"/>
                         <TextBlock Width="120" Text="{Binding ShortestTimeRace.StartTime,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"/>
-                        <up:RaceSubjectIcon Subject="{Binding ShortestTimeRaceSubject.Subject}" Margin="8,0,8,0" Width="40" Height="24" FontSize="14" VerticalAlignment="Center"/>
-                        <TextBlock Width="200" Text="{Binding ShortestTimeRaceSubject.DisplayName}" TextAlignment="Left"/>
+                        <ToggleButton Name="ShortestRace" Style="{StaticResource ListItemToggle}">
+                          <ToggleButton.Template>
+                            <ControlTemplate>
+                              <Border Background="{TemplateBinding Background}">
+                                <StackPanel Orientation="Horizontal">
+                                  <up:RaceSubjectIcon Subject="{Binding ShortestTimeRaceSubject.Subject}" Margin="8,0,8,0" Width="40" Height="24" FontSize="14" VerticalAlignment="Center"/>
+                                  <TextBlock Width="200" Text="{Binding ShortestTimeRaceSubject.DisplayName}" TextAlignment="Left" FontSize="16" VerticalAlignment="Center"/>
+                                </StackPanel>
+                              </Border>
+                            </ControlTemplate>
+                          </ToggleButton.Template>
+                        </ToggleButton>
+                        <up:ImePopup IsOpen="{Binding IsChecked,ElementName=ShortestRace,Mode=TwoWay}" StaysOpen="False"
+                                     PlacementTarget="{Binding ElementName=ShortestRace}">
+                          <up:RaceHorsePopup Horse="{Binding ShortestTimeRaceHorseAnalyzer}"/>
+                        </up:ImePopup>
                       </StackPanel>
                     </StackPanel>
                   </Grid>
@@ -189,66 +214,121 @@
       </ScrollViewer>
     </Grid>
 
-    <!-- 騎手傾向 -->
-    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Rider,Converter={StaticResource BooleanVisibilityConv}}">
-      <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.RiderTrendAnalyzers,ElementName=Root}"/>
-    </Grid>
-
-    <!-- 調教師傾向 -->
-    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Trainer,Converter={StaticResource BooleanVisibilityConv}}">
-      <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.TrainerTrendAnalyzers,ElementName=Root}"/>
-    </Grid>
-
-    <!-- 傾向 -->
-    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseTrend,Converter={StaticResource BooleanVisibilityConv}}">
-      <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.TrendAnalyzers,ElementName=Root}"/>
+    <!--拡張検索-->
+    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_Finder,Converter={StaticResource BooleanVisibilityConv}}">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="auto"/>
+        <RowDefinition/>
+      </Grid.RowDefinitions>
+      <up:FinderKeyInputView FinderModel="{Binding RaceHorse.FinderModel.Value,ElementName=Root}" Margin="0,0,0,12" IsGenerateDefaultPopup="True"/>
+      <up:FinderRowListView FinderModel="{Binding RaceHorse.FinderModel.Value,ElementName=Root}" Grid.Row="1"/>
     </Grid>
 
     <!-- 血統 -->
-    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseBlood,Converter={StaticResource BooleanVisibilityConv}}">
-      <uc:TrendAnalyzerAnalysisView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding RaceHorse,ElementName=Root}" TrendAnalyzers="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value,ElementName=Root}">
-        <uc:TrendAnalyzerAnalysisView.MenuContent>
-          <Grid DataContext="{Binding RelativeSource={RelativeSource FindAncestor,AncestorType=uc:RaceExpectHorseView}}">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition/>
-              <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="auto"/>
-              <RowDefinition/>
-            </Grid.RowDefinitions>
-            <Border Height="40">
-              <RadioButton FontSize="18" Content="血統馬" GroupName="{Binding UniqueId3}" Style="{StaticResource ToggleButtonDefault}"
-                           IsChecked="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value.IsSameChildren.Value,Mode=TwoWay,Converter={StaticResource NegativeConv}}"
-                           IsEnabled="{Binding RaceHorse.BloodSelectors.MenuItems.ActiveItem.Value.IsEnabled}"
-                           Visibility="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
+    <Grid Grid.Row="1" Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseBlood,Converter={StaticResource BooleanVisibilityConv}}"
+          IsEnabled="{Binding CanSave.Value}">
+      <Grid.RowDefinitions>
+        <RowDefinition/>
+        <RowDefinition/>
+        <RowDefinition/>
+        <RowDefinition/>
+        <RowDefinition/>
+        <RowDefinition/>
+      </Grid.RowDefinitions>
+      <Grid.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+          <Setter Property="HorizontalAlignment" Value="Center"/>
+          <Setter Property="VerticalAlignment" Value="Center"/>
+          <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+      </Grid.Resources>
+      <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{StaticResource BaseBackground}" BorderThickness="1">
+        <Grid>
+          <TextBlock Text="{Binding RaceHorse.Data.Name,ElementName=Root}" FontSize="36" FontWeight="Bold"/>
+          <ItemsControl ItemsSource="{Binding RaceHorse.BloodSelectors.GenerationInfos,ElementName=Root}"
+                        VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="4,2">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Vertical"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock FontSize="14" Text="{Binding Name}" Width="120"/>
+                  <TextBlock FontSize="14" Text="{Binding Rate,Converter={StaticResource StringFormatConv},ConverterParameter=P2}" Width="50" TextAlignment="Right"/>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Grid>
+      </Border>
+      <UniformGrid Columns="2" Grid.Row="1">
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.Father.Value,ElementName=Root}" FontSize="32"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.Mother.Value,ElementName=Root}" FontSize="32"/>
+      </UniformGrid>
+      <UniformGrid Columns="4" Grid.Row="2">
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.FatherFather.Value,ElementName=Root}" FontSize="26"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.FatherMother.Value,ElementName=Root}" FontSize="26"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.MotherFather.Value,ElementName=Root}" FontSize="26"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.MotherMother.Value,ElementName=Root}" FontSize="26"/>
+      </UniformGrid>
+      <UniformGrid Columns="8" Grid.Row="3">
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.FatherFatherFather.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.FatherFatherMother.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.FatherMotherFather.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.FatherMotherMother.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.MotherFatherFather.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.MotherFatherMother.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.MotherMotherFather.Value,ElementName=Root}" FontSize="20"/>
+        <up:HorseBloodParentPanel Item="{Binding RaceHorse.BloodSelectors.MotherMotherMother.Value,ElementName=Root}" FontSize="20"/>
+      </UniformGrid>
+      <ItemsControl Grid.Row="4" ItemsSource="{Binding RaceHorse.BloodSelectors.FourthGenerations,ElementName=Root}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <UniformGrid Columns="16"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <up:HorseBloodParentPanel Item="{Binding}" FontSize="16"/>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <ItemsControl Grid.Row="5" ItemsSource="{Binding RaceHorse.BloodSelectors.FifthGenerations,ElementName=Root}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <UniformGrid Columns="32"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <up:HorseBloodParentPanel Item="{Binding}" FontSize="14"/>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <!--
+      <ItemsControl Grid.Row="6" ItemsSource="{Binding RaceHorse.BloodSelectors.SixthGenerations.Value,ElementName=Root}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <UniformGrid Columns="64"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{Binding IsMale,Converter={StaticResource BooleanBackgroundIsMaleConv}}" BorderThickness="1">
+              <Border.ToolTip>
+                <ToolTip Background="{StaticResource BaseBackground}">
+                  <TextBlock Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
+                             FontSize="16" Text="{Binding Name}"/>
+                </ToolTip>
+              </Border.ToolTip>
+              <TextBlock Text="{Binding Name}" FontSize="10" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Border>
-            <Border Height="40" Grid.Column="1">
-              <RadioButton FontSize="18" Content="同系馬" GroupName="{Binding UniqueId3}" Style="{StaticResource ToggleButtonDefault}" IsChecked="True"
-                           Visibility="{Binding RaceHorse.BloodSelectors.CurrentSelector.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
-            </Border>
-            <ItemsControl Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding RaceHorse.BloodSelectors.MenuItems}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <RadioButton IsChecked="{Binding IsChecked.Value,Mode=TwoWay}" GroupName="{Binding UniqueId2,RelativeSource={RelativeSource FindAncestor,AncestorType=uc:RaceExpectHorseView}}"
-                               Style="{StaticResource ToggleButtonDefault}">
-                    <Grid Width="145">
-                      <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="0.5*"/>
-                        <ColumnDefinition/>
-                      </Grid.ColumnDefinitions>
-                      <TextBlock Text="{Binding Selector.Type,Converter={StaticResource LabelConv}}"
-                                 FontSize="14" Foreground="{StaticResource SubForeground}"/>
-                      <TextBlock Grid.Column="1" Text="{Binding Selector.Name}"
-                                 FontSize="14" FontWeight="Bold"/>
-                    </Grid>
-                  </RadioButton>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </Grid>
-        </uc:TrendAnalyzerAnalysisView.MenuContent>
-      </uc:TrendAnalyzerAnalysisView>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      -->
     </Grid>
 
     <!--調教-->

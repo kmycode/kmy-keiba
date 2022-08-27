@@ -52,6 +52,30 @@
     <Compile Update="Views\Dialogs\VersionDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Expansions\AnalysisTableAggregateView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Expansions\AnalysisTableCellDetail.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Expansions\AnalysisTableConfigView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Expansions\AnalysisTableDelimiterConfigView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Expansions\AnalysisTableWeightConfigView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Expansions\ExpansionAnalysisTableView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Expansions\ExpansionMemoView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Expansions\ExternalNumberConfigView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\ListItems\RaceHorsePillar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -62,6 +86,36 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Main\WindowMenu.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\ExpansionMemoItem.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\FinderKeyInputView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\FinderQueryParameterView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\FinderQuery\FinderQueryView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\FinderQuery\InputBloodView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\FinderQuery\InputListBoxView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\FinderQuery\InputNumberView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\FinderQuery\InputStringView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\FinderRowListView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Parts\HorseBloodParentPanel.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Parts\HorseMarkButton.xaml.cs">
@@ -93,13 +147,22 @@
     <Page Update="MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Resources\ComboBoxStyle.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Resources\ControlStyles.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Resources\Converters.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Resources\FinderCellTemplates.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Resources\HorseMarks.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Resources\ListBoxStyle.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Resources\ThemeClassic.xaml">
@@ -153,6 +216,30 @@
     <Page Update="Views\Dialogs\VersionDialog.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Views\Expansions\AnalysisTableAggregateView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\AnalysisTableCellDetail.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\AnalysisTableConfigView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\AnalysisTableDelimiterConfigView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\AnalysisTableWeightConfigView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\ExpansionAnalysisTableView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\ExpansionMemoView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\ExternalNumberConfigView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\ListItems\RaceHorsePillar.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -163,6 +250,36 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Main\WindowMenu.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\ExpansionMemoItem.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\FinderKeyInputView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\FinderQueryParameterView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\FinderQuery\FinderQueryView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\FinderQuery\InputBloodView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\FinderQuery\InputListBoxView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\FinderQuery\InputNumberView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\FinderQuery\InputStringView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\FinderRowListView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Parts\HorseBloodParentPanel.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Parts\HorseMarkButton.xaml">

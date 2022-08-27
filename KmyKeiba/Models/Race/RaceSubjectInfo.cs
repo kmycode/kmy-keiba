@@ -62,14 +62,6 @@ namespace KmyKeiba.Models.Race
           Type = race.SubjectAge5,
         });
       }
-      if (race.SubjectAgeYounger != RaceSubjectType.Unknown)
-      {
-        this.Subject.AgeSubjects.Add(new RaceSubject.SubjectTypeItem
-        {
-          Age = 6,
-          Type = race.SubjectAgeYounger,
-        });
-      }
 
       if (race.Course >= RaceCourse.LocalMinValue)
       {
@@ -84,6 +76,22 @@ namespace KmyKeiba.Models.Race
         if (this.Subject.Grade == RaceGrade.Grade3)
         {
           this.Subject.Grade = RaceGrade.LocalGrade3;
+        }
+      }
+
+      if (race.Course >= RaceCourse.Foreign)
+      {
+        if (this.Subject.Grade == RaceGrade.LocalGrade1)
+        {
+          this.Subject.Grade = RaceGrade.ForeignGrade1;
+        }
+        if (this.Subject.Grade == RaceGrade.LocalGrade2)
+        {
+          this.Subject.Grade = RaceGrade.ForeignGrade2;
+        }
+        if (this.Subject.Grade == RaceGrade.LocalGrade3)
+        {
+          this.Subject.Grade = RaceGrade.ForeignGrade3;
         }
       }
 

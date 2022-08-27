@@ -61,10 +61,18 @@ namespace KmyKeiba.Models.Analysis
       // 翌日のレース予定などではこれが設定されていない
       if (race.TrackCondition != RaceCourseCondition.Unknown)
       {
-        item = query.FirstOrDefault(st => st.Condition == race.TrackCondition);
-        if (item == null || item.SampleCount < 10)
+        try
         {
-          item = query.FirstOrDefault(st => st.Condition == RaceCourseCondition.Unknown);
+          item = query.FirstOrDefault(st => st.Condition == race.TrackCondition);
+
+          if (item == null || item.SampleCount < 10)
+          {
+            item = query.FirstOrDefault(st => st.Condition == RaceCourseCondition.Unknown);
+          }
+        }
+        catch (Exception ex)
+        {
+          item = null;
         }
       }
       else
@@ -274,6 +282,60 @@ namespace KmyKeiba.Models.Analysis
           }
         });
       });
+    }
+
+    public static short NormalizeB3FTime(RaceData race)
+    {
+      return NormalizeB3FTime(race.Distance, race.BeforeHaronTime3);
+    }
+
+    public static short NormalizeB3FTime(short distance, short beforeHaronTime3)
+    {
+      if (beforeHaronTime3 == default)
+      {
+        return default;
+      }
+
+      var d = distance % 200;
+      if (d == 0)
+      {
+        return beforeHaronTime3;
+      }
+
+      var b3fDistance = 600 - (200 - d);
+      var timePerMeter = beforeHaronTime3 / (float)b3fDistance;
+
+      return (short)(timePerMeter * 600);
+    }
+
+    public static double CalcPci(RaceData race, RaceHorseData horse)
+    {
+      return CalcPci(race.Distance, horse.ResultTimeValue, horse.AfterThirdHalongTimeValue);
+    }
+
+    public static double CalcPci(short distance, short resultTimeValue, short a3hTimeValue)
+    {
+      if (resultTimeValue == default || a3hTimeValue == default)
+      {
+        return default;
+      }
+      var baseTime = (resultTimeValue - a3hTimeValue) / 10.0 / (distance - 600) * 600;
+      return baseTime / (a3hTimeValue / 10.0) * 100 - 50;
+    }
+
+    public static double CalcRpci(RaceData race, RaceHorseData topHorse)
+    {
+      return CalcRpci(race.Distance, race.AfterHaronTime3, topHorse.ResultTimeValue, race.AfterHaronTime3);
+    }
+
+    public static double CalcRpci(short distance, short raceA3hTimeValue, short resultTimeValue, short a3hTimeValue)
+    {
+      if (raceA3hTimeValue == default)
+      {
+        return default;
+      }
+      var baseTime = (double)(resultTimeValue - raceA3hTimeValue) / (distance - 600) * 600;
+      return baseTime / raceA3hTimeValue * 100 - 50;
     }
   }
 }

@@ -73,7 +73,14 @@
                                Text="{Binding Downloader.ErrorMessage.Value}" Visibility="{Binding Downloader.IsError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </Grid>
                 </Border>
-                <Button Width="80" Height="50" FontSize="24" Padding="0" Content="RT" Command="{Binding OpenRTDownloadDialogCommand}"/>
+                <Grid Width="80" Height="50">
+                  <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition Height="auto"/>
+                  </Grid.RowDefinitions>
+                  <Button FontSize="20" Padding="0" Content="RT" Command="{Binding OpenRTDownloadDialogCommand}"/>
+                  <ToggleButton Grid.Row="1" FontSize="12" Padding="0" Content="一時停止" IsChecked="{Binding Downloader.IsRTPaused.Value,Mode=TwoWay}"/>
+                </Grid>
                 <Border Width="240">
                   <Grid Background="{Binding Downloader.RTDownloadingStatus.Value,Converter={StaticResource ValueComparationBackgroundConv}}">
                     <Grid.Visibility>
@@ -100,8 +107,8 @@
                 <StackPanel Orientation="Horizontal">
                   <Button Width="90" Padding="0" Command="{Binding OpenScriptBulkDialogCommand}"
                           Margin="0,4">
-                    <TextBlock FontSize="16" TextAlignment="Center">
-                      スクリプト<LineBreak/>一括実行
+                    <TextBlock FontSize="18" TextAlignment="Center">
+                      一括実行
                     </TextBlock>
                   </Button>
                   <TextBlock Text="実行中..." Visibility="{Binding ScriptBulk.IsExecuting.Value,Converter={StaticResource BooleanVisibilityConv}}"
@@ -126,9 +133,20 @@
                 </TextBlock>
               </Button>
 
-              <Button Grid.Column="3" Width="80" Height="50" FontSize="24" Padding="0" Content="Ver"
-                      Command="{Binding OpenVersionDialogCommand}" Margin="0,0,8,0"
-                      Foreground="{Binding Update.UpdatingFeeling.Value,Converter={StaticResource ValueComparationForegroundConv}}"/>
+              <Button Grid.Column="3" Width="80" Height="50" Padding="0"
+                      Command="{Binding OpenVersionDialogCommand}" Margin="0,0,8,0">
+                <Grid>
+                  <TextBlock FontSize="24" Text="Ver" Visibility="{Binding Update.CanUpdate.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
+                  <TextBlock Foreground="{StaticResource GoodForeground}" FontSize="22" LineHeight="20" LineStackingStrategy="BlockLineHeight"
+                             VerticalAlignment="Center" FontWeight="Bold" TextAlignment="Center"
+                             Visibility="{Binding Update.CanUpdate.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                    <TextBlock.RenderTransform>
+                      <TranslateTransform Y="2"/>
+                    </TextBlock.RenderTransform>
+                    アプデ<LineBreak/>あり
+                  </TextBlock>
+                </Grid>
+              </Button>
             </Grid>
           </Border>
         </Grid>

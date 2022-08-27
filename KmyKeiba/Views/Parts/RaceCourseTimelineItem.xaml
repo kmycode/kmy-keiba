@@ -25,5 +25,8 @@
                  Visibility="{Binding Race.IsPaid.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
                  IsHitTestVisible="False"/>
     </StackPanel>
+    <Ellipse Width="8" Height="8" Fill="{Binding Race.MemoColor.Value,ElementName=Root,Converter={StaticResource MemoColorBrushConv}}"
+             Visibility="{Binding Race.IsMemoVisible.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+             VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="4"/>
   </Grid>
 </UserControl>

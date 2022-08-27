@@ -6,6 +6,7 @@ using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Injection;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Shared;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -34,6 +35,16 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceSubjectInfo Subject { get; }
 
+    public HorseData? DetailData { get; init; }
+
+    public JrdbRaceHorseData? JrdbData { get; }
+
+    public RaceHorseExtraData? ExtraData { get; set; }
+
+    public bool IsCheckedExtraData { get; set; }
+
+    public ReactiveProperty<FinderModel?> FinderModel { get; } = new();
+
     public RaceHorseBloodTrendAnalysisSelectorMenu? BloodSelectors { get; init; }
 
     public RaceHorseTrendAnalysisSelector? TrendAnalyzers { get; init; }
@@ -43,6 +54,8 @@ namespace KmyKeiba.Models.Analysis
     public RaceTrainerTrendAnalysisSelector? TrainerTrendAnalyzers { get; init; }
 
     public ReactiveProperty<TrainingAnalyzer?> Training { get; } = new();
+
+    public ReactiveProperty<Race.Memo.RaceHorseMemoItem?> MemoEx { get; } = new();
 
     public ReactiveProperty<RaceHorseMark> Mark { get; } = new();
 
@@ -84,6 +97,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ValueComparation ResultA3HTimeComparation { get; set; }
 
+    public ValueComparation PciDVComparation { get; set; }
+
     public double ResultTimePerMeter { get; }
 
     /// <summary>
@@ -100,6 +115,10 @@ namespace KmyKeiba.Models.Analysis
     /// 後３ハロンタイム指数
     /// </summary>
     public double A3HResultTimeDeviationValue { get; }
+
+    public double Pci { get; }
+
+    public double PciDeviationValue { get; }
 
     public ReactiveProperty<bool> IsActive { get; } = new();
 
@@ -172,6 +191,12 @@ namespace KmyKeiba.Models.Analysis
       public double TimeDeviationValue { get; }
 
       /// <summary>
+      /// PCI
+      /// </summary>
+      public double PciAverage { get; }
+      public double PciDeviationValue { get; }
+
+      /// <summary>
       /// 乱調度
       /// </summary>
       public double DisturbanceRate { get; }
@@ -181,6 +206,9 @@ namespace KmyKeiba.Models.Analysis
       public ValueComparation A3HTimeDVComparation { get; set; }
 
       public ValueComparation UntilA3HTimeDVComparation { get; set; }
+
+      public ValueComparation PciAverageComparation { get; set; }
+      public ValueComparation PciDVComparation { get; set; }
 
       /// <summary>
       /// 距離適性
@@ -192,7 +220,11 @@ namespace KmyKeiba.Models.Analysis
       /// </summary>
       public DistanceAptitude SecondDistance { get; }
 
-      public HistoryData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseAnalyzer> raceHistory)
+      public long PrizeMoney { get; }
+
+      public string PrizeMoneyLabel { get; } = string.Empty;
+
+      public HistoryData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseAnalyzer> raceHistory, JrdbRaceHorseData? jrdbHorse)
       {
         this.BeforeRaces = raceHistory.OrderByDescending(h => h.Race.StartTime).ToArray();
         this.BeforeFiveRaces = this.BeforeRaces.Take(5).ToArray();
@@ -221,12 +253,26 @@ namespace KmyKeiba.Models.Analysis
           this.UntilA3HTimeDeviationValue = MathUtil.AvoidNan(single?.UntilA3HResultTimeDeviationValue ?? pointsua3h.CalcRegressionValue(predictValue));
           this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(targetRaces);
 
-          this.RunningStyle = targetRaces
-            .OrderBy(r => r.Data.ResultOrder)
-            .GroupBy(r => r.Data.RunningStyle)
-            .OrderByDescending(g => g.Count())
-            .Select(g => g.Key)
-            .FirstOrDefault();
+          var pcis = this.Before15Races.Select(h => h.Pci).Where(h => h != default);
+          if (pcis.Any())
+            this.PciAverage = pcis.Average();
+          var pcidvs = this.Before15Races.Select(h => h.PciDeviationValue).Where(h => h != default);
+          if (pcidvs.Any())
+            this.PciDeviationValue = pcidvs.Average();
+          
+          if (jrdbHorse != null && jrdbHorse.RunningStyle != JdbcRunningStyle.Unknown)
+          {
+            this.RunningStyle = (RunningStyle)(short)jrdbHorse.RunningStyle;
+          }
+          else
+          {
+            this.RunningStyle = targetRaces
+              .OrderBy(r => r.Data.ResultOrder)
+              .GroupBy(r => r.Data.RunningStyle)
+              .OrderByDescending(g => g.Count())
+              .Select(g => g.Key)
+              .FirstOrDefault();
+          }
 
           // 距離適性
           this.SprinterGrade = new ResultOrderGradeMap(this.BeforeRaces
@@ -281,6 +327,28 @@ namespace KmyKeiba.Models.Analysis
             };
             this.CourseGrades.Add(grade);
           }
+
+          // 賞金
+          var prizeMoney = 0L;
+          foreach (var data in raceHistory.Where(h => h.Data.ResultOrder <= 5 && h.Data.ResultOrder > 0))
+          {
+            var order = data.Data.ResultOrder;
+            if (data.CurrentRace != null)
+            {
+              order = 0;
+              foreach (var sameHorse in data.CurrentRace.TopHorses.Where(h => h.ResultOrder <= data.Data.ResultOrder && h.ResultOrder > 0))
+              {
+                order++;
+              }
+            }
+            if (order > 7) order = 7;
+
+            var pm = data.Race.GetPrizeMoneys();
+            var epm = data.Race.GetExtraPrizeMoneys();
+            prizeMoney += pm.ElementAtOrDefault(order - 1) + epm.ElementAtOrDefault(order - 1);
+          }
+          this.PrizeMoney = prizeMoney * 100;
+          this.PrizeMoneyLabel = ValueUtil.ToMoneyLabel(this.PrizeMoney);
         }
       }
     }
@@ -306,8 +374,12 @@ namespace KmyKeiba.Models.Analysis
       /// </summary>
       public double TopDeviationValue { get; }
 
+      public RaceStandardTimeMasterData? StandardTime { get; }
+
       public CurrentRaceData(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, RaceStandardTimeMasterData? raceStandardTime)
       {
+        this.StandardTime = raceStandardTime;
+
         var weightPoint = new StatisticSingleArray(sameRaceHorses.Select(h => (double)h.RiderWeight).ToArray());
         var median = (short)weightPoint.Median;  // 小数点以下切り捨て。中央値が常に整数とは限らない（全体の数が偶数の時））
         this.RiderWeightComparation = horse.RiderWeight > median ? ValueComparation.Bad :
@@ -400,29 +472,44 @@ namespace KmyKeiba.Models.Analysis
       }
       this.CornerGrades = corners;
       this.ResultOrderComparationWithLastCorner = corners.LastOrDefault().Type;
+
+      this.Pci = AnalysisUtil.CalcPci(race, horse);
     }
 
-    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData? raceStandardTime)
+    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData? raceStandardTime, JrdbRaceHorseData? jrdbHorse = null)
       : this(race, horse)
     {
-      if (raceStandardTime != null && raceStandardTime.SampleCount > 0 && _timeDeviationValueCalculator != null)
+      try
       {
-        this.ResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
-        this.A3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
-        this.UntilA3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetUntilA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
+        if (raceStandardTime != null && raceStandardTime.SampleCount > 0 && _timeDeviationValueCalculator != null)
+        {
+          this.ResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
+          this.A3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
+          this.UntilA3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetUntilA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
+
+          if (this.Pci != default)
+          {
+            this.PciDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetPciDeviationValue(race, this.Pci, raceStandardTime));
+          }
+        }
+      }
+      catch (Exception ex)
+      {
+        logger.Error("不明なエラーが発生", ex);
       }
     }
 
-    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, RaceStandardTimeMasterData? raceStandardTime)
-      : this(race, horse, raceStandardTime)
+    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, RaceStandardTimeMasterData? raceStandardTime, JrdbRaceHorseData? jrdbHorse = null)
+      : this(race, horse, raceStandardTime, jrdbHorse)
     {
+      this.JrdbData = jrdbHorse;
       this.CurrentRace = new CurrentRaceData(race, horse, sameRaceHorses, raceStandardTime);
     }
 
-    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalyzer> raceHistory, RaceStandardTimeMasterData? raceStandardTime, RiderWinRateMasterData riderWinRate)
-      : this(race, horse, sameRaceHorses, raceStandardTime)
+    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalyzer> raceHistory, RaceStandardTimeMasterData? raceStandardTime, RiderWinRateMasterData riderWinRate, JrdbRaceHorseData? jrdbHorse = null)
+      : this(race, horse, sameRaceHorses, raceStandardTime, jrdbHorse)
     {
-      this.History = new HistoryData(race, horse, raceHistory);
+      this.History = new HistoryData(race, horse, raceHistory, jrdbHorse);
 
       short allCount, firstCount, secondCount, thirdCount;
       if (race.TrackType == TrackType.Flat)
@@ -562,6 +649,7 @@ namespace KmyKeiba.Models.Analysis
       this.RiderTrendAnalyzers?.Dispose();
       this.TrainerTrendAnalyzers?.Dispose();
       this.TrendAnalyzers?.Dispose();
+      this.FinderModel.Value?.Dispose();
 
       this.IsDisposed = true;
     }
@@ -623,7 +711,7 @@ namespace KmyKeiba.Models.Analysis
 
     public int AllCount => this.FirstCount + this.SecondCount + this.ThirdCount + this.LoseCount;
 
-    public int PlacingBetsCount => this.FirstCount + this.SecondCount + this.ThirdCount;
+    public int PlacingBetsCount { get; } = 0;
 
     public bool IsZero => this.AllCount == 0;
 
@@ -632,7 +720,17 @@ namespace KmyKeiba.Models.Analysis
     /// </summary>
     public float PlacingBetsRate { get; } = 0;
 
+    /// <summary>
+    /// 連対率
+    /// </summary>
+    public float TopRatio => (this.FirstCount + this.SecondCount) / (float)this.AllCount;
+
     public float WinRate { get; } = 0;
+
+    /// <summary>
+    /// 単勝回収率
+    /// </summary>
+    public float RecoveryRate { get; } = 0;
 
     public ValueComparation PlacingBetsRateComparation => this.PlacingBetsRate >= 0.5 ? ValueComparation.Good : this.PlacingBetsRate <= 0.15 ? ValueComparation.Bad : ValueComparation.Standard;
 
@@ -646,17 +744,38 @@ namespace KmyKeiba.Models.Analysis
         this.ThirdCount = targets.Count(f => f.ResultOrder == 3);
         this.LoseCount = targets.Count(f => f.ResultOrder > 3);
 
-        this.PlacingBetsRate = (this.FirstCount + this.SecondCount + this.ThirdCount) / (float)targets.Length;
+        this.PlacingBetsCount = this.FirstCount + this.SecondCount + this.ThirdCount;
+        this.PlacingBetsRate = this.PlacingBetsCount / (float)targets.Length;
         this.WinRate = this.FirstCount / (float)targets.Length;
+
+        var won = source.Where(s => s.ResultOrder == 1 && s.Odds != default);
+        if (won.Any())
+        {
+          this.RecoveryRate = won.Sum(w => w.Odds * 10) / (float)(source.Count(s => s.ResultOrder > 1) * 100);
+        }
       }
     }
 
-    public ResultOrderGradeMap(IReadOnlyList<RaceHorseAnalyzer> source) : this(source.Select(s => s.Data).ToArray())
+    public ResultOrderGradeMap(IReadOnlyList<RaceHorseAnalyzer> source)
     {
-      var targets = source.Where(s => s.Data.AbnormalResult == RaceAbnormality.Unknown).ToArray();
+      var targets = source.Where(s => s.Data.AbnormalResult == RaceAbnormality.Unknown &&
+        s.Race.DataStatus != RaceDataStatus.Canceled && s.Race.DataStatus != RaceDataStatus.Delete).ToArray();
       if (targets.Any())
       {
-        this.PlacingBetsRate = targets.Count(f => f.Data.ResultOrder <= (f.Race.HorsesCount >= 7 ? 3 : 2) && f.Data.ResultOrder > 0) / (float)targets.Length;
+        this.FirstCount = targets.Count(f => f.Data.ResultOrder == 1);
+        this.SecondCount = targets.Count(f => f.Data.ResultOrder == 2);
+        this.ThirdCount = targets.Count(f => f.Data.ResultOrder == 3);
+        this.LoseCount = targets.Count(f => f.Data.ResultOrder > 3);
+
+        this.PlacingBetsCount = targets.Count(f => f.Data.ResultOrder <= (f.Race.HorsesCount >= 7 ? 3 : 2) && f.Data.ResultOrder > 0);
+        this.PlacingBetsRate = this.PlacingBetsCount / (float)targets.Length;
+        this.WinRate = this.FirstCount / (float)targets.Length;
+
+        var won = source.Where(s => s.Data.ResultOrder == 1 && s.Data.Odds != default);
+        if (won.Any())
+        {
+          this.RecoveryRate = won.Sum(w => w.Data.Odds * 10) / (float)(source.Count(s => s.Data.ResultOrder >= 1) * 100);
+        }
       }
     }
   }
@@ -680,6 +799,8 @@ namespace KmyKeiba.Models.Analysis
     public RaceData? ShortestTimeRace { get; }
 
     public RaceHorseData? ShortestTimeRaceHorse { get; }
+
+    public RaceHorseAnalyzer? ShortestTimeRaceHorseAnalyzer { get; }
 
     public RaceSubjectInfo? ShortestTimeRaceSubject { get; }
 
@@ -709,9 +830,19 @@ namespace KmyKeiba.Models.Analysis
           .OrderBy(s => s.ComparationValue)
           .First().Data;
         this.ShortestTime = shortestTime.Data.ResultTime;
-        this.ShortestTimeNormalized = shortestTime.Data.ResultTime / shortestTime.Race.Distance * distance;
+        if (shortestTime.Race.Distance == distance)
+        {
+          // 小数がびみょうに変わったりしてしまう
+          this.ShortestTimeNormalized = shortestTime.Data.ResultTime;
+        }
+        else
+        {
+          this.ShortestTimeNormalized = TimeSpan.FromTicks(
+            (int)System.Math.Round((float)shortestTime.Data.ResultTime.Ticks / shortestTime.Race.Distance * distance));
+        }
         this.ShortestTimeRace = shortestTime.Race;
         this.ShortestTimeRaceHorse = shortestTime.Data;
+        this.ShortestTimeRaceHorseAnalyzer = shortestTime;
         this.ShortestTimeRaceSubject = shortestTime.Subject;
         this.ShortestTimeRaceHorseDeviationValue = shortestTime.ResultTimeDeviationValue;
         this.ShortestTimeRaceHorseA3HDeviationValue = shortestTime.A3HResultTimeDeviationValue;

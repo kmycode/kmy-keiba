@@ -8,6 +8,7 @@
              xmlns:b="clr-namespace:KmyKeiba.Behaviors"
              xmlns:uc="clr-namespace:KmyKeiba.Views.Details"
              xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
+             xmlns:ex="clr-namespace:KmyKeiba.Views.Expansions"
              xmlns:local="clr-namespace:KmyKeiba.Views.Details"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
@@ -31,6 +32,8 @@
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition Width="auto"/>
           <ColumnDefinition Width="auto"/>
+          <ColumnDefinition Width="auto"/>
+          <ColumnDefinition/>
           <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
         <up:RaceSubjectIcon Subject="{Binding Race.Subject.Subject,ElementName=Root}"
@@ -66,6 +69,28 @@
         </TextBlock>
         <TextBlock Grid.Column="5" Text="{Binding Race.Name,ElementName=Root}" FontSize="28" FontWeight="Bold"
                    VerticalAlignment="Center" Margin="24,0,0,0"/>
+        <ItemsControl Grid.Column="7" ItemsSource="{Binding Race.MemoEx.Value.RaceMemoSelections,ElementName=Root}"
+                      Margin="0,0,440,0">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <ComboBox ItemsSource="{Binding LabelConfig.Value.Items}" SelectedItem="{Binding SelectedLabel.Value,Mode=TwoWay}"
+                        WindowChrome.IsHitTestVisibleInChrome="True" Margin="4,0,0,0" Width="66"
+                        IsEnabled="{Binding Race.MemoEx.Value.CanSave.Value,ElementName=Root}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Label.Value}" FontSize="20" Foreground="{Binding Color.Value,Converter={StaticResource MemoColorBrushConv}}"
+                               TextAlignment="Center" Width="40"/>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
       </Grid>
 
       <!-- ここまでヘッダ -->
@@ -123,6 +148,19 @@
                 </Style>
               </ToggleButton.Style>
             </RadioButton>
+            <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Expansion"
+                         Visibility="{Binding Race.HasHorses.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+              拡張
+              <ToggleButton.Style>
+                <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource LargeToggleButtonDefault}">
+                  <Style.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                      <Setter Property="Background" Value="#994"/>
+                    </Trigger>
+                  </Style.Triggers>
+                </Style>
+              </ToggleButton.Style>
+            </RadioButton>
             <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Result"
                          IsChecked="{Binding IsViewResult.Value,Mode=TwoWay}"
                          Visibility="{Binding Race.HasResults.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
@@ -160,7 +198,7 @@
                 <TextBlock FontSize="22" Text="更新する" HorizontalAlignment="Center"/>
                 <TextBlock FontSize="16" Text="レース結果が届きました" Foreground="{StaticResource SubForeground}"
                            Visibility="{Binding Race.IsNewDataHasResults.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
-                <TextBlock FontSize="14" Text="傾向検索結果はリセットされます" Foreground="{StaticResource BadForeground}"
+                <TextBlock FontSize="14" Text="分析結果はリセットされます" Foreground="{StaticResource BadForeground}"
                            Visibility="{Binding Race.IsWillTrendAnalyzersResetedOnUpdate.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
               </StackPanel>
             </Button>
@@ -208,10 +246,11 @@
                   <RadioButton Command="{Binding DataContext.ChangeActiveHorseCommand,ElementName=Root}" CommandParameter="{Binding Data.Id}"
                                Style="{StaticResource HalfToggleButtonDefault}"
                                GroupName="{Binding UniqueId,ElementName=Root}">
-                    <Border>
+                    <Grid>
                       <StackPanel Orientation="Horizontal">
                         <Border Width="6" Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
-                        <TextBlock FontSize="20" Text="{Binding Data.Number}" Width="30" TextAlignment="Right" Margin="0,0,4,0"/>
+                        <TextBlock FontSize="20" Text="{Binding Data.Number}" Width="30" TextAlignment="Right" Margin="0,0,4,0"
+                                   Foreground="{Binding IsActive.Value,Converter={StaticResource BooleanForegroundActiveConv}}"/>
                         <ContentControl Template="{Binding Mark.Value,Converter={StaticResource HorseMarkConv}}">
                           <ContentControl.RenderTransform>
                             <TransformGroup>
@@ -221,7 +260,7 @@
                           </ContentControl.RenderTransform>
                         </ContentControl>
                       </StackPanel>
-                    </Border>
+                    </Grid>
                   </RadioButton>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
@@ -292,6 +331,56 @@
             </MultiBinding>
           </Control.Visibility>
         </uc:RaceExpectHorseView>
+        
+        <!-- 拡張 -->
+        <Grid Grid.Column="1" Margin="8,0,0,0">
+          <Panel.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsChecked" ElementName="S_Expansion"/>
+              <Binding Path="Race.HasHorses.Value" ElementName="Root"/>
+            </MultiBinding>
+          </Panel.Visibility>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition/>
+          </Grid.RowDefinitions>
+
+          <UniformGrid Rows="1">
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Content="拡張メモ" Name="S_ExMemo" IsChecked="True"/>
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Content="拡張分析" Name="S_ExAnalysis"/>
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Content="拡張集計" Name="S_ExAggregate"/>
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
+                         Content="拡張分析設定" Name="S_ExAnalysisConfig"/>
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
+                         Content="拡張分析重み設定" Name="S_ExAnalysisWeightConfig"/>
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
+                         Content="重み区切り設定" Name="S_ExAnalysisDelimiterConfig"/>
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
+                         Content="外部指数設定" Name="S_ExternalNumber"/>
+          </UniformGrid>
+
+          <ex:ExpansionMemoView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExMemo,Converter={StaticResource BooleanVisibilityConv}}"
+                                Race="{Binding Race,ElementName=Root}"/>
+          <ex:ExpansionAnalysisTableView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysis,Converter={StaticResource BooleanVisibilityConv}}"
+                                         Race="{Binding Race,ElementName=Root}" AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
+          <ex:AnalysisTableConfigView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisConfig,Converter={StaticResource BooleanVisibilityConv}}"
+                                      AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
+          <ex:AnalysisTableWeightConfigView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisWeightConfig,Converter={StaticResource BooleanVisibilityConv}}"
+                                            AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
+          <ex:AnalysisTableDelimiterConfigView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisDelimiterConfig,Converter={StaticResource BooleanVisibilityConv}}"
+                                               AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
+          <ex:AnalysisTableAggregateView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExAggregate,Converter={StaticResource BooleanVisibilityConv}}"
+                                         AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
+          <ex:ExternalNumberConfigView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExternalNumber,Converter={StaticResource BooleanVisibilityConv}}"
+                                       ExternalNumber="{Binding ExternalNumber}"/>
+        </Grid>
 
         <!-- 結果・全体 -->
         <uc:RaceResultAllView Race="{Binding Race,ElementName=Root}" Grid.Column="1">

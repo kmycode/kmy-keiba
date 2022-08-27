@@ -74,6 +74,14 @@ namespace KmyKeiba.Models.Analysis
       [Label("枠")]
       [ScriptParameterKey("frame")]
       SameFrame,
+
+      [Label("運営")]
+      [ScriptParameterKey("region")]
+      SameRegion,
+
+      [Label("重賞")]
+      [ScriptParameterKey("grades")]
+      Grades,
     }
 
     private IReadOnlyList<RaceHorseAnalyzer>? _allRaces;
@@ -132,6 +140,17 @@ namespace KmyKeiba.Models.Analysis
       {
         query = query.Where(r => r.Race.Course == this.Race.Course);
       }
+      if (keys.Contains(Key.SameRegion))
+      {
+        if (this.Race.Course <= RaceCourse.CentralMaxValue)
+        {
+          query = query.Where(r => r.Race.Course <= RaceCourse.CentralMaxValue);
+        }
+        else
+        {
+          query = query.Where(r => r.Race.Course >= RaceCourse.LocalMinValue);
+        }
+      }
       if (keys.Contains(Key.SameGround))
       {
         query = query.Where(r => r.Race.TrackGround == this.Race.TrackGround);
@@ -186,6 +205,11 @@ namespace KmyKeiba.Models.Analysis
       if (keys.Contains(Key.Losed))
       {
         query = query.Where(r => r.Data.ResultOrder > 5);
+      }
+      if (keys.Contains(Key.Grades))
+      {
+        query = query.Where(r => r.Race.Grade == RaceGrade.Grade1 || r.Race.Grade == RaceGrade.Grade2 || r.Race.Grade == RaceGrade.Grade3 ||
+                                 r.Race.Grade == RaceGrade.LocalGrade1 || r.Race.Grade == RaceGrade.LocalGrade2 || r.Race.Grade == RaceGrade.LocalGrade3);
       }
       if (keys.Contains(Key.NearInterval))
       {

@@ -33,6 +33,8 @@ namespace KmyKeiba.Common
 
     public bool IsFirstMessageVisible { get; init; } = true;
 
+    public int ExpansionMemoGroupSize { get; init; } = 8;
+
     public List<AnalysisTableGenerator> AnalysisTableGenerators { get; } = new();
   }
 

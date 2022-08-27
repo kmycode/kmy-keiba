@@ -22,6 +22,7 @@ namespace KmyKeiba.Models.Connection
     private static DownloaderModel? _instance;
 
     private bool _isUpdateRtForce = false;
+    private bool _isUpdateRtHeavyForce = false;
     private readonly CompositeDisposable _disposables = new();
     private readonly DownloaderConnector _downloader = DownloaderConnector.Instance;
     public ReactiveProperty<bool> IsCancelProcessing { get; } = new();
@@ -80,9 +81,15 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<int> LocalDownloadedMonth { get; } = new();
 
+    public ReactiveProperty<int> JrdbDownloadedYear { get; } = new();
+
+    public ReactiveProperty<int> JrdbDownloadedMonth { get; } = new();
+
     public ReactiveProperty<bool> IsDownloadCentral { get; } = new();
 
     public ReactiveProperty<bool> IsDownloadLocal { get; } = new();
+
+    public ReactiveProperty<bool> IsDownloadJrdb { get; } = new();
 
     public ReactiveProperty<bool> IsBuildMasterData { get; } = new();
 
@@ -91,6 +98,12 @@ namespace KmyKeiba.Models.Connection
     public ReactiveProperty<bool> IsRTDownloadCentralAfterThursdayOnly { get; } = new();
 
     public ReactiveProperty<bool> IsRTDownloadLocal { get; } = new();
+
+    public ReactiveProperty<bool> IsRTDownloadJrdb { get; } = new();
+
+    public ReactiveProperty<bool> IsDownloadSlop { get; } = new();
+
+    public ReactiveProperty<bool> IsDownloadBlod { get; } = new();
 
     public ReactiveProperty<LoadingProcessValue> LoadingProcess { get; } = new();
 
@@ -120,6 +133,12 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsWaitingNextRTUpdate { get; } = new();
 
+    public ReactiveProperty<bool> IsRTPaused { get; } = new();
+
+    public ReactiveProperty<string> JrdbId { get; } = new();
+
+    public ReactiveProperty<string> JrdbPassword { get; } = new();
+
     private DownloaderModel()
     {
       logger.Debug("ダウンロードモデルの初期化");
@@ -129,18 +148,23 @@ namespace KmyKeiba.Models.Connection
 
       this.DownloadingStatus =
         this.ProcessingStep
-          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates)
+          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates && p != Connection.ProcessingStep.MigrationFrom250 && p != Connection.ProcessingStep.MigrationFrom322)
           .CombineLatest(this.LoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
+          .CombineLatest(JrdbDownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)
           .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
           .ToReactiveProperty().AddTo(this._disposables);
       this.RTDownloadingStatus =
         this.RTProcessingStep.Select(p => (p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates) ? StatusFeeling.Unknown : StatusFeeling.Bad)
         .ToReactiveProperty().AddTo(this._disposables);
 
+      this.JrdbId.Skip(2).Subscribe(async val => await ConfigUtil.SetStringValueAsync(SettingKey.JrdbId, val)).AddTo(this._disposables);
+      this.JrdbPassword.Skip(2).Subscribe(async val => await ConfigUtil.SetStringValueAsync(SettingKey.JrdbPassword, val)).AddTo(this._disposables);
+
       void UpdateCanSave()
       {
-        var canSave = this.DownloadingStatus.Value != StatusFeeling.Bad && this.RTDownloadingStatus.Value != StatusFeeling.Bad;
-        var canCancel = canSave || this.IsProcessing.Value;
+        var canSave = this.DownloadingStatus.Value != StatusFeeling.Bad && this.RTDownloadingStatus.Value != StatusFeeling.Bad &&
+          JrdbDownloaderModel.Instance.CanSaveOthers.Value;
+        var canCancel = canSave || this.IsProcessing.Value || !JrdbDownloaderModel.Instance.CanSaveOthers.Value;
         if (this.CanSaveOthers.Value != canSave || this.CanCancel.Value != canCancel)
         {
           // このプロパティはViewModel内のReactiveCommandのCanExecuteにも使われる
@@ -156,13 +180,20 @@ namespace KmyKeiba.Models.Connection
       }
       this.LoadingProcess.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
       this.ProcessingStep.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
+      JrdbDownloaderModel.Instance.CanSaveOthers.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
+      JrdbDownloaderModel.Instance.DownloadingYear.Skip(1).Subscribe(val => this.DownloadingYear.Value = val).AddTo(this._disposables);
+      JrdbDownloaderModel.Instance.DownloadingMonth.Skip(1).Subscribe(val => this.DownloadingMonth.Value = val).AddTo(this._disposables);
 
       // 設定を保存
       this.IsDownloadCentral.SkipWhile(_ => !this.IsInitialized.Value).Where(_ => !this.IsBuildMasterData.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadCentral, v ? 1 : 0)).AddTo(this._disposables);
       this.IsDownloadLocal.SkipWhile(_ => !this.IsInitialized.Value).Where(_ => !this.IsBuildMasterData.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadLocal, v ? 1 : 0)).AddTo(this._disposables);
+      this.IsDownloadJrdb.SkipWhile(_ => !this.IsInitialized.Value).Where(_ => !this.IsBuildMasterData.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadJrdb, v ? 1 : 0)).AddTo(this._disposables);
       this.IsRTDownloadCentralAfterThursdayOnly.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsDownloadCentralOnThursdayAfterOnly, v ? 1 : 0)).AddTo(this._disposables);
       this.IsRTDownloadCentral.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadCentral, v ? 1 : 0)).AddTo(this._disposables);
       this.IsRTDownloadLocal.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadLocal, v ? 1 : 0)).AddTo(this._disposables);
+      this.IsRTDownloadJrdb.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadJrdb, v ? 1 : 0)).AddTo(this._disposables);
+      this.IsDownloadBlod.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsNotDownloadHorseBloods, v ? 0 : 1)).AddTo(this._disposables);
+      this.IsDownloadSlop.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsNotDownloadTrainings, v ? 0 : 1)).AddTo(this._disposables);
     }
 
     public async Task<bool> InitializeAsync()
@@ -180,29 +211,47 @@ namespace KmyKeiba.Models.Connection
         using var db = new MyContext();
         var central = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastDownloadCentralDate);
         var local = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastDownloadLocalDate);
+        var jrdb = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastDownloadJrdbDate);
         this.CentralDownloadedYear.Value = central / 100;
         this.CentralDownloadedMonth.Value = central % 100;
         this.LocalDownloadedYear.Value = local / 100;
         this.LocalDownloadedMonth.Value = local % 100;
+        this.JrdbDownloadedYear.Value = jrdb / 100;
+        this.JrdbDownloadedMonth.Value = jrdb % 100;
+
+        var isNotDownloadBlod = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsNotDownloadHorseBloods);
+        var isNotDownloadSlop = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsNotDownloadTrainings);
+        this.IsDownloadBlod.Value = isNotDownloadBlod == 0;
+        this.IsDownloadSlop.Value = isNotDownloadSlop == 0;
+
         logger.Info($"設定 {nameof(SettingKey.LastDownloadCentralDate)}: {central}, {nameof(SettingKey.LastDownloadLocalDate)}: {local}");
 
         var isCentral = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsDownloadCentral);
         var isLocal = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsDownloadLocal);
+        var isJrdb = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsDownloadJrdb);
         this.IsDownloadCentral.Value = isCentral != 0;
         this.IsDownloadLocal.Value = isLocal != 0;
+        this.IsDownloadJrdb.Value = isJrdb != 0;
         var isRTCentral = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsRTDownloadCentral);
         var isRTLocal = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsRTDownloadLocal);
+        var isRTJrdb = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsRTDownloadJrdb);
         this.IsRTDownloadCentral.Value = isRTCentral != 0;
         this.IsRTDownloadLocal.Value = isRTLocal != 0;
-        logger.Info($"設定 {nameof(SettingKey.IsDownloadCentral)}: {isCentral}, {nameof(SettingKey.IsDownloadLocal)}: {isLocal} / {nameof(SettingKey.IsRTDownloadCentral)}: {isRTCentral}, {nameof(SettingKey.IsRTDownloadLocal)}: {isRTLocal}");
+        this.IsRTDownloadJrdb.Value = isRTJrdb != 0;
+        logger.Info($"設定 {nameof(SettingKey.IsDownloadCentral)}: {isCentral}, {nameof(SettingKey.IsDownloadLocal)}: {isLocal}, {nameof(SettingKey.IsDownloadJrdb)}: {isJrdb} / {nameof(SettingKey.IsRTDownloadCentral)}: {isRTCentral}, {nameof(SettingKey.IsRTDownloadLocal)}: {isRTLocal}, {nameof(SettingKey.IsRTDownloadJrdb)}: {isRTJrdb}");
 
         this.IsRTDownloadCentralAfterThursdayOnly.Value = (await ConfigUtil.GetIntValueAsync(db, SettingKey.IsDownloadCentralOnThursdayAfterOnly)) != 0;
+
+        this.JrdbId.Value = await ConfigUtil.GetStringValueAsync(db, SettingKey.JrdbId);
+        this.JrdbPassword.Value = await ConfigUtil.GetStringValueAsync(db, SettingKey.JrdbPassword);
 
         // アプリ起動時デフォルトで設定されるダウンロード開始年月を設定する
         var centralDownloadedYear = (this.IsDownloadCentral.Value && this.CentralDownloadedYear.Value != default) ? this.CentralDownloadedYear.Value : default;
         var centralDownloadedMonth = (this.IsDownloadCentral.Value && this.CentralDownloadedYear.Value != default) ? this.CentralDownloadedMonth.Value : default ;
         var localDownloadedYear = (this.IsDownloadLocal.Value && this.LocalDownloadedYear.Value != default) ? this.LocalDownloadedYear.Value : default;
         var localDownloadedMonth = (this.IsDownloadLocal.Value && this.LocalDownloadedYear.Value != default) ? this.LocalDownloadedMonth.Value : default;
+        var jrdbDownloadedYear = (this.IsDownloadJrdb.Value && this.JrdbDownloadedYear.Value != default) ? this.LocalDownloadedYear.Value : default;
+        var jrdbDownloadedMonth = (this.IsDownloadJrdb.Value && this.JrdbDownloadedYear.Value != default) ? this.LocalDownloadedMonth.Value : default;
         logger.Debug($"保存されていたデータ: 中央競馬DL年月: {centralDownloadedYear * 100 + centralDownloadedMonth}, 地方競馬DL年月: {localDownloadedYear * 100 + localDownloadedMonth}");
         if (centralDownloadedYear != default && localDownloadedYear != default)
         {
@@ -275,7 +324,7 @@ namespace KmyKeiba.Models.Connection
           var isDownloadAfterThursday = (await ConfigUtil.GetIntValueAsync(SettingKey.IsDownloadCentralOnThursdayAfterOnly)) != 0;
           if (isDownloadAfterThursday)
           {
-            var weekday = date.DayOfWeek;
+            var weekday = today.DayOfWeek;
             isDownload = weekday == DayOfWeek.Thursday || weekday == DayOfWeek.Friday || weekday == DayOfWeek.Saturday || weekday == DayOfWeek.Sunday;
           }
           if (isDownload)
@@ -315,6 +364,23 @@ namespace KmyKeiba.Models.Connection
           {
             logger.Info("ダウンロード失敗を検出");
             isSucceed = false;
+          }
+        }
+        if (this.IsRTDownloadJrdb.Value && isSucceed)
+        {
+          var isDownload = true;
+          var isDownloadAfterThursday = (await ConfigUtil.GetIntValueAsync(SettingKey.IsDownloadCentralOnThursdayAfterOnly)) != 0;
+          if (isDownloadAfterThursday)
+          {
+            var weekday = today.DayOfWeek;
+            isDownload = weekday == DayOfWeek.Friday || weekday == DayOfWeek.Saturday || weekday == DayOfWeek.Sunday;
+          }
+
+          if (isDownload)
+          {
+            logger.Info("JRDBの最新情報取得を開始");
+            var date = new DateOnly(year, month, day);
+            await this.DownloadJrdbRTAsync(date, date.AddMonths(1));
           }
         }
         if (isSucceed)
@@ -358,8 +424,9 @@ namespace KmyKeiba.Models.Connection
         var day = 0;
         var lastStandardTimeUpdatedYear = 0;
 
+        using var db = new MyContext();
+
         {
-          using var db = new MyContext();
           lastLaunchDay = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastLaunchDate);
           year = lastLaunchDay / 10000;
           month = lastLaunchDay / 100 % 100;
@@ -368,6 +435,21 @@ namespace KmyKeiba.Models.Connection
           lastStandardTimeUpdatedYear = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastUpdateStandardTimeYear);
         }
         logger.Info($"最後に標準タイムを更新した年: {lastStandardTimeUpdatedYear}");
+
+        // データベースのマイグレーション処理を自動的に開始
+        var dbver = await ConfigUtil.GetIntValueAsync(db, SettingKey.DatabaseVersion);
+        if (dbver < 250)
+        {
+          await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.MigrationFrom250);
+          await ConfigUtil.SetIntValueAsync(db, SettingKey.DatabaseVersion, 250);
+          dbver = 250;
+        }
+        if (dbver < 322)
+        {
+          await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.MigrationFrom322);
+          await ConfigUtil.SetIntValueAsync(db, SettingKey.DatabaseVersion, 322);
+          dbver = 322;
+        }
 
         // 最初に最終起動からの差分を落とす
         // （真っ先にやらないと、ユーザーが先に過去データダウンロードを開始する可能性あり）
@@ -467,7 +549,7 @@ namespace KmyKeiba.Models.Connection
             }
 
             // メインのダウンロード処理
-            if (this.CanSaveOthers.Value)
+            if (this.CanSaveOthers.Value && !JrdbDownloaderModel.Instance.IsDownloading.Value)
             {
               logger.Info("最新情報取得を開始");
               await DownloadRTAsync(today);
@@ -475,7 +557,8 @@ namespace KmyKeiba.Models.Connection
             }
 
             // レース予定データはRTではなくこっちにあるみたい。定期的にチェックする
-            if (lastDownloadNormalData.AddMinutes(ApplicationConfiguration.Current.Value.DownloadNormalDataIntervalMinutes) < now && !this.IsDownloading.Value)
+            if ((lastDownloadNormalData.AddMinutes(240) < now || this._isUpdateRtHeavyForce)
+                && !this.IsDownloading.Value)
             {
               logger.Info("翌日以降の予定を更新");
               var isSucceed = await DownloadPlanOfRacesAsync(lastDownloadNormalData.Year, lastDownloadNormalData.Month, lastDownloadNormalData.Day);
@@ -501,13 +584,24 @@ namespace KmyKeiba.Models.Connection
           finally
           {
             this._isUpdateRtForce = false;
+            this._isUpdateRtHeavyForce = false;
           }
 
           this.IsWaitingNextRTUpdate.Value = true;
-          while ((DateTime.Now - now).TotalMinutes < 5 && !this._isUpdateRtForce)
+          while ((DateTime.Now - now).TotalMinutes < 5 && !this._isUpdateRtForce && !this._isUpdateRtHeavyForce)
           {
             // ５分に１回ずつ更新する
             this.NextRTUpdateSeconds.Value = 60 * 5 - (int)(DateTime.Now - now).TotalSeconds;
+            await Task.Delay(1000);
+          }
+          this.NextRTUpdateSeconds.Value = 0;
+          if (this.IsRTPaused.Value)
+          {
+            logger.Debug("一時停止の設定を検出");
+          }
+          while (this.IsRTPaused.Value && !this._isUpdateRtForce && !this._isUpdateRtHeavyForce)
+          {
+            // 一時停止
             await Task.Delay(1000);
           }
           this.IsWaitingNextRTUpdate.Value = false;
@@ -526,12 +620,21 @@ namespace KmyKeiba.Models.Connection
         }
         else
         {
-          var link = (DownloadLink)0;
-          if (this.IsDownloadCentral.Value) link |= DownloadLink.Central;
-          if (this.IsDownloadLocal.Value) link |= DownloadLink.Local;
+          if (!this.IsDownloadJrdb.Value)
+          {
+            var link = (DownloadLink)0;
+            if (this.IsDownloadCentral.Value) link |= DownloadLink.Central;
+            if (this.IsDownloadLocal.Value) link |= DownloadLink.Local;
+            //if (this.IsDownloadJrdb.Value) link |= DownloadLink.Jrdb;
 
-          logger.Info($"セットアップデータダウンロードを開始 リンク: {link}");
-          await this.DownloadAsync(link);
+            logger.Info($"セットアップデータダウンロードを開始 リンク: {link}");
+            await this.DownloadAsync(link);
+          }
+          else
+          {
+            logger.Info($"JRDBセットアップデータダウンロードを開始");
+            await this.DownloadJrdbAsync(new DateTime(this.StartYear.Value, this.StartMonth.Value, 1), null);
+          }
         }
       });
     }
@@ -578,7 +681,7 @@ namespace KmyKeiba.Models.Connection
           try
           {
             this.HasProcessingProgress.Value = true;
-            await ShapeDatabaseModel.SetPreviousRaceDaysAsync(isCanceled: this.IsCancelProcessing,
+            await ShapeDatabaseModel.SetHorseExtraDataAsync(isCanceled: this.IsCancelProcessing,
               progress: this.ProcessingProgress, progressMax: this.ProcessingProgressMax);
           }
           // catch は不要
@@ -742,7 +845,7 @@ namespace KmyKeiba.Models.Connection
 
         this.RTProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
         logger.Info($"RTダウンロード/後処理進捗変更: {this.RTProcessingStep.Value}, リンク: {link}");
-        await ShapeDatabaseModel.SetPreviousRaceDaysAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
+        await ShapeDatabaseModel.SetHorseExtraDataAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
 
         this.RTProcessingStep.Value = Connection.ProcessingStep.RiderWinRates;
         logger.Info($"RTダウンロード/後処理進捗変更: {this.RTProcessingStep.Value}, リンク: {link}");
@@ -777,6 +880,45 @@ namespace KmyKeiba.Models.Connection
       }
 
       logger.Info("ダウンロード処理を終了します");
+    }
+
+    private async Task DownloadJrdbAsync(DateTime from, DateTime? to)
+    {
+      var tod = to ?? DateTime.MaxValue;
+
+      logger.Info($"JRDBデータのダウンロードを開始します {from:yyyyMMdd} - {to:yyyyMMdd}");
+
+      try
+      {
+        this.IsError.Value = false;
+        this.IsDownloading.Value = true;
+        this.DownloadingLink.Value = DownloadLink.Jrdb;
+        this.DownloadingType.Value = Connection.DownloadingType.Jrdb;
+        await JrdbDownloaderModel.Instance.LoadAsync(from, tod, this.JrdbId.Value, this.JrdbPassword.Value);
+      }
+      catch (JrdbDownloadException ex)
+      {
+        logger.Error("JRDBデータのダウンロードに失敗しました", ex);
+        this.ErrorMessage.Value = ex.Message;
+        this.IsError.Value = true;
+      }
+      catch (Exception ex)
+      {
+        logger.Error("JRDBデータのダウンロードに失敗しました（ハンドルされていない例外）", ex);
+        this.ErrorMessage.Value = "不明なエラーが発生しました";
+        this.IsError.Value = true;
+      }
+      finally
+      {
+        this.IsDownloading.Value = false;
+      }
+
+      logger.Info("ダウンロード処理を終了します");
+    }
+
+    private async Task DownloadJrdbRTAsync(DateOnly date, DateOnly to)
+    {
+      await this.DownloadJrdbAsync(date.ToDateTime(default), to.ToDateTime(default));
     }
 
     private async Task OnDownloadProgress(DownloaderTaskData task)
@@ -843,6 +985,8 @@ namespace KmyKeiba.Models.Connection
         "4" => DownloadingDataspec.RB11,
         "5" => DownloadingDataspec.RB14,
         "6" => DownloadingDataspec.RB41,
+        "7" => DownloadingDataspec.RB13,
+        "8" => DownloadingDataspec.RB17,
         _ => DownloadingDataspec.Unknown,
       };
 
@@ -863,8 +1007,15 @@ namespace KmyKeiba.Models.Connection
 
     public async Task CancelDownloadAsync()
     {
-      await this._downloader.CancelCurrentTaskAsync();
-      this.IsCancelProcessing.Value = true;
+      if (JrdbDownloaderModel.Instance.IsDownloading.Value)
+      {
+        JrdbDownloaderModel.Instance.IsCanceled.Value = true;
+      }
+      else
+      {
+        await this._downloader.CancelCurrentTaskAsync();
+        this.IsCancelProcessing.Value = true;
+      }
       logger.Warn("ダウンロードが中止されました");
     }
 
@@ -907,6 +1058,11 @@ namespace KmyKeiba.Models.Connection
       this._isUpdateRtForce = true;
     }
 
+    public void UpdateRtDataHeavyForce()
+    {
+      this._isUpdateRtHeavyForce = true;
+    }
+
     public void Dispose()
     {
       this._disposables.Dispose();
@@ -926,7 +1082,11 @@ namespace KmyKeiba.Models.Connection
     [Label("地方")]
     Local = 0b10,
 
+    [Label("JRDB")]
+    Jrdb = 0b100,
+
     Both = 0b11,
+    All = 0b111,
   }
 
   enum DownloadingType
@@ -936,6 +1096,9 @@ namespace KmyKeiba.Models.Connection
 
     [Label("オッズ")]
     Odds,
+
+    [Label("JRDB")]
+    Jrdb,
   }
 
   enum LoadingProcessValue
@@ -980,6 +1143,12 @@ namespace KmyKeiba.Models.Connection
     [Label("レース情報")]
     RB15,
 
+    [Label("タイム型MING")]
+    RB13,
+
+    [Label("対戦型MING")]
+    RB17,
+
     [Label("オッズ")]
     RB30,
 
@@ -1016,6 +1185,12 @@ namespace KmyKeiba.Models.Connection
     [Label("地方競馬のレース条件を解析中")]
     RaceSubjectInfos = 32,
 
-    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos,
+    [Label("データをマイグレーション中 (from 2.5.0)")]
+    MigrationFrom250 = 64,
+
+    [Label("データをマイグレーション中 (from 3.2.2)")]
+    MigrationFrom322 = 128,
+
+    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | MigrationFrom250 | MigrationFrom322,
   }
 }

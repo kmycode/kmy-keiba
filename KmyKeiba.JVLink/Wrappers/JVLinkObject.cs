@@ -341,6 +341,9 @@ namespace KmyKeiba.JVLink.Wrappers
 
     [JVLinkDataspec("WOOD", JVLinkOpenOption.WithoutThisWeek)]
     Wood = 0b1000_0000_0000_0000_0000_0000_0000_0000,
+
+    [JVLinkDataspec("NOSI", JVLinkOpenOption.WithoutThisWeek)]
+    Nosi = 0b1_0000_0000_0000_0000_0000_0000_0000_0000,
   }
 
   public enum JVLinkMovieType

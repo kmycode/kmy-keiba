@@ -204,7 +204,7 @@ namespace KmyKeiba.Models.Analysis.Table
 
     private readonly Func<RaceHorseAnalyzer, S> _selector;
 
-    private readonly string _keys;
+    protected readonly string _keys;
 
     public int SampleSize { get; set; } = ApplicationConfiguration.Current.Value.AnalysisTableSampleSize;
 
@@ -226,6 +226,8 @@ namespace KmyKeiba.Models.Analysis.Table
 
     public ReactiveProperty<bool> IsSamplesEnabled { get; } = new();
 
+    protected virtual A LoadAnalyzer(S selector, int count) => selector.BeginLoad(this._keys, count, 0, false);
+
     public AnalysisTableCell(RaceHorseAnalyzer horse, Func<RaceHorseAnalyzer, S> selector, string keys)
     {
       this._horse = horse;
@@ -245,9 +247,16 @@ namespace KmyKeiba.Models.Analysis.Table
       {
         count = ApplicationConfiguration.Current.Value.AnalysisTableRaceHorseSourceSize;
       }
+      else if (this is LambdaAnalysisWithFinderTableCell finder)
+      {
+        if (finder.IsMultipleHorsesPerRace)
+        {
+          count = ApplicationConfiguration.Current.Value.AnalysisTableRaceHorseSourceSize;
+        }
+      }
 
       var selector = this._selector(this._horse);
-      var analyzer = selector.BeginLoad(this._keys, count, 0, false);
+      var analyzer = this.LoadAnalyzer(selector, count);
       await analyzer.WaitAnalysisAsync();
 
       this.Analyzer.Value = analyzer;
@@ -289,6 +298,19 @@ namespace KmyKeiba.Models.Analysis.Table
     protected override void AfterLoad(A analyzer)
     {
       this._afterLoad(analyzer, this);
+    }
+  }
+
+  class LambdaAnalysisWithFinderTableCell : LambdaAnalysisTableCell<RaceHorseTrendAnalysisSelectorWrapper, RaceHorseTrendAnalyzer>
+  {
+    protected override RaceHorseTrendAnalyzer LoadAnalyzer(RaceHorseTrendAnalysisSelectorWrapper selector, int count) => selector.BeginLoad(this._keys, count);
+
+    public bool IsMultipleHorsesPerRace { get; }
+
+    public LambdaAnalysisWithFinderTableCell(RaceHorseAnalyzer horse, Func<RaceHorseAnalyzer, RaceHorseTrendAnalysisSelectorWrapper> selector, string keys, Action<RaceHorseTrendAnalyzer, AnalysisTableCell<RaceHorseTrendAnalysisSelectorWrapper, RaceHorseTrendAnalyzer>> afterLoad) : base(horse, selector, keys, afterLoad)
+    {
+      var items = keys.Split('|');
+      this.IsMultipleHorsesPerRace = !(items.Contains("horse") || items.Contains("rider") || items.Contains("race"));  // trainer、ownerは１つのレースで複数出ることがある
     }
   }
 }

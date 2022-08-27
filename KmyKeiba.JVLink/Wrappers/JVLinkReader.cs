@@ -295,7 +295,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 var item = Horse.FromJV(a);
 
                 // Read(item, data.Horses, (a, b) => a.Code == b.Code, new ComparableComparer<Horse>(x => x?.Code));
-                ReadDic(item, data.Horses, item.Code);
+                ReadDic(item, data.Horses, item.Code + item.CentralFlag);
                 break;
               }
             case "HN":
@@ -316,6 +316,16 @@ namespace KmyKeiba.JVLink.Wrappers
 
                 // Read(item, data.HorseBloods, (a, b) => a.Key == b.Key, new ComparableComparer<HorseBlood>(x => x?.Key));
                 ReadDic(item, data.BornHorses, item.Code);
+                break;
+              }
+            case "BT":
+              {
+                var a = new JVData_Struct.JV_BT_KEITO();
+                a.SetDataB(ref d);
+                var item = HorseBloodInfo.FromJV(a);
+
+                // Read(item, data.HorseBloods, (a, b) => a.Key == b.Key, new ComparableComparer<HorseBlood>(x => x?.Key));
+                ReadDic(item, data.HorseBloodInfos, item.Key);
                 break;
               }
             case "JC":
@@ -438,6 +448,60 @@ namespace KmyKeiba.JVLink.Wrappers
                 ReadDic(item, data.TrifectaOdds, item.RaceKey);
                 break;
               }
+            case "NR":
+              {
+                var a = new JVData_Struct.JV_NR_NOSI_RACE();
+                a.SetDataB(ref d);
+                var item = TestRace.FromJV(a);
+
+                ReadDic(item, data.TestRaces, item.Key);
+                break;
+              }
+            case "NS":
+              {
+                var a = new JVData_Struct.JV_NS_NOSI_UMA();
+                a.SetDataB(ref d);
+                var item = TestRaceHorse.FromJV(a);
+
+                ReadDic(item, data.TestRaceHorses, item.Key + item.RaceKey);
+                break;
+              }
+            case "KS":
+              {
+                var a = new JVData_Struct.JV_KS_KISYU();
+                a.SetDataB(ref d);
+                var item = Rider.FromJV(a);
+
+                ReadDic(item, data.Riders, item.Code + item.CentralFlag);
+                break;
+              }
+            case "CH":
+              {
+                var a = new JVData_Struct.JV_CH_CHOKYOSI();
+                a.SetDataB(ref d);
+                var item = Trainer.FromJV(a);
+
+                ReadDic(item, data.Trainers, item.Code + item.CentralFlag);
+                break;
+              }
+            case "DM":
+              {
+                var a = new JVData_Struct.JV_DM_INFO();
+                a.SetDataB(ref d);
+                var item = MiningTime.FromJV(a);
+
+                ReadDic(item, data.MiningTimes, item.RaceKey);
+                break;
+              }
+            case "TM":
+              {
+                var a = new JVData_Struct.JV_TM_INFO();
+                a.SetDataB(ref d);
+                var item = MiningMatch.FromJV(a);
+
+                ReadDic(item, data.MiningMatches, item.RaceKey);
+                break;
+              }
             default:
               this.ReadedEntityCount--;
               if (!this.isRealTime)
@@ -492,6 +556,8 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public Dictionary<string, HorseBlood> HorseBloods { get; internal set; } = new();
 
+    public Dictionary<string, HorseBloodInfo> HorseBloodInfos { get; internal set; } = new();
+
     public Dictionary<string, BornHorse> BornHorses { get; internal set; } = new();
 
     public Dictionary<string, SingleAndDoubleWinOdds> SingleAndDoubleWinOdds { get; internal set; } = new();
@@ -510,6 +576,14 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public Dictionary<string, Refund> Refunds { get; internal set; } = new();
 
+    public Dictionary<string, TestRace> TestRaces { get; internal set; } = new();
+
+    public Dictionary<string, TestRaceHorse> TestRaceHorses { get; internal set; } = new();
+
+    public Dictionary<string, Rider> Riders { get; internal set; } = new();
+
+    public Dictionary<string, Trainer> Trainers { get; internal set; } = new();
+
     public List<HorseWeight> HorseWeights { get; internal set; } = new();
 
     public List<CourseWeatherCondition> CourseWeatherConditions { get; internal set; } = new();
@@ -525,6 +599,10 @@ namespace KmyKeiba.JVLink.Wrappers
     public Dictionary<string, Training> Trainings { get; internal set; } = new();
 
     public Dictionary<string, WoodtipTraining> WoodtipTrainings { get; internal set; } = new();
+
+    public Dictionary<string, MiningMatch> MiningMatches { get; internal set; } = new();
+
+    public Dictionary<string, MiningTime> MiningTimes { get; internal set; } = new();
   }
 
   class SimpleDistinctComparer<T> : IEqualityComparer<T>

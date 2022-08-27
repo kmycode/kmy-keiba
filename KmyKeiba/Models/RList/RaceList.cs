@@ -4,6 +4,7 @@ using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.Memo;
 using KmyKeiba.Models.Race.Tickets;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
@@ -49,6 +50,8 @@ namespace KmyKeiba.Models.RList
       IEnumerable<RefundData> payoffs;
       IEnumerable<TicketData> tickets;
       IEnumerable<RaceHorseData> horses;
+      IEnumerable<MemoData> memos;
+      PointLabelData? pointLabel;
 
       using (var db = new MyContext())
       {
@@ -64,6 +67,9 @@ namespace KmyKeiba.Models.RList
           .Select(r => new { r.Number, r.FrameNumber, r.RaceKey, r.AbnormalResult, })
           .ToArrayAsync();
         horses = horseData.Select(h => new RaceHorseData { RaceKey = h.RaceKey, Number = h.Number, FrameNumber = h.FrameNumber, AbnormalResult = h.AbnormalResult, }).ToArray();
+
+        await MemoUtil.InitializeAsync(db);
+        (memos, pointLabel) = await MemoUtil.GetRaceListMemosAsync(db, keys);
       }
 
       ThreadUtil.InvokeOnUiThread(() =>
@@ -133,6 +139,21 @@ namespace KmyKeiba.Models.RList
               if (ts.SelectMany(t => t.Rows).Any())
               {
                 item.SetIncome(ts.Sum(t => t.Count.Value * t.Rows.Count * -100), true);
+              }
+            }
+
+            if (pointLabel != null)
+            {
+              var memo = memos.FirstOrDefault(m => m.Key1 == item.Key);
+              if (memo != null)
+              {
+                var labels = pointLabel.GetItems();
+                var labelItem = labels.FirstOrDefault(l => l.Point == memo.Point);
+                if (labelItem != null && !string.IsNullOrEmpty(labelItem.Label))
+                {
+                  item.IsMemoVisible.Value = true;
+                  item.MemoColor.Value = labelItem.Color;
+                }
               }
             }
 
@@ -216,6 +237,37 @@ namespace KmyKeiba.Models.RList
         this.CurrentDateIncomes.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
     }
 
+    public void UpdateColor(MemoColor color, bool isVisible)
+    {
+      var item = this.Courses.SelectMany(c => c.Races).FirstOrDefault(i => i.Key == this.SelectedRaceKey.Value);
+      if (item != null)
+      {
+        item.MemoColor.Value = color;
+        item.IsMemoVisible.Value = isVisible;
+      }
+    }
+
+    public async Task UpdateAllColorsAsync()
+    {
+      var keys = this.Courses.SelectMany(c => c.Races.Select(r => r.Key));
+      var (memos, pointLabel) = await MemoUtil.GetRaceListMemosAsync(null, keys);
+      if (pointLabel == null)
+      {
+        return;
+      }
+
+      var items = pointLabel.GetItems();
+
+      foreach (var race in this.Courses
+        .SelectMany(c => c.Races)
+        .Join(memos, r => r.Key, m => m.Key1, (r, m) => new { Race = r, Memo = m, })
+        .Join(items, r => r.Memo.Point, i => i.Point, (r, m) => new { r.Race, m.Color, IsVisible = !string.IsNullOrEmpty(m.Label), }))
+      {
+        race.Race.MemoColor.Value = race.Color;
+        race.Race.IsMemoVisible.Value = race.IsVisible;
+      }
+    }
+
     private void Item_Selected(object? sender, EventArgs e)
     {
       foreach (var selected in this.Courses.SelectMany(c => c.Races).Where(r => r.Status.Value == RaceListItemStatus.Selected))
@@ -290,6 +342,10 @@ namespace KmyKeiba.Models.RList
     public ReactiveProperty<ValueComparation> MoneyComparation { get; } = new();
 
     public ReactiveProperty<double> ViewTop { get; } = new();
+
+    public ReactiveProperty<MemoColor> MemoColor { get; } = new();
+
+    public ReactiveProperty<bool> IsMemoVisible { get; } = new();
 
     public RaceListItem(RaceData race)
     {

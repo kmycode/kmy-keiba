@@ -14,6 +14,8 @@ namespace KmyKeiba.JVLink.Entities
   {
     public string Key { get; set; } = string.Empty;
 
+    public short Nichiji { get; set; }
+
     /// <summary>
     /// レースの名前
     /// </summary>
@@ -38,6 +40,11 @@ namespace KmyKeiba.JVLink.Entities
     /// 競馬場
     /// </summary>
     public RaceCourse Course { get; set; }
+
+    /// <summary>
+    /// トラックコード（外部指数の内部変数置換に使う）
+    /// </summary>
+    public short TrackCode { get; set; }
 
     /// <summary>
     /// 競馬場の地面
@@ -68,6 +75,14 @@ namespace KmyKeiba.JVLink.Entities
     /// 馬場の状態
     /// </summary>
     public RaceCourseCondition TrackCondition { get; set; }
+
+    public RaceRiderWeightRule RiderWeight { get; set; }
+
+    public RaceHorseAreaRule Area { get; set; }
+
+    public RaceHorseSexRule Sex { get; set; }
+
+    public RaceCrossRaceRule Cross { get; set; }
 
     /// <summary>
     /// 距離
@@ -101,6 +116,11 @@ namespace KmyKeiba.JVLink.Entities
     public short HorsesCount { get; set; }
 
     /// <summary>
+    /// 入選数
+    /// </summary>
+    public short ResultHorsesCount { get; set; }
+
+    /// <summary>
     /// 出走日時
     /// </summary>
     public DateTime StartTime { get; set; }
@@ -111,15 +131,11 @@ namespace KmyKeiba.JVLink.Entities
 
     public short Corner1Number { get; set; }
 
-    public TimeSpan Corner1LapTime { get; set; }
-
     public string Corner2Result { get; set; } = string.Empty;
 
     public short Corner2Position { get; set; }
 
     public short Corner2Number { get; set; }
-
-    public TimeSpan Corner2LapTime { get; set; }
 
     public string Corner3Result { get; set; } = string.Empty;
 
@@ -127,15 +143,47 @@ namespace KmyKeiba.JVLink.Entities
 
     public short Corner3Number { get; set; }
 
-    public TimeSpan Corner3LapTime { get; set; }
-
     public string Corner4Result { get; set; } = string.Empty;
 
     public short Corner4Position { get; set; }
 
     public short Corner4Number { get; set; }
 
-    public TimeSpan Corner4LapTime { get; set; }
+    public short[] LapTimes { get; set; } = Array.Empty<short>();
+
+    public int PrizeMoney1 { get; set; }
+
+    public int PrizeMoney2 { get; set; }
+
+    public int PrizeMoney3 { get; set; }
+
+    public int PrizeMoney4 { get; set; }
+
+    public int PrizeMoney5 { get; set; }
+
+    public int PrizeMoney6 { get; set; }
+
+    public int PrizeMoney7 { get; set; }
+
+    public int ExtraPrizeMoney1 { get; set; }
+
+    public int ExtraPrizeMoney2 { get; set; }
+
+    public int ExtraPrizeMoney3 { get; set; }
+
+    public int ExtraPrizeMoney4 { get; set; }
+
+    public int ExtraPrizeMoney5 { get; set; }
+
+    public short BeforeHaronTime3 { get; set; }
+
+    public short BeforeHaronTime4 { get; set; }
+
+    public short AfterHaronTime3 { get; set; }
+
+    public short AfterHaronTime4 { get; set; }
+
+    public short SteeplechaseMileTime { get; set; }
 
     internal Race()
     {
@@ -182,6 +230,7 @@ namespace KmyKeiba.JVLink.Entities
       }
 
       var startTime = DateTime.ParseExact($"{race.id.Year}{race.id.MonthDay}{race.HassoTime}", "yyyyMMddHHmm", null);
+      short.TryParse(race.id.Nichiji, out var nichiji);
 
       var course = RaceCourse.Unknown;
       if (int.TryParse(race.id.JyoCD, out int courseNum))
@@ -200,13 +249,45 @@ namespace KmyKeiba.JVLink.Entities
       short.TryParse(race.RaceInfo.TokuNum, out var gradeId);
       short.TryParse(race.id.RaceNum, out short courseRaceNum);
       short.TryParse(race.TorokuTosu, out short horsesCount);
+      short.TryParse(race.NyusenTosu, out short horsesCount2);
       short.TryParse(race.Kyori, out short distance);
 
       int.TryParse(race.TrackCD, out int track);
       var (trackType, trackGround, trackCornerDirection, trackOption) = GetTrackType(track);
 
       int.TryParse(race.TenkoBaba.TenkoCD, out int weather);
-      int.TryParse(trackGround == TrackGround.Turf ? race.TenkoBaba.SibaBabaCD : race.TenkoBaba.DirtBabaCD, out int condition);
+
+      // 地方競馬DATAは、盛岡の芝もダートとして配信し、SibaBabaCDには何も設定しないみたい
+      int.TryParse((trackGround == TrackGround.Turf && course <= RaceCourse.CentralMaxValue) ? race.TenkoBaba.SibaBabaCD : race.TenkoBaba.DirtBabaCD, out int condition);
+
+      short.TryParse(race.JyokenInfo.JyuryoCD, out var riderWeight);
+      var kigo1 = (RaceHorseAreaRule)(short)(race.JyokenInfo.KigoCD.ToLower()[0] - 'a' + 1);
+      RaceHorseSexRule kigo2;
+      {
+        var k = race.JyokenInfo.KigoCD.ToLower()[1];
+        if (k == 'a')
+        {
+          kigo2 = RaceHorseSexRule.A;
+        }
+        else if (k == 'b')
+        {
+          kigo2 = RaceHorseSexRule.B;
+        }
+        else
+        {
+          kigo2 = (RaceHorseSexRule)(short)(k - '0');
+        }
+      }
+      RaceCrossRaceRule kigo3;
+      var kigo3Char = race.JyokenInfo.KigoCD.ToLower()[2];
+      if (kigo3Char <= '9')
+      {
+        kigo3 = (RaceCrossRaceRule)(short)(kigo3Char - '0');
+      }
+      else
+      {
+        kigo3 = (RaceCrossRaceRule)(short)(kigo3Char - 'a' + 1 + 9);
+      }
 
       short.TryParse(race.CornerInfo[0].Syukaisu, out var cnum1);
       short.TryParse(race.CornerInfo[0].Corner, out var cn1);
@@ -217,15 +298,30 @@ namespace KmyKeiba.JVLink.Entities
       short.TryParse(race.CornerInfo[3].Syukaisu, out var cnum4);
       short.TryParse(race.CornerInfo[3].Corner, out var cn4);
 
-      int.TryParse(race.LapTime[0], out var lap1);
-      int.TryParse(race.LapTime[1], out var lap2);
-      int.TryParse(race.LapTime[2], out var lap3);
-      int.TryParse(race.LapTime[3], out var lap4);
+      short.TryParse(race.HaronTimeS3, out var haronb3);
+      short.TryParse(race.HaronTimeS4, out var haronb4);
+      short.TryParse(race.HaronTimeL3, out var haron3);
+      short.TryParse(race.HaronTimeL4, out var haron4);
+      short.TryParse(race.SyogaiMileTime, out var mile);
+
+      int.TryParse(race.Honsyokin[0], out var money1);
+      int.TryParse(race.Honsyokin[1], out var money2);
+      int.TryParse(race.Honsyokin[2], out var money3);
+      int.TryParse(race.Honsyokin[3], out var money4);
+      int.TryParse(race.Honsyokin[4], out var money5);
+      int.TryParse(race.Honsyokin[5], out var money6);
+      int.TryParse(race.Honsyokin[6], out var money7);
+      int.TryParse(race.Fukasyokin[0], out var emoney1);
+      int.TryParse(race.Fukasyokin[1], out var emoney2);
+      int.TryParse(race.Fukasyokin[2], out var emoney3);
+      int.TryParse(race.Fukasyokin[3], out var emoney4);
+      int.TryParse(race.Fukasyokin[4], out var emoney5);
 
       var obj = new Race
       {
         LastModified = race.head.MakeDate.ToDateTime(),
         Key = race.id.ToRaceKey(),
+        Nichiji = nichiji,
         DataStatus = race.head.DataKubun.ToDataStatus(),
         Name = name,
         Name6Chars = name6,
@@ -233,33 +329,57 @@ namespace KmyKeiba.JVLink.Entities
         GradeId = gradeId,
         Course = course,
         CourseType = race.CourseKubunCD.Trim(),
+        TrackCode = (short)track,
         TrackGround = trackGround,
         TrackType = trackType,
         TrackCornerDirection = trackCornerDirection,
         TrackOption = trackOption,
         TrackWeather = (RaceCourseWeather)weather,
         TrackCondition = (RaceCourseCondition)condition,
+        RiderWeight = (RaceRiderWeightRule)riderWeight,
+        Area = kigo1,
+        Sex = kigo2,
+        Cross = kigo3,
         Distance = distance,
         CourseRaceNumber = courseRaceNum,
         Subject = subject,
         HorsesCount = horsesCount,
+        ResultHorsesCount = horsesCount2,
         StartTime = startTime,
         Corner1Position = cn1,
         Corner1Number = cnum1,
         Corner1Result = race.CornerInfo[0].Jyuni.Trim(),
-        Corner1LapTime = new TimeSpan(0, 0, 0, lap1 / 10, lap1 % 10 * 100),
         Corner2Position = cn2,
         Corner2Number = cnum2,
         Corner2Result = race.CornerInfo[1].Jyuni.Trim(),
-        Corner2LapTime = new TimeSpan(0, 0, 0, lap2 / 10, lap1 % 10 * 100),
         Corner3Position = cn3,
         Corner3Number = cnum3,
         Corner3Result = race.CornerInfo[2].Jyuni.Trim(),
-        Corner3LapTime = new TimeSpan(0, 0, 0, lap3 / 10, lap1 % 10 * 100),
         Corner4Position = cn4,
         Corner4Number = cnum4,
         Corner4Result = race.CornerInfo[3].Jyuni.Trim(),
-        Corner4LapTime = new TimeSpan(0, 0, 0, lap4 / 10, lap1 % 10 * 100),
+        LapTimes = race.LapTime.Select(lt =>
+        {
+          short.TryParse(lt, out var s);
+          return s;
+        }).Where(lt => lt != default).ToArray(),
+        PrizeMoney1 = money1,
+        PrizeMoney2 = money2,
+        PrizeMoney3 = money3,
+        PrizeMoney4 = money4,
+        PrizeMoney5 = money5,
+        PrizeMoney6 = money6,
+        PrizeMoney7 = money7,
+        ExtraPrizeMoney1 = emoney1,
+        ExtraPrizeMoney2 = emoney2,
+        ExtraPrizeMoney3 = emoney3,
+        ExtraPrizeMoney4 = emoney4,
+        ExtraPrizeMoney5 = emoney5,
+        BeforeHaronTime3 = haronb3,
+        BeforeHaronTime4 = haronb4,
+        AfterHaronTime3 = haron3,
+        AfterHaronTime4 = haron4,
+        SteeplechaseMileTime = mile,
       };
       return obj;
     }
@@ -484,7 +604,7 @@ namespace KmyKeiba.JVLink.Entities
     [RaceCourseInfo(RaceCourseType.Local, "中京(地)")]
     ChukyoLocal = 61,
 
-    [RaceCourseInfo(RaceCourseType.Local, "帯広(ば)")]
+    [RaceCourseInfo(RaceCourseType.Local, "帯広ば")]
     ObihiroBannei = 83,
 
     [RaceCourseInfo(RaceCourseType.Foreign, "その他の外国", Key = "A0")]
@@ -736,5 +856,158 @@ namespace KmyKeiba.JVLink.Entities
     Good = 2,
     Yielding = 3,
     Soft = 4,
+  }
+
+  public enum RaceRiderWeightRule : short
+  {
+    Unset = 0,
+
+    /// <summary>
+    /// ハンデ（実績などで重量を決定）
+    /// </summary>
+    Handicap = 1,
+
+    /// <summary>
+    /// 別定（レースごとに負担を決める基準がある）
+    /// </summary>
+    SpecialWeight = 2,
+
+    /// <summary>
+    /// 馬齢（性別や年齢で重量を決定）
+    /// </summary>
+    WeightForAge = 3,
+
+    /// <summary>
+    /// 定量（別定、かつ性別や年齢で重量を決定）
+    /// </summary>
+    SpecialWeightForAge = 4,
+  }
+
+  public enum RaceHorseAreaRule : short
+  {
+    Unknown = 0,
+
+    /// <summary>
+    /// 混合（A）
+    /// </summary>
+    Mixed = 1,
+
+    /// <summary>
+    /// 父（B）
+    /// </summary>
+    Father = 2,
+
+    /// <summary>
+    /// 市（C）
+    /// </summary>
+    Market = 3,
+
+    /// <summary>
+    /// 抽（D）
+    /// </summary>
+    Lottery = 4,
+
+    /// <summary>
+    /// 「抽」（E）
+    /// </summary>
+    Lottery2 = 5,
+
+    /// <summary>
+    /// 市抽（F）
+    /// </summary>
+    MarketLottery = 6,
+
+    /// <summary>
+    /// 抽・関西（G）
+    /// </summary>
+    LotteryWest = 7,
+
+    /// <summary>
+    /// 抽・関東（H）
+    /// </summary>
+    LotteryEast = 8,
+
+    /// <summary>
+    /// 「抽」・関西（I）
+    /// </summary>
+    Lottery2West = 9,
+
+    /// <summary>
+    /// 「抽」・関東（J）
+    /// </summary>
+    Lottery2East = 10,
+
+    MarketLotteryWest = 11,
+
+    MarketLotteryEast = 12,
+
+    Kyushu = 13,
+
+    International = 14,
+
+    O = 15,
+
+    /// <summary>
+    /// 兵庫（一部に佐賀などを含む）リミテッド
+    /// </summary>
+    LimitedHyogo = 16,
+
+    Q = 17,
+    R = 18,
+    S = 19,
+    T = 20,
+    U = 21,
+    V = 22,
+    W = 23,
+
+    /// <summary>
+    /// JRA認定競走（X）地方競馬のみに設定
+    /// </summary>
+    JraCertificated = 24,
+
+    /// <summary>
+    /// 南関東リミテッド
+    /// </summary>
+    LimitedSouthKanto = 25,
+
+    Z = 26,
+  }
+
+  public enum RaceHorseSexRule : short
+  {
+    Unknown = 0,
+
+    Male = 1,
+    Female = 2,
+    MaleCastrated = 3,
+    MaleFemale = 4,
+
+    A = 11,
+    B = 12,
+  }
+
+  public enum RaceCrossRaceRule : short
+  {
+    Unknown = 0,
+
+    /// <summary>
+    /// 指定
+    /// </summary>
+    Specificated = 1,
+
+    /// <summary>
+    /// 見習い騎手
+    /// </summary>
+    BeginnerRider = 2,
+
+    /// <summary>
+    /// 「指定」
+    /// </summary>
+    Specificated2 = 3,
+
+    /// <summary>
+    /// 特別指定
+    /// </summary>
+    Special = 4,
   }
 }

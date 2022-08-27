@@ -10,7 +10,7 @@ namespace KmyKeiba.Models.Analysis.Math
   {
     public static double AvoidNan(double num)
     {
-      if (!double.IsNaN(num))
+      if (!double.IsNaN(num) || !double.IsInfinity(num))
       {
         return num;
       }

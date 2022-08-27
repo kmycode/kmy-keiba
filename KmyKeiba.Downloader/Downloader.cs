@@ -12,6 +12,20 @@ namespace KmyKeiba.Downloader
 {
   internal partial class Program
   {
+    private static void Test()
+    {
+      try
+      {
+        var loader = new JVLinkLoader();
+        loader.StartLoad(JVLinkObject.Local, JVLinkDataspec.Race | JVLinkDataspec.Diff,
+          JVLinkOpenOption.Setup, null, new DateTime(2016, 1, 1), DateTime.Now, new string[] { "NR", "NS", });
+      }
+      catch (Exception ex)
+      {
+
+      }
+    }
+
     private static void StartLoad(DownloaderTaskData task, bool isRealTime = false)
     {
       var loader = new JVLinkLoader();
@@ -174,14 +188,33 @@ namespace KmyKeiba.Downloader
         return;
       }
 
-      var specs1 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "JC", "HC", "WC", "HR", };
-      var specs2 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", };
+      var specs1 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "BT", "JC", "HC", "WC", "KS", "CH", };
+      var specs2 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", "HR", "TM", "DM", };
       var dataspec1 = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku;
+      var dataspec2 = JVLinkDataspec.Race;
       if (parameters[2] == "central")
       {
         dataspec1 |= JVLinkDataspec.Wood;
+        dataspec2 |= JVLinkDataspec.Ming;
       }
-      var dataspec2 = JVLinkDataspec.Race;
+      else
+      {
+        // 2020年4月以降のデータが提供されていない／南関東しかない
+        // 実用性は低い
+        // dataspec1 |= JVLinkDataspec.Nosi;
+      }
+
+      var isNotDownloadBlod = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadHorseBloods);
+      var isNotDownloadSlop = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadTrainings);
+      if (isNotDownloadBlod != null && isNotDownloadBlod.IntValue != 0)
+      {
+        dataspec1 &= ~JVLinkDataspec.Blod;
+      }
+      if (isNotDownloadSlop != null && isNotDownloadSlop.IntValue != 0)
+      {
+        dataspec1 &= ~JVLinkDataspec.Slop;
+        dataspec1 &= ~JVLinkDataspec.Wood;
+      }
 
       if (parameters[2] == "local" && startYear < 2005)
       {
@@ -302,7 +335,17 @@ namespace KmyKeiba.Downloader
       int.TryParse(date.AsSpan(4, 2), out var month);
       int.TryParse(date.AsSpan(6, 2), out var day);
 
-      var dataspecs = new[]
+      var dataspecs = link.Type == JVLinkObjectType.Central ? new[]
+      {
+        JVLinkDataspec.RB12,
+        JVLinkDataspec.RB15,
+        JVLinkDataspec.RB30,
+        JVLinkDataspec.RB11,
+        JVLinkDataspec.RB14,
+        JVLinkDataspec.RB41,
+        JVLinkDataspec.RB13,
+        JVLinkDataspec.RB17,
+      } : new[]
       {
         JVLinkDataspec.RB12,
         JVLinkDataspec.RB15,
@@ -323,6 +366,7 @@ namespace KmyKeiba.Downloader
 
       var start = new DateTime(year, month, day);
       var today = DateTime.Today;
+      var now = DateTime.Now;
 
       int.TryParse(skip, out var skipCount);
       var query = db.Races!
@@ -355,6 +399,11 @@ namespace KmyKeiba.Downloader
           if (today.DayOfWeek == DayOfWeek.Saturday && r.StartTime.DayOfWeek == DayOfWeek.Sunday)
           {
             // 日曜日のレースは土曜日発売
+            return true;
+          }
+          if (today.DayOfWeek == DayOfWeek.Friday && r.StartTime.DayOfWeek == DayOfWeek.Saturday && now.Hour >= 12)
+          {
+            // 夕方から売ってることがある
             return true;
           }
 
@@ -400,7 +449,7 @@ namespace KmyKeiba.Downloader
         foreach (var race in targets)
         {
           var useKey = race.Key;
-          if (dataspecs[i] == JVLinkDataspec.RB14 || dataspecs[i] == JVLinkDataspec.RB12 || dataspecs[i] == JVLinkDataspec.RB15 || dataspecs[i] == JVLinkDataspec.RB11)
+          if (dataspecs[i] == JVLinkDataspec.RB14 || dataspecs[i] == JVLinkDataspec.RB12 || dataspecs[i] == JVLinkDataspec.RB15 || dataspecs[i] == JVLinkDataspec.RB11 || dataspecs[i] == JVLinkDataspec.RB13 || dataspecs[i] == JVLinkDataspec.RB17)
           {
             useKey = null;
           }
@@ -414,7 +463,6 @@ namespace KmyKeiba.Downloader
           }
           else if (dataspecs[i] == JVLinkDataspec.RB41)
           {
-            var now = DateTime.Now;
             var latestTimeline = oddsTImeline.Where(o => o.RaceKey == race.Key).OrderByDescending(o => o.Time).FirstOrDefault();
             if (!(latestTimeline == null || (race.Course <= RaceCourse.CentralMaxValue ? latestTimeline.Time < race.StartTime : latestTimeline.Time < race.StartTime.AddMinutes(-1))))
             {

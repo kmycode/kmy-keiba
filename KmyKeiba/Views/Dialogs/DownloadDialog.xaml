@@ -2,12 +2,14 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:b="clr-namespace:KmyKeiba.Behaviors"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-  <Grid Width="600" Height="570" Background="{StaticResource BaseBackground}">
+  <Grid Width="600" Height="680" Background="{StaticResource BaseBackground}">
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
       <RowDefinition/>
@@ -41,13 +43,47 @@
                     FontSize="16" Width="50" VerticalAlignment="Top"/>
           <TextBlock Text="月" Style="{StaticResource TextBlockDefault}" FontSize="16" Margin="4,0"/>
         </StackPanel>
+        <StackPanel>
+          <StackPanel.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+              <Binding Path="Downloader.IsDownloadCentral.Value"/>
+              <Binding Path="Downloader.IsDownloadLocal.Value"/>
+            </MultiBinding>
+          </StackPanel.Visibility>
+          <TextBlock FontSize="28" Text="ダウンロードオプション" Style="{StaticResource TextBlockDefault}" Margin="0,32,0,16"/>
+          <StackPanel Orientation="Horizontal" Margin="8,0,0,16">
+            <ToggleButton FontSize="16" Content="血統" IsChecked="{Binding Downloader.IsDownloadBlod.Value,Mode=TwoWay}"
+                          IsEnabled="{Binding CanSave.Value}"/>
+            <ToggleButton FontSize="16" Content="調教" IsChecked="{Binding Downloader.IsDownloadSlop.Value,Mode=TwoWay}"
+                          Visibility="{Binding Downloader.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                          IsEnabled="{Binding CanSave.Value}" Margin="8,0,0,0"/>
+          </StackPanel>
+        </StackPanel>
+        <StackPanel Visibility="{Binding Downloader.IsDownloadJrdb.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <TextBlock FontSize="28" Text="JRDBログイン情報" Style="{StaticResource TextBlockDefault}" Margin="0,32,0,16"/>
+          <StackPanel Orientation="Horizontal" Margin="8,0,0,16">
+            <TextBlock Text="ID" Style="{StaticResource SubTextBlock}" FontSize="16" Margin="4,0"/>
+            <TextBox FontSize="16" Text="{Binding Downloader.JrdbId.Value}" Width="120"/>
+            <TextBlock Text="PASS" Style="{StaticResource SubTextBlock}" FontSize="16" Margin="4,0"/>
+            <PasswordBox FontSize="16" Width="120">
+              <i:Interaction.Behaviors>
+                <b:BindingPasswordBoxBehavior Password="{Binding Downloader.JrdbPassword.Value}"/>
+              </i:Interaction.Behaviors>
+            </PasswordBox>
+          </StackPanel>
+          <TextBlock FontSize="16" Text="JRDBの利用にはUNLHA32.DLLのインストールが必要です" Margin="8,0,0,24"/>
+        </StackPanel>
         <TextBlock FontSize="16" Style="{StaticResource SubTextBlock}" Margin="16,8,0,0">
           大量データの取得処理には数日かかることがあります。<LineBreak/>
-          インストール後はマスターデータの手動更新が必要です。
+          <Run FontWeight="Bold" TextDecorations="Underline">インストール後はマスターデータの手動更新が必要です。</Run>
         </TextBlock>
       </StackPanel>
       <Grid Grid.Column="1">
         <Grid.RowDefinitions>
+          <RowDefinition Height="auto"/>
+          <RowDefinition Height="auto"/>
+          <RowDefinition Height="auto"/>
+          <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>
@@ -58,19 +94,29 @@
           <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
         <Border Grid.Column="1" Width="80" Margin="4,0,0,0"/>
-        <TextBlock Grid.ColumnSpan="2" FontSize="28" Text="対象" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16"/>
+        <TextBlock Grid.ColumnSpan="2" FontSize="28" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16">
+          ステップ<LineBreak/><Run FontSize="14">中央・地方はいずれかまたは両方</Run>
+        </TextBlock>
         <RadioButton Grid.Row="1" FontSize="16" Content="中央競馬" Width="100" Style="{StaticResource ToggleButtonDefault}"
                      IsChecked="{Binding Downloader.IsDownloadCentral.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
         <Button Grid.Row="1" Grid.Column="1" FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
                 Visibility="{Binding Downloader.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
                 Command="{Binding OpenJvlinkConfigCommand}"/>
-        <RadioButton Grid.Row="2" FontSize="16" Content="地方競馬" Width="100" Margin="0,20,0,0" Style="{StaticResource ToggleButtonDefault}"
+        <Polygon Grid.Row="2" Fill="{StaticResource SubForeground}" Points="0,0 20,0 10,14" Margin="0,8"
+                 HorizontalAlignment="Center"/>
+        <RadioButton Grid.Row="3" FontSize="16" Content="地方競馬" Width="100" Style="{StaticResource ToggleButtonDefault}"
                      IsChecked="{Binding Downloader.IsDownloadLocal.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
-        <Button Grid.Row="2" Grid.Column="1" FontSize="16" Content="設定" Width="80" Margin="4,20,0,0"
+        <Button Grid.Row="3" Grid.Column="1" FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
                 Visibility="{Binding Downloader.IsDownloadLocal.Value,Converter={StaticResource BooleanVisibilityConv}}"
                 Command="{Binding OpenNvlinkConfigCommand}"/>
-        <RadioButton Grid.Row="3" Grid.ColumnSpan="2" FontSize="16" Content="マスターデータ作成／更新" Width="186" Margin="0,20,0,0" Style="{StaticResource ToggleButtonDefault}"
+        <Polygon Grid.Row="4" Fill="{StaticResource SubForeground}" Points="0,0 20,0 10,14" Margin="0,8"
+                 HorizontalAlignment="Center"/>
+        <RadioButton Grid.Row="5" Grid.ColumnSpan="2" FontSize="16" Content="マスターデータ作成／更新" Width="186" Style="{StaticResource ToggleButtonDefault}"
                      IsChecked="{Binding Downloader.IsBuildMasterData.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
+        <Border Grid.Row="6" Grid.ColumnSpan="2" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1"
+                Margin="0,24,0,8"/>
+        <RadioButton Grid.Row="7" Grid.ColumnSpan="2" FontSize="16" Content="JRDB" Width="186" Style="{StaticResource ToggleButtonDefault}"
+                     IsChecked="{Binding Downloader.IsDownloadJrdb.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
       </Grid>
     </Grid>
     <Grid Grid.Row="1" Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}">
@@ -78,6 +124,7 @@
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
           <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="中央" Visibility="{Binding Downloader.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}" Margin="8,0"/>
           <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="地方" Visibility="{Binding Downloader.IsDownloadLocal.Value,Converter={StaticResource BooleanVisibilityConv}}" Margin="8,0"/>
+          <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="JRDB" Visibility="{Binding Downloader.IsDownloadJrdb.Value,Converter={StaticResource BooleanVisibilityConv}}" Margin="8,0"/>
         </StackPanel>
         <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Margin="0,0,0,24" TextAlignment="Center">
           <Run Text="{Binding Downloader.StartYear.Value}"/>年<Run Text="{Binding Downloader.StartMonth.Value}"/>月開始

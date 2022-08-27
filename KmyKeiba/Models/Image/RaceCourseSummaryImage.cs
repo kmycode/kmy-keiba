@@ -267,22 +267,22 @@ namespace KmyKeiba.Models.Image
       // レースの長さを描画
       var textPaint = new SKPaint
       {
-        TextSize = 18,
+        TextSize = 36,
         Color = baseTextColor,
       };
-      var text = this.Race.Distance + "m";
-      canvas.DrawText(this.Race.Distance + "m", this.Width / 2 - textPaint.MeasureText(text) / 2, this.Height / 2 - 9, textPaint);
+      var text = this.Race.Distance.ToString();
+      canvas.DrawText(text, this.Width / 2 - textPaint.MeasureText(text) / 2, this.Height / 2 - 9, textPaint);
 
       // 矢印
-      var arrowX = this.Width / 2 - 50;
-      var arrowTopBottomX = this.Width / 2 - 50;
-      var arrowTopX = this.Width / 2 - 60;
+      var arrowX = this.Width / 2 - 40;
+      var arrowTopBottomX = this.Width / 2 - 40;
+      var arrowTopX = this.Width / 2 - 70;
       var arrowY = this.Height - strokeWidth * 8;
       if (cornerDirection == TrackCornerDirection.Left ||
         (this.Race.Course == RaceCourse.Niigata && cornerDirection == TrackCornerDirection.Straight))
       {
-        arrowTopBottomX = this.Width / 2 + 50;
-        arrowTopX = this.Width / 2 + 60;
+        arrowTopBottomX = this.Width / 2 + 40;
+        arrowTopX = this.Width / 2 + 70;
       }
       canvas.DrawLine(arrowX, arrowY, arrowX + 100, arrowY, new SKPaint
       {
@@ -291,10 +291,10 @@ namespace KmyKeiba.Models.Image
       });
 
       var path = new SKPath();
-      path.MoveTo(arrowTopBottomX, arrowY - 12);
-      path.LineTo(arrowTopBottomX, arrowY + 12);
+      path.MoveTo(arrowTopBottomX, arrowY - 20);
+      path.LineTo(arrowTopBottomX, arrowY + 20);
       path.LineTo(arrowTopX, arrowY);
-      path.LineTo(arrowTopBottomX, arrowY - 12);
+      path.LineTo(arrowTopBottomX, arrowY - 20);
       canvas.DrawPath(path, new SKPaint
       {
         IsStroke = false,

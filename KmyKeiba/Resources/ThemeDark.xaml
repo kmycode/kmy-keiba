@@ -25,6 +25,7 @@
   <u:RHColor x:Key="BrowserForegroundColor" Red="240" Green="240" Blue="240"/>
 
   <Color x:Key="MoreThinBaseBackgroundColor" R="0x30" G="0x30" B="0x30"/>
+  <Color x:Key="BaseBorderBrushColor">#cccccc</Color>
 
   <SolidColorBrush x:Key="BaseBackground" Color="#030303"/>
   <SolidColorBrush x:Key="ThinBaseBackground" Color="#202020"/>
@@ -32,9 +33,11 @@
   <SolidColorBrush x:Key="ActiveBackground" Color="#404055"/>
   <SolidColorBrush x:Key="BaseForeground" Color="#f0f0f0"/>
   <SolidColorBrush x:Key="BaseBorderBrush" Color="#cccccc"/>
+  <SolidColorBrush x:Key="SubBorderBrush" Color="#909090"/>
   <SolidColorBrush x:Key="SubForeground" Color="#b0b0b0"/>
   <SolidColorBrush x:Key="ThinSubForeground" Color="#808080"/>
   <SolidColorBrush x:Key="ErrorForeground" Color="#ff9090"/>
+  <SolidColorBrush x:Key="NegativeForeground" Color="#50cfff"/>
   <SolidColorBrush x:Key="NoticeForeground" Color="#ff3088"/>
   <SolidColorBrush x:Key="HorseMarkForeground" Color="#ffcccc"/>
   <SolidColorBrush x:Key="HorseMarkDeletedForeground" Color="#aaaaff"/>
@@ -57,6 +60,8 @@
 
   <SolidColorBrush x:Key="MaleForeground" Color="#aaaaff"/>
   <SolidColorBrush x:Key="FemaleForeground" Color="#ffaaaa"/>
+  <SolidColorBrush x:Key="MaleBackground" Color="#333366"/>
+  <SolidColorBrush x:Key="FemaleBackground" Color="#663333"/>
   <SolidColorBrush x:Key="CastratedForeground" Color="#aaffaa"/>
   <SolidColorBrush x:Key="TCMiuraForeground" Color="#ffccff"/>
   <SolidColorBrush x:Key="TCRittoForeground" Color="#bbffcc"/>
@@ -64,10 +69,16 @@
   <SolidColorBrush x:Key="BadBackground" Color="#5f2222"/>
   <SolidColorBrush x:Key="GoodForeground" Color="#99ff99"/>
   <SolidColorBrush x:Key="BadForeground" Color="#ff99cc"/>
-  <SolidColorBrush x:Key="WarningForeground" Color="#ffff66"/>
+  <SolidColorBrush x:Key="WarningForeground" Color="#eded66"/>
   <SolidColorBrush x:Key="FirstOrderBackground" Color="#50ffff99"/>
   <SolidColorBrush x:Key="SecondOrderBackground" Color="#5044bbff"/>
   <SolidColorBrush x:Key="ThirdOrderBackground" Color="#50ff9999"/>
+  <SolidColorBrush x:Key="FineForeground" Color="#ff87a1"/>
+  <SolidColorBrush x:Key="CloudyForeground" Color="#abaab5"/>
+  <SolidColorBrush x:Key="RainyForeground" Color="#4a68ff"/>
+  <SolidColorBrush x:Key="DrizzleForeground" Color="#2bd3ed"/>
+  <SolidColorBrush x:Key="LightSnowForeground" Color="#dbcada"/>
+  <SolidColorBrush x:Key="SnowForeground" Color="#f4f4f4"/>
 
   <SolidColorBrush x:Key="SingleTicketBackground" Color="#00596b"/>
   <SolidColorBrush x:Key="PlaceTicketBackground" Color="#840027"/>

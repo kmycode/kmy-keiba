@@ -35,6 +35,19 @@
   <cv:RaceChangeToTextConverter x:Key="RaceChangeTextConv"/>
   <cv:HorseColorBrushConverter x:Key="HorseColorBrushConv"/>
   <cv:NonNullVisibilityConverter x:Key="NonNullVisibilityConv"/>
+  <cv:MemoColorBrushConverter x:Key="MemoColorBrushConv"
+                              DefaultBrush="{StaticResource BaseForeground}"
+                              GoodBrush="{StaticResource GoodForeground}"
+                              BadBrush="{StaticResource BadForeground}"
+                              WarningBrush="{StaticResource WarningForeground}"
+                              NegativeBrush="{StaticResource NegativeForeground}"/>
+  <cv:StringEmptyVisibilityConv x:Key="StringEmptyVisibilityConv"/>
+  <cv:CellTextAlignmentConverter x:Key="CellTextAlignmentConv"/>
 
   <cv:BooleanBrushConverter x:Key="BooleanForegroundSubOrBaseConv" TrueBrush="{StaticResource SubForeground}" FalseBrush="{StaticResource BaseForeground}"/>
+  <cv:BooleanBrushConverter x:Key="BooleanForegroundCustomizedCategoryConv" TrueBrush="{StaticResource GoodBackground}" FalseBrush="Transparent"/>
+  <cv:BooleanBrushConverter x:Key="BooleanForegroundCustomizedCategoryConv2" TrueBrush="{StaticResource GoodForeground}" FalseBrush="{StaticResource BaseForeground}"/>
+  <cv:BooleanBrushConverter x:Key="BooleanBackgroundIsMaleConv" TrueBrush="{StaticResource MaleBackground}" FalseBrush="{StaticResource FemaleBackground}"/>
+  <cv:BooleanBrushConverter x:Key="BooleanForegroundActiveConv" TrueBrush="{StaticResource GoodForeground}" FalseBrush="{StaticResource BaseForeground}"/>
+  <cv:BooleanBrushConverter x:Key="BooleanBackgroundCheckedBloodConv" TrueBrush="#4400ffff" FalseBrush="Transparent"/>
 </ResourceDictionary>

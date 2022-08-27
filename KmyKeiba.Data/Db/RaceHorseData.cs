@@ -10,7 +10,10 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  [Index(nameof(RaceKey), nameof(Key), nameof(RiderCode), nameof(TrainerCode), nameof(Course))]
+  [Index(nameof(RaceKey), nameof(Key))]
+  [Index(nameof(RiderCode))]
+  [Index(nameof(TrainerCode))]
+  [Index(nameof(Key), nameof(RaceCount), nameof(RaceCountWithinRunning), nameof(RaceCountWithinRunningCompletely), nameof(RaceCountAfterLastRest))]
   public class RaceHorseData : DataBase<RaceHorse>
   {
     [StringLength(16)]
@@ -54,6 +57,16 @@ namespace KmyKeiba.Data.Db
     public short ResultOrder { get; set; }
 
     /// <summary>
+    /// 入線順位
+    /// </summary>
+    public short GoalOrder { get; set; }
+
+    /// <summary>
+    /// １着とのタイム差（１着の場合は２着との差）
+    /// </summary>
+    public short TimeDifference { get; set; }
+
+    /// <summary>
     /// 着差
     /// </summary>
     public short ResultLength1 { get; set; }
@@ -76,6 +89,8 @@ namespace KmyKeiba.Data.Db
     /// 走破タイム
     /// </summary>
     public TimeSpan ResultTime { get; set; }
+
+    public short ResultTimeValue { get; set; }
 
     public short FirstCornerOrder { get; set; }
 
@@ -149,6 +164,8 @@ namespace KmyKeiba.Data.Db
     /// </summary>
     public TimeSpan AfterThirdHalongTime { get; set; }
 
+    public short AfterThirdHalongTimeValue { get; set; }
+
     /// <summary>
     /// 脚質
     /// </summary>
@@ -163,6 +180,28 @@ namespace KmyKeiba.Data.Db
     /// 前回のレースは何日前か
     /// </summary>
     public short PreviousRaceDays { get; set; }
+
+    /// <summary>
+    /// この馬にとって何度目のレースか
+    /// </summary>
+    public short RaceCount { get; set; }
+
+    /// <summary>
+    ///  競走除外とかでそもそも走らなかったレースを除く回数
+    ///  走らなかったレースでは-2が設定される
+    /// </summary>
+    public short RaceCountWithinRunning { get; set; }
+
+    /// <summary>
+    ///  とにかく失敗したレースを除く回数
+    ///  走らなかったレースでは-2が設定される
+    /// </summary>
+    public short RaceCountWithinRunningCompletely { get; set; }
+
+    /// <summary>
+    /// 一定日以上レース間隔のあいた直後のレースを 1 として、休養後のレース回数をカウントしていく
+    /// </summary>
+    public short RaceCountAfterLastRest { get; set; }
 
     /// <summary>
     /// 騎手の勝率マスターデータにこのデータは含まれているか
@@ -194,7 +233,10 @@ namespace KmyKeiba.Data.Db
       this.RaceKey = entity.RaceKey;
       this.Course = entity.Course;
       this.ResultOrder = entity.ResultOrder;
+      this.GoalOrder = entity.GoalOrder;
+      this.TimeDifference = entity.TimeDifference;
       this.ResultTime = entity.ResultTime;
+      this.ResultTimeValue = entity.ResultTimeValue;
       this.ResultLength1 = entity.ResultLength1;
       this.ResultLength2 = entity.ResultLength2;
       this.ResultLength3 = entity.ResultLength3;
@@ -209,6 +251,7 @@ namespace KmyKeiba.Data.Db
       this.OwnerName = entity.OwnerName;
       this.IsBlinkers = entity.IsBlinkers;
       this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
+      this.AfterThirdHalongTimeValue = entity.AfterThirdHalongTimeValue;
       this.AbnormalResult = entity.AbnormalResult;
       this.UniformFormat = entity.UniformFormat;
 

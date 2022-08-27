@@ -33,6 +33,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<double> UntilA3HTimeDeviationValue { get; } = new();
 
+    public ReactiveProperty<double> RecoveryRate { get; } = new();
+
     public ReactiveProperty<ResultOrderGradeMap> FrontRunnersGrade { get; } = new();
 
     public ReactiveProperty<ResultOrderGradeMap> StalkersGrade { get; } = new();
@@ -104,9 +106,22 @@ namespace KmyKeiba.Models.Analysis
           .Where(s => s.Data.Number / (float)s.Race.HorsesCount <= 1 / 3f).ToArray());
         this.OutsideFrameGrade.Value = new ResultOrderGradeMap(source
           .Where(s => s.Data.Number / (float)s.Race.HorsesCount >= 2 / 3f).ToArray());
+
+        // 回収率
+        if (source.Any(s => s.Data.ResultOrder == 1))
+        {
+          this.RecoveryRate.Value = source.Where(s => s.Data.ResultOrder == 1).Sum(s => s.Data.Odds * 10) / (float)(count * 100);
+        }
       }
 
       this.IsAnalyzed.Value = true;
+    }
+  }
+
+  public class SimpleRaceHorseTrendAnalyzer : RaceHorseTrendAnalyzerBase
+  {
+    public SimpleRaceHorseTrendAnalyzer(int sizeMax, RaceData race, RaceHorseData horse) : base(sizeMax, race, horse)
+    {
     }
   }
 
@@ -128,10 +143,13 @@ namespace KmyKeiba.Models.Analysis
       var timeMin = source.Select(s => s.ResultTimeDeviationValue).OrderBy(s => s).ElementAtOrDefault(level) + 1;
       var a3hTimeMax = source.Select(s => s.A3HResultTimeDeviationValue).OrderByDescending(s => s).ElementAtOrDefault(level) - 1;
       var a3hTimeMin = source.Select(s => s.A3HResultTimeDeviationValue).OrderBy(s => s).ElementAtOrDefault(level) + 1;
+      var pciMax = source.Select(s => s.PciDeviationValue).OrderByDescending(s => s).ElementAtOrDefault(level) - 1;
+      var pciMin = source.Select(s => s.PciDeviationValue).OrderBy(s => s).ElementAtOrDefault(level) + 1;
       foreach (var horse in source)
       {
         horse.ResultTimeDVComparation = AnalysisUtil.CompareValue(horse.ResultTimeDeviationValue, timeMax, timeMin);
         horse.ResultA3HTimeDVComparation = AnalysisUtil.CompareValue(horse.A3HResultTimeDeviationValue, a3hTimeMax, a3hTimeMin);
+        horse.PciDVComparation = AnalysisUtil.CompareValue(horse.PciDeviationValue, pciMin, pciMax, true);
       }
     }
 

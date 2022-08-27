@@ -46,6 +46,9 @@ namespace KmyKeiba.Models.Script
     [ScriptMember("isFirstMessageVisible")]
     public bool IsFirstMessageVisible { get; set; } = true;
 
+    [ScriptMember("expansionMemoGroupSize")]
+    public int ExpansionMemoGroupSize { get; set; } = 8;
+
     [ScriptMember("createAnalysisTable")]
     public ScriptAnalysisTableConfiguration CreateAnalysisTable(string name)
     {
@@ -68,6 +71,7 @@ namespace KmyKeiba.Models.Script
         AnalysisTableSampleSize = this.AnalysisTableSampleSize,
         DownloadNormalDataIntervalMinutes = this.DownloadNormalDataIntervalMinutes,
         IsFirstMessageVisible = this.IsFirstMessageVisible,
+        ExpansionMemoGroupSize = this.ExpansionMemoGroupSize,
       };
       foreach (var table in this._tables)
       {
@@ -137,6 +141,21 @@ namespace KmyKeiba.Models.Script
             horse, h => h.BloodSelectors!.GetSelectorForceAsync(type).Result, keys,
             (analyzer, cell) => this.SetValueOfRaceHorseAnalyzer(value, analyzer, cell))
           ));
+      });
+    }
+
+    [ScriptMember("useFinder")]
+    public void UseFinder(string name, string keys, string value)
+    {
+      this._rows.Add(race =>
+      {
+        return Task.FromResult(new AnalysisTableRow(name, race, (race, horse) =>
+        {
+          var selector = horse.FinderModel.Value?.AsTrendAnalysisSelector() ?? new RaceHorseTrendAnalysisSelectorWrapper(new Race.Finder.RaceFinder());
+          return new LambdaAnalysisWithFinderTableCell(
+            horse, h => selector, keys,
+            (analyzer, cell) => this.SetValueOfRaceHorseAnalyzer(value, analyzer, cell));
+        }));
       });
     }
 
@@ -226,6 +245,13 @@ namespace KmyKeiba.Models.Script
         cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
         cell.SampleSize = 0;
       }
+      else if (value == "ua3htime")
+      {
+        cell.Value.Value = analyzer.UntilA3HTimeDeviationValue.Value.ToString("F1");
+        cell.ComparationValue.Value = (float)analyzer.UntilA3HTimeDeviationValue.Value;
+        cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
+        cell.SampleSize = 0;
+      }
       else if (value == "shortesttime")
       {
         if (analyzer.Race.Distance <= 0)
@@ -248,6 +274,13 @@ namespace KmyKeiba.Models.Script
           cell.SampleSize = 1;
           cell.SampleFilter = filter;
         }
+      }
+      else if (value == "recovery")
+      {
+        cell.Value.Value = analyzer.RecoveryRate.Value.ToString("P1");
+        cell.ComparationValue.Value = (float)analyzer.RecoveryRate.Value;
+        cell.HasComparationValue.Value = analyzer.AllGrade.Value.AllCount > 0;
+        cell.SampleSize = 0;
       }
       else
       {

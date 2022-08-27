@@ -25,6 +25,8 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<HorseBloodData>? HorseBloods { get; set; }
 
+    public DbSet<HorseBloodInfoData>? HorseBloodInfos { get; set; }
+
     public DbSet<BornHorseData>? BornHorses { get; set; }
 
     public DbSet<SingleOddsTimeline>? SingleOddsTimelines { get; set; }
@@ -49,9 +51,21 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<WoodtipTrainingData>? WoodtipTrainings { get; set; }
 
+    public DbSet<RiderData>? Riders { get; set; }
+
+    public DbSet<TrainerData>? Trainers { get; set; }
+
+    #endregion
+
+    #region Jrdb
+
+    public DbSet<JrdbRaceHorseData>? JrdbRaceHorses { get; set; }
+
     #endregion
 
     #region App
+
+    public DbSet<RaceHorseExtraData>? RaceHorseExtras { get; set; }
 
     public DbSet<RaceStandardTimeMasterData>? RaceStandardTimes { get; set; }
 
@@ -62,6 +76,32 @@ namespace KmyKeiba.Data.Db
     public DbSet<DownloaderTaskData>? DownloaderTasks { get; set; }
 
     public DbSet<RaceChangeData>? RaceChanges { get; set; }
+
+    public DbSet<MemoData>? Memos { get; set; }
+
+    public DbSet<ExpansionMemoConfig>? MemoConfigs { get; set; }
+
+    public DbSet<PointLabelData>? PointLabels { get; set; }
+
+    public DbSet<ExternalNumberData>? ExternalNumbers { get; set; }
+
+    public DbSet<ExternalNumberConfig>? ExternalNumberConfigs { get; set; }
+
+    public DbSet<FinderConfigData>? FinderConfigs { get; set; }
+
+    public DbSet<CheckHorseData>? CheckHorses { get; set; }
+
+    public DbSet<AnalysisTableData>? AnalysisTables { get; set; }
+
+    public DbSet<AnalysisTableRowData>? AnalysisTableRows { get; set; }
+
+    public DbSet<AnalysisTableWeightData>? AnalysisTableWeights { get; set; }
+
+    public DbSet<AnalysisTableWeightRowData>? AnalysisTableWeightRows { get; set; }
+
+    public DbSet<DelimiterData>? Delimiters { get; set; }
+
+    public DbSet<DelimiterRowData>? DelimiterRows { get; set; }
 
     #endregion
 

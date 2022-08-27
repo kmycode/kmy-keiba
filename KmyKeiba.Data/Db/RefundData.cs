@@ -394,6 +394,85 @@ namespace KmyKeiba.Data.Db
       i++;
     }
 
+    public IReadOnlyList<(short, int)> GetPlaceBetsAsList()
+    {
+      return new List<(short, int)>
+      {
+        (this.PlaceNumber1, this.PlaceNumber1Money),
+        (this.PlaceNumber2, this.PlaceNumber2Money),
+        (this.PlaceNumber3, this.PlaceNumber3Money),
+        (this.PlaceNumber4, this.PlaceNumber4Money),
+        (this.PlaceNumber5, this.PlaceNumber5Money),
+      }.Where(d => d.Item1 != default).ToArray();
+    }
+
+    public IReadOnlyList<(short, short, int)> GetFrameNumberAsList()
+    {
+      return new List<(short, short, int)>
+      {
+        (this.Frame1Number1, this.Frame2Number1, this.FrameNumber1Money),
+        (this.Frame1Number2, this.Frame2Number2, this.FrameNumber2Money),
+        (this.Frame1Number3, this.Frame2Number3, this.FrameNumber3Money),
+      }.Where(d => d.Item1 != default).ToArray();
+    }
+
+    public IReadOnlyList<(short, short, int)> GetQuinellaPlaceAsList()
+    {
+      return new List<(short, short, int)>
+      {
+        (this.QuinellaPlace1Number1, this.QuinellaPlace2Number1, this.QuinellaPlaceNumber1Money),
+        (this.QuinellaPlace1Number2, this.QuinellaPlace2Number2, this.QuinellaPlaceNumber2Money),
+        (this.QuinellaPlace1Number3, this.QuinellaPlace2Number3, this.QuinellaPlaceNumber3Money),
+        (this.QuinellaPlace1Number4, this.QuinellaPlace2Number4, this.QuinellaPlaceNumber4Money),
+        (this.QuinellaPlace1Number5, this.QuinellaPlace2Number5, this.QuinellaPlaceNumber5Money),
+        (this.QuinellaPlace1Number6, this.QuinellaPlace2Number6, this.QuinellaPlaceNumber6Money),
+        (this.QuinellaPlace1Number7, this.QuinellaPlace2Number7, this.QuinellaPlaceNumber7Money),
+      }.Where(d => d.Item1 != default).ToArray();
+    }
+
+    public IReadOnlyList<(short, short, int)> GetQuinellaAsList()
+    {
+      return new List<(short, short, int)>
+      {
+        (this.Quinella1Number1, this.Quinella2Number1, this.QuinellaNumber1Money),
+        (this.Quinella1Number2, this.Quinella2Number2, this.QuinellaNumber2Money),
+        (this.Quinella1Number3, this.Quinella2Number3, this.QuinellaNumber3Money),
+      }.Where(d => d.Item1 != default).ToArray();
+    }
+
+    public IReadOnlyList<(short, short, int)> GetExactaAsList()
+    {
+      return new List<(short, short, int)>
+      {
+        (this.Exacta1Number1, this.Exacta2Number1, this.ExactaNumber1Money),
+        (this.Exacta1Number2, this.Exacta2Number2, this.ExactaNumber2Money),
+        (this.Exacta1Number3, this.Exacta2Number3, this.ExactaNumber3Money),
+      }.Where(d => d.Item1 != default).ToArray();
+    }
+
+    public IReadOnlyList<(short, short, short, int)> GetTrioAsList()
+    {
+      return new List<(short, short, short, int)>
+      {
+        (this.Trio1Number1, this.Trio2Number1, this.Trio3Number1, this.TrioNumber1Money),
+        (this.Trio1Number2, this.Trio2Number2, this.Trio3Number2, this.TrioNumber2Money),
+        (this.Trio1Number3, this.Trio2Number3, this.Trio3Number3, this.TrioNumber3Money),
+      }.Where(d => d.Item1 != default).ToArray();
+    }
+
+    public IReadOnlyList<(short, short, short, int)> GetTrifectaAsList()
+    {
+      return new List<(short, short, short, int)>
+      {
+        (this.Trifecta1Number1, this.Trifecta2Number1, this.Trifecta3Number1, this.TrifectaNumber1Money),
+        (this.Trifecta1Number2, this.Trifecta2Number2, this.Trifecta3Number2, this.TrifectaNumber2Money),
+        (this.Trifecta1Number3, this.Trifecta2Number3, this.Trifecta3Number3, this.TrifectaNumber3Money),
+        (this.Trifecta1Number4, this.Trifecta2Number4, this.Trifecta3Number4, this.TrifectaNumber4Money),
+        (this.Trifecta1Number5, this.Trifecta2Number5, this.Trifecta3Number5, this.TrifectaNumber5Money),
+        (this.Trifecta1Number6, this.Trifecta2Number6, this.Trifecta3Number6, this.TrifectaNumber6Money),
+      }.Where(d => d.Item1 != default).ToArray();
+    }
+
     public override int GetHashCode()
       => this.RaceKey.GetHashCode();
 

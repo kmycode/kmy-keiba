@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Connection;
+using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Models.RList;
 using KmyKeiba.Models.Script;
@@ -108,6 +109,9 @@ namespace KmyKeiba.ViewModels
           this.CurrentDialog.Value = DialogType.Download;
         }
 
+        // DBのプリセット
+        await DatabasePresetModel.SetPresetsAsync();
+
         // アップデートチェック
         await this.Update.CheckAsync();
       });
@@ -177,6 +181,11 @@ namespace KmyKeiba.ViewModels
       this._updateRtDataForceCommand ??=
         new ReactiveCommand().WithSubscribe(() => this.downloader.UpdateRtDataForce());
     private ReactiveCommand? _updateRtDataForceCommand;
+
+    public ICommand UpdateRtDataHeavyForceCommand =>
+      this._updateRtDataHeavyForceCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.downloader.UpdateRtDataHeavyForce());
+    private ReactiveCommand? _updateRtDataHeavyForceCommand;
 
     public ICommand BuyCommand =>
       this._buyCommand ??=

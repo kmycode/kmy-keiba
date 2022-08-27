@@ -454,6 +454,7 @@ namespace KmyKeiba.Downloader
       this.SaveSize = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count
         + data.FrameNumberOdds.Count + data.QuinellaOdds.Count + data.QuinellaPlaceOdds.Count +
          data.TrifectaOdds.Count + data.TrioOdds.Count + data.BornHorses.Count +
+         data.Riders.Count + data.Trainers.Count +
         data.Refunds.Count + data.Trainings.Count + data.WoodtipTrainings.Count + data.Horses.Count + data.HorseBloods.Count;
       logger.Info($"保存数: {this.SaveSize}");
 
@@ -625,12 +626,19 @@ namespace KmyKeiba.Downloader
       logger.Info($"Horsesの保存を開始 {data.Horses.Count}");
       await SaveDicAsync(data.Horses,
         db.Horses!,
-        (e) => e.Code,
-        (d) => d.Code,
-        (list) => e => list.Contains(e.Code));
+        (e) => e.Code + e.CentralFlag,
+        (d) => d.Code + d.CentralFlag,
+        (list) => e => list.Contains(e.Code + e.CentralFlag));
       logger.Info($"HorseBloodsの保存を開始 {data.HorseBloods.Count}");
       await SaveDicAsync(data.HorseBloods,
         db.HorseBloods!,
+        (e) => e.Key,
+        (d) => d.Key,
+        (list) => e => list.Contains(e.Key));
+      await db.CommitAsync();
+      logger.Info($"HorseBloodInfosの保存を開始 {data.HorseBloodInfos.Count}");
+      await SaveDicAsync(data.HorseBloodInfos,
+        db.HorseBloodInfos!,
         (e) => e.Key,
         (d) => d.Key,
         (list) => e => list.Contains(e.Key));
@@ -641,6 +649,20 @@ namespace KmyKeiba.Downloader
         (e) => e.Code,
         (d) => d.Code,
         (list) => e => list.Contains(e.Code));
+      await db.CommitAsync();
+      logger.Info($"Ridersの保存を開始 {data.Riders.Count}");
+      await SaveDicAsync(data.Riders,
+        db.Riders!,
+        (e) => e.Code + e.CentralFlag,
+        (d) => d.Code + d.CentralFlag,
+        (list) => e => list.Contains(e.Code + e.CentralFlag));
+      await db.CommitAsync();
+      logger.Info($"Trainersの保存を開始 {data.Trainers.Count}");
+      await SaveDicAsync(data.Trainers,
+        db.Trainers!,
+        (e) => e.Code + e.CentralFlag,
+        (d) => d.Code + d.CentralFlag,
+        (list) => e => list.Contains(e.Code + e.CentralFlag));
       await db.CommitAsync();
 
       logger.Info($"FrameNumberOddsの保存を開始 {data.FrameNumberOdds.Count}");
@@ -714,15 +736,72 @@ namespace KmyKeiba.Downloader
       this.ProcessSize += data.SingleAndDoubleWinOdds.Count;
       this.Process = LoadProcessing.Processing;
 
+      // マイニングを設定する
+      {
+        var extraList = new Dictionary<string, HorseExtraDataSource>();
+        foreach (var item in data.MiningTimes)
+        {
+          extraList[item.Value.RaceKey] = new HorseExtraDataSource
+          {
+            MiningTime = item.Value,
+          };
+        }
+        foreach (var item in data.MiningMatches)
+        {
+          if (extraList.ContainsKey(item.Value.RaceKey))
+          {
+            extraList[item.Value.RaceKey].MiningMatch = item.Value;
+          }
+          else
+          {
+            extraList[item.Value.RaceKey] = new HorseExtraDataSource
+            {
+              MiningMatch = item.Value,
+            };
+          }
+        }
+
+        var count = 0;
+        foreach (var item in extraList)
+        {
+          var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == item.Key).Select(rh => new { rh.Number, rh.Key, }).ToArrayAsync();
+          var extras = await db.RaceHorseExtras!.Where(e => e.RaceKey == item.Key).ToArrayAsync();
+          var adds = new List<RaceHorseExtraData>();
+          foreach (var horse in horses)
+          {
+            var extra = extras.FirstOrDefault(e => e.Key == horse.Key);
+            if (extra == null)
+            {
+              extra = new RaceHorseExtraData();
+              adds.Add(extra);
+            }
+            extra.SetData(horse.Key, item.Key, horse.Number, item.Value.MiningTime, item.Value.MiningMatch);
+          }
+
+          if (adds.Any())
+          {
+            await db.RaceHorseExtras!.AddRangeAsync(adds);
+          }
+          count++;
+
+          if (count >= 2000)
+          {
+            await db.SaveChangesAsync();
+            await db.CommitAsync();
+          }
+        }
+      }
+
       // 単勝オッズを設定する（時系列オッズでない場合）
       if (!this._specs.HasFlag(JVLinkDataspec.RB41) && data.SingleAndDoubleWinOdds.Any())
       {
         var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.Value.RaceKey).ToArray();
         var oddsRaceHorses = await db.RaceHorses!
-          .Where((r) => oddsRaceKeys.Contains(r.RaceKey) && r.DataStatus < RaceDataStatus.PreliminaryGrade3)
+          .Where((r) => oddsRaceKeys.Contains(r.RaceKey))
           .ToListAsync();
 
         logger.Info($"単勝・複勝オッズの各馬への設定を開始します {data.SingleAndDoubleWinOdds.Count}");
+        logger.Debug($"{oddsRaceHorses.Count} / {oddsRaceKeys.Length})");
         foreach (var odds in data.SingleAndDoubleWinOdds.OrderByDescending(o => o.Value.Time))
         {
           var horses = oddsRaceHorses
@@ -751,6 +830,7 @@ namespace KmyKeiba.Downloader
         }
 
         await db.SaveChangesAsync();
+        await db.CommitAsync();
       }
 
       if (isRealtime)
@@ -841,24 +921,55 @@ namespace KmyKeiba.Downloader
           {
             var races = await db.Races!
               .Where((r) => r.Key.StartsWith(weather.RaceKeyWithoutRaceNum) && r.StartTime >= weather.ChangeTime)
+              .Where(r => r.DataStatus < RaceDataStatus.PreliminaryGrade3)
               .ToArrayAsync();
+            logger.Debug($"Races: {races.Length} / Weather: {weather.Weather} / Condition: {weather.DirtCondition}");
             foreach (var race in races)
             {
+              logger.Debug($"Exist race / Weather: {race.TrackWeather} / Condition: {race.TrackCondition}");
               if (weather.Weather != RaceCourseWeather.Unknown)
               {
                 race.TrackWeather = weather.Weather;
                 race.IsWeatherSetManually = false;
               }
-              if (race.TrackGround == TrackGround.Turf && weather.TurfCondition != RaceCourseCondition.Unknown)
+
+              var ground = race.TrackGround;
+              if (race.Course >= RaceCourse.LocalMinValue)
+              {
+                // 地方競馬DATAは盛岡の芝の状態をダートとして配信する様子
+                ground = TrackGround.Dirt;
+              }
+              if (ground == TrackGround.Turf && weather.TurfCondition != RaceCourseCondition.Unknown)
               {
                 race.TrackCondition = weather.TurfCondition;
                 race.IsConditionSetManually = false;
               }
-              else if ((race.TrackGround == TrackGround.Dirt || race.TrackGround == TrackGround.TurfToDirt || race.TrackGround == TrackGround.Sand) &&
+              else if ((ground == TrackGround.Dirt || ground == TrackGround.TurfToDirt || ground == TrackGround.Sand) &&
                 weather.DirtCondition != RaceCourseCondition.Unknown)
               {
                 race.TrackCondition = weather.DirtCondition;
                 race.IsConditionSetManually = false;
+              }
+            }
+
+            // 天候馬場がなぜか正しい情報が配信されないようなので、その日にすでにレースをやっていればその情報に置き換える
+            // （上記のコードは実質デッドコードになる）
+            var todayKey = today.ToString("yyyyMMdd");
+            var todayRaces = await db.Races!.Where(r => r.Key.StartsWith(todayKey)).ToArrayAsync();
+            foreach (var courseRaces in todayRaces
+              .OrderBy(r => r.CourseRaceNumber)
+              .GroupBy(r => r.Course))
+            {
+              // 馬場状態は芝、ダート別に発表されるが、もうごっちゃでよくない
+              var lastRace = courseRaces.LastOrDefault(r => r.DataStatus >= RaceDataStatus.PreliminaryGradeFull);
+              var nextRaces = courseRaces.Where(r => r.DataStatus < RaceDataStatus.PreliminaryGradeFull);
+              if (lastRace != null)
+              {
+                foreach (var nextRace in nextRaces)
+                {
+                  nextRace.TrackWeather = lastRace.TrackWeather;
+                  nextRace.TrackCondition = lastRace.TrackCondition;
+                }
               }
             }
 
@@ -942,6 +1053,13 @@ namespace KmyKeiba.Downloader
     }
 
     public event EventHandler? StartingTransaction;
+
+    private class HorseExtraDataSource
+    {
+      public MiningTime? MiningTime { get; set; }
+
+      public MiningMatch? MiningMatch { get; set; }
+    }
   }
 
   enum LoadProcessing

@@ -21,6 +21,16 @@
     <Setter Property="Foreground" Value="{StaticResource SubForeground}"/>
     <Setter Property="FontSize" Value="14"/>
   </Style>
+  <Style TargetType="TextBox" x:Key="TextBoxDefault">
+    <Setter Property="Foreground" Value="{StaticResource BaseForeground}"/>
+    <Setter Property="Background" Value="{StaticResource BaseBackground}"/>
+  </Style>
+  <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxDefault}"/>
+  <Style TargetType="PasswordBox" x:Key="PasswordBoxDefault">
+    <Setter Property="Foreground" Value="{StaticResource BaseForeground}"/>
+    <Setter Property="Background" Value="{StaticResource BaseBackground}"/>
+  </Style>
+  <Style TargetType="PasswordBox" BasedOn="{StaticResource PasswordBoxDefault}"/>
   <!--
   <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
   -->
@@ -62,12 +72,14 @@
     <Setter Property="Foreground" Value="{StaticResource BaseForeground}"/>
     <Setter Property="Padding" Value="12,4"/>
     <Setter Property="BorderBrush" Value="{StaticResource BaseBorderBrush}"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type ToggleButton}">
           <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                   CornerRadius="4" Padding="{TemplateBinding Padding}">
-            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
           </Border>
         </ControlTemplate>
       </Setter.Value>
@@ -87,19 +99,26 @@
         <Setter Property="Foreground" Value="{StaticResource SubForeground}"/>
         <Setter Property="Opacity" Value="0.8"/>
       </Trigger>
+      <MultiTrigger>
+        <MultiTrigger.Conditions>
+          <Condition Property="IsEnabled" Value="False"/>
+          <Condition Property="IsChecked" Value="True"/>
+        </MultiTrigger.Conditions>
+        <Setter Property="Background" Value="{StaticResource CheckedBackground}"/>
+      </MultiTrigger>
     </Style.Triggers>
   </Style>
   <Style TargetType="ToggleButton" BasedOn="{StaticResource ToggleButtonDefault}"/>
   <Style TargetType="Button" x:Key="ListItemButton" BasedOn="{StaticResource ButtonDefault}">
-    <Setter Property="Background" Value="{x:Null}"/>
+    <Setter Property="Background" Value="Transparent"/>
   </Style>
   <Style TargetType="ToggleButton" x:Key="ListItemToggle" BasedOn="{StaticResource ToggleButtonDefault}">
-    <Setter Property="Background" Value="{x:Null}"/>
+    <Setter Property="Background" Value="Transparent"/>
   </Style>
   <Style TargetType="ToggleButton" x:Key="ListItemToggleNotDisabled" BasedOn="{StaticResource ListItemToggle}">
     <Style.Triggers>
       <Trigger Property="IsEnabled" Value="False">
-        <Setter Property="Background" Value="{x:Null}"/>
+        <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{StaticResource BaseForeground}"/>
         <Setter Property="Opacity" Value="1"/>
       </Trigger>
@@ -152,7 +171,28 @@
       <Setter.Value>
         <ControlTemplate>
           <ScrollViewer Padding="{TemplateBinding Control.Padding}" Focusable="False"
+                        VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
                         CanContentScroll="True">
+            <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
+          </ScrollViewer>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+  </Style>
+  <Style TargetType="ItemsControl" x:Key="TableListHorizontal">
+    <Setter Property="ItemsPanel">
+      <Setter.Value>
+        <ItemsPanelTemplate>
+          <VirtualizingStackPanel IsVirtualizing="True" VirtualizationMode="Recycling" Orientation="Horizontal"/>
+        </ItemsPanelTemplate>
+      </Setter.Value>
+    </Setter>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate>
+          <ScrollViewer Padding="{TemplateBinding Control.Padding}" Focusable="False"
+                        CanContentScroll="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
             <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
           </ScrollViewer>
         </ControlTemplate>

@@ -61,6 +61,11 @@ namespace KmyKeiba.Models.Data
       {
         this.IsProcessing.Value = true;
         this.ml.SaveFile(fileName);
+
+#if DEBUG
+        System.IO.File.Delete("./runningstyle.mml");
+        System.IO.File.Copy(fileName, "./runningstyle.mml");
+#endif
       }
       catch (Exception ex)
       {
@@ -73,16 +78,17 @@ namespace KmyKeiba.Models.Data
       }
     }
 
-    public void Training()
+    public int Training()
     {
       this.IsError.Value = false;
+      var count = 0;
 
       try
       {
         this.IsProcessing.Value = true;
         using (var db = new MyContext())
         {
-          var targets = db.RaceHorses!
+          var source = db.RaceHorses!
             .Where((h) => h.Course <= RaceCourse.CentralMaxValue && !h.IsRunningStyleSetManually &&
                           h.ResultOrder > 0 && h.RunningStyle != RunningStyle.Unknown &&
                           h.FourthCornerOrder != 0)
@@ -90,13 +96,16 @@ namespace KmyKeiba.Models.Data
             .Where((d) => d.Race.HorsesCount > 1)  // ClusteringModelでのゼロ除算防止
             .OrderByDescending(d => d.Race.StartTime)
             .Take(100000)
-            .ToArray()
+            .ToArray();
+          var targets = source
             .Select(d => new ClusteringModel.RaceHorseDataInput
             {
               Race = d.Race,
               RaceHorse = d.RaceHorse,
             });
           this.ml.Training(targets);
+
+          count = source.Length;
         }
         this.CanPredict.Value = this.ml.CanSave;
       }
@@ -109,6 +118,8 @@ namespace KmyKeiba.Models.Data
       {
         this.IsProcessing.Value = false;
       }
+
+      return count;
     }
 
     public async Task<int> PredictAsync(int count)

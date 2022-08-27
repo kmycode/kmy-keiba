@@ -85,15 +85,24 @@
           <up:ImePopup PlacementTarget="{Binding ElementName=HorseDetailParent}" StaysOpen="False"
                        IsOpen="{Binding IsChecked,ElementName=HorseDetailParent,Mode=TwoWay}">
             <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1"
-                    Width="300" Height="150">
+                    Width="auto" Height="auto" Background="{StaticResource BaseBackground}">
               <Grid>
                 <Grid.RowDefinitions>
                   <RowDefinition/>
                   <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition/>
+                  <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.Resources>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
+                    <Setter Property="TextAlignment" Value="Left"/>
+                  </Style>
+                </Grid.Resources>
                 <TextBox Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
                          FontSize="16" Margin="4" Text="{Binding Horse.Memo.Value,ElementName=Root,Mode=TwoWay}"
-                         AcceptsReturn="True">
+                         AcceptsReturn="True" TextWrapping="Wrap" Width="350" Height="100" HorizontalAlignment="Left">
                   <TextBox.IsReadOnly>
                     <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
                       <Binding Path="Horse.CanSave.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
@@ -101,6 +110,40 @@
                     </MultiBinding>
                   </TextBox.IsReadOnly>
                 </TextBox>
+                <StackPanel Grid.Column="1" VerticalAlignment="Bottom">
+                  <TextBlock Text="拡張メモ" Foreground="{StaticResource SubForeground}" FontSize="16"
+                             Margin="0,0,0,4"/>
+                  <ItemsControl Grid.Column="1" ItemsSource="{Binding Race.MemoEx.Value.Groups,ElementName=Root}"
+                                VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,4,4">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <RadioButton Content="{Binding GroupNumber}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                                     IsChecked="{Binding IsChecked.Value,Mode=TwoWay}" Style="{StaticResource ToggleButtonDefault}"
+                                     FontSize="16"/>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+                <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Height="320">
+                  <ItemsControl Width="900" ItemsSource="{Binding Horse.MemoEx.Value.Memos,ElementName=Root}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <up:ExpansionMemoItem MemoItem="{Binding}" CanSave="{Binding DataContext.CanSave.Value,RelativeSource={RelativeSource AncestorType=local:RaceHorsePillar}}"
+                                              CanEditConfig="False"/>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
               </Grid>
             </Border>
           </up:ImePopup>
@@ -195,7 +238,7 @@
           <TextBlock FontSize="14" TextAlignment="Left"
                      Text="{Binding Horse.Data.RiderName,ElementName=Root}"/>
           <TextBlock Grid.Column="1" TextAlignment="Center" FontSize="16" FontWeight="Bold"
-                     Text="{Binding Horse.Data.RiderWeight,ElementName=Root}"
+                     Text="{Binding Horse.Data.RiderWeight,ElementName=Root,Converter={StaticResource DigitMinusConv}}"
                      Foreground="{Binding Horse.CurrentRace.RiderWeightComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
           <up:RaceResultOrderGradeRow Grid.Row="1" Grid.ColumnSpan="2" Header="同馬" FontSize="12" Grade="{Binding Horse.History.SameRiderGrade,ElementName=Root}"/>
         </Grid>
@@ -211,16 +254,16 @@
             <up:RaceResultOrderGradeRow Header="馬場" FontSize="12" Grade="{Binding Horse.History.SameConditionGrade,ElementName=Root}"/>
           </StackPanel>
           <StackPanel Width="60" Margin="8,0,0,0">
-            <TextBlock Text="T偏差値" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
-            <TextBlock Text="{Binding Horse.History.TimeDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
-                       Foreground="{Binding Horse.History.TimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
-                       Visibility="{Binding Horse.History.TimeDeviationValue,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+            <TextBlock Text="PCI平均" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding Horse.History.PciAverage,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
+                       Foreground="{Binding Horse.History.PciAverageComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
+                       Visibility="{Binding Horse.History.PciAverage,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
           </StackPanel>
           <StackPanel Width="60">
-            <TextBlock Text="A3H偏" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
-            <TextBlock Text="{Binding Horse.History.A3HTimeDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
-                       Foreground="{Binding Horse.History.A3HTimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
-                       Visibility="{Binding Horse.History.A3HTimeDeviationValue,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+            <TextBlock Text="P偏平均" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding Horse.History.PciDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
+                       Foreground="{Binding Horse.History.PciDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
+                       Visibility="{Binding Horse.History.PciDeviationValue,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
           </StackPanel>
           <StackPanel Width="60">
             <TextBlock Text="騎手複勝" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
@@ -308,9 +351,9 @@
                                   </TextBlock.RenderTransform>
                                 </TextBlock>
                               </Border>
-                              <TextBlock TextAlignment="Right" Width="40" FontSize="14" Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"
-                                         Foreground="{Binding ResultTimeDVComparation,Converter={StaticResource ValueComparationForegroundConv}}"
-                                         Visibility="{Binding ResultTimeDeviationValue,Converter={StaticResource NonZeroVisibilityConv}}"/>
+                              <TextBlock TextAlignment="Right" Width="40" FontSize="14" Text="{Binding Pci,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"
+                                         Foreground="{Binding PciDVComparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                                         Visibility="{Binding Pci,Converter={StaticResource NonZeroVisibilityConv}}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}">
                               <TextBlock FontSize="14" Foreground="{StaticResource BadForeground}" FontWeight="Bold"

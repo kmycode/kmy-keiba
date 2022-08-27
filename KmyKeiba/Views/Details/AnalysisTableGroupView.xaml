@@ -115,7 +115,7 @@
                                 <TextBlock Text="{Binding SubValue.Value}" Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
                                             FontSize="13" TextAlignment="Center" Margin="0,2"
                                             Visibility="{Binding SubValue.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
-                                <up:ImePopup Width="520" Height="auto" StaysOpen="False"
+                                <up:ImePopup Width="560" Height="auto" StaysOpen="False"
                                              IsOpen="{Binding IsChecked,Mode=TwoWay,RelativeSource={RelativeSource FindAncestor,AncestorType=ToggleButton}}">
                                   <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1">
                                     <ItemsControl Margin="4,8,4,4" ItemsSource="{Binding Samples}"
@@ -135,6 +135,7 @@
                                                     <ColumnDefinition Width="30"/>
                                                     <ColumnDefinition Width="40"/>
                                                     <ColumnDefinition Width="30"/>
+                                                    <ColumnDefinition Width="20"/>
                                                     <ColumnDefinition Width="40"/>
                                                   </Grid.ColumnDefinitions>
                                                   <up:RaceSubjectIcon Subject="{Binding Subject.Subject}" Width="40" Margin="0,0,4,0"/>
@@ -149,7 +150,10 @@
                                                   <TextBlock Grid.Column="6" FontSize="14" TextAlignment="Right">
                                                     <Run Text="{Binding Data.Popular}"/>人
                                                   </TextBlock>
-                                                  <TextBlock Grid.Column="7" Text="{Binding Data.ResultOrder}" FontSize="16" Margin="8,0,8,0"
+                                                  <TextBlock Grid.Column="7" FontSize="14" TextAlignment="Left" Foreground="{StaticResource SubForeground}">
+                                                    /<Run Text="{Binding Race.HorsesCount}"/>
+                                                  </TextBlock>
+                                                  <TextBlock Grid.Column="8" Text="{Binding Data.ResultOrder}" FontSize="16" Margin="8,0,8,0"
                                                              Foreground="{Binding ResultOrderComparation,Converter={StaticResource ValueComparationForegroundConv}}"
                                                              TextAlignment="Center"/>
                                                 </Grid>
