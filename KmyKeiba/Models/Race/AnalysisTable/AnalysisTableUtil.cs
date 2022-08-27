@@ -122,7 +122,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         });
         RowOutputItems.Add(new AnalysisTableRowOutputItem
         {
-          Label = "過去レース一覧を重みで評価",
+          Label = "検索結果を重みで評価",
           OutputType = AnalysisTableRowOutputType.FixedValuePerPastRace,
         });
         RowOutputItems.Add(new AnalysisTableRowOutputItem

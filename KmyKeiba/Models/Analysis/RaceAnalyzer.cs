@@ -58,6 +58,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RacePace MaxA3HPace { get; }
 
+    public short NormalizedBefore3HaronTime { get; }
+
     public ReactiveProperty<string> Memo { get; } = new();
 
     public ReactiveProperty<bool> IsMemoSaving { get; } = new();
@@ -84,6 +86,7 @@ namespace KmyKeiba.Models.Analysis
         .Where(rs => rs != RunningStyle.Unknown)
         .ToArray();
       this.TopRunningStyle = this.RunningStyles.FirstOrDefault();
+      this.NormalizedBefore3HaronTime = AnalysisUtil.NormalizeB3FTime(race);
 
       this.Memo.Value = race.Memo ?? string.Empty;
       AnalysisUtil.SetMemoEvents(() => this.Data.Memo ?? string.Empty, (db, m) =>

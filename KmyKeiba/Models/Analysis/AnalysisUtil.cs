@@ -284,6 +284,30 @@ namespace KmyKeiba.Models.Analysis
       });
     }
 
+    public static short NormalizeB3FTime(RaceData race)
+    {
+      return NormalizeB3FTime(race.Distance, race.BeforeHaronTime3);
+    }
+
+    public static short NormalizeB3FTime(short distance, short beforeHaronTime3)
+    {
+      if (beforeHaronTime3 == default)
+      {
+        return default;
+      }
+
+      var d = distance % 200;
+      if (d == 0)
+      {
+        return beforeHaronTime3;
+      }
+
+      var b3fDistance = 600 - (200 - d);
+      var timePerMeter = beforeHaronTime3 / (float)b3fDistance;
+
+      return (short)(timePerMeter * 600);
+    }
+
     public static double CalcPci(RaceData race, RaceHorseData horse)
     {
       return CalcPci(race.Distance, horse.ResultTimeValue, horse.AfterThirdHalongTimeValue);
@@ -301,7 +325,7 @@ namespace KmyKeiba.Models.Analysis
 
     public static double CalcRpci(RaceData race, RaceHorseData topHorse)
     {
-      return CalcRpci(race.Distance, race.AfterHaronTime3, topHorse.ResultTimeValue, topHorse.AfterThirdHalongTimeValue);
+      return CalcRpci(race.Distance, race.AfterHaronTime3, topHorse.ResultTimeValue, race.AfterHaronTime3);
     }
 
     public static double CalcRpci(short distance, short raceA3hTimeValue, short resultTimeValue, short a3hTimeValue)

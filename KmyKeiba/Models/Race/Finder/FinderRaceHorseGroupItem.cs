@@ -98,8 +98,14 @@ namespace KmyKeiba.Models.Race.Finder
 
     public FinderRaceHorseGroupExpandedData(IEnumerable<FinderRaceHorseItem> group)
     {
-      this.Before3hAverage = group.Select(i => (double)i.Analyzer.Race.BeforeHaronTime3).Where(v => v != default).Average() / 10;
-      this.After3hAverage = group.Select(i => (double)i.Analyzer.Race.AfterHaronTime3).Where(v => v != default).Average() / 10;
+      if (group.Any(i => i.RaceAnalyzer.NormalizedBefore3HaronTime != default))
+      {
+        this.Before3hAverage = group.Select(i => (double)i.RaceAnalyzer.NormalizedBefore3HaronTime).Where(v => v != default).Average() / 10;
+      }
+      if (group.Any(i => i.Analyzer.Race.AfterHaronTime3 != default))
+      {
+        this.After3hAverage = group.Select(i => (double)i.Analyzer.Race.AfterHaronTime3).Where(v => v != default).Average() / 10;
+      }
     }
   }
 }

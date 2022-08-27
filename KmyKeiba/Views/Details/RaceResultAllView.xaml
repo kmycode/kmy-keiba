@@ -143,6 +143,7 @@
               <ColumnDefinition Width="80"/>
               <ColumnDefinition Width="80"/>
               <ColumnDefinition Width="80"/>
+              <ColumnDefinition Width="146"/>
             </Grid.ColumnDefinitions>
             <Grid.Resources>
               <Style x:Key="LapInfoHeader" TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
@@ -171,6 +172,9 @@
             <TextBlock Grid.Column="3" Text="後4HT" Style="{StaticResource LapInfoHeader}"/>
             <TextBlock Text="{Binding Race.Data.AfterHaronTime4,ElementName=Root,Converter={StaticResource DigitMinusConv}}" FontSize="16" TextAlignment="Center"
                        Grid.Column="3" Grid.Row="1" Style="{StaticResource LapInfoValue}"/>
+            <TextBlock Grid.Column="4" Text="前3HT距離置換" Style="{StaticResource LapInfoHeader}" Margin="16,0,0,0"/>
+            <TextBlock Text="{Binding Race.RaceAnalyzer.Value.NormalizedBefore3HaronTime,ElementName=Root,Converter={StaticResource DigitMinusConv}}" FontSize="16" TextAlignment="Center"
+                       Grid.Column="4" Grid.Row="1" Style="{StaticResource LapInfoValue}" Margin="16,0,0,0"/>
           </Grid>
           <ItemsControl ItemsSource="{Binding Race.Corners,ElementName=Root}" Margin="16,0,0,0">
             <ItemsControl.ItemsPanel>

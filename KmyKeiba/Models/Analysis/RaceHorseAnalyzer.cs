@@ -252,8 +252,13 @@ namespace KmyKeiba.Models.Analysis
           this.A3HTimeDeviationValue = MathUtil.AvoidNan(single?.A3HResultTimeDeviationValue ?? pointsa3h.CalcRegressionValue(predictValue));
           this.UntilA3HTimeDeviationValue = MathUtil.AvoidNan(single?.UntilA3HResultTimeDeviationValue ?? pointsua3h.CalcRegressionValue(predictValue));
           this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(targetRaces);
-          this.PciAverage = raceHistory.Select(h => h.Pci).Average();
-          this.PciDeviationValue = raceHistory.Select(h => h.PciDeviationValue).Average();
+
+          var pcis = this.Before15Races.Select(h => h.Pci).Where(h => h != default);
+          if (pcis.Any())
+            this.PciAverage = pcis.Average();
+          var pcidvs = this.Before15Races.Select(h => h.PciDeviationValue).Where(h => h != default);
+          if (pcidvs.Any())
+            this.PciDeviationValue = pcidvs.Average();
           
           if (jrdbHorse != null && jrdbHorse.RunningStyle != JdbcRunningStyle.Unknown)
           {

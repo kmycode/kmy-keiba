@@ -115,7 +115,6 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.CanSetQuery = this.SelectedOutput.Where(o => o != null).Select(o => o!.OutputType).Select(o =>
         o != AnalysisTableRowOutputType.ExternalNumber &&
         o != AnalysisTableRowOutputType.FixedValue &&
-        o != AnalysisTableRowOutputType.FixedValuePerPastRace && 
         o != AnalysisTableRowOutputType.ExpansionMemo &&
         o != AnalysisTableRowOutputType.HorseValues &&
         o != AnalysisTableRowOutputType.JrdbValues)
@@ -712,6 +711,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           cell.SubValue.Value = source.Items.Count.ToString();
           cell.ComparationValue.Value = (float)cell.PointCalcValue.Value;
           cell.HasComparationValue.Value = true;
+        }
+        else
+        {
+          this.SetPointOrEmpty(cell, -1, weights);
         }
       }
       else

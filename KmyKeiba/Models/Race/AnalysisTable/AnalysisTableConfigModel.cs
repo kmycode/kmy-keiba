@@ -298,7 +298,6 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public async Task UpTableRowAsync(AnalysisTableRow row)
     {
-      // TODO error
       var table = this.Tables.FirstOrDefault(d => d.Rows.Contains(row));
       if (table == null)
       {
@@ -314,20 +313,26 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       var prev = table.Rows[index - 1];
       var tmp = prev.Data.Order;
 
-      using var db = new MyContext();
-      db.AnalysisTableRows!.Attach(prev.Data);
-      db.AnalysisTableRows!.Attach(row.Data);
-      prev.Data.Order = row.Data.Order;
-      row.Data.Order = tmp;
-      await db.SaveChangesAsync();
+      try
+      {
+        using var db = new MyContext();
+        db.AnalysisTableRows!.Attach(prev.Data);
+        db.AnalysisTableRows!.Attach(row.Data);
+        prev.Data.Order = row.Data.Order;
+        row.Data.Order = tmp;
+        await db.SaveChangesAsync();
 
-      table.Rows.Remove(prev);
-      table.Rows.Insert(index, prev);
+        table.Rows.Remove(prev);
+        table.Rows.Insert(index, prev);
+      }
+      catch (Exception ex)
+      {
+        logger.Error("テーブル行の順序変更でエラー発生", ex);
+      }
     }
 
     public async Task DownTableRowAsync(AnalysisTableRow row)
     {
-      // TODO error
       var table = this.Tables.FirstOrDefault(d => d.Rows.Contains(row));
       if (table == null)
       {
@@ -343,15 +348,22 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       var next = table.Rows[index + 1];
       var tmp = next.Data.Order;
 
-      using var db = new MyContext();
-      db.AnalysisTableRows!.Attach(next.Data);
-      db.AnalysisTableRows!.Attach(row.Data);
-      next.Data.Order = row.Data.Order;
-      row.Data.Order = tmp;
-      await db.SaveChangesAsync();
+      try
+      {
+        using var db = new MyContext();
+        db.AnalysisTableRows!.Attach(next.Data);
+        db.AnalysisTableRows!.Attach(row.Data);
+        next.Data.Order = row.Data.Order;
+        row.Data.Order = tmp;
+        await db.SaveChangesAsync();
 
-      table.Rows.Remove(next);
-      table.Rows.Insert(index, next);
+        table.Rows.Remove(next);
+        table.Rows.Insert(index, next);
+      }
+      catch (Exception ex)
+      {
+        logger.Error("テーブル行の順序変更でエラー発生", ex);
+      }
     }
 
     public void UnselectTableRowWeight(AnalysisTableRow row)
@@ -453,22 +465,28 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         return;
       }
 
-      // TODO error
-      using var db = new MyContext();
-
-      var row = new AnalysisTableWeightRowData
+      try
       {
-        WeightId = this.ActiveWeight.Value.Data.Id,
-        Behavior = WeightBehavior.Multiply,
-        Weight = 1.0,
-      };
-      await db.AnalysisTableWeightRows!.AddAsync(row);
-      await db.SaveChangesAsync();
+        using var db = new MyContext();
 
-      row.Order = (int)row.Id;
-      await db.SaveChangesAsync();
+        var row = new AnalysisTableWeightRowData
+        {
+          WeightId = this.ActiveWeight.Value.Data.Id,
+          Behavior = WeightBehavior.Multiply,
+          Weight = 1.0,
+        };
+        await db.AnalysisTableWeightRows!.AddAsync(row);
+        await db.SaveChangesAsync();
 
-      this.ActiveWeight.Value.Rows.Add(new AnalysisTableWeightRow(row));
+        row.Order = (int)row.Id;
+        await db.SaveChangesAsync();
+
+        this.ActiveWeight.Value.Rows.Add(new AnalysisTableWeightRow(row));
+      }
+      catch (Exception ex)
+      {
+        logger.Error("重み追加でエラー発生", ex);
+      }
     }
 
     public async Task RemoveTableWeightRowAsync(AnalysisTableWeightRow row)
@@ -484,18 +502,23 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         weight.Rows.Remove(row);
       });
 
-      // TODO error
-      using var db = new MyContext();
+      try
+      {
+        using var db = new MyContext();
 
-      db.AnalysisTableWeightRows!.Remove(row.Data);
-      await db.SaveChangesAsync();
+        db.AnalysisTableWeightRows!.Remove(row.Data);
+        await db.SaveChangesAsync();
 
-      row.Dispose();
+        row.Dispose();
+      }
+      catch (Exception ex)
+      {
+        logger.Error("重み削除でエラー発生", ex);
+      }
     }
 
     public async Task UpTableWeightRowAsync(AnalysisTableWeightRow row)
     {
-      // TODO error
       var weight = this.Weights.FirstOrDefault(d => d.Rows.Contains(row));
       if (weight == null)
       {
@@ -511,20 +534,26 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       var prev = weight.Rows[index - 1];
       var tmp = prev.Data.Order;
 
-      using var db = new MyContext();
-      db.AnalysisTableWeightRows!.Attach(prev.Data);
-      db.AnalysisTableWeightRows!.Attach(row.Data);
-      prev.Data.Order = row.Data.Order;
-      row.Data.Order = tmp;
-      await db.SaveChangesAsync();
+      try
+      {
+        using var db = new MyContext();
+        db.AnalysisTableWeightRows!.Attach(prev.Data);
+        db.AnalysisTableWeightRows!.Attach(row.Data);
+        prev.Data.Order = row.Data.Order;
+        row.Data.Order = tmp;
+        await db.SaveChangesAsync();
 
-      weight.Rows.Remove(prev);
-      weight.Rows.Insert(index, prev);
+        weight.Rows.Remove(prev);
+        weight.Rows.Insert(index, prev);
+      }
+      catch (Exception ex)
+      {
+        logger.Error("重み順序変更でエラー発生", ex);
+      }
     }
 
     public async Task DownTableWeightRowAsync(AnalysisTableWeightRow row)
     {
-      // TODO error
       var weight = this.Weights.FirstOrDefault(d => d.Rows.Contains(row));
       if (weight == null)
       {
@@ -540,33 +569,46 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       var next = weight.Rows[index + 1];
       var tmp = next.Data.Order;
 
-      using var db = new MyContext();
-      db.AnalysisTableWeightRows!.Attach(next.Data);
-      db.AnalysisTableWeightRows!.Attach(row.Data);
-      next.Data.Order = row.Data.Order;
-      row.Data.Order = tmp;
-      await db.SaveChangesAsync();
+      try
+      {
+        using var db = new MyContext();
+        db.AnalysisTableWeightRows!.Attach(next.Data);
+        db.AnalysisTableWeightRows!.Attach(row.Data);
+        next.Data.Order = row.Data.Order;
+        row.Data.Order = tmp;
+        await db.SaveChangesAsync();
 
-      weight.Rows.Remove(next);
-      weight.Rows.Insert(index, next);
+        weight.Rows.Remove(next);
+        weight.Rows.Insert(index, next);
+      }
+      catch (Exception ex)
+      {
+        logger.Error("重み順序変更でエラー発生", ex);
+      }
     }
 
     public async Task AddDelimiterAsync()
     {
-      // TODO error
-      using var db = new MyContext();
-
-      var data = new DelimiterData();
-      await db.Delimiters!.AddAsync(data);
-      await db.SaveChangesAsync();
-
-      var delimiter = new ValueDelimiter(data);
-      AnalysisTableUtil.Delimiters.Add(delimiter);
-      ThreadUtil.InvokeOnUiThread(() =>
+      try
       {
-        this.Delimiters.Add(delimiter);
-        delimiter.IsChecked.Value = true;
-      });
+        using var db = new MyContext();
+
+        var data = new DelimiterData();
+        await db.Delimiters!.AddAsync(data);
+        await db.SaveChangesAsync();
+
+        var delimiter = new ValueDelimiter(data);
+        AnalysisTableUtil.Delimiters.Add(delimiter);
+        ThreadUtil.InvokeOnUiThread(() =>
+        {
+          this.Delimiters.Add(delimiter);
+          delimiter.IsChecked.Value = true;
+        });
+      }
+      catch (Exception ex)
+      {
+        logger.Error("重み区切り設定でエラー発生", ex);
+      }
     }
 
     public async Task RemoveDelimiterAsync(ValueDelimiter delimiter)
@@ -581,16 +623,22 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         this.Delimiters.Remove(delimiter);
       });
 
-      // TODO error
-      using var db = new MyContext();
+      try
+      {
+        using var db = new MyContext();
 
-      db.DelimiterRows!.RemoveRange(delimiter.Rows.Select(r => r.Data));
+        db.DelimiterRows!.RemoveRange(delimiter.Rows.Select(r => r.Data));
 
-      db.Delimiters!.Remove(delimiter.Data);
-      await db.SaveChangesAsync();
-      AnalysisTableUtil.Delimiters.Remove(delimiter);
+        db.Delimiters!.Remove(delimiter.Data);
+        await db.SaveChangesAsync();
+        AnalysisTableUtil.Delimiters.Remove(delimiter);
 
-      delimiter.Dispose();
+        delimiter.Dispose();
+      }
+      catch (Exception ex)
+      {
+        logger.Error("重み区切り設定でエラー発生", ex);
+      }
     }
 
     public async Task AddDelimiterRowAsync()
@@ -600,20 +648,26 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         return;
       }
 
-      // TODO error
-      using var db = new MyContext();
-
-      var row = new DelimiterRowData
+      try
       {
-        DelimiterId = this.ActiveDelimiter.Value.Data.Id,
-      };
-      await db.DelimiterRows!.AddAsync(row);
-      await db.SaveChangesAsync();
+        using var db = new MyContext();
 
-      row.Order = (int)row.Id;
-      await db.SaveChangesAsync();
+        var row = new DelimiterRowData
+        {
+          DelimiterId = this.ActiveDelimiter.Value.Data.Id,
+        };
+        await db.DelimiterRows!.AddAsync(row);
+        await db.SaveChangesAsync();
 
-      this.ActiveDelimiter.Value.Rows.Add(new ValueDelimiterRow(row));
+        row.Order = (int)row.Id;
+        await db.SaveChangesAsync();
+
+        this.ActiveDelimiter.Value.Rows.Add(new ValueDelimiterRow(row));
+      }
+      catch (Exception ex)
+      {
+        logger.Error("重み区切り設定でエラー発生", ex);
+      }
     }
 
     public async Task RemoveDelimiterRowAsync(ValueDelimiterRow row)
@@ -629,18 +683,23 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         Delimiter.Rows.Remove(row);
       });
 
-      // TODO error
-      using var db = new MyContext();
+      try
+      {
+        using var db = new MyContext();
 
-      db.DelimiterRows!.Remove(row.Data);
-      await db.SaveChangesAsync();
+        db.DelimiterRows!.Remove(row.Data);
+        await db.SaveChangesAsync();
 
-      row.Dispose();
+        row.Dispose();
+      }
+      catch (Exception ex)
+      {
+        logger.Error("重み区切り設定でエラー発生", ex);
+      }
     }
 
     public async Task UpDelimiterRowAsync(ValueDelimiterRow row)
     {
-      // TODO error
       var delimiter = this.Delimiters.FirstOrDefault(d => d.Rows.Contains(row));
       if (delimiter == null)
       {
@@ -656,20 +715,26 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       var prev = delimiter.Rows[index - 1];
       var tmp = prev.Data.Order;
 
-      using var db = new MyContext();
-      db.DelimiterRows!.Attach(prev.Data);
-      db.DelimiterRows!.Attach(row.Data);
-      prev.Data.Order = row.Data.Order;
-      row.Data.Order = tmp;
-      await db.SaveChangesAsync();
+      try
+      {
+        using var db = new MyContext();
+        db.DelimiterRows!.Attach(prev.Data);
+        db.DelimiterRows!.Attach(row.Data);
+        prev.Data.Order = row.Data.Order;
+        row.Data.Order = tmp;
+        await db.SaveChangesAsync();
 
-      delimiter.Rows.Remove(prev);
-      delimiter.Rows.Insert(index, prev);
+        delimiter.Rows.Remove(prev);
+        delimiter.Rows.Insert(index, prev);
+      }
+      catch (Exception ex)
+      {
+        logger.Error("重み区切り設定でエラー発生", ex);
+      }
     }
 
     public async Task DownDelimiterRowAsync(ValueDelimiterRow row)
     {
-      // TODO error
       var delimiter = this.Delimiters.FirstOrDefault(d => d.Rows.Contains(row));
       if (delimiter == null)
       {
@@ -685,15 +750,22 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       var next = delimiter.Rows[index + 1];
       var tmp = next.Data.Order;
 
-      using var db = new MyContext();
-      db.DelimiterRows!.Attach(next.Data);
-      db.DelimiterRows!.Attach(row.Data);
-      next.Data.Order = row.Data.Order;
-      row.Data.Order = tmp;
-      await db.SaveChangesAsync();
+      try
+      {
+        using var db = new MyContext();
+        db.DelimiterRows!.Attach(next.Data);
+        db.DelimiterRows!.Attach(row.Data);
+        next.Data.Order = row.Data.Order;
+        row.Data.Order = tmp;
+        await db.SaveChangesAsync();
 
-      delimiter.Rows.Remove(next);
-      delimiter.Rows.Insert(index, next);
+        delimiter.Rows.Remove(next);
+        delimiter.Rows.Insert(index, next);
+      }
+      catch (Exception ex)
+      {
+        logger.Error("重み区切り設定でエラー発生", ex);
+      }
     }
 
     public void AddSelectedDelimiter()

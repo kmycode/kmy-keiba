@@ -228,7 +228,7 @@ namespace KmyKeiba.Models.Data
                       .Where(t => t.TopHorses.Count() >= 3 && t.TopHorses.Any(h => h.ResultOrder == 1));
                     var pcis = times.SelectMany(t => t.Horses.Select(h => AnalysisUtil.CalcPci(t.Race.Distance, h.ResultTimeValue, h.AfterThirdHalongTimeValue)));
                     var pci3s = topHorses.Select(t => t.TopHorses.Select(h => AnalysisUtil.CalcPci(t.Race.Distance, h.ResultTimeValue, h.AfterThirdHalongTimeValue)).Average());
-                    var rpcis = topHorses.Select(t => AnalysisUtil.CalcRpci(t.Race.Distance, t.Race.AfterHaronTime3, t.TopHorses.First(h => h.ResultOrder == 1).ResultTimeValue, t.TopHorses.First(h => h.ResultOrder == 1).AfterThirdHalongTimeValue));
+                    var rpcis = topHorses.Select(t => AnalysisUtil.CalcRpci(t.Race.Distance, t.Race.AfterHaronTime3, t.TopHorses.First(h => h.ResultOrder == 1).ResultTimeValue, t.Race.AfterHaronTime3));
                     var statisticPci = new StatisticSingleArray
                     {
                       Values = pcis.ToArray(),
