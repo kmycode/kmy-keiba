@@ -664,36 +664,6 @@ namespace KmyKeiba.Models.Connection
           logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}");
           await ShapeDatabaseModel.RemoveInvalidDataAsync();
         }
-        if (steps.HasFlag(Connection.ProcessingStep.MigrationFrom250) && !this.IsCancelProcessing.Value)
-        {
-          step.Value = Connection.ProcessingStep.MigrationFrom250;
-          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
-          try
-          {
-            this.HasProcessingProgress.Value = true;
-            await ShapeDatabaseModel.MigrateFrom250Async(isCanceled: this.IsCancelProcessing,
-                progress: this.ProcessingProgress, progressMax: this.ProcessingProgressMax);
-          }
-          finally
-          {
-            this.HasProcessingProgress.Value = false;
-          }
-        }
-        if (steps.HasFlag(Connection.ProcessingStep.MigrationFrom322) && !this.IsCancelProcessing.Value)
-        {
-          step.Value = Connection.ProcessingStep.MigrationFrom322;
-          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
-          try
-          {
-            this.HasProcessingProgress.Value = true;
-            await ShapeDatabaseModel.MigrateFrom322Async(isCanceled: this.IsCancelProcessing,
-                progress: this.ProcessingProgress, progressMax: this.ProcessingProgressMax);
-          }
-          finally
-          {
-            this.HasProcessingProgress.Value = false;
-          }
-        }
         if (steps.HasFlag(Connection.ProcessingStep.RunningStyle) && !this.IsCancelProcessing.Value)
         {
           step.Value = Connection.ProcessingStep.RunningStyle;

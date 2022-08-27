@@ -254,16 +254,16 @@
             <up:RaceResultOrderGradeRow Header="馬場" FontSize="12" Grade="{Binding Horse.History.SameConditionGrade,ElementName=Root}"/>
           </StackPanel>
           <StackPanel Width="60" Margin="8,0,0,0">
-            <TextBlock Text="T偏差値" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
-            <TextBlock Text="{Binding Horse.History.TimeDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
-                       Foreground="{Binding Horse.History.TimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
-                       Visibility="{Binding Horse.History.TimeDeviationValue,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+            <TextBlock Text="PCI平均" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding Horse.History.PciAverage,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
+                       Foreground="{Binding Horse.History.PciAverageComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
+                       Visibility="{Binding Horse.History.PciAverage,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
           </StackPanel>
           <StackPanel Width="60">
-            <TextBlock Text="A3H偏" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
-            <TextBlock Text="{Binding Horse.History.A3HTimeDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
-                       Foreground="{Binding Horse.History.A3HTimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
-                       Visibility="{Binding Horse.History.A3HTimeDeviationValue,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+            <TextBlock Text="P偏平均" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding Horse.History.PciDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
+                       Foreground="{Binding Horse.History.PciDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
+                       Visibility="{Binding Horse.History.PciDeviationValue,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
           </StackPanel>
           <StackPanel Width="60">
             <TextBlock Text="騎手複勝" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
@@ -351,9 +351,9 @@
                                   </TextBlock.RenderTransform>
                                 </TextBlock>
                               </Border>
-                              <TextBlock TextAlignment="Right" Width="40" FontSize="14" Text="{Binding ResultTimeDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"
-                                         Foreground="{Binding ResultTimeDVComparation,Converter={StaticResource ValueComparationForegroundConv}}"
-                                         Visibility="{Binding ResultTimeDeviationValue,Converter={StaticResource NonZeroVisibilityConv}}"/>
+                              <TextBlock TextAlignment="Right" Width="40" FontSize="14" Text="{Binding Pci,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"
+                                         Foreground="{Binding PciDVComparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                                         Visibility="{Binding Pci,Converter={StaticResource NonZeroVisibilityConv}}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}">
                               <TextBlock FontSize="14" Foreground="{StaticResource BadForeground}" FontWeight="Bold"

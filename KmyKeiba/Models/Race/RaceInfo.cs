@@ -299,10 +299,12 @@ namespace KmyKeiba.Models.Race
       {
         if (this.ActiveHorse.Value.FinderModel.Value != null)
         {
+          // デフォルトの検索条件を設定
           var model = this.ActiveHorse.Value.FinderModel.Value;
           model.Input.HorseOfCurrentRace.IsUnspecified.Value = false;
           model.Input.HorseOfCurrentRace.IsActiveHorse.Value = true;
           model.Input.HorseOfCurrentRace.IsActiveHorseSelf.Value = true;
+          model.Input.OtherSetting.IsExpandedResult.Value = true;
           model.BeginLoad();
         }
 
@@ -729,6 +731,10 @@ namespace KmyKeiba.Models.Race
             var a3htimedvMin = horseInfos.Select(i => i.History?.A3HTimeDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
             var ua3htimedvMax = horseInfos.Select(i => i.History?.UntilA3HTimeDeviationValue ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
             var ua3htimedvMin = horseInfos.Select(i => i.History?.UntilA3HTimeDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
+            var pciMax = horseInfos.Select(i => i.History?.PciAverage ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
+            var pciMin = horseInfos.Select(i => i.History?.PciAverage ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
+            var pcidvMax = horseInfos.Select(i => i.History?.PciDeviationValue ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
+            var pcidvMin = horseInfos.Select(i => i.History?.PciDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
             var riderPlaceRateMax = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderByDescending(v => v).Skip(2).FirstOrDefault();
             var riderPlaceRateMin = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderBy(v => v).Skip(2).FirstOrDefault();
             var resultA3hMax = horseInfos.Where(i => !i.IsAbnormalResult).Select(i => i.Data.AfterThirdHalongTime).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault().TotalSeconds + 0.001;  // 等価比較対策
@@ -750,7 +756,7 @@ namespace KmyKeiba.Models.Race
                   .Count(r => r.Race.TrackGround != race.TrackGround || r.Race.TrackType != race.TrackType || Math.Abs(r.Race.Distance - race.Distance) >= 400) >= 4)
                 {
                   // 条件の大きく異なるレース
-                  horse.History.TimeDVComparation = horse.History.A3HTimeDVComparation = horse.History.UntilA3HTimeDVComparation = ValueComparation.Warning;
+                  horse.History.TimeDVComparation = horse.History.A3HTimeDVComparation = horse.History.UntilA3HTimeDVComparation = horse.History.PciAverageComparation = ValueComparation.Warning;
                 }
                 else
                 {
@@ -760,6 +766,8 @@ namespace KmyKeiba.Models.Race
                     horse.History.A3HTimeDeviationValue - 0.5 <= a3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
                   horse.History.UntilA3HTimeDVComparation = horse.History.UntilA3HTimeDeviationValue + 0.5 >= ua3htimedvMax ? ValueComparation.Good :
                     horse.History.UntilA3HTimeDeviationValue - 0.5 <= ua3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
+                  horse.History.PciAverageComparation = AnalysisUtil.CompareValue(horse.History.PciAverage, pciMin, pciMax, true);
+                  horse.History.PciDVComparation = AnalysisUtil.CompareValue(horse.History.PciDeviationValue, pcidvMin, pcidvMax, true);
                 }
               }
               if (riderPlaceRateMax != 0)

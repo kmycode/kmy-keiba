@@ -97,6 +97,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ValueComparation ResultA3HTimeComparation { get; set; }
 
+    public ValueComparation PciDVComparation { get; set; }
+
     public double ResultTimePerMeter { get; }
 
     /// <summary>
@@ -113,6 +115,10 @@ namespace KmyKeiba.Models.Analysis
     /// 後３ハロンタイム指数
     /// </summary>
     public double A3HResultTimeDeviationValue { get; }
+
+    public double Pci { get; }
+
+    public double PciDeviationValue { get; }
 
     public ReactiveProperty<bool> IsActive { get; } = new();
 
@@ -185,6 +191,12 @@ namespace KmyKeiba.Models.Analysis
       public double TimeDeviationValue { get; }
 
       /// <summary>
+      /// PCI
+      /// </summary>
+      public double PciAverage { get; }
+      public double PciDeviationValue { get; }
+
+      /// <summary>
       /// 乱調度
       /// </summary>
       public double DisturbanceRate { get; }
@@ -194,6 +206,9 @@ namespace KmyKeiba.Models.Analysis
       public ValueComparation A3HTimeDVComparation { get; set; }
 
       public ValueComparation UntilA3HTimeDVComparation { get; set; }
+
+      public ValueComparation PciAverageComparation { get; set; }
+      public ValueComparation PciDVComparation { get; set; }
 
       /// <summary>
       /// 距離適性
@@ -237,6 +252,8 @@ namespace KmyKeiba.Models.Analysis
           this.A3HTimeDeviationValue = MathUtil.AvoidNan(single?.A3HResultTimeDeviationValue ?? pointsa3h.CalcRegressionValue(predictValue));
           this.UntilA3HTimeDeviationValue = MathUtil.AvoidNan(single?.UntilA3HResultTimeDeviationValue ?? pointsua3h.CalcRegressionValue(predictValue));
           this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(targetRaces);
+          this.PciAverage = raceHistory.Select(h => h.Pci).Average();
+          this.PciDeviationValue = raceHistory.Select(h => h.PciDeviationValue).Average();
           
           if (jrdbHorse != null && jrdbHorse.RunningStyle != JdbcRunningStyle.Unknown)
           {
@@ -450,6 +467,8 @@ namespace KmyKeiba.Models.Analysis
       }
       this.CornerGrades = corners;
       this.ResultOrderComparationWithLastCorner = corners.LastOrDefault().Type;
+
+      this.Pci = AnalysisUtil.CalcPci(race, horse);
     }
 
     public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData? raceStandardTime, JrdbRaceHorseData? jrdbHorse = null)
@@ -462,6 +481,11 @@ namespace KmyKeiba.Models.Analysis
           this.ResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
           this.A3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
           this.UntilA3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetUntilA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
+
+          if (this.Pci != default)
+          {
+            this.PciDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetPciDeviationValue(race, this.Pci, raceStandardTime));
+          }
         }
       }
       catch (Exception ex)

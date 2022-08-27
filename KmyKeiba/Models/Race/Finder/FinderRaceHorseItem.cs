@@ -16,7 +16,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public RefundData? Payoff { get; }
 
-    public double Pci { get; }
+    public double Pci => this.Analyzer.Pci;
 
     public double Pci3 { get; }
 
@@ -45,8 +45,6 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (analyzer.Race.Distance >= 800)
       {
-        this.Pci = AnalysisUtil.CalcPci(analyzer.Race, analyzer.Data);
-
         if (analyzer.CurrentRace != null)
         {
           if (analyzer.CurrentRace.TopHorses.Count >= 3)

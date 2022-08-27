@@ -157,7 +157,7 @@ namespace KmyKeiba.Models.Data
             var targets = await db.Races!
               .Where(r => r.Course == course && r.StartTime >= startTime && r.StartTime < endTime && r.Distance > 0)
               //.Join(db.RaceHorses!.Where(rh => rh.ResultOrder == 1), r => r.Key, rh => rh.RaceKey, (r, rh) => new { rh.ResultTime, r.Distance, rh.AfterThirdHalongTime, r.TrackGround, r.TrackType, r.TrackCondition, })
-              .Select((r) => new { r.Key, r.Distance, r.TrackGround, r.TrackType, r.TrackCondition, })
+              .Select((r) => new { r.Key, r.Distance, r.TrackGround, r.TrackType, r.TrackCondition, r.AfterHaronTime3, })
               .ToArrayAsync();
             if (targets.Length == 0)
             {
@@ -167,7 +167,7 @@ namespace KmyKeiba.Models.Data
             var keys = targets.Select(r => r.Key).ToArray();
             var allHorses = await db.RaceHorses!
               .Where(rh => keys.Contains(rh.RaceKey) && rh.ResultOrder > 0)
-              .Select(rh => new { rh.ResultTime, rh.RaceKey, rh.AfterThirdHalongTime, })
+              .Select(rh => new { rh.ResultTime, rh.RaceKey, rh.AfterThirdHalongTime, rh.ResultOrder, rh.ResultTimeValue, rh.AfterThirdHalongTimeValue, })
               .ToArrayAsync();
 
             var exists = await db.RaceStandardTimes!
@@ -223,6 +223,25 @@ namespace KmyKeiba.Models.Data
                       Values = arr3,
                     };
 
+                    var topHorses = times
+                      .Select(t => new { t.Race, TopHorses = t.Horses.Where(h => h.ResultOrder >= 1 && h.ResultOrder <= 3), })
+                      .Where(t => t.TopHorses.Count() >= 3 && t.TopHorses.Any(h => h.ResultOrder == 1));
+                    var pcis = times.SelectMany(t => t.Horses.Select(h => AnalysisUtil.CalcPci(t.Race.Distance, h.ResultTimeValue, h.AfterThirdHalongTimeValue)));
+                    var pci3s = topHorses.Select(t => t.TopHorses.Select(h => AnalysisUtil.CalcPci(t.Race.Distance, h.ResultTimeValue, h.AfterThirdHalongTimeValue)).Average());
+                    var rpcis = topHorses.Select(t => AnalysisUtil.CalcRpci(t.Race.Distance, t.Race.AfterHaronTime3, t.TopHorses.First(h => h.ResultOrder == 1).ResultTimeValue, t.TopHorses.First(h => h.ResultOrder == 1).AfterThirdHalongTimeValue));
+                    var statisticPci = new StatisticSingleArray
+                    {
+                      Values = pcis.ToArray(),
+                    };
+                    var statisticPci3 = new StatisticSingleArray
+                    {
+                      Values = pci3s.ToArray(),
+                    };
+                    var statisticRpci = new StatisticSingleArray
+                    {
+                      Values = rpcis.ToArray(),
+                    };
+
                     RaceStandardTimeMasterData data;
 
                     var old = exists.FirstOrDefault(st => st.Ground == ground &&
@@ -241,6 +260,15 @@ namespace KmyKeiba.Models.Data
                       data.UntilA3FAverage = statistic3.Average;
                       data.UntilA3FMedian = statistic3.Median;
                       data.UntilA3FDeviation = statistic3.Deviation;
+                      data.PciAverage = statisticPci.Average;
+                      data.PciMedian = statisticPci.Median;
+                      data.PciDeviation = statisticPci.Deviation;
+                      data.Pci3Average = statisticPci3.Average;
+                      data.Pci3Median = statisticPci3.Median;
+                      data.Pci3Deviation = statisticPci3.Deviation;
+                      data.RpciAverage = statisticRpci.Average;
+                      data.RpciMedian = statisticRpci.Median;
+                      data.RpciDeviation = statisticRpci.Deviation;
                     }
                     else
                     {
@@ -264,6 +292,15 @@ namespace KmyKeiba.Models.Data
                         UntilA3FAverage = statistic3.Average,
                         UntilA3FMedian = statistic3.Median,
                         UntilA3FDeviation = statistic3.Deviation,
+                        PciAverage = statisticPci.Average,
+                        PciMedian = statisticPci.Median,
+                        PciDeviation = statisticPci.Deviation,
+                        Pci3Average = statisticPci3.Average,
+                        Pci3Median = statisticPci3.Median,
+                        Pci3Deviation = statisticPci3.Deviation,
+                        RpciAverage = statisticRpci.Average,
+                        RpciMedian = statisticRpci.Median,
+                        RpciDeviation = statisticRpci.Deviation,
                       };
                       await db.RaceStandardTimes!.AddAsync(data);
                     }
@@ -420,7 +457,7 @@ namespace KmyKeiba.Models.Data
               raceCount++;
             }
           }
-          progress.Value = targets.Length;
+          progress.Value += targets.Length;
 
           await db.SaveChangesAsync();
 

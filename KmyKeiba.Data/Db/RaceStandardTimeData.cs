@@ -52,6 +52,24 @@ namespace KmyKeiba.Data.Db
     public double UntilA3FMedian { get; set; }
 
     public double UntilA3FDeviation { get; set; }
+
+    public double PciAverage { get; set; }
+
+    public double PciMedian { get; set; }
+
+    public double PciDeviation { get; set; }
+
+    public double RpciAverage { get; set; }
+
+    public double RpciMedian { get; set; }
+
+    public double RpciDeviation { get; set; }
+
+    public double Pci3Average { get; set; }
+
+    public double Pci3Median { get; set; }
+
+    public double Pci3Deviation { get; set; }
   }
 
   /// <summary>
