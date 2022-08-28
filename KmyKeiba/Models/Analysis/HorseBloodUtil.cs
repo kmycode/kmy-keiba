@@ -173,6 +173,12 @@ namespace KmyKeiba.Models.Analysis
       return null;
     }
 
+    public static async Task<string> KeyToBloodCodeAsync(MyContext db, string horseKey)
+    {
+      var born = await db.HorseBloods!.FirstOrDefaultAsync(b => b.Code == horseKey);
+      return born?.Key ?? string.Empty;
+    }
+
     private static async Task<BloodItem?> GetBloodItemAsync(MyContext db, string horseKey, BloodType type)
     {
       var r = _caches.TryGetValue(horseKey, out var item);
