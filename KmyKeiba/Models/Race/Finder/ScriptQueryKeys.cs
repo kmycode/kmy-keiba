@@ -1038,28 +1038,37 @@ namespace KmyKeiba.Models.Race.Finder
         horses = q.Apply(db, horses);
       }
 
-      if (this._minCount != 1 || this._maxCount < 18)
+      if (this._maxCount <= 0 || this._maxRate <= 0)
       {
-        var raceKeys = horses.GroupBy(h => h.RaceKey)
-          .Select(g => new { g.Key, Count = g.Count(), })
-          .Where(g => g.Count >= this._minCount && g.Count <= this._maxCount)
-          .Select(g => g.Key)
-          .ToArray();
-        horses = horses.Where(h => raceKeys.Contains(h.RaceKey));
+        var raceKeys = horses.GroupBy(h => h.RaceKey).Select(g => g.Key).ToArray();
+        query = query.Where(h => !raceKeys.Contains(h.Key));
       }
-      if (this._minRate > 0 || this._maxRate < 100)
+      else
       {
-        var raceKeys = horses.GroupBy(h => h.RaceKey)
-          .Select(g => new { g.Key, Count = g.Count() })
-          .Join(db.Races!, g => g.Key, r => r.Key, (g, r) => new { Key = g.Key, g.Count, r.HorsesCount, })
-          .Select(g => new { g.Key, Rate = g.Count * 100 / g.HorsesCount, })
-          .Where(g => g.Rate >= this._minRate && g.Rate <= this._maxRate)
-          .Select(g => g.Key)
-          .ToArray();
-        horses = horses.Where(h => raceKeys.Contains(h.RaceKey));
-      }
+        if (this._minCount != 1 || this._maxCount < 18)
+        {
+          var raceKeys = horses.GroupBy(h => h.RaceKey)
+            .Select(g => new { g.Key, Count = g.Count(), })
+            .Where(g => g.Count >= this._minCount && g.Count <= this._maxCount)
+            .Select(g => g.Key)
+            .ToArray();
+          horses = horses.Where(h => raceKeys.Contains(h.RaceKey));
+        }
+        if (this._minRate > 0 || this._maxRate < 100)
+        {
+          var raceKeys = horses.GroupBy(h => h.RaceKey)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .Join(db.Races!, g => g.Key, r => r.Key, (g, r) => new { Key = g.Key, g.Count, r.HorsesCount, })
+            .Select(g => new { g.Key, Rate = g.Count * 100 / g.HorsesCount, })
+            .Where(g => g.Rate >= this._minRate && g.Rate <= this._maxRate)
+            .Select(g => g.Key)
+            .ToArray();
+          horses = horses.Where(h => raceKeys.Contains(h.RaceKey));
+        }
 
-      query = query.Join(horses, r => r.Key, rh => rh.RaceKey, (r, rh) => r).Distinct();
+        var raceKeys2 = horses.GroupBy(h => h.RaceKey).Select(h => h.Key).ToArray();
+        query = query.Where(r => raceKeys2.Contains(r.Key));
+      }
 
       return query;
     }
