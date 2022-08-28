@@ -16,6 +16,8 @@ namespace KmyKeiba.Models.Race.ExNumber
 {
   public class ExternalNumberConfigModel
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     public static ExternalNumberConfigModel Default { get; } = new();
 
     public CheckableCollection<ExternalNumberConfigItem> Configs { get; } = new();
@@ -77,6 +79,8 @@ namespace KmyKeiba.Models.Race.ExNumber
 
   public class ExternalNumberConfigItem : IDisposable, ICheckableItem
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private readonly CompositeDisposable _disposables = new();
     private bool _isInitializing = true;
 
@@ -119,6 +123,64 @@ namespace KmyKeiba.Models.Race.ExNumber
     public ExternalNumberConfigItem(ExternalNumberConfig data)
     {
       this.Data = data;
+      this.LoadFromData();
+
+      this.Name
+        .CombineLatest(this.FileNamePattern)
+        .CombineLatest(this.IsFormatRaceCsv)
+        .CombineLatest(this.IsFormatRaceFixedLength)
+        .CombineLatest(this.IsFormatHorseCsv)
+        .CombineLatest(this.IsFormatHorseFixedLength)
+        .CombineLatest(this.IsValuesNumberOnly)
+        .CombineLatest(this.IsValuesNumberAndOrder)
+        .CombineLatest(this.IsSortLarger)
+        .CombineLatest(this.IsSortSmaller)
+        .CombineLatest(this.IsSortSmallerWithoutZero)
+        .Subscribe(async _ =>
+      {
+        if (this._isInitializing)
+        {
+          return;
+        }
+
+        if (this.IsFormatHorseCsv.Value == this.IsFormatRaceFixedLength.Value == this.IsFormatRaceCsv.Value == this.IsFormatHorseFixedLength.Value == false ||
+          this.IsValuesNumberOnly.Value == this.IsValuesNumberAndOrder.Value == false ||
+          this.IsSortLarger.Value == this.IsSortSmaller.Value == this.IsSortSmallerWithoutZero.Value == false)
+        {
+          // UIのせいでなぜか全部falseになってイベント通知してくることがある
+          this.LoadFromData();
+          return;
+        }
+
+        try
+        {
+          using var db = new MyContext();
+          db.ExternalNumberConfigs!.Attach(this.Data);
+
+          this.Data.Name = this.Name.Value;
+          this.Data.FileNamePattern = this.FileNamePattern.Value;
+          this.Data.FileFormat = this.IsFormatRaceCsv.Value ? ExternalNumberFileFormat.RaceCsv :
+            this.IsFormatRaceFixedLength.Value ? ExternalNumberFileFormat.RaceFixedLength :
+            this.IsFormatHorseCsv.Value ? ExternalNumberFileFormat.RaceHorseCsv :
+            this.IsFormatHorseFixedLength.Value ? ExternalNumberFileFormat.RaceHorseFixedLength : ExternalNumberFileFormat.Unknown;
+          this.Data.ValuesFormat = this.IsValuesNumberAndOrder.Value ? ExternalNumberValuesFormat.NumberAndOrder : ExternalNumberValuesFormat.NumberOnly;
+          this.Data.SortRule = this.IsSortSmaller.Value ? ExternalNumberSortRule.Smaller :
+            this.IsSortSmallerWithoutZero.Value ? ExternalNumberSortRule.SmallerWithoutZero : ExternalNumberSortRule.Larger;
+
+          await db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+          logger.Error("外部指数データの保存でエラー", ex);
+        }
+      }).AddTo(this._disposables);
+
+      this._isInitializing = false;
+    }
+
+    private void LoadFromData()
+    {
+      var data = this.Data;
 
       this.Name.Value = data.Name;
       this.FileNamePattern.Value = data.FileNamePattern;
@@ -158,41 +220,6 @@ namespace KmyKeiba.Models.Race.ExNumber
           this.IsSortSmallerWithoutZero.Value = true;
           break;
       }
-
-      this.Name
-        .CombineLatest(this.FileNamePattern)
-        .CombineLatest(this.IsFormatRaceCsv)
-        .CombineLatest(this.IsFormatRaceFixedLength)
-        .CombineLatest(this.IsFormatHorseCsv)
-        .CombineLatest(this.IsFormatHorseFixedLength)
-        .CombineLatest(this.IsValuesNumberOnly)
-        .CombineLatest(this.IsValuesNumberAndOrder)
-        .CombineLatest(this.IsSortLarger)
-        .CombineLatest(this.IsSortSmaller)
-        .CombineLatest(this.IsSortSmallerWithoutZero)
-        .Subscribe(async _ =>
-      {
-        if (this._isInitializing)
-        {
-          return;
-        }
-
-        // TODO: error
-        using var db = new MyContext();
-        db.ExternalNumberConfigs!.Attach(this.Data);
-        this.Data.Name = this.Name.Value;
-        this.Data.FileNamePattern = this.FileNamePattern.Value;
-        this.Data.FileFormat = this.IsFormatRaceCsv.Value ? ExternalNumberFileFormat.RaceCsv :
-          this.IsFormatRaceFixedLength.Value ? ExternalNumberFileFormat.RaceFixedLength :
-          this.IsFormatHorseCsv.Value ? ExternalNumberFileFormat.RaceHorseCsv :
-          this.IsFormatHorseFixedLength.Value ? ExternalNumberFileFormat.RaceHorseFixedLength : ExternalNumberFileFormat.Unknown;
-        this.Data.ValuesFormat = this.IsValuesNumberAndOrder.Value ? ExternalNumberValuesFormat.NumberAndOrder : ExternalNumberValuesFormat.NumberOnly;
-        this.Data.SortRule = this.IsSortSmaller.Value ? ExternalNumberSortRule.Smaller :
-          this.IsSortSmallerWithoutZero.Value ? ExternalNumberSortRule.SmallerWithoutZero : ExternalNumberSortRule.Larger;
-        await db.SaveChangesAsync();
-      }).AddTo(this._disposables);
-
-      this._isInitializing = false;
     }
 
     public void BeginLoadDb()
