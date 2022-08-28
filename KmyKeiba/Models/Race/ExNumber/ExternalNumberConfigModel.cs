@@ -123,6 +123,8 @@ namespace KmyKeiba.Models.Race.ExNumber
     public ExternalNumberConfigItem(ExternalNumberConfig data)
     {
       this.Data = data;
+
+      this.CheckInvalidData();
       this.LoadFromData();
 
       this.Name
@@ -143,9 +145,9 @@ namespace KmyKeiba.Models.Race.ExNumber
           return;
         }
 
-        if (this.IsFormatHorseCsv.Value == this.IsFormatRaceFixedLength.Value == this.IsFormatRaceCsv.Value == this.IsFormatHorseFixedLength.Value == false ||
-          this.IsValuesNumberOnly.Value == this.IsValuesNumberAndOrder.Value == false ||
-          this.IsSortLarger.Value == this.IsSortSmaller.Value == this.IsSortSmallerWithoutZero.Value == false)
+        if ((this.IsFormatHorseCsv.Value == false && this.IsFormatRaceFixedLength.Value == false && this.IsFormatRaceCsv.Value == false && this.IsFormatHorseFixedLength.Value == false) ||
+          (this.IsValuesNumberOnly.Value == false && this.IsValuesNumberAndOrder.Value == false) ||
+          (this.IsSortLarger.Value == false && this.IsSortSmaller.Value == false && this.IsSortSmallerWithoutZero.Value == false))
         {
           // UIのせいでなぜか全部falseになってイベント通知してくることがある
           this.LoadFromData();
@@ -176,6 +178,24 @@ namespace KmyKeiba.Models.Race.ExNumber
       }).AddTo(this._disposables);
 
       this._isInitializing = false;
+    }
+
+    private void CheckInvalidData()
+    {
+      var data = this.Data;
+
+      if (data.FileFormat == ExternalNumberFileFormat.Unknown)
+      {
+        data.FileFormat = ExternalNumberFileFormat.RaceCsv;
+      }
+      if (data.ValuesFormat == ExternalNumberValuesFormat.Unknown)
+      {
+        data.ValuesFormat = ExternalNumberValuesFormat.NumberOnly;
+      }
+      if (data.SortRule == ExternalNumberSortRule.Unknown)
+      {
+        data.SortRule = ExternalNumberSortRule.Larger;
+      }
     }
 
     private void LoadFromData()
