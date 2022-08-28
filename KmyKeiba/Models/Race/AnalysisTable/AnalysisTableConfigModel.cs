@@ -89,16 +89,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         this.Delimiters.First().IsChecked.Value = true;
       }
 
-      foreach (var en in ExternalNumberUtil.Configs)
-      {
-        this.ExternalNumbers.Add(new ExternalNumberConfigItem(en));
-      }
-      foreach (var row in this.Tables.SelectMany(t => t.Rows).Where(r => r.Data.Output == AnalysisTableRowOutputType.ExternalNumber))
-      {
-        row.SelectedExternalNumber.Value = this.ExternalNumbers.FirstOrDefault(e => e.Data.Id == row.Data.ExternalNumberId);
-      }
-
       this.UpdateMemoConfigs();
+      this.UpdateExternalNumberConfigs();
     }
 
     public async Task<AnalysisTableSurface?> AddTableAsync()
@@ -953,6 +945,48 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       {
         row.ReloadMemoConfigProperty();
         row.IsFreezeExpansionMemoConfig = false;
+      }
+    }
+
+    public void OnExternalNumberConfigChanged()
+    {
+      ThreadUtil.InvokeOnUiThread(() =>
+      {
+        this.UpdateExternalNumberConfigs();
+      });
+    }
+
+    private void UpdateExternalNumberConfigs()
+    {
+      foreach (var row in this.Tables.SelectMany(t => t.Rows))
+      {
+        row.IsFreezeExternalNumberConfig = true;
+      }
+
+      var olds = this.ExternalNumbers.ToArray();
+      this.ExternalNumbers.Clear();
+      foreach (var en in ExternalNumberUtil.Configs)
+      {
+        var exists = olds.FirstOrDefault(o => o.Data.Id == en.Id);
+        if (exists == null)
+        {
+          this.ExternalNumbers.Add(new ExternalNumberConfigItem(en));
+        }
+        else
+        {
+          this.ExternalNumbers.Add(exists);
+        }
+      }
+
+      foreach (var row in this.Tables.SelectMany(t => t.Rows).Where(r => r.Data.Output == AnalysisTableRowOutputType.ExternalNumber))
+      {
+        row.SelectedExternalNumber.Value = this.ExternalNumbers.FirstOrDefault(e => e.Data.Id == row.Data.ExternalNumberId);
+      }
+
+      foreach (var row in this.Tables.SelectMany(t => t.Rows))
+      {
+        row.ReloadExternalNumbersProperty(this.ExternalNumbers);
+        row.IsFreezeExternalNumberConfig = false;
       }
     }
   }

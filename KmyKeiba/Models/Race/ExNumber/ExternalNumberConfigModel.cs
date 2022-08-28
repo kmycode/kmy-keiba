@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
+using KmyKeiba.Models.Race.AnalysisTable;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
@@ -46,34 +47,50 @@ namespace KmyKeiba.Models.Race.ExNumber
 
     public async Task AddConfigAsync()
     {
-      // TODO: error
-      using var db = new MyContext();
-      var data = new ExternalNumberConfig
+      try
       {
-        FileFormat = ExternalNumberFileFormat.RaceCsv,
-        ValuesFormat = ExternalNumberValuesFormat.NumberOnly,
-        SortRule = ExternalNumberSortRule.Larger,
-      };
-      await db.ExternalNumberConfigs!.AddAsync(data);
-      await db.SaveChangesAsync();
+        using var db = new MyContext();
+        var data = new ExternalNumberConfig
+        {
+          FileFormat = ExternalNumberFileFormat.RaceCsv,
+          ValuesFormat = ExternalNumberValuesFormat.NumberOnly,
+          SortRule = ExternalNumberSortRule.Larger,
+        };
+        await db.ExternalNumberConfigs!.AddAsync(data);
+        await db.SaveChangesAsync();
 
-      data.Order = (short)data.Id;
-      await db.SaveChangesAsync();
+        data.Order = (short)data.Id;
+        await db.SaveChangesAsync();
 
-      var item = new ExternalNumberConfigItem(data);
-      ExternalNumberUtil.Configs.Add(data);
-      this.Configs.Add(item);
+        var item = new ExternalNumberConfigItem(data);
+        ExternalNumberUtil.Configs.Add(data);
+        this.Configs.Add(item);
+
+        AnalysisTableConfigModel.Instance.OnExternalNumberConfigChanged();
+      }
+      catch (Exception ex)
+      {
+        logger.Error("外部指数追加でエラー", ex);
+      }
     }
 
     public async Task RemoveConfigAsync(ExternalNumberConfigItem config)
     {
-      // TODO: error
-      using var db = new MyContext();
-      db.ExternalNumberConfigs!.Remove(config.Data);
-      await db.SaveChangesAsync();
+      try
+      {
+        using var db = new MyContext();
+        db.ExternalNumberConfigs!.Remove(config.Data);
+        await db.SaveChangesAsync();
 
-      ExternalNumberUtil.Configs.Remove(config.Data);
-      this.Configs.Remove(config);
+        ExternalNumberUtil.Configs.Remove(config.Data);
+        this.Configs.Remove(config);
+
+        AnalysisTableConfigModel.Instance.OnExternalNumberConfigChanged();
+      }
+      catch (Exception ex)
+      {
+        logger.Error("外部指数削除でエラー", ex);
+      }
     }
   }
 

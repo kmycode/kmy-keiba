@@ -22,6 +22,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
   {
     private readonly CompositeDisposable _disposables = new();
     private bool _isInitializingParentList = false;
+    private readonly bool _isInitialized = false;
 
     public AnalysisTableRowData Data { get; }
 
@@ -87,6 +88,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public bool IsFreezeExpansionMemoConfig { get; set; }
 
+    public bool IsFreezeExternalNumberConfig { get; set; }
+
     public AnalysisTableRow(AnalysisTableRowData data, AnalysisTableSurface table, IEnumerable<RaceHorseAnalyzer> horses)
     {
       this.Data = data;
@@ -127,6 +130,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         o == AnalysisTableRowOutputType.WinRate ||
         o == AnalysisTableRowOutputType.ExternalNumber ||
         o == AnalysisTableRowOutputType.ExpansionMemo ||
+        o == AnalysisTableRowOutputType.Binary ||
         o == AnalysisTableRowOutputType.HorseValues ||
         o == AnalysisTableRowOutputType.JrdbValues)
         .ToReadOnlyReactiveProperty().AddTo(this._disposables);
@@ -182,6 +186,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.SelectedExternalNumber.Skip(1).Subscribe(async _ =>
       {
         if (this.Data.ExternalNumberId == (this.SelectedExternalNumber.Value?.Data.Id ?? 0))
+        {
+          return;
+        }
+        if (this.IsFreezeExternalNumberConfig)
         {
           return;
         }
@@ -311,6 +319,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           }
           await db.SaveChangesAsync();
         }).AddTo(this._disposables);
+
+      this._isInitialized = true;
     }
 
     public async Task LoadAsync(RaceData race, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly = false, bool isBilk = false)
@@ -545,21 +555,20 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
         cell.ComparationValue.Value = isAny ? 1 : 0;
         cell.PointCalcValue.Value = isAny ? 1 : 0;
-        cell.Value.Value = isAny ? "●" : string.Empty;
         cell.HasComparationValue.Value = true;
         cell.IsSkipped.Value = !isAny;
         cell.SampleSize = 0;
 
-        if (weights.Any() && isAny)
+        if (isAny)
         {
-          var weightValue = weights.CalcWeight(items) * this.Data.BaseWeight;
-          cell.Weight = weightValue;
-          cell.Point.Value = cell.PointCalcValue.Value * weightValue;
+          this.AnalysisFixedValue(1, weights, cell, finder);
         }
-        else
+        else if (!isAny)
         {
-          cell.Point.Value = this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight;
+          this.AnalysisFixedValue(this.Data.AlternativeValueIfEmpty, weights, cell, finder);
         }
+
+        cell.Value.Value = isAny ? "●" : string.Empty;
       }
       else
       {
@@ -791,6 +800,15 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public void ReloadMemoConfigProperty()
     {
       this.SelectedMemoConfig.Value = MemoUtil.Configs.FirstOrDefault(c => c.Id == this.Data.MemoConfigId);
+    }
+
+    public void ReloadExternalNumbersProperty(IEnumerable<ExternalNumberConfigItem> configs)
+    {
+      if (!this._isInitialized)
+      {
+        return;
+      }
+      this.SelectedExternalNumber.Value = configs.FirstOrDefault(c => c.Data.Id == this.Data.ExternalNumberId);
     }
 
     public void Dispose()
