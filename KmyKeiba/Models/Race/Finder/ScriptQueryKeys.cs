@@ -489,8 +489,8 @@ namespace KmyKeiba.Models.Race.Finder
   class BloodHorseScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly QueryKey _scriptKey;
-    private IReadOnlyList<string>? _codes;
-    private readonly bool _isSelfCode = false;
+    private IList<string> _codes;
+    private bool _isSelfCode = false;
     private bool _isCheckedSelfCode = false;
     private readonly int _horseNumber;
     private readonly string? _raceKey;
@@ -498,7 +498,7 @@ namespace KmyKeiba.Models.Race.Finder
     public BloodHorseScriptKeyQuery(QueryKey scriptKey, IReadOnlyList<string> codes, bool isSelfCode = false, short horseNumber = 0, string? raceKey = null)
     {
       this._scriptKey = scriptKey;
-      this._codes = codes;
+      this._codes = codes.ToList();
       this._isSelfCode = isSelfCode;
       this._horseNumber = horseNumber;
       this._raceKey = raceKey;
@@ -546,8 +546,15 @@ namespace KmyKeiba.Models.Race.Finder
         }
       }
 
-      if (this._codes != null && this._codes.Any())
+      if (this._codes.Any())
       {
+        // 血統番号を繁殖番号に変換
+        if (this._codes.Count == 1 && this._codes[0].Length == 10 && !this._isSelfCode)
+        {
+          this._codes[0] = HorseBloodUtil.GetBloodCodeAsync(db, this._codes[0], type).Result;
+          this._isSelfCode = true;
+        }
+
         if (!this._isSelfCode && !this._isCheckedSelfCode)
         {
           // 自分が父になっている馬を検索
