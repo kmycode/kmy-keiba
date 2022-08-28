@@ -332,15 +332,56 @@ namespace KmyKeiba.Models.Race.Finder
 
         bool AddPlaceHorseQuery()
         {
-          if (!q!.StartsWith("(race)"))
+          if (!q!.StartsWith("(race"))
           {
             return false;
           }
 
-          var keys = q.Substring(6).Replace(';', '|');
+          var prefixEnd = q.IndexOf(')');
+          if (prefixEnd < 5)
+          {
+            return false;
+          }
+
+          var min = 0;
+          var max = 100;
+          var minRate = 0;
+          var maxRate = 100;
+
+          if (prefixEnd > 6 && q.ElementAtOrDefault(5) == ':')
+          {
+            var optionsRaw = q.Substring(6, prefixEnd - 6);
+            var options = optionsRaw.Split('<');
+            foreach (var option in options.Skip(1).Select(o => o.Split('>')).Where(o => o.Length == 2))
+            {
+              if (option[0] == "eq")
+              {
+                int.TryParse(option[1], out min);
+                max = min;
+              }
+              else if (option[0] == "min")
+              {
+                int.TryParse(option[1], out min);
+              }
+              else if (option[0] == "max")
+              {
+                int.TryParse(option[1], out max);
+              }
+              else if (option[0] == "minr")
+              {
+                int.TryParse(option[1], out minRate);
+              }
+              else if (option[0] == "maxr")
+              {
+                int.TryParse(option[1], out maxRate);
+              }
+            }
+          }
+
+          var keys = q.Substring(prefixEnd + 1).Replace(';', '|');
           var qs = GetQueries(keys, race, horse);
 
-          queries.Add(new TopHorsesScriptKeyQuery(qs.Queries));
+          queries.Add(new TopHorsesScriptKeyQuery(qs.Queries, min, max, minRate, maxRate));
           return true;
         }
 
@@ -403,7 +444,7 @@ namespace KmyKeiba.Models.Race.Finder
           }
 
           var keys = q.Substring(endIndex + 1).Replace(';', '|').Replace('\\', '\\');
-          var qs = GetQueries(keys, race, horse);
+          var qs = GetQueries(keys, race, horse, horseAnalyzer);
 
           queries!.Add(new HorseBeforeRacesScriptKeyQuery(countRule, beforeSize, compareTargetSize, qs.Queries, qs.DiffQueries, qs.DiffQueriesBetweenCurrent));
           return true;

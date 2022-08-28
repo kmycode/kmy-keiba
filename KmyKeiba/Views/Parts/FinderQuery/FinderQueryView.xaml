@@ -114,10 +114,8 @@
             </MultiBinding>
           </RadioButton.Visibility>
         </RadioButton>
-        <RadioButton Content="拡張メモ" Name="S_Memo"
-                     Visibility="{Binding IsSubViewBeforeRace,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
-        <RadioButton Content="外部指数" Name="S_ExNumber"
-                     Visibility="{Binding IsSubViewBeforeRace,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+        <RadioButton Content="拡張メモ" Name="S_Memo"/>
+        <RadioButton Content="外部指数" Name="S_ExNumber"/>
         <RadioButton Content="グループ化" Name="S_GroupBy">
           <RadioButton.Visibility>
             <MultiBinding Converter="{StaticResource MultiBooleanConv}">
@@ -498,7 +496,6 @@
               <local:InputListBoxView.Visibility>
                 <MultiBinding Converter="{StaticResource MultiBooleanConv}">
                   <Binding Path="IsEnumerable" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
-                  <Binding Path="IsSubViewBeforeRace" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
                 </MultiBinding>
               </local:InputListBoxView.Visibility>
             </local:InputListBoxView>
@@ -831,10 +828,22 @@
                         <ColumnDefinition Width="auto"/>
                         <ColumnDefinition/>
                         <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="auto"/>
                       </Grid.ColumnDefinitions>
-                      <TextBlock Text="設定名" FontSize="14" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                      <TextBox Grid.Column="1" FontSize="16" Text="{Binding Name.Value}"/>
-                      <Button Grid.Column="2" FontSize="14" Content="削除"
+                      <TextBlock Text="最小数" FontSize="14" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                      <TextBox Grid.Column="1" FontSize="16" Text="{Binding Min.Value,UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center"/>
+                      <TextBlock Grid.Column="2" Text="最大数" FontSize="14" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="4,0,4,0"/>
+                      <TextBox Grid.Column="3" FontSize="16" Text="{Binding Max.Value,UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center"/>
+                      <TextBlock Grid.Column="4" Text="最小％" FontSize="14" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="4,0,4,0"/>
+                      <TextBox Grid.Column="5" FontSize="16" Text="{Binding MinRate.Value,UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center"/>
+                      <TextBlock Grid.Column="6" Text="最大％" FontSize="14" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="4,0,4,0"/>
+                      <TextBox Grid.Column="7" FontSize="16" Text="{Binding MaxRate.Value,UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center"/>
+                      <Button Grid.Column="8" FontSize="14" Content="削除"
                               Command="{Binding FinderModel.Input.SameRaceHorse.RemoveItemCommand,ElementName=Root}" CommandParameter="{Binding}"/>
                     </Grid>
                     <up:FinderKeyInputView FinderModel="{Binding Model}" IsSubView="True" IsSubViewSameRaceHorse="True"

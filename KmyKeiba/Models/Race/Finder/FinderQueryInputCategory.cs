@@ -2288,11 +2288,19 @@ namespace KmyKeiba.Models.Race.Finder
       this.Race = race;
     }
 
-    public void AddItem()
+    public FinderModelItem AddItem()
     {
       var model = new FinderModel(this.Race, null, this.RaceHorses).AddTo(this.Disposables);
       model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
-      this.Items.Add(new FinderModelItem(model));
+
+      var item = new FinderModelItem(model);
+      item.Min.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      item.Max.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      item.MinRate.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      item.MaxRate.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+
+      this.Items.Add(item);
+      return item;
     }
 
     public ICommand AddItemCommand =>
@@ -2323,9 +2331,26 @@ namespace KmyKeiba.Models.Race.Finder
         text.Append("[CUSTOM]Items/");
         foreach (var item in this.Items)
         {
+          var max = 30;
+          var min = 1;
+          var maxRate = 100;
+          var minRate = 0;
+          if (!int.TryParse(item.Max.Value, out max)) max = 30;
+          if (!int.TryParse(item.Min.Value, out min)) min = 1;
+          if (!int.TryParse(item.MaxRate.Value, out maxRate)) maxRate = 100;
+          if (!int.TryParse(item.MinRate.Value, out minRate)) minRate = 0;
+
           var serialized = item.Model.Input.Serialize(false)
             .Replace(Environment.NewLine, ";");
           text.Append(item.Name.Value);
+          text.Append(',');
+          text.Append(max.ToString());
+          text.Append(',');
+          text.Append(min.ToString());
+          text.Append(',');
+          text.Append(maxRate.ToString());
+          text.Append(',');
+          text.Append(minRate.ToString());
           text.Append(";");
           text.Append(serialized);
           text.Append('|');
@@ -2349,22 +2374,43 @@ namespace KmyKeiba.Models.Race.Finder
           {
             continue;
           }
-          var name = item[..nameSeparator];
+          var optionsRaw = item[..nameSeparator];
 
-          var model = new FinderModel(this.Race, null, this.RaceHorses).AddTo(this.Disposables);
+          var options = optionsRaw.Split(',');
+          var name = options[0];
+          var max = 30;
+          var min = 0;
+          var maxRate = 100;
+          var minRate = 0;
+          if (options.Length >= 2)
+          {
+            int.TryParse(options[1], out max);
+          }
+          if (options.Length >= 3)
+          {
+            int.TryParse(options[2], out min);
+          }
+          if (options.Length >= 4)
+          {
+            int.TryParse(options[3], out maxRate);
+          }
+          if (options.Length >= 5)
+          {
+            int.TryParse(options[4], out minRate);
+          }
+
+          var listItem = this.AddItem();
+          var model = listItem.Model;
           model.Input.Deserialize(item[nameSeparator..].Replace(";", Environment.NewLine));
-          model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
           model.Input.SameRaceHorse.UpdateQuery();
 
-          var i = new FinderModelItem(model)
-          {
-            Name =
-            {
-              Value = name,
-            }
-          };
-          this.AddTextCheckForEscape(i.Name);
-          this.Items.Add(i);
+          listItem.Name.Value = name;
+          listItem.Max.Value = max.ToString();
+          listItem.Min.Value = min.ToString();
+          listItem.MaxRate.Value = maxRate.ToString();
+          listItem.MinRate.Value = minRate.ToString();
+          this.AddTextCheckForEscape(listItem.Name);
+          //this.Items.Add(i);
         }
 
         this.UpdateQuery();
@@ -2386,6 +2432,11 @@ namespace KmyKeiba.Models.Race.Finder
     {
       public ReactiveProperty<string> Name { get; } = new(string.Empty);
 
+      public ReactiveProperty<string> Max { get; } = new("30");
+      public ReactiveProperty<string> Min { get; } = new("1");
+      public ReactiveProperty<string> MaxRate { get; } = new("100");
+      public ReactiveProperty<string> MinRate { get; } = new("0");
+
       public FinderModel Model { get; }
 
       public FinderModelItem(FinderModel model)
@@ -2400,7 +2451,35 @@ namespace KmyKeiba.Models.Race.Finder
         {
           return string.Empty;
         }
-        return "(race)" + query;
+
+        var max = 30;
+        var min = 1;
+        var maxRate = 100;
+        var minRate = 0;
+
+        var options = new List<string>();
+        if (int.TryParse(this.Max.Value, out max) && max < 30)
+        {
+          options.Add("<max>" + max);
+        }
+        if (int.TryParse(this.Min.Value, out min) && min != 1)
+        {
+          options.Add("<min>" + min);
+        }
+        if (int.TryParse(this.MaxRate.Value, out maxRate) && maxRate < 100)
+        {
+          options.Add("<maxr>" + maxRate);
+        }
+        if (int.TryParse(this.MinRate.Value, out minRate) && minRate > 0)
+        {
+          options.Add("<minr>" + minRate);
+        }
+
+        if (!options.Any())
+        {
+          return "(race)" + query;
+        }
+        return "(race:" + string.Join(string.Empty, options) + ")" + query;
       }
     }
   }
@@ -2713,10 +2792,10 @@ namespace KmyKeiba.Models.Race.Finder
             var text2 = new StringBuilder();
             base.PropertyToString(item.GetType().GetProperty(nameof(MemoConfigItem.Point), BindingFlags.Instance | BindingFlags.Public)!,
               text2, item);
-            text.Append(text2.ToString().Replace(Environment.NewLine, ";"));
+            text.Append(text2.ToString().Replace(Environment.NewLine, "@"));
           }
 
-          text.Append('|');
+          text.Append('\\');
         }
 
         text.AppendLine();
@@ -2731,7 +2810,7 @@ namespace KmyKeiba.Models.Race.Finder
       {
         this.Items.Clear();
 
-        var values = data.Split('|');
+        var values = data.Contains('\\') ? data.Split('\\') : data.Split('|');  // | は旧仕様
         foreach (var value in values)
         {
           var configIdIndex = value.IndexOf(',');
@@ -2997,7 +3076,7 @@ namespace KmyKeiba.Models.Race.Finder
             text2, item);
           text.Append(text2.ToString().Replace(Environment.NewLine, ";"));
 
-          text.Append('|');
+          text.Append('\\');
         }
 
         text.AppendLine();
@@ -3012,7 +3091,7 @@ namespace KmyKeiba.Models.Race.Finder
       {
         this.Items.Clear();
 
-        var values = data.Split('|');
+        var values = data.Contains('\\') ? data.Split('\\') : data.Split('|');
         foreach (var value in values)
         {
           var configIdIndex = value.IndexOf(',');

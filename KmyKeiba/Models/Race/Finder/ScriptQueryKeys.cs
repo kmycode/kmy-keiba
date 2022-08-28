@@ -1016,10 +1016,18 @@ namespace KmyKeiba.Models.Race.Finder
   class TopHorsesScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly IReadOnlyList<ScriptKeyQuery> _queries;
+    private readonly int _minCount;
+    private readonly int _maxCount;
+    private readonly int _minRate;
+    private readonly int _maxRate;
 
-    public TopHorsesScriptKeyQuery(IReadOnlyList<ScriptKeyQuery> queries)
+    public TopHorsesScriptKeyQuery(IReadOnlyList<ScriptKeyQuery> queries, int minCount, int maxCount, int minRate, int maxRate)
     {
       this._queries = queries;
+      this._minCount = minCount;
+      this._maxCount = maxCount;
+      this._minRate = minRate;
+      this._maxRate = maxRate;
     }
 
     public override IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query)
@@ -1028,6 +1036,27 @@ namespace KmyKeiba.Models.Race.Finder
       foreach (var q in this._queries)
       {
         horses = q.Apply(db, horses);
+      }
+
+      if (this._minCount != 1 || this._maxCount < 18)
+      {
+        var raceKeys = horses.GroupBy(h => h.RaceKey)
+          .Select(g => new { g.Key, Count = g.Count(), })
+          .Where(g => g.Count >= this._minCount && g.Count <= this._maxCount)
+          .Select(g => g.Key)
+          .ToArray();
+        horses = horses.Where(h => raceKeys.Contains(h.RaceKey));
+      }
+      if (this._minRate > 0 || this._maxRate < 100)
+      {
+        var raceKeys = horses.GroupBy(h => h.RaceKey)
+          .Select(g => new { g.Key, Count = g.Count() })
+          .Join(db.Races!, g => g.Key, r => r.Key, (g, r) => new { Key = g.Key, g.Count, r.HorsesCount, })
+          .Select(g => new { g.Key, Rate = g.Count * 100 / g.HorsesCount, })
+          .Where(g => g.Rate >= this._minRate && g.Rate <= this._maxRate)
+          .Select(g => g.Key)
+          .ToArray();
+        horses = horses.Where(h => raceKeys.Contains(h.RaceKey));
       }
 
       query = query.Join(horses, r => r.Key, rh => rh.RaceKey, (r, rh) => r).Distinct();
