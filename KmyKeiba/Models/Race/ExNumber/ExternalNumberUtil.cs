@@ -250,7 +250,7 @@ namespace KmyKeiba.Models.Race.ExNumber
               ConfigId = config.Id,
               HorseNumber = horseNumber,
               RaceKey = race.Key,
-              Value = values.ElementAtOrDefault(1),
+              Value = values.ElementAtOrDefault(0),
             });
           }
           else
@@ -260,8 +260,8 @@ namespace KmyKeiba.Models.Race.ExNumber
               ConfigId = config.Id,
               HorseNumber = horseNumber,
               RaceKey = race.Key,
-              Value = values.ElementAtOrDefault(1),
-              Order = (short)values.ElementAtOrDefault(2),
+              Value = values.ElementAtOrDefault(0),
+              Order = (short)values.ElementAtOrDefault(1),
             });
           }
         }
