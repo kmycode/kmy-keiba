@@ -335,7 +335,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       // 一括実行時は意味のない行は調べない
       if (isBilk)
       {
-        if (this.Data.Output != AnalysisTableRowOutputType.Binary && this.Data.BaseWeight == default)
+        if (this.Data.Output != AnalysisTableRowOutputType.Binary && this.Data.BaseWeight == default && this.Data.AlternativeValueIfEmpty == default)
         {
           return;
         }

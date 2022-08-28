@@ -20,6 +20,7 @@
 
     <Grid Grid.ColumnSpan="2">
       <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="auto"/>
         <ColumnDefinition/>
         <ColumnDefinition Width="auto"/>
       </Grid.ColumnDefinitions>
@@ -28,7 +29,9 @@
         <RowDefinition Height="auto"/>
       </Grid.RowDefinitions>
       <TextBlock FontSize="24" FontWeight="Bold" Text="検索条件を入力" Margin="0,8,0,16"/>
-      <Grid Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0"
+      <Button Grid.Column="1" Margin="16,0,0,0" FontSize="14" Content="キャッシュクリア" VerticalAlignment="Center" HorizontalAlignment="Left" Width="auto"
+              Command="{Binding ClearFinderCacheCommand}" CommandParameter="{Binding FinderModel,ElementName=Root}"/>
+      <Grid Grid.Column="2" VerticalAlignment="Center" Margin="0,0,8,0"
             Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
         <Grid.RowDefinitions>
           <RowDefinition/>

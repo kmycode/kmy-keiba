@@ -180,6 +180,25 @@ namespace KmyKeiba.Models.Race.Finder
       return this.TryFindRaceHorseCache(keys) != null;
     }
 
+    public void ClearCache()
+    {
+      foreach (var disposable in this._raceCaches
+        .SelectMany(c => c.Value.Item2.Cast<IDisposable>()))
+      //.Concat(this._raceHorseCaches.SelectMany(c => c.Value.Item2.Cast<IDisposable>())))
+      {
+        disposable.Dispose();
+      }
+      foreach (var disposable in this._raceHorseCaches
+        .SelectMany(c => c.Value.Item2.Items)
+        .Cast<IDisposable>())
+      {
+        disposable.Dispose();
+      }
+
+      this._raceHorseCaches.Clear();
+      this._raceCaches.Clear();
+    }
+
     public async Task<FinderQueryResult<RaceAnalyzer>> FindRacesAsync(string keys, int sizeMax, int offset = 0, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false)
     {
       if (withoutFutureRaces && this._raceCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
@@ -247,12 +266,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public void Dispose()
     {
-      foreach (var disposable in this._raceCaches
-        .SelectMany(c => c.Value.Item2.Cast<IDisposable>()))
-        //.Concat(this._raceHorseCaches.SelectMany(c => c.Value.Item2.Cast<IDisposable>())))
-      {
-        disposable.Dispose();
-      }
+      this.ClearCache();
     }
   }
 

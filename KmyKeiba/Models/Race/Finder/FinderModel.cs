@@ -433,6 +433,11 @@ namespace KmyKeiba.Models.Race.Finder
       this._finder.ReplaceFrom(finder);
     }
 
+    public void ClearCache()
+    {
+      this._finder.ClearCache();
+    }
+
     public RaceHorseTrendAnalysisSelectorWrapper AsTrendAnalysisSelector()
     {
       return this._finder.AsTrendAnalysisSelector();

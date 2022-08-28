@@ -461,6 +461,11 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<FinderModel>(this.CanSave).WithSubscribe(obj => obj?.Input.RemoveConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _removeFinderConfigCommand;
 
+    public ICommand ClearFinderCacheCommand =>
+      this._clearFinderCacheCommand ??=
+        new ReactiveCommand<FinderModel>().WithSubscribe(obj => obj?.ClearCache()).AddTo(this._disposables);
+    private ICommand? _clearFinderCacheCommand;
+
     #endregion
 
     public ICommand OpenRaceWindowCommand =>
