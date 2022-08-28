@@ -1062,11 +1062,15 @@
             <RadioButton Content="馬の性別" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorseSex.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="馬の所属" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorseBelongs.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="競馬場" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByCourse.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="距離" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByDistance.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="向き" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByDirection.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="天気" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByWeather.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="馬場状態" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByCondition.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="重賞分類" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByGrade.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="枠番" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByFrameNumber.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="馬番" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorseNumber.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="人気" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByPopular.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="着順" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByResultOrder.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="父" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByFather.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="母" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByMother.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="母父" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByMotherFather.Value,ElementName=Root,Mode=TwoWay}"/>

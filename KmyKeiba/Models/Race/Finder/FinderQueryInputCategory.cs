@@ -3098,6 +3098,10 @@ namespace KmyKeiba.Models.Race.Finder
     public ReactiveProperty<bool> IsGroupByFather { get; } = new();
     public ReactiveProperty<bool> IsGroupByMother { get; } = new();
     public ReactiveProperty<bool> IsGroupByMotherFather { get; } = new();
+    public ReactiveProperty<bool> IsGroupByDirection { get; } = new();
+    public ReactiveProperty<bool> IsGroupByDistance { get; } = new();
+    public ReactiveProperty<bool> IsGroupByPopular { get; } = new();
+    public ReactiveProperty<bool> IsGroupByResultOrder { get; } = new();
 
     public ReactiveCollection<ExpansionMemoConfig> MemoConfigs { get; } = new();
 
@@ -3124,6 +3128,10 @@ namespace KmyKeiba.Models.Race.Finder
         .CombineLatest(this.IsGroupByFather)
         .CombineLatest(this.IsGroupByMother)
         .CombineLatest(this.IsGroupByMotherFather)
+        .CombineLatest(this.IsGroupByDirection)
+        .CombineLatest(this.IsGroupByDistance)
+        .CombineLatest(this.IsGroupByPopular)
+        .CombineLatest(this.IsGroupByResultOrder)
         .Subscribe(_ => this.UpdateQuery())
         .AddTo(this.Disposables);
     }
@@ -3195,6 +3203,22 @@ namespace KmyKeiba.Models.Race.Finder
       {
         groups.Add("framenumber");
       }
+      if (this.IsGroupByDirection.Value)
+      {
+        groups.Add("direction");
+      }
+      if (this.IsGroupByDistance.Value)
+      {
+        groups.Add("distance");
+      }
+      if (this.IsGroupByPopular.Value)
+      {
+        groups.Add("popular");
+      }
+      if (this.IsGroupByResultOrder.Value)
+      {
+        groups.Add("place");
+      }
       if (this.IsGroupByMemo.Value)
       {
         if (this.SelectedMemoConfig.Value != null)
@@ -3228,6 +3252,34 @@ namespace KmyKeiba.Models.Race.Finder
         return string.Empty;
       }
       return $"[group]{groups[0]}";
+    }
+
+    protected override void PropertyToString(PropertyInfo property, StringBuilder text, object obj)
+    {
+      var type = property.PropertyType;
+      if (type == typeof(ReactiveProperty<bool>))
+      {
+        var value = ((ReactiveProperty<bool>)property.GetValue(obj)!).Value;
+        if (obj == this && property.Name.StartsWith("IsGroupBy") && !value)
+        {
+          // falseのプロパティは記録を省略する
+          return;
+        }
+      }
+      base.PropertyToString(property, text, obj);
+    }
+
+    protected override void ResetForce()
+    {
+      base.ResetForce();
+
+      foreach (var property in this.GetType()
+        .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+        .Where(p => p.PropertyType == typeof(ReactiveProperty<bool>))
+        .Select(p => (ReactiveProperty<bool>)p.GetValue(this)!))
+      {
+        property.Value = false;
+      }
     }
   }
 

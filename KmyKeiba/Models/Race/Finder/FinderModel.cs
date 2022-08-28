@@ -143,6 +143,8 @@ namespace KmyKeiba.Models.Race.Finder
               QueryKey.OwnerName => allItems.GroupBy(d => d.Analyzer.Data.OwnerName),
               QueryKey.OwnerCode => allItems.GroupBy(d => d.Analyzer.Data.OwnerCode),
               QueryKey.Course => allItems.GroupBy(d => (object)d.Analyzer.Data.Course),
+              QueryKey.Distance => allItems.GroupBy(d => (object)d.Analyzer.Race.Distance),
+              QueryKey.Direction => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackCornerDirection),
               QueryKey.Weather => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackWeather),
               QueryKey.Condition => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackCondition),
               QueryKey.Grade => allItems.GroupBy(d => (object)d.Analyzer.Race.Grade),
@@ -151,6 +153,8 @@ namespace KmyKeiba.Models.Race.Finder
               QueryKey.FrameNumber => allItems.GroupBy(d => d.Analyzer.Data.FrameNumber.ToString()),
               QueryKey.HorseNumber => allItems.GroupBy(d => d.Analyzer.Data.Number.ToString()),
               QueryKey.Sex => allItems.GroupBy(d => (object)d.Analyzer.Data.Sex),
+              QueryKey.Popular => allItems.GroupBy(d => (object)d.Analyzer.Data.Popular),
+              QueryKey.Place => allItems.GroupBy(d => (object)d.Analyzer.Data.ResultOrder),
               _ => null,
             };
 
