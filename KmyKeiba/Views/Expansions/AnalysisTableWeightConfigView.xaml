@@ -123,7 +123,7 @@
               </ItemsControl>
             </ScrollViewer>
             <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal">
-              <Button FontSize="16" Width="240" Content="既存の設定をリセットして追加" Command="{Binding AddAnalysisTableWeightRowBulkCommand}"/>
+              <Button FontSize="16" Width="240" Content="既存の設定に追加" Command="{Binding AddAnalysisTableWeightRowBulkCommand}"/>
               <Button FontSize="16" Width="240" Content="既存の設定を保持しつつ置き換え" Command="{Binding ReplaceAnalysisTableWeightRowBulkCommand}"
                       Margin="8,0,0,0"/>
             </StackPanel>
