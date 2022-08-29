@@ -11,6 +11,7 @@ using KmyKeiba.Models.Image;
 using KmyKeiba.Models.Injection;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
+using KmyKeiba.Models.Race.HorseMark;
 using KmyKeiba.Models.Race.Memo;
 using KmyKeiba.Models.Race.Tickets;
 using KmyKeiba.Models.Script;
@@ -100,6 +101,8 @@ namespace KmyKeiba.Models.Race
     public ReactiveProperty<RaceMemoModel?> MemoEx { get; } = new();
 
     public ReactiveProperty<FinderModel?> FinderModel { get; } = new();
+
+    public ReactiveProperty<HorseMarkModel?> HorseMark { get; } = new();
 
     public ReactiveProperty<AnalysisTable.AnalysisTableModel> AnalysisTable { get; } = new();
 
@@ -818,7 +821,10 @@ namespace KmyKeiba.Models.Race
           });
           logger.Debug($"最新情報の数: {changes.Length}");
 
-          // 分析テーブル
+          // 印
+          info.HorseMark.Value = await HorseMarkModel.CreateAsync(db, race.Key, jrdbHorses, sortedHorses.ToArray());
+
+          // 分析テーブル（旧式）
           var analysisTables = new List<Analysis.Table.AnalysisTable>();
           foreach (var table in ApplicationConfiguration.Current.Value.AnalysisTableGenerators)
           {

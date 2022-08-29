@@ -22,28 +22,22 @@
       <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
     </Grid.Resources>
 
-    <Grid>
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
-      </Grid.ColumnDefinitions>
-      <RadioButton Grid.Column="0" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+    <UniformGrid Rows="1">
+      <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="出走馬" Name="S_HorseList" IsChecked="True"/>
-      <RadioButton Grid.Column="1" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="検索" Name="S_Finder"/>
-      <RadioButton Grid.Column="2" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="対戦表" Name="S_Matches"/>
-      <RadioButton Grid.Column="3" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                   Content="印" Name="S_HorseMark"/>
+      <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="オッズ一覧" Name="S_Odds"/>
-      <RadioButton Grid.Column="4" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="予想スクリプト" Name="S_Script"/>
-      <RadioButton Grid.Column="5" Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+      <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                    Content="馬券" Name="S_Tickets"/>
-    </Grid>
+    </UniformGrid>
 
     <Grid Grid.Row="1">
 
@@ -168,6 +162,121 @@
               <b:SyncScrollOffsetBehavior TargetElement="{Binding ElementName=TableHeader}"/>
             </i:Interaction.Behaviors>
           </ItemsControl>
+        </Grid>
+      </Grid>
+
+      <!-- 印 -->
+      <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseMark,Converter={StaticResource BooleanVisibilityConv}}">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="auto"/>
+          </Grid.RowDefinitions>
+
+          <!--見出し-->
+          <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Name="MarkTableHeader">
+            <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}" Margin="198,0,40,0">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="64">
+                    <StackPanel HorizontalAlignment="Stretch">
+                      <Border Height="4" Background="{Binding Data.FrameNumber,Converter={StaticResource FrameNumberBrushConv}}"/>
+                      <TextBlock Text="{Binding Data.Number}" Foreground="{StaticResource SubForeground}" FontSize="22" HorizontalAlignment="Center"/>
+                      <up:HorseMarkButton Horse="{Binding}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+
+          <!--行-->
+          <ItemsControl Grid.Row="1" ItemsSource="{Binding Race.HorseMark.Value.Rows,ElementName=Root}" Style="{StaticResource TableList}"
+                        ScrollViewer.HorizontalScrollBarVisibility="Auto">
+            <ItemsControl.Resources>
+              <TransformGroup x:Key="MarkTransform">
+                <ScaleTransform ScaleX="0.7" ScaleY="0.7"/>
+                <TranslateTransform X="5" Y="5"/>
+              </TransformGroup>
+            </ItemsControl.Resources>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal">
+
+                  <!--設定名-->
+                  <Grid>
+                    <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="198" Height="62">
+                      <Grid VerticalAlignment="Center">
+                        <Grid.RowDefinitions>
+                          <RowDefinition Height="auto"/>
+                          <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="auto"/>
+                          <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock FontWeight="Bold" Text="{Binding Name.Value}" FontSize="15" Foreground="{StaticResource BaseForeground}"
+                                   Visibility="{Binding IsCustomMark,Converter={StaticResource NegativeVisibilityConv}}"
+                                   Grid.ColumnSpan="2"/>
+                        <TextBox FontWeight="Bold" Text="{Binding Name.Value}" FontSize="16" Foreground="{StaticResource BaseForeground}"
+                                 Visibility="{Binding IsCustomMark,Converter={StaticResource BooleanVisibilityConv}}"
+                                 Grid.ColumnSpan="2"/>
+                        <ToggleButton FontSize="12" Content="選択" IsChecked="{Binding CustomMarkConfig.IsChecked.Value,Mode=TwoWay}" Visibility="{Binding IsCustomMark,Converter={StaticResource BooleanVisibilityConv}}"
+                                      Grid.Row="1" Padding="4,2" Margin="0,0,16,0"/>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Visibility="{Binding IsCustomMark,Converter={StaticResource BooleanVisibilityConv}}">
+                          <Button FontSize="16" Content="上へ" Command="{Binding DataContext.UpMarkConfigCommand,ElementName=Root}" CommandParameter="{Binding CustomMarkConfig}"
+                                  Padding="4,2"/>
+                          <Button FontSize="16" Content="下へ" Command="{Binding DataContext.DownMarkConfigCommand,ElementName=Root}" CommandParameter="{Binding CustomMarkConfig}"
+                                  Padding="4,2"/>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </Grid>
+
+                  <!--印情報-->
+                  <ItemsControl ItemsSource="{Binding Cells}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Width="64" Height="62" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="0,0,0,1">
+                          <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <ContentControl Template="{Binding Mark.Value,Mode=OneWay,Converter={StaticResource HorseMarkConv}}" RenderTransform="{StaticResource MarkTransform}"
+                                            Visibility="{Binding CanEdit,Converter={StaticResource NegativeVisibilityConv}}"/>
+                            <up:HorseMarkButton Horse="{Binding}"
+                                                Visibility="{Binding CanEdit,Converter={StaticResource BooleanVisibilityConv}}"/>
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+            <i:Interaction.Behaviors>
+              <b:SyncScrollOffsetBehavior TargetElement="{Binding ElementName=MarkTableHeader}"/>
+            </i:Interaction.Behaviors>
+          </ItemsControl>
+
+          <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition/>
+              <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Row="2" Margin="0,4,0,8" Width="140" Height="40" FontSize="16" Content="設定を追加"
+                    Command="{Binding AddMarkConfigCommand}" HorizontalAlignment="Left"/>
+            <Button Grid.Row="2" Grid.Column="1" Margin="0,4,0,8" Width="280" Height="40" FontSize="16" Content="選択した設定を削除"
+                    Command="{Binding RemoveMarkConfigCommand}" HorizontalAlignment="Left"/>
+          </Grid>
         </Grid>
       </Grid>
 

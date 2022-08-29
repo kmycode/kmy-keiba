@@ -21,7 +21,7 @@ using System.Windows.Input;
 
 namespace KmyKeiba.Models.Analysis
 {
-  public class RaceHorseAnalyzer : IDisposable
+  public class RaceHorseAnalyzer : IDisposable, IHorseMarkSetter
   {
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
@@ -596,8 +596,7 @@ namespace KmyKeiba.Models.Analysis
 
     private async Task ChangeHorseMarkAsync(string marks)
     {
-      short.TryParse(marks, out var markss);
-      var mark = (RaceHorseMark)markss;
+      var mark = EnumUtil.ToHorseMark(marks);
 
       using var db = new MyContext();
       this.ChangeHorseMark(db, mark);

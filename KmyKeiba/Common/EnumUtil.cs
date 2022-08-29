@@ -1,4 +1,5 @@
-﻿using KmyKeiba.JVLink.Entities;
+﻿using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,29 @@ namespace KmyKeiba.Common
 {
   internal static class EnumUtil
   {
+    public static RaceHorseMark ToHorseMark(string num)
+    {
+      short.TryParse(num, out var markss);
+      var mark = (RaceHorseMark)markss;
+
+      return mark;
+    }
+
+    public static RaceHorseMark ToAppMark(this JdbcHorseMark mark)
+    {
+      return mark switch
+      {
+        JdbcHorseMark.DoubleCircle => RaceHorseMark.DoubleCircle,
+        JdbcHorseMark.Circle => RaceHorseMark.Circle,
+        JdbcHorseMark.FilledTriangle => RaceHorseMark.FilledTriangle,
+        JdbcHorseMark.Triangle1 => RaceHorseMark.Triangle,
+        JdbcHorseMark.Triangle2 => RaceHorseMark.Check,
+        JdbcHorseMark.Star => RaceHorseMark.Star,
+        JdbcHorseMark.Attention => RaceHorseMark.Note,
+        _ => RaceHorseMark.Default,
+      };
+    }
+
     public static string ToLabelString(this RunningStyle style)
     {
       return style switch
