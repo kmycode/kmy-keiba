@@ -8,7 +8,7 @@
     <BaseOutputPath>..\dist\x64</BaseOutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <VersionPrefix>4.0.3</VersionPrefix>
+    <VersionPrefix>4.1.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
