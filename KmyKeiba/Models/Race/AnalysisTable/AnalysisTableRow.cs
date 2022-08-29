@@ -5,6 +5,7 @@ using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.Race.Memo;
+using KmyKeiba.Models.Script;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -20,6 +21,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 {
   public class AnalysisTableRow : IDisposable
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private readonly CompositeDisposable _disposables = new();
     private bool _isInitializingParentList = false;
     private readonly bool _isInitialized = false;
@@ -38,6 +41,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<string> AlternativeValueIfEmpty { get; } = new();
 
+    public ReactiveProperty<string> ValueScript { get; } = new();
+
     public ReactiveProperty<AnalysisTableRowOutputType> Output { get; } = new();
 
     public ReadOnlyReactiveProperty<bool> CanSetExternalNumber { get; }
@@ -55,6 +60,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public ReadOnlyReactiveProperty<bool> CanSetJrdbOutput { get; }
 
     public ReadOnlyReactiveProperty<bool> CanSetAlternativeValue { get; }
+
+    public ReadOnlyReactiveProperty<bool> CanSetScript { get; }
 
     public ReactiveCollection<AnalysisTableCell> Cells { get; } = new();
 
@@ -112,6 +119,12 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.BaseWeight.Value = data.BaseWeight.ToString();
       this.Limited.Value = data.RequestedSize.ToString();
       this.AlternativeValueIfEmpty.Value = data.AlternativeValueIfEmpty.ToString();
+      this.ValueScript.Value = data.ValueScript;
+
+      if (string.IsNullOrEmpty(this.ValueScript.Value))
+      {
+        this.ValueScript.Value = "value";
+      }
 
       this.CanSetExternalNumber = this.Output.Select(o => o == AnalysisTableRowOutputType.ExternalNumber).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetMemoConfig = this.Output.Select(o => o == AnalysisTableRowOutputType.ExpansionMemo).ToReadOnlyReactiveProperty().AddTo(this._disposables);
@@ -143,6 +156,12 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         o != AnalysisTableRowOutputType.ExpansionMemo &&
         o != AnalysisTableRowOutputType.HorseValues &&
         o != AnalysisTableRowOutputType.FixedValue).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+      this.CanSetScript = this.SelectedOutput.Where(o => o != null).Select(o => o!.OutputType).Select(o =>
+        o == AnalysisTableRowOutputType.ExpansionMemo ||
+        o == AnalysisTableRowOutputType.ExternalNumber ||
+        o == AnalysisTableRowOutputType.HorseValues ||
+        o == AnalysisTableRowOutputType.JrdbValues ||
+        o == AnalysisTableRowOutputType.FixedValue).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetSubOutput = this.SelectedOutput
         .Where(o => o != null)
         .Select(o => o!.OutputType)
@@ -298,6 +317,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         .CombineLatest(this.BaseWeight)
         .CombineLatest(this.Limited)
         .CombineLatest(this.AlternativeValueIfEmpty)
+        .CombineLatest(this.ValueScript)
         .Skip(1).Subscribe(async _ =>
         {
           // TODO try catch
@@ -305,6 +325,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           db.AnalysisTableRows!.Attach(this.Data);
           this.Data.Name = this.Name.Value;
           this.Data.Output = this.Output.Value;
+          this.Data.ValueScript = this.ValueScript.Value;
           if (double.TryParse(this.BaseWeight.Value, out var bw))
           {
             this.Data.BaseWeight = bw;
@@ -660,6 +681,37 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     private void AnalysisFixedValue(double value, IEnumerable<AnalysisTableWeight> weights, AnalysisTableCell cell, RaceFinder finder, int digit = 3)
     {
+      cell.SubValue.Value = string.Empty;
+
+      if (this.CanSetScript.Value)
+      {
+        if (!string.IsNullOrWhiteSpace(this.Data.ValueScript) && this.Data.ValueScript.Trim() != "value")
+        {
+          using var engine = new StringScriptEngine();
+          try
+          {
+            var result = engine.Execute("let value = " + value + "; " + this.Data.ValueScript);
+            if (result is int intval)
+            {
+              value = intval;
+            }
+            else if (result is double doval)
+            {
+              value = doval;
+            }
+            else
+            {
+              cell.SubValue.Value = "不正な戻り値";
+            }
+          }
+          catch (Exception ex)
+          {
+            cell.SubValue.Value = "Scriptエラー";
+            logger.Error($"スクリプトエラー {value}", ex);
+          }
+        }
+      }
+
       if (weights.Any() && finder.RaceHorseAnalyzer != null)
       {
         var weightValue = weights.CalcWeight(new[] { finder.RaceHorseAnalyzer, }) * this.Data.BaseWeight;

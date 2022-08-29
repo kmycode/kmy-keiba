@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
+  [Index(nameof(RaceKey))]
   public class HorseMarkData : AppDataBase
   {
     public uint ConfigId { get; set; }

@@ -35,6 +35,8 @@ namespace KmyKeiba.Data.Db
     public short RequestedSize { get; set; }
 
     public double AlternativeValueIfEmpty { get; set; }
+
+    public string ValueScript { get; set; } = string.Empty;
   }
 
   public enum AnalysisTableRowOutputType : short

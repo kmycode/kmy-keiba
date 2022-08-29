@@ -229,7 +229,7 @@ namespace KmyKeiba.Models.Script
     }
   }
 
-  public class ScriptEngineWrapper : ScriptEngineWrapperBase
+  public class ScriptEngineWrapper : FileScriptEngine
   {
     private static readonly string _backgroundColor = ResourceUtil.TryGetResource<RHColor>("BrowserBackgroundColor")?.ToHTMLColor() ?? "white";
     private static readonly string _foregroundColor = ResourceUtil.TryGetResource<RHColor>("BrowserForegroundColor")?.ToHTMLColor() ?? "white";

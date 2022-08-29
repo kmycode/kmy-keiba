@@ -91,13 +91,13 @@
                     <ColumnDefinition/>
                     <ColumnDefinition Width="80"/>
                     <ColumnDefinition/>
-                    <ColumnDefinition Width="120"/>
                   </Grid.ColumnDefinitions>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="28"/>
                     <RowDefinition Height="28"/>
                     <RowDefinition Height="28"/>
                     <RowDefinition Height="28"/>
+                    <RowDefinition Height="auto"/>
                   </Grid.RowDefinitions>
                   <TextBlock Text="種別" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
                              VerticalAlignment="Center"/>
@@ -167,16 +167,22 @@
                             Visibility="{Binding CanSetLimited.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   <TextBlock Grid.Column="4" Grid.Row="1" Text="親" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
                              VerticalAlignment="Center"/>
-                  <ComboBox Grid.Column="5" Grid.Row="1" ItemsSource="{Binding AnalysisTable.Config.ActiveTable.Value.ParentRowSelections,ElementName=Root}"
-                            SelectedItem="{Binding SelectedParent.Value,Mode=TwoWay}">
-                    <ComboBox.ItemTemplate>
-                      <DataTemplate>
-                        <TextBlock FontSize="16" Text="{Binding Name.Value}"/>
-                      </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                  </ComboBox>
-                  <Button Grid.Column="6" Grid.Row="1" Content="親選択解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowParentCommand,ElementName=Root}"
-                          CommandParameter="{Binding}" Margin="8,0,0,0"/>
+                  <Grid Grid.Column="5" Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition/>
+                      <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox ItemsSource="{Binding AnalysisTable.Config.ActiveTable.Value.ParentRowSelections,ElementName=Root}"
+                              SelectedItem="{Binding SelectedParent.Value,Mode=TwoWay}">
+                      <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock FontSize="16" Text="{Binding Name.Value}"/>
+                        </DataTemplate>
+                      </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Grid.Column="1" Content="選択解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowParentCommand,ElementName=Root}"
+                            CommandParameter="{Binding}" Margin="8,0,0,0"/>
+                  </Grid>
 
                   <TextBlock Grid.Column="0" Grid.Row="2" Text="重み１" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
                              VerticalAlignment="Center"
@@ -248,6 +254,13 @@
                   <TextBox Grid.Column="1" Grid.Row="3" FontSize="16" Text="{Binding AlternativeValueIfEmpty.Value,Mode=TwoWay}"
                            VerticalContentAlignment="Center" TextAlignment="Center"
                            Visibility="{Binding CanSetAlternativeValue.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+
+                  <TextBlock Grid.Column="0" Grid.Row="4" Text="スクリプト" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
+                             VerticalAlignment="Center"
+                             Visibility="{Binding CanSetScript.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                  <TextBox Grid.Column="1" Grid.Row="4" Grid.ColumnSpan="5" FontSize="18" Text="{Binding ValueScript.Value,Mode=TwoWay}"
+                           VerticalContentAlignment="Center" TextAlignment="Left"
+                           Visibility="{Binding CanSetScript.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                 </Grid>
                 <up:FinderKeyInputView Grid.Row="2" IsShowFinderButtonOnly="True" FinderModel="{Binding FinderModelForConfig}"
                                        IsPopupOnMouse="True"
