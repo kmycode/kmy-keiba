@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race.Finder
 {
-  public class RaceFinder
+  public class RaceFinder : IDisposable
   {
     private Dictionary<string, (int, RaceHorseFinderQueryResult)> _raceHorseCaches = new();
     private Dictionary<string, (int, IReadOnlyList<RaceAnalyzer>)> _raceCaches = new();
@@ -258,7 +258,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public void ReplaceFrom(RaceFinder other)
     {
-      this.Dispose();
+      this.ClearCache();
 
       this._raceCaches = other._raceCaches;
       //this._raceHorseCaches = other._raceHorseCaches;

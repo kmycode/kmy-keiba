@@ -453,6 +453,7 @@ namespace KmyKeiba.Models.Race.Finder
         //this.Input.Dispose();
       });
       this.Input.Dispose();
+      this._finder.Dispose();
       this._disposables.Dispose();
     }
   }

@@ -237,6 +237,10 @@ namespace KmyKeiba.Models.Race
           }
 
           this.ticketUpdated?.Dispose();
+          if (oldInfo?.Tickets.Value != null)
+          {
+            oldInfo.Tickets.Value.Tickets.TicketCountChanged -= this.Tickets_TicketCountChanged;
+          }
           this.memoChanged?.Dispose();
 
           var raceKey = key ?? this.RaceKey.Value;
@@ -266,25 +270,11 @@ namespace KmyKeiba.Models.Race
             // レースリストには、購入した馬券の点数をそのまま表示する
             race!.WaitTicketsAndCallback(tickets =>
             {
-              Action act = () =>
-              {
-                if (tickets.Tickets.Any())
-                {
-                  var money = tickets.Tickets.Sum(t => t.Count.Value * t.Rows.Count * 100);
-                  this.RaceList.UpdatePayoff(race.Data.Key, money * -1, true);
-                }
-                else
-                {
-                  this.RaceList.UpdatePayoff(race.Data.Key, 0, false);
-                }
-              };
-
               this.ticketUpdated = tickets.Tickets.CollectionChangedAsObservable()
-                .Concat(Observable.FromEvent<EventHandler, EventArgs>(
-                  a => (s, e) => a(e),
-                  dele => tickets.Tickets.TicketCountChanged += dele,
-                  dele => tickets.Tickets.TicketCountChanged -= dele))
-                .Subscribe(_ => act());
+                .Subscribe(_ => this.Tickets_TicketCountChanged(null, EventArgs.Empty));
+
+              // FromEventPatternはなぜか動かない
+              tickets.Tickets.TicketCountChanged += this.Tickets_TicketCountChanged;
             });
           }
 
@@ -355,6 +345,26 @@ namespace KmyKeiba.Models.Race
           }
         }
       });
+    }
+
+    private void Tickets_TicketCountChanged(object? sender, EventArgs e)
+    {
+      var tickets = this.Info.Value?.Tickets.Value;
+      if (tickets == null)
+      {
+        return;
+      }
+      var race = this.Info.Value!;
+
+      if (tickets.Tickets.Any())
+      {
+        var money = tickets.Tickets.Sum(t => t.Count.Value * t.Rows.Count * 100);
+        this.RaceList.UpdatePayoff(race.Data.Key, money * -1, true);
+      }
+      else
+      {
+        this.RaceList.UpdatePayoff(race.Data.Key, 0, false);
+      }
     }
 
     public void Dispose()
