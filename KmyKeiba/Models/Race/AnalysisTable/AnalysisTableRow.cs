@@ -484,6 +484,58 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             {
               this.TrySetJrdbValue(j => j.TotalPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
             }
+            else if (this.Data.Output == AnalysisTableRowOutputType.IdmPoint)
+            {
+              this.TrySetJrdbValue(j => j.IdmPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.PopularPoint)
+            {
+              this.TrySetJrdbValue(j => j.PopularPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.StablePoint)
+            {
+              this.TrySetJrdbValue(j => j.StablePoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.TrainingPoint)
+            {
+              this.TrySetJrdbValue(j => j.TrainingPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RiderTopRatioExpectPoint)
+            {
+              this.TrySetJrdbValue(j => j.RiderTopRatioExpectPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.SpeedPoint)
+            {
+              this.TrySetJrdbValue(j => j.SpeedPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RaceBefore3Point)
+            {
+              this.TrySetJrdbValue(j => j.RaceBefore3Point / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RaceBasePoint)
+            {
+              this.TrySetJrdbValue(j => j.RaceBasePoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RaceAfter3Point)
+            {
+              this.TrySetJrdbValue(j => j.RaceAfter3Point / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RacePositionPoint)
+            {
+              this.TrySetJrdbValue(j => j.RacePositionPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RaceStartPoint)
+            {
+              this.TrySetJrdbValue(j => j.RaceStartPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RaceStartDelayPoint)
+            {
+              this.TrySetJrdbValue(j => j.RaceStartDelayPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.BigTicketPoint)
+            {
+              this.TrySetJrdbValue(j => j.BigTicketPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
             else if (this.Data.Output == AnalysisTableRowOutputType.MiningTime)
             {
               await this.TrySetExtraValueAsync(e => e.MiningTime / 10.0, item.Cell.Horse, myWeights, item.Cell, item.Finder, 1);

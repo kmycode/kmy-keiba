@@ -10,17 +10,28 @@ namespace KmyKeiba.Common
   internal class CommandBase<T> : ICommand where T : class
   {
     private readonly Action<T> action;
+    private readonly Func<bool>? canExecute;
 
-    public CommandBase(Action<T> act)
+    public CommandBase(Action<T> act, Func<bool>? canExecute = null)
     {
       this.action = act;
+      this.canExecute = canExecute;
     }
 
     public event EventHandler? CanExecuteChanged;
 
     public bool CanExecute(object? parameter)
     {
+      if (this.canExecute != null)
+      {
+        return this.canExecute();
+      }
       return true;
+    }
+
+    public void OnCanExecuteChanged()
+    {
+      this.CanExecuteChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void Execute(object? parameter)

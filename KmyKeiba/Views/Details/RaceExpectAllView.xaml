@@ -226,7 +226,7 @@
                                    Grid.ColumnSpan="2"/>
                         <TextBox FontWeight="Bold" Text="{Binding Name.Value}" FontSize="16" Foreground="{StaticResource BaseForeground}"
                                  Visibility="{Binding IsCustomMark,Converter={StaticResource BooleanVisibilityConv}}"
-                                 Grid.ColumnSpan="2"/>
+                                 Grid.ColumnSpan="2" IsReadOnly="{Binding DataContext.CanSave.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
                         <ToggleButton FontSize="12" Content="選択" IsChecked="{Binding CustomMarkConfig.IsChecked.Value,Mode=TwoWay}" Visibility="{Binding IsCustomMark,Converter={StaticResource BooleanVisibilityConv}}"
                                       Grid.Row="1" Padding="4,2" Margin="0,0,16,0"/>
                         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Visibility="{Binding IsCustomMark,Converter={StaticResource BooleanVisibilityConv}}">

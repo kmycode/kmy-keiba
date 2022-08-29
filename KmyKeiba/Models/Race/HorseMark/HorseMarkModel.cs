@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
@@ -209,13 +210,18 @@ namespace KmyKeiba.Models.Race.HorseMark
           logger.Error("印の保存でエラー", ex);
         }
       }).AddTo(this._disposables);
+
+      DownloaderModel.Instance.CanSaveOthers.Subscribe(canSave =>
+      {
+        ((CommandBase<string>)this.SetMarkCommand).OnCanExecuteChanged();
+      }).AddTo(this._disposables);
     }
 
     #region Command
 
     public ICommand SetMarkCommand =>
       this._setDoubleCircleMarkCommand ??=
-        new CommandBase<string>(mark => this.Mark.Value = EnumUtil.ToHorseMark(mark));
+        new CommandBase<string>(mark => this.Mark.Value = EnumUtil.ToHorseMark(mark), () => DownloaderModel.Instance.CanSaveOthers.Value);
     private ICommand? _setDoubleCircleMarkCommand;
 
     #endregion

@@ -86,6 +86,19 @@ namespace KmyKeiba.Data.Db
     RiderPoint = 501,
     InfoPoint = 502,
     TotalPoint = 503,
+    IdmPoint = 504,
+    PopularPoint = 505,
+    StablePoint = 506,
+    TrainingPoint = 507,
+    RiderTopRatioExpectPoint = 508,
+    SpeedPoint = 509,
+    RaceBefore3Point = 510,
+    RaceBasePoint = 511,
+    RaceAfter3Point = 512,
+    RacePositionPoint = 513,
+    RaceStartPoint = 514,
+    RaceStartDelayPoint = 515,
+    BigTicketPoint = 516,
 
     /// <summary>
     /// 通常は設定しない

@@ -186,6 +186,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
         RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
         {
+          Label = "IDM指数",
+          OutputType = AnalysisTableRowOutputType.IdmPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
           Label = "騎手指数",
           OutputType = AnalysisTableRowOutputType.RiderPoint,
         });
@@ -198,6 +203,66 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         {
           Label = "総合指数",
           OutputType = AnalysisTableRowOutputType.TotalPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "人気指数",
+          OutputType = AnalysisTableRowOutputType.PopularPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "厩舎指数",
+          OutputType = AnalysisTableRowOutputType.StablePoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "調教指数",
+          OutputType = AnalysisTableRowOutputType.TrainingPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "騎手連対指数",
+          OutputType = AnalysisTableRowOutputType.RiderTopRatioExpectPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "激走指数",
+          OutputType = AnalysisTableRowOutputType.SpeedPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "テン指数",
+          OutputType = AnalysisTableRowOutputType.RaceBefore3Point,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "ベース指数",
+          OutputType = AnalysisTableRowOutputType.RaceBasePoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "上がり指数",
+          OutputType = AnalysisTableRowOutputType.RaceAfter3Point,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "位置取り指数",
+          OutputType = AnalysisTableRowOutputType.RacePositionPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "スタート指数",
+          OutputType = AnalysisTableRowOutputType.RaceStartPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "出遅れ指数",
+          OutputType = AnalysisTableRowOutputType.RaceStartDelayPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "万馬券指数",
+          OutputType = AnalysisTableRowOutputType.BigTicketPoint,
         });
 
         _isInitialized = true;
