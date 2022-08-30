@@ -557,6 +557,46 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             {
               this.TrySetJrdbValue(j => j.BigTicketPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
             }
+            else if (this.Data.Output == AnalysisTableRowOutputType.IdentificationMarkCount1)
+            {
+              this.TrySetJrdbValue(j => j.IdentificationMarkCount1, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.IdentificationMarkCount2)
+            {
+              this.TrySetJrdbValue(j => j.IdentificationMarkCount2, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.IdentificationMarkCount3)
+            {
+              this.TrySetJrdbValue(j => j.IdentificationMarkCount3, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.IdentificationMarkCount4)
+            {
+              this.TrySetJrdbValue(j => j.IdentificationMarkCount4, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.IdentificationMarkCount5)
+            {
+              this.TrySetJrdbValue(j => j.IdentificationMarkCount5, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.TotalMarkCount1)
+            {
+              this.TrySetJrdbValue(j => j.TotalMarkCount1, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.TotalMarkCount2)
+            {
+              this.TrySetJrdbValue(j => j.TotalMarkCount2, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.TotalMarkCount3)
+            {
+              this.TrySetJrdbValue(j => j.TotalMarkCount3, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.TotalMarkCount4)
+            {
+              this.TrySetJrdbValue(j => j.TotalMarkCount4, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.TotalMarkCount5)
+            {
+              this.TrySetJrdbValue(j => j.TotalMarkCount5, myWeights, item.Cell, item.Finder, 1);
+            }
             else if (this.Data.Output == AnalysisTableRowOutputType.MiningTime)
             {
               await this.TrySetExtraValueAsync(e => e.MiningTime / 10.0, item.Cell.Horse, myWeights, item.Cell, item.Finder, 1);

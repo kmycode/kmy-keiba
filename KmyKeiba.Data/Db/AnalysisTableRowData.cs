@@ -101,6 +101,16 @@ namespace KmyKeiba.Data.Db
     RaceStartPoint = 514,
     RaceStartDelayPoint = 515,
     BigTicketPoint = 516,
+    IdentificationMarkCount1 = 517,
+    IdentificationMarkCount2 = 518,
+    IdentificationMarkCount3 = 519,
+    IdentificationMarkCount4 = 520,
+    IdentificationMarkCount5 = 521,
+    TotalMarkCount1 = 522,
+    TotalMarkCount2 = 523,
+    TotalMarkCount3 = 524,
+    TotalMarkCount4 = 525,
+    TotalMarkCount5 = 526,
 
     /// <summary>
     /// 通常は設定しない

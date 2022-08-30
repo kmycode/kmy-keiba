@@ -264,6 +264,56 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           Label = "万馬券指数",
           OutputType = AnalysisTableRowOutputType.BigTicketPoint,
         });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "特定印の数：◎",
+          OutputType = AnalysisTableRowOutputType.IdentificationMarkCount1,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "特定印の数：○",
+          OutputType = AnalysisTableRowOutputType.IdentificationMarkCount2,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "特定印の数：▲",
+          OutputType = AnalysisTableRowOutputType.IdentificationMarkCount3,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "特定印の数：△",
+          OutputType = AnalysisTableRowOutputType.IdentificationMarkCount4,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "特定印の数：✕",
+          OutputType = AnalysisTableRowOutputType.IdentificationMarkCount5,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "総合印の数：◎",
+          OutputType = AnalysisTableRowOutputType.TotalMarkCount1,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "総合印の数：○",
+          OutputType = AnalysisTableRowOutputType.TotalMarkCount2,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "総合印の数：▲",
+          OutputType = AnalysisTableRowOutputType.TotalMarkCount3,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "総合印の数：△",
+          OutputType = AnalysisTableRowOutputType.TotalMarkCount4,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "総合印の数：✕",
+          OutputType = AnalysisTableRowOutputType.TotalMarkCount5,
+        });
 
         _isInitialized = true;
       }
