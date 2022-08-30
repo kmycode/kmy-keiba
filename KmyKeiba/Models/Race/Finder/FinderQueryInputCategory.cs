@@ -384,7 +384,16 @@ namespace KmyKeiba.Models.Race.Finder
 
     public bool IsCompareWithHorse { get; }
 
-    public bool CanCompareCurrentRaceValue { get; protected set; } = true;
+    public bool CanCompareCurrentRaceValue
+    {
+      get => this._canCompareCurrentRaceValue;
+      set
+      {
+        this._canCompareCurrentRaceValue = value;
+        this.NumberInput.CanCompareCurrentRaceValue = value;
+      }
+    }
+    private bool _canCompareCurrentRaceValue = true;
 
     protected ListBoxInputCategoryBase(string key) : this(key, true, false)
     {
@@ -2497,16 +2506,19 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public RaceData? Race { get; }
 
+    public RaceHorseAnalyzer? Analyzer { get; }
+
     public ReactiveCollection<FinderModelItem> Items { get; } = new();
 
-    public BeforeRaceInputCategory(RaceData? race)
+    public BeforeRaceInputCategory(RaceData? race, RaceHorseAnalyzer? analyzer)
     {
       this.Race = race;
+      this.Analyzer = analyzer;
     }
 
     public void AddItem()
     {
-      var model = new FinderModel(this.Race, null, null).AddTo(this.Disposables);
+      var model = new FinderModel(this.Race, this.Analyzer, null).AddTo(this.Disposables);
       model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       var i = new FinderModelItem(model).AddTo(this.Disposables);
       this.AddTextCheckForEscape(i.BeforeRaceCount);
@@ -2597,7 +2609,7 @@ namespace KmyKeiba.Models.Race.Finder
           if (separator5 >= 0)
             isCountRuleMorePast = item[(separator4 + 1)..separator5].ToLower() == "true";
 
-          var model = new FinderModel(this.Race, null, null).AddTo(this.Disposables);
+          var model = new FinderModel(this.Race, this.Analyzer, null).AddTo(this.Disposables);
           model.Input.Deserialize(item[separator3..].Replace(";", Environment.NewLine));
           model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
           model.Input.BeforeRace.UpdateQuery();

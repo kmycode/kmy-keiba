@@ -238,7 +238,7 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.TrainerName = new TrainerNameInputCategory());
       this._categories.Add(this.TrainerBelongs = new TrainerBelongsInputCategory());
       this._categories.Add(this.SameRaceHorse = new SameRaceHorseInputCategory(race, analyzer));
-      this._categories.Add(this.BeforeRace = new BeforeRaceInputCategory(race));
+      this._categories.Add(this.BeforeRace = new BeforeRaceInputCategory(race, analyzer));
       this._categories.Add(this.Memo = new MemoInputCategory());
       this._categories.Add(this.ExternalNumber = new ExternalNumberInputCategory());
       this._categories.Add(this.GroupBy = new GroupByCategoryInput());

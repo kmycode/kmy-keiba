@@ -82,7 +82,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public bool IsCompareWithHorse { get; }
 
-    public bool CanCompareCurrentRaceValue { get; set; }
+    public bool CanCompareCurrentRaceValue { get; set; } = true;
 
     public FinderQueryNumberInput(bool isCompareWithHorse)
     {
@@ -181,11 +181,11 @@ namespace KmyKeiba.Models.Race.Finder
 
         if (this.IsGreaterThan.Value || this.IsGreaterThanOrEqual.Value)
         {
-          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値より {this.Value.Value} 大きい";
+          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値より {this.Value.Value}以上 大きい";
         }
         else if (this.IsLessThan.Value || this.IsLessThanOrEqual.Value)
         {
-          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値より {this.Value.Value} 小さい";
+          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値より {this.Value.Value}以上 小さい";
         }
         else if (this.IsEqual.Value)
         {

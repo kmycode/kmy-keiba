@@ -60,6 +60,7 @@
                   <Binding Path="HasRace" ElementName="Root"/>
                   <Binding Path="CanCompareWithCurrentRace" ElementName="Root"/>
                   <Binding Path="Input.IsCompareWithHorse" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                  <Binding Path="Input.CanCompareCurrentRaceValue" ElementName="Root"/>
                 </MultiBinding>
               </RadioButton.Visibility>
             </RadioButton>
@@ -69,6 +70,7 @@
                   <Binding Path="HasRaceHorse" ElementName="Root"/>
                   <Binding Path="CanCompareWithCurrentRace" ElementName="Root"/>
                   <Binding Path="Input.IsCompareWithHorse" ElementName="Root"/>
+                  <Binding Path="Input.CanCompareCurrentRaceValue" ElementName="Root"/>
                 </MultiBinding>
               </RadioButton.Visibility>
             </RadioButton>

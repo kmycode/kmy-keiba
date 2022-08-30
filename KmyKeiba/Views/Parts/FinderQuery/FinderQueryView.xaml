@@ -159,13 +159,13 @@
           <Setter Property="IsComparable" Value="{Binding IsSubViewBeforeRace,ElementName=Root}"/>
           <Setter Property="HasRace" Value="{Binding FinderModel.HasRace,ElementName=Root}"/>
           <Setter Property="HasRaceHorse" Value="{Binding FinderModel.HasRaceHorse,ElementName=Root}"/>
-          <Setter Property="CanCompareWithCurrentRace" Value="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+          <Setter Property="CanCompareWithCurrentRace" Value="True"/>
         </Style>
         <Style TargetType="{x:Type local:InputListBoxView}">
           <Setter Property="IsComparable" Value="{Binding IsSubViewBeforeRace,ElementName=Root}"/>
           <Setter Property="HasRace" Value="{Binding FinderModel.HasRace,ElementName=Root}"/>
           <Setter Property="HasRaceHorse" Value="{Binding FinderModel.HasRaceHorse,ElementName=Root}"/>
-          <Setter Property="CanCompareWithCurrentRace" Value="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+          <Setter Property="CanCompareWithCurrentRace" Value="True"/>
         </Style>
         <DataTemplate x:Key="ListEnumItem">
           <TextBlock FontSize="16" Text="{Binding Label}"/>
@@ -938,8 +938,8 @@
                       <Button Grid.Column="6" FontSize="14" Content="削除"
                               Command="{Binding FinderModel.Input.BeforeRace.RemoveItemCommand,ElementName=Root}" CommandParameter="{Binding}"/>
                     </Grid>
-                    <up:FinderKeyInputView FinderModel="{Binding Model}" IsSubView="True" IsSubViewBeforeRace="True"
-                                           CanCompareWithCurrentRace="False" IsGenerateDefaultPopup="True"/>
+                    <up:FinderKeyInputView FinderModel="{Binding Model}" IsSubView="True" IsSubViewBeforeRace="{Binding IsCountMode.Value,Converter={StaticResource NegativeConv}}"
+                                           CanCompareWithCurrentRace="{Binding IsCountMode.Value}" IsGenerateDefaultPopup="True"/>
                   </StackPanel>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>

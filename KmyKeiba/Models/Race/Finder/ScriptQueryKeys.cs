@@ -677,7 +677,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       query = data.Select(d => d.Horse);
 
-      return query;
+      return query.Distinct();
     }
   }
 
