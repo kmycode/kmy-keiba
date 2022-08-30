@@ -887,7 +887,7 @@ namespace KmyKeiba.Models.Race
           if (isCache)
           {
             RaceInfoCacheManager.Register(info, horseAllHistories, horseHistorySameHorses, horseDetails, trainings, woodTrainings,
-               info.Finder, info.AnalysisTable.Value?.ToCache(), info.Payoff?.Payoff, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
+               /*info.Finder*/null, /*info.AnalysisTable.Value?.ToCache()*/null, info.Payoff?.Payoff, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
           }
         }
         catch (Exception ex)
