@@ -109,9 +109,28 @@ namespace KmyKeiba.Models.Race.Finder
       var query = horses
         .Join(races, rh => rh.RaceKey, r => r.Key, (rh, r) => new { RaceHorse = rh, Race = r, });
 
-      var racesData = await query
+      var racesDataQuery = query
         .OrderByDescending(r => r.Race.StartTime)
-        .Skip(offset)
+        .Skip(offset);
+
+      // Distinct自体に非常に時間がかかる（時間が使わないときの１００倍以上になることも）ので、特別にTakeしてからDistinctする
+      // 件数に対して結果が少なくなる可能性はあるが仕方ない
+      if (raceQueries.Queries.OfType<HorseBeforeRacesCountScriptKeyQuery>().Any())
+      {
+        var countQueries = raceQueries.Queries.OfType<HorseBeforeRacesCountScriptKeyQuery>();
+        var size = 1;
+        foreach (var q in countQueries.Where(q => q.Count >= 1))
+        {
+          size *= q.Count;
+        }
+        if (countQueries.Any(q => q.Rule == HorseBeforeRacesCountScriptKeyQuery.RaceCountComparationRule.MorePast))
+        {
+          size = Math.Max(100, size);  // この100は、１頭の馬の平均前走数が目安（地方では100以上走る馬が多い）ハルウララ大好き
+        }
+        racesDataQuery = racesDataQuery.Take(sizeMax * size).Distinct();
+      }
+
+      var racesData = await racesDataQuery
         .Take(sizeMax)
         .ToArrayAsync();
 

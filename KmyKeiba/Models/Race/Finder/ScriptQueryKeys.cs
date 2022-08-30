@@ -637,6 +637,10 @@ namespace KmyKeiba.Models.Race.Finder
     private readonly int _count = 0;
     private readonly RaceCountComparationRule _rule;
 
+    public int Count => this._count;
+
+    public RaceCountComparationRule Rule => this._rule;
+
     public HorseBeforeRacesCountScriptKeyQuery(IReadOnlyList<ScriptKeyQuery> queries, RaceCountComparationRule rule, int count)
     {
       this._rule = rule;
@@ -664,7 +668,7 @@ namespace KmyKeiba.Models.Race.Finder
         .Join(races, h => h.RaceKey, r => r.Key, (h, r) => new { h.Key, h.RaceCount, });
 
       var data = query.Join(horsesData, q => q.Key, h => h.Key, (q, h) => new { Horse = q, BeforeRaceCount = h.RaceCount, });
-      data = data.Where(d => d.Horse.RaceCount != d.BeforeRaceCount);
+      data = data.Where(d => d.Horse.RaceCount > d.BeforeRaceCount);
 
       if (this._rule == RaceCountComparationRule.Within)
       {
@@ -672,12 +676,12 @@ namespace KmyKeiba.Models.Race.Finder
       }
       else if (this._rule == RaceCountComparationRule.MorePast)
       {
-        data = data.Where(d => d.BeforeRaceCount >= d.Horse.RaceCount - this._count);
+        data = data.Where(d => d.BeforeRaceCount <= d.Horse.RaceCount - this._count);
       }
 
       query = data.Select(d => d.Horse);
 
-      return query.Distinct();
+      return query;
     }
   }
 
