@@ -160,8 +160,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         o == AnalysisTableRowOutputType.ExpansionMemo ||
         o == AnalysisTableRowOutputType.ExternalNumber ||
         o == AnalysisTableRowOutputType.HorseValues ||
-        o == AnalysisTableRowOutputType.JrdbValues ||
-        o == AnalysisTableRowOutputType.FixedValue).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+        o == AnalysisTableRowOutputType.JrdbValues).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetSubOutput = this.SelectedOutput
         .Where(o => o != null)
         .Select(o => o!.OutputType)
