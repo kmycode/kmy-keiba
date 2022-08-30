@@ -2554,6 +2554,10 @@ namespace KmyKeiba.Models.Race.Finder
           text.Append(";");
           text.Append(item.IsCountCompletedRaces.Value ? "complete" : item.IsCountRunningRaces.Value ? "run" : "all");
           text.Append(";");
+          text.Append(item.IsCountMode.Value);
+          text.Append(";");
+          text.Append(item.IsCountRuleMorePast.Value);
+          text.Append(";");
           text.Append(serialized);
           text.Append('|');
         }
@@ -2583,6 +2587,16 @@ namespace KmyKeiba.Models.Race.Finder
           if (separator3 < 0) continue;
           var option = item[(separator2 + 1)..separator3];
 
+          var separator4 = item.IndexOf(';', separator3 + 1);
+          var isCountMode = false;
+          if (separator4 >= 0)
+            isCountMode = item[(separator3 + 1)..separator4].ToLower() == "true";
+
+          var separator5 = item.IndexOf(';', separator4 + 1);
+          var isCountRuleMorePast = false;
+          if (separator5 >= 0)
+            isCountRuleMorePast = item[(separator4 + 1)..separator5].ToLower() == "true";
+
           var model = new FinderModel(this.Race, null, null).AddTo(this.Disposables);
           model.Input.Deserialize(item[separator3..].Replace(";", Environment.NewLine));
           model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
@@ -2595,6 +2609,8 @@ namespace KmyKeiba.Models.Race.Finder
             IsCountCompletedRaces = { Value = option == "complete", },
             IsCountRunningRaces = { Value = option == "run", },
             IsCountAllRaces = { Value = (option != "complete" && option != "run"), },
+            IsCountMode = { Value = isCountMode, },
+            IsCountRuleMorePast = { Value = isCountRuleMorePast, },
           }.AddTo(this.Disposables);
           this.AddTextCheckForEscape(i.BeforeRaceCount);
           this.AddTextCheckForEscape(i.TargetRaceCount);
@@ -2637,6 +2653,10 @@ namespace KmyKeiba.Models.Race.Finder
 
       public ReactiveProperty<bool> IsCountCompletedRaces { get; } = new();
 
+      public ReactiveProperty<bool> IsCountMode { get; } = new();
+
+      public ReactiveProperty<bool> IsCountRuleMorePast { get; } = new();
+
       public event EventHandler? Updated;
 
       public FinderModelItem(FinderModel model)
@@ -2648,6 +2668,8 @@ namespace KmyKeiba.Models.Race.Finder
           .CombineLatest(this.IsCountAllRaces)
           .CombineLatest(this.IsCountRunningRaces)
           .CombineLatest(this.IsCountCompletedRaces)
+          .CombineLatest(this.IsCountMode)
+          .CombineLatest(this.IsCountRuleMorePast)
           .Subscribe(_ => this.Updated?.Invoke(this, EventArgs.Empty))
           .AddTo(this._disposables);
       }
@@ -2670,7 +2692,15 @@ namespace KmyKeiba.Models.Race.Finder
         var option = this.IsCountRunningRaces.Value ? "run" :
           this.IsCountCompletedRaces.Value ? "complete" : "all";
 
-        return $"(before<{option}>:{beforeCount},{targetCount}){query}";
+        if (!this.IsCountMode.Value)
+        {
+          return $"(before<{option}>:{beforeCount},{targetCount}){query}";
+        }
+        else
+        {
+          var compare = this.IsCountRuleMorePast.Value ? ">=" : "<=";
+          return $"(before:0,:count{compare}{beforeCount}){query}";
+        }
       }
 
       public void Dispose()

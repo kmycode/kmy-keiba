@@ -631,6 +631,56 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
+  class HorseBeforeRacesCountScriptKeyQuery : SimpleScriptKeyQuery
+  {
+    private readonly IReadOnlyList<ScriptKeyQuery> _queries;
+    private readonly int _count = 0;
+    private readonly RaceCountComparationRule _rule;
+
+    public HorseBeforeRacesCountScriptKeyQuery(IReadOnlyList<ScriptKeyQuery> queries, RaceCountComparationRule rule, int count)
+    {
+      this._rule = rule;
+      this._queries = queries;
+      this._count = count;
+    }
+
+    internal enum RaceCountComparationRule
+    {
+      Within,  // 以内
+      MorePast,  // より前
+    }
+
+    public override IQueryable<RaceHorseData> Apply(MyContext db, IQueryable<RaceHorseData> query)
+    {
+      var races = (IQueryable<RaceData>)db.Races!;
+      var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
+      foreach (var q in this._queries)
+      {
+        races = q.Apply(db, races);
+        horses = q.Apply(db, horses);
+      }
+
+      var horsesData = horses
+        .Join(races, h => h.RaceKey, r => r.Key, (h, r) => new { h.Key, h.RaceCount, });
+
+      var data = query.Join(horsesData, q => q.Key, h => h.Key, (q, h) => new { Horse = q, BeforeRaceCount = h.RaceCount, });
+      data = data.Where(d => d.Horse.RaceCount != d.BeforeRaceCount);
+
+      if (this._rule == RaceCountComparationRule.Within)
+      {
+        data = data.Where(d => d.BeforeRaceCount >= d.Horse.RaceCount - this._count);
+      }
+      else if (this._rule == RaceCountComparationRule.MorePast)
+      {
+        data = data.Where(d => d.BeforeRaceCount >= d.Horse.RaceCount - this._count);
+      }
+
+      query = data.Select(d => d.Horse);
+
+      return query;
+    }
+  }
+
   class HorseBeforeRacesScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly IReadOnlyList<ScriptKeyQuery> _queries;

@@ -12,6 +12,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using static KmyKeiba.Models.Race.Finder.HorseBeforeRacesCountScriptKeyQuery;
 
 namespace KmyKeiba.Models.Race.Finder
 {
@@ -422,6 +423,9 @@ namespace KmyKeiba.Models.Race.Finder
 
           var beforeSize = 1;
           var compareTargetSize = 0;
+          var isCountQuery = false;
+          var countQueryCount = 0;
+          var countQueryRule = RaceCountComparationRule.Within;
           if (endIndex > 8 && (tagEndIndex > 0 || q.StartsWith("(before:")))
           {
             var paramStartIndex = tagEndIndex > 0 ? tagEndIndex + 2 : 8;
@@ -432,6 +436,17 @@ namespace KmyKeiba.Models.Race.Finder
               {
                 if (!int.TryParse(beforeSizeStr.Split(',')[0], out beforeSize)) beforeSize = 1;
                 if (!int.TryParse(beforeSizeStr.Split(',')[1], out compareTargetSize)) compareTargetSize = 0;
+
+                var countQueryRaw = beforeSizeStr.Split(',')[1];
+                if (countQueryRaw.StartsWith(":count"))
+                {
+                  isCountQuery = true;
+                  if (countQueryRaw.StartsWith(":count>="))
+                  {
+                    countQueryRule = RaceCountComparationRule.MorePast;
+                  }
+                  int.TryParse(countQueryRaw[8..], out countQueryCount);
+                }
               }
               else
               {
@@ -446,7 +461,14 @@ namespace KmyKeiba.Models.Race.Finder
           var keys = q.Substring(endIndex + 1).Replace(';', '|').Replace('\\', '\\');
           var qs = GetQueries(keys, race, horse, horseAnalyzer);
 
-          queries!.Add(new HorseBeforeRacesScriptKeyQuery(countRule, beforeSize, compareTargetSize, qs.Queries, qs.DiffQueries, qs.DiffQueriesBetweenCurrent));
+          if (isCountQuery)
+          {
+            queries!.Add(new HorseBeforeRacesCountScriptKeyQuery(qs.Queries, countQueryRule, countQueryCount));
+          }
+          else
+          {
+            queries!.Add(new HorseBeforeRacesScriptKeyQuery(countRule, beforeSize, compareTargetSize, qs.Queries, qs.DiffQueries, qs.DiffQueriesBetweenCurrent));
+          }
           return true;
         }
 

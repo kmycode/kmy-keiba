@@ -156,7 +156,7 @@
           <Setter Property="Padding" Value="0,4"/>
         </Style>
         <Style TargetType="{x:Type local:InputNumberView}">
-          <Setter Property="IsComparable" Value="True"/>
+          <Setter Property="IsComparable" Value="{Binding IsSubViewBeforeRace,ElementName=Root}"/>
           <Setter Property="HasRace" Value="{Binding FinderModel.HasRace,ElementName=Root}"/>
           <Setter Property="HasRaceHorse" Value="{Binding FinderModel.HasRaceHorse,ElementName=Root}"/>
           <Setter Property="CanCompareWithCurrentRace" Value="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
@@ -882,13 +882,26 @@
                         <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
                       </Grid.ColumnDefinitions>
                       <TextBox Grid.Column="0" FontSize="16" Text="{Binding BeforeRaceCount.Value}" TextAlignment="Center"/>
                       <TextBlock Grid.Column="1" Text="走前　　比較対象：" FontSize="16" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                      <TextBox Grid.Column="2" FontSize="16" Text="{Binding TargetRaceCount.Value}" TextAlignment="Center"/>
-                      <TextBlock Grid.Column="3" Text="走前" FontSize="16" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                      <ToggleButton Grid.Column="4" Name="ComparationOption" Width="60" Padding="0" Margin="0,0,8,0"
-                                    Visibility="{Binding IsComparable,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+                      <TextBox Grid.Column="2" FontSize="16" Text="{Binding TargetRaceCount.Value}" TextAlignment="Center"
+                               Visibility="{Binding IsCountMode.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
+                      <TextBlock Grid.Column="3" Text="走前" FontSize="16" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="0,0,4,0"
+                                 Visibility="{Binding IsCountMode.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
+                      <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.ColumnSpan="2"
+                                  Visibility="{Binding IsCountMode.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                        <ToggleButton FontSize="16" Content="以内" IsChecked="{Binding IsCountRuleMorePast.Value,Converter={StaticResource NegativeConv}}"/>
+                        <ToggleButton FontSize="16" Content="以前" IsChecked="{Binding IsCountRuleMorePast.Value}"/>
+                      </StackPanel>
+                      <ToggleButton Grid.Column="4" Name="ComparationOption" Width="60" Padding="0" Margin="0,0,8,0">
+                        <ToggleButton.Visibility>
+                          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                            <Binding Path="IsComparable" ElementName="Root"/>
+                            <Binding Path="IsCountMode.Value" Converter="{StaticResource NegativeConv}"/>
+                          </MultiBinding>
+                        </ToggleButton.Visibility>
                         <Grid>
                           <Grid.Resources>
                             <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}">
@@ -920,7 +933,9 @@
                           </StackPanel>
                         </Border>
                       </Popup>
-                      <Button Grid.Column="5" FontSize="14" Content="削除"
+                      <ToggleButton Grid.Column="5" FontSize="16" Content="切替" Margin="0,0,8,0"
+                                    IsChecked="{Binding IsCountMode.Value,Mode=TwoWay}"/>
+                      <Button Grid.Column="6" FontSize="14" Content="削除"
                               Command="{Binding FinderModel.Input.BeforeRace.RemoveItemCommand,ElementName=Root}" CommandParameter="{Binding}"/>
                     </Grid>
                     <up:FinderKeyInputView FinderModel="{Binding Model}" IsSubView="True" IsSubViewBeforeRace="True"
