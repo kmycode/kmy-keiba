@@ -37,10 +37,13 @@
   </ControlTemplate>
   <ControlTemplate x:Key="MarkDeleted" TargetType="ContentControl">
     <Grid Width="32" Height="32" Margin="-2,0,0,0">
-      <Polygon Stroke="{StaticResource HorseMarkDeletedForeground}" StrokeThickness="3"
-                Points="0 0, 28 28" Width="28" Height="28"/>
-      <Polygon Stroke="{StaticResource HorseMarkDeletedForeground}" StrokeThickness="3"
-                Points="28 0, 0 28" Width="28" Height="28"/>
+      <TextBlock Foreground="{StaticResource HorseMarkDeletedForeground}"
+               FontSize="36" VerticalAlignment="Center" HorizontalAlignment="Center" Text="消"
+               FontWeight="Bold">
+        <TextBlock.RenderTransform>
+          <TranslateTransform Y="-2"/>
+        </TextBlock.RenderTransform>
+      </TextBlock>
     </Grid>
   </ControlTemplate>
   <ControlTemplate x:Key="MarkDefault" TargetType="ContentControl">
