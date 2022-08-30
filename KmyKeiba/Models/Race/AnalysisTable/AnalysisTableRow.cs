@@ -24,7 +24,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
     private readonly CompositeDisposable _disposables = new();
-    private bool _isInitializingParentList = false;
+    public bool IsFreezeParentSelection { get; set; } = false;
     private readonly bool _isInitialized = false;
 
     public AnalysisTableRowData Data { get; }
@@ -190,7 +190,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
       this.SelectedParent.Skip(1).Subscribe(async _ =>
       {
-        if (this._isInitializingParentList)
+        if (this.IsFreezeParentSelection)
         {
           return;
         }
@@ -936,9 +936,9 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public void OnParentListUpdated()
     {
-      this._isInitializingParentList = true;
+      this.IsFreezeParentSelection = true;
       this.SelectedParent.Value = this.Table.ParentRowSelections.FirstOrDefault(r => r.Data.Id == this.Data.ParentRowId);
-      this._isInitializingParentList = false;
+      this.IsFreezeParentSelection = false;
     }
 
     public void ReloadMemoConfigProperty()

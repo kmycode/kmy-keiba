@@ -64,6 +64,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
               this._disposableEvents.Remove(item);
             }
           }
+
+          this.UpdateParentRows();
         }
         if (ev.NewItems != null)
         {
@@ -71,7 +73,13 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           {
             if (!this._disposableEvents.ContainsKey(item))
             {
-              this._disposableEvents[item] = item.Output.Subscribe(_ => this.UpdateParentRows());
+              this._disposableEvents[item] = item.Output.Subscribe(output =>
+              {
+                if (output == AnalysisTableRowOutputType.Binary || this.ParentRowSelections.Any(r => r.Data.Id == item.Data.Id))
+                {
+                  this.UpdateParentRows();
+                }
+              });
             }
           }
         }
@@ -102,6 +110,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     private void UpdateParentRows()
     {
+      foreach (var row in this.Rows)
+      {
+        row.IsFreezeParentSelection = true;
+      }
       this.ParentRowSelections.Clear();
       foreach (var row in this.Rows.Where(r => r.Output.Value == AnalysisTableRowOutputType.Binary))
       {
@@ -110,6 +122,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       foreach (var row in this.Rows)
       {
         row.OnParentListUpdated();
+        row.IsFreezeParentSelection = false;
       }
     }
 
