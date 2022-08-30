@@ -64,7 +64,7 @@ namespace KmyKeiba.Models.Race.Finder
     {
       this._finder = new RaceFinder(race, horse?.Data);
       this.RaceHorse = horse;
-      this.Input = new FinderQueryInput(race, horse?.Data, horses?.Select(h => h.Data).ToArray());
+      this.Input = new FinderQueryInput(race, horse?.Data, horse, horses?.Select(h => h.Data).ToArray());
 
       // TODO いずれカスタマイズできるように
       foreach (var preset in DatabasePresetModel.GetFinderRaceHorseColumns())

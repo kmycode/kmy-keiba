@@ -378,7 +378,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsSetNumericComparation { get; } = new();
 
-    public FinderQueryNumberInput NumberInput { get; } = new();
+    public FinderQueryNumberInput NumberInput { get; }
 
     public bool CanInputNumber { get; }
 
@@ -396,6 +396,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected ListBoxInputCategoryBase(string key, bool canInputNumber, bool isCompareWithHorse)
     {
+      this.NumberInput = new FinderQueryNumberInput(isCompareWithHorse);
+
       this.Key = key;
       this.Items.ChangedItemObservable.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsSetListValue.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
@@ -772,7 +774,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (this.Items.IsAll() || this.Items.IsEmpty())
       {
-        return string.Empty;
+        return query;
       }
 
       if (values.Any(v => v == RaceCourse.Foreign))
@@ -905,7 +907,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (this.Items.IsAll() || this.Items.IsEmpty())
       {
-        return string.Empty;
+        return query;
       }
 
       if (values.Any(v => v > RaceHorseAreaRule.International))
@@ -1000,7 +1002,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (this.Items.IsAll() || this.Items.IsEmpty())
       {
-        return string.Empty;
+        return query;
       }
 
       if (values.Any(v => (short)v >= 100))
@@ -2279,18 +2281,21 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public RaceData? Race { get; }
 
+    public RaceHorseAnalyzer? Horse { get; }
+
     public IReadOnlyList<RaceHorseAnalyzer>? RaceHorses { get; }
 
     public ReactiveCollection<FinderModelItem> Items { get; } = new();
 
-    public SameRaceHorseInputCategory(RaceData? race)
+    public SameRaceHorseInputCategory(RaceData? race, RaceHorseAnalyzer? horse)
     {
       this.Race = race;
+      this.Horse = horse;
     }
 
     public FinderModelItem AddItem()
     {
-      var model = new FinderModel(this.Race, null, this.RaceHorses).AddTo(this.Disposables);
+      var model = new FinderModel(this.Race, this.Horse, this.RaceHorses).AddTo(this.Disposables);
       model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
 
       var item = new FinderModelItem(model);

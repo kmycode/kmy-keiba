@@ -156,7 +156,7 @@
           <Setter Property="Padding" Value="0,4"/>
         </Style>
         <Style TargetType="{x:Type local:InputNumberView}">
-          <Setter Property="IsComparable" Value="{Binding IsSubViewBeforeRace,ElementName=Root}"/>
+          <Setter Property="IsComparable" Value="True"/>
           <Setter Property="HasRace" Value="{Binding FinderModel.HasRace,ElementName=Root}"/>
           <Setter Property="HasRaceHorse" Value="{Binding FinderModel.HasRaceHorse,ElementName=Root}"/>
           <Setter Property="CanCompareWithCurrentRace" Value="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
@@ -850,7 +850,7 @@
                               Command="{Binding FinderModel.Input.SameRaceHorse.RemoveItemCommand,ElementName=Root}" CommandParameter="{Binding}"/>
                     </Grid>
                     <up:FinderKeyInputView FinderModel="{Binding Model}" IsSubView="True" IsSubViewSameRaceHorse="True"
-                                           CanCompareWithCurrentRace="False" IsGenerateDefaultPopup="True"/>
+                                           CanCompareWithCurrentRace="True" IsGenerateDefaultPopup="True"/>
                   </StackPanel>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>

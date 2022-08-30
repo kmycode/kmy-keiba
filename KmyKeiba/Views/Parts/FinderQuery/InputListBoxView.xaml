@@ -62,7 +62,8 @@
           <RadioButton Content="数値で比較" IsChecked="{Binding Input.IsSetNumericComparation.Value,ElementName=Root,Mode=TwoWay}"
                        Visibility="{Binding Input.CanInputNumber,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
           <local:InputNumberView Width="450" Margin="0,-16,0,0" Visibility="{Binding Input.IsSetNumericComparation.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
-                                 Input="{Binding Input.NumberInput,ElementName=Root}" IsComparable="{Binding IsComparable,ElementName=Root}"/>
+                                 Input="{Binding Input.NumberInput,ElementName=Root}" IsComparable="{Binding IsComparable,ElementName=Root}" HasRace="{Binding HasRace,ElementName=Root}"
+                                 HasRaceHorse="{Binding HasRaceHorse,ElementName=Root}"/>
 
           <Button Content="リセット" Width="180" HorizontalAlignment="Left" FontSize="14" Margin="0,16,0,0" Command="{Binding Input.ResetCommand,ElementName=Root}"/>
         </StackPanel>
@@ -102,7 +103,7 @@
         </TextBlock.Visibility>
       </TextBlock>
       <TextBlock Foreground="{StaticResource WarningForeground}" FontSize="16"
-                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"
                  Visibility="{Binding Input.IsSetNumericComparation.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
         数値で比較<LineBreak/><LineBreak/><Run Text="{Binding Input.Query.Value,ElementName=Root}" FontSize="14"/>
       </TextBlock>

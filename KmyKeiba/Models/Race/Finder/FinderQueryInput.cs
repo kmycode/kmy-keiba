@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
 using Reactive.Bindings;
@@ -170,7 +171,7 @@ namespace KmyKeiba.Models.Race.Finder
     private readonly bool _hasRace;
     private readonly bool _hasHorse;
 
-    public FinderQueryInput(RaceData? race, RaceHorseData? horse, IReadOnlyList<RaceHorseData>? raceHorses)
+    public FinderQueryInput(RaceData? race, RaceHorseData? horse, RaceHorseAnalyzer? analyzer, IReadOnlyList<RaceHorseData>? raceHorses)
     {
       this._hasRace = race != null;
       this._hasHorse = horse != null;
@@ -236,7 +237,7 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.RiderBelongs = new RiderBelongsInputCategory());
       this._categories.Add(this.TrainerName = new TrainerNameInputCategory());
       this._categories.Add(this.TrainerBelongs = new TrainerBelongsInputCategory());
-      this._categories.Add(this.SameRaceHorse = new SameRaceHorseInputCategory(race));
+      this._categories.Add(this.SameRaceHorse = new SameRaceHorseInputCategory(race, analyzer));
       this._categories.Add(this.BeforeRace = new BeforeRaceInputCategory(race));
       this._categories.Add(this.Memo = new MemoInputCategory());
       this._categories.Add(this.ExternalNumber = new ExternalNumberInputCategory());

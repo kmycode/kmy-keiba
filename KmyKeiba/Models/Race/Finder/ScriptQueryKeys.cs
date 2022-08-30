@@ -1148,7 +1148,13 @@ namespace KmyKeiba.Models.Race.Finder
 
     public string? StringValue { get; }
 
-    public ExpressionScriptKeyQuery(QueryKey key, QueryType type, int value, int maxValue)
+    public RaceData? Race { get; }
+
+    public RaceHorseData? Horse { get; }
+
+    public bool IsCompareCurrentRace { get; }
+
+    public ExpressionScriptKeyQuery(QueryKey key, QueryType type, int value, int maxValue, RaceData? race, RaceHorseData? horse, bool isCompareCurrentRace)
     {
       if (maxValue < value)
       {
@@ -1162,9 +1168,12 @@ namespace KmyKeiba.Models.Race.Finder
       this.Value = value;
       this.Values = new int[] { value, };
       this.MaxValue = maxValue;
+      this.Race = race;
+      this.Horse = horse;
+      this.IsCompareCurrentRace = isCompareCurrentRace;
     }
 
-    public ExpressionScriptKeyQuery(QueryKey key, QueryType type, int value) : this(key, type, value, value)
+    public ExpressionScriptKeyQuery(QueryKey key, QueryType type, int value, RaceData? race, RaceHorseData? horse, bool isCompareCurrentRace) : this(key, type, value, value, race, horse, isCompareCurrentRace)
     {
     }
 
@@ -1427,19 +1436,50 @@ namespace KmyKeiba.Models.Race.Finder
     private Expression<Func<T, bool>> BuildNumericQuery<T>(string propertyName, string? propertyName2, bool isShort = true, bool isDouble = false, bool isEnum = false)
     {
       var param = Expression.Parameter(typeof(T), "x");
+
       Expression property = Expression.Property(param, propertyName);
       if (propertyName2 != null)
       {
         property = Expression.Property(property, propertyName2);
       }
-      if (isEnum)
-      {
-        property = Expression.Convert(property, isShort ? typeof(short) : typeof(int));
-      }
-      var value = Expression.Constant(isDouble ? (double)this.Value : isShort ? (short)this.Value : (object)this.Value);
-      var maxValue = Expression.Constant(isDouble ? (double)this.MaxValue : isShort ? (short)this.MaxValue : (object)this.MaxValue);
 
-      var values = Expression.Constant(isShort ? this.Values.Select(v => (short)v).ToList() : this.Values.ToList());
+      Expression EnumToNumeric(Expression property)
+      {
+        if (isEnum)
+        {
+          if (isShort)
+          {
+            property = Expression.Convert(property, typeof(short));
+            property = Expression.Convert(property, typeof(int));
+          }
+          else
+          {
+            property = Expression.Convert(property, typeof(int));
+          }
+        }
+        else if (isShort)
+        {
+          property = Expression.Convert(property, typeof(int));
+        }
+        return property;
+      }
+
+      property = EnumToNumeric(property);
+      if (this.IsCompareCurrentRace)
+      {
+        object? obj = typeof(T) == typeof(RaceData) ? this.Race : this.Horse;
+        if (obj != null)
+        {
+          Expression currentProperty = Expression.Property(Expression.Constant(obj), propertyName);
+          currentProperty = EnumToNumeric(currentProperty);
+          property = Expression.Subtract(property, currentProperty);
+        }
+      }
+
+      var value = Expression.Constant(isDouble ? (double)this.Value : (object)this.Value);
+      var maxValue = Expression.Constant(isDouble ? (double)this.MaxValue : (object)this.MaxValue);
+
+      var values = Expression.Constant(this.Values.ToList());
 
       return this.BuildNumericQuery<T>(param, property, value, maxValue, values);
     }

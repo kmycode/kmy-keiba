@@ -125,11 +125,12 @@ namespace KmyKeiba.Models.Race.Finder
         return string.Empty;
       }
 
+      var valuePrefix = string.Empty;
       if (this.IsUseCurrentRaceValue.Value || this.IsUseCurrentRaceHorseValue.Value)
       {
         // horses#など以外の末尾の＃は解析時に無視される
         this.IsCustomized.Value = true;
-        return "#";
+        valuePrefix = ":";
       }
 
       if (!int.TryParse(this.Value.Value, out var min))
@@ -150,8 +151,13 @@ namespace KmyKeiba.Models.Race.Finder
           max = tmp;
         }
 
+        if (this.IsUseCurrentRaceHorseValue.Value || this.IsUseCurrentRaceValue.Value)
+        {
+          this.ComparationWithBeforeRaceComment.Value = $"当該レースの値は、現在レースの値に {min} ～ {max} を足した数値範囲内にある";
+        }
+
         this.IsCustomized.Value = true;
-        return $"={min}-{max}";
+        return $"={valuePrefix}{min}-{max}";
       }
 
       var sign = this.IsGreaterThan.Value ? ">" :
@@ -161,25 +167,33 @@ namespace KmyKeiba.Models.Race.Finder
         this.IsNotEqual.Value ? "<>" :
         "=";
       var prefix = this.IsCompareWithCurrentRace.Value ? "$$" :
-        this.IsCompareWithTargetRace.Value ? "$" : string.Empty;
+        this.IsCompareWithTargetRace.Value ? "$" : valuePrefix;
 
-      if (this.IsCompareWithTargetRace.Value || this.IsCompareWithCurrentRace.Value)
+      if (this.IsCompareWithTargetRace.Value || this.IsCompareWithCurrentRace.Value || this.IsUseCurrentRaceValue.Value || this.IsUseCurrentRaceHorseValue.Value)
       {
+        var left = "比較対象";
+        var right = "前走";
+        if (this.IsUseCurrentRaceHorseValue.Value || this.IsUseCurrentRaceValue.Value)
+        {
+          left = "当該";
+          right = "現在";
+        }
+
         if (this.IsGreaterThan.Value || this.IsGreaterThanOrEqual.Value)
         {
-          this.ComparationWithBeforeRaceComment.Value = $"比較対象レースの値は、本前走レースの値より {this.Value.Value} 大きい";
+          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値より {this.Value.Value} 大きい";
         }
         else if (this.IsLessThan.Value || this.IsLessThanOrEqual.Value)
         {
-          this.ComparationWithBeforeRaceComment.Value = $"比較対象レースの値は、本前走レースの値より {this.Value.Value} 小さい";
+          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値より {this.Value.Value} 小さい";
         }
         else if (this.IsEqual.Value)
         {
-          this.ComparationWithBeforeRaceComment.Value = $"比較対象レースの値は、本前走レースの値に {this.Value.Value} を足したものと等しい";
+          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値に {this.Value.Value} を足したものと等しい";
         }
-        else
+        else if (this.IsNotEqual.Value)
         {
-          this.ComparationWithBeforeRaceComment.Value = $"比較対象レースの値は、本前走レースの値に {this.Value.Value} を足したものと等しくない";
+          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値に {this.Value.Value} を足したものと等しくない";
         }
       }
 
