@@ -170,7 +170,9 @@ namespace KmyKeiba.Models.Race.Finder
       {
         if (!this.IsIgnorePropertyToSerializing(property.Name))
         {
-          if (obj is not FinderQueryNumberInput || property.Name != nameof(FinderQueryNumberInput.ComparationWithBeforeRaceComment))
+          if (obj is not FinderQueryNumberInput ||
+            (property.Name != nameof(FinderQueryNumberInput.ComparationWithBeforeRaceComment) &&
+             property.Name != nameof(FinderQueryNumberInput.CanCompareCurrentRaceValue)))
           {
             this.PropertyToString(property, text, obj);
           }
@@ -315,8 +317,11 @@ namespace KmyKeiba.Models.Race.Finder
       {
         if (type == typeof(bool))
         {
-          var value = data == "true";
-          property.SetValue(obj, value);
+          if (obj is not FinderQueryNumberInput || property.Name != nameof(FinderQueryNumberInput.CanCompareCurrentRaceValue))
+          {
+            var value = data == "true";
+            property.SetValue(obj, value);
+          }
         }
         else if (type == typeof(int))
         {
@@ -406,6 +411,7 @@ namespace KmyKeiba.Models.Race.Finder
     protected ListBoxInputCategoryBase(string key, bool canInputNumber, bool isCompareWithHorse)
     {
       this.NumberInput = new FinderQueryNumberInput(isCompareWithHorse);
+      this.NumberInput.CanCompareCurrentRaceValue = true;
 
       this.Key = key;
       this.Items.ChangedItemObservable.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
@@ -509,6 +515,7 @@ namespace KmyKeiba.Models.Race.Finder
         r = r || propertyName == nameof(NumberInput);
         r = r || propertyName == nameof(IsSetNumericComparation);
       }
+      r = r || propertyName == nameof(CanCompareCurrentRaceValue);
       return r;
     }
 
@@ -628,6 +635,7 @@ namespace KmyKeiba.Models.Race.Finder
     {
       this.Key = key;
       this.Input = new FinderQueryNumberInput(isCompareWithHorse);
+      this.Input.CanCompareCurrentRaceValue = true;
 
       this.Input.AddTo(this.Disposables);
       this.Input.ToObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
