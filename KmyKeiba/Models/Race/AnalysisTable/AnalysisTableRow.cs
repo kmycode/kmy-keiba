@@ -681,6 +681,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         }
 
         cell.Value.Value = isAny ? "●" : string.Empty;
+        cell.ScriptValue.Value = isAny ? "true" : "false";
       }
       else
       {
@@ -727,9 +728,20 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         if (!string.IsNullOrWhiteSpace(this.Data.ValueScript) && this.Data.ValueScript.Trim() != "value")
         {
           using var engine = new StringScriptEngine();
+          var scriptRace = new ScriptRace(cell.Horse.Race);
+          var scriptHorse = new ScriptRaceHorse(cell.Horse.Race.Key, cell.Horse, false);
+
+          var raceJson = scriptRace.ToJson();
+          var horseJson = scriptHorse.ToJson();
+          var values = string.Join(';', this.Table.Rows
+            .Where(r => r.Data.Order < this.Data.Order)
+            .Select(r => new { RowId = r.Data.Id, Cell = r.Cells.FirstOrDefault(c => c.Horse.Data.Id == cell.Horse.Data.Id), })
+            .Where(c => c.Cell != null)
+            .Select(c => $"const ${c!.RowId}={(!string.IsNullOrEmpty(c.Cell!.ScriptValue.Value) ? c.Cell!.ScriptValue.Value : "0")}"));
+
           try
           {
-            var result = engine.Execute("let value = " + value + "; " + this.Data.ValueScript);
+            var result = engine.Execute($"const race = {raceJson}; const horse = {horseJson}; {values}; let value = {value}; " + this.Data.ValueScript);
             if (result is int intval)
             {
               value = intval;
@@ -765,6 +777,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         cell.Point.Value = cell.PointCalcValue.Value * this.Data.BaseWeight;
       }
       cell.Value.Value = value.ToString("N" + digit);
+      cell.ScriptValue.Value = value.ToString();
       cell.ComparationValue.Value = (float)cell.Point.Value;
       cell.SampleSize = 0;
       cell.HasComparationValue.Value = true;
@@ -820,6 +833,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           cell.PointCalcValue.Value = shortestTime.Time.TotalSeconds / 100;
           cell.SampleSize = 1;
           cell.SampleFilter = filter;
+          cell.ScriptValue.Value = shortestTime.Time.TotalSeconds.ToString();
 
           if (weights.Any())
           {
@@ -834,6 +848,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         cell.HasComparationValue.Value = analyzerSlim.AllGrade.AllCount > 0;
         cell.PointCalcValue.Value = analyzerSlim.RecoveryRate;
         cell.SampleSize = 0;
+        cell.ScriptValue.Value = analyzerSlim.RecoveryRate.ToString();
 
         if (weights.Any() && source.Items.Any())
         {
@@ -862,6 +877,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           cell.Value.Value = cell.PointCalcValue.Value.ToString("P1");
           cell.SubValue.Value = source.Items.Count.ToString();
           cell.ComparationValue.Value = (float)cell.PointCalcValue.Value;
+          cell.ScriptValue.Value = cell.PointCalcValue.Value.ToString();
           cell.HasComparationValue.Value = true;
         }
         else
@@ -876,6 +892,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         {
           cell.Value.Value = grade.PlacingBetsRate.ToString("P1");
           cell.SubValue.Value = $"{grade.PlacingBetsCount} / {grade.AllCount}";
+          cell.ScriptValue.Value = grade.PlacingBetsRate.ToString();
           cell.ComparationValue.Value = grade.PlacingBetsRate;
           cell.HasComparationValue.Value = grade.AllCount > 0;
           cell.PointCalcValue.Value = grade.PlacingBetsRate;
@@ -897,6 +914,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         {
           cell.Value.Value = grade.WinRate.ToString("P1");
           cell.SubValue.Value = $"{grade.FirstCount} / {grade.AllCount}";
+          cell.ScriptValue.Value = grade.WinRate.ToString();
           cell.ComparationValue.Value = grade.WinRate;
           cell.HasComparationValue.Value = grade.AllCount > 0;
           cell.PointCalcValue.Value = grade.WinRate;
@@ -970,6 +988,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public ReactiveProperty<string> SubValue { get; } = new();
 
     public ReactiveProperty<double> Point { get; } = new();
+
+    public ReactiveProperty<string> ScriptValue { get; } = new();
 
     public ReactiveProperty<float> ComparationValue { get; } = new();
 

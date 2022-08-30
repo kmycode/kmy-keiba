@@ -72,15 +72,20 @@
                     <ColumnDefinition/>
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
                   </Grid.ColumnDefinitions>
                   <TextBlock Text="名前" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
                              VerticalAlignment="Center"/>
                   <TextBox Grid.Column="1" FontSize="18" Text="{Binding Name.Value,Mode=TwoWay}" VerticalContentAlignment="Center"/>
-                  <StackPanel Orientation="Horizontal" Grid.Column="2" Margin="8,0,16,0" VerticalAlignment="Center">
+                  <TextBlock Grid.Column="2" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="4,0,4,0"
+                             VerticalAlignment="Center">
+                    ID: <Run Text="{Binding Data.Id}"/>
+                  </TextBlock>
+                  <StackPanel Orientation="Horizontal" Grid.Column="3" Margin="8,0,16,0" VerticalAlignment="Center">
                     <Button FontSize="16" Content="上へ" Command="{Binding DataContext.UpAnalysisTableRowConfigCommand,ElementName=Root}" CommandParameter="{Binding}"/>
                     <Button FontSize="16" Content="下へ" Command="{Binding DataContext.DownAnalysisTableRowConfigCommand,ElementName=Root}" CommandParameter="{Binding}" Margin="4,0,0,0"/>
                   </StackPanel>
-                  <Button Grid.Column="3" Content="削除" FontSize="16" Padding="4,2" Command="{Binding DataContext.DeleteAnalysisTableRowConfigCommand,ElementName=Root}"
+                  <Button Grid.Column="4" Content="削除" FontSize="16" Padding="4,2" Command="{Binding DataContext.DeleteAnalysisTableRowConfigCommand,ElementName=Root}"
                           CommandParameter="{Binding}"/>
                 </Grid>
                 <Grid Grid.Row="1" Margin="0,0,0,4">
