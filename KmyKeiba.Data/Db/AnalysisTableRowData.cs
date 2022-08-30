@@ -83,6 +83,8 @@ namespace KmyKeiba.Data.Db
     MiningTime = 405,
     MiningMatch = 406,
     PciAverage = 407,
+    Weight = 408,
+    WeightDiff = 409,
 
     // ここからJRDB
     RiderPoint = 501,

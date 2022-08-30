@@ -175,6 +175,16 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         });
         RowOutputSubItems.Add(new AnalysisTableRowOutputItem
         {
+          Label = "体重",
+          OutputType = AnalysisTableRowOutputType.Weight,
+        });
+        RowOutputSubItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "体重増減",
+          OutputType = AnalysisTableRowOutputType.WeightDiff,
+        });
+        RowOutputSubItems.Add(new AnalysisTableRowOutputItem
+        {
           Label = "タイム型マイニング",
           OutputType = AnalysisTableRowOutputType.MiningTime,
         });

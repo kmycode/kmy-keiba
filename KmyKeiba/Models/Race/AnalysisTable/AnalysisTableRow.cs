@@ -108,7 +108,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
 
       var dummyRace = new RaceData();
-      var finder = new FinderModel(dummyRace, new RaceHorseAnalyzer(dummyRace, new RaceHorseData(), null), null)
+      var finder = new FinderModel(dummyRace, RaceHorseAnalyzer.Empty, null)
       {
         DefaultSize = 1000,
       };
@@ -159,6 +159,9 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.CanSetScript = this.SelectedOutput.Where(o => o != null).Select(o => o!.OutputType).Select(o =>
         o == AnalysisTableRowOutputType.ExpansionMemo ||
         o == AnalysisTableRowOutputType.ExternalNumber ||
+        o == AnalysisTableRowOutputType.PlaceBetsRate ||
+        o == AnalysisTableRowOutputType.WinRate ||
+        o == AnalysisTableRowOutputType.RecoveryRate ||
         o == AnalysisTableRowOutputType.HorseValues ||
         o == AnalysisTableRowOutputType.JrdbValues).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetSubOutput = this.SelectedOutput
@@ -481,6 +484,14 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             {
               this.AnalysisFixedValue(item.Cell.Horse.Data.Age, myWeights, item.Cell, item.Finder, digit: 0);
             }
+            else if (this.Data.Output == AnalysisTableRowOutputType.Weight)
+            {
+              this.AnalysisFixedValue(item.Cell.Horse.Data.Weight, myWeights, item.Cell, item.Finder, digit: 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.WeightDiff)
+            {
+              this.AnalysisFixedValue(item.Cell.Horse.Data.WeightDiff, myWeights, item.Cell, item.Finder, digit: 1);
+            }
             else if (this.Data.Output == AnalysisTableRowOutputType.PciAverage)
             {
               if (item.Cell.Horse.History == null)
@@ -706,11 +717,13 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     {
       if (count >= this.Data.RequestedSize)
       {
-        cell.Point.Value = cell.PointCalcValue.Value * this.Data.BaseWeight;
+        var value = this.ExecuteScriptValue(cell.PointCalcValue.Value, cell);
+        cell.Point.Value = value * this.Data.BaseWeight;
       }
       if (count < this.Data.RequestedSize || count == 0)
       {
-        cell.Point.Value = this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight * weights.GetWeight(cell.Horse);
+        var value = this.ExecuteScriptValue(this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight * weights.GetWeight(cell.Horse), cell);
+        cell.Point.Value = value;
         if (count == 0)
         {
           cell.Value.Value = cell.SubValue.Value = string.Empty;
@@ -719,29 +732,47 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
     }
 
-    private void AnalysisFixedValue(double value, IEnumerable<AnalysisTableWeight> weights, AnalysisTableCell cell, RaceFinder finder, int digit = 3)
+    private double ExecuteScriptValue(double value, AnalysisTableCell cell)
     {
-      cell.SubValue.Value = string.Empty;
+      cell.IsScriptError.Value = false;
 
       if (this.CanSetScript.Value)
       {
         if (!string.IsNullOrWhiteSpace(this.Data.ValueScript) && this.Data.ValueScript.Trim() != "value")
         {
           using var engine = new StringScriptEngine();
-          var scriptRace = new ScriptRace(cell.Horse.Race);
-          var scriptHorse = new ScriptRaceHorse(cell.Horse.Race.Key, cell.Horse, false);
 
-          var raceJson = scriptRace.ToJson();
-          var horseJson = scriptHorse.ToJson();
-          var values = string.Join(';', this.Table.Rows
-            .Where(r => r.Data.Order < this.Data.Order)
-            .Select(r => new { RowId = r.Data.Id, Cell = r.Cells.FirstOrDefault(c => c.Horse.Data.Id == cell.Horse.Data.Id), })
-            .Where(c => c.Cell != null)
-            .Select(c => $"const ${c!.RowId}={(!string.IsNullOrEmpty(c.Cell!.ScriptValue.Value) ? c.Cell!.ScriptValue.Value : "0")}"));
+          var scriptVariables = new StringBuilder();
+          if (this.Data.ValueScript.Contains("race"))
+          {
+            var scriptRace = new ScriptRace(cell.Horse.Race);
+            var raceJson = scriptRace.ToJson();
+            scriptVariables.Append("const race=");
+            scriptVariables.Append(raceJson);
+            scriptVariables.Append(';');
+          }
+          if (this.Data.ValueScript.Contains("horse"))
+          {
+            var scriptHorse = new ScriptRaceHorse(cell.Horse.Race.Key, cell.Horse, false);
+            var horseJson = scriptHorse.ToJson();
+            scriptVariables.Append("const horse=");
+            scriptVariables.Append(horseJson);
+            scriptVariables.Append(';');
+          }
+          if (this.Data.ValueScript.Contains('$'))
+          {
+            var values = string.Join(';', this.Table.Rows
+              .Where(r => r.Data.Order < this.Data.Order)
+              .Select(r => new { RowId = r.Data.Id, Cell = r.Cells.FirstOrDefault(c => c.Horse.Data.Id == cell.Horse.Data.Id), })
+              .Where(c => c.Cell != null)
+              .Select(c => $"const ${c!.RowId}={(!string.IsNullOrEmpty(c.Cell!.ScriptValue.Value) ? c.Cell!.ScriptValue.Value : "0")}"));
+            scriptVariables.Append(values);
+            scriptVariables.Append(';');
+          }
 
           try
           {
-            var result = engine.Execute($"const race = {raceJson}; const horse = {horseJson}; {values}; let value = {value}; " + this.Data.ValueScript);
+            var result = engine.Execute($"{scriptVariables} let value = {value}; " + this.Data.ValueScript);
             if (result is int intval)
             {
               value = intval;
@@ -750,18 +781,30 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             {
               value = doval;
             }
+            else if (result is float fval)
+            {
+              value = fval;
+            }
             else
             {
-              cell.SubValue.Value = "不正な戻り値";
+              cell.IsScriptError.Value = true;
             }
           }
           catch (Exception ex)
           {
-            cell.SubValue.Value = "Scriptエラー";
+            cell.IsScriptError.Value = true;
             logger.Error($"スクリプトエラー {value}", ex);
           }
         }
       }
+
+      return value;
+    }
+
+    private void AnalysisFixedValue(double value, IEnumerable<AnalysisTableWeight> weights, AnalysisTableCell cell, RaceFinder finder, int digit = 3)
+    {
+      cell.SubValue.Value = string.Empty;
+      value = this.ExecuteScriptValue(value, cell);
 
       if (weights.Any() && finder.RaceHorseAnalyzer != null)
       {
@@ -996,6 +1039,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public ReactiveProperty<bool> HasComparationValue { get; } = new();
 
     public ReactiveProperty<bool> IsSkipped { get; } = new();
+
+    public ReactiveProperty<bool> IsScriptError { get; } = new();
 
     public ReactiveProperty<ValueComparation> Comparation { get; } = new();
 
