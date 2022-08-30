@@ -878,6 +878,7 @@
                       <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
                         <ColumnDefinition/>
                         <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="auto"/>
@@ -885,17 +886,19 @@
                         <ColumnDefinition Width="auto"/>
                       </Grid.ColumnDefinitions>
                       <TextBox Grid.Column="0" FontSize="16" Text="{Binding BeforeRaceCount.Value}" TextAlignment="Center"/>
-                      <TextBlock Grid.Column="1" Text="走前　　比較対象：" FontSize="16" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                      <TextBox Grid.Column="2" FontSize="16" Text="{Binding TargetRaceCount.Value}" TextAlignment="Center"
+                      <TextBlock Grid.Column="1" Text="走前" FontSize="16" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                      <TextBlock Grid.Column="2" Text="比較対象：" FontSize="16" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="24,0,4,0"
+                                 Visibility="{Binding IsCountMode.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
+                      <TextBox Grid.Column="3" FontSize="16" Text="{Binding TargetRaceCount.Value}" TextAlignment="Center"
                                Visibility="{Binding IsCountMode.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
-                      <TextBlock Grid.Column="3" Text="走前" FontSize="16" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="0,0,4,0"
+                      <TextBlock Grid.Column="4" Text="走前" FontSize="16" Foreground="{StaticResource SubForeground}" VerticalAlignment="Center" Margin="0,0,4,0"
                                  Visibility="{Binding IsCountMode.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
                       <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.ColumnSpan="2"
                                   Visibility="{Binding IsCountMode.Value,Converter={StaticResource BooleanVisibilityConv}}">
                         <ToggleButton FontSize="16" Content="以内" IsChecked="{Binding IsCountRuleMorePast.Value,Converter={StaticResource NegativeConv}}"/>
                         <ToggleButton FontSize="16" Content="以前" IsChecked="{Binding IsCountRuleMorePast.Value}"/>
                       </StackPanel>
-                      <ToggleButton Grid.Column="4" Name="ComparationOption" Width="60" Padding="0" Margin="0,0,8,0">
+                      <ToggleButton Grid.Column="5" Name="ComparationOption" Width="60" Padding="0" Margin="0,0,8,0">
                         <ToggleButton.Visibility>
                           <MultiBinding Converter="{StaticResource MultiBooleanConv}">
                             <Binding Path="IsComparable" ElementName="Root"/>
@@ -933,9 +936,9 @@
                           </StackPanel>
                         </Border>
                       </Popup>
-                      <ToggleButton Grid.Column="5" FontSize="16" Content="切替" Margin="0,0,8,0"
+                      <ToggleButton Grid.Column="6" FontSize="16" Content="切替" Margin="0,0,8,0"
                                     IsChecked="{Binding IsCountMode.Value,Mode=TwoWay}"/>
-                      <Button Grid.Column="6" FontSize="14" Content="削除"
+                      <Button Grid.Column="7" FontSize="14" Content="削除"
                               Command="{Binding FinderModel.Input.BeforeRace.RemoveItemCommand,ElementName=Root}" CommandParameter="{Binding}"/>
                     </Grid>
                     <up:FinderKeyInputView FinderModel="{Binding Model}" IsSubView="True" IsSubViewBeforeRace="{Binding IsCountMode.Value,Converter={StaticResource NegativeConv}}"
