@@ -96,9 +96,10 @@
                     <ColumnDefinition/>
                     <ColumnDefinition Width="80"/>
                     <ColumnDefinition/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition/>
                   </Grid.ColumnDefinitions>
                   <Grid.RowDefinitions>
-                    <RowDefinition Height="28"/>
                     <RowDefinition Height="28"/>
                     <RowDefinition Height="28"/>
                     <RowDefinition Height="28"/>
@@ -117,10 +118,16 @@
                              VerticalAlignment="Center"/>
                   <TextBox Grid.Column="3" FontSize="16" Text="{Binding BaseWeight.Value,Mode=TwoWay}"
                            VerticalContentAlignment="Center" TextAlignment="Center"/>
-                  <TextBlock Grid.Row="0" Grid.Column="4" Text="外部指数" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
+                  <TextBlock Grid.Column="4" Grid.Row="0" Text="代替値" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
+                             VerticalAlignment="Center"
+                             Visibility="{Binding CanSetAlternativeValue.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                  <TextBox Grid.Column="5" Grid.Row="0" FontSize="16" Text="{Binding AlternativeValueIfEmpty.Value,Mode=TwoWay}"
+                           VerticalContentAlignment="Center" TextAlignment="Center"
+                           Visibility="{Binding CanSetAlternativeValue.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                  <TextBlock Grid.Row="0" Grid.Column="6" Text="外部指数" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
                              VerticalAlignment="Center"
                              Visibility="{Binding CanSetExternalNumber.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-                  <ComboBox Grid.Column="5" Grid.Row="0" ItemsSource="{Binding AnalysisTable.Config.ExternalNumbers,ElementName=Root}"
+                  <ComboBox Grid.Column="7" Grid.Row="0" ItemsSource="{Binding AnalysisTable.Config.ExternalNumbers,ElementName=Root}"
                             SelectedItem="{Binding SelectedExternalNumber.Value,Mode=TwoWay}"
                             Visibility="{Binding CanSetExternalNumber.Value,Converter={StaticResource BooleanVisibilityConv}}">
                     <ComboBox.ItemTemplate>
@@ -129,10 +136,10 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
-                  <TextBlock Grid.Row="0" Grid.Column="4" Text="拡張メモ" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
+                  <TextBlock Grid.Row="0" Grid.Column="6" Text="拡張メモ" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
                              VerticalAlignment="Center"
                              Visibility="{Binding CanSetMemoConfig.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-                  <ComboBox Grid.Column="5" Grid.Row="0" ItemsSource="{Binding AnalysisTable.Config.MemoConfigs,ElementName=Root}"
+                  <ComboBox Grid.Column="7" Grid.Row="0" ItemsSource="{Binding AnalysisTable.Config.MemoConfigs,ElementName=Root}"
                             SelectedItem="{Binding SelectedMemoConfig.Value,Mode=TwoWay}"
                             Visibility="{Binding CanSetMemoConfig.Value,Converter={StaticResource BooleanVisibilityConv}}">
                     <ComboBox.ItemTemplate>
@@ -185,7 +192,7 @@
                         </DataTemplate>
                       </ComboBox.ItemTemplate>
                     </ComboBox>
-                    <Button Grid.Column="1" Content="選択解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowParentCommand,ElementName=Root}"
+                    <Button Grid.Column="1" Content="解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowParentCommand,ElementName=Root}"
                             CommandParameter="{Binding}" Margin="8,0,0,0"/>
                   </Grid>
 
@@ -206,7 +213,7 @@
                         </DataTemplate>
                       </ComboBox.ItemTemplate>
                     </ComboBox>
-                    <Button Grid.Column="1" Content="選択解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowWeightCommand,ElementName=Root}"
+                    <Button Grid.Column="1" Content="解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowWeightCommand,ElementName=Root}"
                             CommandParameter="{Binding}" Margin="8,0,0,0"
                             Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </Grid>
@@ -227,7 +234,7 @@
                         </DataTemplate>
                       </ComboBox.ItemTemplate>
                     </ComboBox>
-                    <Button Grid.Column="1" Content="選択解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowWeight2Command,ElementName=Root}"
+                    <Button Grid.Column="1" Content="解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowWeight2Command,ElementName=Root}"
                             CommandParameter="{Binding}" Margin="8,0,0,0"
                             Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </Grid>
@@ -248,22 +255,15 @@
                         </DataTemplate>
                       </ComboBox.ItemTemplate>
                     </ComboBox>
-                    <Button Grid.Column="1" Content="選択解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowWeight3Command,ElementName=Root}"
+                    <Button Grid.Column="1" Content="解除" FontSize="14" Padding="4,2" Command="{Binding DataContext.UnselectAnalysisTableRowWeight3Command,ElementName=Root}"
                             CommandParameter="{Binding}" Margin="8,0,0,0"
                             Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </Grid>
 
-                  <TextBlock Grid.Column="0" Grid.Row="3" Text="代替値" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
-                             VerticalAlignment="Center"
-                             Visibility="{Binding CanSetAlternativeValue.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-                  <TextBox Grid.Column="1" Grid.Row="3" FontSize="16" Text="{Binding AlternativeValueIfEmpty.Value,Mode=TwoWay}"
-                           VerticalContentAlignment="Center" TextAlignment="Center"
-                           Visibility="{Binding CanSetAlternativeValue.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-
-                  <TextBlock Grid.Column="0" Grid.Row="4" Text="スクリプト" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
+                  <TextBlock Grid.Column="0" Grid.Row="3" Text="スクリプト" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
                              VerticalAlignment="Center"
                              Visibility="{Binding CanSetScript.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-                  <TextBox Grid.Column="1" Grid.Row="4" Grid.ColumnSpan="5" FontSize="18" Text="{Binding ValueScript.Value,Mode=TwoWay}"
+                  <TextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="7" FontSize="18" Text="{Binding ValueScript.Value,Mode=TwoWay}"
                            VerticalContentAlignment="Center" TextAlignment="Left"
                            Visibility="{Binding CanSetScript.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                 </Grid>
