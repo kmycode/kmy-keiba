@@ -29,8 +29,17 @@
         <RowDefinition Height="auto"/>
       </Grid.RowDefinitions>
       <TextBlock FontSize="24" FontWeight="Bold" Text="検索条件を入力" Margin="0,8,0,16"/>
-      <Button Grid.Column="1" Margin="16,0,0,0" FontSize="14" Content="キャッシュクリア" VerticalAlignment="Center" HorizontalAlignment="Left" Width="auto"
-              Command="{Binding ClearFinderCacheCommand}" CommandParameter="{Binding FinderModel,ElementName=Root}"/>
+      <Button Grid.Column="1" Margin="2,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" Width="auto"
+              Command="{Binding ClearFinderCacheCommand}" CommandParameter="{Binding FinderModel,ElementName=Root}"
+              Style="{StaticResource ListItemButton}" Foreground="{StaticResource SubForeground}">
+        <Button.Template>
+          <ControlTemplate>
+            <Border Background="{TemplateBinding Background}">
+              <TextBlock Foreground="{StaticResource SubForeground}" FontSize="14" Text="キャッシュクリア" Margin="16,4"/>
+            </Border>
+          </ControlTemplate>
+        </Button.Template>
+      </Button>
       <Grid Grid.Column="2" VerticalAlignment="Center" Margin="0,0,8,0"
             Visibility="{Binding IsSubView,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
         <Grid.RowDefinitions>
@@ -568,7 +577,7 @@
             <TextBlock Text="印" FontSize="20" Margin="0,0,0,8"
                        Foreground="{Binding FinderModel.Input.Mark.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv2}}"/>
             <StackPanel Orientation="Vertical" Margin="1">
-              <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsDelete.Value,ElementName=Root,Mode=TwoWay}">
+              <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsDefault.Value,ElementName=Root,Mode=TwoWay}">
                 <ContentControl Template="{StaticResource MarkDefault}" RenderTransform="{StaticResource MarkTransform}"/>
               </ToggleButton>
               <ToggleButton IsChecked="{Binding FinderModel.Input.Mark.IsDoubleCircle.Value,ElementName=Root,Mode=TwoWay}">
