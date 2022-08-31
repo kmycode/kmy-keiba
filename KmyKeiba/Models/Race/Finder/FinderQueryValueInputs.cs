@@ -133,17 +133,19 @@ namespace KmyKeiba.Models.Race.Finder
         valuePrefix = ":";
       }
 
-      if (!int.TryParse(this.Value.Value, out var min))
+      if (!decimal.TryParse(this.Value.Value, out var dmin))
       {
-        return string.Empty;
+        return this.IsCustomized.Value ? "#" : string.Empty;
       }
+      var min = this.ConvertValue(dmin);
 
       if (this.IsRange.Value)
       {
-        if (!int.TryParse(this.MaxValue.Value, out var max))
+        if (!decimal.TryParse(this.MaxValue.Value, out var dmax))
         {
           return string.Empty;
         }
+        var max = this.ConvertValue(dmax);
         if (min > max)
         {
           var tmp = min;
@@ -198,7 +200,19 @@ namespace KmyKeiba.Models.Race.Finder
       }
 
       this.IsCustomized.Value = true;
-      return sign + prefix + this.Value.Value;
+      return sign + prefix + min;
+    }
+
+    protected virtual int ConvertValue(decimal value)
+    {
+      try
+      {
+        // ユーザーが入れた数字が大きすぎると例外が投げられる
+        return (int)value;
+      }
+      catch { }
+
+      return default;
     }
 
     public IObservable<EventPattern<object>> ToObservable()
@@ -253,49 +267,9 @@ namespace KmyKeiba.Models.Race.Finder
       return (int)value;
     }
 
-    public override string GetRightQuery()
+    protected override int ConvertValue(decimal value)
     {
-      this.IsCustomized.Value = false;
-
-      if (this.IsUseCurrentRaceValue.Value || this.IsUseCurrentRaceHorseValue.Value)
-      {
-        this.IsCustomized.Value = true;
-        return "#";
-      }
-
-      if (!decimal.TryParse(this.Value.Value, out var min))
-      {
-        return string.Empty;
-      }
-      min = this.GetDigitValue(min);
-
-      if (this.IsRange.Value)
-      {
-        if (!decimal.TryParse(this.MaxValue.Value, out var max))
-        {
-          return string.Empty;
-        }
-        max = this.GetDigitValue(max);
-        if (min > max)
-        {
-          var tmp = min;
-          min = max;
-          max = tmp;
-        }
-
-        this.IsCustomized.Value = true;
-        return $"={min}-{max}";
-      }
-
-      var sign = this.IsGreaterThan.Value ? ">" :
-        this.IsGreaterThanOrEqual.Value ? ">=" :
-        this.IsLessThan.Value ? "<" :
-        this.IsLessThanOrEqual.Value ? "<=" :
-        this.IsNotEqual.Value ? "<>" :
-        "=";
-
-      this.IsCustomized.Value = true;
-      return sign + min;
+      return this.GetDigitValue(value);
     }
   }
 
