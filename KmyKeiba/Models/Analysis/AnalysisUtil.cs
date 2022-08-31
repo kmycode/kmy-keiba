@@ -286,10 +286,10 @@ namespace KmyKeiba.Models.Analysis
 
     public static short NormalizeB3FTime(RaceData race)
     {
-      return NormalizeB3FTime(race.Distance, race.BeforeHaronTime3);
+      return NormalizeB3FTime(race.Distance, race.BeforeHaronTime3, race.GetLapTimes());
     }
 
-    public static short NormalizeB3FTime(short distance, short beforeHaronTime3)
+    public static short NormalizeB3FTime(short distance, short beforeHaronTime3, IEnumerable<short> lapTimes)
     {
       if (beforeHaronTime3 == default)
       {
@@ -303,8 +303,15 @@ namespace KmyKeiba.Models.Analysis
       }
 
       var b3fDistance = 600 - (200 - d);
-      var timePerMeter = beforeHaronTime3 / (float)b3fDistance;
 
+      var lapTime4 = lapTimes.ElementAtOrDefault(3);
+      if (lapTime4 != default)
+      {
+        var lapTime4TimePerMeter = lapTime4 / (float)200;
+        return (short)(beforeHaronTime3 + lapTime4TimePerMeter * d);
+      }
+
+      var timePerMeter = beforeHaronTime3 / (float)b3fDistance;
       return (short)(timePerMeter * 600);
     }
 
