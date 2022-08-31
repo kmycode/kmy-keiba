@@ -69,6 +69,10 @@
             <Button Margin="8,8" Content="提案印を適用" Width="120" Height="40" FontSize="16" HorizontalAlignment="Left"
                     Command="{Binding ApplyAggregateSuggestionMarksCommand}"
                     IsEnabled="{Binding AnalysisTable.Aggregate.IsLoading.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+            <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16"
+                       TextAlignment="Center" Width="120" HorizontalAlignment="Left" FontWeight="Bold" Margin="8,0">
+              ( <Run Text="{Binding AnalysisTable.Aggregate.Progress.Value,ElementName=Root}"/> / <Run Text="{Binding AnalysisTable.Aggregate.ProgressMax.Value,ElementName=Root}"/> )
+            </TextBlock>
           </StackPanel>
         </Grid>
       </ScrollViewer>
@@ -86,8 +90,12 @@
               <!--名前-->
               <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Width="156" Height="72">
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock FontSize="16" FontWeight="Bold" Margin="8,4"
+                  <TextBlock FontSize="16" FontWeight="Bold" Margin="8,2"
                              Text="{Binding Table.Name.Value}"/>
+                  <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0"
+                             Visibility="{Binding Table.IsLoading.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                    ( <Run Text="{Binding Table.Progress.Value}"/> / <Run Text="{Binding Table.ProgressMax.Value}"/> )
+                  </TextBlock>
                 </StackPanel>
               </Border>
 

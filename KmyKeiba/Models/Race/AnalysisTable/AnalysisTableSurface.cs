@@ -35,6 +35,12 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<bool> CanLoadAll { get; } = new(true);
 
+    public ReactiveProperty<int> Progress { get; } = new();
+
+    public ReactiveProperty<int> ProgressMax { get; } = new();
+
+    public ReactiveProperty<bool> IsLoading { get; } = new();
+
     public AnalysisTableSurface(RaceData race, AnalysisTableData data, IReadOnlyList<RaceHorseAnalyzer> horses)
     {
       this._horses = horses;
@@ -97,15 +103,25 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         var item = new AnalysisTableRow(row, this, this._horses);
         this.Rows.Add(item);
       }
+
+      this.ProgressMax.Value = this.Rows.Count;
     }
 
     public async Task AnalysisAsync(MyContext db, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly, bool isBulk = false)
     {
+      this.IsLoading.Value = true;
+      this.ProgressMax.Value = this.Rows.Count;
+      this.Progress.Value = 0;
+
       foreach (var row in this.Rows.OrderBy(r => r.Data.Output == AnalysisTableRowOutputType.Binary ? 0 : 1))
       {
         await row.LoadAsync(this.Race, finders, weights, isCacheOnly, isBulk);
+        this.Progress.Value++;
       }
+
       this.CanLoadAll.Value = this.Rows.Any(r => !r.IsLoaded.Value);
+      this.Progress.Value = this.ProgressMax.Value;
+      this.IsLoading.Value = false;
     }
 
     private void UpdateParentRows()
