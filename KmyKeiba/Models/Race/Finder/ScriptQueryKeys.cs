@@ -1519,21 +1519,35 @@ namespace KmyKeiba.Models.Race.Finder
       }
 
       property = EnumToNumeric(property);
+      var isCompareCurrentRace = false;
       if (this.IsCompareCurrentRace)
       {
         object? obj = typeof(T) == typeof(RaceData) ? this.Race : this.Horse;
         if (obj != null)
         {
           Expression currentProperty = Expression.Property(Expression.Constant(obj), propertyName);
+          if (propertyName2 != null)
+          {
+            currentProperty = Expression.Property(currentProperty, propertyName2);
+          }
           currentProperty = EnumToNumeric(currentProperty);
           property = Expression.Subtract(property, currentProperty);
+          isCompareCurrentRace = true;
         }
       }
 
-      var value = Expression.Constant(isDouble ? (double)this.Value : (object)this.Value);
-      var maxValue = Expression.Constant(isDouble ? (double)this.MaxValue : (object)this.MaxValue);
-
+      Expression value = Expression.Constant(isDouble ? (double)this.Value : (object)this.Value);
+      Expression maxValue = Expression.Constant(isDouble ? (double)this.MaxValue : (object)this.MaxValue);
       var values = Expression.Constant(this.Values.ToList());
+
+      if (isCompareCurrentRace)
+      {
+        if (this.Type == QueryType.LessThan || this.Type == QueryType.LessThanOrEqual)
+        {
+          value = Expression.Multiply(value, Expression.Constant(-1));
+          maxValue = Expression.Multiply(maxValue, Expression.Constant(-1));
+        }
+      }
 
       return this.BuildNumericQuery<T>(param, property, value, maxValue, values);
     }
