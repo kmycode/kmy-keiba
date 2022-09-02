@@ -89,7 +89,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             }
           }
         }
-      });
+      }).AddTo(this._disposables);
 
       this.UpdateRows();
       this.UpdateParentRows();

@@ -293,7 +293,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             this.Output.Value = output.OutputType;
           }
         }
-      });
+      }).AddTo(this._disposables);
       this.SelectedJrdbOutput.Skip(1).Subscribe(output =>
       {
         if (output != null)
@@ -303,7 +303,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             this.Output.Value = output.OutputType;
           }
         }
-      });
+      }).AddTo(this._disposables);
 
       finder.Input.Deserialize(data.FinderConfig);
       finder.Input.Query.Skip(1).Subscribe(async _ =>

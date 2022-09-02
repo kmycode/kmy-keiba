@@ -588,6 +588,7 @@ namespace KmyKeiba.Models.Race
       this.RaceAnalyzer.Value?.Dispose();
       this.TrendAnalyzers.Dispose();
       this.AnalysisTables.Dispose();
+      this.AnalysisTable.Value?.Dispose();
       this.Finder.Dispose();
       this.FinderModel.Value?.Dispose();
       this.MemoEx.Value?.Dispose();
