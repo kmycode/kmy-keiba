@@ -15,6 +15,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race.AnalysisTable
@@ -162,6 +163,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         o == AnalysisTableRowOutputType.PlaceBetsRate ||
         o == AnalysisTableRowOutputType.WinRate ||
         o == AnalysisTableRowOutputType.RecoveryRate ||
+        o == AnalysisTableRowOutputType.FixedValue ||
+        o == AnalysisTableRowOutputType.FixedValuePerPastRace ||
         o == AnalysisTableRowOutputType.HorseValues ||
         o == AnalysisTableRowOutputType.JrdbValues).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetSubOutput = this.SelectedOutput
@@ -751,6 +754,14 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             scriptVariables.Append(raceJson);
             scriptVariables.Append(';');
           }
+          if (this.Data.ValueScript.Contains("horses"))
+          {
+            var scriptHorses = this.Cells.Select(c => new ScriptRaceHorse(c.Horse.Race.Key, c.Horse, false)).ToArray();
+            var horsesJson = JsonSerializer.Serialize(scriptHorses, ScriptManager.JsonOptions);
+            scriptVariables.Append("const horses=");
+            scriptVariables.Append(horsesJson);
+            scriptVariables.Append(';');
+          }
           if (this.Data.ValueScript.Contains("horse"))
           {
             var scriptHorse = new ScriptRaceHorse(cell.Horse.Race.Key, cell.Horse, false);
@@ -776,6 +787,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             if (result is int intval)
             {
               value = intval;
+            }
+            else if (result is short sval)
+            {
+              value = sval;
             }
             else if (result is double doval)
             {

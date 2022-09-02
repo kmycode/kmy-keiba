@@ -119,7 +119,7 @@ namespace KmyKeiba.Models.Script
       new ScriptRace(this._analyzer!.Race, this._analyzer.CurrentRace?.TopHorses.ToArray()) : null;
 
     [JsonPropertyName("history")]
-    public ScriptHistory? History => this._analyzer?.History != null ? new ScriptHistory(this._targetRaceKey, this._analyzer.History) : null;
+    public ScriptHistory? History => this._analyzer?.History != null ? new ScriptHistory(this._targetRaceKey, this._analyzer.History) : ScriptHistory.Default;
 
     public ScriptRaceHorse(string targetRaceKey, RaceHorseAnalyzer horse, bool isRaceGettable = true)
     {
@@ -306,6 +306,8 @@ namespace KmyKeiba.Models.Script
         this._targetRaceKey = targetRaceKey;
         this._history = history;
       }
+
+      public static ScriptHistory Default { get; } = new ScriptHistory(string.Empty, new RaceHorseAnalyzer.HistoryData(new RaceData(), new RaceHorseData(), Enumerable.Empty<RaceHorseAnalyzer>(), null));
     }
   }
 }

@@ -1106,7 +1106,8 @@ namespace KmyKeiba.Models.Race.Finder
             .Where(g => g.Count >= this._minCount && g.Count <= this._maxCount)
             .Select(g => g.Key)
             .ToArray();
-          horses = horses.Where(h => raceKeys.Contains(h.RaceKey));
+          //horses = horses.Where(h => raceKeys.Contains(h.RaceKey));
+          query = query.Where(r => raceKeys.Contains(r.Key));
         }
         if (this._minRate > 0 || this._maxRate < 100)
         {
@@ -1117,11 +1118,12 @@ namespace KmyKeiba.Models.Race.Finder
             .Where(g => g.Rate >= this._minRate && g.Rate <= this._maxRate)
             .Select(g => g.Key)
             .ToArray();
-          horses = horses.Where(h => raceKeys.Contains(h.RaceKey));
+          //horses = horses.Where(h => raceKeys.Contains(h.RaceKey));
+          query = query.Where(r => raceKeys.Contains(r.Key));
         }
 
-        var raceKeys2 = horses.GroupBy(h => h.RaceKey).Select(h => h.Key).ToArray();
-        query = query.Where(r => raceKeys2.Contains(r.Key));
+        //var raceKeys2 = horses.GroupBy(h => h.RaceKey).Select(h => h.Key).ToArray();
+        //query = query.Where(r => raceKeys2.Contains(r.Key));
       }
 
       return query;
