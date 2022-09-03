@@ -28,5 +28,7 @@
     <Ellipse Width="8" Height="8" Fill="{Binding Race.MemoColor.Value,ElementName=Root,Converter={StaticResource MemoColorBrushConv}}"
              Visibility="{Binding Race.IsMemoVisible.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
              VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="4"/>
+    <TextBlock Visibility="{Binding Race.HasCheckedHorse.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+               FontWeight="Bold" FontSize="10" Text="✔" Foreground="Red" Margin="1,0,0,0"/>
   </Grid>
 </UserControl>

@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Common;
+﻿using ABI.Windows.AI.MachineLearning;
+using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
@@ -51,6 +52,7 @@ namespace KmyKeiba.Models.RList
       IEnumerable<TicketData> tickets;
       IEnumerable<RaceHorseData> horses;
       IEnumerable<MemoData> memos;
+      IEnumerable<CheckHorseData> checks;
       PointLabelData? pointLabel;
 
       using (var db = new MyContext())
@@ -64,12 +66,18 @@ namespace KmyKeiba.Models.RList
         
         var horseData = await db.RaceHorses!
           .Where(r => keys.Contains(r.RaceKey))
-          .Select(r => new { r.Number, r.FrameNumber, r.RaceKey, r.AbnormalResult, })
+          .Select(r => new { r.Key, r.Number, r.FrameNumber, r.RaceKey, r.AbnormalResult, })
           .ToArrayAsync();
-        horses = horseData.Select(h => new RaceHorseData { RaceKey = h.RaceKey, Number = h.Number, FrameNumber = h.FrameNumber, AbnormalResult = h.AbnormalResult, }).ToArray();
+        horses = horseData.Select(h => new RaceHorseData { Key = h.Key, RaceKey = h.RaceKey, Number = h.Number, FrameNumber = h.FrameNumber, AbnormalResult = h.AbnormalResult, }).ToArray();
+        var horseKeys = horses.Select(h => h.Key).ToArray();
 
         await MemoUtil.InitializeAsync(db);
         (memos, pointLabel) = await MemoUtil.GetRaceListMemosAsync(db, keys);
+
+        await CheckHorseUtil.InitializeAsync(db);
+        checks = await db.CheckHorses!
+          .Where(c => c.Type == HorseCheckType.CheckRace && horseKeys.Contains(c.Key))
+          .ToArrayAsync();
       }
 
       ThreadUtil.InvokeOnUiThread(() =>
@@ -157,6 +165,8 @@ namespace KmyKeiba.Models.RList
               }
             }
 
+            item.HasCheckedHorse.Value = myHorses.Join(checks, h => h.Key, c => c.Key, (h, c) => true).Any();
+
             item.UpdateStatus();
             if (item.Key == this.SelectedRaceKey.Value)
             {
@@ -170,6 +180,15 @@ namespace KmyKeiba.Models.RList
 
         this.UpdateCurrentDateIncomes();
       });
+    }
+
+    public void UpdateHasCheckedHorse(string raceKey, bool hasCheckedHorse)
+    {
+      var item = this.Courses.SelectMany(c => c.Races).FirstOrDefault(r => r.Key == raceKey);
+      if (item != null)
+      {
+        item.HasCheckedHorse.Value = hasCheckedHorse;
+      }
     }
 
     public void UpdatePayoff(string raceKey, int income, bool isPaid)
@@ -346,6 +365,8 @@ namespace KmyKeiba.Models.RList
     public ReactiveProperty<MemoColor> MemoColor { get; } = new();
 
     public ReactiveProperty<bool> IsMemoVisible { get; } = new();
+
+    public ReactiveProperty<bool> HasCheckedHorse { get; } = new();
 
     public RaceListItem(RaceData race)
     {

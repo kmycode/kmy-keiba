@@ -67,6 +67,7 @@
                     <StackPanel Orientation="Horizontal">
                       <TextBlock FontSize="24" FontWeight="Bold" TextAlignment="Left" VerticalAlignment="Center"
                                  Text="{Binding Horse.Data.Name,ElementName=Root}"
+                                 Foreground="{Binding Horse.IsChecked.Value,ElementName=Root,Converter={StaticResource BooleanForegroundActiveConv}}"
                                  Visibility="{Binding Horse.IsAbnormalResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
                       <TextBlock FontSize="24" FontWeight="Bold" TextAlignment="Left" VerticalAlignment="Center"
                                  Text="{Binding Horse.Data.Name,ElementName=Root}" Foreground="{StaticResource SubForeground}"
@@ -110,6 +111,9 @@
                     </MultiBinding>
                   </TextBox.IsReadOnly>
                 </TextBox>
+                <ToggleButton Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Left"
+                              Content="チェック" IsChecked="{Binding Horse.IsChecked.Value,ElementName=Root}"
+                              IsEnabled="{Binding Horse.CanSave.Value,ElementName=Root}"/>
                 <StackPanel Grid.Column="1" VerticalAlignment="Bottom">
                   <TextBlock Text="拡張メモ" Foreground="{StaticResource SubForeground}" FontSize="16"
                              Margin="0,0,0,4"/>

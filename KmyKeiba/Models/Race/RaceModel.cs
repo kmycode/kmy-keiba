@@ -25,7 +25,9 @@ namespace KmyKeiba.Models.Race
 
     private readonly CompositeDisposable _disposables = new();
     private IDisposable? ticketUpdated;
+    private IDisposable? horseCheckUpdated;
     private IDisposable? memoChanged;
+    private IDisposable? memoChanged2;
 
     public ReactiveProperty<string> RaceKey { get; } = new(string.Empty);
 
@@ -59,19 +61,23 @@ namespace KmyKeiba.Models.Race
       {
         var firstMessages = new string[]
         {
-        "寂しい画面ですね。",
-        "昨日はいくら勝ちましたか？",
-        "今日はいい天気でしょうか？",
-        "宇都宮のことも忘れないで。",
-        "私は妖精さんです。",
-        "中央競馬を見に行くときは予約も忘れずに。",
-        "他にもっといい競馬ソフトがありますよ。",
-        "落馬しませんように。",
-        "競馬は余剰資金で安全に遊びましょう。",
-        "ウマ娘のダイヤちゃんが好みです。",
-        "ゲートインはスムーズに。",
-        "競馬は投資ではなくギャンブルです。",
-        "またガミりやがった！",
+          "寂しい画面ですね。",
+          "今日はいい天気でしょうか？",
+          "私は妖精さんです。",
+          "中央競馬を見に行くときは予約も忘れずに。",
+          "他にもっといい競馬ソフトがありますよ。",
+          "落馬しませんように。",
+          "競馬は余剰資金で安全に遊びましょう。",
+          "ウマ娘のダイヤちゃんが好みです。",
+          "ゲートインはスムーズに。",
+          "競馬は投資ではなくギャンブルです。",
+          "またガミりやがった！",
+          "『KMY競馬の拡張分析設定売ります』は100%詐欺。",
+          "あなたの後ろにあなたがいます。",
+          "5000兆円欲しい。",
+          "人生楽しんでますか？",
+          "ダイヤちゃんの袖の中に入りたい。",
+          "マナーを守って安全に観戦しましょう。",
         };
         var index = new Random().Next(firstMessages.Length);
         ApplicationConfiguration.Current.Skip(1).Select(c => c.IsFirstMessageVisible).Subscribe(v =>
@@ -242,6 +248,8 @@ namespace KmyKeiba.Models.Race
             oldInfo.Tickets.Value.Tickets.TicketCountChanged -= this.Tickets_TicketCountChanged;
           }
           this.memoChanged?.Dispose();
+          this.memoChanged2?.Dispose();
+          this.horseCheckUpdated?.Dispose();
 
           var raceKey = key ?? this.RaceKey.Value;
 
@@ -324,12 +332,17 @@ namespace KmyKeiba.Models.Race
           {
             this.RaceList.UpdateColor(ev.EventArgs.Color, ev.EventArgs.IsVisible);
           });
-          this.memoChanged = Observable.FromEventPattern(
+          this.memoChanged2 = Observable.FromEventPattern(
             ev => race.MemoEx.Value.PointLabelOrderChangedForRaceList += ev,
             ev => race.MemoEx.Value.PointLabelOrderChangedForRaceList -= ev)
           .Subscribe(async _ =>
           {
             await this.RaceList.UpdateAllColorsAsync();
+          });
+
+          this.horseCheckUpdated = race.HasCheckedHorse.Subscribe(isChecked =>
+          {
+            this.RaceList.UpdateHasCheckedHorse(race.Data.Key, isChecked);
           });
         }
         catch (Exception ex)
@@ -373,6 +386,10 @@ namespace KmyKeiba.Models.Race
       this._disposables.Dispose();
       this.Info.Value?.Dispose();
       this.RaceList.Dispose();
+      this.horseCheckUpdated?.Dispose();
+      this.memoChanged?.Dispose();
+      this.memoChanged2?.Dispose();
+      this.ticketUpdated?.Dispose();
       logger.Debug("破棄が完了しました");
     }
   }

@@ -48,6 +48,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<bool> HasHorses { get; } = new();
 
+    public ReactiveProperty<bool> HasCheckedHorse { get; } = new();
+
     public ReactiveProperty<bool> IsLoadCompleted { get; } = new();
 
     public ReactiveProperty<bool> IsLoadError { get; } = new();
@@ -244,6 +246,12 @@ namespace KmyKeiba.Models.Race
     {
       var sortedHorses = (horses.All(h => h.Data.Number == default) ? horses.OrderBy(h => h.Data.Name) : horses.OrderBy(h => h.Data.Number)).ToArray();
       this.FinderModel.Value = new FinderModel(this.Data, null, sortedHorses);
+
+      foreach (var horse in horses)
+      {
+        horse.IsChecked.Subscribe(_ => this.HasCheckedHorse.Value = this.Horses.Any(h => h.IsChecked.Value)).AddTo(this._disposables);
+      }
+      this.HasCheckedHorse.Value = horses.Any(h => h.IsChecked.Value);
 
       ThreadUtil.InvokeOnUiThread(() =>
       {
@@ -651,6 +659,7 @@ namespace KmyKeiba.Models.Race
           var cache = RaceInfoCacheManager.TryGetCache(race.Key);
           await FinderConfigUtil.InitializeAsync(db);
           await ExternalNumberUtil.InitializeAsync(db);
+          await CheckHorseUtil.InitializeAsync(db);
           await Race.AnalysisTable.AnalysisTableUtil.InitializeAsync(db);
 
           var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == race.Key).ToArrayAsync();
@@ -721,6 +730,7 @@ namespace KmyKeiba.Models.Race
             };
             analyzer.RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(analyzer);
             analyzer.SetOddsTimeline(oddsTimeline);
+            analyzer.ChangeIsCheck(CheckHorseUtil.IsChecked(horse.Key, HorseCheckType.CheckRace));
 
             horseInfos.Add(analyzer);
             logger.Debug($"馬 {horse.Name} の情報を登録");

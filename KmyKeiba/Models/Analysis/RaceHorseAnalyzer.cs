@@ -26,6 +26,7 @@ namespace KmyKeiba.Models.Analysis
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
     private static ITimeDeviationValueCalculator? _timeDeviationValueCalculator = InjectionManager.GetInstance<ITimeDeviationValueCalculator>(InjectionManager.TimeDeviationValueCalculator);
+    private bool _isChecking;
 
     public static RaceHorseAnalyzer Empty { get; } = new(new RaceData(), new RaceHorseData());
 
@@ -58,6 +59,8 @@ namespace KmyKeiba.Models.Analysis
     public ReactiveProperty<Race.Memo.RaceHorseMemoItem?> MemoEx { get; } = new();
 
     public ReactiveProperty<RaceHorseMark> Mark { get; } = new();
+
+    public ReactiveProperty<bool> IsChecked { get; } = new();
 
     public ReactiveProperty<string> Memo { get; } = new();
 
@@ -422,6 +425,31 @@ namespace KmyKeiba.Models.Analysis
         this.Data.Memo = m;
       }, this.Memo, this.IsMemoSaving).AddTo(this._disposables);
 
+      this.IsChecked.Skip(1).Subscribe(async c =>
+      {
+        if (this._isChecking)
+        {
+          return;
+        }
+
+        try
+        {
+          using var db = new MyContext();
+          if (c)
+          {
+            await CheckHorseUtil.CheckAsync(db, this.Data.Key, HorseCheckType.CheckRace);
+          }
+          else
+          {
+            await CheckHorseUtil.UncheckAsync(db, this.Data.Key, HorseCheckType.CheckRace);
+          }
+        }
+        catch (Exception ex)
+        {
+          logger.Error("馬のチェックに失敗", ex);
+        }
+      }).AddTo(this._disposables);
+
       // コーナーの成績
       static CornerGradeType GetCornerGradeType(short order, short beforeOrder)
         => beforeOrder == 0 ? CornerGradeType.Standard :
@@ -593,6 +621,13 @@ namespace KmyKeiba.Models.Analysis
     #endregion
 
     private readonly CompositeDisposable _disposables = new();
+
+    public void ChangeIsCheck(bool status)
+    {
+      this._isChecking = true;
+      this.IsChecked.Value = status;
+      this._isChecking = false;
+    }
 
     private async Task ChangeHorseMarkAsync(string marks)
     {

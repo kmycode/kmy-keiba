@@ -25,5 +25,6 @@ namespace KmyKeiba.Data.Db
   {
     Unset = 0,
     CheckBlood = 1,
+    CheckRace = 2,
   }
 }
