@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race.ExNumber;
@@ -382,6 +383,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       foreach (var item in this.Cells.Join(finders, c => c.Horse.Data.Key, f => f.RaceHorse?.Key, (c, f) => new { Cell = c, Finder = f, }))
       {
         // 親ブーリアンがFALSEなら、子セルを調べる必要なし
+        item.Cell.IsSkipped.Value = false;
         if (this.SelectedParent.Value != null && this.SelectedParent.Value.Data.Output == AnalysisTableRowOutputType.Binary)
         {
           var targetCell = this.SelectedParent.Value.Cells.FirstOrDefault(c => c.Horse.Data.Key == item.Cell.Horse.Data.Key);
@@ -389,9 +391,17 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           {
             if (targetCell.IsSkipped.Value)
             {
+              item.Cell.IsSkipped.Value = true;  // 孫Cellのために必要
               continue;
             }
           }
+        }
+
+        // 出走していない馬は調べる必要なし
+        if (item.Cell.Horse.IsAbnormalResult || item.Cell.Horse.Data.DataStatus == RaceDataStatus.Canceled)
+        {
+          item.Cell.IsSkipped.Value = true;
+          continue;
         }
 
         var query = keys;
