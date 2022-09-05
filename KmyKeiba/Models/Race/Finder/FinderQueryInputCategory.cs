@@ -1232,6 +1232,20 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
+  public class RaceBefore3HTimeInputCategory : FloatNumberInputCategoryBase
+  {
+    public RaceBefore3HTimeInputCategory() : base("racebefore3h", 1)
+    {
+    }
+  }
+
+  public class RaceAfter3HTimeInputCategory : FloatNumberInputCategoryBase
+  {
+    public RaceAfter3HTimeInputCategory() : base("raceafter3h", 1)
+    {
+    }
+  }
+
   #endregion
 
   #region トラック

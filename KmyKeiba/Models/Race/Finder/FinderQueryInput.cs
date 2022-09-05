@@ -59,6 +59,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public TrackDistanceInputCategory Distance { get; }
 
+    public RaceBefore3HTimeInputCategory RaceBefore3h { get; }
+
+    public RaceAfter3HTimeInputCategory RaceAfter3h { get; }
+
     public TrackGroundInputCategory Ground { get; }
 
     public TrackCornerDirectionInputCategory CornerDirection { get; }
@@ -196,6 +200,8 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.HorsesCount = new RaceHorsesCountInputCategory());
       this._categories.Add(this.ResultHorsesCount = new RaceHorsesGoalCountInputCategory());
       this._categories.Add(this.Distance = new TrackDistanceInputCategory());
+      this._categories.Add(this.RaceBefore3h = new RaceBefore3HTimeInputCategory());
+      this._categories.Add(this.RaceAfter3h = new RaceAfter3HTimeInputCategory());
       this._categories.Add(this.Ground = new TrackGroundInputCategory());
       this._categories.Add(this.CornerDirection = new TrackCornerDirectionInputCategory());
       this._categories.Add(this.TrackOption = new TrackOptionInputCategory());

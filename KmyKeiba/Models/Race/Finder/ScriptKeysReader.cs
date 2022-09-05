@@ -1119,6 +1119,10 @@ namespace KmyKeiba.Models.Race.Finder
     GoalHorsesCount,
     [EnumQueryKey("datastatus")]
     DataStatus,
+    [NumericQueryKey("racebefore3h")]
+    Before3HTime,
+    [NumericQueryKey("raceafter3h")]
+    After3HTime,
 
     [StringQueryKey("horse")]
     HorseKey,

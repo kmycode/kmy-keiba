@@ -235,7 +235,7 @@
             <local:InputListBoxView Grid.Row="1" Margin="0,8,0,0"
                                     Header="年齢" Comment="(中央)" Input="{Binding FinderModel.Input.RaceAge,ElementName=Root}"/>
           </Grid>
-          <Grid Width="120" Margin="8,0,0,0">
+          <Grid Width="100" Margin="8,0,0,0">
             <local:InputListBoxView Header="グレード" Input="{Binding FinderModel.Input.Grade,ElementName=Root}"/>
           </Grid>
           <Grid Width="120" Margin="8,0,0,0">
@@ -246,6 +246,30 @@
             <local:InputListBoxView Header="性別" Input="{Binding FinderModel.Input.SexRule,ElementName=Root}"/>
             <local:InputListBoxView Grid.Row="1" Margin="0,8,0,0"
                                     Header="産地・買条件" Input="{Binding FinderModel.Input.AreaRule,ElementName=Root}"/>
+          </Grid>
+          <Grid Width="100" Margin="8,0,0,0">
+            <Grid.RowDefinitions>
+              <RowDefinition/>
+              <RowDefinition/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+            <local:InputListBoxView Header="地面" Input="{Binding FinderModel.Input.Ground,ElementName=Root}"/>
+            <local:InputListBoxView Grid.Row="1" Header="種類" Input="{Binding FinderModel.Input.TrackType,ElementName=Root}"
+                                    Margin="0,8,0,0"/>
+            <local:InputListBoxView Grid.Row="2" Header="向き" Input="{Binding FinderModel.Input.CornerDirection,ElementName=Root}"
+                                    Margin="0,8,0,0"/>
+          </Grid>
+          <Grid Width="100" Margin="8,0,0,0">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="1.06*"/>
+              <RowDefinition Height="0.73*"/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+            <local:InputListBoxView Header="コース" Input="{Binding FinderModel.Input.TrackOption,ElementName=Root}"/>
+            <local:InputListBoxView Grid.Row="1" Header="馬場状態" Input="{Binding FinderModel.Input.TrackCondition,ElementName=Root}"
+                                    Margin="0,8,0,0"/>
+            <local:InputListBoxView Grid.Row="2" Header="天気" Input="{Binding FinderModel.Input.Weather,ElementName=Root}"
+                                    Margin="0,8,0,0"/>
           </Grid>
         </StackPanel>
       </ScrollViewer>
@@ -308,30 +332,13 @@
           <Grid Width="100" Margin="8,0,0,0">
             <local:InputListBoxView Header="入線頭数" Input="{Binding FinderModel.Input.ResultHorsesCount,ElementName=Root}"/>
           </Grid>
-          <Grid Width="100" Margin="8,0,0,0">
-            <Grid.RowDefinitions>
-              <RowDefinition/>
-              <RowDefinition/>
-              <RowDefinition/>
-            </Grid.RowDefinitions>
-            <local:InputListBoxView Header="地面" Input="{Binding FinderModel.Input.Ground,ElementName=Root}"/>
-            <local:InputListBoxView Grid.Row="1" Header="種類" Input="{Binding FinderModel.Input.TrackType,ElementName=Root}"
-                                    Margin="0,8,0,0"/>
-            <local:InputListBoxView Grid.Row="2" Header="向き" Input="{Binding FinderModel.Input.CornerDirection,ElementName=Root}"
-                                    Margin="0,8,0,0"/>
-          </Grid>
-          <Grid Width="100" Margin="8,0,0,0">
-            <Grid.RowDefinitions>
-              <RowDefinition Height="1.06*"/>
-              <RowDefinition Height="0.73*"/>
-              <RowDefinition/>
-            </Grid.RowDefinitions>
-            <local:InputListBoxView Header="コース" Input="{Binding FinderModel.Input.TrackOption,ElementName=Root}"/>
-            <local:InputListBoxView Grid.Row="1" Header="馬場状態" Input="{Binding FinderModel.Input.TrackCondition,ElementName=Root}"
-                                    Margin="0,8,0,0"/>
-            <local:InputListBoxView Grid.Row="2" Header="天気" Input="{Binding FinderModel.Input.Weather,ElementName=Root}"
-                                    Margin="0,8,0,0"/>
-          </Grid>
+
+          <StackPanel Width="350" Margin="16,0,0,0">
+            <local:InputNumberView Input="{Binding FinderModel.Input.RaceBefore3h.Input,ElementName=Root}" Margin="0,0,0,0"
+                                   Header="前3ハロンタイム" Comment="(補正前)"/>
+            <local:InputNumberView Input="{Binding FinderModel.Input.RaceAfter3h.Input,ElementName=Root}"
+                                   Header="後3ハロンタイム" Margin="0,8,0,0"/>
+          </StackPanel>
         </StackPanel>
       </ScrollViewer>
 

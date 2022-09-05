@@ -816,6 +816,12 @@ namespace KmyKeiba.Models.Race.Finder
               case QueryKey.Distance:
                 tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.Distance), value, propertyPrefix: prefix, isShort: true));
                 break;
+              case QueryKey.Before3HTime:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.BeforeHaronTime3), value, propertyPrefix: prefix, isShort: true));
+                break;
+              case QueryKey.After3HTime:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.AfterHaronTime3), value, propertyPrefix: prefix, isShort: true));
+                break;
               case QueryKey.Weather:
                 tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.TrackWeather), value, propertyPrefix: prefix, isShort: true, isEnum: true));
                 break;
@@ -1327,6 +1333,10 @@ namespace KmyKeiba.Models.Race.Finder
           return this.BuildNumericQuery<RaceData>(nameof(RaceData.HorsesCount), isShort: true);
         case QueryKey.GoalHorsesCount:
           return this.BuildNumericQuery<RaceData>(nameof(RaceData.ResultHorsesCount), isShort: true);
+        case QueryKey.Before3HTime:
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.BeforeHaronTime3), isShort: true);
+        case QueryKey.After3HTime:
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.AfterHaronTime3), isShort: true);
         case QueryKey.DataStatus:
           return this.BuildNumericQuery<RaceData>(nameof(RaceData.DataStatus), isShort: true, isEnum: true);
       }
