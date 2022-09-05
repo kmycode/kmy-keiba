@@ -74,6 +74,8 @@ namespace KmyKeiba.Models.Race.Finder
 
       IQueryable<RaceData> races = db.Races!;
       var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
+      IQueryable<JrdbRaceHorseData> jrdbHorses = db.JrdbRaceHorses!;
+      IQueryable<RaceHorseExtraData> extras = db.RaceHorseExtras!;
       if (raceQueries.IsCurrentRaceOnly)
       {
         if (this.Race != null)
@@ -104,10 +106,26 @@ namespace KmyKeiba.Models.Race.Finder
       {
         races = q.Apply(db, races);
         horses = q.Apply(db, horses);
+        if (raceQueries.HasJrdbQuery)
+        {
+          jrdbHorses = q.Apply(db, jrdbHorses);
+        }
+        if (raceQueries.HasExtraQuery)
+        {
+          extras = q.Apply(db, extras);
+        }
       }
 
       var query = horses
         .Join(races, rh => rh.RaceKey, r => r.Key, (rh, r) => new { RaceHorse = rh, Race = r, });
+      if (raceQueries.HasJrdbQuery)
+      {
+        query = query.Join(jrdbHorses, rh => new { rh.RaceHorse.Key, rh.RaceHorse.RaceKey, }, j => new { j.Key, j.RaceKey, }, (rh, j) => rh);
+      }
+      if (raceQueries.HasExtraQuery)
+      {
+        query = query.Join(extras, rh => new { rh.RaceHorse.Key, rh.RaceHorse.RaceKey, }, e => new { e.Key, e.RaceKey, }, (rh, e) => rh);
+      }
 
       var racesDataQuery = query
         .OrderByDescending(r => r.Race.StartTime)

@@ -219,6 +219,10 @@ namespace KmyKeiba.Data.Db
     /// </summary>
     public string? Memo { get; set; }
 
+    public HorseExtraDataState ExtraDataState { get; set; }
+
+    public short ExtraDataVersion { get; set; }
+
     public override void SetEntity(RaceHorse entity)
     {
       this.LastModified = entity.LastModified;
@@ -306,5 +310,13 @@ namespace KmyKeiba.Data.Db
     Deleted = 6,
     Check = 7,
     Note = 8,
+  }
+
+  public enum HorseExtraDataState : short
+  {
+    Unset = 0,
+    UntilRace = 1,
+    AfterRace = 2,
+    Ignored = 3,
   }
 }

@@ -23,6 +23,36 @@ namespace KmyKeiba.Data.Db
 
     public short MiningMatchScore { get; set; }
 
+    public short Pci { get; set; }
+
+    public short Pci3 { get; set; }
+
+    public short Rpci { get; set; }
+
+    public short After3HaronOrder { get; set; }
+
+    public short Before3HaronTimeFixed { get; set; }
+
+    public short BaseTime { get; set; }
+
+    public short BaseTimeAs3Haron { get; set; }
+
+    public short CornerOrderDiff2 { get; set; }
+
+    public short CornerOrderDiff3 { get; set; }
+
+    public short CornerOrderDiff4 { get; set; }
+
+    public short CornerOrderDiffGoal { get; set; }
+
+    public short CornerInsideCount { get; set; }
+
+    public short CornerMiddleCount { get; set; }
+
+    public short CornerOutsideCount { get; set; }
+
+    public short CornerAloneCount { get; set; }
+
     public void SetData(string key, string raceKey, short number, MiningTime? time = null, MiningMatch? match = null)
     {
       this.Key = key;

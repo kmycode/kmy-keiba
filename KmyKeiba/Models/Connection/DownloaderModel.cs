@@ -93,6 +93,8 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsBuildMasterData { get; } = new();
 
+    public ReactiveProperty<bool> IsBuildExtraData { get; } = new();
+
     public ReactiveProperty<bool> IsRTDownloadCentral { get; } = new();
 
     public ReactiveProperty<bool> IsRTDownloadCentralAfterThursdayOnly { get; } = new();
@@ -148,7 +150,7 @@ namespace KmyKeiba.Models.Connection
 
       this.DownloadingStatus =
         this.ProcessingStep
-          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates && p != Connection.ProcessingStep.MigrationFrom250 && p != Connection.ProcessingStep.MigrationFrom322)
+          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates && p != Connection.ProcessingStep.MigrationFrom250 && p != Connection.ProcessingStep.MigrationFrom322 && p != Connection.ProcessingStep.HorseExtraData)
           .CombineLatest(this.LoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
           .CombineLatest(JrdbDownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)
           .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
@@ -618,6 +620,11 @@ namespace KmyKeiba.Models.Connection
           logger.Info("マスターデータ更新を開始");
           await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.All);
         }
+        else if (this.IsBuildExtraData.Value)
+        {
+          logger.Info("拡張データ作成を開始");
+          await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.HorseExtraData);
+        }
         else
         {
           if (!this.IsDownloadJrdb.Value)
@@ -711,6 +718,21 @@ namespace KmyKeiba.Models.Connection
           step.Value = Connection.ProcessingStep.RaceSubjectInfos;
           logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
           await ShapeDatabaseModel.SetRaceSubjectDisplayInfosAsync(isCanceled: this.IsCancelProcessing);
+        }
+        if (steps.HasFlag(Connection.ProcessingStep.HorseExtraData) && !this.IsCancelProcessing.Value)
+        {
+          step.Value = Connection.ProcessingStep.HorseExtraData;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
+          try
+          {
+            this.HasProcessingProgress.Value = true;
+            await ShapeDatabaseModel.SetHorseExtraTableDataAsync(isCanceled: this.IsCancelProcessing,
+              progress: this.ProcessingProgress, progressMax: this.ProcessingProgressMax);
+          }
+          finally
+          {
+            this.HasProcessingProgress.Value = false;
+          }
         }
 
         // 途中から再開できないものは最後に
@@ -1190,6 +1212,9 @@ namespace KmyKeiba.Models.Connection
 
     [Label("データをマイグレーション中 (from 3.2.2)")]
     MigrationFrom322 = 128,
+
+    [Label("拡張情報を作成中")]
+    HorseExtraData = 256,
 
     All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | MigrationFrom250 | MigrationFrom322,
   }

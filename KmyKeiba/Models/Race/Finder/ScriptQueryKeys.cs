@@ -23,6 +23,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public abstract IQueryable<ExternalNumberData> Apply(MyContext db, IQueryable<ExternalNumberData> query);
 
+    public abstract IQueryable<RaceHorseExtraData> Apply(MyContext db, IQueryable<RaceHorseExtraData> query);
+
+    public abstract IQueryable<JrdbRaceHorseData> Apply(MyContext db, IQueryable<JrdbRaceHorseData> query);
+
     public abstract IEnumerable<RaceData> Apply(MyContext db, IEnumerable<RaceData> query);
 
     public abstract IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query);
@@ -56,6 +60,16 @@ namespace KmyKeiba.Models.Race.Finder
     }
 
     public override IQueryable<ExternalNumberData> Apply(MyContext db, IQueryable<ExternalNumberData> query)
+    {
+      return query;
+    }
+
+    public override IQueryable<RaceHorseExtraData> Apply(MyContext db, IQueryable<RaceHorseExtraData> query)
+    {
+      return query;
+    }
+
+    public override IQueryable<JrdbRaceHorseData> Apply(MyContext db, IQueryable<JrdbRaceHorseData> query)
     {
       return query;
     }
@@ -636,13 +650,17 @@ namespace KmyKeiba.Models.Race.Finder
     private readonly IReadOnlyList<ScriptKeyQuery> _queries;
     private readonly int _count = 0;
     private readonly RaceCountComparationRule _rule;
+    private readonly bool _hasJrdbQueries;
+    private readonly bool _hasExtraQueries;
 
     public int Count => this._count;
 
     public RaceCountComparationRule Rule => this._rule;
 
-    public HorseBeforeRacesCountScriptKeyQuery(IReadOnlyList<ScriptKeyQuery> queries, RaceCountComparationRule rule, int count)
+    public HorseBeforeRacesCountScriptKeyQuery(IReadOnlyList<ScriptKeyQuery> queries, RaceCountComparationRule rule, int count, bool hasJrdbQueries, bool hasExtraQueries)
     {
+      this._hasJrdbQueries = hasJrdbQueries;
+      this._hasExtraQueries = hasExtraQueries;
       this._rule = rule;
       this._queries = queries;
       this._count = count;
@@ -662,6 +680,25 @@ namespace KmyKeiba.Models.Race.Finder
       {
         races = q.Apply(db, races);
         horses = q.Apply(db, horses);
+      }
+
+      if (this._hasJrdbQueries)
+      {
+        IQueryable<JrdbRaceHorseData> jrdbs = db.JrdbRaceHorses!;
+        foreach (var q in this._queries)
+        {
+          jrdbs = q.Apply(db, jrdbs);
+        }
+        horses = horses.Join(jrdbs, h => new { h.Key, h.RaceKey, }, j => new { j.Key, j.RaceKey, }, (h, j) => h);
+      }
+      if (this._hasExtraQueries)
+      {
+        IQueryable<RaceHorseExtraData> extras = db.RaceHorseExtras!;
+        foreach (var q in this._queries)
+        {
+          extras = q.Apply(db, extras);
+        }
+        horses = horses.Join(extras, h => new { h.Key, h.RaceKey, }, j => new { j.Key, j.RaceKey, }, (h, j) => h);
       }
 
       var horsesData = horses
@@ -690,6 +727,8 @@ namespace KmyKeiba.Models.Race.Finder
     private readonly IReadOnlyList<ScriptKeyQuery> _queries;
     private readonly IReadOnlyList<ExpressionScriptKeyQuery> _diffQueries;
     private readonly IReadOnlyList<ExpressionScriptKeyQuery> _diffQueriesBetweenCurrent;
+    private readonly bool _hasJrdbQueries;
+    private readonly bool _hasExtraQueries;
     private readonly int _beforeSize;
     private readonly int _compareTargetSize;
     private readonly RaceCountRule _countRule;
@@ -701,8 +740,10 @@ namespace KmyKeiba.Models.Race.Finder
       Completely,
     }
 
-    public HorseBeforeRacesScriptKeyQuery(RaceCountRule countRule, int beforeSize, int compareTargetSize, IReadOnlyList<ScriptKeyQuery> queries, IReadOnlyList<ExpressionScriptKeyQuery> diffQueries, IReadOnlyList<ExpressionScriptKeyQuery> diffQueriesBetweenCurrent)
+    public HorseBeforeRacesScriptKeyQuery(RaceCountRule countRule, int beforeSize, int compareTargetSize, IReadOnlyList<ScriptKeyQuery> queries, IReadOnlyList<ExpressionScriptKeyQuery> diffQueries, IReadOnlyList<ExpressionScriptKeyQuery> diffQueriesBetweenCurrent, bool hasJrdbQueries, bool hasExtraQueries)
     {
+      this._hasJrdbQueries = hasJrdbQueries;
+      this._hasExtraQueries = hasExtraQueries;
       this._countRule = countRule;
       this._beforeSize = beforeSize;
       this._compareTargetSize = compareTargetSize;
@@ -747,6 +788,26 @@ namespace KmyKeiba.Models.Race.Finder
           horses = q.Apply(db, horses);
           races = q.Apply(db, races);
         }
+
+        if (this._hasJrdbQueries)
+        {
+          IQueryable<JrdbRaceHorseData> jrdbs = db.JrdbRaceHorses!;
+          foreach (var q in this._queries)
+          {
+            jrdbs = q.Apply(db, jrdbs);
+          }
+          horses = horses.Join(jrdbs, h => new { h.Key, h.RaceKey, }, j => new { j.Key, j.RaceKey, }, (h, j) => h);
+        }
+        if (this._hasExtraQueries)
+        {
+          IQueryable<RaceHorseExtraData> extras = db.RaceHorseExtras!;
+          foreach (var q in this._queries)
+          {
+            extras = q.Apply(db, extras);
+          }
+          horses = horses.Join(extras, h => new { h.Key, h.RaceKey, }, j => new { j.Key, j.RaceKey, }, (h, j) => h);
+        }
+
         var tmpr = horses.Join(races, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, });
 
         Expression<Func<T, bool>> Compare<T>(IQueryable<T> obj, QueryType type, bool isRace, string propertyName, int value, string propertyPrefix = "Compare", bool isShort = true, bool isEnum = false, string? subPropertyName = null)
@@ -1079,14 +1140,18 @@ namespace KmyKeiba.Models.Race.Finder
   class TopHorsesScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly IReadOnlyList<ScriptKeyQuery> _queries;
+    private readonly bool _hasExtraQueries;
+    private readonly bool _hasJrdbQueries;
     private readonly int _minCount;
     private readonly int _maxCount;
     private readonly int _minRate;
     private readonly int _maxRate;
 
-    public TopHorsesScriptKeyQuery(IReadOnlyList<ScriptKeyQuery> queries, int minCount, int maxCount, int minRate, int maxRate)
+    public TopHorsesScriptKeyQuery(IReadOnlyList<ScriptKeyQuery> queries, bool hasExtraQueries, bool hasJrdbQueries, int minCount, int maxCount, int minRate, int maxRate)
     {
       this._queries = queries;
+      this._hasJrdbQueries = hasJrdbQueries;
+      this._hasExtraQueries = hasExtraQueries;
       this._minCount = minCount;
       this._maxCount = maxCount;
       this._minRate = minRate;
@@ -1099,6 +1164,25 @@ namespace KmyKeiba.Models.Race.Finder
       foreach (var q in this._queries)
       {
         horses = q.Apply(db, horses);
+      }
+
+      if (this._hasJrdbQueries)
+      {
+        IQueryable<JrdbRaceHorseData> jrdbs = db.JrdbRaceHorses!;
+        foreach (var q in this._queries)
+        {
+          jrdbs = q.Apply(db, jrdbs);
+        }
+        horses = horses.Join(jrdbs, h => new { h.Key, h.RaceKey, }, j => new { j.Key, j.RaceKey, }, (h, j) => h);
+      }
+      if (this._hasExtraQueries)
+      {
+        IQueryable<RaceHorseExtraData> extras = db.RaceHorseExtras!;
+        foreach (var q in this._queries)
+        {
+          extras = q.Apply(db, extras);
+        }
+        horses = horses.Join(extras, h => new { h.Key, h.RaceKey, }, j => new { j.Key, j.RaceKey, }, (h, j) => h);
       }
 
       if (this._maxCount <= 0 || this._maxRate <= 0)

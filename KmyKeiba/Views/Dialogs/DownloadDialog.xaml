@@ -88,6 +88,7 @@
           <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>
+          <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="auto"/>
@@ -117,6 +118,8 @@
                 Margin="0,24,0,8"/>
         <RadioButton Grid.Row="7" Grid.ColumnSpan="2" FontSize="16" Content="JRDB" Width="186" Style="{StaticResource ToggleButtonDefault}"
                      IsChecked="{Binding Downloader.IsDownloadJrdb.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
+        <RadioButton Grid.Row="8" Grid.ColumnSpan="2" FontSize="16" Content="検索分析用拡張情報" Width="186" Style="{StaticResource ToggleButtonDefault}" Margin="0,8,0,0"
+                     IsChecked="{Binding Downloader.IsBuildExtraData.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
       </Grid>
     </Grid>
     <Grid Grid.Row="1" Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}">

@@ -40,6 +40,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ScriptKeysMemoGroupInfo? MemoGroupInfo { get; set; }
 
+    public bool HasJrdbQuery { get; init; }
+
+    public bool HasExtraQuery { get; init; }
+
     public ScriptKeysParseResult(IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueries = null, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueriesBetweenCurrent = null, bool isContainsFutureRaces = false, bool isCurrentOnly = false, bool isRealtimeResult = false, bool isExpandedResult = false)
     {
       this.Queries = queries;
@@ -95,6 +99,8 @@ namespace KmyKeiba.Models.Race.Finder
       var isRealtimeResult = false;
       var isExpandedResult = false;
       ScriptKeysMemoGroupInfo? memoGroupInfo = null;
+      var hasJrdbKeys = false;
+      var hasExtraKeys = false;
 
       var queries = new List<ScriptKeyQuery>();
       var diffQueries = new List<ExpressionScriptKeyQuery>();
@@ -108,11 +114,13 @@ namespace KmyKeiba.Models.Race.Finder
           if (q.Contains(split))
           {
             var data = q.Split(split);
+            (ScriptKeyQuery?, QueryKeyAttribute?) queryRaw;
 
             if (data[1].StartsWith("$$"))
             {
               data[1] = data[1][2..];
-              var query = GetQuery(type, data[0], data[1], race, horse);
+              queryRaw = GetQuery(type, data[0], data[1], race, horse);
+              var query = queryRaw.Item1;
               if (query != null && query is ExpressionScriptKeyQuery exp)
               {
                 diffQueriesBetweenCurrent!.Add(exp);
@@ -121,7 +129,8 @@ namespace KmyKeiba.Models.Race.Finder
             else if (data[1].StartsWith('$'))
             {
               data[1] = data[1][1..];
-              var query = GetQuery(type, data[0], data[1], race, horse);
+              queryRaw = GetQuery(type, data[0], data[1], race, horse);
+              var query = queryRaw.Item1;
               if (query != null && query is ExpressionScriptKeyQuery exp)
               {
                 diffQueries!.Add(exp);
@@ -129,7 +138,8 @@ namespace KmyKeiba.Models.Race.Finder
             }
             else
             {
-              var query = GetQuery(type, data[0], data[1], race, horse);
+              queryRaw = GetQuery(type, data[0], data[1], race, horse);
+              var query = queryRaw.Item1;
               if (query is ExpressionScriptKeyQuery exp)
               {
                 var key = GetKeyInfo(data[0]);
@@ -147,6 +157,16 @@ namespace KmyKeiba.Models.Race.Finder
                 queries!.Add(query);
               }
             }
+
+            if (queryRaw.Item2?.Target == QueryTarget.JrdbRaceHorse)
+            {
+              hasJrdbKeys = true;
+            }
+            if (queryRaw.Item2?.Target == QueryTarget.RaceHorseExtra)
+            {
+              hasExtraKeys = true;
+            }
+
             return true;
           }
           return false;
@@ -382,7 +402,7 @@ namespace KmyKeiba.Models.Race.Finder
           var keys = q.Substring(prefixEnd + 1).Replace(';', '|');
           var qs = GetQueries(keys, race, horse);
 
-          queries.Add(new TopHorsesScriptKeyQuery(qs.Queries, min, max, minRate, maxRate));
+          queries.Add(new TopHorsesScriptKeyQuery(qs.Queries, qs.HasExtraQuery, qs.HasJrdbQuery, min, max, minRate, maxRate));
           return true;
         }
 
@@ -463,11 +483,11 @@ namespace KmyKeiba.Models.Race.Finder
 
           if (isCountQuery)
           {
-            queries!.Add(new HorseBeforeRacesCountScriptKeyQuery(qs.Queries, countQueryRule, countQueryCount));
+            queries!.Add(new HorseBeforeRacesCountScriptKeyQuery(qs.Queries, countQueryRule, countQueryCount, qs.HasJrdbQuery, qs.HasExtraQuery));
           }
           else
           {
-            queries!.Add(new HorseBeforeRacesScriptKeyQuery(countRule, beforeSize, compareTargetSize, qs.Queries, qs.DiffQueries, qs.DiffQueriesBetweenCurrent));
+            queries!.Add(new HorseBeforeRacesScriptKeyQuery(countRule, beforeSize, compareTargetSize, qs.Queries, qs.DiffQueries, qs.DiffQueriesBetweenCurrent, qs.HasJrdbQuery, qs.HasExtraQuery));
           }
           return true;
         }
@@ -974,6 +994,8 @@ namespace KmyKeiba.Models.Race.Finder
       return new ScriptKeysParseResult(queries, groupKey, limit, offset, diffQueries: diffQueries, diffQueriesBetweenCurrent: diffQueriesBetweenCurrent, isContainsFutureRaces: isContainsFutureRaces, isCurrentOnly: isCurrentRaceOnly, isRealtimeResult: isRealtimeResult, isExpandedResult: isExpandedResult)
       {
         MemoGroupInfo = memoGroupInfo,
+        HasJrdbQuery = hasJrdbKeys,
+        HasExtraQuery = hasExtraKeys,
       };
     }
 
@@ -987,12 +1009,12 @@ namespace KmyKeiba.Models.Race.Finder
       return (QueryKey.Unknown, null);
     }
 
-    private static ScriptKeyQuery? GetQuery(QueryType type, string scriptKey, string value, RaceData? race, RaceHorseData? horse)
+    private static (ScriptKeyQuery?, QueryKeyAttribute?) GetQuery(QueryType type, string scriptKey, string value, RaceData? race, RaceHorseData? horse)
     {
       var key = GetKeyInfo(scriptKey);
       if (key.Item1 == QueryKey.Unknown)
       {
-        return null;
+        return default;
       }
 
       var isCompareCurrentRace = false;
@@ -1002,7 +1024,7 @@ namespace KmyKeiba.Models.Race.Finder
         value = value[1..];
       }
 
-      if (key.Item2 is NumericQueryKeyAttribute || key.Item2 is EnumQueryKeyAttribute)
+      if (key.Item2 is NumericQueryKeyAttribute)
       {
         if (value.Contains(','))
         {
@@ -1015,7 +1037,7 @@ namespace KmyKeiba.Models.Race.Finder
           if (values.Length > 0)
           {
             // 1,2,3
-            return new ExpressionScriptKeyQuery(key.Item1, type == QueryType.Equals ? QueryType.Contains : QueryType.Excepts, values);
+            return (new ExpressionScriptKeyQuery(key.Item1, type == QueryType.Equals ? QueryType.Contains : QueryType.Excepts, values), key.Item2);
           }
         }
         else if (value.IndexOf('-', 1) > 0)  // マイナス記号で始まっていた場合にそなえて
@@ -1027,24 +1049,24 @@ namespace KmyKeiba.Models.Race.Finder
           if (int.TryParse(data[0], out var min) && int.TryParse(data[1], out var max))
           {
             // 2-4
-            return new ExpressionScriptKeyQuery(key.Item1, type == QueryType.Equals ? QueryType.RangeOrEqual : QueryType.NotRangeOrEqual, min, max, race, horse, isCompareCurrentRace);
+            return (new ExpressionScriptKeyQuery(key.Item1, type == QueryType.Equals ? QueryType.RangeOrEqual : QueryType.NotRangeOrEqual, min, max, race, horse, isCompareCurrentRace), key.Item2);
           }
         }
         else
         {
           if (int.TryParse(value, out var val))
           {
-            return new ExpressionScriptKeyQuery(key.Item1, type, val, race, horse, isCompareCurrentRace);
+            return (new ExpressionScriptKeyQuery(key.Item1, type, val, race, horse, isCompareCurrentRace), key.Item2);
           }
         }
       }
 
       if (key.Item2 is StringQueryKeyAttribute)
       {
-        return new ExpressionScriptKeyQuery(key.Item1, type, value);
+        return (new ExpressionScriptKeyQuery(key.Item1, type, value), key.Item2);
       }
 
-      return null;
+      return default;
     }
   }
 
@@ -1055,35 +1077,35 @@ namespace KmyKeiba.Models.Race.Finder
     RaceKey,
     [StringQueryKey("racename")]
     RaceName,
-    [EnumQueryKey("nichiji")]
+    [NumericQueryKey("nichiji")]
     Nichiji,
-    [EnumQueryKey("racenumber")]
+    [NumericQueryKey("racenumber")]
     RaceNumber,
-    [EnumQueryKey("weather")]
+    [NumericQueryKey("weather")]
     Weather,
-    [EnumQueryKey("condition")]
+    [NumericQueryKey("condition")]
     Condition,
     [NumericQueryKey("baneimoisture")]
     BaneiMoisture,
-    [EnumQueryKey("course")]
+    [NumericQueryKey("course")]
     Course,
-    [EnumQueryKey("ground")]
+    [NumericQueryKey("ground")]
     Ground,
     [NumericQueryKey("distance")]
     Distance,
-    [EnumQueryKey("direction")]
+    [NumericQueryKey("direction")]
     Direction,
-    [EnumQueryKey("tracktype")]
+    [NumericQueryKey("tracktype")]
     TrackType,
-    [EnumQueryKey("trackoption")]
+    [NumericQueryKey("trackoption")]
     TrackOption,
-    [EnumQueryKey("riderweightrule")]
+    [NumericQueryKey("riderweightrule")]
     RiderWeightRule,
-    [EnumQueryKey("arearule")]
+    [NumericQueryKey("arearule")]
     AreaRule,
-    [EnumQueryKey("sexrule")]
+    [NumericQueryKey("sexrule")]
     SexRule,
-    [EnumQueryKey("crossrule")]
+    [NumericQueryKey("crossrule")]
     CrossRule,
     [NumericQueryKey("day")]
     Day,
@@ -1097,15 +1119,15 @@ namespace KmyKeiba.Models.Race.Finder
     Hour,
     [QueryKey("subject")]
     Subject,
-    [EnumQueryKey("subjectage2")]
+    [NumericQueryKey("subjectage2")]
     SubjectAge2,
-    [EnumQueryKey("subjectage3")]
+    [NumericQueryKey("subjectage3")]
     SubjectAge3,
-    [EnumQueryKey("subjectage4")]
+    [NumericQueryKey("subjectage4")]
     SubjectAge4,
-    [EnumQueryKey("subjectage5")]
+    [NumericQueryKey("subjectage5")]
     SubjectAge5,
-    [EnumQueryKey("grade")]
+    [NumericQueryKey("grade")]
     Grade,
     [NumericQueryKey("gradeid")]
     GradeId,
@@ -1113,11 +1135,11 @@ namespace KmyKeiba.Models.Race.Finder
     Grades,
     [NumericQueryKey("prize1")]
     PrizeMoney1,
-    [EnumQueryKey("horsescount")]
+    [NumericQueryKey("horsescount")]
     HorsesCount,
-    [EnumQueryKey("goalhorsescount")]
+    [NumericQueryKey("goalhorsescount")]
     GoalHorsesCount,
-    [EnumQueryKey("datastatus")]
+    [NumericQueryKey("datastatus")]
     DataStatus,
     [NumericQueryKey("racebefore3h")]
     Before3HTime,
@@ -1128,43 +1150,43 @@ namespace KmyKeiba.Models.Race.Finder
     HorseKey,
     [StringQueryKey("horsename")]
     HorseName,
-    [EnumQueryKey("age")]
+    [NumericQueryKey("age")]
     Age,
-    [EnumQueryKey("sex")]
+    [NumericQueryKey("sex")]
     Sex,
-    [EnumQueryKey("horsetype")]
+    [NumericQueryKey("horsetype")]
     HorseType,
-    [EnumQueryKey("color")]
+    [NumericQueryKey("color")]
     Color,
-    [EnumQueryKey("horsenumber")]
+    [NumericQueryKey("horsenumber")]
     HorseNumber,
-    [EnumQueryKey("framenumber")]
+    [NumericQueryKey("framenumber")]
     FrameNumber,
     [StringQueryKey("rider")]
     RiderCode,
     [StringQueryKey("ridername")]
     RiderName,
-    [EnumQueryKey("place")]
+    [NumericQueryKey("place")]
     Place,
-    [EnumQueryKey("goalplace")]
+    [NumericQueryKey("goalplace")]
     GoalPlace,
-    [EnumQueryKey("resultlength")]
+    [NumericQueryKey("resultlength")]
     ResultLength,
-    [EnumQueryKey("abnormal")]
+    [NumericQueryKey("abnormal")]
     Abnormal,
-    [EnumQueryKey("popular")]
+    [NumericQueryKey("popular")]
     Popular,
     [NumericQueryKey("resulttime")]
     ResultTime,
     [NumericQueryKey("resulttimediff")]
     ResultTimeDiff,
-    [EnumQueryKey("corner1")]
+    [NumericQueryKey("corner1")]
     CornerPlace1,
-    [EnumQueryKey("corner2")]
+    [NumericQueryKey("corner2")]
     CornerPlace2,
-    [EnumQueryKey("corner3")]
+    [NumericQueryKey("corner3")]
     CornerPlace3,
-    [EnumQueryKey("corner4")]
+    [NumericQueryKey("corner4")]
     CornerPlace4,
     [NumericQueryKey("weight")]
     Weight,
@@ -1188,7 +1210,7 @@ namespace KmyKeiba.Models.Race.Finder
     PlaceOddsMax,
     [NumericQueryKey("a3htime")]
     A3HTime,
-    [EnumQueryKey("runningstyle")]
+    [NumericQueryKey("runningstyle")]
     RunningStyle,
     [NumericQueryKey("prevdays")]
     PreviousRaceDays,
@@ -1206,7 +1228,7 @@ namespace KmyKeiba.Models.Race.Finder
     RiderBelongs,
     [QueryKey("trainerbelongs")]
     TrainerBelongs,
-    [EnumQueryKey("mark")]
+    [NumericQueryKey("mark")]
     Mark,
 
     [StringQueryKey("f")]
@@ -1238,7 +1260,7 @@ namespace KmyKeiba.Models.Race.Finder
     [StringQueryKey("mmm")]
     MotherMotherMother,
 
-    [EnumQueryKey("point")]
+    [NumericQueryKey("point")]
     Point,
     [NumericQueryKey("dropout")]
     Dropout,
@@ -1269,6 +1291,8 @@ namespace KmyKeiba.Models.Race.Finder
     Unknown,
     Race,
     RaceHorse,
+    JrdbRaceHorse,
+    RaceHorseExtra,
   }
 
   class QueryKeyAttribute : Attribute
@@ -1290,8 +1314,6 @@ namespace KmyKeiba.Models.Race.Finder
   }
 
   class NumericQueryKeyAttribute : QueryKeyAttribute { public NumericQueryKeyAttribute(string key) : base(key) { } public NumericQueryKeyAttribute(string key, QueryTarget target) : base(key, target) { } }
-
-  class EnumQueryKeyAttribute : QueryKeyAttribute { public EnumQueryKeyAttribute(string key) : base(key) { } public EnumQueryKeyAttribute(string key, QueryTarget target) : base(key, target) { } }
 
   class StringQueryKeyAttribute : QueryKeyAttribute { public StringQueryKeyAttribute(string key) : base(key) { } public StringQueryKeyAttribute(string key, QueryTarget target) : base(key, target) { } }
 }
