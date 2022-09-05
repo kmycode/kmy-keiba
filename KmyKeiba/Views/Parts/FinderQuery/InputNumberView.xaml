@@ -87,7 +87,7 @@
         </Border>
       </Popup>
     </Grid>
-    <UniformGrid Columns="7">
+    <UniformGrid Rows="1">
       <UniformGrid.Resources>
         <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
           <Setter Property="FontSize" Value="12"/>
@@ -97,9 +97,23 @@
         </Style>
       </UniformGrid.Resources>
       <RadioButton Content="範囲" IsChecked="{Binding Input.IsRange.Value,ElementName=Root,Mode=TwoWay}"/>
-      <RadioButton Content="より大きい" IsChecked="{Binding Input.IsGreaterThan.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="より大きい" IsChecked="{Binding Input.IsGreaterThan.Value,ElementName=Root,Mode=TwoWay}">
+        <RadioButton.Visibility>
+          <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+            <Binding Path="Input.IsGreaterThan.Value" ElementName="Root"/>
+            <Binding Path="Input.IsLessThan.Value" ElementName="Root"/>
+          </MultiBinding>
+        </RadioButton.Visibility>
+      </RadioButton>
       <RadioButton Content="以上" IsChecked="{Binding Input.IsGreaterThanOrEqual.Value,ElementName=Root,Mode=TwoWay}"/>
-      <RadioButton Content="より小さい" IsChecked="{Binding Input.IsLessThan.Value,ElementName=Root,Mode=TwoWay}"/>
+      <RadioButton Content="より小さい" IsChecked="{Binding Input.IsLessThan.Value,ElementName=Root,Mode=TwoWay}">
+        <RadioButton.Visibility>
+          <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+            <Binding Path="Input.IsGreaterThan.Value" ElementName="Root"/>
+            <Binding Path="Input.IsLessThan.Value" ElementName="Root"/>
+          </MultiBinding>
+        </RadioButton.Visibility>
+      </RadioButton>
       <RadioButton Content="以下" IsChecked="{Binding Input.IsLessThanOrEqual.Value,ElementName=Root,Mode=TwoWay}"/>
       <RadioButton Content="等しい" IsChecked="{Binding Input.IsEqual.Value,ElementName=Root,Mode=TwoWay}"/>
       <RadioButton Content="等しくない" IsChecked="{Binding Input.IsNotEqual.Value,ElementName=Root,Mode=TwoWay}"/>
