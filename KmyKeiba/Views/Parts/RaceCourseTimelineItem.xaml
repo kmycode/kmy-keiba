@@ -29,6 +29,7 @@
              Visibility="{Binding Race.IsMemoVisible.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
              VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="4"/>
     <TextBlock Visibility="{Binding Race.HasCheckedHorse.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
-               FontWeight="Bold" FontSize="10" Text="✔" Foreground="Red" Margin="1,0,0,0"/>
+               Background="#99ffffff" Width="16" Height="13" VerticalAlignment="Top" HorizontalAlignment="Left"
+               FontWeight="Bold" FontSize="10" Text="✔" TextAlignment="Center" Foreground="Red"/>
   </Grid>
 </UserControl>
