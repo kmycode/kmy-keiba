@@ -822,6 +822,9 @@ namespace KmyKeiba.Models.Race.Finder
               case QueryKey.Condition:
                 tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.TrackCondition), value, propertyPrefix: prefix, isShort: true, isEnum: true));
                 break;
+              case QueryKey.BaneiMoisture:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.BaneiMoisture), value, propertyPrefix: prefix, isShort: true));
+                break;
               case QueryKey.Course:
                 tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, true, nameof(RaceData.Course), value, propertyPrefix: prefix, isShort: true, isEnum: true));
                 break;
@@ -1264,6 +1267,8 @@ namespace KmyKeiba.Models.Race.Finder
           return this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackWeather), isEnum: true);
         case QueryKey.Condition:
           return this.BuildNumericQuery<RaceData>(nameof(RaceData.TrackCondition), isEnum: true);
+        case QueryKey.BaneiMoisture:
+          return this.BuildNumericQuery<RaceData>(nameof(RaceData.BaneiMoisture));
         case QueryKey.Course:
           return this.BuildNumericQuery<RaceData>(nameof(RaceData.Course), isEnum: true);
         case QueryKey.Ground:

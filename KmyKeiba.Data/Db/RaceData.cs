@@ -67,6 +67,8 @@ namespace KmyKeiba.Data.Db
 
     public bool IsConditionSetManually { get; set; }
 
+    public short BaneiMoisture { get; set; }
+
     public RaceRiderWeightRule RiderWeight { get; set; }
 
     public RaceHorseAreaRule Area { get; set; }
@@ -225,9 +227,10 @@ namespace KmyKeiba.Data.Db
         this.TrackWeather = race.TrackWeather;
         this.IsWeatherSetManually = false;
       }
-      if (race.TrackCondition != RaceCourseCondition.Unknown)
+      if (race.TrackCondition != RaceCourseCondition.Unknown || (race.Course == RaceCourse.ObihiroBannei && race.BaneiMoisture != default))
       {
         this.TrackCondition = race.TrackCondition;
+        this.BaneiMoisture = race.BaneiMoisture;
         this.IsConditionSetManually = false;
       }
 

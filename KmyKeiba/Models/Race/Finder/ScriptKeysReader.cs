@@ -1063,6 +1063,8 @@ namespace KmyKeiba.Models.Race.Finder
     Weather,
     [EnumQueryKey("condition")]
     Condition,
+    [NumericQueryKey("baneimoisture")]
+    BaneiMoisture,
     [EnumQueryKey("course")]
     Course,
     [EnumQueryKey("ground")]

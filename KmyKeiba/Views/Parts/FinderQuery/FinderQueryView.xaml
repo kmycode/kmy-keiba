@@ -297,6 +297,8 @@
                                      Header="１着賞金" Comment="(単位: 百円)"/>
               <local:InputNumberView Input="{Binding FinderModel.Input.Distance.Input,ElementName=Root}"
                                      Header="距離" Margin="0,8,0,0"/>
+              <local:InputNumberView Input="{Binding FinderModel.Input.BaneiMoisture.Input,ElementName=Root}"
+                                     Header="水分率" Comment="(ばんえい競馬のみ、単位: %)" Margin="0,8,0,0"/>
             </StackPanel>
           </Grid>
 

@@ -76,6 +76,11 @@ namespace KmyKeiba.JVLink.Entities
     /// </summary>
     public RaceCourseCondition TrackCondition { get; set; }
 
+    /// <summary>
+    /// ばんえいの水分率
+    /// </summary>
+    public short BaneiMoisture { get; set; }
+
     public RaceRiderWeightRule RiderWeight { get; set; }
 
     public RaceHorseAreaRule Area { get; set; }
@@ -260,6 +265,17 @@ namespace KmyKeiba.JVLink.Entities
       // 地方競馬DATAは、盛岡の芝もダートとして配信し、SibaBabaCDには何も設定しないみたい
       int.TryParse((trackGround == TrackGround.Turf && course <= RaceCourse.CentralMaxValue) ? race.TenkoBaba.SibaBabaCD : race.TenkoBaba.DirtBabaCD, out int condition);
 
+      short moisture = default;
+      if (course == RaceCourse.ObihiroBannei)
+      {
+        // ばんえいの水分率
+        try
+        {
+          moisture = Convert.ToInt16(race.TenkoBaba.SibaBabaCD + race.TenkoBaba.DirtBabaCD, 16);
+        }
+        catch { }
+      }
+
       short.TryParse(race.JyokenInfo.JyuryoCD, out var riderWeight);
       var kigo1 = (RaceHorseAreaRule)(short)(race.JyokenInfo.KigoCD.ToLower()[0] - 'a' + 1);
       RaceHorseSexRule kigo2;
@@ -336,6 +352,7 @@ namespace KmyKeiba.JVLink.Entities
         TrackOption = trackOption,
         TrackWeather = (RaceCourseWeather)weather,
         TrackCondition = (RaceCourseCondition)condition,
+        BaneiMoisture = moisture,
         RiderWeight = (RaceRiderWeightRule)riderWeight,
         Area = kigo1,
         Sex = kigo2,

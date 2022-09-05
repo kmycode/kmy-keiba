@@ -56,6 +56,8 @@ namespace KmyKeiba.Models.Race
 
     public bool CanChangeWeathers { get; }
 
+    public bool IsBanei => this.Data.Course == RaceCourse.ObihiroBannei;
+
     public bool IsCanceled => this.Data.DataStatus == RaceDataStatus.Canceled;
 
     public ReactiveProperty<RaceCourseWeather> Weather { get; } = new();
