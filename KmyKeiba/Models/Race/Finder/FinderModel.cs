@@ -155,6 +155,9 @@ namespace KmyKeiba.Models.Race.Finder
               QueryKey.Sex => allItems.GroupBy(d => (object)d.Analyzer.Data.Sex),
               QueryKey.Popular => allItems.GroupBy(d => (object)d.Analyzer.Data.Popular),
               QueryKey.Place => allItems.GroupBy(d => (object)d.Analyzer.Data.ResultOrder),
+              QueryKey.RunningStyle => allItems.GroupBy(d => (object)d.Analyzer.Data.RunningStyle),
+              QueryKey.Ground => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackGround),
+              QueryKey.TrackType => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackType),
               _ => null,
             };
 

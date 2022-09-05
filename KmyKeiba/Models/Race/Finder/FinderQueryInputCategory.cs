@@ -1331,6 +1331,13 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
+  public class BaneiMoistureInputCategory : FloatNumberInputCategoryBase
+  {
+    public BaneiMoistureInputCategory() : base("baneimoisture", 1, false)
+    {
+    }
+  }
+
   public class TrackWeatherInputCategory : ListBoxInputCategoryBase<RaceCourseWeather>
   {
     public TrackWeatherInputCategory() : base("weather")
@@ -3228,6 +3235,7 @@ namespace KmyKeiba.Models.Race.Finder
     public ReactiveProperty<bool> IsGroupByGrade { get; } = new();
     public ReactiveProperty<bool> IsGroupByFrameNumber { get; } = new();
     public ReactiveProperty<bool> IsGroupByHorseNumber { get; } = new();
+    public ReactiveProperty<bool> IsGroupByRunningStyle { get; } = new();
     public ReactiveProperty<bool> IsGroupByMemo { get; } = new();
     public ReactiveProperty<bool> IsGroupByFather { get; } = new();
     public ReactiveProperty<bool> IsGroupByMother { get; } = new();
@@ -3236,6 +3244,8 @@ namespace KmyKeiba.Models.Race.Finder
     public ReactiveProperty<bool> IsGroupByDistance { get; } = new();
     public ReactiveProperty<bool> IsGroupByPopular { get; } = new();
     public ReactiveProperty<bool> IsGroupByResultOrder { get; } = new();
+    public ReactiveProperty<bool> IsGroupByGround { get; } = new();
+    public ReactiveProperty<bool> IsGroupByTrackType { get; } = new();
 
     public ReactiveCollection<ExpansionMemoConfig> MemoConfigs { get; } = new();
 
@@ -3266,6 +3276,9 @@ namespace KmyKeiba.Models.Race.Finder
         .CombineLatest(this.IsGroupByDistance)
         .CombineLatest(this.IsGroupByPopular)
         .CombineLatest(this.IsGroupByResultOrder)
+        .CombineLatest(this.IsGroupByRunningStyle)
+        .CombineLatest(this.IsGroupByGround)
+        .CombineLatest(this.IsGroupByTrackType)
         .Subscribe(_ => this.UpdateQuery())
         .AddTo(this.Disposables);
     }
@@ -3352,6 +3365,18 @@ namespace KmyKeiba.Models.Race.Finder
       if (this.IsGroupByResultOrder.Value)
       {
         groups.Add("place");
+      }
+      if (this.IsGroupByRunningStyle.Value)
+      {
+        groups.Add("runningstyle");
+      }
+      if (this.IsGroupByGround.Value)
+      {
+        groups.Add("ground");
+      }
+      if (this.IsGroupByTrackType.Value)
+      {
+        groups.Add("tracktype");
       }
       if (this.IsGroupByMemo.Value)
       {

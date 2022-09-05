@@ -260,7 +260,7 @@
               <RowDefinition Height="auto"/>
               <RowDefinition/>
             </Grid.RowDefinitions>
-            <Grid Width="450" Height="280"
+            <Grid Width="350" Height="280"
                   Visibility="{Binding IsSubViewBeforeRace,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
               <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
@@ -270,7 +270,7 @@
               </Grid.RowDefinitions>
               <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="0.8*"/>
               </Grid.ColumnDefinitions>
               <TextBlock Text="レース名" FontSize="20"
                          Foreground="{Binding FinderModel.Input.RaceName.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv2}}"/>
@@ -292,8 +292,8 @@
                          Text="エラーが発生しました" Visibility="{Binding FinderModel.Input.RaceName.IsTestError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
             </Grid>
 
-            <StackPanel Grid.Row="1" Margin="0,16,0,0">
-              <local:InputNumberView Input="{Binding FinderModel.Input.Prize1.Input,ElementName=Root}" Margin="0,8"
+            <StackPanel Grid.Row="1" Margin="0,8,0,0">
+              <local:InputNumberView Input="{Binding FinderModel.Input.Prize1.Input,ElementName=Root}" Margin="0,8,0,0"
                                      Header="１着賞金" Comment="(単位: 百円)"/>
               <local:InputNumberView Input="{Binding FinderModel.Input.Distance.Input,ElementName=Root}"
                                      Header="距離" Margin="0,8,0,0"/>
@@ -457,7 +457,7 @@
               <RowDefinition Height="auto"/>
               <RowDefinition/>
             </Grid.RowDefinitions>
-            <Grid Width="450" Height="280"
+            <Grid Width="350" Height="280"
                   Visibility="{Binding IsSubViewBeforeRace,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
               <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
@@ -467,7 +467,7 @@
               </Grid.RowDefinitions>
               <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="0.8*"/>
               </Grid.ColumnDefinitions>
               <TextBlock Text="馬名" FontSize="20"
                          Foreground="{Binding FinderModel.Input.HorseName.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv2}}"/>
@@ -521,7 +521,7 @@
       <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_HorseRotation,Converter={StaticResource BooleanVisibilityConv}}"
                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-          <StackPanel Width="450">
+          <StackPanel Width="350">
             <local:InputNumberView Input="{Binding FinderModel.Input.PreviousRaceDays.Input,ElementName=Root}"
                                    Header="前回のレースからの日数"/>
             <local:InputNumberView Input="{Binding FinderModel.Input.RaceCount.Input,ElementName=Root}"
@@ -540,7 +540,7 @@
       <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_HorseRace,Converter={StaticResource BooleanVisibilityConv}}"
                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-          <StackPanel Width="450">
+          <StackPanel Width="350">
             <local:InputNumberView Input="{Binding FinderModel.Input.Weight.Input,ElementName=Root}"
                                    Header="体重" Comment="(単位: kg)"/>
             <local:InputNumberView Input="{Binding FinderModel.Input.WeightDiff.Input,ElementName=Root}"
@@ -615,7 +615,7 @@
       <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_HorseResult,Converter={StaticResource BooleanVisibilityConv}}"
                     VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-          <StackPanel Width="450">
+          <StackPanel Width="350">
             <local:InputNumberView Input="{Binding FinderModel.Input.ResultTime.Input,ElementName=Root}"
                                    Header="タイム" Comment="(単位: 秒)"/>
             <local:InputNumberView Input="{Binding FinderModel.Input.ResultTimeDiff.Input,ElementName=Root}"
@@ -749,7 +749,7 @@
               <RowDefinition Height="auto"/>
               <RowDefinition/>
             </Grid.RowDefinitions>
-            <Grid Width="450" Height="280">
+            <Grid Width="350" Height="280">
               <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
@@ -758,7 +758,7 @@
               </Grid.RowDefinitions>
               <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="0.8*"/>
               </Grid.ColumnDefinitions>
               <TextBlock Text="騎手名" FontSize="20"
                          Foreground="{Binding FinderModel.Input.RiderName.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv2}}"/>
@@ -779,7 +779,7 @@
               <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Foreground="{StaticResource ErrorForeground}"
                          Text="エラーが発生しました" Visibility="{Binding FinderModel.Input.RiderName.IsTestError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
             </Grid>
-            <Grid Grid.Row="1" Width="450" Height="280" Margin="0,8,0,0">
+            <Grid Grid.Row="1" Width="350" Height="280" Margin="0,8,0,0">
               <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
@@ -788,7 +788,7 @@
               </Grid.RowDefinitions>
               <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="0.8*"/>
               </Grid.ColumnDefinitions>
               <TextBlock Text="調教師名" FontSize="20"
                          Foreground="{Binding FinderModel.Input.TrainerName.IsCustomized.Value,ElementName=Root,Converter={StaticResource BooleanForegroundCustomizedCategoryConv2}}"/>
@@ -981,7 +981,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <StackPanel Margin="0,0,8,16" MaxWidth="450">
+                    <StackPanel Margin="0,0,8,16" MaxWidth="350">
                       <Grid>
                         <Grid.ColumnDefinitions>
                           <ColumnDefinition/>
@@ -994,7 +994,7 @@
                                 CommandParameter="{Binding}"/>
                       </Grid>
                       <local:InputNumberView Input="{Binding Point}" Visibility="{Binding IsLabel.Value,Converter={StaticResource NegativeVisibilityConv}}"
-                                             Width="450"/>
+                                             Width="350"/>
                       <ListBox Visibility="{Binding IsLabel.Value,Converter={StaticResource BooleanVisibilityConv}}"
                                ItemsSource="{Binding Labels}" Height="200" Width="200">
                         <ListBox.ItemTemplate>
@@ -1043,12 +1043,12 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <Grid Margin="0,0,8,16" MaxWidth="450">
+                    <Grid Margin="0,0,8,16" MaxWidth="350">
                       <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition/>
                       </Grid.RowDefinitions>
-                      <local:InputNumberView Grid.Row="1" Input="{Binding Point}" Width="450" Margin="0,-32,0,0"/>
+                      <local:InputNumberView Grid.Row="1" Input="{Binding Point}" Width="350" Margin="0,-40,0,0"/>
                       <Grid>
                         <Grid.ColumnDefinitions>
                           <ColumnDefinition/>
@@ -1083,40 +1083,51 @@
       <!--グループ-->
       <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_GroupBy,Converter={StaticResource BooleanVisibilityConv}}"
                     VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+        <StackPanel Margin="0,0,0,8" HorizontalAlignment="Left">
+          <StackPanel.Resources>
+            <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
+              <Setter Property="Width" Value="100"/>
+              <Setter Property="Height" Value="30"/>
+              <Setter Property="FontSize" Value="16"/>
+              <Setter Property="Padding" Value="0,2"/>
+              <Setter Property="Margin" Value="0,0,4,8"/>
+              <Setter Property="GroupName" Value="{Binding UniqueId7,ElementName=Root}"/>
+              <Setter Property="HorizontalAlignment" Value="Left"/>
+            </Style>
+          </StackPanel.Resources>
+          <RadioButton Content="なし" IsChecked="{Binding FinderModel.Input.GroupBy.NotGroups.Value,ElementName=Root,Mode=TwoWay}"/>
+          <TextBlock Foreground="{StaticResource SubForeground}" Margin="0,8,0,4" FontSize="24" Text="レース"/>
           <WrapPanel Width="600" Orientation="Horizontal">
-            <WrapPanel.Resources>
-              <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
-                <Setter Property="Width" Value="100"/>
-                <Setter Property="Height" Value="30"/>
-                <Setter Property="FontSize" Value="16"/>
-                <Setter Property="Padding" Value="0,2"/>
-                <Setter Property="Margin" Value="0,0,4,16"/>
-                <Setter Property="GroupName" Value="{Binding UniqueId7,ElementName=Root}"/>
-              </Style>
-            </WrapPanel.Resources>
-            <RadioButton Content="なし" IsChecked="{Binding FinderModel.Input.GroupBy.NotGroups.Value,ElementName=Root,Mode=TwoWay}"/>
-            <RadioButton Content="馬" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorse.Value,ElementName=Root,Mode=TwoWay}"/>
-            <RadioButton Content="騎手" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByRider.Value,ElementName=Root,Mode=TwoWay}"/>
-            <RadioButton Content="調教師" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByTrainer.Value,ElementName=Root,Mode=TwoWay}"/>
-            <RadioButton Content="馬主" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByOwner.Value,ElementName=Root,Mode=TwoWay}"/>
-            <RadioButton Content="馬の性別" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorseSex.Value,ElementName=Root,Mode=TwoWay}"/>
-            <RadioButton Content="馬の所属" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorseBelongs.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="競馬場" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByCourse.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="距離" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByDistance.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="向き" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByDirection.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="天気" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByWeather.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="馬場状態" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByCondition.Value,ElementName=Root,Mode=TwoWay}"/>
-            <RadioButton Content="重賞分類" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByGrade.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="地面" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByGround.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="種類" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByTrackType.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="グレード" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByGrade.Value,ElementName=Root,Mode=TwoWay}"/>
+          </WrapPanel>
+          <TextBlock Foreground="{StaticResource SubForeground}" Margin="0,8,0,4" FontSize="24" Text="馬"/>
+          <WrapPanel Width="600" Orientation="Horizontal">
+            <RadioButton Content="馬" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorse.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="騎手" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByRider.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="調教師" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByTrainer.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="馬主" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByOwner.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="性別" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorseSex.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="所属" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorseBelongs.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="枠番" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByFrameNumber.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="馬番" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByHorseNumber.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="人気" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByPopular.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="着順" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByResultOrder.Value,ElementName=Root,Mode=TwoWay}"/>
+            <RadioButton Content="脚質" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByRunningStyle.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="父" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByFather.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="母" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByMother.Value,ElementName=Root,Mode=TwoWay}"/>
             <RadioButton Content="母父" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByMotherFather.Value,ElementName=Root,Mode=TwoWay}"/>
+          </WrapPanel>
+          <TextBlock Foreground="{StaticResource SubForeground}" Margin="0,8,0,4" FontSize="24" Text="その他"/>
+          <WrapPanel Width="600" Orientation="Horizontal">
             <StackPanel Orientation="Horizontal" Width="420" Height="30" Margin="0,0,4,16">
-              <RadioButton Content="メモ" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByMemo.Value,ElementName=Root,Mode=TwoWay}"
+              <RadioButton Content="拡張メモ" IsChecked="{Binding FinderModel.Input.GroupBy.IsGroupByMemo.Value,ElementName=Root,Mode=TwoWay}"
                            Height="30" VerticalAlignment="Center" Margin="0"/>
               <ComboBox Width="200" Height="30" Visibility="{Binding FinderModel.Input.GroupBy.IsGroupByMemo.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
                         ItemsSource="{Binding FinderModel.Input.GroupBy.MemoConfigs,ElementName=Root}" SelectedItem="{Binding FinderModel.Input.GroupBy.SelectedMemoConfig.Value,ElementName=Root,Mode=TwoWay}">

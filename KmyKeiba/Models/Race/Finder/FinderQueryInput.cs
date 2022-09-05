@@ -69,6 +69,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public TrackConditionInputCategory TrackCondition { get; }
 
+    public BaneiMoistureInputCategory BaneiMoisture { get; }
+
     public TrackWeatherInputCategory Weather { get; }
 
     public HorseOfCurrentRaceInputCategory HorseOfCurrentRace { get; }
@@ -199,6 +201,7 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.TrackOption = new TrackOptionInputCategory());
       this._categories.Add(this.TrackType = new TrackTypeInputCategory());
       this._categories.Add(this.TrackCondition = new TrackConditionInputCategory());
+      this._categories.Add(this.BaneiMoisture = new BaneiMoistureInputCategory());
       this._categories.Add(this.Weather = new TrackWeatherInputCategory());
       this._categories.Add(this.HorseOfCurrentRace = new HorseOfCurrentRaceInputCategory(raceHorses));
       this._categories.Add(this.HorseName = new HorseNameInputCategory());
