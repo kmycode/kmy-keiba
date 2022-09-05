@@ -374,110 +374,118 @@ namespace KmyKeiba.Models.Data
       }
 
       var allTargets = query
-        .GroupBy(rh => rh.Key)
         .Select(g => g.Key);
-      progressMax.Value = await allTargets.CountAsync();
-      var targets = await allTargets.Take(96).ToArrayAsync();
+      progressMax.Value = await allTargets.GroupBy(t => t).CountAsync();
+      var targets = await allTargets.Take(1024).ToArrayAsync();
+
+      var completedHorses = new Dictionary<string, bool>();
 
       try
       {
         while (targets.Any())
         {
-          var targetHorses = await db.RaceHorses!
-            .Where(rh => targets.Contains(rh.Key))
-            .Select(rh => new { rh.Id, rh.Key, rh.RaceKey, rh.AbnormalResult, })
-            .ToArrayAsync();
+          targets = targets.GroupBy(k => k).Select(g => g.Key).Where(t => !completedHorses.ContainsKey(t)).ToArray();
 
-          foreach (var horse in targets)
+          if (targets.Any())
           {
-            var races = targetHorses.Where(rh => rh.Key == horse).OrderBy(rh => rh.RaceKey);
-            var beforeRaceDh = DateTime.MinValue;
-            var isFirst = true;
-            var isRested = false;
+            var targetHorses = await db.RaceHorses!
+              .Where(rh => targets.Contains(rh.Key))
+              .Select(rh => new { rh.Id, rh.Key, rh.RaceKey, rh.AbnormalResult, })
+              .ToArrayAsync();
 
-            var raceCount = 1;
-            var raceCountWithinRunning = 0;
-            var raceCountCompletely = 0;
-            var raceCountAfterRest = 1;
-            foreach (var race in races)
+            foreach (var horse in targets)
             {
-              var y = race.RaceKey.Substring(0, 4);
-              var m = race.RaceKey.Substring(4, 2);
-              var d = race.RaceKey.Substring(6, 2);
-              _ = int.TryParse(y, out var year);
-              _ = int.TryParse(m, out var month);
-              _ = int.TryParse(d, out var day);
-              var dh = new DateTime(year, month, day);
+              var races = targetHorses.Where(rh => rh.Key == horse).OrderBy(rh => rh.RaceKey);
+              var beforeRaceDh = DateTime.MinValue;
+              var isFirst = true;
+              var isRested = false;
 
-              var attach = new RaceHorseData { Id = race.Id, };
-              db.RaceHorses!.Attach(attach);
-              if (!isFirst)
+              var raceCount = 1;
+              var raceCountWithinRunning = 0;
+              var raceCountCompletely = 0;
+              var raceCountAfterRest = 1;
+              foreach (var race in races)
               {
-                attach.PreviousRaceDays = System.Math.Max((short)(dh - beforeRaceDh).TotalDays, (short)1);
-              }
-              else
-              {
-                attach.PreviousRaceDays = -1;
-                isFirst = false;
-              }
-              if (attach.PreviousRaceDays >= 90)
-              {
-                raceCountAfterRest = 1;
-                isRested = true;
-              }
+                var y = race.RaceKey.Substring(0, 4);
+                var m = race.RaceKey.Substring(4, 2);
+                var d = race.RaceKey.Substring(6, 2);
+                _ = int.TryParse(y, out var year);
+                _ = int.TryParse(m, out var month);
+                _ = int.TryParse(d, out var day);
+                var dh = new DateTime(year, month, day);
 
-              attach.RaceCount = (short)raceCount;
-
-              attach.RaceCountWithinRunning = -2;
-              attach.RaceCountWithinRunningCompletely = -2;
-              if (race.AbnormalResult == RaceAbnormality.Unknown || race.AbnormalResult > RaceAbnormality.ExcludedByStewards)
-              {
-                // とりあえず走った
-                raceCountWithinRunning++;
-                attach.RaceCountWithinRunning = (short)raceCountWithinRunning;
-
-                if (isRested)
+                var attach = new RaceHorseData { Id = race.Id, };
+                db.RaceHorses!.Attach(attach);
+                if (!isFirst)
                 {
-                  attach.RaceCountAfterLastRest = (short)raceCountAfterRest;
-                  raceCountAfterRest++;
+                  attach.PreviousRaceDays = System.Math.Max((short)(dh - beforeRaceDh).TotalDays, (short)1);
                 }
                 else
                 {
-                  attach.RaceCountAfterLastRest = -2;
+                  attach.PreviousRaceDays = -1;
+                  isFirst = false;
+                }
+                if (attach.PreviousRaceDays >= 90)
+                {
+                  raceCountAfterRest = 1;
+                  isRested = true;
                 }
 
-                // ちゃんとゴールできた
-                if (race.AbnormalResult == RaceAbnormality.Unknown)
+                attach.RaceCount = (short)raceCount;
+
+                attach.RaceCountWithinRunning = -2;
+                attach.RaceCountWithinRunningCompletely = -2;
+                if (race.AbnormalResult == RaceAbnormality.Unknown || race.AbnormalResult > RaceAbnormality.ExcludedByStewards)
                 {
-                  raceCountCompletely++;
-                  attach.RaceCountWithinRunningCompletely = (short)raceCountCompletely;
+                  // とりあえず走った
+                  raceCountWithinRunning++;
+                  attach.RaceCountWithinRunning = (short)raceCountWithinRunning;
+
+                  if (isRested)
+                  {
+                    attach.RaceCountAfterLastRest = (short)raceCountAfterRest;
+                    raceCountAfterRest++;
+                  }
+                  else
+                  {
+                    attach.RaceCountAfterLastRest = -2;
+                  }
+
+                  // ちゃんとゴールできた
+                  if (race.AbnormalResult == RaceAbnormality.Unknown)
+                  {
+                    raceCountCompletely++;
+                    attach.RaceCountWithinRunningCompletely = (short)raceCountCompletely;
+                  }
                 }
+
+                beforeRaceDh = dh;
+                count++;
+                raceCount++;
               }
 
-              beforeRaceDh = dh;
-              count++;
-              raceCount++;
+              completedHorses[horse] = true;
             }
+            progress.Value += targets.Length;
+
+            await db.SaveChangesAsync();
+
+            if (isCanceled?.Value == true)
+            {
+              await db.CommitAsync();
+              return;
+            }
+
+            if (count >= prevCommitCount + 10000)
+            {
+              await db.CommitAsync();
+              db.ChangeTracker.Clear();
+              prevCommitCount = count;
+            }
+            logger.Debug($"馬のInterval日数計算完了: {count} / {progressMax.Value}");
           }
-          progress.Value += targets.Length;
 
-          await db.SaveChangesAsync();
-
-          if (isCanceled?.Value == true)
-          {
-            await db.CommitAsync();
-            return;
-          }
-
-          if (count >= prevCommitCount + 10000)
-          {
-            await db.CommitAsync();
-            db.ChangeTracker.Clear();
-            prevCommitCount = count;
-          }
-          logger.Debug($"馬のInterval日数計算完了: {count} / {progressMax.Value}");
-
-          targets = await allTargets.Take(96).ToArrayAsync();
+          targets = await allTargets.Take(1024).ToArrayAsync();
         }
       }
       catch (Exception ex)
