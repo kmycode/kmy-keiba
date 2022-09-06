@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Data.Db;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
@@ -377,6 +378,7 @@ namespace KmyKeiba.Models.Data
         .Select(g => g.Key);
       progressMax.Value = await allTargets.GroupBy(t => t).CountAsync();
       var targets = await allTargets.Take(1024).ToArrayAsync();
+      var skipSize = 0;
 
       var completedHorses = new Dictionary<string, bool>();
 
@@ -484,8 +486,12 @@ namespace KmyKeiba.Models.Data
             }
             logger.Debug($"馬のInterval日数計算完了: {count} / {progressMax.Value}");
           }
+          else
+          {
+            skipSize += 1024;
+          }
 
-          targets = await allTargets.Take(1024).ToArrayAsync();
+          targets = await allTargets.Skip(skipSize).Take(1024).ToArrayAsync();
         }
       }
       catch (Exception ex)
@@ -496,22 +502,24 @@ namespace KmyKeiba.Models.Data
 
     public static async Task SetHorseExtraTableDataAsync(DateOnly? startDate = null, ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
     {
+      short currentDataVersion = 1;
+
       try
       {
         using var db = new MyContext();
         var startTime = startDate == null ? DateTime.MinValue : startDate.Value.ToDateTime(TimeOnly.MinValue);
 
         var horses = db.RaceHorses!
-          .Where(rh => rh.ExtraDataVersion < 1 || (rh.ExtraDataState != HorseExtraDataState.Ignored && rh.ExtraDataState != HorseExtraDataState.AfterRace))
+          .Where(rh => rh.ExtraDataVersion < currentDataVersion || (rh.ExtraDataState != HorseExtraDataState.Ignored && rh.ExtraDataState != HorseExtraDataState.AfterRace))
           .Join(db.Races!.Where(r => r.StartTime >= startTime), rh => rh.RaceKey, r => r.Key, (rh, r) => new { RaceHorse = rh, Race = r, })
           .Where(rh => rh.Race.DataStatus <= RaceDataStatus.Canceled)
           .OrderByDescending(rh => rh.Race.StartTime);
 
         var notyetRaces = horses
-          .Where(h => h.RaceHorse.ExtraDataVersion < 1 || h.RaceHorse.ExtraDataState < HorseExtraDataState.UntilRace)
+          .Where(h => h.RaceHorse.ExtraDataVersion < currentDataVersion || h.RaceHorse.ExtraDataState < HorseExtraDataState.UntilRace)
           .Where(h => h.Race.DataStatus < RaceDataStatus.PreliminaryGradeFull);
         var finishedRaces = horses
-          .Where(h => h.RaceHorse.ExtraDataVersion < 1 || h.RaceHorse.ExtraDataState < HorseExtraDataState.AfterRace)
+          .Where(h => h.RaceHorse.ExtraDataVersion < currentDataVersion || h.RaceHorse.ExtraDataState < HorseExtraDataState.AfterRace)
           .Where(h => h.Race.DataStatus >= RaceDataStatus.PreliminaryGradeFull);
 
         if (!await notyetRaces.AnyAsync() && !await finishedRaces.AnyAsync())
@@ -559,24 +567,13 @@ namespace KmyKeiba.Models.Data
               };
               await db.RaceHorseExtras!.AddAsync(data);
             }
+            if (horse.RaceHorse.ExtraDataVersion < currentDataVersion)
+            {
+              horse.RaceHorse.ExtraDataState = HorseExtraDataState.Unset;
+            }
 
             if (horse.RaceHorse.ExtraDataState < HorseExtraDataState.UntilRace)
             {
-              // 調教
-              if (horse.Race.Course <= RaceCourse.CentralMaxValue)
-              {
-                var from = horse.Race.StartTime.AddDays(-21);
-                var trainings = await db.Trainings!
-                  .Where(t => t.HorseKey == horse.RaceHorse.Key && t.StartTime < horse.Race.StartTime && t.StartTime >= from)
-                  .OrderByDescending(t => t.StartTime)
-                  .Take(3)
-                  .ToArrayAsync();
-                var woodTrainings = await db.WoodtipTrainings!
-                  .Where(t => t.HorseKey == horse.RaceHorse.Key && t.StartTime < horse.Race.StartTime && t.StartTime >= from)
-                  .OrderByDescending(t => t.StartTime)
-                  .Take(3)
-                  .ToArrayAsync();
-              }
             }
             if (horse.RaceHorse.ExtraDataState < HorseExtraDataState.AfterRace &&
               horse.Race.DataStatus >= RaceDataStatus.PreliminaryGradeFull)
@@ -738,7 +735,7 @@ namespace KmyKeiba.Models.Data
               // 中止、地方、外国など
               horse.RaceHorse.ExtraDataState = HorseExtraDataState.Ignored;
             }
-            horse.RaceHorse.ExtraDataVersion = 1;
+            horse.RaceHorse.ExtraDataVersion = currentDataVersion;
           }
 
           progress.Value += buffer.Length;
@@ -764,6 +761,20 @@ namespace KmyKeiba.Models.Data
       catch (Exception ex)
       {
         logger.Error("拡張データ作成でエラー", ex);
+      }
+    }
+
+    public static async Task ResetHorseExtraTableDataAsync()
+    {
+      using var db = new MyContext();
+      try
+      {
+        var targets = db.RaceHorses!.Where(rh => rh.ExtraDataVersion == 0);
+        await db.Database.ExecuteSqlRawAsync("UPDATE RaceHorses SET ExtraDataVersion = 0;");
+      }
+      catch (Exception ex)
+      {
+        logger.Error("拡張情報リセットでエラー", ex);
       }
     }
 

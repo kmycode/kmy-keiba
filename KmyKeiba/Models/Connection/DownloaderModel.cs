@@ -611,6 +611,15 @@ namespace KmyKeiba.Models.Connection
       });
     }
 
+    public void BeginResetHorseExtraData()
+    {
+      Task.Run(async () =>
+      {
+        logger.Info("拡張データのリセットを開始");
+        await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.ResetHorseExtraData);
+      });
+    }
+
     public void BeginDownload()
     {
       Task.Run(async () =>
@@ -649,6 +658,7 @@ namespace KmyKeiba.Models.Connection
     private async Task ProcessAsync(DownloadLink link, ReactiveProperty<ProcessingStep> step, bool isRt, ProcessingStep steps, bool isFlagSetManually = false)
     {
       this.IsCancelProcessing.Value = false;
+      this.IsError.Value = false;
 
       try
       {
@@ -718,6 +728,12 @@ namespace KmyKeiba.Models.Connection
           step.Value = Connection.ProcessingStep.RaceSubjectInfos;
           logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
           await ShapeDatabaseModel.SetRaceSubjectDisplayInfosAsync(isCanceled: this.IsCancelProcessing);
+        }
+        if (steps.HasFlag(Connection.ProcessingStep.ResetHorseExtraData) && !this.IsCancelProcessing.Value)
+        {
+          step.Value = Connection.ProcessingStep.ResetHorseExtraData;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
+          await ShapeDatabaseModel.ResetHorseExtraTableDataAsync();
         }
         if (steps.HasFlag(Connection.ProcessingStep.HorseExtraData) && !this.IsCancelProcessing.Value)
         {
@@ -1215,6 +1231,9 @@ namespace KmyKeiba.Models.Connection
 
     [Label("拡張情報を作成中")]
     HorseExtraData = 256,
+
+    [Label("拡張情報をリセット中")]
+    ResetHorseExtraData = 512,
 
     All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | MigrationFrom250 | MigrationFrom322,
   }

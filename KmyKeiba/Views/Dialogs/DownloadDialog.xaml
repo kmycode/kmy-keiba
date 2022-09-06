@@ -34,14 +34,29 @@
         </StackPanel.Resources>
         <TextBlock FontSize="28" Text="開始年月" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16"
                    Visibility="{Binding Downloader.IsBuildMasterData.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
-        <StackPanel Orientation="Horizontal" Margin="8,0,0,0"
-                    Visibility="{Binding Downloader.IsBuildMasterData.Value,Converter={StaticResource NegativeVisibilityConv}}">
+        <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
+          <StackPanel.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="Downloader.IsBuildMasterData.Value" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="Downloader.IsBuildExtraData.Value" Converter="{StaticResource NegativeConv}"/>
+            </MultiBinding>
+          </StackPanel.Visibility>
           <ComboBox ItemsSource="{Binding Downloader.StartYearSelection}" SelectedItem="{Binding Downloader.StartYear.Value,Mode=TwoWay}"
                     FontSize="16" Width="80" VerticalAlignment="Top"/>
           <TextBlock Text="年" Style="{StaticResource TextBlockDefault}" FontSize="16" Margin="4,0"/>
           <ComboBox ItemsSource="{Binding Downloader.StartMonthSelection}" SelectedItem="{Binding Downloader.StartMonth.Value,Mode=TwoWay}"
                     FontSize="16" Width="50" VerticalAlignment="Top"/>
           <TextBlock Text="月" Style="{StaticResource TextBlockDefault}" FontSize="16" Margin="4,0"/>
+        </StackPanel>
+        <StackPanel Visibility="{Binding Downloader.IsBuildExtraData.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <Button Command="{Binding ResetHorseExtraDataCommand}">
+            <TextBlock FontSize="16" TextAlignment="Center">
+              拡張情報をリセット
+            </TextBlock>
+          </Button>
+          <TextBlock FontSize="16" TextWrapping="Wrap" Margin="0,16,0,0">
+            <Run Foreground="{StaticResource SubForeground}">※リセットは、これまで取得していなかった調教データを新たに取得した場合、中央のさらに過去のデータをダウンロードした場合などにご利用ください。最新データ差分処理時にリセットは必要ありません</Run>
+          </TextBlock>
         </StackPanel>
         <StackPanel>
           <StackPanel.Visibility>
@@ -73,7 +88,8 @@
           </StackPanel>
           <TextBlock FontSize="16" Text="JRDBの利用にはUNLHA32.DLLのインストールが必要です" Margin="8,0,0,24"/>
         </StackPanel>
-        <TextBlock FontSize="16" Style="{StaticResource SubTextBlock}" Margin="16,8,0,0">
+        <TextBlock FontSize="16" Style="{StaticResource SubTextBlock}" Margin="16,8,0,0"
+                   Visibility="{Binding Downloader.IsBuildExtraData.Value,Converter={StaticResource NegativeVisibilityConv}}">
           大量データの取得処理には数日かかることがあります。<LineBreak/>
           <Run FontWeight="Bold" TextDecorations="Underline">インストール後はマスターデータの手動更新が必要です。</Run>
         </TextBlock>

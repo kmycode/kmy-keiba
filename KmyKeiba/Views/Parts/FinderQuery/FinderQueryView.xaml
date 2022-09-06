@@ -75,7 +75,7 @@
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="GroupName" Value="{Binding UniqueId,ElementName=Root}"/>
             <Setter Property="Margin" Value="0,0,0,0"/>
-            <Setter Property="Padding" Value="0,6"/>
+            <Setter Property="Padding" Value="0,5"/>
           </Style>
         </StackPanel.Resources>
         <RadioButton Content="レース１" IsChecked="True" x:Name="S_RaceSubject"
@@ -127,6 +127,7 @@
           </RadioButton.Visibility>
         </RadioButton>
         <RadioButton Content="拡張情報"/>
+        <RadioButton Content="拡張情報（調教）"/>
         <RadioButton Content="JRDB"/>
         <RadioButton Content="拡張メモ" Name="S_Memo"/>
         <RadioButton Content="外部指数" Name="S_ExNumber"/>
