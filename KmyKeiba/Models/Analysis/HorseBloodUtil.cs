@@ -160,7 +160,10 @@ namespace KmyKeiba.Models.Analysis
             }
           }
 
-          _codeCaches[horseKey] = dic;
+          lock (_codeCaches)
+          {
+            _codeCaches[horseKey] = dic;
+          }
         }
       }
 
@@ -204,7 +207,10 @@ namespace KmyKeiba.Models.Analysis
             [BloodType.MotherMotherFather] = new BloodItem { BloodCode = born.MMFBreedingCode, },
             [BloodType.MotherMotherMother] = new BloodItem { BloodCode = born.MMMBreedingCode, },
           };
-          _caches[horseKey] = dic;
+          lock (_caches)
+          {
+            _caches[horseKey] = dic;
+          }
         }
         else
         {
@@ -228,7 +234,10 @@ namespace KmyKeiba.Models.Analysis
               [BloodType.MotherMotherFather] = new BloodItem { BloodCode = horse.MMFBreedingCode, },
               [BloodType.MotherMotherMother] = new BloodItem { BloodCode = horse.MMMBreedingCode, },
             };
-            _caches[horseKey] = dic;
+            lock (_caches)
+            {
+              _caches[horseKey] = dic;
+            }
           }
         }
       }
@@ -270,7 +279,10 @@ namespace KmyKeiba.Models.Analysis
           }
         }
 
-        _bloodItems[detail.BloodCode] = detail;
+        lock (_bloodItems)
+        {
+          _bloodItems[detail.BloodCode] = detail;
+        }
 
         return detail;
       }
