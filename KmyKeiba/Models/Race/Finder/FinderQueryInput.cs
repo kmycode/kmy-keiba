@@ -280,6 +280,10 @@ namespace KmyKeiba.Models.Race.Finder
         {
           continue;
         }
+        if (category is IResetableInputCategory resetable && !resetable.IsCustomized.Value)
+        {
+          continue;
+        }
 
         text.Append(indent);
         text.Append(':');
@@ -308,9 +312,17 @@ namespace KmyKeiba.Models.Race.Finder
       return text.ToString();
     }
 
-    public void Deserialize(string text)
+    public void Deserialize(string text, bool isOverwrite = false)
     {
       var lines = text.Split(Environment.NewLine);
+
+      if (!isOverwrite)
+      {
+        foreach (var category in this._categories.OfType<IResetableInputCategory>())
+        {
+          category.Reset();
+        }
+      }
 
       var propertyName = string.Empty;
       var categoryLines = new StringBuilder();

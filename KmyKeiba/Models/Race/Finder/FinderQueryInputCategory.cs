@@ -33,6 +33,20 @@ namespace KmyKeiba.Models.Race.Finder
     void Deserialize(string data);
   }
 
+  public interface IResetableInputCategory : IFinderQueryInputCategory
+  {
+    void Reset();
+
+    string SerializeSlim()
+    {
+      if (this.IsCustomized.Value)
+      {
+        return this.Serialize();
+      }
+      return string.Empty;
+    }
+  }
+
   public abstract class FinderQueryInputCategory : IFinderQueryInputCategory
   {
     protected CompositeDisposable Disposables { get; } = new();
@@ -367,7 +381,7 @@ namespace KmyKeiba.Models.Race.Finder
     IReadOnlyList<string> GetSelectedItemLabels();
   }
 
-  public class ListBoxInputCategoryBase<T> : FinderQueryInputCategory, IListBoxInputCategory
+  public class ListBoxInputCategoryBase<T> : FinderQueryInputCategory, IListBoxInputCategory, IResetableInputCategory
   {
     public FinderQueryInputListItemCollection<T> Items { get; } = new FinderQueryInputListItemCollection<T>();
 
@@ -519,14 +533,19 @@ namespace KmyKeiba.Models.Race.Finder
       return r;
     }
 
+    public void Reset()
+    {
+      foreach (var item in this.Items.Where(i => i.IsChecked.Value))
+      {
+        item.IsChecked.Value = false;
+      }
+      this.IsSetListValue.Value = true;
+    }
+
     public ICommand ResetCommand =>
       this._resetCommand ??= new CommandBase(() =>
       {
-        foreach (var item in this.Items.Where(i => i.IsChecked.Value))
-        {
-          item.IsChecked.Value = false;
-        }
-        this.IsSetListValue.Value = true;
+        this.Reset();
       });
     private ICommand? _resetCommand;
   }
@@ -621,7 +640,7 @@ namespace KmyKeiba.Models.Race.Finder
     private ICommand? _testCommand;
   }
 
-  public class NumberInputCategoryBase : FinderQueryInputCategory
+  public class NumberInputCategoryBase : FinderQueryInputCategory, IResetableInputCategory
   {
     protected string Key { get; }
 
@@ -650,9 +669,14 @@ namespace KmyKeiba.Models.Race.Finder
       }
       return $"{this.Key}{right}";
     }
+
+    public void Reset()
+    {
+      this.Input.Reset();
+    }
   }
 
-  public class FloatNumberInputCategoryBase : FinderQueryInputCategory
+  public class FloatNumberInputCategoryBase : FinderQueryInputCategory, IResetableInputCategory
   {
     protected string Key { get; }
 
@@ -679,6 +703,11 @@ namespace KmyKeiba.Models.Race.Finder
         return string.Empty;
       }
       return $"{this.Key}{right}";
+    }
+
+    public void Reset()
+    {
+      this.Input.Reset();
     }
   }
 

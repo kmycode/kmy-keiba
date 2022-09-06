@@ -829,7 +829,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             using var finder = new FinderModel(new RaceData(), RaceHorseAnalyzer.Empty, Array.Empty<RaceHorseAnalyzer>());
             foreach (var key in keys)
             {
-              finder.Input.Deserialize(key.Data.FinderConfig);
+              finder.Input.Deserialize(key.Data.FinderConfig, isOverwrite: true);
             }
             var row = new AnalysisTableWeightRowData
             {

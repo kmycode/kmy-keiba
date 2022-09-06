@@ -225,12 +225,17 @@ namespace KmyKeiba.Models.Race.Finder
       this._disposables.Dispose();
     }
 
+    public void Reset()
+    {
+      this.IsEqual.Value = true;
+      this.IsCompareWithFixedValue.Value = true;
+      this.Value.Value = this.MaxValue.Value = string.Empty;
+    }
+
     public ICommand ResetCommand =>
       this._resetCommand ??= new ReactiveCommand().WithSubscribe(() =>
       {
-        this.IsEqual.Value = true;
-        this.IsCompareWithFixedValue.Value = true;
-        this.Value.Value = this.MaxValue.Value = string.Empty;
+        this.Reset();
       }).AddTo(this._disposables);
     private ICommand? _resetCommand;
   }

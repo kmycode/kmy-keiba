@@ -127,8 +127,8 @@
           </RadioButton.Visibility>
         </RadioButton>
         <RadioButton Content="拡張情報"/>
-        <RadioButton Content="拡張情報（調教）"/>
         <RadioButton Content="JRDB"/>
+        <RadioButton Content="JRDB（調教）"/>
         <RadioButton Content="拡張メモ" Name="S_Memo"/>
         <RadioButton Content="外部指数" Name="S_ExNumber"/>
         <RadioButton Content="グループ化" Name="S_GroupBy">
