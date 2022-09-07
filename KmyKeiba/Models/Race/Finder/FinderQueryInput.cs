@@ -152,6 +152,24 @@ namespace KmyKeiba.Models.Race.Finder
 
     public BeforeRaceInputCategory BeforeRace { get; }
 
+    public IdmPointInputCategory IdmPoint { get; }
+
+    public InfoPointInputCategory InfoPoint { get; }
+
+    public TotalPointInputCategory TotalPoint { get; }
+
+    public TrainingCatchupPointInputCategory TrainingCatchupPoint { get; }
+
+    public TrainingFinishPointInputCategory TrainingFinishPoint { get; }
+
+    public PciInputCategory Pci { get; }
+
+    public Pci3InputCategory Pci3 { get; }
+
+    public RpciInputCategory Rpci { get; }
+
+    public Before3hNormalizedInputCategory Before3hNormalized { get; }
+
     public MemoInputCategory Memo { get; }
 
     public ExternalNumberInputCategory ExternalNumber { get; }
@@ -248,6 +266,15 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.TrainerBelongs = new TrainerBelongsInputCategory());
       this._categories.Add(this.SameRaceHorse = new SameRaceHorseInputCategory(race, analyzer));
       this._categories.Add(this.BeforeRace = new BeforeRaceInputCategory(race, analyzer));
+      this._categories.Add(this.IdmPoint = new IdmPointInputCategory());
+      this._categories.Add(this.InfoPoint = new InfoPointInputCategory());
+      this._categories.Add(this.TotalPoint = new TotalPointInputCategory());
+      this._categories.Add(this.TrainingCatchupPoint = new TrainingCatchupPointInputCategory());
+      this._categories.Add(this.TrainingFinishPoint = new TrainingFinishPointInputCategory());
+      this._categories.Add(this.Pci = new PciInputCategory());
+      this._categories.Add(this.Pci3 = new Pci3InputCategory());
+      this._categories.Add(this.Rpci = new RpciInputCategory());
+      this._categories.Add(this.Before3hNormalized = new Before3hNormalizedInputCategory());
       this._categories.Add(this.Memo = new MemoInputCategory());
       this._categories.Add(this.ExternalNumber = new ExternalNumberInputCategory());
       this._categories.Add(this.GroupBy = new GroupByCategoryInput());

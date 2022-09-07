@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -30,6 +31,10 @@ namespace KmyKeiba.Models.Race.Finder
     public abstract IEnumerable<RaceData> Apply(MyContext db, IEnumerable<RaceData> query);
 
     public abstract IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query);
+
+    public abstract IEnumerable<RaceHorseExtraData> Apply(MyContext db, IEnumerable<RaceHorseExtraData> query);
+
+    public abstract IEnumerable<JrdbRaceHorseData> Apply(MyContext db, IEnumerable<JrdbRaceHorseData> query);
 
     public abstract IEnumerable<MemoData> Apply(MyContext db, IEnumerable<MemoData> query);
 
@@ -85,6 +90,16 @@ namespace KmyKeiba.Models.Race.Finder
     }
 
     public override IEnumerable<MemoData> Apply(MyContext db, IEnumerable<MemoData> query)
+    {
+      return query;
+    }
+
+    public override IEnumerable<RaceHorseExtraData> Apply(MyContext db, IEnumerable<RaceHorseExtraData> query)
+    {
+      return query;
+    }
+
+    public override IEnumerable<JrdbRaceHorseData> Apply(MyContext db, IEnumerable<JrdbRaceHorseData> query)
     {
       return query;
     }
@@ -267,6 +282,14 @@ namespace KmyKeiba.Models.Race.Finder
       if (value.StartsWith('@'))
       {
         value = value[1..];
+      }
+      if (value.Contains('-'))
+      {
+        var d = value.Split('-');
+        if (short.TryParse(d[0], out var min) && short.TryParse(d[1], out var max))
+        {
+          value = string.Join(',', Enumerable.Range(min, max - min + 1));
+        }
       }
       var values = value.Split(',').Select(v =>
       {
@@ -741,7 +764,7 @@ namespace KmyKeiba.Models.Race.Finder
       Completely,
     }
 
-    public HorseBeforeRacesScriptKeyQuery(RaceCountRule countRule, int beforeSize, int compareTargetSize, IReadOnlyList<ScriptKeyQuery> queries, IReadOnlyList<ExpressionScriptKeyQuery> diffQueries, IReadOnlyList<ExpressionScriptKeyQuery> diffQueriesBetweenCurrent, bool hasJrdbQueries, bool hasExtraQueries)
+    public HorseBeforeRacesScriptKeyQuery(RaceCountRule countRule, int beforeSize, int compareTargetSize, IReadOnlyList<ScriptKeyQuery> queries, IReadOnlyList<ExpressionScriptKeyQuery> diffQueries, IReadOnlyList<ExpressionScriptKeyQuery> diffQueriesBetweenCurrent, bool hasJrdbQueries, bool hasExtraQueries, bool hasExtraQueriesInDiff)
     {
       this._hasJrdbQueries = hasJrdbQueries;
       this._hasExtraQueries = hasExtraQueries;
@@ -749,6 +772,7 @@ namespace KmyKeiba.Models.Race.Finder
       this._beforeSize = beforeSize;
       this._compareTargetSize = compareTargetSize;
       this._queries = queries;
+      this._isDiffQueriesContainsExtraData = hasExtraQueriesInDiff;
 
       if (compareTargetSize == 0)
       {
@@ -813,7 +837,7 @@ namespace KmyKeiba.Models.Race.Finder
         var tmpre = horses.Join(races, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, })
           .Join(db.RaceHorseExtras!, rh => new { rh.RaceHorse.Key, rh.RaceHorse.RaceKey, }, e => new { e.Key, e.RaceKey, }, (rh, e) => new { rh.RaceHorse, rh.Race, Extra = e, });
 
-        Expression<Func<T, bool>> Compare<T>(IQueryable<T> obj, QueryType type, bool isRace, string propertyName, int value, string propertyPrefix = "Compare", bool isShort = true, bool isEnum = false, string? subPropertyName = null)
+        Expression<Func<T, bool>> Compare<T>(IQueryable<T> obj, QueryType type, bool isRace, string propertyName, int value, string propertyPrefix = "Compare", bool isShort = true, bool isEnum = false, string? subPropertyName = null, bool isExtra = false)
         {
           var param = Expression.Parameter(typeof(T), "x");
           var before = Expression.Property(param, "Before");
@@ -823,6 +847,13 @@ namespace KmyKeiba.Models.Race.Finder
 
           var beforeObj = isRace ? beforeRace : before;
           var currentObj = isRace ? currentRace : current;
+
+          if (isExtra)
+          {
+            beforeObj = Expression.Property(param, "BeforeExtra");
+            currentObj = Expression.Property(param, propertyPrefix + "Extra");
+          }
+
           Expression valueObj = Expression.Constant(value);
           if (subPropertyName != null)
           {
@@ -1030,6 +1061,15 @@ namespace KmyKeiba.Models.Race.Finder
               case QueryKey.RunningStyle:
                 tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceHorseData.RunningStyle), value, propertyPrefix: prefix, isShort: true, isEnum: true));
                 break;
+              case QueryKey.Pci:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceHorseExtraData.Pci), value, propertyPrefix: prefix, isShort: true, isExtra: true));
+                break;
+              case QueryKey.Rpci:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceHorseExtraData.Rpci), value, propertyPrefix: prefix, isShort: true, isExtra: true));
+                break;
+              case QueryKey.Pci3:
+                tmpQuery = tmpQuery.Where(Compare(tmpQuery, type, false, nameof(RaceHorseExtraData.Pci3), value, propertyPrefix: prefix, isShort: true, isExtra: true));
+                break;
             }
           }
 
@@ -1125,9 +1165,10 @@ namespace KmyKeiba.Models.Race.Finder
                       .Join(db.RaceHorseExtras!, q => new { q.Key, q.RaceKey, }, e => new { e.Key, e.RaceKey, }, (q, e) => new { RaceHorse = q, Extra = e, })
                       .Join(db.Races!, q => q.RaceHorse.RaceKey, r => r.Key, (q, r) => new { q.RaceHorse, q.Extra, Race = r, })
                       .Join(tmpre, q => new { q.RaceHorse.Key, q.RaceHorse.RaceCount, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCount + this._beforeSize), }, (q, h) => new { BeforeRace = h.Race, BeforeExtra = h.Extra, Before = h.RaceHorse, CurrentRace = q.Race, CurrentExtra = q.Extra, Current = q.RaceHorse, })
-                      .Join(tmpre, q => new { q.Current.Key, q.Current.RaceCount, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCount + this._beforeSize), },
+                      .Join(tmpre, q => new { q.Current.Key, q.Current.RaceCount, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCount + this._compareTargetSize), },
                         (q, h) => new { q.BeforeRace, q.BeforeExtra, q.Before, q.CurrentRace, q.CurrentExtra, q.Current, CompareRace = h.Race, CompareExtra = h.Extra, Compare = h.RaceHorse, });
                     query = ApplyQueries(tmp).Select(t => t.Current);
+                    var testobj = tmp.First();
                   }
                 }
                 break;
@@ -1147,7 +1188,7 @@ namespace KmyKeiba.Models.Race.Finder
                       .Join(db.RaceHorseExtras!, q => new { q.Key, q.RaceKey, }, e => new { e.Key, e.RaceKey, }, (q, e) => new { RaceHorse = q, Extra = e, })
                       .Join(db.Races!, q => q.RaceHorse.RaceKey, r => r.Key, (q, r) => new { q.RaceHorse, q.Extra, Race = r, })
                       .Join(tmpre, q => new { q.RaceHorse.Key, RaceCount = q.RaceHorse.RaceCountWithinRunning, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunning + this._beforeSize), }, (q, h) => new { BeforeRace = h.Race, BeforeExtra = h.Extra, Before = h.RaceHorse, CurrentRace = q.Race, CurrentExtra = q.Extra, Current = q.RaceHorse, })
-                      .Join(tmpre, q => new { q.Current.Key, RaceCount = q.Current.RaceCountWithinRunning, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunning + this._beforeSize), },
+                      .Join(tmpre, q => new { q.Current.Key, RaceCount = q.Current.RaceCountWithinRunning, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunning + this._compareTargetSize), },
                         (q, h) => new { q.BeforeRace, q.BeforeExtra, q.Before, q.CurrentRace, q.CurrentExtra, q.Current, CompareRace = h.Race, CompareExtra = h.Extra, Compare = h.RaceHorse, });
                     query = ApplyQueries(tmp).Select(t => t.Current);
                   }
@@ -1169,7 +1210,7 @@ namespace KmyKeiba.Models.Race.Finder
                       .Join(db.RaceHorseExtras!, q => new { q.Key, q.RaceKey, }, e => new { e.Key, e.RaceKey, }, (q, e) => new { RaceHorse = q, Extra = e, })
                       .Join(db.Races!, q => q.RaceHorse.RaceKey, r => r.Key, (q, r) => new { q.RaceHorse, q.Extra, Race = r, })
                       .Join(tmpre, q => new { q.RaceHorse.Key, RaceCount = q.RaceHorse.RaceCountWithinRunningCompletely, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunningCompletely + this._beforeSize), }, (q, h) => new { BeforeRace = h.Race, BeforeExtra = h.Extra, Before = h.RaceHorse, CurrentRace = q.Race, CurrentExtra = q.Extra, Current = q.RaceHorse, })
-                      .Join(tmpre, q => new { q.Current.Key, RaceCount = q.Current.RaceCountWithinRunningCompletely, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunningCompletely + this._beforeSize), },
+                      .Join(tmpre, q => new { q.Current.Key, RaceCount = q.Current.RaceCountWithinRunningCompletely, }, h => new { h.RaceHorse.Key, RaceCount = (short)(h.RaceHorse.RaceCountWithinRunningCompletely + this._compareTargetSize), },
                         (q, h) => new { q.BeforeRace, q.BeforeExtra, q.Before, q.CurrentRace, q.CurrentExtra, q.Current, CompareRace = h.Race, CompareExtra = h.Extra, Compare = h.RaceHorse, });
                     query = ApplyQueries(tmp).Select(t => t.Current);
                   }
@@ -1615,6 +1656,63 @@ namespace KmyKeiba.Models.Race.Finder
     public override IEnumerable<RaceHorseData> Apply(MyContext db, IEnumerable<RaceHorseData> query)
     {
       return query.Where(this.GenerateRaceHorseFilter().Compile());
+    }
+
+    private Expression<Func<JrdbRaceHorseData, bool>> GenerateJrdbRaceHorseFilter()
+    {
+      switch (this.Key)
+      {
+        case QueryKey.IdmPoint:
+          return this.BuildNumericQuery<JrdbRaceHorseData>(nameof(JrdbRaceHorseData.IdmPoint));
+        case QueryKey.InfoPoint:
+          return this.BuildNumericQuery<JrdbRaceHorseData>(nameof(JrdbRaceHorseData.InfoPoint));
+        case QueryKey.TotalPoint:
+          return this.BuildNumericQuery<JrdbRaceHorseData>(nameof(JrdbRaceHorseData.TotalPoint));
+      }
+
+      return j => true;
+    }
+
+    public override IQueryable<JrdbRaceHorseData> Apply(MyContext db, IQueryable<JrdbRaceHorseData> query)
+    {
+      return query.Where(this.GenerateJrdbRaceHorseFilter());
+    }
+
+    public override IEnumerable<JrdbRaceHorseData> Apply(MyContext db, IEnumerable<JrdbRaceHorseData> query)
+    {
+      return query.Where(this.GenerateJrdbRaceHorseFilter().Compile());
+    }
+
+    private Expression<Func<RaceHorseExtraData, bool>> GenerateRaceHorseExtraFilter()
+    {
+      switch (this.Key)
+      {
+        case QueryKey.TrainingCatchupPoint:
+          return this.BuildNumericQuery<RaceHorseExtraData>(nameof(RaceHorseExtraData.TrainingCatchupPoint));
+        case QueryKey.TrainingFinishPoint:
+          return this.BuildNumericQuery<RaceHorseExtraData>(nameof(RaceHorseExtraData.TrainingFinishPoint));
+
+        case QueryKey.Pci:
+          return this.BuildNumericQuery<RaceHorseExtraData>(nameof(RaceHorseExtraData.Pci));
+        case QueryKey.Pci3:
+          return this.BuildNumericQuery<RaceHorseExtraData>(nameof(RaceHorseExtraData.Pci3));
+        case QueryKey.Rpci:
+          return this.BuildNumericQuery<RaceHorseExtraData>(nameof(RaceHorseExtraData.Rpci));
+        case QueryKey.Before3HTimeNormalized:
+          return this.BuildNumericQuery<RaceHorseExtraData>(nameof(RaceHorseExtraData.Before3HaronTimeFixed));
+      }
+
+      return j => true;
+    }
+
+    public override IQueryable<RaceHorseExtraData> Apply(MyContext db, IQueryable<RaceHorseExtraData> query)
+    {
+      return query.Where(this.GenerateRaceHorseExtraFilter());
+    }
+
+    public override IEnumerable<RaceHorseExtraData> Apply(MyContext db, IEnumerable<RaceHorseExtraData> query)
+    {
+      return query.Where(this.GenerateRaceHorseExtraFilter().Compile());
     }
 
     public override IQueryable<MemoData> Apply(MyContext db, IQueryable<MemoData> query)

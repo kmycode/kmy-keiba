@@ -186,7 +186,8 @@ namespace KmyKeiba.Models.Race.Finder
         {
           if (obj is not FinderQueryNumberInput ||
             (property.Name != nameof(FinderQueryNumberInput.ComparationWithBeforeRaceComment) &&
-             property.Name != nameof(FinderQueryNumberInput.CanCompareCurrentRaceValue)))
+             property.Name != nameof(FinderQueryNumberInput.CanCompareCurrentRaceValue) &&
+             property.Name != nameof(FinderQueryNumberInput.CanCompareAsBeforeRace)))
           {
             this.PropertyToString(property, text, obj);
           }
@@ -331,7 +332,9 @@ namespace KmyKeiba.Models.Race.Finder
       {
         if (type == typeof(bool))
         {
-          if (obj is not FinderQueryNumberInput || property.Name != nameof(FinderQueryNumberInput.CanCompareCurrentRaceValue))
+          if (obj is not FinderQueryNumberInput ||
+            (property.Name != nameof(FinderQueryNumberInput.CanCompareCurrentRaceValue) &&
+             property.Name != nameof(FinderQueryNumberInput.CanCompareAsBeforeRace)))
           {
             var value = data == "true";
             property.SetValue(obj, value);
@@ -2777,6 +2780,82 @@ namespace KmyKeiba.Models.Race.Finder
       {
         this._disposables.Dispose();
       }
+    }
+  }
+
+  #endregion
+
+  #region 拡張情報
+
+  public class PciInputCategory : FloatNumberInputCategoryBase
+  {
+    public PciInputCategory() : base("pci", 2, true)
+    {
+    }
+  }
+
+  public class Pci3InputCategory : FloatNumberInputCategoryBase
+  {
+    public Pci3InputCategory() : base("pci3", 2)
+    {
+    }
+  }
+
+  public class RpciInputCategory : FloatNumberInputCategoryBase
+  {
+    public RpciInputCategory() : base("rpci", 2)
+    {
+    }
+  }
+
+  public class Before3hNormalizedInputCategory : FloatNumberInputCategoryBase
+  {
+    public Before3hNormalizedInputCategory() : base("racebefore3hn", 1)
+    {
+      this.Input.CanCompareAsBeforeRace = false;
+    }
+  }
+
+  #endregion
+
+  #region JRDB
+
+  public class IdmPointInputCategory : FloatNumberInputCategoryBase
+  {
+    public IdmPointInputCategory() : base("idmpoint", 1)
+    {
+    }
+  }
+
+  public class InfoPointInputCategory : FloatNumberInputCategoryBase
+  {
+    public InfoPointInputCategory() : base("infopoint", 1)
+    {
+    }
+  }
+
+  public class TotalPointInputCategory : FloatNumberInputCategoryBase
+  {
+    public TotalPointInputCategory() : base("totalpoint", 1)
+    {
+    }
+  }
+
+  #endregion
+
+  #region JRDB調教
+
+  public class TrainingCatchupPointInputCategory : NumberInputCategoryBase
+  {
+    public TrainingCatchupPointInputCategory() : base("trainingcatchuppoint")
+    {
+    }
+  }
+
+  public class TrainingFinishPointInputCategory : NumberInputCategoryBase
+  {
+    public TrainingFinishPointInputCategory() : base("trainingfinishpoint")
+    {
     }
   }
 

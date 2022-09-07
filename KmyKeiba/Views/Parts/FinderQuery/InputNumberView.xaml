@@ -74,10 +74,12 @@
                 </MultiBinding>
               </RadioButton.Visibility>
             </RadioButton>
-            <RadioButton Content="検索レースと比較" IsChecked="{Binding Input.IsCompareWithCurrentRace.Value,ElementName=Root,Mode=TwoWay}"
-                         Visibility="{Binding IsComparable,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
-            <RadioButton Content="比較対象レースと比較" IsChecked="{Binding Input.IsCompareWithTargetRace.Value,ElementName=Root,Mode=TwoWay}"
-                         Visibility="{Binding IsComparable,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+            <StackPanel Visibility="{Binding Input.CanCompareAsBeforeRace,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+              <RadioButton Content="検索レースと比較" IsChecked="{Binding Input.IsCompareWithCurrentRace.Value,ElementName=Root,Mode=TwoWay}"
+                           Visibility="{Binding IsComparable,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+              <RadioButton Content="比較対象レースと比較" IsChecked="{Binding Input.IsCompareWithTargetRace.Value,ElementName=Root,Mode=TwoWay}"
+                           Visibility="{Binding IsComparable,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+            </StackPanel>
 
             <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" TextWrapping="Wrap"
                        Text="{Binding Input.ComparationWithBeforeRaceComment.Value,ElementName=Root}"/>

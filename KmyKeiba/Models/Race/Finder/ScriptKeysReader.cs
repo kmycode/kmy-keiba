@@ -44,6 +44,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public bool HasExtraQuery { get; init; }
 
+    public bool HasExtraQueryInDiff { get; init; }
+
     public ScriptKeysParseResult(IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueries = null, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueriesBetweenCurrent = null, bool isContainsFutureRaces = false, bool isCurrentOnly = false, bool isRealtimeResult = false, bool isExpandedResult = false)
     {
       this.Queries = queries;
@@ -101,6 +103,7 @@ namespace KmyKeiba.Models.Race.Finder
       ScriptKeysMemoGroupInfo? memoGroupInfo = null;
       var hasJrdbKeys = false;
       var hasExtraKeys = false;
+      var hasExtraKeysInDiff = false;
 
       var queries = new List<ScriptKeyQuery>();
       var diffQueries = new List<ExpressionScriptKeyQuery>();
@@ -124,6 +127,10 @@ namespace KmyKeiba.Models.Race.Finder
               if (query != null && query is ExpressionScriptKeyQuery exp)
               {
                 diffQueriesBetweenCurrent!.Add(exp);
+                if (queryRaw.Item2?.Target == QueryTarget.RaceHorseExtra)
+                {
+                  hasExtraKeysInDiff = true;
+                }
               }
             }
             else if (data[1].StartsWith('$'))
@@ -134,6 +141,10 @@ namespace KmyKeiba.Models.Race.Finder
               if (query != null && query is ExpressionScriptKeyQuery exp)
               {
                 diffQueries!.Add(exp);
+                if (queryRaw.Item2?.Target == QueryTarget.RaceHorseExtra)
+                {
+                  hasExtraKeysInDiff = true;
+                }
               }
             }
             else
@@ -487,7 +498,7 @@ namespace KmyKeiba.Models.Race.Finder
           }
           else
           {
-            queries!.Add(new HorseBeforeRacesScriptKeyQuery(countRule, beforeSize, compareTargetSize, qs.Queries, qs.DiffQueries, qs.DiffQueriesBetweenCurrent, qs.HasJrdbQuery, qs.HasExtraQuery));
+            queries!.Add(new HorseBeforeRacesScriptKeyQuery(countRule, beforeSize, compareTargetSize, qs.Queries, qs.DiffQueries, qs.DiffQueriesBetweenCurrent, qs.HasJrdbQuery, qs.HasExtraQuery, qs.HasExtraQueryInDiff));
           }
           return true;
         }
@@ -996,6 +1007,7 @@ namespace KmyKeiba.Models.Race.Finder
         MemoGroupInfo = memoGroupInfo,
         HasJrdbQuery = hasJrdbKeys,
         HasExtraQuery = hasExtraKeys,
+        HasExtraQueryInDiff = hasExtraKeysInDiff,
       };
     }
 
@@ -1259,6 +1271,27 @@ namespace KmyKeiba.Models.Race.Finder
     MotherMotherFather,
     [StringQueryKey("mmm")]
     MotherMotherMother,
+
+    [NumericQueryKey("idmpoint", QueryTarget.JrdbRaceHorse)]
+    IdmPoint,
+    [NumericQueryKey("infopoint", QueryTarget.JrdbRaceHorse)]
+    InfoPoint,
+    [NumericQueryKey("totalpoint", QueryTarget.JrdbRaceHorse)]
+    TotalPoint,
+
+    [NumericQueryKey("trainingcatchuppoint", QueryTarget.RaceHorseExtra)]
+    TrainingCatchupPoint,
+    [NumericQueryKey("trainingfinishpoint", QueryTarget.RaceHorseExtra)]
+    TrainingFinishPoint,
+
+    [NumericQueryKey("pci", QueryTarget.RaceHorseExtra)]
+    Pci,
+    [NumericQueryKey("pci3", QueryTarget.RaceHorseExtra)]
+    Pci3,
+    [NumericQueryKey("rpci", QueryTarget.RaceHorseExtra)]
+    Rpci,
+    [NumericQueryKey("racebefore3hn", QueryTarget.RaceHorseExtra)]
+    Before3HTimeNormalized,
 
     [NumericQueryKey("point")]
     Point,

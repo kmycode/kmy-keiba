@@ -126,9 +126,28 @@
             </MultiBinding>
           </RadioButton.Visibility>
         </RadioButton>
-        <RadioButton Content="拡張情報"/>
-        <RadioButton Content="JRDB"/>
-        <RadioButton Content="JRDB（調教）"/>
+        <RadioButton Content="拡張情報" Name="S_Extra">
+          <RadioButton.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsEnumerable" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+            </MultiBinding>
+          </RadioButton.Visibility>
+        </RadioButton>
+        <RadioButton Content="JRDB" Name="S_Jrdb">
+          <RadioButton.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsEnumerable" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="IsSubViewBeforeRace" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+            </MultiBinding>
+          </RadioButton.Visibility>
+        </RadioButton>
+        <RadioButton Content="JRDB（調教）" Name="S_JrdbTraining">
+          <RadioButton.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="IsEnumerable" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+            </MultiBinding>
+          </RadioButton.Visibility>
+        </RadioButton>
         <RadioButton Content="拡張メモ" Name="S_Memo"/>
         <RadioButton Content="外部指数" Name="S_ExNumber"/>
         <RadioButton Content="グループ化" Name="S_GroupBy">
@@ -970,6 +989,51 @@
             </ItemsControl>
             <Button Grid.Row="1" Margin="0,8,0,0" FontSize="16" Content="追加" Command="{Binding FinderModel.Input.BeforeRace.AddItemCommand,ElementName=Root}"/>
           </Grid>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!--JRDB-->
+      <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_Jrdb,Converter={StaticResource BooleanVisibilityConv}}"
+                    VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <StackPanel Width="350">
+            <local:InputNumberView Input="{Binding FinderModel.Input.IdmPoint.Input,ElementName=Root}"
+                                   Header="IDM指数"/>
+            <local:InputNumberView Input="{Binding FinderModel.Input.InfoPoint.Input,ElementName=Root}"
+                                   Header="情報指数" Margin="0,8,0,0"/>
+            <local:InputNumberView Input="{Binding FinderModel.Input.TotalPoint.Input,ElementName=Root}"
+                                   Header="総合指数" Margin="0,8,0,0"/>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!--JRDB(調教)-->
+      <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_JrdbTraining,Converter={StaticResource BooleanVisibilityConv}}"
+                    VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <StackPanel Width="350">
+            <local:InputNumberView Input="{Binding FinderModel.Input.TrainingCatchupPoint.Input,ElementName=Root}"
+                                   Header="追い切り指数"/>
+            <local:InputNumberView Input="{Binding FinderModel.Input.TrainingFinishPoint.Input,ElementName=Root}"
+                                   Header="仕上がり指数" Margin="0,8,0,0"/>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!--拡張情報-->
+      <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_Extra,Converter={StaticResource BooleanVisibilityConv}}"
+                    VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <StackPanel Width="350">
+            <local:InputNumberView Input="{Binding FinderModel.Input.Pci.Input,ElementName=Root}"
+                                   Header="PCI"/>
+            <local:InputNumberView Input="{Binding FinderModel.Input.Pci3.Input,ElementName=Root}"
+                                   Header="PCI3" Margin="0,8,0,0"/>
+            <local:InputNumberView Input="{Binding FinderModel.Input.Rpci.Input,ElementName=Root}"
+                                   Header="RPCI" Margin="0,8,0,0"/>
+            <local:InputNumberView Input="{Binding FinderModel.Input.Before3hNormalized.Input,ElementName=Root}"
+                                   Header="レース前3ハロンタイム" Comment="(距離補正後)" Margin="0,8,0,0"/>
+          </StackPanel>
         </StackPanel>
       </ScrollViewer>
 
