@@ -29,6 +29,8 @@ namespace KmyKeiba.Models.Connection
 
     private bool _isInitializationDownloading = false;
 
+    private Connection.ProcessingStep AllSteps => this.IsBuildExtraData.Value ? Connection.ProcessingStep.All : (Connection.ProcessingStep.All & ~Connection.ProcessingStep.HorseExtraData);
+
     public ReactiveProperty<bool> IsInitializationError { get; } = new();
 
     public ReactiveProperty<bool> IsError { get; } = new();
@@ -93,8 +95,6 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsBuildMasterData { get; } = new();
 
-    public ReactiveProperty<bool> IsBuildExtraData { get; } = new();
-
     public ReactiveProperty<bool> IsRTDownloadCentral { get; } = new();
 
     public ReactiveProperty<bool> IsRTDownloadCentralAfterThursdayOnly { get; } = new();
@@ -106,6 +106,8 @@ namespace KmyKeiba.Models.Connection
     public ReactiveProperty<bool> IsDownloadSlop { get; } = new();
 
     public ReactiveProperty<bool> IsDownloadBlod { get; } = new();
+
+    public ReactiveProperty<bool> IsBuildExtraData { get; } = new();
 
     public ReactiveProperty<LoadingProcessValue> LoadingProcess { get; } = new();
 
@@ -196,6 +198,7 @@ namespace KmyKeiba.Models.Connection
       this.IsRTDownloadJrdb.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadJrdb, v ? 1 : 0)).AddTo(this._disposables);
       this.IsDownloadBlod.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsNotDownloadHorseBloods, v ? 0 : 1)).AddTo(this._disposables);
       this.IsDownloadSlop.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsNotDownloadTrainings, v ? 0 : 1)).AddTo(this._disposables);
+      this.IsBuildExtraData.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsNotBuildExtraData, v ? 0 : 1)).AddTo(this._disposables);
     }
 
     public async Task<bool> InitializeAsync()
@@ -223,8 +226,10 @@ namespace KmyKeiba.Models.Connection
 
         var isNotDownloadBlod = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsNotDownloadHorseBloods);
         var isNotDownloadSlop = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsNotDownloadTrainings);
+        var isNotBuildExtra = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsNotBuildExtraData);
         this.IsDownloadBlod.Value = isNotDownloadBlod == 0;
         this.IsDownloadSlop.Value = isNotDownloadSlop == 0;
+        this.IsBuildExtraData.Value = isNotBuildExtra == 0;
 
         logger.Info($"設定 {nameof(SettingKey.LastDownloadCentralDate)}: {central}, {nameof(SettingKey.LastDownloadLocalDate)}: {local}");
 
@@ -627,12 +632,7 @@ namespace KmyKeiba.Models.Connection
         if (this.IsBuildMasterData.Value)
         {
           logger.Info("マスターデータ更新を開始");
-          await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.All);
-        }
-        else if (this.IsBuildExtraData.Value)
-        {
-          logger.Info("拡張データ作成を開始");
-          await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.HorseExtraData);
+          await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, this.AllSteps);
         }
         else
         {
@@ -824,7 +824,7 @@ namespace KmyKeiba.Models.Connection
 
         logger.Info("通常データのダウンロード完了。後処理に移行します");
         await this.ProcessAsync(link, this.ProcessingStep, false,
-          Connection.ProcessingStep.All & ~Connection.ProcessingStep.StandardTime, isFlagSetManually: true);
+          this.AllSteps & ~Connection.ProcessingStep.StandardTime, isFlagSetManually: true);
       }
       catch (DownloaderCommandException ex)
       {
@@ -880,18 +880,6 @@ namespace KmyKeiba.Models.Connection
 
         logger.Info("RTデータのダウンロード完了。後処理に移行します");
         await this.ProcessAsync(link, this.RTProcessingStep, true, Connection.ProcessingStep.InvalidData | Connection.ProcessingStep.RunningStyle, isFlagSetManually: true);
-
-        this.RTProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
-        logger.Info($"RTダウンロード/後処理進捗変更: {this.RTProcessingStep.Value}, リンク: {link}");
-        await ShapeDatabaseModel.SetHorseExtraDataAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
-
-        this.RTProcessingStep.Value = Connection.ProcessingStep.RiderWinRates;
-        logger.Info($"RTダウンロード/後処理進捗変更: {this.RTProcessingStep.Value}, リンク: {link}");
-        await ShapeDatabaseModel.SetRiderWinRatesAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
-
-        this.RTProcessingStep.Value = Connection.ProcessingStep.RaceSubjectInfos;
-        logger.Info($"RTダウンロード/後処理進捗変更: {this.RTProcessingStep.Value}, リンク: {link}");
-        await ShapeDatabaseModel.SetRaceSubjectDisplayInfosAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
 
         logger.Debug("RT後処理完了");
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
@@ -1235,6 +1223,6 @@ namespace KmyKeiba.Models.Connection
     [Label("拡張情報をリセット中")]
     ResetHorseExtraData = 512,
 
-    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | MigrationFrom250 | MigrationFrom322,
+    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | MigrationFrom250 | MigrationFrom322 | HorseExtraData,
   }
 }

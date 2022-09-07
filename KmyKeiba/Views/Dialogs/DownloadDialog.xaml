@@ -38,7 +38,6 @@
           <StackPanel.Visibility>
             <MultiBinding Converter="{StaticResource MultiBooleanConv}">
               <Binding Path="Downloader.IsBuildMasterData.Value" Converter="{StaticResource NegativeConv}"/>
-              <Binding Path="Downloader.IsBuildExtraData.Value" Converter="{StaticResource NegativeConv}"/>
             </MultiBinding>
           </StackPanel.Visibility>
           <ComboBox ItemsSource="{Binding Downloader.StartYearSelection}" SelectedItem="{Binding Downloader.StartYear.Value,Mode=TwoWay}"
@@ -48,14 +47,19 @@
                     FontSize="16" Width="50" VerticalAlignment="Top"/>
           <TextBlock Text="月" Style="{StaticResource TextBlockDefault}" FontSize="16" Margin="4,0"/>
         </StackPanel>
-        <StackPanel Visibility="{Binding Downloader.IsBuildExtraData.Value,Converter={StaticResource BooleanVisibilityConv}}">
+        <StackPanel Visibility="{Binding Downloader.IsBuildMasterData.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <ToggleButton FontSize="16" Content="拡張情報を生成する" IsChecked="{Binding Downloader.IsBuildExtraData.Value,Mode=TwoWay}"
+                        IsEnabled="{Binding CanSave.Value}"/>
+          <TextBlock FontSize="16" TextWrapping="Wrap" Margin="0,8,0,24">
+            <Run Foreground="{StaticResource SubForeground}">※拡張情報の作成によって一部の検索条件・拡張分析項目が利用可能になります</Run>
+          </TextBlock>
           <Button Command="{Binding ResetHorseExtraDataCommand}">
             <TextBlock FontSize="16" TextAlignment="Center">
               拡張情報をリセット
             </TextBlock>
           </Button>
-          <TextBlock FontSize="16" TextWrapping="Wrap" Margin="0,16,0,0">
-            <Run Foreground="{StaticResource SubForeground}">※リセットは、これまで取得していなかった調教データを新たに取得した場合、中央のさらに過去のデータをダウンロードした場合などにご利用ください。最新データ差分処理時にリセットは必要ありません</Run>
+          <TextBlock FontSize="16" TextWrapping="Wrap" Margin="0,8,0,24">
+            <Run Foreground="{StaticResource SubForeground}">※拡張情報リセットは、新たにJRDBと契約した場合、さらに過去のデータをダウンロードした場合などにご利用ください。最新データ差分処理時にリセットは必要ありません</Run>
           </TextBlock>
         </StackPanel>
         <StackPanel>
@@ -88,8 +92,7 @@
           </StackPanel>
           <TextBlock FontSize="16" Text="JRDBの利用にはUNLHA32.DLLのインストールが必要です" Margin="8,0,0,24"/>
         </StackPanel>
-        <TextBlock FontSize="16" Style="{StaticResource SubTextBlock}" Margin="16,8,0,0"
-                   Visibility="{Binding Downloader.IsBuildExtraData.Value,Converter={StaticResource NegativeVisibilityConv}}">
+        <TextBlock FontSize="16" Style="{StaticResource SubTextBlock}" Margin="16,8,0,0">
           大量データの取得処理には数日かかることがあります。<LineBreak/>
           <Run FontWeight="Bold" TextDecorations="Underline">インストール後はマスターデータの手動更新が必要です。</Run>
         </TextBlock>
@@ -134,8 +137,6 @@
                 Margin="0,24,0,8"/>
         <RadioButton Grid.Row="7" Grid.ColumnSpan="2" FontSize="16" Content="JRDB" Width="186" Style="{StaticResource ToggleButtonDefault}"
                      IsChecked="{Binding Downloader.IsDownloadJrdb.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
-        <RadioButton Grid.Row="8" Grid.ColumnSpan="2" FontSize="16" Content="検索分析用拡張情報" Width="186" Style="{StaticResource ToggleButtonDefault}" Margin="0,8,0,0"
-                     IsChecked="{Binding Downloader.IsBuildExtraData.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
       </Grid>
     </Grid>
     <Grid Grid.Row="1" Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}">
@@ -182,20 +183,20 @@
       <Run FontWeight="Bold" Foreground="{StaticResource BadForeground}" Text="データ保存中は、印付けや購入など一部操作ができなくなります。"/><LineBreak/>
       途中で中央競馬セットアップダイアログが<Run FontWeight="Bold" Text="２回以上"/>出ることがあります。
     </TextBlock>
-    <Grid Grid.Row="4" Margin="0,0,0,16">
+    <Grid Grid.Row="4" Margin="0,0,0,16" Height="36">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition/>
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition Width="auto"/>
       </Grid.ColumnDefinitions>
-      <Button Content="閉じる" FontSize="16" Width="80" VerticalAlignment="Bottom"
+      <Button Content="閉じる" FontSize="16" Width="80" Height="32" VerticalAlignment="Bottom"
               Command="{Binding CloseDialogCommand}" Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
-      <Button Content="閉じる（処理は継続されます）" FontSize="16" Width="240" VerticalAlignment="Bottom"
+      <Button Content="閉じる（処理は継続されます）" FontSize="16" Width="240" Height="32" VerticalAlignment="Bottom"
               Command="{Binding CloseDialogCommand}" Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
       <Button Content="開始" Grid.Column="3" FontSize="20" Width="100" Command="{Binding StartDownloadCommand}"
               Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
-      <Button Grid.Column="3" FontSize="14" Content="中止" Width="80" Command="{Binding CancelDownloadCommand}"
+      <Button Grid.Column="3" FontSize="14" Content="中止" Width="80" Height="32" VerticalAlignment="Bottom" Command="{Binding CancelDownloadCommand}"
               IsEnabled="{Binding Downloader.IsCancelProcessing.Value,Converter={StaticResource NegativeConv}}"
               Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
     </Grid>
