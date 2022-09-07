@@ -33,6 +33,10 @@ namespace KmyKeiba.Models.Data
         var targets = db.RaceHorses!.Where(rh => rh.RaceKey == "" || rh.Key == "");
         db.RaceHorses!.RemoveRange(targets);
         await db.SaveChangesAsync();
+
+        var targets2 = db.Horses!.Where(h => h.CentralFlag == 0 && (h.Belongs == HorseBelongs.Ritto || h.Belongs == HorseBelongs.Miho));
+        db.Horses!.RemoveRange(targets2);
+        await db.SaveChangesAsync();
       }
     }
 
