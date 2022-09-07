@@ -1268,6 +1268,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public RaceBefore3HTimeInputCategory() : base("racebefore3h", 1)
     {
+      this.Input.CanCompareAsBeforeRace = false;
     }
   }
 
@@ -1275,6 +1276,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public RaceAfter3HTimeInputCategory() : base("raceafter3h", 1)
     {
+      this.Input.CanCompareAsBeforeRace = false;
     }
   }
 
