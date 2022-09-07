@@ -221,7 +221,7 @@
                            IsChecked="{Binding FinderModel.Input.Course.IsLocal.Value,ElementName=Root,Mode=TwoWay}"/>
             </UniformGrid>
           </Grid>
-          <Grid Width="100" Margin="8,0,0,0">
+          <Grid Width="80" Margin="8,0,0,0">
             <Grid.RowDefinitions>
               <RowDefinition Height="1.96*"/>
               <RowDefinition/>
@@ -230,7 +230,7 @@
             <local:InputListBoxView Grid.Row="1" Margin="0,8,0,0"
                                     Header="年" Input="{Binding FinderModel.Input.Year,ElementName=Root}"/>
           </Grid>
-          <Grid Width="100" Margin="8,0,0,0">
+          <Grid Width="80" Margin="8,0,0,0">
             <Grid.RowDefinitions>
               <RowDefinition Height="1.96*"/>
               <RowDefinition/>
@@ -239,7 +239,7 @@
             <local:InputListBoxView Grid.Row="1" Margin="0,8,0,0"
                                     Header="重量" Input="{Binding FinderModel.Input.RiderWeightRule,ElementName=Root}"/>
           </Grid>
-          <Grid Width="100" Margin="8,0,0,0">
+          <Grid Width="80" Margin="8,0,0,0">
             <Grid.RowDefinitions>
               <RowDefinition Height="1.96*"/>
               <RowDefinition/>
@@ -269,7 +269,7 @@
             <local:InputListBoxView Grid.Row="1" Margin="0,8,0,0"
                                     Header="産地・買条件" Input="{Binding FinderModel.Input.AreaRule,ElementName=Root}"/>
           </Grid>
-          <Grid Width="100" Margin="8,0,0,0">
+          <Grid Width="80" Margin="8,0,0,0">
             <Grid.RowDefinitions>
               <RowDefinition/>
               <RowDefinition/>
@@ -281,7 +281,7 @@
             <local:InputListBoxView Grid.Row="2" Header="向き" Input="{Binding FinderModel.Input.CornerDirection,ElementName=Root}"
                                     Margin="0,8,0,0"/>
           </Grid>
-          <Grid Width="100" Margin="8,0,0,0">
+          <Grid Width="80" Margin="8,0,0,0">
             <Grid.RowDefinitions>
               <RowDefinition Height="1.06*"/>
               <RowDefinition Height="0.73*"/>
