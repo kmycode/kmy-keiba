@@ -414,9 +414,7 @@
                 <Binding Path="FinderModel.Input.HorseOfCurrentRace.IsTrainer.Value" ElementName="Root"/>
               </MultiBinding>
             </Grid.Visibility>
-            <ListBox ItemsSource="{Binding FinderModel.Input.HorseOfCurrentRace.Horses,ElementName=Root}"
-                     SelectedItem="{Binding FinderModel.Input.HorseOfCurrentRace.SelectedHorse.Value,ElementName=Root,Mode=TwoWay}"
-                     SelectionMode="Single">
+            <ListBox ItemsSource="{Binding FinderModel.Input.HorseOfCurrentRace.Horses,ElementName=Root}">
               <ListBox.ItemTemplate>
                 <DataTemplate>
                   <Grid Margin="4,1">

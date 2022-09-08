@@ -12,6 +12,7 @@ using System.Linq.Expressions;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms.VisualStyles;
 
 namespace KmyKeiba.Models.Race.Finder
 {
@@ -144,13 +145,13 @@ namespace KmyKeiba.Models.Race.Finder
   class SameRaceHorseScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly string _raceKey;
-    private readonly short _horseNumber;
+    private readonly IReadOnlyList<short> _horseNumbers;
     private IReadOnlyList<string>? _riders;
 
-    public SameRaceHorseScriptKeyQuery(string raceKey, short horseNumber)
+    public SameRaceHorseScriptKeyQuery(string raceKey, IReadOnlyList<short> horseNumbers)
     {
       this._raceKey = raceKey;
-      this._horseNumber = horseNumber;
+      this._horseNumbers = horseNumbers;
     }
 
     private void InitializeCaches(MyContext db)
@@ -160,9 +161,9 @@ namespace KmyKeiba.Models.Race.Finder
         return;
       }
       var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
-      if (this._horseNumber != default)
+      if (this._horseNumbers.Any())
       {
-        horses = horses.Where(h => h.Number == this._horseNumber);
+        horses = horses.Where(h => this._horseNumbers.Contains(h.Number));
       }
       this._riders = horses.Where(rh => rh.RaceKey == this._raceKey).Select(rh => rh.Key).ToArray();
     }
@@ -177,13 +178,13 @@ namespace KmyKeiba.Models.Race.Finder
   class SameRaceRiderScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly string _raceKey;
-    private readonly short _horseNumber;
+    private readonly IReadOnlyList<short> _horseNumbers;
     private IReadOnlyList<string>? _riders;
 
-    public SameRaceRiderScriptKeyQuery(string raceKey, short horseNumber)
+    public SameRaceRiderScriptKeyQuery(string raceKey, IReadOnlyList<short> horseNumbers)
     {
       this._raceKey = raceKey;
-      this._horseNumber = horseNumber;
+      this._horseNumbers = horseNumbers;
     }
 
     private void InitializeCaches(MyContext db)
@@ -193,9 +194,9 @@ namespace KmyKeiba.Models.Race.Finder
         return;
       }
       var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
-      if (this._horseNumber != default)
+      if (this._horseNumbers.Any())
       {
-        horses = horses.Where(h => h.Number == this._horseNumber);
+        horses = horses.Where(h => this._horseNumbers.Contains(h.Number));
       }
       this._riders = horses.Where(rh => rh.RaceKey == this._raceKey).Select(rh => rh.RiderCode).ToArray();
     }
@@ -210,13 +211,13 @@ namespace KmyKeiba.Models.Race.Finder
   class SameRaceTrainerScriptKeyQuery : SimpleScriptKeyQuery
   {
     private readonly string _raceKey;
-    private readonly short _horseNumber;
+    private readonly IReadOnlyList<short> _horseNumbers;
     private IReadOnlyList<string>? _riders;
 
-    public SameRaceTrainerScriptKeyQuery(string raceKey, short horseNumber)
+    public SameRaceTrainerScriptKeyQuery(string raceKey, IReadOnlyList<short> horseNumbers)
     {
       this._raceKey = raceKey;
-      this._horseNumber = horseNumber;
+      this._horseNumbers = horseNumbers;
     }
 
     private void InitializeCaches(MyContext db)
@@ -226,9 +227,9 @@ namespace KmyKeiba.Models.Race.Finder
         return;
       }
       var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
-      if (this._horseNumber != default)
+      if (this._horseNumbers.Any())
       {
-        horses = horses.Where(h => h.Number == this._horseNumber);
+        horses = horses.Where(h => this._horseNumbers.Contains(h.Number));
       }
       this._riders = horses.Where(rh => rh.RaceKey == this._raceKey).Select(rh => rh.TrainerCode).ToArray();
     }

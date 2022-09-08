@@ -549,10 +549,14 @@ namespace KmyKeiba.Models.Race.Finder
         {
           if (q.Contains("#") && race != null)
           {
-            var horseNumberStr = q.Split('#').ElementAtOrDefault(1) ?? string.Empty;
-            var r = short.TryParse(horseNumberStr, out var horseNumber);
+            var horseNumberStrs = q.Split('#').ElementAtOrDefault(1)?.Split(',') ?? Array.Empty<string>();
+            var horseNumbers = horseNumberStrs.Select(s =>
+            {
+              short.TryParse(s, out var num);
+              return num;
+            }).Where(s => s != default).ToArray();
 
-            if (!r && !q.EndsWith('#'))
+            if (!horseNumbers.Any() && !q.EndsWith('#'))
             {
               return false;
             }
@@ -562,19 +566,19 @@ namespace KmyKeiba.Models.Race.Finder
             {
               case QueryKey.RiderCode:
               case QueryKey.RiderName:
-                queries!.Add(new SameRaceRiderScriptKeyQuery(race.Key, horseNumber));
+                queries!.Add(new SameRaceRiderScriptKeyQuery(race.Key, horseNumbers));
                 break;
               case QueryKey.TrainerCode:
               case QueryKey.TrainerName:
-                queries!.Add(new SameRaceTrainerScriptKeyQuery(race.Key, horseNumber));
+                queries!.Add(new SameRaceTrainerScriptKeyQuery(race.Key, horseNumbers));
                 break;
               case QueryKey.OwnerCode:
               case QueryKey.OwnerName:
-                queries!.Add(new SameRaceOwnerScriptKeyQuery(race.Key, horseNumber));
+                queries!.Add(new SameRaceOwnerScriptKeyQuery(race.Key, horseNumbers.FirstOrDefault()));
                 break;
               case QueryKey.HorseKey:
               case QueryKey.HorseName:
-                queries!.Add(new SameRaceHorseScriptKeyQuery(race.Key, horseNumber));
+                queries!.Add(new SameRaceHorseScriptKeyQuery(race.Key, horseNumbers));
                 break;
               default:
                 return false;
