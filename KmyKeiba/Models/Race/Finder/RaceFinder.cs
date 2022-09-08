@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race.Finder
 {
-  public class RaceFinder
+  public class RaceFinder : IDisposable
   {
     private Dictionary<string, (int, RaceHorseFinderQueryResult)> _raceHorseCaches = new();
     private Dictionary<string, (int, IReadOnlyList<RaceAnalyzer>)> _raceCaches = new();
@@ -53,9 +53,9 @@ namespace KmyKeiba.Models.Race.Finder
       this.RaceHorseAnalyzer = horse;
     }
 
-    public static RaceFinder CopyFrom(RaceFinder old, RaceData? race = null, RaceHorseData? raceHorse = null)
+    public static RaceFinder CopyFrom(RaceFinder old, RaceData? race = null, RaceHorseData? horse = null, RaceHorseAnalyzer? analyzer = null)
     {
-      var finder = new RaceFinder(race, raceHorse);
+      var finder = analyzer == null ? new RaceFinder(race, horse) : new RaceFinder(analyzer);
       finder._raceHorseCaches = old._raceHorseCaches;
       finder._raceCaches = old._raceCaches;
       return finder;
@@ -74,6 +74,8 @@ namespace KmyKeiba.Models.Race.Finder
 
       IQueryable<RaceData> races = db.Races!;
       var horses = (IQueryable<RaceHorseData>)db.RaceHorses!;
+      IQueryable<JrdbRaceHorseData> jrdbHorses = db.JrdbRaceHorses!;
+      IQueryable<RaceHorseExtraData> extras = db.RaceHorseExtras!;
       if (raceQueries.IsCurrentRaceOnly)
       {
         if (this.Race != null)
@@ -104,14 +106,49 @@ namespace KmyKeiba.Models.Race.Finder
       {
         races = q.Apply(db, races);
         horses = q.Apply(db, horses);
+        if (raceQueries.HasJrdbQuery)
+        {
+          jrdbHorses = q.Apply(db, jrdbHorses);
+        }
+        if (raceQueries.HasExtraQuery)
+        {
+          extras = q.Apply(db, extras);
+        }
       }
 
       var query = horses
         .Join(races, rh => rh.RaceKey, r => r.Key, (rh, r) => new { RaceHorse = rh, Race = r, });
+      if (raceQueries.HasJrdbQuery)
+      {
+        query = query.Join(jrdbHorses, rh => new { rh.RaceHorse.Key, rh.RaceHorse.RaceKey, }, j => new { j.Key, j.RaceKey, }, (rh, j) => rh);
+      }
+      if (raceQueries.HasExtraQuery)
+      {
+        query = query.Join(extras, rh => new { rh.RaceHorse.Key, rh.RaceHorse.RaceKey, }, e => new { e.Key, e.RaceKey, }, (rh, e) => rh);
+      }
 
-      var racesData = await query
+      var racesDataQuery = query
         .OrderByDescending(r => r.Race.StartTime)
-        .Skip(offset)
+        .Skip(offset);
+
+      // Distinct自体に非常に時間がかかる（時間が使わないときの１００倍以上になることも）ので、特別にTakeしてからDistinctする
+      // 件数に対して結果が少なくなる可能性はあるが仕方ない
+      if (raceQueries.Queries.OfType<HorseBeforeRacesCountScriptKeyQuery>().Any())
+      {
+        var countQueries = raceQueries.Queries.OfType<HorseBeforeRacesCountScriptKeyQuery>();
+        var size = 1;
+        foreach (var q in countQueries.Where(q => q.Count >= 1))
+        {
+          size *= q.Count;
+        }
+        if (countQueries.Any(q => q.Rule == HorseBeforeRacesCountScriptKeyQuery.RaceCountComparationRule.MorePast))
+        {
+          size = Math.Max(100, size);  // この100は、１頭の馬の平均前走数が目安（地方では100以上走る馬が多い）ハルウララ大好き
+        }
+        racesDataQuery = racesDataQuery.Take(sizeMax * size).Distinct();
+      }
+
+      var racesData = await racesDataQuery
         .Take(sizeMax)
         .ToArrayAsync();
 
@@ -180,6 +217,25 @@ namespace KmyKeiba.Models.Race.Finder
       return this.TryFindRaceHorseCache(keys) != null;
     }
 
+    public void ClearCache()
+    {
+      foreach (var disposable in this._raceCaches
+        .SelectMany(c => c.Value.Item2.Cast<IDisposable>()))
+      //.Concat(this._raceHorseCaches.SelectMany(c => c.Value.Item2.Cast<IDisposable>())))
+      {
+        disposable.Dispose();
+      }
+      foreach (var disposable in this._raceHorseCaches
+        .SelectMany(c => c.Value.Item2.Items)
+        .Cast<IDisposable>())
+      {
+        disposable.Dispose();
+      }
+
+      this._raceHorseCaches.Clear();
+      this._raceCaches.Clear();
+    }
+
     public async Task<FinderQueryResult<RaceAnalyzer>> FindRacesAsync(string keys, int sizeMax, int offset = 0, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false)
     {
       if (withoutFutureRaces && this._raceCaches.TryGetValue(keys, out var cache) && cache.Item1 >= sizeMax)
@@ -239,7 +295,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public void ReplaceFrom(RaceFinder other)
     {
-      this.Dispose();
+      this.ClearCache();
 
       this._raceCaches = other._raceCaches;
       //this._raceHorseCaches = other._raceHorseCaches;
@@ -247,12 +303,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public void Dispose()
     {
-      foreach (var disposable in this._raceCaches
-        .SelectMany(c => c.Value.Item2.Cast<IDisposable>()))
-        //.Concat(this._raceHorseCaches.SelectMany(c => c.Value.Item2.Cast<IDisposable>())))
-      {
-        disposable.Dispose();
-      }
+      this.ClearCache();
     }
   }
 

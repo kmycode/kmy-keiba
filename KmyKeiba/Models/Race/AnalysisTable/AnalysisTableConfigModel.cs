@@ -89,16 +89,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         this.Delimiters.First().IsChecked.Value = true;
       }
 
-      foreach (var en in ExternalNumberUtil.Configs)
-      {
-        this.ExternalNumbers.Add(new ExternalNumberConfigItem(en));
-      }
-      foreach (var row in this.Tables.SelectMany(t => t.Rows).Where(r => r.Data.Output == AnalysisTableRowOutputType.ExternalNumber))
-      {
-        row.SelectedExternalNumber.Value = this.ExternalNumbers.FirstOrDefault(e => e.Data.Id == row.Data.ExternalNumberId);
-      }
-
       this.UpdateMemoConfigs();
+      this.UpdateExternalNumberConfigs();
     }
 
     public async Task<AnalysisTableSurface?> AddTableAsync()
@@ -280,11 +272,6 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         db.AnalysisTableRows!.Remove(row.Data);
         await db.SaveChangesAsync();
         AnalysisTableUtil.TableRowConfigs.Remove(row.Data);
-
-        foreach (var r in this.Tables.SelectMany(t => t.Rows).Where(r => r.SelectedParent.Value?.Data.ParentRowId == row.Data.Id))
-        {
-          r.SelectedParent.Value = null;
-        }
       }
       catch (Exception ex)
       {
@@ -815,6 +802,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         .Where(d => d.Rows.Any(r => r.IsChecked.Value))
         .OrderBy(d => d.GetParameterOrder())
         .ToArray();
+      if (!delimiters.Any())
+      {
+        return;
+      }
+
       var keys = new ValueDelimiterRow[delimiters.Length];
 
       var maxOrder = 1;
@@ -837,7 +829,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             using var finder = new FinderModel(new RaceData(), RaceHorseAnalyzer.Empty, Array.Empty<RaceHorseAnalyzer>());
             foreach (var key in keys)
             {
-              finder.Input.Deserialize(key.Data.FinderConfig);
+              finder.Input.Deserialize(key.Data.FinderConfig, isOverwrite: true);
             }
             var row = new AnalysisTableWeightRowData
             {
@@ -882,6 +874,30 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.ActiveWeight.Value.Rows.Clear();
     }
 
+    public async Task ReplaceWeightRowsBulkAsync()
+    {
+      var weight = this.ActiveWeight.Value;
+      if (weight == null)
+      {
+        return;
+      }
+
+      var olds = weight.Rows.ToArray();
+      await this.ClearWeightRowsAsync();
+
+      await this.AddWeightRowsBulkAsync();
+      if (!weight.Rows.Any() || !olds.Any())
+      {
+        return;
+      }
+
+      // 古いデータから新しいデータへ重みをコピー
+      foreach (var row in olds.Join(weight.Rows, o => o.FinderModelForConfig.Input.Query.Value, n => n.FinderModelForConfig.Input.Query.Value, (o, n) => new { Old = o, New = n, }))
+      {
+        row.New.Weight.Value = row.Old.Weight.Value;
+      }
+    }
+
     public void OnMemoConfigChanged()
     {
       ThreadUtil.InvokeOnUiThread(() =>
@@ -924,6 +940,48 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       {
         row.ReloadMemoConfigProperty();
         row.IsFreezeExpansionMemoConfig = false;
+      }
+    }
+
+    public void OnExternalNumberConfigChanged()
+    {
+      ThreadUtil.InvokeOnUiThread(() =>
+      {
+        this.UpdateExternalNumberConfigs();
+      });
+    }
+
+    private void UpdateExternalNumberConfigs()
+    {
+      foreach (var row in this.Tables.SelectMany(t => t.Rows))
+      {
+        row.IsFreezeExternalNumberConfig = true;
+      }
+
+      var olds = this.ExternalNumbers.ToArray();
+      this.ExternalNumbers.Clear();
+      foreach (var en in ExternalNumberUtil.Configs)
+      {
+        var exists = olds.FirstOrDefault(o => o.Data.Id == en.Id);
+        if (exists == null)
+        {
+          this.ExternalNumbers.Add(new ExternalNumberConfigItem(en));
+        }
+        else
+        {
+          this.ExternalNumbers.Add(exists);
+        }
+      }
+
+      foreach (var row in this.Tables.SelectMany(t => t.Rows).Where(r => r.Data.Output == AnalysisTableRowOutputType.ExternalNumber))
+      {
+        row.SelectedExternalNumber.Value = this.ExternalNumbers.FirstOrDefault(e => e.Data.Id == row.Data.ExternalNumberId);
+      }
+
+      foreach (var row in this.Tables.SelectMany(t => t.Rows))
+      {
+        row.ReloadExternalNumbersProperty(this.ExternalNumbers);
+        row.IsFreezeExternalNumberConfig = false;
       }
     }
   }

@@ -85,6 +85,10 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<uint>("TableId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ValueScript")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<ushort>("Version")
                         .HasColumnType("INTEGER");
 
@@ -885,6 +889,63 @@ namespace KmyKeiba.Downloader.Migrations
                     b.ToTable("Horses");
                 });
 
+            modelBuilder.Entity("KmyKeiba.Data.Db.HorseMarkConfigData", b =>
+                {
+                    b.Property<uint>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<uint>("Order")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ushort>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HorseMarkConfigs");
+                });
+
+            modelBuilder.Entity("KmyKeiba.Data.Db.HorseMarkData", b =>
+                {
+                    b.Property<uint>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<uint>("ConfigId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<short>("Mark")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RaceKey")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<ushort>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RaceKey");
+
+                    b.ToTable("HorseMarks");
+                });
+
             modelBuilder.Entity("KmyKeiba.Data.Db.JrdbRaceHorseData", b =>
                 {
                     b.Property<uint>("Id")
@@ -1447,6 +1508,9 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<short>("Area")
                         .HasColumnType("INTEGER");
 
+                    b.Property<short>("BaneiMoisture")
+                        .HasColumnType("INTEGER");
+
                     b.Property<short>("BeforeHaronTime3")
                         .HasColumnType("INTEGER");
 
@@ -1657,6 +1721,12 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<short>("DataStatus")
                         .HasColumnType("INTEGER");
 
+                    b.Property<short>("ExtraDataState")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("ExtraDataVersion")
+                        .HasColumnType("INTEGER");
+
                     b.Property<short>("FirstCornerOrder")
                         .HasColumnType("INTEGER");
 
@@ -1831,12 +1901,129 @@ namespace KmyKeiba.Downloader.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<short>("After3HaronOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("BaseTime")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("BaseTimeAs3Haron")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Before3HaronTimeFixed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupAbreastAge")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupAbreastClass")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupAbreastResult")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupAbreastRunningType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupAfter3hTime")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupAfter3hTimePoint")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupBaseTime")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupBaseTimePoint")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupBefore3hTime")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupBefore3hTimePoint")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupFollowingStatus")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupHarons")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupPoint")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupRiderType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupRunningType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CatchupTrainingCourse")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CatchupTrainingDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<short>("CatchupTrainingWeekday")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CornerAloneCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CornerInsideCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CornerMiddleCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CornerOrderDiff2")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CornerOrderDiff3")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CornerOrderDiff4")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CornerOrderDiffGoal")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("CornerOutsideCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsTrainingDirt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsTrainingPolyTruck")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsTrainingPool")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsTrainingSlop")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsTrainingSteeplechase")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsTrainingTurf")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsTrainingWood")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LastModified")
                         .HasColumnType("TEXT");
+
+                    b.Property<short>("LastWeekTrainingCourseType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("LastWeekTrainingTimePoint")
+                        .HasColumnType("INTEGER");
 
                     b.Property<short>("MiningMatchScore")
                         .HasColumnType("INTEGER");
@@ -1850,9 +2037,52 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<short>("MiningTimeDiffShorter")
                         .HasColumnType("INTEGER");
 
+                    b.Property<short>("Pci")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("Pci3")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("RaceKey")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<short>("Rpci")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("TrainingCatchupPoint")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("TrainingCatchupPointDiffType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("TrainingComment")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("TrainingCommentDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<short>("TrainingCourseType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("TrainingDistance")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("TrainingEmphasis")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("TrainingEvaluation")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("TrainingFinishPoint")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("TrainingSizeEvaluation")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<short>("TrainingType")
+                        .HasColumnType("INTEGER");
 
                     b.Property<ushort>("Version")
                         .HasColumnType("INTEGER");

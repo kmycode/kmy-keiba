@@ -27,6 +27,8 @@
                          MarkTriangle="{StaticResource MarkTriangle}"
                          MarkFilledTriangle="{StaticResource MarkFilledTriangle}"
                          MarkStar="{StaticResource MarkStar}"
+                         MarkCheck="{StaticResource MarkCheck}"
+                         MarkNote="{StaticResource MarkNote}"
                          MarkDeleted="{StaticResource MarkDeleted}"/>
   <cv:TicketTypeBackgroundConverter x:Key="TicketTypeBackgroundConv"/>
   <cv:TicketSummaryConverter x:Key="TicketSummaryConv"/>

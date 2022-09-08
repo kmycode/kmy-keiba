@@ -41,11 +41,6 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
         try
         {
-          if (this.Progress.Value != null && this.ProgressMax.Value != null)
-          {
-            this.ProgressMax.Value.Value = this.Progress.Value.Value = 0;
-          }
-
           using var info = await RaceInfo.FromKeyAsync(item.Race.Key, withTransaction: false, isCache: false);
           if (info != null)
           {
@@ -59,9 +54,9 @@ namespace KmyKeiba.Models.Race.AnalysisTable
               continue;
             }
 
-            this.Progress.Value!.Value = 0;
+            this.Progress.Value = info.AnalysisTable.Value.Aggregate.Progress;
+            this.ProgressMax.Value = info.AnalysisTable.Value.Aggregate.ProgressMax;
             await info.AnalysisTable.Value.Aggregate.LoadAsync(isBulk: true);
-            this.Progress.Value!.Value = 1;
 
             // TODO: 買い目処理はここに
             //if (info.Tickets.Value != null && info.Payoff != null)

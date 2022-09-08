@@ -98,8 +98,7 @@
                   <DataTemplate>
                     <Border Width="80" Height="72" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="0,0,0,1">
                       <ToggleButton Style="{StaticResource ListItemToggleNotDisabled}" Name="CellItem" Width="80" Height="72"
-                                    Visibility="{Binding HasComparationValue.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                                    IsEnabled="{Binding IsSamplesEnabled.Value}">
+                                    Visibility="{Binding HasComparationValue.Value,Converter={StaticResource BooleanVisibilityConv}}">
                         <ToggleButton.Template>
                           <ControlTemplate>
                             <Border Background="{TemplateBinding Background}">
@@ -109,6 +108,9 @@
                                 <TextBlock Text="{Binding SubValue.Value}" Foreground="{Binding Comparation.Value,Converter={StaticResource ValueComparationForegroundConv}}"
                                             FontSize="13" TextAlignment="Center" Margin="0,2"
                                             Visibility="{Binding SubValue.Value,Converter={StaticResource NonNullVisibilityConv}}"/>
+                                <TextBlock Text="スクリプトエラー" Foreground="{StaticResource ErrorForeground}"
+                                            FontSize="13" TextAlignment="Center" Margin="0,1"
+                                            Visibility="{Binding IsScriptError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                                 <up:ImePopup Width="560" Height="auto" StaysOpen="False" Opened="ImePopup_Opened"
                                              IsOpen="{Binding IsChecked,Mode=TwoWay,RelativeSource={RelativeSource FindAncestor,AncestorType=ToggleButton}}">
                                   <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1" Background="{StaticResource BaseBackground}">

@@ -81,10 +81,10 @@ namespace KmyKeiba.Models.Race.ExNumber
       var validCount = 0;
       foreach (var race in races)
       {
-        var list = ReadRaceHorseValues(db, config, race);
+        var list = ReadRaceHorseValuesFromFile(db, config, race);
         if (list.Any())
         {
-          var olds = (IEnumerable<ExternalNumberData>)await db.ExternalNumbers!.Where(n => n.RaceKey == race.Key).ToArrayAsync();
+          var olds = (IEnumerable<ExternalNumberData>)await db.ExternalNumbers!.Where(n => n.RaceKey == race.Key && n.ConfigId == config.Id).ToArrayAsync();
           var compare = list.GroupJoin(olds, n => n.HorseNumber, o => o.HorseNumber, (n, os) => new { Old = os.FirstOrDefault(), New = n, });
 
           var targetItems = compare
@@ -113,7 +113,7 @@ namespace KmyKeiba.Models.Race.ExNumber
       await db.CommitAsync();
     }
 
-    private static IReadOnlyList<ExternalNumberData> ReadRaceHorseValues(MyContext db, ExternalNumberConfig config, RaceData race)
+    private static IReadOnlyList<ExternalNumberData> ReadRaceHorseValuesFromFile(MyContext db, ExternalNumberConfig config, RaceData race)
     {
       var fileName = GetFileName(config.FileNamePattern, race);
       if (!File.Exists(fileName))
@@ -250,7 +250,7 @@ namespace KmyKeiba.Models.Race.ExNumber
               ConfigId = config.Id,
               HorseNumber = horseNumber,
               RaceKey = race.Key,
-              Value = values.ElementAtOrDefault(1),
+              Value = values.ElementAtOrDefault(0),
             });
           }
           else
@@ -260,8 +260,8 @@ namespace KmyKeiba.Models.Race.ExNumber
               ConfigId = config.Id,
               HorseNumber = horseNumber,
               RaceKey = race.Key,
-              Value = values.ElementAtOrDefault(1),
-              Order = (short)values.ElementAtOrDefault(2),
+              Value = values.ElementAtOrDefault(0),
+              Order = (short)values.ElementAtOrDefault(1),
             });
           }
         }

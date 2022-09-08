@@ -175,6 +175,16 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         });
         RowOutputSubItems.Add(new AnalysisTableRowOutputItem
         {
+          Label = "体重",
+          OutputType = AnalysisTableRowOutputType.Weight,
+        });
+        RowOutputSubItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "体重増減",
+          OutputType = AnalysisTableRowOutputType.WeightDiff,
+        });
+        RowOutputSubItems.Add(new AnalysisTableRowOutputItem
+        {
           Label = "タイム型マイニング",
           OutputType = AnalysisTableRowOutputType.MiningTime,
         });
@@ -184,6 +194,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           OutputType = AnalysisTableRowOutputType.MiningMatch,
         });
 
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "IDM指数",
+          OutputType = AnalysisTableRowOutputType.IdmPoint,
+        });
         RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
         {
           Label = "騎手指数",
@@ -198,6 +213,116 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         {
           Label = "総合指数",
           OutputType = AnalysisTableRowOutputType.TotalPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "人気指数",
+          OutputType = AnalysisTableRowOutputType.PopularPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "厩舎指数",
+          OutputType = AnalysisTableRowOutputType.StablePoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "調教指数",
+          OutputType = AnalysisTableRowOutputType.TrainingPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "騎手連対指数",
+          OutputType = AnalysisTableRowOutputType.RiderTopRatioExpectPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "激走指数",
+          OutputType = AnalysisTableRowOutputType.SpeedPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "テン指数",
+          OutputType = AnalysisTableRowOutputType.RaceBefore3Point,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "ベース指数",
+          OutputType = AnalysisTableRowOutputType.RaceBasePoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "上がり指数",
+          OutputType = AnalysisTableRowOutputType.RaceAfter3Point,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "位置取り指数",
+          OutputType = AnalysisTableRowOutputType.RacePositionPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "スタート指数",
+          OutputType = AnalysisTableRowOutputType.RaceStartPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "出遅れ指数",
+          OutputType = AnalysisTableRowOutputType.RaceStartDelayPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "万馬券指数",
+          OutputType = AnalysisTableRowOutputType.BigTicketPoint,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "特定印の数：◎",
+          OutputType = AnalysisTableRowOutputType.IdentificationMarkCount1,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "特定印の数：○",
+          OutputType = AnalysisTableRowOutputType.IdentificationMarkCount2,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "特定印の数：▲",
+          OutputType = AnalysisTableRowOutputType.IdentificationMarkCount3,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "特定印の数：△",
+          OutputType = AnalysisTableRowOutputType.IdentificationMarkCount4,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "特定印の数：✕",
+          OutputType = AnalysisTableRowOutputType.IdentificationMarkCount5,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "総合印の数：◎",
+          OutputType = AnalysisTableRowOutputType.TotalMarkCount1,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "総合印の数：○",
+          OutputType = AnalysisTableRowOutputType.TotalMarkCount2,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "総合印の数：▲",
+          OutputType = AnalysisTableRowOutputType.TotalMarkCount3,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "総合印の数：△",
+          OutputType = AnalysisTableRowOutputType.TotalMarkCount4,
+        });
+        RowOutputJrdbItems.Add(new AnalysisTableRowOutputItem
+        {
+          Label = "総合印の数：✕",
+          OutputType = AnalysisTableRowOutputType.TotalMarkCount5,
         });
 
         _isInitialized = true;

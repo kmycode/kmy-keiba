@@ -22,6 +22,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<bool> IsLoading { get; } = new();
 
+    public ReactiveProperty<int> Progress { get; } = new();
+
+    public ReactiveProperty<int> ProgressMax { get; } = new();
+
     public AnalysisTableAggregater(AnalysisTableModel model, IReadOnlyList<RaceHorseAnalyzer> horses)
     {
       this._model = model;
@@ -69,9 +73,23 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         horse.MarkSuggestion.Value = default;
       }
 
+      if (!this.Tables.Any())
+      {
+        return;
+      }
+
+      this.ProgressMax.Value = this.Tables.Sum(t => t.Table.ProgressMax.Value);
+      this.Progress.Value = 0;
+      var lastTableProgress = 0;
+
       foreach (var table in this.Tables)
       {
+        IDisposable progress = table.Table.Progress.Subscribe(v => this.Progress.Value = lastTableProgress + v);
+
         await this._model.AnalysisTableAsync(table.Table, isBulk);
+
+        progress.Dispose();
+        lastTableProgress += table.Table.Progress.Value;
 
         if (!table.Cells.Any())
         {

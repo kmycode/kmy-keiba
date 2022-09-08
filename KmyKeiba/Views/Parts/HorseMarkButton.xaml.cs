@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Models.Analysis;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Models.Analysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,13 +25,13 @@ namespace KmyKeiba.Views.Parts
     public static readonly DependencyProperty HorseProperty
     = DependencyProperty.Register(
         nameof(Horse),
-        typeof(RaceHorseAnalyzer),
+        typeof(IHorseMarkSetter),
         typeof(HorseMarkButton),
         new PropertyMetadata(null));
 
-    public RaceHorseAnalyzer? Horse
+    public IHorseMarkSetter? Horse
     {
-      get { return (RaceHorseAnalyzer)GetValue(HorseProperty); }
+      get { return (IHorseMarkSetter)GetValue(HorseProperty); }
       set { SetValue(HorseProperty, value); }
     }
 

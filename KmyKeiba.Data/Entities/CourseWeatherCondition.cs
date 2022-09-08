@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.JVLink.Wrappers.JVLib;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,8 @@ namespace KmyKeiba.JVLink.Entities
 
     public RaceCourseCondition DirtCondition { get; set; }
 
+    public short BaneiMoisture { get; set; }
+
     public DateTime ChangeTime { get; set; }
 
     internal CourseWeatherCondition()
@@ -29,6 +32,17 @@ namespace KmyKeiba.JVLink.Entities
       int.TryParse(we.TenkoBaba.SibaBabaCD, out int turf);
       int.TryParse(we.TenkoBaba.DirtBabaCD, out int dirt);
 
+      short moisture = default;
+      if (we.id.JyoCD == "83")
+      {
+        // ばんえいの水分率
+        try
+        {
+          moisture = Convert.ToInt16(we.TenkoBaba.SibaBabaCD + we.TenkoBaba.DirtBabaCD, 16);
+        }
+        catch { }
+      }
+
       var obj = new CourseWeatherCondition()
       {
         LastModified = we.head.MakeDate.ToDateTime(),
@@ -37,6 +51,7 @@ namespace KmyKeiba.JVLink.Entities
         Weather = (RaceCourseWeather)weather,
         TurfCondition = (RaceCourseCondition)turf,
         DirtCondition = (RaceCourseCondition)dirt,
+        BaneiMoisture = moisture,
         ChangeTime = we.HappyoTime.ToDateTime(we.id),
       };
       return obj;

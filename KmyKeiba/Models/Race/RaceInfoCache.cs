@@ -34,8 +34,8 @@ namespace KmyKeiba.Models.Race
         cache.ExactaOdds = exists.ExactaOdds;
         cache.TrioOdds = exists.TrioOdds;
         cache.TrifectaOdds = exists.TrifectaOdds;
-        cache.AnalysisTable = exists.AnalysisTable;
-        cache.Finder = exists.Finder;
+        //cache.AnalysisTable = exists.AnalysisTable;
+        //cache.Finder = exists.Finder;
         cache.HorseDetails = exists.HorseDetails;
         _caches.Remove(exists);
       }
@@ -53,7 +53,7 @@ namespace KmyKeiba.Models.Race
       IReadOnlyList<HorseData> horseDetails,
       IReadOnlyList<TrainingData> trainings,
       IReadOnlyList<WoodtipTrainingData> woodtipTrainings,
-      RaceFinder finder,
+      RaceFinder? finder,
       AnalysisTableCache? analysisTable,
       RefundData? refund,
       FrameNumberOddsData? frameNumberOdds,

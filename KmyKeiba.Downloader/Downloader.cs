@@ -455,7 +455,7 @@ namespace KmyKeiba.Downloader
           }
           else if (dataspecs[i] == JVLinkDataspec.RB30)
           {
-            // オッズは各レースごとに落とすから時間がかかる
+            // オッズは各レースごとに落とすから時間がかかる。必要ないものは切り捨てる
             if (race.DataStatus >= RaceDataStatus.PreliminaryGrade3)
             {
               continue;
@@ -463,8 +463,14 @@ namespace KmyKeiba.Downloader
           }
           else if (dataspecs[i] == JVLinkDataspec.RB41)
           {
+            if (race.StartTime > now.AddMinutes(90))
+            {
+              continue;
+            }
+
+            // 発走直前の時系列オッズデータがあれば省略
             var latestTimeline = oddsTImeline.Where(o => o.RaceKey == race.Key).OrderByDescending(o => o.Time).FirstOrDefault();
-            if (!(latestTimeline == null || (race.Course <= RaceCourse.CentralMaxValue ? latestTimeline.Time < race.StartTime : latestTimeline.Time < race.StartTime.AddMinutes(-1))))
+            if (latestTimeline != null && !(race.Course <= RaceCourse.CentralMaxValue ? latestTimeline.Time < race.StartTime : latestTimeline.Time < race.StartTime.AddMinutes(-1)))
             {
               continue;
             }

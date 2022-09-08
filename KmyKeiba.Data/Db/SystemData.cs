@@ -41,5 +41,6 @@ namespace KmyKeiba.Data.Db
     JrdbPassword = 16,
     IsNotDownloadHorseBloods = 17,
     IsNotDownloadTrainings = 18,
+    IsNotBuildExtraData = 19,
   }
 }

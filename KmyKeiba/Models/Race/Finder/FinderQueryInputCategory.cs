@@ -33,6 +33,20 @@ namespace KmyKeiba.Models.Race.Finder
     void Deserialize(string data);
   }
 
+  public interface IResetableInputCategory : IFinderQueryInputCategory
+  {
+    void Reset();
+
+    string SerializeSlim()
+    {
+      if (this.IsCustomized.Value)
+      {
+        return this.Serialize();
+      }
+      return string.Empty;
+    }
+  }
+
   public abstract class FinderQueryInputCategory : IFinderQueryInputCategory
   {
     protected CompositeDisposable Disposables { get; } = new();
@@ -170,7 +184,11 @@ namespace KmyKeiba.Models.Race.Finder
       {
         if (!this.IsIgnorePropertyToSerializing(property.Name))
         {
-          if (obj is not FinderQueryNumberInput || property.Name != nameof(FinderQueryNumberInput.ComparationWithBeforeRaceComment))
+          if (obj is not FinderQueryNumberInput ||
+            (property.Name != nameof(FinderQueryNumberInput.ComparationWithBeforeRaceComment) &&
+             property.Name != nameof(FinderQueryNumberInput.CanCompareCurrentRaceValue) &&
+             property.Name != nameof(FinderQueryNumberInput.CanCompareDefaultValue) &&
+             property.Name != nameof(FinderQueryNumberInput.CanCompareAsBeforeRace)))
           {
             this.PropertyToString(property, text, obj);
           }
@@ -315,8 +333,14 @@ namespace KmyKeiba.Models.Race.Finder
       {
         if (type == typeof(bool))
         {
-          var value = data == "true";
-          property.SetValue(obj, value);
+          if (obj is not FinderQueryNumberInput ||
+            (property.Name != nameof(FinderQueryNumberInput.CanCompareCurrentRaceValue) &&
+             property.Name != nameof(FinderQueryNumberInput.CanCompareAsBeforeRace) &&
+             property.Name != nameof(FinderQueryNumberInput.CanCompareDefaultValue)))
+          {
+            var value = data == "true";
+            property.SetValue(obj, value);
+          }
         }
         else if (type == typeof(int))
         {
@@ -362,7 +386,7 @@ namespace KmyKeiba.Models.Race.Finder
     IReadOnlyList<string> GetSelectedItemLabels();
   }
 
-  public class ListBoxInputCategoryBase<T> : FinderQueryInputCategory, IListBoxInputCategory
+  public class ListBoxInputCategoryBase<T> : FinderQueryInputCategory, IListBoxInputCategory, IResetableInputCategory
   {
     public FinderQueryInputListItemCollection<T> Items { get; } = new FinderQueryInputListItemCollection<T>();
 
@@ -378,13 +402,33 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsSetNumericComparation { get; } = new();
 
-    public FinderQueryNumberInput NumberInput { get; } = new();
+    public FinderQueryNumberInput NumberInput { get; }
 
     public bool CanInputNumber { get; }
 
     public bool IsCompareWithHorse { get; }
 
-    public bool CanCompareCurrentRaceValue { get; protected set; } = true;
+    public bool CanCompareCurrentRaceValue
+    {
+      get => this._canCompareCurrentRaceValue;
+      set
+      {
+        this._canCompareCurrentRaceValue = value;
+        this.NumberInput.CanCompareCurrentRaceValue = value;
+      }
+    }
+    private bool _canCompareCurrentRaceValue = true;
+
+    protected bool CanCompareDefaultValue
+    {
+      get => this._canCompareDefaultValue;
+      set
+      {
+        this._canCompareDefaultValue = value;
+        this.NumberInput.CanCompareDefaultValue = value;
+      }
+    }
+    private bool _canCompareDefaultValue = true;
 
     protected ListBoxInputCategoryBase(string key) : this(key, true, false)
     {
@@ -396,6 +440,9 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected ListBoxInputCategoryBase(string key, bool canInputNumber, bool isCompareWithHorse)
     {
+      this.NumberInput = new FinderQueryNumberInput(isCompareWithHorse);
+      this.NumberInput.CanCompareCurrentRaceValue = true;
+
       this.Key = key;
       this.Items.ChangedItemObservable.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsSetListValue.Subscribe(x => this.UpdateQuery()).AddTo(this.Disposables);
@@ -430,7 +477,11 @@ namespace KmyKeiba.Models.Race.Finder
     {
       if (this.IsSetCurrentRaceValue.Value || this.IsSetCurrentRaceHorseValue.Value)
       {
-        return this.Key;
+        if (this.CanCompareDefaultValue)
+        {
+          return this.Key;
+        }
+        return $"{this.Key}=:0";
       }
       if (this.IsSetNumericComparation.Value)
       {
@@ -497,18 +548,25 @@ namespace KmyKeiba.Models.Race.Finder
       {
         r = r || propertyName == nameof(NumberInput);
         r = r || propertyName == nameof(IsSetNumericComparation);
+        r = r || propertyName == nameof(CanCompareDefaultValue);
       }
+      r = r || propertyName == nameof(CanCompareCurrentRaceValue);
       return r;
+    }
+
+    public void Reset()
+    {
+      foreach (var item in this.Items.Where(i => i.IsChecked.Value))
+      {
+        item.IsChecked.Value = false;
+      }
+      this.IsSetListValue.Value = true;
     }
 
     public ICommand ResetCommand =>
       this._resetCommand ??= new CommandBase(() =>
       {
-        foreach (var item in this.Items.Where(i => i.IsChecked.Value))
-        {
-          item.IsChecked.Value = false;
-        }
-        this.IsSetListValue.Value = true;
+        this.Reset();
       });
     private ICommand? _resetCommand;
   }
@@ -603,7 +661,7 @@ namespace KmyKeiba.Models.Race.Finder
     private ICommand? _testCommand;
   }
 
-  public class NumberInputCategoryBase : FinderQueryInputCategory
+  public class NumberInputCategoryBase : FinderQueryInputCategory, IResetableInputCategory
   {
     protected string Key { get; }
 
@@ -617,6 +675,7 @@ namespace KmyKeiba.Models.Race.Finder
     {
       this.Key = key;
       this.Input = new FinderQueryNumberInput(isCompareWithHorse);
+      this.Input.CanCompareCurrentRaceValue = true;
 
       this.Input.AddTo(this.Disposables);
       this.Input.ToObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
@@ -631,9 +690,14 @@ namespace KmyKeiba.Models.Race.Finder
       }
       return $"{this.Key}{right}";
     }
+
+    public void Reset()
+    {
+      this.Input.Reset();
+    }
   }
 
-  public class FloatNumberInputCategoryBase : FinderQueryInputCategory
+  public class FloatNumberInputCategoryBase : FinderQueryInputCategory, IResetableInputCategory
   {
     protected string Key { get; }
 
@@ -660,6 +724,11 @@ namespace KmyKeiba.Models.Race.Finder
         return string.Empty;
       }
       return $"{this.Key}{right}";
+    }
+
+    public void Reset()
+    {
+      this.Input.Reset();
     }
   }
 
@@ -772,7 +841,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (this.Items.IsAll() || this.Items.IsEmpty())
       {
-        return string.Empty;
+        return query;
       }
 
       if (values.Any(v => v == RaceCourse.Foreign))
@@ -905,7 +974,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (this.Items.IsAll() || this.Items.IsEmpty())
       {
-        return string.Empty;
+        return query;
       }
 
       if (values.Any(v => v > RaceHorseAreaRule.International))
@@ -1000,7 +1069,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (this.Items.IsAll() || this.Items.IsEmpty())
       {
-        return string.Empty;
+        return query;
       }
 
       if (values.Any(v => (short)v >= 100))
@@ -1213,6 +1282,22 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
+  public class RaceBefore3HTimeInputCategory : FloatNumberInputCategoryBase
+  {
+    public RaceBefore3HTimeInputCategory() : base("racebefore3h", 1)
+    {
+      this.Input.CanCompareAsBeforeRace = false;
+    }
+  }
+
+  public class RaceAfter3HTimeInputCategory : FloatNumberInputCategoryBase
+  {
+    public RaceAfter3HTimeInputCategory() : base("raceafter3h", 1)
+    {
+      this.Input.CanCompareAsBeforeRace = false;
+    }
+  }
+
   #endregion
 
   #region トラック
@@ -1309,6 +1394,13 @@ namespace KmyKeiba.Models.Race.Finder
     protected override string ToQueryValue(RaceCourseCondition value)
     {
       return ((short)value).ToString();
+    }
+  }
+
+  public class BaneiMoistureInputCategory : FloatNumberInputCategoryBase
+  {
+    public BaneiMoistureInputCategory() : base("baneimoisture", 1, false)
+    {
     }
   }
 
@@ -1683,6 +1775,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsStar { get; } = new();
 
+    public ReactiveProperty<bool> IsCheck { get; } = new();
+
+    public ReactiveProperty<bool> IsNote { get; } = new();
+
     public ReactiveProperty<bool> IsDelete { get; } = new();
 
     public ReactiveProperty<bool> IsDefault { get; } = new();
@@ -1694,6 +1790,8 @@ namespace KmyKeiba.Models.Race.Finder
       this.IsFilledTriangle.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsTriangle.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsStar.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsCheck.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.IsNote.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsDelete.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsDefault.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
     }
@@ -1706,6 +1804,8 @@ namespace KmyKeiba.Models.Race.Finder
       if (this.IsFilledTriangle.Value) values.Add(RaceHorseMark.FilledTriangle);
       if (this.IsTriangle.Value) values.Add(RaceHorseMark.Triangle);
       if (this.IsStar.Value) values.Add(RaceHorseMark.Star);
+      if (this.IsCheck.Value) values.Add(RaceHorseMark.Check);
+      if (this.IsNote.Value) values.Add(RaceHorseMark.Note);
       if (this.IsDelete.Value) values.Add(RaceHorseMark.Deleted);
       if (this.IsDefault.Value) values.Add(RaceHorseMark.Default);
 
@@ -2271,20 +2371,31 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public RaceData? Race { get; }
 
+    public RaceHorseAnalyzer? Horse { get; }
+
     public IReadOnlyList<RaceHorseAnalyzer>? RaceHorses { get; }
 
     public ReactiveCollection<FinderModelItem> Items { get; } = new();
 
-    public SameRaceHorseInputCategory(RaceData? race)
+    public SameRaceHorseInputCategory(RaceData? race, RaceHorseAnalyzer? horse)
     {
       this.Race = race;
+      this.Horse = horse;
     }
 
-    public void AddItem()
+    public FinderModelItem AddItem()
     {
-      var model = new FinderModel(this.Race, null, this.RaceHorses).AddTo(this.Disposables);
+      var model = new FinderModel(this.Race, this.Horse, this.RaceHorses).AddTo(this.Disposables);
       model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
-      this.Items.Add(new FinderModelItem(model));
+
+      var item = new FinderModelItem(model);
+      item.Min.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      item.Max.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      item.MinRate.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      item.MaxRate.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+
+      this.Items.Add(item);
+      return item;
     }
 
     public ICommand AddItemCommand =>
@@ -2315,9 +2426,26 @@ namespace KmyKeiba.Models.Race.Finder
         text.Append("[CUSTOM]Items/");
         foreach (var item in this.Items)
         {
+          var max = 30;
+          var min = 1;
+          var maxRate = 100;
+          var minRate = 0;
+          if (!int.TryParse(item.Max.Value, out max)) max = 30;
+          if (!int.TryParse(item.Min.Value, out min)) min = 1;
+          if (!int.TryParse(item.MaxRate.Value, out maxRate)) maxRate = 100;
+          if (!int.TryParse(item.MinRate.Value, out minRate)) minRate = 0;
+
           var serialized = item.Model.Input.Serialize(false)
             .Replace(Environment.NewLine, ";");
           text.Append(item.Name.Value);
+          text.Append(',');
+          text.Append(max.ToString());
+          text.Append(',');
+          text.Append(min.ToString());
+          text.Append(',');
+          text.Append(maxRate.ToString());
+          text.Append(',');
+          text.Append(minRate.ToString());
           text.Append(";");
           text.Append(serialized);
           text.Append('|');
@@ -2341,22 +2469,43 @@ namespace KmyKeiba.Models.Race.Finder
           {
             continue;
           }
-          var name = item[..nameSeparator];
+          var optionsRaw = item[..nameSeparator];
 
-          var model = new FinderModel(this.Race, null, this.RaceHorses).AddTo(this.Disposables);
+          var options = optionsRaw.Split(',');
+          var name = options[0];
+          var max = 30;
+          var min = 0;
+          var maxRate = 100;
+          var minRate = 0;
+          if (options.Length >= 2)
+          {
+            int.TryParse(options[1], out max);
+          }
+          if (options.Length >= 3)
+          {
+            int.TryParse(options[2], out min);
+          }
+          if (options.Length >= 4)
+          {
+            int.TryParse(options[3], out maxRate);
+          }
+          if (options.Length >= 5)
+          {
+            int.TryParse(options[4], out minRate);
+          }
+
+          var listItem = this.AddItem();
+          var model = listItem.Model;
           model.Input.Deserialize(item[nameSeparator..].Replace(";", Environment.NewLine));
-          model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
           model.Input.SameRaceHorse.UpdateQuery();
 
-          var i = new FinderModelItem(model)
-          {
-            Name =
-            {
-              Value = name,
-            }
-          };
-          this.AddTextCheckForEscape(i.Name);
-          this.Items.Add(i);
+          listItem.Name.Value = name;
+          listItem.Max.Value = max.ToString();
+          listItem.Min.Value = min.ToString();
+          listItem.MaxRate.Value = maxRate.ToString();
+          listItem.MinRate.Value = minRate.ToString();
+          this.AddTextCheckForEscape(listItem.Name);
+          //this.Items.Add(i);
         }
 
         this.UpdateQuery();
@@ -2378,6 +2527,11 @@ namespace KmyKeiba.Models.Race.Finder
     {
       public ReactiveProperty<string> Name { get; } = new(string.Empty);
 
+      public ReactiveProperty<string> Max { get; } = new("30");
+      public ReactiveProperty<string> Min { get; } = new("1");
+      public ReactiveProperty<string> MaxRate { get; } = new("100");
+      public ReactiveProperty<string> MinRate { get; } = new("0");
+
       public FinderModel Model { get; }
 
       public FinderModelItem(FinderModel model)
@@ -2392,7 +2546,35 @@ namespace KmyKeiba.Models.Race.Finder
         {
           return string.Empty;
         }
-        return "(race)" + query;
+
+        var max = 30;
+        var min = 1;
+        var maxRate = 100;
+        var minRate = 0;
+
+        var options = new List<string>();
+        if (int.TryParse(this.Max.Value, out max) && max < 30)
+        {
+          options.Add("<max>" + max);
+        }
+        if (int.TryParse(this.Min.Value, out min) && min != 1)
+        {
+          options.Add("<min>" + min);
+        }
+        if (int.TryParse(this.MaxRate.Value, out maxRate) && maxRate < 100)
+        {
+          options.Add("<maxr>" + maxRate);
+        }
+        if (int.TryParse(this.MinRate.Value, out minRate) && minRate > 0)
+        {
+          options.Add("<minr>" + minRate);
+        }
+
+        if (!options.Any())
+        {
+          return "(race)" + query;
+        }
+        return "(race:" + string.Join(string.Empty, options) + ")" + query;
       }
     }
   }
@@ -2405,16 +2587,19 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public RaceData? Race { get; }
 
+    public RaceHorseAnalyzer? Analyzer { get; }
+
     public ReactiveCollection<FinderModelItem> Items { get; } = new();
 
-    public BeforeRaceInputCategory(RaceData? race)
+    public BeforeRaceInputCategory(RaceData? race, RaceHorseAnalyzer? analyzer)
     {
       this.Race = race;
+      this.Analyzer = analyzer;
     }
 
     public void AddItem()
     {
-      var model = new FinderModel(this.Race, null, null).AddTo(this.Disposables);
+      var model = new FinderModel(this.Race, this.Analyzer, null).AddTo(this.Disposables);
       model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       var i = new FinderModelItem(model).AddTo(this.Disposables);
       this.AddTextCheckForEscape(i.BeforeRaceCount);
@@ -2462,6 +2647,10 @@ namespace KmyKeiba.Models.Race.Finder
           text.Append(";");
           text.Append(item.IsCountCompletedRaces.Value ? "complete" : item.IsCountRunningRaces.Value ? "run" : "all");
           text.Append(";");
+          text.Append(item.IsCountMode.Value);
+          text.Append(";");
+          text.Append(item.IsCountRuleMorePast.Value);
+          text.Append(";");
           text.Append(serialized);
           text.Append('|');
         }
@@ -2491,7 +2680,17 @@ namespace KmyKeiba.Models.Race.Finder
           if (separator3 < 0) continue;
           var option = item[(separator2 + 1)..separator3];
 
-          var model = new FinderModel(this.Race, null, null).AddTo(this.Disposables);
+          var separator4 = item.IndexOf(';', separator3 + 1);
+          var isCountMode = false;
+          if (separator4 >= 0)
+            isCountMode = item[(separator3 + 1)..separator4].ToLower() == "true";
+
+          var separator5 = item.IndexOf(';', separator4 + 1);
+          var isCountRuleMorePast = false;
+          if (separator5 >= 0)
+            isCountRuleMorePast = item[(separator4 + 1)..separator5].ToLower() == "true";
+
+          var model = new FinderModel(this.Race, this.Analyzer, null).AddTo(this.Disposables);
           model.Input.Deserialize(item[separator3..].Replace(";", Environment.NewLine));
           model.Input.Query.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
           model.Input.BeforeRace.UpdateQuery();
@@ -2503,6 +2702,8 @@ namespace KmyKeiba.Models.Race.Finder
             IsCountCompletedRaces = { Value = option == "complete", },
             IsCountRunningRaces = { Value = option == "run", },
             IsCountAllRaces = { Value = (option != "complete" && option != "run"), },
+            IsCountMode = { Value = isCountMode, },
+            IsCountRuleMorePast = { Value = isCountRuleMorePast, },
           }.AddTo(this.Disposables);
           this.AddTextCheckForEscape(i.BeforeRaceCount);
           this.AddTextCheckForEscape(i.TargetRaceCount);
@@ -2545,6 +2746,10 @@ namespace KmyKeiba.Models.Race.Finder
 
       public ReactiveProperty<bool> IsCountCompletedRaces { get; } = new();
 
+      public ReactiveProperty<bool> IsCountMode { get; } = new();
+
+      public ReactiveProperty<bool> IsCountRuleMorePast { get; } = new();
+
       public event EventHandler? Updated;
 
       public FinderModelItem(FinderModel model)
@@ -2556,6 +2761,8 @@ namespace KmyKeiba.Models.Race.Finder
           .CombineLatest(this.IsCountAllRaces)
           .CombineLatest(this.IsCountRunningRaces)
           .CombineLatest(this.IsCountCompletedRaces)
+          .CombineLatest(this.IsCountMode)
+          .CombineLatest(this.IsCountRuleMorePast)
           .Subscribe(_ => this.Updated?.Invoke(this, EventArgs.Empty))
           .AddTo(this._disposables);
       }
@@ -2578,13 +2785,136 @@ namespace KmyKeiba.Models.Race.Finder
         var option = this.IsCountRunningRaces.Value ? "run" :
           this.IsCountCompletedRaces.Value ? "complete" : "all";
 
-        return $"(before<{option}>:{beforeCount},{targetCount}){query}";
+        if (!this.IsCountMode.Value)
+        {
+          return $"(before<{option}>:{beforeCount},{targetCount}){query}";
+        }
+        else
+        {
+          var compare = this.IsCountRuleMorePast.Value ? ">=" : "<=";
+          return $"(before:0,:count{compare}{beforeCount}){query}";
+        }
       }
 
       public void Dispose()
       {
         this._disposables.Dispose();
       }
+    }
+  }
+
+  #endregion
+
+  #region 拡張情報
+
+  public class PciInputCategory : FloatNumberInputCategoryBase
+  {
+    public PciInputCategory() : base("pci", 2, true)
+    {
+      this.Input.CanCompareDefaultValue = false;
+    }
+  }
+
+  public class Pci3InputCategory : FloatNumberInputCategoryBase
+  {
+    public Pci3InputCategory() : base("pci3", 2)
+    {
+      this.Input.CanCompareDefaultValue = false;
+    }
+  }
+
+  public class RpciInputCategory : FloatNumberInputCategoryBase
+  {
+    public RpciInputCategory() : base("rpci", 2)
+    {
+      this.Input.CanCompareDefaultValue = false;
+    }
+  }
+
+  public class Before3hNormalizedInputCategory : FloatNumberInputCategoryBase
+  {
+    public Before3hNormalizedInputCategory() : base("racebefore3hn", 1)
+    {
+      this.Input.CanCompareAsBeforeRace = false;
+      this.Input.CanCompareDefaultValue = false;
+    }
+  }
+
+  #endregion
+
+  #region JRDB
+
+  public class IdmPointInputCategory : FloatNumberInputCategoryBase
+  {
+    public IdmPointInputCategory() : base("idmpoint", 1, true)
+    {
+      this.Input.CanCompareDefaultValue = false;
+    }
+  }
+
+  public class RiderPointInputCategory : FloatNumberInputCategoryBase
+  {
+    public RiderPointInputCategory() : base("riderpoint", 1, true)
+    {
+      this.Input.CanCompareDefaultValue = false;
+    }
+  }
+
+  public class InfoPointInputCategory : FloatNumberInputCategoryBase
+  {
+    public InfoPointInputCategory() : base("infopoint", 1, true)
+    {
+      this.Input.CanCompareDefaultValue = false;
+    }
+  }
+
+  public class TotalPointInputCategory : FloatNumberInputCategoryBase
+  {
+    public TotalPointInputCategory() : base("totalpoint", 1, true)
+    {
+      this.Input.CanCompareDefaultValue = false;
+    }
+  }
+
+  public class HorseClimbInputCategory : ListBoxInputCategoryBase<HorseClimb>
+  {
+    public HorseClimbInputCategory() : base("climb", true, true)
+    {
+      this.CanCompareDefaultValue = false;
+      base.SetItems(new[]
+      {
+        new FinderQueryInputListItem<HorseClimb>("なし", HorseClimb.Unknown),
+        new FinderQueryInputListItem<HorseClimb>("AA (最良)", HorseClimb.AA),
+        new FinderQueryInputListItem<HorseClimb>("A (好勝負)", HorseClimb.A),
+        new FinderQueryInputListItem<HorseClimb>("B (維持)", HorseClimb.B),
+        new FinderQueryInputListItem<HorseClimb>("C (心配)", HorseClimb.C),
+        new FinderQueryInputListItem<HorseClimb>("? (調子落ち)", HorseClimb.Difficult),
+      });
+    }
+
+    protected override string ToQueryValue(HorseClimb value)
+    {
+      return ((short)value).ToString();
+    }
+  }
+
+  #endregion
+
+  #region JRDB調教
+
+  public class TrainingCatchupPointInputCategory : NumberInputCategoryBase
+  {
+    public TrainingCatchupPointInputCategory() : base("trainingcatchuppoint")
+    {
+      this.Input.CanCompareCurrentRaceValue = false;
+    }
+  }
+
+  public class TrainingFinishPointInputCategory : NumberInputCategoryBase
+  {
+    public TrainingFinishPointInputCategory() : base("trainingfinishpoint")
+    {
+      this.Input.CanCompareCurrentRaceValue = false;
     }
   }
 
@@ -2705,10 +3035,10 @@ namespace KmyKeiba.Models.Race.Finder
             var text2 = new StringBuilder();
             base.PropertyToString(item.GetType().GetProperty(nameof(MemoConfigItem.Point), BindingFlags.Instance | BindingFlags.Public)!,
               text2, item);
-            text.Append(text2.ToString().Replace(Environment.NewLine, ";"));
+            text.Append(text2.ToString().Replace(Environment.NewLine, "@"));
           }
 
-          text.Append('|');
+          text.Append('\\');
         }
 
         text.AppendLine();
@@ -2723,7 +3053,7 @@ namespace KmyKeiba.Models.Race.Finder
       {
         this.Items.Clear();
 
-        var values = data.Split('|');
+        var values = data.Contains('\\') ? data.Split('\\') : data.Split('|');  // | は旧仕様
         foreach (var value in values)
         {
           var configIdIndex = value.IndexOf(',');
@@ -2989,7 +3319,7 @@ namespace KmyKeiba.Models.Race.Finder
             text2, item);
           text.Append(text2.ToString().Replace(Environment.NewLine, ";"));
 
-          text.Append('|');
+          text.Append('\\');
         }
 
         text.AppendLine();
@@ -3004,7 +3334,7 @@ namespace KmyKeiba.Models.Race.Finder
       {
         this.Items.Clear();
 
-        var values = data.Split('|');
+        var values = data.Contains('\\') ? data.Split('\\') : data.Split('|');
         foreach (var value in values)
         {
           var configIdIndex = value.IndexOf(',');
@@ -3086,10 +3416,17 @@ namespace KmyKeiba.Models.Race.Finder
     public ReactiveProperty<bool> IsGroupByGrade { get; } = new();
     public ReactiveProperty<bool> IsGroupByFrameNumber { get; } = new();
     public ReactiveProperty<bool> IsGroupByHorseNumber { get; } = new();
+    public ReactiveProperty<bool> IsGroupByRunningStyle { get; } = new();
     public ReactiveProperty<bool> IsGroupByMemo { get; } = new();
     public ReactiveProperty<bool> IsGroupByFather { get; } = new();
     public ReactiveProperty<bool> IsGroupByMother { get; } = new();
     public ReactiveProperty<bool> IsGroupByMotherFather { get; } = new();
+    public ReactiveProperty<bool> IsGroupByDirection { get; } = new();
+    public ReactiveProperty<bool> IsGroupByDistance { get; } = new();
+    public ReactiveProperty<bool> IsGroupByPopular { get; } = new();
+    public ReactiveProperty<bool> IsGroupByResultOrder { get; } = new();
+    public ReactiveProperty<bool> IsGroupByGround { get; } = new();
+    public ReactiveProperty<bool> IsGroupByTrackType { get; } = new();
 
     public ReactiveCollection<ExpansionMemoConfig> MemoConfigs { get; } = new();
 
@@ -3116,6 +3453,13 @@ namespace KmyKeiba.Models.Race.Finder
         .CombineLatest(this.IsGroupByFather)
         .CombineLatest(this.IsGroupByMother)
         .CombineLatest(this.IsGroupByMotherFather)
+        .CombineLatest(this.IsGroupByDirection)
+        .CombineLatest(this.IsGroupByDistance)
+        .CombineLatest(this.IsGroupByPopular)
+        .CombineLatest(this.IsGroupByResultOrder)
+        .CombineLatest(this.IsGroupByRunningStyle)
+        .CombineLatest(this.IsGroupByGround)
+        .CombineLatest(this.IsGroupByTrackType)
         .Subscribe(_ => this.UpdateQuery())
         .AddTo(this.Disposables);
     }
@@ -3187,6 +3531,34 @@ namespace KmyKeiba.Models.Race.Finder
       {
         groups.Add("framenumber");
       }
+      if (this.IsGroupByDirection.Value)
+      {
+        groups.Add("direction");
+      }
+      if (this.IsGroupByDistance.Value)
+      {
+        groups.Add("distance");
+      }
+      if (this.IsGroupByPopular.Value)
+      {
+        groups.Add("popular");
+      }
+      if (this.IsGroupByResultOrder.Value)
+      {
+        groups.Add("place");
+      }
+      if (this.IsGroupByRunningStyle.Value)
+      {
+        groups.Add("runningstyle");
+      }
+      if (this.IsGroupByGround.Value)
+      {
+        groups.Add("ground");
+      }
+      if (this.IsGroupByTrackType.Value)
+      {
+        groups.Add("tracktype");
+      }
       if (this.IsGroupByMemo.Value)
       {
         if (this.SelectedMemoConfig.Value != null)
@@ -3220,6 +3592,34 @@ namespace KmyKeiba.Models.Race.Finder
         return string.Empty;
       }
       return $"[group]{groups[0]}";
+    }
+
+    protected override void PropertyToString(PropertyInfo property, StringBuilder text, object obj)
+    {
+      var type = property.PropertyType;
+      if (type == typeof(ReactiveProperty<bool>))
+      {
+        var value = ((ReactiveProperty<bool>)property.GetValue(obj)!).Value;
+        if (obj == this && property.Name.StartsWith("IsGroupBy") && !value)
+        {
+          // falseのプロパティは記録を省略する
+          return;
+        }
+      }
+      base.PropertyToString(property, text, obj);
+    }
+
+    protected override void ResetForce()
+    {
+      base.ResetForce();
+
+      foreach (var property in this.GetType()
+        .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+        .Where(p => p.PropertyType == typeof(ReactiveProperty<bool>))
+        .Select(p => (ReactiveProperty<bool>)p.GetValue(this)!))
+      {
+        property.Value = false;
+      }
     }
   }
 

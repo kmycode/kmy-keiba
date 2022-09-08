@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Data.Db;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,8 @@ namespace KmyKeiba.Converters
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
+      #region JV-Link
+
       if (value is HorseSex sex)
       {
         if (targetType == typeof(string))
@@ -109,6 +112,25 @@ namespace KmyKeiba.Converters
           _ => "不明",
         };
       }
+
+      #endregion
+
+      #region JRDB
+
+      if (value is HorseClimb climb)
+      {
+        if (targetType == typeof(string))
+        {
+          if (parameter?.ToString() == "Description")
+          {
+            return climb.ToDescriptionString();
+          }
+          return climb.ToLabelString();
+        }
+      }
+
+      #endregion
+
       throw new NotImplementedException();
     }
 

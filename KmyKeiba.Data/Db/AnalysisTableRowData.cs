@@ -35,6 +35,8 @@ namespace KmyKeiba.Data.Db
     public short RequestedSize { get; set; }
 
     public double AlternativeValueIfEmpty { get; set; }
+
+    public string ValueScript { get; set; } = string.Empty;
   }
 
   public enum AnalysisTableRowOutputType : short
@@ -81,11 +83,36 @@ namespace KmyKeiba.Data.Db
     MiningTime = 405,
     MiningMatch = 406,
     PciAverage = 407,
+    Weight = 408,
+    WeightDiff = 409,
 
     // ここからJRDB
     RiderPoint = 501,
     InfoPoint = 502,
     TotalPoint = 503,
+    IdmPoint = 504,
+    PopularPoint = 505,
+    StablePoint = 506,
+    TrainingPoint = 507,
+    RiderTopRatioExpectPoint = 508,
+    SpeedPoint = 509,
+    RaceBefore3Point = 510,
+    RaceBasePoint = 511,
+    RaceAfter3Point = 512,
+    RacePositionPoint = 513,
+    RaceStartPoint = 514,
+    RaceStartDelayPoint = 515,
+    BigTicketPoint = 516,
+    IdentificationMarkCount1 = 517,
+    IdentificationMarkCount2 = 518,
+    IdentificationMarkCount3 = 519,
+    IdentificationMarkCount4 = 520,
+    IdentificationMarkCount5 = 521,
+    TotalMarkCount1 = 522,
+    TotalMarkCount2 = 523,
+    TotalMarkCount3 = 524,
+    TotalMarkCount4 = 525,
+    TotalMarkCount5 = 526,
 
     /// <summary>
     /// 通常は設定しない

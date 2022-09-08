@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
 using Reactive.Bindings;
@@ -58,6 +59,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public TrackDistanceInputCategory Distance { get; }
 
+    public RaceBefore3HTimeInputCategory RaceBefore3h { get; }
+
+    public RaceAfter3HTimeInputCategory RaceAfter3h { get; }
+
     public TrackGroundInputCategory Ground { get; }
 
     public TrackCornerDirectionInputCategory CornerDirection { get; }
@@ -67,6 +72,8 @@ namespace KmyKeiba.Models.Race.Finder
     public TrackTypeInputCategory TrackType { get; }
 
     public TrackConditionInputCategory TrackCondition { get; }
+
+    public BaneiMoistureInputCategory BaneiMoisture { get; }
 
     public TrackWeatherInputCategory Weather { get; }
 
@@ -145,6 +152,28 @@ namespace KmyKeiba.Models.Race.Finder
 
     public BeforeRaceInputCategory BeforeRace { get; }
 
+    public IdmPointInputCategory IdmPoint { get; }
+
+    public RiderPointInputCategory RiderPoint { get; }
+
+    public InfoPointInputCategory InfoPoint { get; }
+
+    public TotalPointInputCategory TotalPoint { get; }
+
+    public HorseClimbInputCategory Climb { get; }
+
+    public TrainingCatchupPointInputCategory TrainingCatchupPoint { get; }
+
+    public TrainingFinishPointInputCategory TrainingFinishPoint { get; }
+
+    public PciInputCategory Pci { get; }
+
+    public Pci3InputCategory Pci3 { get; }
+
+    public RpciInputCategory Rpci { get; }
+
+    public Before3hNormalizedInputCategory Before3hNormalized { get; }
+
     public MemoInputCategory Memo { get; }
 
     public ExternalNumberInputCategory ExternalNumber { get; }
@@ -170,7 +199,7 @@ namespace KmyKeiba.Models.Race.Finder
     private readonly bool _hasRace;
     private readonly bool _hasHorse;
 
-    public FinderQueryInput(RaceData? race, RaceHorseData? horse, IReadOnlyList<RaceHorseData>? raceHorses)
+    public FinderQueryInput(RaceData? race, RaceHorseData? horse, RaceHorseAnalyzer? analyzer, IReadOnlyList<RaceHorseData>? raceHorses)
     {
       this._hasRace = race != null;
       this._hasHorse = horse != null;
@@ -193,11 +222,14 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.HorsesCount = new RaceHorsesCountInputCategory());
       this._categories.Add(this.ResultHorsesCount = new RaceHorsesGoalCountInputCategory());
       this._categories.Add(this.Distance = new TrackDistanceInputCategory());
+      this._categories.Add(this.RaceBefore3h = new RaceBefore3HTimeInputCategory());
+      this._categories.Add(this.RaceAfter3h = new RaceAfter3HTimeInputCategory());
       this._categories.Add(this.Ground = new TrackGroundInputCategory());
       this._categories.Add(this.CornerDirection = new TrackCornerDirectionInputCategory());
       this._categories.Add(this.TrackOption = new TrackOptionInputCategory());
       this._categories.Add(this.TrackType = new TrackTypeInputCategory());
       this._categories.Add(this.TrackCondition = new TrackConditionInputCategory());
+      this._categories.Add(this.BaneiMoisture = new BaneiMoistureInputCategory());
       this._categories.Add(this.Weather = new TrackWeatherInputCategory());
       this._categories.Add(this.HorseOfCurrentRace = new HorseOfCurrentRaceInputCategory(raceHorses));
       this._categories.Add(this.HorseName = new HorseNameInputCategory());
@@ -236,8 +268,19 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.RiderBelongs = new RiderBelongsInputCategory());
       this._categories.Add(this.TrainerName = new TrainerNameInputCategory());
       this._categories.Add(this.TrainerBelongs = new TrainerBelongsInputCategory());
-      this._categories.Add(this.SameRaceHorse = new SameRaceHorseInputCategory(race));
-      this._categories.Add(this.BeforeRace = new BeforeRaceInputCategory(race));
+      this._categories.Add(this.SameRaceHorse = new SameRaceHorseInputCategory(race, analyzer));
+      this._categories.Add(this.BeforeRace = new BeforeRaceInputCategory(race, analyzer));
+      this._categories.Add(this.IdmPoint = new IdmPointInputCategory());
+      this._categories.Add(this.RiderPoint = new RiderPointInputCategory());
+      this._categories.Add(this.InfoPoint = new InfoPointInputCategory());
+      this._categories.Add(this.TotalPoint = new TotalPointInputCategory());
+      this._categories.Add(this.Climb = new HorseClimbInputCategory());
+      this._categories.Add(this.TrainingCatchupPoint = new TrainingCatchupPointInputCategory());
+      this._categories.Add(this.TrainingFinishPoint = new TrainingFinishPointInputCategory());
+      this._categories.Add(this.Pci = new PciInputCategory());
+      this._categories.Add(this.Pci3 = new Pci3InputCategory());
+      this._categories.Add(this.Rpci = new RpciInputCategory());
+      this._categories.Add(this.Before3hNormalized = new Before3hNormalizedInputCategory());
       this._categories.Add(this.Memo = new MemoInputCategory());
       this._categories.Add(this.ExternalNumber = new ExternalNumberInputCategory());
       this._categories.Add(this.GroupBy = new GroupByCategoryInput());
@@ -270,6 +313,10 @@ namespace KmyKeiba.Models.Race.Finder
         {
           continue;
         }
+        if (category is IResetableInputCategory resetable && !resetable.IsCustomized.Value)
+        {
+          continue;
+        }
 
         text.Append(indent);
         text.Append(':');
@@ -298,9 +345,17 @@ namespace KmyKeiba.Models.Race.Finder
       return text.ToString();
     }
 
-    public void Deserialize(string text)
+    public void Deserialize(string text, bool isOverwrite = false)
     {
       var lines = text.Split(Environment.NewLine);
+
+      if (!isOverwrite)
+      {
+        foreach (var category in this._categories.OfType<IResetableInputCategory>())
+        {
+          category.Reset();
+        }
+      }
 
       var propertyName = string.Empty;
       var categoryLines = new StringBuilder();

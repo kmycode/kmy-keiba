@@ -103,6 +103,10 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<DelimiterRowData>? DelimiterRows { get; set; }
 
+    public DbSet<HorseMarkConfigData>? HorseMarkConfigs { get; set; }
+
+    public DbSet<HorseMarkData>? HorseMarks { get; set; }
+
     #endregion
 
     private IDbContextTransaction? _transaction;

@@ -81,7 +81,7 @@
             <Grid Width="300" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="30">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="120"/>
                 <ColumnDefinition Width="auto"/>
               </Grid.ColumnDefinitions>
               <ComboBox ItemsSource="{Binding AnalysisTable.Config.Delimiters,ElementName=Root}"
@@ -122,8 +122,10 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
             </ScrollViewer>
-            <StackPanel Grid.Row="2" Orientation="Horizontal">
-              <Button FontSize="16" Width="120" Content="一括追加" Command="{Binding AddAnalysisTableWeightRowBulkCommand}"/>
+            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal">
+              <Button FontSize="16" Width="240" Content="既存の設定に追加" Command="{Binding AddAnalysisTableWeightRowBulkCommand}"/>
+              <Button FontSize="16" Width="240" Content="既存の設定を保持しつつ置き換え" Command="{Binding ReplaceAnalysisTableWeightRowBulkCommand}"
+                      Margin="8,0,0,0"/>
             </StackPanel>
           </Grid>
         </Border>

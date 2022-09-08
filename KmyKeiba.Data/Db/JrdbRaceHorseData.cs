@@ -208,7 +208,7 @@ namespace KmyKeiba.Data.Db
     public HorseBodyTailAngle BodyTail { get; set; }
     public HorseBodyTailAction BodyTailAction { get; set; }
 
-    public async Task<bool> ReadStringAsync(MyContextBase db, string raw)
+    public static async Task<(string?, string?)> GetKeysAsync(MyContextBase db, string raw)
     {
       var bin = Encoding.GetEncoding(932).GetBytes(raw);
 
@@ -291,19 +291,40 @@ namespace KmyKeiba.Data.Db
         r.Nichiji == nichiji && r.CourseRaceNumber == courseNumber && r.Course == course);
       if (raceData == null)
       {
-        return false;
+        return default;
       }
 
-      this.RaceKey = raceData.Key;
+      var raceKey = raceData.Key;
 
       short.TryParse(AsString(8, 2), out var horseNumber);
-      var horseData = await db.RaceHorses!.FirstOrDefaultAsync(rh => rh.RaceKey == this.RaceKey && rh.Number == horseNumber);
+      var horseData = await db.RaceHorses!.FirstOrDefaultAsync(rh => rh.RaceKey == raceKey && rh.Number == horseNumber);
       if (horseData == null)
+      {
+        return default;
+      }
+
+      var horseKey = horseData.Key;
+
+      return (raceKey, horseKey);
+    }
+
+    public async Task<bool> ReadStringAsync(MyContextBase db, string raw)
+    {
+      var bin = Encoding.GetEncoding(932).GetBytes(raw);
+
+      string AsString(int startIndex, int length)
+      {
+        var binary = bin[startIndex..(startIndex + length)];
+        return Encoding.GetEncoding(932).GetString(binary);
+      }
+
+      var keys = await GetKeysAsync(db, raw);
+      if (keys.Item1 == null || keys.Item2 == null)
       {
         return false;
       }
-
-      this.Key = horseData.Key;
+      this.RaceKey = keys.Item1;
+      this.Key = keys.Item2;
 
       short.TryParse(AsString(54, 5).Trim().Replace(".", string.Empty), out var idm);
       short.TryParse(AsString(59, 5).Trim().Replace(".", string.Empty), out var riderPoint);

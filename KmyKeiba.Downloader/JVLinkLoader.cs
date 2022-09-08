@@ -950,6 +950,11 @@ namespace KmyKeiba.Downloader
                 race.TrackCondition = weather.DirtCondition;
                 race.IsConditionSetManually = false;
               }
+              if (race.Course == RaceCourse.ObihiroBannei && weather.BaneiMoisture != default)
+              {
+                race.BaneiMoisture = weather.BaneiMoisture;
+                race.IsConditionSetManually = false;
+              }
             }
 
             // 天候馬場がなぜか正しい情報が配信されないようなので、その日にすでにレースをやっていればその情報に置き換える

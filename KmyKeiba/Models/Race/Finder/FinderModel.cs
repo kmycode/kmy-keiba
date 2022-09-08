@@ -64,7 +64,7 @@ namespace KmyKeiba.Models.Race.Finder
     {
       this._finder = new RaceFinder(race, horse?.Data);
       this.RaceHorse = horse;
-      this.Input = new FinderQueryInput(race, horse?.Data, horses?.Select(h => h.Data).ToArray());
+      this.Input = new FinderQueryInput(race, horse?.Data, horse, horses?.Select(h => h.Data).ToArray());
 
       // TODO いずれカスタマイズできるように
       foreach (var preset in DatabasePresetModel.GetFinderRaceHorseColumns())
@@ -143,6 +143,8 @@ namespace KmyKeiba.Models.Race.Finder
               QueryKey.OwnerName => allItems.GroupBy(d => d.Analyzer.Data.OwnerName),
               QueryKey.OwnerCode => allItems.GroupBy(d => d.Analyzer.Data.OwnerCode),
               QueryKey.Course => allItems.GroupBy(d => (object)d.Analyzer.Data.Course),
+              QueryKey.Distance => allItems.GroupBy(d => (object)d.Analyzer.Race.Distance),
+              QueryKey.Direction => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackCornerDirection),
               QueryKey.Weather => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackWeather),
               QueryKey.Condition => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackCondition),
               QueryKey.Grade => allItems.GroupBy(d => (object)d.Analyzer.Race.Grade),
@@ -151,6 +153,11 @@ namespace KmyKeiba.Models.Race.Finder
               QueryKey.FrameNumber => allItems.GroupBy(d => d.Analyzer.Data.FrameNumber.ToString()),
               QueryKey.HorseNumber => allItems.GroupBy(d => d.Analyzer.Data.Number.ToString()),
               QueryKey.Sex => allItems.GroupBy(d => (object)d.Analyzer.Data.Sex),
+              QueryKey.Popular => allItems.GroupBy(d => (object)d.Analyzer.Data.Popular),
+              QueryKey.Place => allItems.GroupBy(d => (object)d.Analyzer.Data.ResultOrder),
+              QueryKey.RunningStyle => allItems.GroupBy(d => (object)d.Analyzer.Data.RunningStyle),
+              QueryKey.Ground => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackGround),
+              QueryKey.TrackType => allItems.GroupBy(d => (object)d.Analyzer.Race.TrackType),
               _ => null,
             };
 
@@ -429,6 +436,11 @@ namespace KmyKeiba.Models.Race.Finder
       this._finder.ReplaceFrom(finder);
     }
 
+    public void ClearCache()
+    {
+      this._finder.ClearCache();
+    }
+
     public RaceHorseTrendAnalysisSelectorWrapper AsTrendAnalysisSelector()
     {
       return this._finder.AsTrendAnalysisSelector();
@@ -436,14 +448,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public void Dispose()
     {
-      // なぜかUIスレッドでないと、前走／同レース他馬を検索条件に追加してからレースを切り替えるとエラーになる
-      // FinderModel.Disposeメソッドが悪さをしている様子だがReactiveCollectionの変更ロジックはもちろん
-      // Disposeの中に含まれていないため、原因不明
-      ThreadUtil.InvokeOnUiThread(() =>
-      {
-        //this.Input.Dispose();
-      });
       this.Input.Dispose();
+      this._finder.Dispose();
       this._disposables.Dispose();
     }
   }

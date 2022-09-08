@@ -7,6 +7,7 @@ using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
+using KmyKeiba.Models.Race.HorseMark;
 using KmyKeiba.Models.Race.Memo;
 using KmyKeiba.Shared;
 using Reactive.Bindings;
@@ -350,6 +351,11 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.AddWeightRowsBulkAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _addAnalysisTableWeightRowBulkCommand;
 
+    public ICommand ReplaceAnalysisTableWeightRowBulkCommand =>
+      this._replaceAnalysisTableWeightRowBulkCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.ReplaceWeightRowsBulkAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _replaceAnalysisTableWeightRowBulkCommand;
+
     public ICommand ClearAnalysisTableWeightRowsCommand =>
       this._clearAnalysisTableWeightRowsCommand ??=
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.AnalysisTable.Value?.Config.ClearWeightRowsAsync() ?? Task.CompletedTask).AddTo(this._disposables);
@@ -455,6 +461,35 @@ namespace KmyKeiba.ViewModels
       this._removeFinderConfigCommand ??=
         new AsyncReactiveCommand<FinderModel>(this.CanSave).WithSubscribe(obj => obj?.Input.RemoveConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _removeFinderConfigCommand;
+
+    public ICommand ClearFinderCacheCommand =>
+      this._clearFinderCacheCommand ??=
+        new ReactiveCommand<FinderModel>().WithSubscribe(obj => obj?.ClearCache()).AddTo(this._disposables);
+    private ICommand? _clearFinderCacheCommand;
+
+    #endregion
+
+    #region 印
+
+    public ICommand AddMarkConfigCommand =>
+      this._addMarkConfigCommand ??=
+        new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.model.Info.Value?.HorseMark.Value?.Config.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addMarkConfigCommand;
+
+    public ICommand RemoveMarkConfigCommand =>
+      this._removeMarkConfigCommand ??=
+        new AsyncReactiveCommand(this.CanSave).WithSubscribe(() => this.model.Info.Value?.HorseMark.Value?.Config.RemoveConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeMarkConfigCommand;
+
+    public ICommand UpMarkConfigCommand =>
+      this._upMarkConfigCommand ??=
+        new AsyncReactiveCommand<HorseMarkConfig>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.HorseMark.Value?.Config.UpConfigAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upMarkConfigCommand;
+
+    public ICommand DownMarkConfigCommand =>
+      this._downMarkConfigCommand ??=
+        new AsyncReactiveCommand<HorseMarkConfig>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.HorseMark.Value?.Config.DownConfigAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downMarkConfigCommand;
 
     #endregion
 

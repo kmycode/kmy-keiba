@@ -12,6 +12,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Devices.AllJoyn;
 
 namespace KmyKeiba.Models.Connection
 {
@@ -57,11 +58,14 @@ namespace KmyKeiba.Models.Connection
           this.DownloadingYear.Value = day.Year;
           this.DownloadingMonth.Value = day.Month;
 
+          // 調教データは時間差で提供される
+          /*
           var dayText = day.ToString("yyyyMMdd");
           if (day < DateTime.Today.AddDays(-10) && await db.JrdbRaceHorses!.AnyAsync(j => j.RaceKey.StartsWith(dayText)))
           {
             continue;
           }
+          */
 
           await this.LoadDayAsync(db, day, id, password);
 
@@ -169,12 +173,92 @@ namespace KmyKeiba.Models.Connection
           var result = await data.ReadStringAsync(db, line);
           if (result)
           {
-            dataList.Add(data);
+            var exists = await db.JrdbRaceHorses!.FirstOrDefaultAsync(e => e.Key == data.Key && e.RaceKey == data.RaceKey);
+            if (exists != null)
+            {
+              await exists.ReadStringAsync(db, line);
+            }
+            else
+            {
+              dataList.Add(data);
+            }
           }
         }
         catch (Exception ex)
         {
           throw new JrdbDownloadException("データの読み込み時に内部エラーが発生しました", ex);
+        }
+      }
+
+      // 調教
+      fileName = Path.Combine(lzhDirPath, $"CYB{dateFormat}.txt");
+      if (File.Exists(fileName))
+      {
+        binary = await File.ReadAllBytesAsync(fileName);
+        lines = Encoding.GetEncoding(932).GetString(binary);
+
+        foreach (var line in lines.Split(Environment.NewLine).Where(l => !string.IsNullOrEmpty(l)))
+        {
+          try
+          {
+            var keys = await JrdbRaceHorseData.GetKeysAsync(db, line);
+            if (keys.Item1 == null || keys.Item2 == null)
+            {
+              continue;
+            }
+
+            var extra = await db.RaceHorseExtras!.FirstOrDefaultAsync(e => e.RaceKey == keys.Item1 && e.Key == keys.Item2);
+            if (extra == null)
+            {
+              extra = new RaceHorseExtraData
+              {
+                RaceKey = keys.Item1,
+                Key = keys.Item2,
+              };
+              await db.RaceHorseExtras!.AddAsync(extra);
+            }
+            extra.SetJrdbCybData(line);
+          }
+          catch (Exception ex)
+          {
+            throw new JrdbDownloadException("CYBデータの読み込み時に内部エラーが発生しました", ex);
+          }
+        }
+      }
+
+      // 調教追い切り
+      fileName = Path.Combine(lzhDirPath, $"CHA{dateFormat}.txt");
+      if (File.Exists(fileName))
+      {
+        binary = await File.ReadAllBytesAsync(fileName);
+        lines = Encoding.GetEncoding(932).GetString(binary);
+
+        foreach (var line in lines.Split(Environment.NewLine).Where(l => !string.IsNullOrEmpty(l)))
+        {
+          try
+          {
+            var keys = await JrdbRaceHorseData.GetKeysAsync(db, line);
+            if (keys.Item1 == null || keys.Item2 == null)
+            {
+              continue;
+            }
+
+            var extra = await db.RaceHorseExtras!.FirstOrDefaultAsync(e => e.RaceKey == keys.Item1 && e.Key == keys.Item2);
+            if (extra == null)
+            {
+              extra = new RaceHorseExtraData
+              {
+                RaceKey = keys.Item1,
+                Key = keys.Item2,
+              };
+              await db.RaceHorseExtras!.AddAsync(extra);
+            }
+            extra.SetJrdbChaData(line);
+          }
+          catch (Exception ex)
+          {
+            throw new JrdbDownloadException("CHAデータの読み込み時に内部エラーが発生しました", ex);
+          }
         }
       }
 

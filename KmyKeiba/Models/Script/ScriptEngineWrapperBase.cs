@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Script
 {
-  public abstract class ScriptEngineWrapperBase : IDisposable
+  public abstract class FileScriptEngine : IDisposable
   {
     protected V8ScriptEngine Engine { get; }
 
     protected string FileName { get; }
 
-    public ScriptEngineWrapperBase(string fileName)
+    public FileScriptEngine(string fileName)
     {
       this.FileName = fileName;
 
@@ -66,6 +66,38 @@ namespace KmyKeiba.Models.Script
     protected object Execute(V8Script compiled)
     {
       return this.Engine.Invoke("OnInit");
+    }
+
+    public virtual void Dispose()
+    {
+      this.Engine.Dispose();
+    }
+  }
+
+  public class StringScriptEngine : IDisposable
+  {
+    protected V8ScriptEngine Engine { get; }
+
+    public StringScriptEngine()
+    {
+      this.Engine = new V8ScriptEngine(V8ScriptEngineFlags.EnableDynamicModuleImports |
+        V8ScriptEngineFlags.EnableTaskPromiseConversion |
+        V8ScriptEngineFlags.EnableValueTaskPromiseConversion |
+        V8ScriptEngineFlags.EnableDateTimeConversion);
+
+      this.Engine.DocumentSettings.AccessFlags |= DocumentAccessFlags.EnableAllLoading | DocumentAccessFlags.EnforceRelativePrefix;
+#if DEBUG
+      this.Engine.DocumentSettings.SearchPath = Path.Combine(Directory.GetCurrentDirectory(), "script");
+#else
+      this.Engine.DocumentSettings.SearchPath = Constrants.ScriptDir;
+#endif
+    }
+
+    public object Execute(string script)
+    {
+      // DocumentLoader.Default.DiscardCachedDocuments();
+
+      return this.Engine.Evaluate(new DocumentInfo { Category = ModuleCategory.Standard, }, script);
     }
 
     public virtual void Dispose()

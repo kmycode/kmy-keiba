@@ -29,6 +29,8 @@ namespace KmyKeiba.Models.Connection
 
     private bool _isInitializationDownloading = false;
 
+    private Connection.ProcessingStep AllSteps => this.IsBuildExtraData.Value ? Connection.ProcessingStep.All : (Connection.ProcessingStep.All & ~Connection.ProcessingStep.HorseExtraData);
+
     public ReactiveProperty<bool> IsInitializationError { get; } = new();
 
     public ReactiveProperty<bool> IsError { get; } = new();
@@ -105,6 +107,8 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsDownloadBlod { get; } = new();
 
+    public ReactiveProperty<bool> IsBuildExtraData { get; } = new();
+
     public ReactiveProperty<LoadingProcessValue> LoadingProcess { get; } = new();
 
     public ReactiveProperty<LoadingProcessValue> RTLoadingProcess { get; } = new();
@@ -148,7 +152,7 @@ namespace KmyKeiba.Models.Connection
 
       this.DownloadingStatus =
         this.ProcessingStep
-          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates && p != Connection.ProcessingStep.MigrationFrom250 && p != Connection.ProcessingStep.MigrationFrom322)
+          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates && p != Connection.ProcessingStep.MigrationFrom250 && p != Connection.ProcessingStep.MigrationFrom322 && p != Connection.ProcessingStep.HorseExtraData && p != Connection.ProcessingStep.MigrationFrom430)
           .CombineLatest(this.LoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
           .CombineLatest(JrdbDownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)
           .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
@@ -194,6 +198,7 @@ namespace KmyKeiba.Models.Connection
       this.IsRTDownloadJrdb.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsRTDownloadJrdb, v ? 1 : 0)).AddTo(this._disposables);
       this.IsDownloadBlod.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsNotDownloadHorseBloods, v ? 0 : 1)).AddTo(this._disposables);
       this.IsDownloadSlop.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsNotDownloadTrainings, v ? 0 : 1)).AddTo(this._disposables);
+      this.IsBuildExtraData.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetIntValueAsync(SettingKey.IsNotBuildExtraData, v ? 0 : 1)).AddTo(this._disposables);
     }
 
     public async Task<bool> InitializeAsync()
@@ -221,8 +226,10 @@ namespace KmyKeiba.Models.Connection
 
         var isNotDownloadBlod = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsNotDownloadHorseBloods);
         var isNotDownloadSlop = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsNotDownloadTrainings);
+        var isNotBuildExtra = await ConfigUtil.GetIntValueAsync(db, SettingKey.IsNotBuildExtraData);
         this.IsDownloadBlod.Value = isNotDownloadBlod == 0;
         this.IsDownloadSlop.Value = isNotDownloadSlop == 0;
+        this.IsBuildExtraData.Value = isNotBuildExtra == 0;
 
         logger.Info($"設定 {nameof(SettingKey.LastDownloadCentralDate)}: {central}, {nameof(SettingKey.LastDownloadLocalDate)}: {local}");
 
@@ -450,6 +457,12 @@ namespace KmyKeiba.Models.Connection
           await ConfigUtil.SetIntValueAsync(db, SettingKey.DatabaseVersion, 322);
           dbver = 322;
         }
+        if (dbver < 430)
+        {
+          await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.MigrationFrom430);
+          await ConfigUtil.SetIntValueAsync(db, SettingKey.DatabaseVersion, 430);
+          dbver = 430;
+        }
 
         // 最初に最終起動からの差分を落とす
         // （真っ先にやらないと、ユーザーが先に過去データダウンロードを開始する可能性あり）
@@ -609,6 +622,15 @@ namespace KmyKeiba.Models.Connection
       });
     }
 
+    public void BeginResetHorseExtraData()
+    {
+      Task.Run(async () =>
+      {
+        logger.Info("拡張データのリセットを開始");
+        await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.ResetHorseExtraData);
+      });
+    }
+
     public void BeginDownload()
     {
       Task.Run(async () =>
@@ -616,7 +638,7 @@ namespace KmyKeiba.Models.Connection
         if (this.IsBuildMasterData.Value)
         {
           logger.Info("マスターデータ更新を開始");
-          await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.All);
+          await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, this.AllSteps);
         }
         else
         {
@@ -642,6 +664,7 @@ namespace KmyKeiba.Models.Connection
     private async Task ProcessAsync(DownloadLink link, ReactiveProperty<ProcessingStep> step, bool isRt, ProcessingStep steps, bool isFlagSetManually = false)
     {
       this.IsCancelProcessing.Value = false;
+      this.IsError.Value = false;
 
       try
       {
@@ -663,6 +686,24 @@ namespace KmyKeiba.Models.Connection
           step.Value = Connection.ProcessingStep.InvalidData;
           logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}");
           await ShapeDatabaseModel.RemoveInvalidDataAsync();
+        }
+        if (steps.HasFlag(Connection.ProcessingStep.MigrationFrom250) && !this.IsCancelProcessing.Value)
+        {
+          step.Value = Connection.ProcessingStep.MigrationFrom250;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
+          await ShapeDatabaseModel.MigrateFrom250Async(isCanceled: this.IsCancelProcessing);
+        }
+        if (steps.HasFlag(Connection.ProcessingStep.MigrationFrom322) && !this.IsCancelProcessing.Value)
+        {
+          step.Value = Connection.ProcessingStep.MigrationFrom322;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
+          await ShapeDatabaseModel.MigrateFrom322Async(isCanceled: this.IsCancelProcessing);
+        }
+        if (steps.HasFlag(Connection.ProcessingStep.MigrationFrom430) && !this.IsCancelProcessing.Value)
+        {
+          step.Value = Connection.ProcessingStep.MigrationFrom430;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
+          await ShapeDatabaseModel.MigrateFrom430Async(isCanceled: this.IsCancelProcessing);
         }
         if (steps.HasFlag(Connection.ProcessingStep.RunningStyle) && !this.IsCancelProcessing.Value)
         {
@@ -711,6 +752,27 @@ namespace KmyKeiba.Models.Connection
           step.Value = Connection.ProcessingStep.RaceSubjectInfos;
           logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
           await ShapeDatabaseModel.SetRaceSubjectDisplayInfosAsync(isCanceled: this.IsCancelProcessing);
+        }
+        if (steps.HasFlag(Connection.ProcessingStep.ResetHorseExtraData) && !this.IsCancelProcessing.Value)
+        {
+          step.Value = Connection.ProcessingStep.ResetHorseExtraData;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
+          await ShapeDatabaseModel.ResetHorseExtraTableDataAsync();
+        }
+        if (steps.HasFlag(Connection.ProcessingStep.HorseExtraData) && !this.IsCancelProcessing.Value)
+        {
+          step.Value = Connection.ProcessingStep.HorseExtraData;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
+          try
+          {
+            this.HasProcessingProgress.Value = true;
+            await ShapeDatabaseModel.SetHorseExtraTableDataAsync(isCanceled: this.IsCancelProcessing,
+              progress: this.ProcessingProgress, progressMax: this.ProcessingProgressMax);
+          }
+          finally
+          {
+            this.HasProcessingProgress.Value = false;
+          }
         }
 
         // 途中から再開できないものは最後に
@@ -786,7 +848,7 @@ namespace KmyKeiba.Models.Connection
 
         logger.Info("通常データのダウンロード完了。後処理に移行します");
         await this.ProcessAsync(link, this.ProcessingStep, false,
-          Connection.ProcessingStep.All & ~Connection.ProcessingStep.StandardTime, isFlagSetManually: true);
+          this.AllSteps & ~Connection.ProcessingStep.StandardTime, isFlagSetManually: true);
       }
       catch (DownloaderCommandException ex)
       {
@@ -842,18 +904,6 @@ namespace KmyKeiba.Models.Connection
 
         logger.Info("RTデータのダウンロード完了。後処理に移行します");
         await this.ProcessAsync(link, this.RTProcessingStep, true, Connection.ProcessingStep.InvalidData | Connection.ProcessingStep.RunningStyle, isFlagSetManually: true);
-
-        this.RTProcessingStep.Value = Connection.ProcessingStep.PreviousRaceDays;
-        logger.Info($"RTダウンロード/後処理進捗変更: {this.RTProcessingStep.Value}, リンク: {link}");
-        await ShapeDatabaseModel.SetHorseExtraDataAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
-
-        this.RTProcessingStep.Value = Connection.ProcessingStep.RiderWinRates;
-        logger.Info($"RTダウンロード/後処理進捗変更: {this.RTProcessingStep.Value}, リンク: {link}");
-        await ShapeDatabaseModel.SetRiderWinRatesAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
-
-        this.RTProcessingStep.Value = Connection.ProcessingStep.RaceSubjectInfos;
-        logger.Info($"RTダウンロード/後処理進捗変更: {this.RTProcessingStep.Value}, リンク: {link}");
-        await ShapeDatabaseModel.SetRaceSubjectDisplayInfosAsync(DateOnly.FromDateTime(DateTime.Today).AddMonths(-1));
 
         logger.Debug("RT後処理完了");
         this.RacesUpdated?.Invoke(this, EventArgs.Empty);
@@ -1191,6 +1241,15 @@ namespace KmyKeiba.Models.Connection
     [Label("データをマイグレーション中 (from 3.2.2)")]
     MigrationFrom322 = 128,
 
-    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | MigrationFrom250 | MigrationFrom322,
+    [Label("拡張情報を作成中")]
+    HorseExtraData = 256,
+
+    [Label("拡張情報をリセット中")]
+    ResetHorseExtraData = 512,
+
+    [Label("データをマイグレーション中 (from 4.3.0)")]
+    MigrationFrom430 = 1024,
+
+    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | HorseExtraData,
   }
 }

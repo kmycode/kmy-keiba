@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Data;
+using log4net.Core;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -60,6 +61,22 @@ namespace KmyKeiba.Models.Analysis
 
         _checkedHorses.Remove(item);
       }
+    }
+  }
+
+  public class HorseCheckChangedEventArgs : EventArgs
+  {
+    public string RaceKey { get; }
+
+    public bool IsChecked { get; }
+
+    public HorseCheckType Type { get; }
+
+    public HorseCheckChangedEventArgs(HorseCheckType type, string raceKey, bool isChecked)
+    {
+      this.Type = type;
+      this.RaceKey = raceKey;
+      this.IsChecked = isChecked;
     }
   }
 }

@@ -19,6 +19,8 @@ namespace KmyKeiba.Converters
     public ControlTemplate? MarkDoubleCircle { get; set; } = null;
     public ControlTemplate? MarkCircle { get; set; } = null;
     public ControlTemplate? MarkDeleted { get; set; } = null;
+    public ControlTemplate? MarkNote { get; set; } = null;
+    public ControlTemplate? MarkCheck { get; set; } = null;
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
@@ -33,6 +35,8 @@ namespace KmyKeiba.Converters
           RaceHorseMark.FilledTriangle => this.MarkFilledTriangle!,
           RaceHorseMark.Star => this.MarkStar!,
           RaceHorseMark.Deleted => this.MarkDeleted!,
+          RaceHorseMark.Check => this.MarkCheck!,
+          RaceHorseMark.Note => this.MarkNote!,
           _ => this.MarkDefault!,
         };
       }

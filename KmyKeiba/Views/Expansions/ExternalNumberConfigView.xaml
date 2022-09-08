@@ -50,7 +50,7 @@
                    IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}"
                    FontSize="20"/>
           <Button Grid.Column="1" Content="削除" VerticalAlignment="Bottom"
-                  Command="{Binding RemoveExternalNumberConfigCommand}"/>
+                  Command="{Binding RemoveExternalNumberConfigCommand}" CommandParameter="{Binding ExternalNumber.Configs.ActiveItem.Value,ElementName=Root}"/>
         </Grid>
 
         <ScrollViewer Grid.Row="3" IsEnabled="{Binding CanSave.Value}">

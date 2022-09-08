@@ -34,14 +34,33 @@
         </StackPanel.Resources>
         <TextBlock FontSize="28" Text="開始年月" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16"
                    Visibility="{Binding Downloader.IsBuildMasterData.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
-        <StackPanel Orientation="Horizontal" Margin="8,0,0,0"
-                    Visibility="{Binding Downloader.IsBuildMasterData.Value,Converter={StaticResource NegativeVisibilityConv}}">
+        <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
+          <StackPanel.Visibility>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="Downloader.IsBuildMasterData.Value" Converter="{StaticResource NegativeConv}"/>
+            </MultiBinding>
+          </StackPanel.Visibility>
           <ComboBox ItemsSource="{Binding Downloader.StartYearSelection}" SelectedItem="{Binding Downloader.StartYear.Value,Mode=TwoWay}"
                     FontSize="16" Width="80" VerticalAlignment="Top"/>
           <TextBlock Text="年" Style="{StaticResource TextBlockDefault}" FontSize="16" Margin="4,0"/>
           <ComboBox ItemsSource="{Binding Downloader.StartMonthSelection}" SelectedItem="{Binding Downloader.StartMonth.Value,Mode=TwoWay}"
                     FontSize="16" Width="50" VerticalAlignment="Top"/>
           <TextBlock Text="月" Style="{StaticResource TextBlockDefault}" FontSize="16" Margin="4,0"/>
+        </StackPanel>
+        <StackPanel Visibility="{Binding Downloader.IsBuildMasterData.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <ToggleButton FontSize="16" Content="拡張情報を生成する" IsChecked="{Binding Downloader.IsBuildExtraData.Value,Mode=TwoWay}"
+                        IsEnabled="{Binding CanSave.Value}"/>
+          <TextBlock FontSize="16" TextWrapping="Wrap" Margin="0,8,0,24">
+            <Run Foreground="{StaticResource SubForeground}">※拡張情報の作成によって一部の検索条件・拡張分析項目が利用可能になります</Run>
+          </TextBlock>
+          <Button Command="{Binding ResetHorseExtraDataCommand}">
+            <TextBlock FontSize="16" TextAlignment="Center">
+              拡張情報をリセット
+            </TextBlock>
+          </Button>
+          <TextBlock FontSize="16" TextWrapping="Wrap" Margin="0,8,0,24">
+            <Run Foreground="{StaticResource SubForeground}">※拡張情報リセットは、新たにJRDBと契約した場合、さらに過去のデータをダウンロードした場合などにご利用ください。最新データ差分処理時にリセットは必要ありません</Run>
+          </TextBlock>
         </StackPanel>
         <StackPanel>
           <StackPanel.Visibility>
@@ -80,6 +99,7 @@
       </StackPanel>
       <Grid Grid.Column="1">
         <Grid.RowDefinitions>
+          <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>
@@ -163,20 +183,20 @@
       <Run FontWeight="Bold" Foreground="{StaticResource BadForeground}" Text="データ保存中は、印付けや購入など一部操作ができなくなります。"/><LineBreak/>
       途中で中央競馬セットアップダイアログが<Run FontWeight="Bold" Text="２回以上"/>出ることがあります。
     </TextBlock>
-    <Grid Grid.Row="4" Margin="0,0,0,16">
+    <Grid Grid.Row="4" Margin="0,0,0,16" Height="36">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition/>
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition Width="auto"/>
       </Grid.ColumnDefinitions>
-      <Button Content="閉じる" FontSize="16" Width="80" VerticalAlignment="Bottom"
+      <Button Content="閉じる" FontSize="16" Width="80" Height="32" VerticalAlignment="Bottom"
               Command="{Binding CloseDialogCommand}" Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
-      <Button Content="閉じる（処理は継続されます）" FontSize="16" Width="240" VerticalAlignment="Bottom"
+      <Button Content="閉じる（処理は継続されます）" FontSize="16" Width="240" Height="32" VerticalAlignment="Bottom"
               Command="{Binding CloseDialogCommand}" Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
       <Button Content="開始" Grid.Column="3" FontSize="20" Width="100" Command="{Binding StartDownloadCommand}"
               Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
-      <Button Grid.Column="3" FontSize="14" Content="中止" Width="80" Command="{Binding CancelDownloadCommand}"
+      <Button Grid.Column="3" FontSize="14" Content="中止" Width="80" Height="32" VerticalAlignment="Bottom" Command="{Binding CancelDownloadCommand}"
               IsEnabled="{Binding Downloader.IsCancelProcessing.Value,Converter={StaticResource NegativeConv}}"
               Visibility="{Binding Downloader.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
     </Grid>

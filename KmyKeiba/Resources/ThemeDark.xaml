@@ -40,7 +40,7 @@
   <SolidColorBrush x:Key="NegativeForeground" Color="#50cfff"/>
   <SolidColorBrush x:Key="NoticeForeground" Color="#ff3088"/>
   <SolidColorBrush x:Key="HorseMarkForeground" Color="#ffcccc"/>
-  <SolidColorBrush x:Key="HorseMarkDeletedForeground" Color="#aaaaff"/>
+  <SolidColorBrush x:Key="HorseMarkDeletedForeground" Color="#99ccff"/>
   <SolidColorBrush x:Key="ProgressBarForeground" Color="#a0c0f0"/>
   <SolidColorBrush x:Key="TableListFocusedRowBackground" Color="#444455"/>
 

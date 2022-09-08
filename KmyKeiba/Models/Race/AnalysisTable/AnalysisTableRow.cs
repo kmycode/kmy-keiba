@@ -1,10 +1,12 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.Race.Memo;
+using KmyKeiba.Models.Script;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -14,14 +16,18 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race.AnalysisTable
 {
   public class AnalysisTableRow : IDisposable
   {
+    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
     private readonly CompositeDisposable _disposables = new();
-    private bool _isInitializingParentList = false;
+    public bool IsFreezeParentSelection { get; set; } = false;
+    private readonly bool _isInitialized = false;
 
     public AnalysisTableRowData Data { get; }
 
@@ -36,6 +42,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public ReactiveProperty<string> Limited { get; } = new();
 
     public ReactiveProperty<string> AlternativeValueIfEmpty { get; } = new();
+
+    public ReactiveProperty<string> ValueScript { get; } = new();
 
     public ReactiveProperty<AnalysisTableRowOutputType> Output { get; } = new();
 
@@ -54,6 +62,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public ReadOnlyReactiveProperty<bool> CanSetJrdbOutput { get; }
 
     public ReadOnlyReactiveProperty<bool> CanSetAlternativeValue { get; }
+
+    public ReadOnlyReactiveProperty<bool> CanSetScript { get; }
 
     public ReactiveCollection<AnalysisTableCell> Cells { get; } = new();
 
@@ -87,6 +97,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public bool IsFreezeExpansionMemoConfig { get; set; }
 
+    public bool IsFreezeExternalNumberConfig { get; set; }
+
     public AnalysisTableRow(AnalysisTableRowData data, AnalysisTableSurface table, IEnumerable<RaceHorseAnalyzer> horses)
     {
       this.Data = data;
@@ -98,7 +110,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
 
       var dummyRace = new RaceData();
-      var finder = new FinderModel(dummyRace, new RaceHorseAnalyzer(dummyRace, new RaceHorseData(), null), null)
+      var finder = new FinderModel(dummyRace, RaceHorseAnalyzer.Empty, null)
       {
         DefaultSize = 1000,
       };
@@ -109,6 +121,12 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.BaseWeight.Value = data.BaseWeight.ToString();
       this.Limited.Value = data.RequestedSize.ToString();
       this.AlternativeValueIfEmpty.Value = data.AlternativeValueIfEmpty.ToString();
+      this.ValueScript.Value = data.ValueScript;
+
+      if (string.IsNullOrEmpty(this.ValueScript.Value))
+      {
+        this.ValueScript.Value = "value";
+      }
 
       this.CanSetExternalNumber = this.Output.Select(o => o == AnalysisTableRowOutputType.ExternalNumber).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetMemoConfig = this.Output.Select(o => o == AnalysisTableRowOutputType.ExpansionMemo).ToReadOnlyReactiveProperty().AddTo(this._disposables);
@@ -127,6 +145,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         o == AnalysisTableRowOutputType.WinRate ||
         o == AnalysisTableRowOutputType.ExternalNumber ||
         o == AnalysisTableRowOutputType.ExpansionMemo ||
+        o == AnalysisTableRowOutputType.Binary ||
         o == AnalysisTableRowOutputType.HorseValues ||
         o == AnalysisTableRowOutputType.JrdbValues)
         .ToReadOnlyReactiveProperty().AddTo(this._disposables);
@@ -139,6 +158,16 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         o != AnalysisTableRowOutputType.ExpansionMemo &&
         o != AnalysisTableRowOutputType.HorseValues &&
         o != AnalysisTableRowOutputType.FixedValue).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+      this.CanSetScript = this.SelectedOutput.Where(o => o != null).Select(o => o!.OutputType).Select(o =>
+        o == AnalysisTableRowOutputType.ExpansionMemo ||
+        o == AnalysisTableRowOutputType.ExternalNumber ||
+        o == AnalysisTableRowOutputType.PlaceBetsRate ||
+        o == AnalysisTableRowOutputType.WinRate ||
+        o == AnalysisTableRowOutputType.RecoveryRate ||
+        o == AnalysisTableRowOutputType.FixedValue ||
+        o == AnalysisTableRowOutputType.FixedValuePerPastRace ||
+        o == AnalysisTableRowOutputType.HorseValues ||
+        o == AnalysisTableRowOutputType.JrdbValues).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetSubOutput = this.SelectedOutput
         .Where(o => o != null)
         .Select(o => o!.OutputType)
@@ -167,7 +196,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
       this.SelectedParent.Skip(1).Subscribe(async _ =>
       {
-        if (this._isInitializingParentList)
+        if (this.IsFreezeParentSelection)
         {
           return;
         }
@@ -182,6 +211,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.SelectedExternalNumber.Skip(1).Subscribe(async _ =>
       {
         if (this.Data.ExternalNumberId == (this.SelectedExternalNumber.Value?.Data.Id ?? 0))
+        {
+          return;
+        }
+        if (this.IsFreezeExternalNumberConfig)
         {
           return;
         }
@@ -264,7 +297,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             this.Output.Value = output.OutputType;
           }
         }
-      });
+      }).AddTo(this._disposables);
       this.SelectedJrdbOutput.Skip(1).Subscribe(output =>
       {
         if (output != null)
@@ -274,7 +307,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             this.Output.Value = output.OutputType;
           }
         }
-      });
+      }).AddTo(this._disposables);
 
       finder.Input.Deserialize(data.FinderConfig);
       finder.Input.Query.Skip(1).Subscribe(async _ =>
@@ -290,6 +323,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         .CombineLatest(this.BaseWeight)
         .CombineLatest(this.Limited)
         .CombineLatest(this.AlternativeValueIfEmpty)
+        .CombineLatest(this.ValueScript)
         .Skip(1).Subscribe(async _ =>
         {
           // TODO try catch
@@ -297,6 +331,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           db.AnalysisTableRows!.Attach(this.Data);
           this.Data.Name = this.Name.Value;
           this.Data.Output = this.Output.Value;
+          this.Data.ValueScript = this.ValueScript.Value;
           if (double.TryParse(this.BaseWeight.Value, out var bw))
           {
             this.Data.BaseWeight = bw;
@@ -311,6 +346,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           }
           await db.SaveChangesAsync();
         }).AddTo(this._disposables);
+
+      this._isInitialized = true;
     }
 
     public async Task LoadAsync(RaceData race, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly = false, bool isBilk = false)
@@ -325,7 +362,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       // 一括実行時は意味のない行は調べない
       if (isBilk)
       {
-        if (this.Data.Output != AnalysisTableRowOutputType.Binary && this.Data.BaseWeight == default)
+        if (this.Data.Output != AnalysisTableRowOutputType.Binary && this.Data.BaseWeight == default && this.Data.AlternativeValueIfEmpty == default)
         {
           return;
         }
@@ -346,6 +383,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       foreach (var item in this.Cells.Join(finders, c => c.Horse.Data.Key, f => f.RaceHorse?.Key, (c, f) => new { Cell = c, Finder = f, }))
       {
         // 親ブーリアンがFALSEなら、子セルを調べる必要なし
+        item.Cell.IsSkipped.Value = false;
         if (this.SelectedParent.Value != null && this.SelectedParent.Value.Data.Output == AnalysisTableRowOutputType.Binary)
         {
           var targetCell = this.SelectedParent.Value.Cells.FirstOrDefault(c => c.Horse.Data.Key == item.Cell.Horse.Data.Key);
@@ -353,9 +391,17 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           {
             if (targetCell.IsSkipped.Value)
             {
+              item.Cell.IsSkipped.Value = true;  // 孫Cellのために必要
               continue;
             }
           }
+        }
+
+        // 出走していない馬は調べる必要なし
+        if (item.Cell.Horse.IsAbnormalResult || item.Cell.Horse.Data.DataStatus == RaceDataStatus.Canceled)
+        {
+          item.Cell.IsSkipped.Value = true;
+          continue;
         }
 
         var query = keys;
@@ -451,6 +497,14 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             {
               this.AnalysisFixedValue(item.Cell.Horse.Data.Age, myWeights, item.Cell, item.Finder, digit: 0);
             }
+            else if (this.Data.Output == AnalysisTableRowOutputType.Weight)
+            {
+              this.AnalysisFixedValue(item.Cell.Horse.Data.Weight, myWeights, item.Cell, item.Finder, digit: 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.WeightDiff)
+            {
+              this.AnalysisFixedValue(item.Cell.Horse.Data.WeightDiff, myWeights, item.Cell, item.Finder, digit: 1);
+            }
             else if (this.Data.Output == AnalysisTableRowOutputType.PciAverage)
             {
               if (item.Cell.Horse.History == null)
@@ -473,6 +527,98 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             else if (this.Data.Output == AnalysisTableRowOutputType.TotalPoint)
             {
               this.TrySetJrdbValue(j => j.TotalPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.IdmPoint)
+            {
+              this.TrySetJrdbValue(j => j.IdmPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.PopularPoint)
+            {
+              this.TrySetJrdbValue(j => j.PopularPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.StablePoint)
+            {
+              this.TrySetJrdbValue(j => j.StablePoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.TrainingPoint)
+            {
+              this.TrySetJrdbValue(j => j.TrainingPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RiderTopRatioExpectPoint)
+            {
+              this.TrySetJrdbValue(j => j.RiderTopRatioExpectPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.SpeedPoint)
+            {
+              this.TrySetJrdbValue(j => j.SpeedPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RaceBefore3Point)
+            {
+              this.TrySetJrdbValue(j => j.RaceBefore3Point / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RaceBasePoint)
+            {
+              this.TrySetJrdbValue(j => j.RaceBasePoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RaceAfter3Point)
+            {
+              this.TrySetJrdbValue(j => j.RaceAfter3Point / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RacePositionPoint)
+            {
+              this.TrySetJrdbValue(j => j.RacePositionPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RaceStartPoint)
+            {
+              this.TrySetJrdbValue(j => j.RaceStartPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.RaceStartDelayPoint)
+            {
+              this.TrySetJrdbValue(j => j.RaceStartDelayPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.BigTicketPoint)
+            {
+              this.TrySetJrdbValue(j => j.BigTicketPoint / 10.0, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.IdentificationMarkCount1)
+            {
+              this.TrySetJrdbValue(j => j.IdentificationMarkCount1, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.IdentificationMarkCount2)
+            {
+              this.TrySetJrdbValue(j => j.IdentificationMarkCount2, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.IdentificationMarkCount3)
+            {
+              this.TrySetJrdbValue(j => j.IdentificationMarkCount3, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.IdentificationMarkCount4)
+            {
+              this.TrySetJrdbValue(j => j.IdentificationMarkCount4, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.IdentificationMarkCount5)
+            {
+              this.TrySetJrdbValue(j => j.IdentificationMarkCount5, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.TotalMarkCount1)
+            {
+              this.TrySetJrdbValue(j => j.TotalMarkCount1, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.TotalMarkCount2)
+            {
+              this.TrySetJrdbValue(j => j.TotalMarkCount2, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.TotalMarkCount3)
+            {
+              this.TrySetJrdbValue(j => j.TotalMarkCount3, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.TotalMarkCount4)
+            {
+              this.TrySetJrdbValue(j => j.TotalMarkCount4, myWeights, item.Cell, item.Finder, 1);
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.TotalMarkCount5)
+            {
+              this.TrySetJrdbValue(j => j.TotalMarkCount5, myWeights, item.Cell, item.Finder, 1);
             }
             else if (this.Data.Output == AnalysisTableRowOutputType.MiningTime)
             {
@@ -545,21 +691,21 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
         cell.ComparationValue.Value = isAny ? 1 : 0;
         cell.PointCalcValue.Value = isAny ? 1 : 0;
-        cell.Value.Value = isAny ? "●" : string.Empty;
         cell.HasComparationValue.Value = true;
         cell.IsSkipped.Value = !isAny;
         cell.SampleSize = 0;
 
-        if (weights.Any() && isAny)
+        if (isAny)
         {
-          var weightValue = weights.CalcWeight(items) * this.Data.BaseWeight;
-          cell.Weight = weightValue;
-          cell.Point.Value = cell.PointCalcValue.Value * weightValue;
+          this.AnalysisFixedValue(1, weights, cell, finder);
         }
-        else
+        else if (!isAny)
         {
-          cell.Point.Value = this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight;
+          this.AnalysisFixedValue(this.Data.AlternativeValueIfEmpty, weights, cell, finder);
         }
+
+        cell.Value.Value = isAny ? "●" : string.Empty;
+        cell.ScriptValue.Value = isAny ? "true" : "false";
       }
       else
       {
@@ -584,11 +730,13 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     {
       if (count >= this.Data.RequestedSize)
       {
-        cell.Point.Value = cell.PointCalcValue.Value * this.Data.BaseWeight;
+        var value = this.ExecuteScriptValue(cell.PointCalcValue.Value, cell);
+        cell.Point.Value = value * this.Data.BaseWeight;
       }
       if (count < this.Data.RequestedSize || count == 0)
       {
-        cell.Point.Value = this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight * weights.GetWeight(cell.Horse);
+        var value = this.ExecuteScriptValue(this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight * weights.GetWeight(cell.Horse), cell);
+        cell.Point.Value = value;
         if (count == 0)
         {
           cell.Value.Value = cell.SubValue.Value = string.Empty;
@@ -597,8 +745,92 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
     }
 
+    private double ExecuteScriptValue(double value, AnalysisTableCell cell)
+    {
+      cell.IsScriptError.Value = false;
+
+      if (this.CanSetScript.Value)
+      {
+        if (!string.IsNullOrWhiteSpace(this.Data.ValueScript) && this.Data.ValueScript.Trim() != "value")
+        {
+          using var engine = new StringScriptEngine();
+
+          var scriptVariables = new StringBuilder();
+          if (this.Data.ValueScript.Contains("race"))
+          {
+            var scriptRace = new ScriptRace(cell.Horse.Race);
+            var raceJson = scriptRace.ToJson();
+            scriptVariables.Append("const race=");
+            scriptVariables.Append(raceJson);
+            scriptVariables.Append(';');
+          }
+          if (this.Data.ValueScript.Contains("horses"))
+          {
+            var scriptHorses = this.Cells.Select(c => new ScriptRaceHorse(c.Horse.Race.Key, c.Horse, false)).ToArray();
+            var horsesJson = JsonSerializer.Serialize(scriptHorses, ScriptManager.JsonOptions);
+            scriptVariables.Append("const horses=");
+            scriptVariables.Append(horsesJson);
+            scriptVariables.Append(';');
+          }
+          if (this.Data.ValueScript.Contains("horse"))
+          {
+            var scriptHorse = new ScriptRaceHorse(cell.Horse.Race.Key, cell.Horse, false);
+            var horseJson = scriptHorse.ToJson();
+            scriptVariables.Append("const horse=");
+            scriptVariables.Append(horseJson);
+            scriptVariables.Append(';');
+          }
+          if (this.Data.ValueScript.Contains('$'))
+          {
+            var values = string.Join(';', this.Table.Rows
+              .Where(r => r.Data.Order < this.Data.Order)
+              .Select(r => new { RowId = r.Data.Id, Cell = r.Cells.FirstOrDefault(c => c.Horse.Data.Id == cell.Horse.Data.Id), })
+              .Where(c => c.Cell != null)
+              .Select(c => $"const ${c!.RowId}={(!string.IsNullOrEmpty(c.Cell!.ScriptValue.Value) ? c.Cell!.ScriptValue.Value : "0")}"));
+            scriptVariables.Append(values);
+            scriptVariables.Append(';');
+          }
+
+          try
+          {
+            var result = engine.Execute($"{scriptVariables} let value = {value}; " + this.Data.ValueScript);
+            if (result is int intval)
+            {
+              value = intval;
+            }
+            else if (result is short sval)
+            {
+              value = sval;
+            }
+            else if (result is double doval)
+            {
+              value = doval;
+            }
+            else if (result is float fval)
+            {
+              value = fval;
+            }
+            else
+            {
+              cell.IsScriptError.Value = true;
+            }
+          }
+          catch (Exception ex)
+          {
+            cell.IsScriptError.Value = true;
+            logger.Error($"スクリプトエラー {value}", ex);
+          }
+        }
+      }
+
+      return value;
+    }
+
     private void AnalysisFixedValue(double value, IEnumerable<AnalysisTableWeight> weights, AnalysisTableCell cell, RaceFinder finder, int digit = 3)
     {
+      cell.SubValue.Value = string.Empty;
+      value = this.ExecuteScriptValue(value, cell);
+
       if (weights.Any() && finder.RaceHorseAnalyzer != null)
       {
         var weightValue = weights.CalcWeight(new[] { finder.RaceHorseAnalyzer, }) * this.Data.BaseWeight;
@@ -613,6 +845,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         cell.Point.Value = cell.PointCalcValue.Value * this.Data.BaseWeight;
       }
       cell.Value.Value = value.ToString("N" + digit);
+      cell.ScriptValue.Value = value.ToString();
       cell.ComparationValue.Value = (float)cell.Point.Value;
       cell.SampleSize = 0;
       cell.HasComparationValue.Value = true;
@@ -668,6 +901,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           cell.PointCalcValue.Value = shortestTime.Time.TotalSeconds / 100;
           cell.SampleSize = 1;
           cell.SampleFilter = filter;
+          cell.ScriptValue.Value = shortestTime.Time.TotalSeconds.ToString();
 
           if (weights.Any())
           {
@@ -682,6 +916,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         cell.HasComparationValue.Value = analyzerSlim.AllGrade.AllCount > 0;
         cell.PointCalcValue.Value = analyzerSlim.RecoveryRate;
         cell.SampleSize = 0;
+        cell.ScriptValue.Value = analyzerSlim.RecoveryRate.ToString();
 
         if (weights.Any() && source.Items.Any())
         {
@@ -710,6 +945,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           cell.Value.Value = cell.PointCalcValue.Value.ToString("P1");
           cell.SubValue.Value = source.Items.Count.ToString();
           cell.ComparationValue.Value = (float)cell.PointCalcValue.Value;
+          cell.ScriptValue.Value = cell.PointCalcValue.Value.ToString();
           cell.HasComparationValue.Value = true;
         }
         else
@@ -724,6 +960,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         {
           cell.Value.Value = grade.PlacingBetsRate.ToString("P1");
           cell.SubValue.Value = $"{grade.PlacingBetsCount} / {grade.AllCount}";
+          cell.ScriptValue.Value = grade.PlacingBetsRate.ToString();
           cell.ComparationValue.Value = grade.PlacingBetsRate;
           cell.HasComparationValue.Value = grade.AllCount > 0;
           cell.PointCalcValue.Value = grade.PlacingBetsRate;
@@ -745,6 +982,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         {
           cell.Value.Value = grade.WinRate.ToString("P1");
           cell.SubValue.Value = $"{grade.FirstCount} / {grade.AllCount}";
+          cell.ScriptValue.Value = grade.WinRate.ToString();
           cell.ComparationValue.Value = grade.WinRate;
           cell.HasComparationValue.Value = grade.AllCount > 0;
           cell.PointCalcValue.Value = grade.WinRate;
@@ -783,14 +1021,23 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public void OnParentListUpdated()
     {
-      this._isInitializingParentList = true;
+      this.IsFreezeParentSelection = true;
       this.SelectedParent.Value = this.Table.ParentRowSelections.FirstOrDefault(r => r.Data.Id == this.Data.ParentRowId);
-      this._isInitializingParentList = false;
+      this.IsFreezeParentSelection = false;
     }
 
     public void ReloadMemoConfigProperty()
     {
       this.SelectedMemoConfig.Value = MemoUtil.Configs.FirstOrDefault(c => c.Id == this.Data.MemoConfigId);
+    }
+
+    public void ReloadExternalNumbersProperty(IEnumerable<ExternalNumberConfigItem> configs)
+    {
+      if (!this._isInitialized)
+      {
+        return;
+      }
+      this.SelectedExternalNumber.Value = configs.FirstOrDefault(c => c.Data.Id == this.Data.ExternalNumberId);
     }
 
     public void Dispose()
@@ -810,11 +1057,15 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<double> Point { get; } = new();
 
+    public ReactiveProperty<string> ScriptValue { get; } = new();
+
     public ReactiveProperty<float> ComparationValue { get; } = new();
 
     public ReactiveProperty<bool> HasComparationValue { get; } = new();
 
     public ReactiveProperty<bool> IsSkipped { get; } = new();
+
+    public ReactiveProperty<bool> IsScriptError { get; } = new();
 
     public ReactiveProperty<ValueComparation> Comparation { get; } = new();
 

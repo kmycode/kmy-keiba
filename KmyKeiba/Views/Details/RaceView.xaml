@@ -63,10 +63,16 @@
           <TextBlock Text="{Binding Race.Data.Distance,ElementName=Root}" HorizontalAlignment="Center"
                      FontSize="14" Height="18"/>
         </StackPanel>
-        <TextBlock Grid.Column="4" FontSize="16" TextAlignment="Center" Margin="16,0,8,0" VerticalAlignment="Center" Width="40">
-          <Run Text="{Binding Race.Weather.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/><LineBreak/>
-          <Run Text="{Binding Race.Condition.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
-        </TextBlock>
+        <StackPanel Grid.Column="4" VerticalAlignment="Center" Width="48">
+          <TextBlock FontSize="16" TextAlignment="Center" Margin="16,0,0,0"
+                     Text="{Binding Race.Weather.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
+          <TextBlock FontSize="16" TextAlignment="Center" Margin="16,0,0,0"
+                     Visibility="{Binding Race.IsBanei,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"
+                     Text="{Binding Race.Condition.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
+          <TextBlock FontSize="16" TextAlignment="Center" Margin="16,0,0,0"
+                     Visibility="{Binding Race.IsBanei,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                     Text="{Binding Race.Data.BaneiMoisture,ElementName=Root,Converter={StaticResource DigitMinusConv}}"/>
+        </StackPanel>
         <TextBlock Grid.Column="5" Text="{Binding Race.Name,ElementName=Root}" FontSize="28" FontWeight="Bold"
                    VerticalAlignment="Center" Margin="24,0,0,0"/>
         <ItemsControl Grid.Column="7" ItemsSource="{Binding Race.MemoEx.Value.RaceMemoSelections,ElementName=Root}"

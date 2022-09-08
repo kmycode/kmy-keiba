@@ -63,7 +63,7 @@ namespace KmyKeiba.Models.Script
     }
   }
 
-  internal class ConfigureScriptEngineWrapper : ScriptEngineWrapperBase
+  internal class ConfigureScriptEngineWrapper : FileScriptEngine
   {
     public ScriptConfiguration Configuration { get; } = new();
 
