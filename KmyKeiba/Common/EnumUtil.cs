@@ -33,6 +33,8 @@ namespace KmyKeiba.Common
       };
     }
 
+    #region JV-Link
+
     public static string ToLabelString(this RunningStyle style)
     {
       return style switch
@@ -170,6 +172,38 @@ namespace KmyKeiba.Common
         _ => string.Empty,
       };
     }
+
+    #endregion
+
+    #region JRDB
+
+    public static string ToLabelString(this HorseClimb climb)
+    {
+      return climb switch
+      {
+        HorseClimb.AA => "AA",
+        HorseClimb.A => "A",
+        HorseClimb.B => "B",
+        HorseClimb.C => "C",
+        HorseClimb.Difficult => "?",
+        _ => string.Empty,
+      };
+    }
+
+    public static string ToDescriptionString(this HorseClimb climb)
+    {
+      return climb switch
+      {
+        HorseClimb.AA => "かなりの上積みが期待でき、勝つ可能性は高い",
+        HorseClimb.A => "まずまずの上積みが望め、好勝負ができる",
+        HorseClimb.B => "次走も同じ様な状態でレースに挑む",
+        HorseClimb.C => "ギリギリの仕上げであったため、次走はガタの来そうな気配",
+        HorseClimb.Difficult => "調子落ちの傾向、厳しいレースになる",
+        _ => string.Empty,
+      };
+    }
+
+    #endregion
   }
 
   public static class ValueUtil
