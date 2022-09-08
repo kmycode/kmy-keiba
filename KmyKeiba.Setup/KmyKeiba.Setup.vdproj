@@ -1066,13 +1066,19 @@
         "Entry"
         {
         "MsmKey" = "8:_5CB31FF75211872D1B4FEED265A1573E"
+        "OwnerKey" = "8:_36B170CDE6D9A6B642C60BE931C3284C"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_5CB31FF75211872D1B4FEED265A1573E"
         "OwnerKey" = "8:_74DA06997610480B96D8DBEEEC4AD8CE"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_5CB31FF75211872D1B4FEED265A1573E"
-        "OwnerKey" = "8:_36B170CDE6D9A6B642C60BE931C3284C"
+        "OwnerKey" = "8:_6890ADF7995B4C56B5B8227009938BC4"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1445,12 +1451,6 @@
         {
         "MsmKey" = "8:_7295440E45AA00AA56CB7037328FCF7B"
         "OwnerKey" = "8:_68C4FBE861B333BDA95D67A77E9D050A"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_72C20840D102868F3C9DCF2E0BE9B92F"
-        "OwnerKey" = "8:_6890ADF7995B4C56B5B8227009938BC4"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1942,6 +1942,12 @@
         "Entry"
         {
         "MsmKey" = "8:_9C94E67654352EC9209F6538D308A694"
+        "OwnerKey" = "8:_5CB31FF75211872D1B4FEED265A1573E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_9C94E67654352EC9209F6538D308A694"
         "OwnerKey" = "8:_CF603FEA7D9345759B8ECFF7331C4660"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1949,18 +1955,6 @@
         {
         "MsmKey" = "8:_9C94E67654352EC9209F6538D308A694"
         "OwnerKey" = "8:_74DA06997610480B96D8DBEEEC4AD8CE"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_9C94E67654352EC9209F6538D308A694"
-        "OwnerKey" = "8:_5CB31FF75211872D1B4FEED265A1573E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_9C94E67654352EC9209F6538D308A694"
-        "OwnerKey" = "8:_72C20840D102868F3C9DCF2E0BE9B92F"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -2200,6 +2194,12 @@
         "Entry"
         {
         "MsmKey" = "8:_B6F85F5BB05B1B409B5B7B77743B5AA3"
+        "OwnerKey" = "8:_5CB31FF75211872D1B4FEED265A1573E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_B6F85F5BB05B1B409B5B7B77743B5AA3"
         "OwnerKey" = "8:_CF603FEA7D9345759B8ECFF7331C4660"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -2218,19 +2218,7 @@
         "Entry"
         {
         "MsmKey" = "8:_B6F85F5BB05B1B409B5B7B77743B5AA3"
-        "OwnerKey" = "8:_5CB31FF75211872D1B4FEED265A1573E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_B6F85F5BB05B1B409B5B7B77743B5AA3"
         "OwnerKey" = "8:_0A1461783F88C504315FB5579282AAFA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_B6F85F5BB05B1B409B5B7B77743B5AA3"
-        "OwnerKey" = "8:_72C20840D102868F3C9DCF2E0BE9B92F"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -2296,6 +2284,12 @@
         "Entry"
         {
         "MsmKey" = "8:_BB96A6DB6806B34EEF582E54946479E1"
+        "OwnerKey" = "8:_5CB31FF75211872D1B4FEED265A1573E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_BB96A6DB6806B34EEF582E54946479E1"
         "OwnerKey" = "8:_CF603FEA7D9345759B8ECFF7331C4660"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -2320,19 +2314,7 @@
         "Entry"
         {
         "MsmKey" = "8:_BB96A6DB6806B34EEF582E54946479E1"
-        "OwnerKey" = "8:_5CB31FF75211872D1B4FEED265A1573E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_BB96A6DB6806B34EEF582E54946479E1"
         "OwnerKey" = "8:_0A1461783F88C504315FB5579282AAFA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_BB96A6DB6806B34EEF582E54946479E1"
-        "OwnerKey" = "8:_72C20840D102868F3C9DCF2E0BE9B92F"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -3028,12 +3010,6 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_7F431B12A98CC7C1296AB5C003730A98"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_FE22D92EE8C981710445AD4C73E7B0BF"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -3053,6 +3029,12 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_F0BD0E1E528E436B81426E477DC18C2D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_7F431B12A98CC7C1296AB5C003730A98"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -3488,7 +3470,7 @@
                 {
                 "Name" = "8:.NET Core"
                 "Message" = "8:[VSDNETCOREMSG]"
-                "FrameworkVersion" = "8:6.0                                    "
+                "FrameworkVersion" = "8:6.0                                      "
                 "AllowLaterVersions" = "11:FALSE"
                 "InstallUrl" = "8:https://dotnet.microsoft.com/download/dotnet-core/[NetCoreVerMajorDotMinor]"
                 "IsNETCore" = "11:TRUE"
@@ -3891,7 +3873,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=4.2.2.0, Culture=neutral, processorArchitecture=x86"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=4.3.0.0, Culture=neutral, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
                     "_0DE5948B8B144D90AAEB705FDBC9E3EC"
@@ -4842,7 +4824,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.JVLink, Version=4.2.2.0, Culture=neutral, processorArchitecture=x86"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.JVLink, Version=4.3.0.0, Culture=neutral, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
                     "_36B170CDE6D9A6B642C60BE931C3284C"
@@ -5651,7 +5633,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=4.2.2.0, Culture=neutral, processorArchitecture=x86"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=4.3.0.0, Culture=neutral, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
                     "_5CB31FF75211872D1B4FEED265A1573E"
@@ -5939,7 +5921,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba, Version=4.2.2.0, Culture=neutral, processorArchitecture=AMD64"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba, Version=4.3.0.0, Culture=neutral, processorArchitecture=AMD64"
                 "ScatterAssemblies"
                 {
                     "_6890ADF7995B4C56B5B8227009938BC4"
@@ -6416,37 +6398,6 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_72C20840D102868F3C9DCF2E0BE9B92F"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=4.2.2.0, Culture=neutral, processorArchitecture=AMD64"
-                "ScatterAssemblies"
-                {
-                    "_72C20840D102868F3C9DCF2E0BE9B92F"
-                    {
-                    "Name" = "8:KmyKeiba.Data.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:KmyKeiba.Data.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_6415338005AE42058FF808F426F55581"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_73B729326B0DEC1A018F5081E0BDF8D6"
             {
             "AssemblyRegister" = "3:1"
@@ -6584,7 +6535,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.Downloader, Version=4.2.2.0, Culture=neutral, processorArchitecture=x86"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.Downloader, Version=4.3.0.0, Culture=neutral, processorArchitecture=x86"
                 "ScatterAssemblies"
                 {
                     "_74DA06997610480B96D8DBEEEC4AD8CE"
@@ -9056,7 +9007,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=4.2.2.0, Culture=neutral, processorArchitecture=AMD64"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.Data, Version=4.3.0.0, Culture=neutral, processorArchitecture=AMD64"
                 "ScatterAssemblies"
                 {
                     "_CF603FEA7D9345759B8ECFF7331C4660"
@@ -9881,7 +9832,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:KmyKeiba.ML, Version=4.2.2.0, Culture=neutral, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:KmyKeiba.ML, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_F0BD0E1E528E436B81426E477DC18C2D"
@@ -10697,15 +10648,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:KMY競馬"
-        "ProductCode" = "8:{19781A19-A84C-4853-9756-2690F31A2063}"
-        "PackageCode" = "8:{9CC91DF0-D77D-463B-923C-03421521EE6E}"
+        "ProductCode" = "8:{2546EC47-C5F0-4B71-89EB-DBBBCBA9B382}"
+        "PackageCode" = "8:{61DE78FD-5DD7-4DDD-A96A-2C47753C77E9}"
         "UpgradeCode" = "8:{C4229F39-C86E-4932-846F-5AAB816B4C5C}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:4.2.2"
+        "ProductVersion" = "8:4.3.1"
         "Manufacturer" = "8:KMYsofts"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:https://github.com/kmycode/kmy-keiba/wiki"
