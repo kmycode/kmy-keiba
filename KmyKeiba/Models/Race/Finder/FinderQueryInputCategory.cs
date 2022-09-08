@@ -187,6 +187,7 @@ namespace KmyKeiba.Models.Race.Finder
           if (obj is not FinderQueryNumberInput ||
             (property.Name != nameof(FinderQueryNumberInput.ComparationWithBeforeRaceComment) &&
              property.Name != nameof(FinderQueryNumberInput.CanCompareCurrentRaceValue) &&
+             property.Name != nameof(FinderQueryNumberInput.CanCompareDefaultValue) &&
              property.Name != nameof(FinderQueryNumberInput.CanCompareAsBeforeRace)))
           {
             this.PropertyToString(property, text, obj);
@@ -334,7 +335,8 @@ namespace KmyKeiba.Models.Race.Finder
         {
           if (obj is not FinderQueryNumberInput ||
             (property.Name != nameof(FinderQueryNumberInput.CanCompareCurrentRaceValue) &&
-             property.Name != nameof(FinderQueryNumberInput.CanCompareAsBeforeRace)))
+             property.Name != nameof(FinderQueryNumberInput.CanCompareAsBeforeRace) &&
+             property.Name != nameof(FinderQueryNumberInput.CanCompareDefaultValue)))
           {
             var value = data == "true";
             property.SetValue(obj, value);
@@ -417,6 +419,17 @@ namespace KmyKeiba.Models.Race.Finder
     }
     private bool _canCompareCurrentRaceValue = true;
 
+    protected bool CanCompareDefaultValue
+    {
+      get => this._canCompareDefaultValue;
+      set
+      {
+        this._canCompareDefaultValue = value;
+        this.NumberInput.CanCompareDefaultValue = value;
+      }
+    }
+    private bool _canCompareDefaultValue = true;
+
     protected ListBoxInputCategoryBase(string key) : this(key, true, false)
     {
     }
@@ -464,7 +477,11 @@ namespace KmyKeiba.Models.Race.Finder
     {
       if (this.IsSetCurrentRaceValue.Value || this.IsSetCurrentRaceHorseValue.Value)
       {
-        return this.Key;
+        if (this.CanCompareDefaultValue)
+        {
+          return this.Key;
+        }
+        return $"{this.Key}=:0";
       }
       if (this.IsSetNumericComparation.Value)
       {
@@ -531,6 +548,7 @@ namespace KmyKeiba.Models.Race.Finder
       {
         r = r || propertyName == nameof(NumberInput);
         r = r || propertyName == nameof(IsSetNumericComparation);
+        r = r || propertyName == nameof(CanCompareDefaultValue);
       }
       r = r || propertyName == nameof(CanCompareCurrentRaceValue);
       return r;
@@ -2793,6 +2811,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public PciInputCategory() : base("pci", 2, true)
     {
+      this.Input.CanCompareDefaultValue = false;
     }
   }
 
@@ -2800,6 +2819,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public Pci3InputCategory() : base("pci3", 2)
     {
+      this.Input.CanCompareDefaultValue = false;
     }
   }
 
@@ -2807,6 +2827,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public RpciInputCategory() : base("rpci", 2)
     {
+      this.Input.CanCompareDefaultValue = false;
     }
   }
 
@@ -2815,6 +2836,7 @@ namespace KmyKeiba.Models.Race.Finder
     public Before3hNormalizedInputCategory() : base("racebefore3hn", 1)
     {
       this.Input.CanCompareAsBeforeRace = false;
+      this.Input.CanCompareDefaultValue = false;
     }
   }
 
@@ -2824,36 +2846,41 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class IdmPointInputCategory : FloatNumberInputCategoryBase
   {
-    public IdmPointInputCategory() : base("idmpoint", 1)
+    public IdmPointInputCategory() : base("idmpoint", 1, true)
     {
+      this.Input.CanCompareDefaultValue = false;
     }
   }
 
   public class RiderPointInputCategory : FloatNumberInputCategoryBase
   {
-    public RiderPointInputCategory() : base("riderpoint", 1)
+    public RiderPointInputCategory() : base("riderpoint", 1, true)
     {
+      this.Input.CanCompareDefaultValue = false;
     }
   }
 
   public class InfoPointInputCategory : FloatNumberInputCategoryBase
   {
-    public InfoPointInputCategory() : base("infopoint", 1)
+    public InfoPointInputCategory() : base("infopoint", 1, true)
     {
+      this.Input.CanCompareDefaultValue = false;
     }
   }
 
   public class TotalPointInputCategory : FloatNumberInputCategoryBase
   {
-    public TotalPointInputCategory() : base("totalpoint", 1)
+    public TotalPointInputCategory() : base("totalpoint", 1, true)
     {
+      this.Input.CanCompareDefaultValue = false;
     }
   }
 
   public class HorseClimbInputCategory : ListBoxInputCategoryBase<HorseClimb>
   {
-    public HorseClimbInputCategory() : base("climb")
+    public HorseClimbInputCategory() : base("climb", true, true)
     {
+      this.CanCompareDefaultValue = false;
       base.SetItems(new[]
       {
         new FinderQueryInputListItem<HorseClimb>("なし", HorseClimb.Unknown),
@@ -2879,6 +2906,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public TrainingCatchupPointInputCategory() : base("trainingcatchuppoint")
     {
+      this.Input.CanCompareCurrentRaceValue = false;
     }
   }
 
@@ -2886,6 +2914,7 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public TrainingFinishPointInputCategory() : base("trainingfinishpoint")
     {
+      this.Input.CanCompareCurrentRaceValue = false;
     }
   }
 

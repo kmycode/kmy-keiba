@@ -5,6 +5,7 @@ using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Memo;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -1420,9 +1421,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     public RaceHorseData? Horse { get; }
 
+    public RaceHorseAnalyzer? Analyzer { get; }
+
     public bool IsCompareCurrentRace { get; }
 
-    public ExpressionScriptKeyQuery(QueryKey key, QueryType type, int value, int maxValue, RaceData? race, RaceHorseData? horse, bool isCompareCurrentRace)
+    public ExpressionScriptKeyQuery(QueryKey key, QueryType type, int value, int maxValue, RaceData? race, RaceHorseData? horse, RaceHorseAnalyzer? analyzer, bool isCompareCurrentRace)
     {
       if (maxValue < value)
       {
@@ -1438,10 +1441,11 @@ namespace KmyKeiba.Models.Race.Finder
       this.MaxValue = maxValue;
       this.Race = race;
       this.Horse = horse;
+      this.Analyzer = analyzer;
       this.IsCompareCurrentRace = isCompareCurrentRace;
     }
 
-    public ExpressionScriptKeyQuery(QueryKey key, QueryType type, int value, RaceData? race, RaceHorseData? horse, bool isCompareCurrentRace) : this(key, type, value, value, race, horse, isCompareCurrentRace)
+    public ExpressionScriptKeyQuery(QueryKey key, QueryType type, int value, RaceData? race, RaceHorseData? horse, RaceHorseAnalyzer? analyzer, bool isCompareCurrentRace) : this(key, type, value, value, race, horse, analyzer, isCompareCurrentRace)
     {
     }
 
@@ -1803,7 +1807,10 @@ namespace KmyKeiba.Models.Race.Finder
       var isCompareCurrentRace = false;
       if (this.IsCompareCurrentRace)
       {
-        object? obj = typeof(T) == typeof(RaceData) ? this.Race : this.Horse;
+        object? obj =
+          typeof(T) == typeof(RaceData) ? this.Race :
+          typeof(T) == typeof(JrdbRaceHorseData) ? this.Analyzer?.JrdbData :
+          typeof(T) == typeof(RaceHorseExtraData) ? this.Analyzer?.ExtraData : this.Horse;
         if (obj != null)
         {
           Expression currentProperty = Expression.Property(Expression.Constant(obj), propertyName);

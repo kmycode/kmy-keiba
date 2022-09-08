@@ -86,6 +86,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     public bool CanCompareAsBeforeRace { get; set; } = true;
 
+    public bool CanCompareDefaultValue { get; set; } = true;
+
     public FinderQueryNumberInput(bool isCompareWithHorse)
     {
       this.IsCompareWithHorse = isCompareWithHorse;
@@ -137,7 +139,14 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (!decimal.TryParse(this.Value.Value, out var dmin))
       {
-        return this.IsCustomized.Value ? "#" : string.Empty;
+        if (this.CanCompareDefaultValue)
+        {
+          return this.IsCustomized.Value ? "#" : string.Empty;
+        }
+        else
+        {
+          return this.IsCustomized.Value ? "=:0" : string.Empty;
+        }
       }
       var min = this.ConvertValue(dmin);
 

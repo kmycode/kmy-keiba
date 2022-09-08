@@ -122,7 +122,7 @@ namespace KmyKeiba.Models.Race.Finder
             if (data[1].StartsWith("$$"))
             {
               data[1] = data[1][2..];
-              queryRaw = GetQuery(type, data[0], data[1], race, horse);
+              queryRaw = GetQuery(type, data[0], data[1], race, horse, horseAnalyzer);
               var query = queryRaw.Item1;
               if (query != null && query is ExpressionScriptKeyQuery exp)
               {
@@ -136,7 +136,7 @@ namespace KmyKeiba.Models.Race.Finder
             else if (data[1].StartsWith('$'))
             {
               data[1] = data[1][1..];
-              queryRaw = GetQuery(type, data[0], data[1], race, horse);
+              queryRaw = GetQuery(type, data[0], data[1], race, horse, horseAnalyzer);
               var query = queryRaw.Item1;
               if (query != null && query is ExpressionScriptKeyQuery exp)
               {
@@ -149,7 +149,7 @@ namespace KmyKeiba.Models.Race.Finder
             }
             else
             {
-              queryRaw = GetQuery(type, data[0], data[1], race, horse);
+              queryRaw = GetQuery(type, data[0], data[1], race, horse, horseAnalyzer);
               var query = queryRaw.Item1;
               if (query is ExpressionScriptKeyQuery exp)
               {
@@ -1021,7 +1021,7 @@ namespace KmyKeiba.Models.Race.Finder
       return (QueryKey.Unknown, null);
     }
 
-    private static (ScriptKeyQuery?, QueryKeyAttribute?) GetQuery(QueryType type, string scriptKey, string value, RaceData? race, RaceHorseData? horse)
+    private static (ScriptKeyQuery?, QueryKeyAttribute?) GetQuery(QueryType type, string scriptKey, string value, RaceData? race, RaceHorseData? horse, RaceHorseAnalyzer? analyzer)
     {
       var key = GetKeyInfo(scriptKey);
       if (key.Item1 == QueryKey.Unknown)
@@ -1061,14 +1061,14 @@ namespace KmyKeiba.Models.Race.Finder
           if (int.TryParse(data[0], out var min) && int.TryParse(data[1], out var max))
           {
             // 2-4
-            return (new ExpressionScriptKeyQuery(key.Item1, type == QueryType.Equals ? QueryType.RangeOrEqual : QueryType.NotRangeOrEqual, min, max, race, horse, isCompareCurrentRace), key.Item2);
+            return (new ExpressionScriptKeyQuery(key.Item1, type == QueryType.Equals ? QueryType.RangeOrEqual : QueryType.NotRangeOrEqual, min, max, race, horse, analyzer, isCompareCurrentRace), key.Item2);
           }
         }
         else
         {
           if (int.TryParse(value, out var val))
           {
-            return (new ExpressionScriptKeyQuery(key.Item1, type, val, race, horse, isCompareCurrentRace), key.Item2);
+            return (new ExpressionScriptKeyQuery(key.Item1, type, val, race, horse, analyzer, isCompareCurrentRace), key.Item2);
           }
         }
       }
