@@ -154,9 +154,13 @@ namespace KmyKeiba.Models.Race.Finder
 
     public IdmPointInputCategory IdmPoint { get; }
 
+    public RiderPointInputCategory RiderPoint { get; }
+
     public InfoPointInputCategory InfoPoint { get; }
 
     public TotalPointInputCategory TotalPoint { get; }
+
+    public HorseClimbInputCategory Climb { get; }
 
     public TrainingCatchupPointInputCategory TrainingCatchupPoint { get; }
 
@@ -267,8 +271,10 @@ namespace KmyKeiba.Models.Race.Finder
       this._categories.Add(this.SameRaceHorse = new SameRaceHorseInputCategory(race, analyzer));
       this._categories.Add(this.BeforeRace = new BeforeRaceInputCategory(race, analyzer));
       this._categories.Add(this.IdmPoint = new IdmPointInputCategory());
+      this._categories.Add(this.RiderPoint = new RiderPointInputCategory());
       this._categories.Add(this.InfoPoint = new InfoPointInputCategory());
       this._categories.Add(this.TotalPoint = new TotalPointInputCategory());
+      this._categories.Add(this.Climb = new HorseClimbInputCategory());
       this._categories.Add(this.TrainingCatchupPoint = new TrainingCatchupPointInputCategory());
       this._categories.Add(this.TrainingFinishPoint = new TrainingFinishPointInputCategory());
       this._categories.Add(this.Pci = new PciInputCategory());

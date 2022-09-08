@@ -999,11 +999,20 @@
           <StackPanel Width="350">
             <local:InputNumberView Input="{Binding FinderModel.Input.IdmPoint.Input,ElementName=Root}"
                                    Header="IDM指数"/>
+            <local:InputNumberView Input="{Binding FinderModel.Input.RiderPoint.Input,ElementName=Root}"
+                                   Header="騎手指数" Margin="0,8,0,0"/>
             <local:InputNumberView Input="{Binding FinderModel.Input.InfoPoint.Input,ElementName=Root}"
                                    Header="情報指数" Margin="0,8,0,0"/>
             <local:InputNumberView Input="{Binding FinderModel.Input.TotalPoint.Input,ElementName=Root}"
                                    Header="総合指数" Margin="0,8,0,0"/>
           </StackPanel>
+          <Grid Width="100" Margin="8,0,0,0">
+            <Grid.RowDefinitions>
+              <RowDefinition/>
+              <RowDefinition/>
+            </Grid.RowDefinitions>
+            <local:InputListBoxView Input="{Binding FinderModel.Input.Climb,ElementName=Root}" Header="上昇度"/>
+          </Grid>
         </StackPanel>
       </ScrollViewer>
 

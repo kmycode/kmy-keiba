@@ -1274,10 +1274,14 @@ namespace KmyKeiba.Models.Race.Finder
 
     [NumericQueryKey("idmpoint", QueryTarget.JrdbRaceHorse)]
     IdmPoint,
+    [NumericQueryKey("riderpoint", QueryTarget.JrdbRaceHorse)]
+    RiderPoint,
     [NumericQueryKey("infopoint", QueryTarget.JrdbRaceHorse)]
     InfoPoint,
     [NumericQueryKey("totalpoint", QueryTarget.JrdbRaceHorse)]
     TotalPoint,
+    [NumericQueryKey("climb", QueryTarget.JrdbRaceHorse)]
+    HorseClimb,
 
     [NumericQueryKey("trainingcatchuppoint", QueryTarget.RaceHorseExtra)]
     TrainingCatchupPoint,

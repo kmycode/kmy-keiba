@@ -1664,10 +1664,14 @@ namespace KmyKeiba.Models.Race.Finder
       {
         case QueryKey.IdmPoint:
           return this.BuildNumericQuery<JrdbRaceHorseData>(nameof(JrdbRaceHorseData.IdmPoint));
+        case QueryKey.RiderPoint:
+          return this.BuildNumericQuery<JrdbRaceHorseData>(nameof(JrdbRaceHorseData.RiderPoint));
         case QueryKey.InfoPoint:
           return this.BuildNumericQuery<JrdbRaceHorseData>(nameof(JrdbRaceHorseData.InfoPoint));
         case QueryKey.TotalPoint:
           return this.BuildNumericQuery<JrdbRaceHorseData>(nameof(JrdbRaceHorseData.TotalPoint));
+        case QueryKey.HorseClimb:
+          return this.BuildNumericQuery<JrdbRaceHorseData>(nameof(JrdbRaceHorseData.Climb), isEnum: true);
       }
 
       return j => true;

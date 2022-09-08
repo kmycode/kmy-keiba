@@ -2829,6 +2829,13 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
+  public class RiderPointInputCategory : FloatNumberInputCategoryBase
+  {
+    public RiderPointInputCategory() : base("riderpoint", 1)
+    {
+    }
+  }
+
   public class InfoPointInputCategory : FloatNumberInputCategoryBase
   {
     public InfoPointInputCategory() : base("infopoint", 1)
@@ -2840,6 +2847,27 @@ namespace KmyKeiba.Models.Race.Finder
   {
     public TotalPointInputCategory() : base("totalpoint", 1)
     {
+    }
+  }
+
+  public class HorseClimbInputCategory : ListBoxInputCategoryBase<HorseClimb>
+  {
+    public HorseClimbInputCategory() : base("climb")
+    {
+      base.SetItems(new[]
+      {
+        new FinderQueryInputListItem<HorseClimb>("なし", HorseClimb.Unknown),
+        new FinderQueryInputListItem<HorseClimb>("AA (最良)", HorseClimb.AA),
+        new FinderQueryInputListItem<HorseClimb>("A (好勝負)", HorseClimb.A),
+        new FinderQueryInputListItem<HorseClimb>("B (維持)", HorseClimb.B),
+        new FinderQueryInputListItem<HorseClimb>("C (心配)", HorseClimb.C),
+        new FinderQueryInputListItem<HorseClimb>("? (調子落ち)", HorseClimb.Difficult),
+      });
+    }
+
+    protected override string ToQueryValue(HorseClimb value)
+    {
+      return ((short)value).ToString();
     }
   }
 
