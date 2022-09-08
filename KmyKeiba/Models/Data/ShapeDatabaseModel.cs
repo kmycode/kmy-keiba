@@ -626,6 +626,9 @@ namespace KmyKeiba.Models.Data
                     var pci3Value = (short)pci3;
                     var rpciValue = (short)rpci;
 
+                    data.Pci3 = pci3Value;
+                    data.Rpci = rpciValue;
+
                     pciCaches[horse.Race.Key] = (pci3Value, rpciValue);
                   }
                   catch { }
@@ -1153,6 +1156,55 @@ namespace KmyKeiba.Models.Data
       catch (Exception ex)
       {
         logger.Error("3.2.2からのマイグレーションでエラー", ex);
+      }
+    }
+
+    public static async Task MigrateFrom430Async(ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
+    {
+      using var db = new MyContext();
+      await db.TryBeginTransactionAsync();
+
+      var targets = db.RaceHorseExtras!
+        .Where(e => e.Rpci == 0 || e.Pci3 == 0)
+        .Join(db.RaceHorses!, e => new { e.Key, e.RaceKey, }, rh => new { rh.Key, rh.RaceKey, }, (e, rh) => new { Extra = e, RaceHorse = rh, })
+        .Where(d => d.RaceHorse.ExtraDataVersion >= 1 && d.RaceHorse.ExtraDataState == HorseExtraDataState.AfterRace &&
+          (d.RaceHorse.Course <= RaceCourse.CentralMaxValue || d.RaceHorse.Course == RaceCourse.Urawa || d.RaceHorse.Course == RaceCourse.Oi || d.RaceHorse.Course == RaceCourse.Kawazaki || d.RaceHorse.Course == RaceCourse.Funabashi));
+
+      try
+      {
+        if (!await targets.AnyAsync())
+        {
+          return;
+        }
+
+        var count = 0;
+
+        foreach (var target in targets)
+        {
+          target.RaceHorse.ExtraDataState = HorseExtraDataState.Unset;
+          target.RaceHorse.ExtraDataVersion = 0;
+
+          count++;
+          if (count >= 10000)
+          {
+            await db.SaveChangesAsync();
+            await db.CommitAsync();
+            db.ChangeTracker.Clear();
+            count = 0;
+
+            if (isCanceled?.Value == true)
+            {
+              return;
+            }
+          }
+        }
+
+        await db.SaveChangesAsync();
+        await db.CommitAsync();
+      }
+      catch (Exception ex)
+      {
+        logger.Error("4.3.0からのマイグレーションでエラー", ex);
       }
     }
   }
