@@ -440,6 +440,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         {
           var task = Task.Run(async () =>
           {
+            var isNeedAnalysis = true;
+
             if (this.Data.Output == AnalysisTableRowOutputType.FixedValue)
             {
               this.AnalysisFixedValue(1, myWeights, item.Cell, item.Finder);
@@ -636,13 +638,30 @@ namespace KmyKeiba.Models.Race.AnalysisTable
                   this.Data.Output == AnalysisTableRowOutputType.RecoveryRate ||
                   this.Data.Output == AnalysisTableRowOutputType.WinRate))
               {
-                source = await aggregateFinder.FindRaceHorsesAsync(keys, size, item.Cell.Horse);
+                var result = await aggregateFinder.FindRaceHorsesAsync(keys, size, item.Cell.Horse, item.Cell);
+                source = result.QueryResult;
+
+                if (result.Tag is AnalysisTableCell cell && cell != item.Cell)
+                {
+                  item.Cell.ComparationValue.Value = cell.ComparationValue.Value;
+                  item.Cell.SampleSize = cell.SampleSize;
+                  item.Cell.PointCalcValue.Value = cell.PointCalcValue.Value;
+                  item.Cell.ScriptValue.Value = cell.ScriptValue.Value;
+                  item.Cell.Comparation.Value = cell.Comparation.Value;
+                  item.Cell.Point.Value = cell.Point.Value;
+                  item.Cell.Weight = cell.Weight;
+                  isNeedAnalysis = false;
+                }
               }
               else
               {
                 source = await ((IRaceFinder)item.Finder).FindRaceHorsesAsync(query, size, withoutFutureRaces: true, withoutFutureRacesForce: true);
               }
-              this.AnalysisSource(source, myWeights, item.Cell, item.Finder);
+
+              if (isNeedAnalysis)
+              {
+                this.AnalysisSource(source, myWeights, item.Cell, item.Finder);
+              }
             }
           });
           tasks.Add(task);

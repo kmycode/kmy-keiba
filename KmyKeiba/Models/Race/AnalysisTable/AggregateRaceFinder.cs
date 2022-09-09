@@ -11,9 +11,9 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 {
   public class AggregateRaceFinder
   {
-    private readonly List<CacheItem> _caches = new();
+    private readonly Dictionary<string, List<CacheItem>> _caches = new();
 
-    public async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(string keys, int sizeMax, RaceHorseAnalyzer horse)
+    public async Task<AggregateRaceFinderCacheItem> FindRaceHorsesAsync(string keys, int sizeMax, RaceHorseAnalyzer horse, object? tag = null)
     {
       var reader = new ScriptKeysReader(keys);
       var queries = reader.GetQueries(horse);
@@ -21,6 +21,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       var relations = queries.QueryValueRelations;
       var currentRaceKeys = relations.Where(r => r.Type == QueryValueRelationType.CurrentRaceValue).Select(r => r.Key).ToList();
       var canUseCache = true;
+
+      this._caches.TryGetValue(keys, out var cacheList);
 
       if (relations.Any(r => r.Type == QueryValueRelationType.CurrentRaceValue || r.Type == QueryValueRelationType.CurrentRaceItem))
       {
@@ -39,88 +41,101 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           QueryKey.TrainerCode,
           QueryKey.TrainerName,
           QueryKey.Subject,
+          QueryKey.Age,
+          QueryKey.Sex,
+          QueryKey.Odds,
         };
         if (!currentRaceKeys.All(c => enableKeys.Contains(c)))
         {
           canUseCache = false;
         }
 
-        if (canUseCache)
+        if (canUseCache && cacheList != null)
         {
-          var caches = this._caches.Where(c => c.Keys == keys && c.Horse.Race.StartTime < horse.Race.StartTime.AddMonths(3)).ToArray();
+          var caches = cacheList.Where(c => c.Keys == keys && c.Horse.Race.StartTime < horse.Race.StartTime.AddMonths(1)).ToArray();
           if (caches.Any())
           {
             foreach (var cache in caches)
             {
               var ch = cache.Horse;
-              canUseCache = true;
+              var isHit = true;
 
               foreach (var key in currentRaceKeys)
               {
                 switch (key)
                 {
                   case QueryKey.Course:
-                    canUseCache = ch.Race.Course == horse.Race.Course;
+                    isHit = ch.Race.Course == horse.Race.Course;
                     break;
                   case QueryKey.Condition:
-                    canUseCache = ch.Race.TrackCondition == horse.Race.TrackCondition;
+                    isHit = ch.Race.TrackCondition == horse.Race.TrackCondition;
                     break;
                   case QueryKey.Weather:
-                    canUseCache = ch.Race.TrackWeather == horse.Race.TrackWeather;
+                    isHit = ch.Race.TrackWeather == horse.Race.TrackWeather;
                     break;
                   case QueryKey.Popular:
-                    canUseCache = ch.Data.Popular == horse.Data.Popular;
+                    isHit = ch.Data.Popular == horse.Data.Popular;
                     break;
                   case QueryKey.Distance:
-                    canUseCache = ch.Race.Distance == horse.Race.Distance;
+                    isHit = ch.Race.Distance == horse.Race.Distance;
                     break;
                   case QueryKey.Subject:
-                    canUseCache = ch.Race.SubjectAgeYounger == horse.Race.SubjectAgeYounger &&
+                    isHit = ch.Race.SubjectAgeYounger == horse.Race.SubjectAgeYounger &&
                       ch.Race.SubjectDisplayInfo == horse.Race.SubjectDisplayInfo;
                     break;
                   case QueryKey.RunningStyle:
-                    canUseCache = ch.History?.RunningStyle == horse.History?.RunningStyle;
+                    isHit = ch.History?.RunningStyle == horse.History?.RunningStyle;
                     break;
                   case QueryKey.FrameNumber:
-                    canUseCache = ch.Data.FrameNumber == horse.Data.FrameNumber;
+                    isHit = ch.Data.FrameNumber == horse.Data.FrameNumber;
                     break;
                   case QueryKey.HorseNumber:
-                    canUseCache = ch.Data.Number == horse.Data.Number;
+                    isHit = ch.Data.Number == horse.Data.Number;
                     break;
                   case QueryKey.RiderCode:
-                    canUseCache = ch.Data.RiderCode == horse.Data.RiderCode;
+                    isHit = ch.Data.RiderCode == horse.Data.RiderCode;
                     break;
                   case QueryKey.RiderName:
-                    canUseCache = ch.Data.RiderName == horse.Data.RiderName;
+                    isHit = ch.Data.RiderName == horse.Data.RiderName;
                     break;
                   case QueryKey.TrainerCode:
-                    canUseCache = ch.Data.TrainerCode == horse.Data.TrainerCode;
+                    isHit = ch.Data.TrainerCode == horse.Data.TrainerCode;
                     break;
                   case QueryKey.TrainerName:
-                    canUseCache = ch.Data.TrainerName == horse.Data.TrainerName;
+                    isHit = ch.Data.TrainerName == horse.Data.TrainerName;
+                    break;
+                  case QueryKey.Age:
+                    isHit = ch.Data.Age == horse.Data.Age;
+                    break;
+                  case QueryKey.Sex:
+                    isHit = ch.Data.Sex == horse.Data.Sex;
+                    break;
+                  case QueryKey.Odds:
+                    isHit = ch.Data.Odds == horse.Data.Odds;
                     break;
                 }
 
-                if (!canUseCache)
+                if (!isHit)
                 {
                   break;
                 }
               }
 
-              if (canUseCache && cache?.QueryResult != null)
+              if (isHit && cache != null)
               {
-                return cache.QueryResult;
+                return cache.ToResult();
               }
             }
           }
         }
       }
-      else
+      else if (cacheList != null)
       {
-        var cache = this._caches.FirstOrDefault(c => c.Keys == keys);
-        if (cache?.QueryResult != null)
+        // Fixed values
+        var cache = cacheList.FirstOrDefault(c => c.Keys == keys);
+        if (cache != null)
         {
-          return cache.QueryResult;
+          return cache.ToResult();
         }
       }
 
@@ -131,11 +146,24 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       {
         lock (this._caches)
         {
-          this._caches.Add(new CacheItem(keys, currentRaceKeys, horse, result));
+          if (cacheList == null)
+          {
+            this._caches.TryGetValue(keys, out cacheList);
+            if (cacheList == null)
+            {
+              cacheList = new List<CacheItem>();
+              this._caches[keys] = cacheList;
+            }
+          }
+
+          lock (cacheList)
+          {
+            cacheList.Add(new CacheItem(keys, currentRaceKeys, horse, result) { Tag = tag, });
+          }
         }
       }
 
-      return result;
+      return new AggregateRaceFinderCacheItem(result, null);
     }
 
     private class CacheItem
@@ -148,6 +176,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
       public RaceHorseFinderQueryResult QueryResult { get; }
 
+      public object? Tag { get; set; }
+
       public CacheItem(string keys, IReadOnlyList<QueryKey> qkeys, RaceHorseAnalyzer horse, RaceHorseFinderQueryResult result)
       {
         this.Keys = keys;
@@ -155,6 +185,24 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         this.Horse = horse;
         this.QueryResult = result;
       }
+
+      public AggregateRaceFinderCacheItem ToResult()
+      {
+        return new AggregateRaceFinderCacheItem(this.QueryResult, this.Tag);
+      }
+    }
+  }
+
+  public class AggregateRaceFinderCacheItem
+  {
+    public RaceHorseFinderQueryResult QueryResult { get; }
+
+    public object? Tag { get; }
+
+    public AggregateRaceFinderCacheItem(RaceHorseFinderQueryResult queryResult, object? tag)
+    {
+      this.QueryResult = queryResult;
+      this.Tag = tag;
     }
   }
 }
