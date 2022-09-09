@@ -86,7 +86,7 @@
             <TextBlock Text="PASS" Style="{StaticResource SubTextBlock}" FontSize="16" Margin="4,0"/>
             <PasswordBox FontSize="16" Width="120">
               <i:Interaction.Behaviors>
-                <b:BindingPasswordBoxBehavior Password="{Binding Downloader.JrdbPassword.Value}"/>
+                <b:BindingPasswordBoxBehavior Password="{Binding Downloader.JrdbPassword.Value,Mode=TwoWay}"/>
               </i:Interaction.Behaviors>
             </PasswordBox>
           </StackPanel>
