@@ -7,6 +7,7 @@ using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -20,6 +21,8 @@ namespace KmyKeiba.Models.Connection
   {
     private static JrdbDownloaderModel? _instance;
     public static JrdbDownloaderModel Instance => _instance ??= (_instance = new JrdbDownloaderModel());
+
+    private HttpStatusCode _lastStatus;
 
     public ReactiveProperty<bool> CanSaveOthers { get; } = new(true);
 
@@ -88,14 +91,30 @@ namespace KmyKeiba.Models.Connection
 
     private async Task LoadDayAsync(MyContext db, DateTime day, string id, string password)
     {
+      await this.LoadDayAsync(db, day, id, password, true);
+
+      if (this._lastStatus == HttpStatusCode.NotFound && day < DateTime.Today.AddDays(3))
+      {
+        await this.LoadDayAsync(db, day, id, password, false);
+      }
+    }
+
+    private async Task LoadDayAsync(MyContext db, DateTime day, string id, string password, bool isZip)
+    {
+      var ext = isZip ? "zip" : "lzh";
+
       var dateFormat = day.ToString("yyMMdd");
-      var url = $"http://www.jrdb.com/member/data/Paci/PACI{dateFormat}.lzh";
+      var url = $"http://www.jrdb.com/member/data/Paci/PACI{dateFormat}.{ext}";
+      if (isZip)
+      {
+        url = $"http://www.jrdb.com/member/datazip/Paci/{day.Year}/PACI{dateFormat}.{ext}";
+      }
 
       var path = Constrants.AppDataDir;
       var lzhDirPath = Path.Combine(path, "jrdbtmp");
       var cacheDirPath = Path.Combine(path, "jrdbcache");
-      var lzhFilePath = Path.Combine(path, "jrdbtmp.lzh");
-      var cacheFilePath = Path.Combine(cacheDirPath, $"PACI{dateFormat}.lzh");
+      var lzhFilePath = Path.Combine(path, $"jrdbtmp.{ext}");
+      var cacheFilePath = Path.Combine(cacheDirPath, $"PACI{dateFormat}.{ext}");
 
       try
       {
@@ -124,6 +143,7 @@ namespace KmyKeiba.Models.Connection
         };
 
         var response = await myweb.SendAsync(request);
+        this._lastStatus = response.StatusCode;
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
           throw new JrdbDownloadException("IDまたはパスワードが違います");
@@ -155,7 +175,14 @@ namespace KmyKeiba.Models.Connection
       // LHA解凍
       try
       {
-        await DownloaderConnector.Instance.UnzipLhaAsync(lzhFilePath, lzhDirPath + "\\");
+        if (isZip)
+        {
+          ZipFile.ExtractToDirectory(lzhFilePath, lzhDirPath, Encoding.GetEncoding(932));
+        }
+        else
+        {
+          await DownloaderConnector.Instance.UnzipLhaAsync(lzhFilePath, lzhDirPath + "\\");
+        }
       }
       catch (Exception ex)
       {
