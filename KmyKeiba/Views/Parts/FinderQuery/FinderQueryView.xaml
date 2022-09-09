@@ -437,7 +437,6 @@
               <RowDefinition Height="40"/>
             </Grid.RowDefinitions>
             <ListBox ItemsSource="{Binding FinderModel.Input.HorseOfCurrentRace.Horses,ElementName=Root}"
-                     SelectedItem="{Binding FinderModel.Input.HorseOfCurrentRace.SelectedHorse.Value,ElementName=Root,Mode=TwoWay}"
                      SelectionMode="Single">
               <ListBox.ItemTemplate>
                 <DataTemplate>

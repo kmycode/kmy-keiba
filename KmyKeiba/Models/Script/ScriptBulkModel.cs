@@ -51,7 +51,8 @@ namespace KmyKeiba.Models.Script
       {
         if (this.IsAnalysisTableMode.Value)
         {
-          await this.ExecuteAsync(() => new AnalysisTableBulkEngine());
+          var aggregateFinder = new AggregateRaceFinder();
+          await this.ExecuteAsync(() => new AnalysisTableBulkEngine(aggregateFinder));
         }
         else
         {

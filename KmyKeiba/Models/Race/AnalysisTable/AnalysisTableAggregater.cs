@@ -37,7 +37,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       Task.Run(async () => await this.LoadAsync());
     }
 
-    public async Task LoadAsync(bool isBulk = false)
+    public async Task LoadAsync(bool isBulk = false, AggregateRaceFinder? aggregateFinder = null)
     {
       this.IsLoading.Value = true;
 
@@ -86,7 +86,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       {
         IDisposable progress = table.Table.Progress.Subscribe(v => this.Progress.Value = lastTableProgress + v);
 
-        await this._model.AnalysisTableAsync(table.Table, isBulk);
+        await this._model.AnalysisTableAsync(table.Table, isBulk, aggregateFinder);
 
         progress.Dispose();
         lastTableProgress += table.Table.Progress.Value;

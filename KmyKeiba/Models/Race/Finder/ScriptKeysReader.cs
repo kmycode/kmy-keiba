@@ -16,13 +16,15 @@ using static KmyKeiba.Models.Race.Finder.HorseBeforeRacesCountScriptKeyQuery;
 
 namespace KmyKeiba.Models.Race.Finder
 {
-  class ScriptKeysParseResult
+  public class ScriptKeysParseResult
   {
+    public string Keys { get; }
+
     public IReadOnlyList<ScriptKeyQuery> Queries { get; }
 
-    public IReadOnlyList<ExpressionScriptKeyQuery> DiffQueries { get; }
+    internal IReadOnlyList<ExpressionScriptKeyQuery> DiffQueries { get; }
 
-    public IReadOnlyList<ExpressionScriptKeyQuery> DiffQueriesBetweenCurrent { get; }
+    internal IReadOnlyList<ExpressionScriptKeyQuery> DiffQueriesBetweenCurrent { get; }
 
     public QueryKey GroupKey { get; }
 
@@ -38,7 +40,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public bool IsExpandedResult { get; }
 
-    public ScriptKeysMemoGroupInfo? MemoGroupInfo { get; set; }
+    internal ScriptKeysMemoGroupInfo? MemoGroupInfo { get; set; }
 
     public bool HasJrdbQuery { get; init; }
 
@@ -46,8 +48,11 @@ namespace KmyKeiba.Models.Race.Finder
 
     public bool HasExtraQueryInDiff { get; init; }
 
-    public ScriptKeysParseResult(IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueries = null, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueriesBetweenCurrent = null, bool isContainsFutureRaces = false, bool isCurrentOnly = false, bool isRealtimeResult = false, bool isExpandedResult = false)
+    public IReadOnlyList<QueryValueRelationInfo> QueryValueRelations { get; init; }
+
+    internal ScriptKeysParseResult(string keys, IReadOnlyList<ScriptKeyQuery> queries, QueryKey groupKey = QueryKey.Unknown, int limit = 0, int offset = 0, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueries = null, IReadOnlyList<ExpressionScriptKeyQuery>? diffQueriesBetweenCurrent = null, bool isContainsFutureRaces = false, bool isCurrentOnly = false, bool isRealtimeResult = false, bool isExpandedResult = false)
     {
+      this.Keys = keys;
       this.Queries = queries;
       this.GroupKey = groupKey;
       this.Limit = limit;
@@ -58,6 +63,8 @@ namespace KmyKeiba.Models.Race.Finder
       this.IsCurrentRaceOnly = isCurrentOnly;
       this.IsRealtimeResult = isRealtimeResult;
       this.IsExpandedResult = isExpandedResult;
+
+      this.QueryValueRelations = Array.Empty<QueryValueRelationInfo>();
     }
   }
 
@@ -72,6 +79,29 @@ namespace KmyKeiba.Models.Race.Finder
     public short MemoNumber { get; set; }
   }
 
+  public class QueryValueRelationInfo
+  {
+    public QueryKey Key { get; }
+
+    public QueryValueRelationType Type { get; }
+
+    public QueryValueRelationInfo(QueryKey key, QueryValueRelationType type)
+    {
+      this.Key = key;
+      this.Type = type;
+    }
+  }
+
+  public enum QueryValueRelationType
+  {
+    Unknown,
+    FixedValue,
+    CurrentRaceValue,
+    CurrentRaceItem,
+    BeforeRaceValue,
+    BeforeComparedRaceValue,
+  }
+
   class ScriptKeysReader
   {
     private readonly string _keys;
@@ -84,6 +114,11 @@ namespace KmyKeiba.Models.Race.Finder
     public ScriptKeysReader(string keys)
     {
       this._keys = keys;
+    }
+
+    public ScriptKeysParseResult GetQueries(RaceHorseAnalyzer? horseAnalyzer = null)
+    {
+      return GetQueries(this._keys, horseAnalyzer?.Race, horseAnalyzer?.Data, horseAnalyzer);
     }
 
     public ScriptKeysParseResult GetQueries(RaceData? race, RaceHorseData? horse = null, RaceHorseAnalyzer? horseAnalyzer = null)
@@ -108,6 +143,7 @@ namespace KmyKeiba.Models.Race.Finder
       var queries = new List<ScriptKeyQuery>();
       var diffQueries = new List<ExpressionScriptKeyQuery>();
       var diffQueriesBetweenCurrent = new List<ExpressionScriptKeyQuery>();
+      var queryRelations = new List<QueryValueRelationInfo>();
       foreach (var qu in keys.Split('|'))
       {
         var q = qu;
@@ -118,6 +154,7 @@ namespace KmyKeiba.Models.Race.Finder
           {
             var data = q.Split(split);
             (ScriptKeyQuery?, QueryKeyAttribute?) queryRaw;
+            QueryValueRelationType relationType = default;
 
             if (data[1].StartsWith("$$"))
             {
@@ -131,6 +168,7 @@ namespace KmyKeiba.Models.Race.Finder
                 {
                   hasExtraKeysInDiff = true;
                 }
+                relationType = QueryValueRelationType.BeforeRaceValue;
               }
             }
             else if (data[1].StartsWith('$'))
@@ -145,6 +183,7 @@ namespace KmyKeiba.Models.Race.Finder
                 {
                   hasExtraKeysInDiff = true;
                 }
+                relationType = QueryValueRelationType.BeforeComparedRaceValue;
               }
             }
             else
@@ -162,6 +201,7 @@ namespace KmyKeiba.Models.Race.Finder
                 {
                   query = ResidueScriptKeyQuery.FromExpressionQuery(exp);
                 }
+                relationType = exp.IsCompareCurrentRace ? QueryValueRelationType.CurrentRaceValue : QueryValueRelationType.FixedValue;
               }
               if (query != null)
               {
@@ -176,6 +216,10 @@ namespace KmyKeiba.Models.Race.Finder
             if (queryRaw.Item2?.Target == QueryTarget.RaceHorseExtra)
             {
               hasExtraKeys = true;
+            }
+            if (queryRaw.Item1 is ExpressionScriptKeyQuery exp2 && relationType != default)
+            {
+              queryRelations.Add(new QueryValueRelationInfo(exp2.Key, relationType));
             }
 
             return true;
@@ -413,6 +457,11 @@ namespace KmyKeiba.Models.Race.Finder
           var keys = q.Substring(prefixEnd + 1).Replace(';', '|');
           var qs = GetQueries(keys, race, horse);
 
+          foreach (var relation in qs.QueryValueRelations)
+          {
+            queryRelations.Add(relation);
+          }
+
           queries.Add(new TopHorsesScriptKeyQuery(qs.Queries, qs.HasExtraQuery, qs.HasJrdbQuery, min, max, minRate, maxRate));
           return true;
         }
@@ -491,6 +540,11 @@ namespace KmyKeiba.Models.Race.Finder
 
           var keys = q.Substring(endIndex + 1).Replace(';', '|').Replace('\\', '\\');
           var qs = GetQueries(keys, race, horse, horseAnalyzer);
+
+          foreach (var relation in qs.QueryValueRelations)
+          {
+            queryRelations.Add(relation);
+          }
 
           if (isCountQuery)
           {
@@ -583,6 +637,9 @@ namespace KmyKeiba.Models.Race.Finder
               default:
                 return false;
             }
+
+            queryRelations.Add(new QueryValueRelationInfo(key.Item1, QueryValueRelationType.CurrentRaceItem));
+
             return true;
           }
 
@@ -613,19 +670,23 @@ namespace KmyKeiba.Models.Race.Finder
           if (key.Item1 == QueryKey.HorseBelongs)
           {
             queries!.Add(new HorseBelongsScriptKeyQuery(value, type));
-            return true;
           }
           else if (key.Item1 == QueryKey.RiderBelongs)
           {
             queries!.Add(new RiderBelongsScriptKeyQuery(value, type));
-            return true;
           }
           else if (key.Item1 == QueryKey.TrainerBelongs)
           {
             queries!.Add(new TrainerBelongsScriptKeyQuery(value, type));
-            return true;
           }
-          return false;
+          else
+          {
+            return false;
+          }
+
+          queryRelations.Add(new QueryValueRelationInfo(key.Item1, QueryValueRelationType.FixedValue));
+
+          return true;
         }
 
         bool AddRaceSubjectQuery()
@@ -667,6 +728,7 @@ namespace KmyKeiba.Models.Race.Finder
           if (centrals.Any() || locals.Any())
           {
             queries!.Add(new RaceSubjectScriptKeyQuery(type, centrals, locals));
+            queryRelations.Add(new QueryValueRelationInfo(QueryKey.Subject, QueryValueRelationType.FixedValue));
             return true;
           }
 
@@ -711,6 +773,7 @@ namespace KmyKeiba.Models.Race.Finder
               ages = Enumerable.Range(2, 4).Select(v => (short)v).Except(ages).ToList();
             }
             queries!.Add(new RaceAgeScriptKeyQuery(ages));
+            queryRelations.Add(new QueryValueRelationInfo(QueryKey.AgeRule, QueryValueRelationType.FixedValue));
             return true;
           }
 
@@ -750,6 +813,8 @@ namespace KmyKeiba.Models.Race.Finder
           // 条件式指定がないときのデフォルト値を指定
           if (key.Item1 != QueryKey.Unknown && key.Item2 != null)
           {
+            var oldCount = queries.Count;
+
             if (race != null)
             {
               switch (key.Item1)
@@ -992,6 +1057,12 @@ namespace KmyKeiba.Models.Race.Finder
                   break;
               }
             }
+
+            // 現在のレースと比較するクエリが追加された
+            if (queries.Count > oldCount)
+            {
+              queryRelations.Add(new QueryValueRelationInfo(key.Item1, QueryValueRelationType.CurrentRaceValue));
+            }
           }
         }
       }
@@ -1006,12 +1077,13 @@ namespace KmyKeiba.Models.Race.Finder
         isRealtimeResult = false;
       }
 
-      return new ScriptKeysParseResult(queries, groupKey, limit, offset, diffQueries: diffQueries, diffQueriesBetweenCurrent: diffQueriesBetweenCurrent, isContainsFutureRaces: isContainsFutureRaces, isCurrentOnly: isCurrentRaceOnly, isRealtimeResult: isRealtimeResult, isExpandedResult: isExpandedResult)
+      return new ScriptKeysParseResult(keys, queries, groupKey, limit, offset, diffQueries: diffQueries, diffQueriesBetweenCurrent: diffQueriesBetweenCurrent, isContainsFutureRaces: isContainsFutureRaces, isCurrentOnly: isCurrentRaceOnly, isRealtimeResult: isRealtimeResult, isExpandedResult: isExpandedResult)
       {
         MemoGroupInfo = memoGroupInfo,
         HasJrdbQuery = hasJrdbKeys,
         HasExtraQuery = hasExtraKeys,
         HasExtraQueryInDiff = hasExtraKeysInDiff,
+        QueryValueRelations = queryRelations,
       };
     }
 
@@ -1123,6 +1195,7 @@ namespace KmyKeiba.Models.Race.Finder
     SexRule,
     [NumericQueryKey("crossrule")]
     CrossRule,
+    AgeRule,
     [NumericQueryKey("day")]
     Day,
     [NumericQueryKey("month")]

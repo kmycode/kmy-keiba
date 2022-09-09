@@ -13,12 +13,18 @@ namespace KmyKeiba.Models.Race.AnalysisTable
   internal class AnalysisTableBulkEngine : IScriptBulkEngine
   {
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+    private readonly AggregateRaceFinder _aggregateFinder;
 
     public ReactiveProperty<ReactiveProperty<int>?> ProgressMax { get; } = new();
 
     public ReactiveProperty<ReactiveProperty<int>?> Progress { get; } = new();
 
     public bool IsFinished { get; set; }
+
+    public AnalysisTableBulkEngine(AggregateRaceFinder aggregateFinder)
+    {
+      this._aggregateFinder = aggregateFinder;
+    }
 
     public void Dispose()
     {
@@ -56,7 +62,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
             this.Progress.Value = info.AnalysisTable.Value.Aggregate.Progress;
             this.ProgressMax.Value = info.AnalysisTable.Value.Aggregate.ProgressMax;
-            await info.AnalysisTable.Value.Aggregate.LoadAsync(isBulk: true);
+            await info.AnalysisTable.Value.Aggregate.LoadAsync(isBulk: true, this._aggregateFinder);
 
             // TODO: 買い目処理はここに
             //if (info.Tickets.Value != null && info.Payoff != null)

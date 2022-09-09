@@ -16,7 +16,7 @@ using System.Windows.Forms.VisualStyles;
 
 namespace KmyKeiba.Models.Race.Finder
 {
-  abstract class ScriptKeyQuery
+  abstract public class ScriptKeyQuery
   {
     public abstract IQueryable<RaceData> Apply(MyContext db, IQueryable<RaceData> query);
 

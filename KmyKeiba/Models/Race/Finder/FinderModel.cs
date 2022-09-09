@@ -109,7 +109,7 @@ namespace KmyKeiba.Models.Race.Finder
         try
         {
           this.Columns.Value = this.RaceHorseColumns;
-          var data = await this._finder.FindRaceHorsesAsync(this.Keys.Value, 3000);
+          var data = await ((IRaceFinder)this._finder).FindRaceHorsesAsync(this.Keys.Value, 3000);
           var allItems = data.AsItems();
 
           IEnumerable<IEnumerable<FinderRaceHorseItem>> SplitData(int size)
@@ -356,7 +356,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     internal Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(string keys, int count, int offset)
     {
-      return this._finder.FindRaceHorsesAsync(keys, count, offset);
+      return ((IRaceFinder)this._finder).FindRaceHorsesAsync(keys, count, offset);
     }
 
     private void UpdateExpandedData(IEnumerable<FinderRaceHorseGroupItem> groups)
@@ -428,12 +428,12 @@ namespace KmyKeiba.Models.Race.Finder
 
     public void ReplaceFrom(FinderModel model)
     {
-      this._finder.ReplaceFrom(model._finder);
+      this._finder.CopyFrom(model._finder);
     }
 
     public void ReplaceFrom(RaceFinder finder)
     {
-      this._finder.ReplaceFrom(finder);
+      this._finder.CopyFrom(finder);
     }
 
     public void ClearCache()

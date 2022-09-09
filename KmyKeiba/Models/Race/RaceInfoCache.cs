@@ -125,7 +125,7 @@ namespace KmyKeiba.Models.Race
 
       if (cache.RaceAnalyzers != null) race.TrendAnalyzers.CopyFrom(cache.RaceAnalyzers);
       if (cache.RaceWinnerAnalyzers != null) race.WinnerTrendAnalyzers.CopyFrom(cache.RaceWinnerAnalyzers);
-      if (cache.Finder != null) race.Finder.ReplaceFrom(cache.Finder);
+      if (cache.Finder != null) race.Finder.CopyFrom(cache.Finder);
       foreach (var horse in race.Horses.Join(cache.Horses, r => r.Data.Id, c => c.Data.Id, (r, c) => new { New = r, Old = c, }))
       {
         if (horse.Old.RaceRiderAnalyzers != null && horse.New.Data.RiderCode == horse.Old.Data.RiderCode)

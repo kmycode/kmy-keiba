@@ -350,7 +350,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this._isInitialized = true;
     }
 
-    public async Task LoadAsync(RaceData race, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly = false, bool isBilk = false)
+    public async Task LoadAsync(RaceData race, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly = false, bool isBilk = false, AggregateRaceFinder? aggregateFinder = null)
     {
       this.IsLoaded.Value = false;
       this.IsLoading.Value = true;
@@ -416,6 +416,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           query += "|datastatus=5-7";
         }
 
+        // レース画面を開いたとき、自動でキャッシュからデータを読み込む（Finderキャッシュ機能が削除されたので現在はデッドコードである）
         var cache = item.Finder.TryFindRaceHorseCache(query);
         if (cache != null)
         {
@@ -630,7 +631,17 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             }
             else
             {
-              var source = await item.Finder.FindRaceHorsesAsync(query, size, withoutFutureRaces: true, withoutFutureRacesForce: true);
+              RaceHorseFinderQueryResult source;
+              if (aggregateFinder != null && (this.Data.Output == AnalysisTableRowOutputType.PlaceBetsRate ||
+                  this.Data.Output == AnalysisTableRowOutputType.RecoveryRate ||
+                  this.Data.Output == AnalysisTableRowOutputType.WinRate))
+              {
+                source = await aggregateFinder.FindRaceHorsesAsync(keys, size, item.Cell.Horse);
+              }
+              else
+              {
+                source = await ((IRaceFinder)item.Finder).FindRaceHorsesAsync(query, size, withoutFutureRaces: true, withoutFutureRacesForce: true);
+              }
               this.AnalysisSource(source, myWeights, item.Cell, item.Finder);
             }
           });
