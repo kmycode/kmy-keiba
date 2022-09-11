@@ -34,7 +34,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     {
       this.ProgressMax.Value = new ReactiveProperty<int>(1);
       this.Progress.Value = new ReactiveProperty<int>();
-      var i = 0;
+      var collectCount = 0;
 
       foreach (var item in items)
       {
@@ -86,9 +86,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             item.ErrorType.Value = ScriptBulkErrorType.NoRace;
           }
 
-          if (++i >= 50)
+          if (++collectCount >= 30)
           {
             GC.Collect();
+            collectCount = 0;
           }
         }
         catch (Exception ex)
@@ -107,6 +108,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         {
           break;
         }
+      }
+
+      if (collectCount > 0)
+      {
+        GC.Collect();
       }
 
       this.IsFinished = true;

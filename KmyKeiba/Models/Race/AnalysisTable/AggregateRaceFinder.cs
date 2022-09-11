@@ -135,12 +135,22 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         var cache = cacheList.FirstOrDefault(c => c.Keys == keys);
         if (cache != null)
         {
+          if (cache.Tag != null)
+          {
+            cache.QueryResult = null;
+          }
           return cache.ToResult();
         }
       }
 
       using var finder = new PureRaceFinder(horse);
       var result = await finder.FindRaceHorsesAsync(queries, sizeMax);
+
+      // メモの編集などしないので、この時点で破棄しておく
+      foreach (var item in result.Items)
+      {
+        item.Dispose();
+      }
 
       if (canUseCache)
       {
@@ -174,7 +184,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
       public RaceHorseAnalyzer Horse { get; }
 
-      public RaceHorseFinderQueryResult QueryResult { get; }
+      public RaceHorseFinderQueryResult? QueryResult { get; set; }
 
       public object? Tag { get; set; }
 
@@ -195,11 +205,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
   public class AggregateRaceFinderCacheItem
   {
-    public RaceHorseFinderQueryResult QueryResult { get; }
+    public RaceHorseFinderQueryResult? QueryResult { get; }
 
     public object? Tag { get; }
 
-    public AggregateRaceFinderCacheItem(RaceHorseFinderQueryResult queryResult, object? tag)
+    public AggregateRaceFinderCacheItem(RaceHorseFinderQueryResult? queryResult, object? tag)
     {
       this.QueryResult = queryResult;
       this.Tag = tag;

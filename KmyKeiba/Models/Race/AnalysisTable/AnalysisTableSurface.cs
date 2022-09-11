@@ -97,7 +97,13 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public void UpdateRows()
     {
+      var oldRows = this.Rows.ToArray();
       this.Rows.Clear();
+      foreach (var row in oldRows)
+      {
+        row.Dispose();
+      }
+
       foreach (var row in AnalysisTableUtil.TableRowConfigs.Where(r => r.TableId == this.Data.Id).OrderBy(r => r.Order))
       {
         var item = new AnalysisTableRow(row, this, this._horses);

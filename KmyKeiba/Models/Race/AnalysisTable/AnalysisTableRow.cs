@@ -639,7 +639,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
                   this.Data.Output == AnalysisTableRowOutputType.WinRate))
               {
                 var result = await aggregateFinder.FindRaceHorsesAsync(keys, size, item.Cell.Horse, item.Cell);
-                source = result.QueryResult;
+                source = result.QueryResult ?? RaceHorseFinderQueryResult.Empty;
 
                 if (result.Tag is AnalysisTableCell cell && cell != item.Cell)
                 {

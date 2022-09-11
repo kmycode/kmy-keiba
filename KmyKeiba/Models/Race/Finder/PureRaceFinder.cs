@@ -249,7 +249,7 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
-  public class FinderQueryResult<T>
+  public class FinderQueryResult<T> : IDisposable
   {
     public IReadOnlyList<T> Items { get; }
 
@@ -263,10 +263,20 @@ namespace KmyKeiba.Models.Race.Finder
       this.GroupKey = group;
       this.GroupInfo = groupInfo;
     }
+
+    public void Dispose()
+    {
+      foreach (var item in this.Items.OfType<IDisposable>())
+      {
+        item.Dispose();
+      }
+    }
   }
 
   public class RaceHorseFinderQueryResult : FinderQueryResult<RaceHorseAnalyzer>
   {
+    public static RaceHorseFinderQueryResult Empty { get; } = new RaceHorseFinderQueryResult(Array.Empty<RaceHorseAnalyzer>(), QueryKey.Unknown, null, Array.Empty<RefundData>());
+
     private readonly IReadOnlyList<RefundData> _refunds;
     private RaceHorseFinderResultAnalyzer? _analyzer;
     private RaceHorseFinderResultAnalyzerSlim? _analyzerSlim;
