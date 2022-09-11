@@ -11,7 +11,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
-    <VersionPrefix>4.3.2</VersionPrefix>
+    <VersionPrefix>4.3.3</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
