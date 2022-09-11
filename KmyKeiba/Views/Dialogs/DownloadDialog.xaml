@@ -90,7 +90,6 @@
               </i:Interaction.Behaviors>
             </PasswordBox>
           </StackPanel>
-          <TextBlock FontSize="16" Text="JRDBの利用にはUNLHA32.DLLのインストールが必要です" Margin="8,0,0,24"/>
         </StackPanel>
         <TextBlock FontSize="16" Style="{StaticResource SubTextBlock}" Margin="16,8,0,0">
           大量データの取得処理には数日かかることがあります。<LineBreak/>
