@@ -233,7 +233,7 @@
         <Grid Grid.Column="7" Margin="12,0,0,0" VerticalAlignment="Center">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="60"/>
-            <ColumnDefinition Width="30"/>
+            <ColumnDefinition Width="40"/>
           </Grid.ColumnDefinitions>
           <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -247,7 +247,7 @@
           <up:RaceResultOrderGradeRow Grid.Row="1" Grid.ColumnSpan="2" Header="同馬" FontSize="12" Grade="{Binding Horse.History.SameRiderGrade,ElementName=Root}"/>
         </Grid>
         <StackPanel Orientation="Horizontal" Grid.Column="8" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
-          <StackPanel Margin="24,0,0,0" VerticalAlignment="Center" Width="120">
+          <StackPanel Margin="12,0,0,0" VerticalAlignment="Center" Width="120">
             <up:RaceResultOrderGradeRow Header="全て" FontSize="12" Grade="{Binding Horse.History.AllGrade,ElementName=Root}"/>
             <up:RaceResultOrderGradeRow Header="場所" FontSize="12" Grade="{Binding Horse.History.SameCourseGrade,ElementName=Root}"/>
             <up:RaceResultOrderGradeRow Header="地面" FontSize="12" Grade="{Binding Horse.History.SameGroundGrade,ElementName=Root}"/>
