@@ -595,6 +595,22 @@ namespace KmyKeiba.Models.Race.Finder
             isCurrentRaceOnly = true;
             return true;
           }
+          if (q.StartsWith("[from]"))
+          {
+            if (DateTime.TryParseExact(q[6..], "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out var date))
+            {
+              queries!.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime >= date));
+            }
+            return true;
+          }
+          if (q.StartsWith("[to]"))
+          {
+            if (DateTime.TryParseExact(q[4..], "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out var date))
+            {
+              queries!.Add(new RaceLambdaScriptKeyQuery(r => r.StartTime <= date));
+            }
+            return true;
+          }
 
           return false;
         }

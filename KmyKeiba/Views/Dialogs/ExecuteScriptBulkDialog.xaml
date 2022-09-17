@@ -61,7 +61,22 @@
         <RadioButton Style="{StaticResource ToggleButtonDefault}" IsChecked="{Binding ScriptBulk.IsAnalysisTableMode.Value,ElementName=Root,Converter={StaticResource NegativeConv},Mode=TwoWay}"
                      FontSize="16" GroupName="Mode" Content="スクリプト" IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
         <RadioButton Style="{StaticResource ToggleButtonDefault}" IsChecked="{Binding ScriptBulk.IsAnalysisTableMode.Value,ElementName=Root,Mode=TwoWay}"
-                     FontSize="16" GroupName="Mode" Content="拡張集計" Margin="0,0,24,0" IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+                     FontSize="16" GroupName="Mode" Content="拡張集計" Margin="0,0,8,0" IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+        <ToggleButton Name="S_Setting" FontSize="16" Content="設定" Margin="0,0,24,0"
+                      Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+        <Popup IsOpen="{Binding IsChecked,ElementName=S_Setting,Mode=TwoWay}" StaysOpen="False" Width="600"
+               PlacementTarget="{Binding ElementName=S_Setting}" Placement="Bottom">
+          <Border Background="{StaticResource BaseBackground}" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1"
+                  Padding="8,4">
+            <StackPanel>
+              <StackPanel.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
+              </StackPanel.Resources>
+              <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Text="レースの絞り込み条件"/>
+              <up:FinderKeyInputView Margin="0,4,0,8" IsShowFinderButtonOnly="True" FinderModel="{Binding ScriptBulk.FinderModelForConfig}"/>
+            </StackPanel>
+          </Border>
+        </Popup>
         <Button FontSize="20" Content="開始" Command="{Binding ExecuteScriptBulkCommand}" Width="120"
                 Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <Button FontSize="16" Content="中止" Command="{Binding CancelScriptBulkCommand}" Width="120"

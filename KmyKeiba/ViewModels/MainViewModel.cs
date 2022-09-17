@@ -5,6 +5,7 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.RList;
 using KmyKeiba.Models.Script;
 using KmyKeiba.Shared;
@@ -37,7 +38,7 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<string> DownloaderErrorMessage => this.downloader.ErrorMessage;
 
-    public ReactiveProperty<bool> IsInitialized => this.downloader.IsInitialized;
+    public ReactiveProperty<bool> IsInitialized { get; } = new ReactiveProperty<bool>();
 
     public ReactiveProperty<bool> IsLongDownloadMonth => this.downloader.IsLongDownloadMonth;
 
@@ -109,8 +110,15 @@ namespace KmyKeiba.ViewModels
           this.CurrentDialog.Value = DialogType.Download;
         }
 
+        // 各種初期化処理
+        using var db = new MyContext();
+        await FinderConfigUtil.InitializeAsync(db);
+
         // DBのプリセット
         await DatabasePresetModel.SetPresetsAsync();
+
+        // 初期化完了
+        this.IsInitialized.Value = true;
 
         // アップデートチェック
         await this.Update.CheckAsync();

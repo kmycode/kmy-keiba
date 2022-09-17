@@ -5,6 +5,7 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Models.Race.AnalysisTable;
+using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.Race.Tickets;
 using KmyKeiba.Shared;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +45,8 @@ namespace KmyKeiba.Models.Script
     public ReactiveProperty<ValueComparation> IncomeComparation { get; } = new();
 
     public ReactiveProperty<bool> IsAnalysisTableMode { get; } = new();
+
+    public FinderModel FinderModelForConfig { get; } = new FinderModel(null, null, null);
 
     public void BeginExecute()
     {
@@ -89,16 +92,22 @@ namespace KmyKeiba.Models.Script
         return;
       }
 
-      using var db = new MyContext();
       var startTime = this.StartDate.Value;
       var endTime = this.EndDate.Value.AddDays(1);
-      var query = db.Races!
-        .Where(r => r.Course < RaceCourse.Foreign)
-        .Where(r => r.StartTime >= startTime && r.StartTime <= endTime && r.DataStatus >= RaceDataStatus.PreliminaryGrade);
-      var races = await query
+
+      using var db = new MyContext();
+
+      using var finder = new PureRaceFinder();
+      var reader = new ScriptKeysReader($"[from]{startTime:yyyyMMdd}|[to]{endTime:yyyyMMdd}|" + this.FinderModelForConfig.Input.Query.Value);
+      var queries = reader.GetQueries();
+      var finderResult = await finder.FindRaceHorsesAsync(queries, int.MaxValue);
+      var races = finderResult.Items
+        .Where(i => i.Race.DataStatus >= RaceDataStatus.PreliminaryGradeFull)
+        .GroupBy(i => i.Race.Key)
+        .Select(g => g.First().Race)
         .OrderBy(r => r.Course)
         .OrderBy(r => r.StartTime)
-        .ToArrayAsync();
+        .ToArray();
 
       var items = new List<ScriptResultItem>();
       var i = 0;
