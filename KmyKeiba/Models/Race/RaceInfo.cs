@@ -609,6 +609,8 @@ namespace KmyKeiba.Models.Race
       this.Odds.Value?.Dispose();
       this.Tickets.Value?.Dispose();
       this.Payoff?.Dispose();
+
+      Models.Analysis.RaceAnalyzer.OutputLogCount();
     }
 
     public static async Task<RaceInfo?> FromKeyAsync(string key, bool withTransaction = true, bool isCache = true)
@@ -717,7 +719,7 @@ namespace KmyKeiba.Models.Race
             {
               var historyStandardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, history.Race);
               var sameHorses = horseHistorySameHorses.Where(h => h.RaceKey == history.RaceHorse.RaceKey);
-              histories.Add(new RaceHorseAnalyzer(history.Race, history.RaceHorse, sameHorses.ToArray(), historyStandardTime));
+              histories.Add(new RaceHorseAnalyzer(history.Race, history.RaceHorse, sameHorses.ToArray(), historyStandardTime).AddTo(info._disposables));
             }
 
             var riderWinRate = await AnalysisUtil.GetRiderWinRateAsync(db, race, horse.RiderCode);

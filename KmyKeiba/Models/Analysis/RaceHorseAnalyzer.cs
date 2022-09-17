@@ -685,6 +685,14 @@ namespace KmyKeiba.Models.Analysis
       this.TrendAnalyzers?.Dispose();
       this.FinderModel.Value?.Dispose();
 
+      if (this.History != null)
+      {
+        foreach (var h in this.History.BeforeRaces)
+        {
+          h.Dispose();
+        }
+      }
+
       this.IsDisposed = true;
     }
   }

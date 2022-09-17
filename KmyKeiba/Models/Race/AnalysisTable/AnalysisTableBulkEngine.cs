@@ -86,7 +86,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             item.ErrorType.Value = ScriptBulkErrorType.NoRace;
           }
 
-          if (++collectCount >= 30)
+          this._aggregateFinder.CompressCache();
+          if (++collectCount >= 4)
           {
             GC.Collect();
             collectCount = 0;

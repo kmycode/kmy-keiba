@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Data.Db;
+﻿using CefSharp.DevTools.CacheStorage;
+using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Race.Finder;
 using System;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 
 namespace KmyKeiba.Models.Race.AnalysisTable
 {
@@ -52,7 +54,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
         if (canUseCache && cacheList != null)
         {
-          var caches = cacheList.Where(c => c.Keys == keys && c.Horse.Race.StartTime < horse.Race.StartTime.AddMonths(1)).ToArray();
+          IEnumerable<CacheItem> caches;
+          lock (cacheList)
+          {
+            caches = cacheList.Where(c => c.Keys == keys && c.Horse.Race.StartTime < horse.Race.StartTime.AddMonths(1)).ToArray();
+          }
           if (caches.Any())
           {
             foreach (var cache in caches)
@@ -135,10 +141,6 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         var cache = cacheList.FirstOrDefault(c => c.Keys == keys);
         if (cache != null)
         {
-          if (cache.Tag != null)
-          {
-            cache.QueryResult = null;
-          }
           return cache.ToResult();
         }
       }
@@ -174,6 +176,20 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
 
       return new AggregateRaceFinderCacheItem(result, null);
+    }
+
+    public void CompressCache()
+    {
+      lock (this._caches)
+      {
+        foreach (var cache in this._caches.SelectMany(c => c.Value))
+        {
+          if (cache.Tag != null)
+          {
+            cache.QueryResult = null;
+          }
+        }
+      }
     }
 
     private class CacheItem
