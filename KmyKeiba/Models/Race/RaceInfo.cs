@@ -610,7 +610,7 @@ namespace KmyKeiba.Models.Race
       this.Tickets.Value?.Dispose();
       this.Payoff?.Dispose();
 
-      Models.Analysis.RaceAnalyzer.OutputLogCount();
+      //Models.Analysis.RaceAnalyzer.OutputLogCount();
     }
 
     public static async Task<RaceInfo?> FromKeyAsync(string key, bool withTransaction = true, bool isCache = true)
