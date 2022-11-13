@@ -190,6 +190,7 @@
                 <MultiBinding Converter="{StaticResource MultiBooleanConv}">
                   <Binding Path="Race.IsWaitingResults.Value" ElementName="Root"/>
                   <Binding Path="Race.HasResults.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                  <Binding Path="Race.IsCanceled" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
                 </MultiBinding>
               </Border.Visibility>
               <TextBlock Text="結果待ち" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"/>
@@ -210,8 +211,14 @@
             </Button>
 
             <!--投票-->
-            <StackPanel Orientation="Horizontal" Visibility="{Binding Race.IsBeforeLimitTime.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}" Margin="0,12,0,0"
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0"
                         HorizontalAlignment="Center">
+              <StackPanel.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                  <Binding Path="Race.IsBeforeLimitTime.Value" ElementName="Root"/>
+                  <Binding Path="Race.IsCanceled" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                </MultiBinding>
+              </StackPanel.Visibility>
               <TextBlock FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0">
                 投票<LineBreak/>締切
               </TextBlock>
