@@ -388,6 +388,9 @@ namespace KmyKeiba.Downloader
         .Where(r => raceKeys.Contains(r.RaceKey))
         .ToArrayAsync();
 
+      var isDownloadAfterThursdayData = await db.SystemData!.FirstOrDefaultAsync(s => s.Key == SettingKey.IsDownloadCentralOnThursdayAfterOnly);
+      var isDownloadAfterThursday = (isDownloadAfterThursdayData?.IntValue ?? 0) != 0;
+
       races = races.Where(r =>
       {
         if (type == "central")
@@ -405,6 +408,15 @@ namespace KmyKeiba.Downloader
           {
             // 夕方から売ってることがある
             return true;
+          }
+
+          if (!isDownloadAfterThursday)
+          {
+            if (today.AddDays(1) <= r.StartTime && r.StartTime < today.AddDays(2))
+            {
+              // とりあえず翌日のレースは全部取得
+              return true;
+            }
           }
 
           bool result;

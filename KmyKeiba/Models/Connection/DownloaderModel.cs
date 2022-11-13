@@ -11,6 +11,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms.VisualStyles;
 
 namespace KmyKeiba.Models.Connection
 {
@@ -418,6 +419,11 @@ namespace KmyKeiba.Models.Connection
             await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(-2));
             await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(-1));
           }
+          else if (!this.IsRTDownloadCentralAfterThursdayOnly.Value)
+          {
+            logger.Info("前日の中央競馬の結果を取得");
+            await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(-1));
+          }
         }
       }
 
@@ -531,6 +537,11 @@ namespace KmyKeiba.Models.Connection
               logger.Debug("金曜日につき翌日以降のデータをダウンロード");
               await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(1));
               await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(2));
+            }
+            else if (!this.IsRTDownloadCentralAfterThursdayOnly.Value)
+            {
+              logger.Debug("とりあえず翌日のデータをダウンロード");
+              await this.DownloadRTAsync(DownloadLink.Central, today.AddDays(1));
             }
           }
         }
