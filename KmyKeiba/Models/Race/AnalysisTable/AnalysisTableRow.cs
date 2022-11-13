@@ -765,7 +765,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
       if (count < this.Data.RequestedSize || count == 0)
       {
-        var value = this.ExecuteScriptValue(this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight * weights.GetWeight(cell.Horse), cell);
+        var value = this.ExecuteScriptValue(this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight, cell);
         cell.Point.Value = value;
         if (count == 0)
         {
