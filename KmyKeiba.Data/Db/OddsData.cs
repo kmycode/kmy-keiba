@@ -52,16 +52,23 @@ namespace KmyKeiba.Data.Db
         placeRaw[i * 4 + 2] = (byte)(entities[i].PlaceOddsMin >> 8 & 255);
         placeRaw[i * 4 + 3] = (byte)(entities[i].PlaceOddsMin & 255);
       }
-      this.SingleOddsRaw = raw;
-      this.PlaceOddsRaw = placeRaw;
+      if (this.SingleOddsRaw == null || !Enumerable.SequenceEqual(this.SingleOddsRaw, raw))
+        this.SingleOddsRaw = raw;
+      if (this.PlaceOddsRaw == null || !Enumerable.SequenceEqual(this.PlaceOddsRaw, placeRaw))
+        this.PlaceOddsRaw = placeRaw;
     }
 
     public override void SetEntity(SingleAndDoubleWinOdds race)
     {
-      this.LastModified = race.LastModified;
-      this.DataStatus = race.DataStatus;
-      this.RaceKey = race.RaceKey;
-      this.Time = race.Time;this.SetOddsRaw(race);
+      if (this.LastModified != race.LastModified)
+        this.LastModified = race.LastModified;
+      if (this.DataStatus != race.DataStatus)
+        this.DataStatus = race.DataStatus;
+      if (this.RaceKey != race.RaceKey)
+        this.RaceKey = race.RaceKey;
+      if (this.Time != race.Time)
+        this.Time = race.Time;
+      this.SetOddsRaw(race);
     }
 
     public override bool IsEquals(DataBase<SingleAndDoubleWinOdds> b)
@@ -106,7 +113,8 @@ namespace KmyKeiba.Data.Db
           }
         }
         var binary = values.SelectMany(v => new byte[] { (byte)(v >> 8 & 255), (byte)(v & 255), }).ToArray();
-        this.Odds = binary;
+        if (this.Odds == null || !Enumerable.SequenceEqual(this.Odds, binary))
+          this.Odds = binary;
       }
     }
 
@@ -279,7 +287,8 @@ namespace KmyKeiba.Data.Db
           }
         }
         var binary = values.SelectMany(v => new byte[] { (byte)(v >> 16 & 255), (byte)(v >> 8 & 255), (byte)(v & 255), }).ToArray();
-        this.Odds = binary;
+        if (this.Odds == null || !Enumerable.SequenceEqual(this.Odds, binary))
+          this.Odds = binary;
       }
     }
 
@@ -361,7 +370,8 @@ namespace KmyKeiba.Data.Db
           }
         }
         var binary = values.SelectMany(v => new byte[] { (byte)(v >> 16 & 255), (byte)(v >> 8 & 255), (byte)(v & 255), }).ToArray();
-        this.Odds = binary;
+        if (this.Odds == null || !Enumerable.SequenceEqual(this.Odds, binary))
+          this.Odds = binary;
       }
     }
 
@@ -456,7 +466,8 @@ namespace KmyKeiba.Data.Db
           }
         }
         var binary = values.SelectMany(v => new byte[] { (byte)(v >> 16 & 255), (byte)(v >> 8 & 255), (byte)(v & 255), }).ToArray();
-        this.Odds = binary;
+        if (this.Odds == null || !Enumerable.SequenceEqual(this.Odds, binary))
+          this.Odds = binary;
       }
     }
 
@@ -553,7 +564,8 @@ namespace KmyKeiba.Data.Db
           }
         }
         var binary = values.SelectMany(v => new byte[] { (byte)(v >> 24 & 255), (byte)(v >> 16 & 255), (byte)(v >> 8 & 255), (byte)(v & 255), }).ToArray();
-        this.Odds = binary;
+        if (this.Odds == null || !Enumerable.SequenceEqual(this.Odds, binary))
+          this.Odds = binary;
       }
     }
 

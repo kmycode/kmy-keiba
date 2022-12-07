@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.JVLink.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Update;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -165,9 +166,12 @@ namespace KmyKeiba.Data.Db
 
     public override void SetEntity(Race race)
     {
-      this.Key = race.Key;
-      this.LastModified = race.LastModified;
-      this.DataStatus = race.DataStatus;
+      if (this.Key != race.Key)
+        this.Key = race.Key;
+      if (this.LastModified != race.LastModified)
+        this.LastModified = race.LastModified;
+      if (this.DataStatus != race.DataStatus)
+        this.DataStatus = race.DataStatus;
 
       if (!string.IsNullOrEmpty(this.SubjectDisplayInfo))
       {
@@ -176,42 +180,74 @@ namespace KmyKeiba.Data.Db
           this.SubjectDisplayInfo = string.Empty;
         }
       }
-      this.Name = race.Name;
-      this.Name6Chars = race.Name6Chars;
-      this.SubName = race.SubName;
-      this.SubjectName = race.Subject.Name;
-      this.GradeId = race.GradeId;
-      this.Course = race.Course;
-      this.CourseType = race.CourseType;
-      this.Nichiji = race.Nichiji;
-      this.TrackCode = race.TrackCode;
-      this.TrackGround = race.TrackGround;
-      this.TrackCornerDirection = race.TrackCornerDirection;
-      this.TrackType = race.TrackType;
-      this.TrackOption = race.TrackOption;
-      this.RiderWeight = race.RiderWeight;
-      this.Area = race.Area;
-      this.Sex = race.Sex;
-      this.Cross = race.Cross;
-      this.Distance = race.Distance;
-      this.CourseRaceNumber = race.CourseRaceNumber;
-      this.HorsesCount = race.HorsesCount;
-      this.ResultHorsesCount = race.ResultHorsesCount;
-      this.StartTime = race.StartTime;
-      this.CornerPositionInfos =
-        race.Corner1Position * 10_00_00_00 + race.Corner1Number * 1_00_00_00 +
+      if (this.Name != race.Name)
+        this.Name = race.Name;
+      if (this.Name6Chars != race.Name6Chars)
+        this.Name6Chars = race.Name6Chars;
+      if (this.SubName != race.SubName)
+        this.SubName = race.SubName;
+      if (this.SubjectName != race.Subject.Name)
+        this.SubjectName = race.Subject.Name;
+      if (this.GradeId != race.GradeId)
+        this.GradeId = race.GradeId;
+      if (this.Course != race.Course)
+        this.Course = race.Course;
+      if (this.CourseType != race.CourseType)
+        this.CourseType = race.CourseType;
+      if (this.Nichiji != race.Nichiji)
+        this.Nichiji = race.Nichiji;
+      if (this.TrackCode != race.TrackCode)
+        this.TrackCode = race.TrackCode;
+      if (this.TrackGround != race.TrackGround)
+        this.TrackGround = race.TrackGround;
+      if (this.TrackCornerDirection != race.TrackCornerDirection)
+        this.TrackCornerDirection = race.TrackCornerDirection;
+      if (this.TrackType != race.TrackType)
+        this.TrackType = race.TrackType;
+      if (this.TrackOption != race.TrackOption)
+        this.TrackOption = race.TrackOption;
+      if (this.RiderWeight != race.RiderWeight)
+        this.RiderWeight = race.RiderWeight;
+      if (this.Area != race.Area)
+        this.Area = race.Area;
+      if (this.Sex != race.Sex)
+        this.Sex = race.Sex;
+      if (this.Cross != race.Cross)
+        this.Cross = race.Cross;
+      if (this.Distance != race.Distance)
+        this.Distance = race.Distance;
+      if (this.CourseRaceNumber != race.CourseRaceNumber)
+        this.CourseRaceNumber = race.CourseRaceNumber;
+      if (this.HorsesCount != race.HorsesCount)
+        this.HorsesCount = race.HorsesCount;
+      if (this.ResultHorsesCount != race.ResultHorsesCount)
+        this.ResultHorsesCount = race.ResultHorsesCount;
+      if (this.StartTime != race.StartTime)
+        this.StartTime = race.StartTime;
+      var cornerPositionInfos = race.Corner1Position * 10_00_00_00 + race.Corner1Number * 1_00_00_00 +
         race.Corner2Position * 10_00_00 + race.Corner2Number * 1_00_00 +
         race.Corner3Position * 10_00 + race.Corner3Number * 1_00 +
         race.Corner4Position * 10 + race.Corner4Number * 1;
-      this.Corner1Result = race.Corner1Result;
-      this.Corner2Result = race.Corner2Result;
-      this.Corner3Result = race.Corner3Result;
-      this.Corner4Result = race.Corner4Result;
-      this.BeforeHaronTime3 = race.BeforeHaronTime3;
-      this.BeforeHaronTime4 = race.BeforeHaronTime4;
-      this.AfterHaronTime3 = race.AfterHaronTime3;
-      this.AfterHaronTime4 = race.AfterHaronTime4;
-      this.SteeplechaseMileTime = race.SteeplechaseMileTime;
+      if (this.CornerPositionInfos != cornerPositionInfos)
+        this.CornerPositionInfos = cornerPositionInfos;
+      if (this.Corner1Result != race.Corner1Result)
+        this.Corner1Result = race.Corner1Result;
+      if (this.Corner2Result != race.Corner2Result)
+        this.Corner2Result = race.Corner2Result;
+      if (this.Corner3Result != race.Corner3Result)
+        this.Corner3Result = race.Corner3Result;
+      if (this.Corner4Result != race.Corner4Result)
+        this.Corner4Result = race.Corner4Result;
+      if (this.BeforeHaronTime3 != race.BeforeHaronTime3)
+        this.BeforeHaronTime3 = race.BeforeHaronTime3;
+      if (this.BeforeHaronTime4 != race.BeforeHaronTime4)
+        this.BeforeHaronTime4 = race.BeforeHaronTime4;
+      if (this.AfterHaronTime3 != race.AfterHaronTime3)
+        this.AfterHaronTime3 = race.AfterHaronTime3;
+      if (this.AfterHaronTime4 != race.AfterHaronTime4)
+        this.AfterHaronTime4 = race.AfterHaronTime4;
+      if (this.SteeplechaseMileTime != race.SteeplechaseMileTime)
+        this.SteeplechaseMileTime = race.SteeplechaseMileTime;
 
       var lapTimes = new byte[race.LapTimes.Length * 2];
       for (var i = 0; i < race.LapTimes.Length; i++)
@@ -219,43 +255,51 @@ namespace KmyKeiba.Data.Db
         lapTimes[i * 2] = (byte)((race.LapTimes[i] >> 8) & 255);
         lapTimes[i * 2 + 1] = (byte)(race.LapTimes[i] & 255);
       }
-      this.LapTimes = lapTimes;
+      if (this.LapTimes == null || !Enumerable.SequenceEqual(this.LapTimes, lapTimes))
+        this.LapTimes = lapTimes;
 
       // NVLink（地方競馬）でRealTimeデータを取得するときに欠損していることがある
       if (race.TrackWeather != RaceCourseWeather.Unknown)
       {
-        this.TrackWeather = race.TrackWeather;
+        if (this.TrackWeather != race.TrackWeather)
+          this.TrackWeather = race.TrackWeather;
         this.IsWeatherSetManually = false;
       }
       if (race.TrackCondition != RaceCourseCondition.Unknown || (race.Course == RaceCourse.ObihiroBannei && race.BaneiMoisture != default))
       {
-        this.TrackCondition = race.TrackCondition;
-        this.BaneiMoisture = race.BaneiMoisture;
+        if (this.TrackCondition != race.TrackCondition)
+          this.TrackCondition = race.TrackCondition;
+        if (this.BaneiMoisture != race.BaneiMoisture)
+          this.BaneiMoisture = race.BaneiMoisture;
         this.IsConditionSetManually = false;
       }
 
-      this.Grade = race.Subject.Grade;
-      if (race.Course >= RaceCourse.Foreign)
+      if (this.Grade != race.Subject.Grade)
       {
-        if (this.Grade == RaceGrade.Grade1)
-          this.Grade = RaceGrade.ForeignGrade1;
-        if (this.Grade == RaceGrade.Grade2)
-          this.Grade = RaceGrade.ForeignGrade2;
-        if (this.Grade == RaceGrade.Grade3)
-          this.Grade = RaceGrade.ForeignGrade3;
-      }
-      else if (race.Course >= RaceCourse.LocalMinValue && race.Course < RaceCourse.Foreign)
-      {
-        if (this.Grade == RaceGrade.Grade1)
-          this.Grade = RaceGrade.LocalGrade1;
-        if (this.Grade == RaceGrade.Grade2)
-          this.Grade = RaceGrade.LocalGrade2;
-        if (this.Grade == RaceGrade.Grade3)
-          this.Grade = RaceGrade.LocalGrade3;
-        if (this.Grade == RaceGrade.NoNamedGrade)
-          this.Grade = RaceGrade.LocalNoNamedGrade;
-        if (this.Grade == RaceGrade.NonGradeSpecial)
-          this.Grade = RaceGrade.LocalNonGradeSpecial;
+        this.Grade = race.Subject.Grade;
+
+        if (race.Course >= RaceCourse.Foreign)
+        {
+          if (this.Grade == RaceGrade.Grade1)
+            this.Grade = RaceGrade.ForeignGrade1;
+          if (this.Grade == RaceGrade.Grade2)
+            this.Grade = RaceGrade.ForeignGrade2;
+          if (this.Grade == RaceGrade.Grade3)
+            this.Grade = RaceGrade.ForeignGrade3;
+        }
+        else if (race.Course >= RaceCourse.LocalMinValue && race.Course < RaceCourse.Foreign)
+        {
+          if (this.Grade == RaceGrade.Grade1)
+            this.Grade = RaceGrade.LocalGrade1;
+          if (this.Grade == RaceGrade.Grade2)
+            this.Grade = RaceGrade.LocalGrade2;
+          if (this.Grade == RaceGrade.Grade3)
+            this.Grade = RaceGrade.LocalGrade3;
+          if (this.Grade == RaceGrade.NoNamedGrade)
+            this.Grade = RaceGrade.LocalNoNamedGrade;
+          if (this.Grade == RaceGrade.NonGradeSpecial)
+            this.Grade = RaceGrade.LocalNonGradeSpecial;
+        }
       }
 
       foreach (var sub in race.Subject.AgeSubjects)
@@ -263,19 +307,24 @@ namespace KmyKeiba.Data.Db
         switch (sub.Age)
         {
           case 2:
-            this.SubjectAge2 = sub.Type;
+            if (this.SubjectAge2 != sub.Type)
+              this.SubjectAge2 = sub.Type;
             break;
           case 3:
-            this.SubjectAge3 = sub.Type;
+            if (this.SubjectAge3 != sub.Type)
+              this.SubjectAge3 = sub.Type;
             break;
           case 4:
-            this.SubjectAge4 = sub.Type;
+            if (this.SubjectAge4 != sub.Type)
+              this.SubjectAge4 = sub.Type;
             break;
           case 5:
-            this.SubjectAge5 = sub.Type;
+            if (this.SubjectAge5 != sub.Type)
+              this.SubjectAge5 = sub.Type;
             break;
           case 6:
-            this.SubjectAgeYounger = sub.Type;
+            if (this.SubjectAgeYounger != sub.Type)
+              this.SubjectAgeYounger = sub.Type;
             break;
         }
       }
@@ -301,8 +350,10 @@ namespace KmyKeiba.Data.Db
       SetPrizeMoney(race.ExtraPrizeMoney3);
       SetPrizeMoney(race.ExtraPrizeMoney4);
       SetPrizeMoney(race.ExtraPrizeMoney5);
-      this.PrizeMoney = prizeMoney;
-      this.PrizeMoney1 = race.PrizeMoney1;
+      if (this.PrizeMoney == null || !Enumerable.SequenceEqual(this.PrizeMoney, prizeMoney))
+        this.PrizeMoney = prizeMoney;
+      if (this.PrizeMoney1 != race.PrizeMoney1)
+        this.PrizeMoney1 = race.PrizeMoney1;
     }
 
     private short[]? _lapTimes;
