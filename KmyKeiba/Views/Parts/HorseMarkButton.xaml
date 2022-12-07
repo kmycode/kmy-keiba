@@ -25,9 +25,9 @@
     <ToggleButton Name="MarkButton" Width="36" Height="36" Padding="0">
       <ContentControl Template="{Binding Horse.Mark.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource HorseMarkConv}}" RenderTransform="{StaticResource MarkTransform}"/>
     </ToggleButton>
-    <Popup Name="MarkPopup" Grid.Column="2" Width="327" Height="38" IsOpen="{Binding IsChecked,ElementName=MarkButton,Mode=TwoWay}" StaysOpen="False"
+    <Popup Name="MarkPopup" Grid.Column="2" Width="182" Height="76" IsOpen="{Binding IsChecked,ElementName=MarkButton,Mode=TwoWay}" StaysOpen="False"
                  PlacementTarget="{Binding ElementName=MarkButton}" Placement="Right" Margin="4,0,0,0">
-      <Grid Background="{StaticResource BaseBorderBrush}">
+      <StackPanel Background="{StaticResource BaseBorderBrush}">
         <StackPanel Orientation="Horizontal" Margin="1">
           <Button Command="{Binding Horse.SetMarkCommand,ElementName=Root}" CommandParameter="0">
             <ContentControl Template="{StaticResource MarkDefault}" RenderTransform="{StaticResource MarkTransform}"/>
@@ -44,6 +44,8 @@
           <Button Command="{Binding Horse.SetMarkCommand,ElementName=Root}" CommandParameter="4">
             <ContentControl Template="{StaticResource MarkTriangle}" RenderTransform="{StaticResource MarkTransform}"/>
           </Button>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="37,0,1,1">
           <Button Command="{Binding Horse.SetMarkCommand,ElementName=Root}" CommandParameter="5">
             <ContentControl Template="{StaticResource MarkStar}" RenderTransform="{StaticResource MarkTransform}"/>
           </Button>
@@ -57,7 +59,7 @@
             <ContentControl Template="{StaticResource MarkDeleted}" RenderTransform="{StaticResource MarkTransform}"/>
           </Button>
         </StackPanel>
-      </Grid>
+      </StackPanel>
     </Popup>
   </Grid>
 </UserControl>
