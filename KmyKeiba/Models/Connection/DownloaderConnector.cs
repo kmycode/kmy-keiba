@@ -297,7 +297,7 @@ namespace KmyKeiba.Models.Connection
           task = new DownloaderTaskData
           {
             Command = DownloaderCommand.DownloadSetup,
-            Parameter = $"{start.Year},{start.Month},{link},{type}",
+            Parameter = $"{start.Year},{start.Month}{start.Day:00},{link},{type}",
           };
           this.currentTask.Value = task;
         }
