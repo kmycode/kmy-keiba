@@ -3,7 +3,6 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Generic;
-using KmyKeiba.Models.Analysis.Table;
 using KmyKeiba.Models.Common;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
@@ -76,8 +75,6 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<RaceHorseAnalyzer?> ActiveHorse { get; } = new();
 
-    public AnalysisTableList AnalysisTables { get; } = new();
-
     public ReactiveProperty<bool> HasAnalysisTables { get; } = new();
 
     public ReactiveCollection<RaceCorner> Corners { get; } = new();
@@ -117,8 +114,6 @@ namespace KmyKeiba.Models.Race
     public ReactiveProperty<bool> CanUpdate { get; } = new();
 
     public ReactiveProperty<bool> IsNewDataHasResults { get; } = new();
-
-    public ReactiveProperty<bool> IsWillTrendAnalyzersResetedOnUpdate { get; } = new();
 
     public ReactiveProperty<bool> CanBuy { get; } = new();
 
@@ -180,8 +175,6 @@ namespace KmyKeiba.Models.Race
       this.WinnerTrendAnalyzers = new RaceWinnerHorseTrendAnalysisSelector(race);
       this.Finder = new RaceFinder(race);
       this.CourseSummaryImage.Race = race;
-
-      this.AnalysisTables.ObserveAddChanged().Subscribe(_ => this.HasAnalysisTables.Value = true).AddTo(this._disposables);
 
       var buyLimitTime = this.Data.StartTime.AddMinutes(-2);
       logger.Debug($"購入締め切り: {buyLimitTime} レース開始: {race.StartTime}");
@@ -449,7 +442,6 @@ namespace KmyKeiba.Models.Race
       {
         // 天候馬場を手動で変更したとき
         this.CanUpdate.Value = true;
-        this.IsWillTrendAnalyzersResetedOnUpdate.Value = true;
         return;
       }
 
@@ -478,7 +470,6 @@ namespace KmyKeiba.Models.Race
           if (isUpdate)
           {
             this.CanUpdate.Value = isUpdate;
-            this.IsWillTrendAnalyzersResetedOnUpdate.Value = this.IsWillResetTrendAnalyzersDataOnUpdate(newData);
             this.IsNewDataHasResults.Value = this.Data.DataStatus <= RaceDataStatus.Horses2 && newData.DataStatus >= RaceDataStatus.PreliminaryGrade3;
           }
 
@@ -533,16 +524,6 @@ namespace KmyKeiba.Models.Race
       return type;
     }
 
-    private bool IsWillResetTrendAnalyzersDataOnUpdate(RaceData newData)
-    {
-      if (this.IsAvoidCaching)
-      {
-        return true;
-      }
-
-      return IsWillResetTrendAnalyzersDataOnUpdate(this.Data, newData);
-    }
-
     public async Task BuyAsync()
     {
       if (!this.CanBuy.Value || this.Tickets.Value == null)
@@ -582,14 +563,7 @@ namespace KmyKeiba.Models.Race
 
     public void UpdateCache()
     {
-      if (!this.IsWillTrendAnalyzersResetedOnUpdate.Value)
-      {
-        RaceInfoCacheManager.UpdateCache(this.Data.Key, this.AnalysisTable.Value?.ToCache());
-      }
-      else
-      {
-        RaceInfoCacheManager.UpdateCache(this.Data.Key, null);
-      }
+      RaceInfoCacheManager.UpdateCache(this.Data.Key, null);
     }
 
     public void Dispose()
@@ -597,7 +571,6 @@ namespace KmyKeiba.Models.Race
       this._disposables.Dispose();
       this.RaceAnalyzer.Value?.Dispose();
       this.TrendAnalyzers.Dispose();
-      this.AnalysisTables.Dispose();
       this.AnalysisTable.Value?.Dispose();
       this.Finder.Dispose();
       this.FinderModel.Value?.Dispose();
@@ -835,25 +808,6 @@ namespace KmyKeiba.Models.Race
 
           // 印
           info.HorseMark.Value = await HorseMarkModel.CreateAsync(db, race.Key, jrdbHorses, sortedHorses.ToArray());
-
-          // 分析テーブル（旧式）
-          var analysisTables = new List<Analysis.Table.AnalysisTable>();
-          foreach (var table in ApplicationConfiguration.Current.Value.AnalysisTableGenerators)
-          {
-            analysisTables.Add(await table.GenerateAsync(info));
-          }
-          ThreadUtil.InvokeOnUiThread(() =>
-          {
-            foreach (var table in analysisTables)
-            {
-              info.AnalysisTables.Add(table);
-            }
-            var first = info.AnalysisTables.FirstOrDefault();
-            if (first != null)
-            {
-              first.IsActive.Value = true;
-            }
-          });
 
           // すべてのデータ読み込み完了
           info.IsLoadCompleted.Value = true;

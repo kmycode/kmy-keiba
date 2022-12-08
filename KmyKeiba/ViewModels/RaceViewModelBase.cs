@@ -2,7 +2,6 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
-using KmyKeiba.Models.Analysis.Table;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Models.Race.ExNumber;
@@ -165,20 +164,6 @@ namespace KmyKeiba.ViewModels
       this._approveReplacingScriptTicketsCommand ??=
         new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(p => this.model.Info.Value?.Script.ApproveReplacingTicketsAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private AsyncReactiveCommand<object>? _approveReplacingScriptTicketsCommand;
-
-    #endregion
-
-    #region 分析（レガシー）
-
-    public ICommand LoadAnalysisTableRowCommand =>
-      this._loadAnalysisTableRowCommand ??=
-        new AsyncReactiveCommand<AnalysisTableRow>().WithSubscribe(async row => await row.LoadAsync()).AddTo(this._disposables);
-    private AsyncReactiveCommand<AnalysisTableRow>? _loadAnalysisTableRowCommand;
-
-    public ICommand LoadAnalysisTableCommand =>
-      this._loadAnalysisTableCommand ??=
-        new AsyncReactiveCommand<AnalysisTable>().WithSubscribe(async table => await table.LoadAllAsync()).AddTo(this._disposables);
-    private AsyncReactiveCommand<AnalysisTable>? _loadAnalysisTableCommand;
 
     #endregion
 

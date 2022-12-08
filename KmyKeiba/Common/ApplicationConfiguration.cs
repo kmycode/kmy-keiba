@@ -1,5 +1,4 @@
-﻿using KmyKeiba.Models.Analysis.Table;
-using KmyKeiba.Models.Race;
+﻿using KmyKeiba.Models.Race;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -34,12 +33,5 @@ namespace KmyKeiba.Common
     public bool IsFirstMessageVisible { get; init; } = true;
 
     public int ExpansionMemoGroupSize { get; init; } = 8;
-
-    public List<AnalysisTableGenerator> AnalysisTableGenerators { get; } = new();
-  }
-
-  public abstract class AnalysisTableGenerator
-  {
-    public abstract Task<AnalysisTable> GenerateAsync(RaceInfo race);
   }
 }
