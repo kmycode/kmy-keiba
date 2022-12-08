@@ -1,6 +1,5 @@
 ﻿using KmyKeiba.JVLink.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Update;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -226,95 +225,54 @@ namespace KmyKeiba.Data.Db
 
     public override void SetEntity(RaceHorse entity)
     {
-      if (this.LastModified != entity.LastModified)
-        this.LastModified = entity.LastModified;
-      if (this.DataStatus != entity.DataStatus)
-        this.DataStatus = entity.DataStatus;
-      if (this.Key != entity.Key)
-        this.Key = entity.Key;
-      if (this.Name != entity.Name)
-        this.Name = entity.Name;
-      if (this.Age != entity.Age)
-        this.Age = entity.Age;
-      if (this.Sex != entity.Sex)
-        this.Sex = entity.Sex;
-      if (this.Type != entity.Type)
-        this.Type = entity.Type;
-      if (this.Color != entity.Color)
-        this.Color = entity.Color;
-      if (this.Number != entity.Number)
-        this.Number = entity.Number;
-      if (this.RaceKey != entity.RaceKey)
-        this.RaceKey = entity.RaceKey;
-      if (this.Course != entity.Course)
-        this.Course = entity.Course;
-      if (this.ResultOrder != entity.ResultOrder)
-        this.ResultOrder = entity.ResultOrder;
-      if (this.GoalOrder != entity.GoalOrder)
-        this.GoalOrder = entity.GoalOrder;
-      if (this.TimeDifference != entity.TimeDifference)
-        this.TimeDifference = entity.TimeDifference;
-      if (this.ResultTime != entity.ResultTime)
-        this.ResultTime = entity.ResultTime;
-      if (this.ResultTimeValue != entity.ResultTimeValue)
-        this.ResultTimeValue = entity.ResultTimeValue;
-      if (this.ResultLength1 != entity.ResultLength1)
-        this.ResultLength1 = entity.ResultLength1;
-      if (this.ResultLength2 != entity.ResultLength2)
-        this.ResultLength2 = entity.ResultLength2;
-      if (this.ResultLength3 != entity.ResultLength3)
-        this.ResultLength3 = entity.ResultLength3;
-      if (this.FrameNumber != entity.FrameNumber)
-        this.FrameNumber = entity.FrameNumber;
-      if (this.FirstCornerOrder != entity.FirstCornerOrder)
-        this.FirstCornerOrder = entity.FirstCornerOrder;
-      if (this.SecondCornerOrder != entity.SecondCornerOrder)
-        this.SecondCornerOrder = entity.SecondCornerOrder;
-      if (this.ThirdCornerOrder != entity.ThirdCornerOrder)
-        this.ThirdCornerOrder = entity.ThirdCornerOrder;
-      if (this.FourthCornerOrder != entity.FourthCornerOrder)
-        this.FourthCornerOrder = entity.FourthCornerOrder;
-      if (this.TrainerCode != entity.TrainerCode)
-        this.TrainerCode = entity.TrainerCode;
-      if (this.TrainerName != entity.TrainerName)
-        this.TrainerName = entity.TrainerName;
-      if (this.OwnerCode != entity.OwnerCode)
-        this.OwnerCode = entity.OwnerCode;
-      if (this.OwnerName != entity.OwnerName)
-        this.OwnerName = entity.OwnerName;
-      if (this.IsBlinkers != entity.IsBlinkers)
-        this.IsBlinkers = entity.IsBlinkers;
-      if (this.AfterThirdHalongTime != entity.AfterThirdHalongTime)
-        this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
-      if (this.AfterThirdHalongTimeValue != entity.AfterThirdHalongTimeValue)
-        this.AfterThirdHalongTimeValue = entity.AfterThirdHalongTimeValue;
-      if (this.AbnormalResult != entity.AbnormalResult)
-        this.AbnormalResult = entity.AbnormalResult;
-      if (this.UniformFormat != entity.UniformFormat)
-        this.UniformFormat = entity.UniformFormat;
+      this.LastModified = entity.LastModified;
+      this.DataStatus = entity.DataStatus;
+      this.Key = entity.Key;
+      this.Name = entity.Name;
+      this.Age = entity.Age;
+      this.Sex = entity.Sex;
+      this.Type = entity.Type;
+      this.Color = entity.Color;
+      this.Number = entity.Number;
+      this.RaceKey = entity.RaceKey;
+      this.Course = entity.Course;
+      this.ResultOrder = entity.ResultOrder;
+      this.GoalOrder = entity.GoalOrder;
+      this.TimeDifference = entity.TimeDifference;
+      this.ResultTime = entity.ResultTime;
+      this.ResultTimeValue = entity.ResultTimeValue;
+      this.ResultLength1 = entity.ResultLength1;
+      this.ResultLength2 = entity.ResultLength2;
+      this.ResultLength3 = entity.ResultLength3;
+      this.FrameNumber = entity.FrameNumber;
+      this.FirstCornerOrder = entity.FirstCornerOrder;
+      this.SecondCornerOrder = entity.SecondCornerOrder;
+      this.ThirdCornerOrder = entity.ThirdCornerOrder;
+      this.FourthCornerOrder = entity.FourthCornerOrder;
+      this.TrainerCode = entity.TrainerCode;
+      this.TrainerName = entity.TrainerName;
+      this.OwnerCode = entity.OwnerCode;
+      this.OwnerName = entity.OwnerName;
+      this.IsBlinkers = entity.IsBlinkers;
+      this.AfterThirdHalongTime = entity.AfterThirdHalongTime;
+      this.AfterThirdHalongTimeValue = entity.AfterThirdHalongTimeValue;
+      this.AbnormalResult = entity.AbnormalResult;
+      this.UniformFormat = entity.UniformFormat;
 
       if (this.CanSetOdds(entity.Odds))
       {
-        if (this.Odds != entity.Odds)
-          this.Odds = entity.Odds;
-        if (this.Popular != entity.Popular)
-          this.Popular = entity.Popular;
-        if (this.RiderCode != entity.RiderCode)
-          this.RiderCode = entity.RiderCode;
-        if (this.RiderName != entity.RiderName)
-          this.RiderName = entity.RiderName;
-        if (this.RiderWeight != entity.RiderWeight)
-          this.RiderWeight = entity.RiderWeight;
-        if (this.Weight != entity.Weight)
-          this.Weight = entity.Weight;
-        if (this.WeightDiff != entity.WeightDiff)
-          this.WeightDiff = entity.WeightDiff;
+        this.Odds = entity.Odds;
+        this.Popular = entity.Popular;
+        this.RiderCode = entity.RiderCode;
+        this.RiderName = entity.RiderName;
+        this.RiderWeight = entity.RiderWeight;
+        this.Weight = entity.Weight;
+        this.WeightDiff = entity.WeightDiff;
       }
 
       if (!this.IsRunningStyleSetManually)
       {
-        if (this.RunningStyle != entity.RunningStyle)
-          this.RunningStyle = entity.RunningStyle;
+        this.RunningStyle = entity.RunningStyle;
       }
     }
 
