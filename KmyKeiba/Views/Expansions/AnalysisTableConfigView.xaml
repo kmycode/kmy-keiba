@@ -69,26 +69,29 @@
                 <Grid Margin="0,0,0,4">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
                     <ColumnDefinition/>
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="auto"/>
                   </Grid.ColumnDefinitions>
-                  <TextBlock Text="名前" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
+                  <ToggleButton FontSize="16" Content="編集" Name="EditButton"
+                                Margin="0,0,8,0" IsChecked="{Binding IsEdit.Value,Mode=TwoWay}"/>
+                  <TextBlock Grid.Column="1" Text="名前" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
                              VerticalAlignment="Center"/>
-                  <TextBox Grid.Column="1" FontSize="18" Text="{Binding Name.Value,Mode=TwoWay}" VerticalContentAlignment="Center"/>
-                  <TextBlock Grid.Column="2" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="4,0,4,0"
+                  <TextBox Grid.Column="2" FontSize="18" Text="{Binding Name.Value,Mode=TwoWay}" VerticalContentAlignment="Center"/>
+                  <TextBlock Grid.Column="3" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="4,0,4,0"
                              VerticalAlignment="Center">
                     ID: <Run Text="{Binding Data.Id}"/>
                   </TextBlock>
-                  <StackPanel Orientation="Horizontal" Grid.Column="3" Margin="8,0,16,0" VerticalAlignment="Center">
+                  <StackPanel Orientation="Horizontal" Grid.Column="4" Margin="8,0,16,0" VerticalAlignment="Center">
                     <Button FontSize="16" Content="上へ" Command="{Binding DataContext.UpAnalysisTableRowConfigCommand,ElementName=Root}" CommandParameter="{Binding}"/>
                     <Button FontSize="16" Content="下へ" Command="{Binding DataContext.DownAnalysisTableRowConfigCommand,ElementName=Root}" CommandParameter="{Binding}" Margin="4,0,0,0"/>
                   </StackPanel>
-                  <Button Grid.Column="4" Content="削除" FontSize="16" Padding="4,2" Command="{Binding DataContext.DeleteAnalysisTableRowConfigCommand,ElementName=Root}"
+                  <Button Grid.Column="5" Content="削除" FontSize="16" Padding="4,2" Command="{Binding DataContext.DeleteAnalysisTableRowConfigCommand,ElementName=Root}"
                           CommandParameter="{Binding}"/>
                 </Grid>
-                <Grid Grid.Row="1" Margin="0,0,0,4">
+                <Grid Grid.Row="1" Margin="0,0,0,4" Visibility="{Binding IsChecked,ElementName=EditButton,Converter={StaticResource BooleanVisibilityConv}}">
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="80"/>
                     <ColumnDefinition/>
@@ -268,8 +271,14 @@
                            Visibility="{Binding CanSetScript.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                 </Grid>
                 <up:FinderKeyInputView Grid.Row="2" IsShowFinderButtonOnly="True" FinderModel="{Binding FinderModelForConfig}"
-                                       IsPopupOnMouse="True"
-                                       Visibility="{Binding CanSetQuery.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                                       IsPopupOnMouse="True">
+                  <up:FinderKeyInputView.Visibility>
+                    <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                      <Binding Path="CanSetQuery.Value"/>
+                      <Binding Path="IsChecked" ElementName="EditButton"/>
+                    </MultiBinding>
+                  </up:FinderKeyInputView.Visibility>
+                </up:FinderKeyInputView>
                 <Border Grid.Row="3" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="0,3,0,0" Height="3" Margin="0,12,0,0"/>
               </Grid>
             </DataTemplate>

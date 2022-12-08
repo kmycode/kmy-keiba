@@ -35,6 +35,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public FinderModel FinderModelForConfig { get; }
 
+    public ReactiveProperty<bool> IsEdit { get; } = new();  // Viewでのみ使用
+
     public ReactiveProperty<string> Name { get; } = new();
 
     public ReactiveProperty<string> BaseWeight { get; } = new();
