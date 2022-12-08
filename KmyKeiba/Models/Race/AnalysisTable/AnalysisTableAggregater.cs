@@ -125,6 +125,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         }
       }
 
+      // 印をつける
       var hmax = this.Horses.OrderByDescending(c => c.TotalPoint.Value).ElementAtOrDefault(2)?.TotalPoint.Value ?? 0;
       var hmin = this.Horses.OrderBy(c => c.TotalPoint.Value).ElementAtOrDefault(2)?.TotalPoint.Value ?? double.MaxValue;
       var i = 1;
@@ -163,6 +164,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           horse.MarkSuggestion.Value = RaceHorseMark.Deleted;
         }
 
+        horse.Horse.AnalysisTableMark.Value = horse.MarkSuggestion.Value;
         i++;
       }
 

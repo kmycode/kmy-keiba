@@ -60,6 +60,8 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<RaceHorseMark> Mark { get; } = new();
 
+    public ReactiveProperty<RaceHorseMark> AnalysisTableMark { get; } = new();
+
     public ReactiveProperty<bool> IsChecked { get; } = new();
 
     public ReactiveProperty<string> Memo { get; } = new();
@@ -197,7 +199,6 @@ namespace KmyKeiba.Models.Analysis
       /// PCI
       /// </summary>
       public double PciAverage { get; }
-      public double PciDeviationValue { get; }
 
       /// <summary>
       /// 乱調度
@@ -211,7 +212,6 @@ namespace KmyKeiba.Models.Analysis
       public ValueComparation UntilA3HTimeDVComparation { get; set; }
 
       public ValueComparation PciAverageComparation { get; set; }
-      public ValueComparation PciDVComparation { get; set; }
 
       /// <summary>
       /// 距離適性
@@ -259,9 +259,6 @@ namespace KmyKeiba.Models.Analysis
           var pcis = this.Before15Races.Select(h => h.Pci).Where(h => h != default);
           if (pcis.Any())
             this.PciAverage = pcis.Average();
-          var pcidvs = this.Before15Races.Select(h => h.PciDeviationValue).Where(h => h != default);
-          if (pcidvs.Any())
-            this.PciDeviationValue = pcidvs.Average();
           
           if (jrdbHorse != null && jrdbHorse.RunningStyle != JdbcRunningStyle.Unknown)
           {

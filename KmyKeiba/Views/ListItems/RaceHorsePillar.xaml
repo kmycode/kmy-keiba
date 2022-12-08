@@ -16,6 +16,12 @@
       <ColumnDefinition Width="auto"/>
       <ColumnDefinition/>
     </Grid.ColumnDefinitions>
+    <Grid.Resources>
+      <TransformGroup x:Key="MarkTransform">
+        <ScaleTransform ScaleX="0.7" ScaleY="0.7"/>
+        <TranslateTransform X="5" Y="5"/>
+      </TransformGroup>
+    </Grid.Resources>
 
     <Border Background="{StaticResource ActiveBackground}" Grid.ColumnSpan="2"
             Visibility="{Binding Horse.IsActive.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
@@ -264,10 +270,9 @@
                        Visibility="{Binding Horse.History.PciAverage,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
           </StackPanel>
           <StackPanel Width="60">
-            <TextBlock Text="P偏平均" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
-            <TextBlock Text="{Binding Horse.History.PciDeviationValue,ElementName=Root,StringFormat=F1}" FontSize="20" HorizontalAlignment="Center"
-                       Foreground="{Binding Horse.History.PciDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
-                       Visibility="{Binding Horse.History.PciDeviationValue,ElementName=Root,Converter={StaticResource NonZeroVisibilityConv}}"/>
+            <TextBlock Text="集計印" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
+            <ContentControl Template="{Binding Horse.AnalysisTableMark.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource HorseMarkConv}}" RenderTransform="{StaticResource MarkTransform}"
+                            HorizontalAlignment="Center"/>
           </StackPanel>
           <StackPanel Width="60">
             <TextBlock Text="騎手複勝" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
