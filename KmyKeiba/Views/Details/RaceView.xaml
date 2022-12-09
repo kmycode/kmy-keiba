@@ -440,7 +440,7 @@
       </Grid.Visibility>
       <Border>
         <TextBlock FontSize="32" Style="{StaticResource SubTextBlock}" Text="{Binding FirstMessage.Value}"
-                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                   HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
       </Border>
     </Grid>
 
