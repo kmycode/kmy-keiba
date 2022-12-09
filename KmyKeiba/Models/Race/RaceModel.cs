@@ -75,6 +75,7 @@ namespace KmyKeiba.Models.Race
           "一括実行は寝ている間にやりましょう\n同時実行は２か１のどちらかで",
           "土日以外の中央競馬がある時は\nRT設定のチェックを外すのを忘れずに",
           "データ保存による操作不能がしつこい時は\n一時的に自動更新を止めることができます",
+          "右下のVerボタンが緑色になっていれば\nアップデート可能です\nボタンを押すとダウンロード先リンクが表示されます",
         };
         var index = new Random().Next(firstMessages.Length);
         ApplicationConfiguration.Current.Skip(1).Select(c => c.IsFirstMessageVisible).Subscribe(v =>
