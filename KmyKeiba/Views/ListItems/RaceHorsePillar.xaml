@@ -350,7 +350,7 @@
                                   <Binding Path="IsRaceCanceled" Converter="{StaticResource NegativeConv}"/>
                                 </MultiBinding>
                               </StackPanel.Visibility>
-                              <up:CornerResultTip CornerGrades="{Binding CornerGrades}" FontSize="12" WithResult="False" Width="90"
+                              <up:CornerResultTip CornerGrades="{Binding CornerGrades}" FontSize="12" WithResult="False" Width="84"
                                                   PartWidth="16" PartHeight="18" PartPadding="0"/>
                               <Border Width="22" Height="22" Background="{Binding ResultOrderComparationWithLastCorner,Converter={StaticResource ValueComparationBackgroundConv}}"
                                       BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="0.7">
@@ -360,9 +360,14 @@
                                   </TextBlock.RenderTransform>
                                 </TextBlock>
                               </Border>
-                              <TextBlock TextAlignment="Right" Width="40" FontSize="14" Text="{Binding Pci,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"
-                                         Foreground="{Binding PciDVComparation,Converter={StaticResource ValueComparationForegroundConv}}"
-                                         Visibility="{Binding Pci,Converter={StaticResource NonZeroVisibilityConv}}"/>
+                              <StackPanel Orientation="Horizontal" Height="20">
+                                <TextBlock VerticalAlignment="Bottom" FontSize="14" Margin="2,-2,6,0" Width="20">
+                                  /<Run Text="{Binding Data.Popular}"/>
+                                </TextBlock>
+                                <TextBlock TextAlignment="Right" FontSize="14" Text="{Binding Pci,Converter={StaticResource StringFormatConv},ConverterParameter=F0}"
+                                           Foreground="{Binding PciDVComparation,Converter={StaticResource ValueComparationForegroundConv}}"
+                                           Visibility="{Binding Pci,Converter={StaticResource NonZeroVisibilityConv}}" Margin="0"/>
+                              </StackPanel>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Visibility="{Binding IsAbnormalResult,Converter={StaticResource BooleanVisibilityConv}}">
                               <TextBlock FontSize="14" Foreground="{StaticResource BadForeground}" FontWeight="Bold"
