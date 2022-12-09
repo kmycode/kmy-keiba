@@ -357,7 +357,8 @@ namespace KmyKeiba.Models.Connection
         if (this.IsRTDownloadCentral.Value)
         {
           logger.Info($"中央競馬の標準データ更新を開始 {year}/{month}/{day}");
-          await this.DownloadAsync(DownloadLink.Central, year, month, day);
+          var date = new DateOnly(year, month, day).AddDays(-2);
+          await this.DownloadAsync(DownloadLink.Central, date.Year, date.Month, date.Day);
           if (this.IsError.Value)
           {
             logger.Info("ダウンロード失敗を検出");
