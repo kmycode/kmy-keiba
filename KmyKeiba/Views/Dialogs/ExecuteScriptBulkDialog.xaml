@@ -59,9 +59,9 @@
         <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="{Binding ScriptBulk.EndDate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
                    VerticalAlignment="Center" Margin="8,0,24,0"/>
         <RadioButton Style="{StaticResource ToggleButtonDefault}" IsChecked="{Binding ScriptBulk.IsAnalysisTableMode.Value,ElementName=Root,Converter={StaticResource NegativeConv},Mode=TwoWay}"
-                     FontSize="16" GroupName="Mode" Content="スクリプト" IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+                     FontSize="16" GroupName="Mode" Content="スクリプト" Width="80" IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
         <RadioButton Style="{StaticResource ToggleButtonDefault}" IsChecked="{Binding ScriptBulk.IsAnalysisTableMode.Value,ElementName=Root,Mode=TwoWay}"
-                     FontSize="16" GroupName="Mode" Content="拡張集計" Margin="0,0,8,0" IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+                     FontSize="16" GroupName="Mode" Content="集計" Width="80" Margin="0,0,8,0" IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
         <ToggleButton Name="S_Setting" FontSize="16" Content="設定" Margin="0,0,24,0"
                       Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <Popup IsOpen="{Binding IsChecked,ElementName=S_Setting,Mode=TwoWay}" StaysOpen="False" Width="600"

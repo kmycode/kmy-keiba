@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Script;
 using Reactive.Bindings;
 using System;
@@ -36,6 +37,9 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.Progress.Value = new ReactiveProperty<int>();
       var collectCount = 0;
 
+      using var db = new MyContext();
+      await Race.AnalysisTable.AnalysisTableUtil.InitializeAsync(db);
+
       foreach (var item in items)
       {
         if (item.IsCompleted.Value || item.IsExecuting.Value)
@@ -48,19 +52,9 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
         try
         {
-          using var info = await RaceInfo.FromKeyAsync(item.Race.Key, withTransaction: false, isCache: false);
+          using var info = await RaceInfoSlim.FromKeyAsync(item.Race.Key);
           if (info != null)
           {
-            while (!info.IsLoadCompleted.Value)
-            {
-              await Task.Delay(50);
-            }
-
-            if (info.AnalysisTable.Value == null)
-            {
-              continue;
-            }
-
             this.Progress.Value = info.AnalysisTable.Value.Aggregate.Progress;
             this.ProgressMax.Value = info.AnalysisTable.Value.Aggregate.ProgressMax;
             await info.AnalysisTable.Value.Aggregate.LoadAsync(isBulk: true, this._aggregateFinder);
@@ -87,7 +81,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           }
 
           this._aggregateFinder.CompressCache();
-          if (++collectCount >= 4)
+          if (++collectCount >= 6)
           {
             GC.Collect();
             collectCount = 0;

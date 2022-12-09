@@ -130,9 +130,9 @@ namespace KmyKeiba.Models.Script
         engine.EnableBulk();
 
         var t = s;
-        _ = Task.Run(async () =>
+        _ = Task.Run(() =>
         {
-          await engine.DoAsync(this, items.Where(i => i.Index % divitions == t));
+          engine.DoAsync(this, items.Where(i => i.Index % divitions == t)).Wait();
         });
 
         // 同時に始めるとInjectionManagerでIBuyer取得時にエラーが発生することがある

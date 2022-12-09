@@ -54,7 +54,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.Aggregate = new AnalysisTableAggregater(this, horses);
       this.InitializeTables();
 
-      Task.Run(() => this.AnalysisTableCacheOnly());
+      if (cache != null)
+      {
+        Task.Run(() => this.AnalysisTableCacheOnly());
+      }
     }
 
     private void InitializeTables()

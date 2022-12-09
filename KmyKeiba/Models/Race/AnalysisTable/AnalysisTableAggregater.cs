@@ -43,7 +43,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
       bool isCleared = false;
 
-      ThreadUtil.InvokeOnUiThread(() =>
+      // 一括実行時に画面が固まることがあるのでその対策
+      var reloadTask = (() =>
       {
         this.Tables.Clear();
         this._model.ReloadTables();
@@ -60,6 +61,14 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
         isCleared = true;
       });
+      if (isBulk)
+      {
+        reloadTask();
+      }
+      else
+      {
+        ThreadUtil.InvokeOnUiThread(reloadTask);
+      }
 
       while (!isCleared)
       {

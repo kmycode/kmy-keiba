@@ -149,10 +149,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       var result = await finder.FindRaceHorsesAsync(queries, sizeMax);
 
       // メモの編集などしないので、この時点で破棄しておく
-      foreach (var item in result.Items)
-      {
-        item.Dispose();
-      }
+      result.Dispose();
 
       if (canUseCache)
       {
@@ -182,12 +179,9 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     {
       lock (this._caches)
       {
-        foreach (var cache in this._caches.SelectMany(c => c.Value))
+        foreach (var cache in this._caches.SelectMany(c => c.Value).Where(c => c.Tag != null && c.QueryResult != null))
         {
-          if (cache.Tag != null)
-          {
-            cache.QueryResult = null;
-          }
+          cache.QueryResult = null;
         }
       }
     }
