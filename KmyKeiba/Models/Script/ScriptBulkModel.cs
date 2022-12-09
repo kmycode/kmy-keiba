@@ -44,9 +44,22 @@ namespace KmyKeiba.Models.Script
 
     public ReactiveProperty<ValueComparation> IncomeComparation { get; } = new();
 
-    public ReactiveProperty<bool> IsAnalysisTableMode { get; } = new();
+    public ReactiveProperty<bool> IsAnalysisTableMode { get; } = new(true);
 
     public FinderModel FinderModelForConfig { get; } = new FinderModel(null, null, null);
+
+    public AggregateBuySimulator BuySimulator { get; } = new AggregateBuySimulator();
+
+    public ScriptBulkModel()
+    {
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Single));
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Place));
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.QuinellaPlace));
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Quinella));
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Exacta));
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Trio));
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Trifecta));
+    }
 
     public void BeginExecute()
     {
@@ -55,7 +68,7 @@ namespace KmyKeiba.Models.Script
         if (this.IsAnalysisTableMode.Value)
         {
           var aggregateFinder = new AggregateRaceFinder();
-          await this.ExecuteAsync(() => new AnalysisTableBulkEngine(aggregateFinder));
+          await this.ExecuteAsync(() => new AnalysisTableBulkEngine(aggregateFinder, this.BuySimulator));
         }
         else
         {

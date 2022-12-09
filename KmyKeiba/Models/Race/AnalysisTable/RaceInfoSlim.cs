@@ -8,6 +8,7 @@ using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Text;
@@ -30,9 +31,44 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<AnalysisTable.AnalysisTableModel> AnalysisTable { get; } = new();
 
+    private OddsInfo? _odds;
+    private PayoffInfo? _payoff;
+
     private RaceInfoSlim(RaceData race)
     {
       this.Data = race;
+    }
+
+    public async Task<OddsInfo> GetOddsInfoAsync()
+    {
+      if (this._odds == null)
+      {
+        using var db = new MyContext();
+        var frameOdds = await db.FrameNumberOdds!.FirstOrDefaultAsync(o => o.RaceKey == this.Data.Key);
+        var quinellaPlaceOdds = await db.QuinellaPlaceOdds!.FirstOrDefaultAsync(o => o.RaceKey == this.Data.Key);
+        var quinellaOdds = await db.QuinellaOdds!.FirstOrDefaultAsync(o => o.RaceKey == this.Data.Key);
+        var exactaOdds = await db.ExactaOdds!.FirstOrDefaultAsync(o => o.RaceKey == this.Data.Key);
+        var trioOdds = await db.TrioOdds!.FirstOrDefaultAsync(o => o.RaceKey == this.Data.Key);
+        var trifectaOdds = await db.TrifectaOdds!.FirstOrDefaultAsync(o => o.RaceKey == this.Data.Key);
+        this._odds = new OddsInfo(this.Horses.Select(h => h.Data).ToArray(), frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
+      }
+
+      return this._odds;
+    }
+
+    public async Task<PayoffInfo?> GetPayoffInfoAsync()
+    {
+      if (this._payoff == null)
+      {
+        using var db = new MyContext();
+        var payoff = await db.Refunds!.FirstOrDefaultAsync(r => r.RaceKey == this.Data.Key);
+        if (payoff != null)
+        {
+          this._payoff = new PayoffInfo(payoff);
+        }
+      }
+
+      return this._payoff;
     }
 
     public void Dispose()
@@ -42,6 +78,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       {
         horse.Dispose();
       }
+      this._payoff?.Dispose();
+      this._odds?.Dispose();
       this._disposables.Dispose();
     }
 

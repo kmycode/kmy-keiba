@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Script;
 using Reactive.Bindings;
@@ -20,11 +21,14 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<ReactiveProperty<int>?> Progress { get; } = new();
 
+    private readonly AggregateBuySimulator _simulator;
+
     public bool IsFinished { get; set; }
 
-    public AnalysisTableBulkEngine(AggregateRaceFinder aggregateFinder)
+    public AnalysisTableBulkEngine(AggregateRaceFinder aggregateFinder, AggregateBuySimulator simulator)
     {
       this._aggregateFinder = aggregateFinder;
+      this._simulator = simulator;
     }
 
     public void Dispose()
@@ -50,6 +54,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         item.IsExecuting.Value = true;
         item.HandlerEngine.Value = this;
 
+        var simulator = this._simulator;
+
         try
         {
           using var info = await RaceInfoSlim.FromKeyAsync(item.Race.Key);
@@ -59,17 +65,31 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             this.ProgressMax.Value = info.AnalysisTable.Value.Aggregate.ProgressMax;
             await info.AnalysisTable.Value.Aggregate.LoadAsync(isBulk: true, this._aggregateFinder);
 
-            // TODO: 買い目処理はここに
-            //if (info.Tickets.Value != null && info.Payoff != null)
-            //{
-            //}
-
             if (info.HasResults.Value)
             {
               var sorted = info.AnalysisTable.Value.Aggregate.Horses.Where(h => h.Horse.Data.ResultOrder > 0).OrderBy(h => h.Horse.Data.ResultOrder);
               item.FirstHorseMark.Value = sorted.FirstOrDefault(s => s.Horse.Data.ResultOrder == 1)?.MarkSuggestion.Value ?? RaceHorseMark.Default;
               item.SecondHorseMark.Value = sorted.FirstOrDefault(s => s.Horse.Data.ResultOrder == 2)?.MarkSuggestion.Value ?? RaceHorseMark.Default;
               item.ThirdHorseMark.Value = sorted.FirstOrDefault(s => s.Horse.Data.ResultOrder == 3)?.MarkSuggestion.Value ?? RaceHorseMark.Default;
+
+              var payoff = await info.GetPayoffInfoAsync();
+              if (payoff != null)
+              {
+                var odds = await info.GetOddsInfoAsync();
+                var markData = sorted.Select(s => (s.MarkSuggestion.Value, s.Horse.Data.Number)).ToArray();
+                var result = simulator.CalcPayoff(payoff, odds, info.Horses, markData);
+
+                item.PaidMoney.Value = result.PaidMoney;
+                item.PayoffMoney.Value = result.PayoffMoney;
+                item.Income.Value = result.Income;
+                item.IncomeComparation.Value = item.Income.Value > 0 ? ValueComparation.Good :
+                  item.Income.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
+                item.IsCompleted.Value = true;
+
+                model.SumOfIncomes.Value += item.Income.Value;
+                model.IncomeComparation.Value = model.SumOfIncomes.Value > 0 ? ValueComparation.Good :
+                  model.SumOfIncomes.Value < 0 ? ValueComparation.Bad : ValueComparation.Standard;
+              }
             }
 
             item.IsCompleted.Value = true;

@@ -58,22 +58,80 @@
         </up:ImePopup>
         <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="{Binding ScriptBulk.EndDate.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=yyyy/MM/dd}"
                    VerticalAlignment="Center" Margin="8,0,24,0"/>
-        <RadioButton Style="{StaticResource ToggleButtonDefault}" IsChecked="{Binding ScriptBulk.IsAnalysisTableMode.Value,ElementName=Root,Converter={StaticResource NegativeConv},Mode=TwoWay}"
-                     FontSize="16" GroupName="Mode" Content="スクリプト" Width="80" IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
         <RadioButton Style="{StaticResource ToggleButtonDefault}" IsChecked="{Binding ScriptBulk.IsAnalysisTableMode.Value,ElementName=Root,Mode=TwoWay}"
-                     FontSize="16" GroupName="Mode" Content="集計" Width="80" Margin="0,0,8,0" IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
-        <ToggleButton Name="S_Setting" FontSize="16" Content="設定" Margin="0,0,24,0"
-                      Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+                     FontSize="16" GroupName="Mode" Content="集計" Width="80" IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+        <RadioButton Style="{StaticResource ToggleButtonDefault}" IsChecked="{Binding ScriptBulk.IsAnalysisTableMode.Value,ElementName=Root,Mode=TwoWay,Converter={StaticResource NegativeConv}}"
+                     FontSize="16" GroupName="Mode" Content="スクリプト" Width="80" Margin="0,0,8,0" IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}"/>
+        <ToggleButton Name="S_Setting" FontSize="16" Content="設定" Margin="0,0,24,0"/>
         <Popup IsOpen="{Binding IsChecked,ElementName=S_Setting,Mode=TwoWay}" StaysOpen="False" Width="600"
                PlacementTarget="{Binding ElementName=S_Setting}" Placement="Bottom">
           <Border Background="{StaticResource BaseBackground}" BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1"
                   Padding="8,4">
-            <StackPanel>
+            <StackPanel IsEnabled="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeConv}}">
               <StackPanel.Resources>
                 <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
               </StackPanel.Resources>
               <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Text="レースの絞り込み条件"/>
               <up:FinderKeyInputView Margin="0,4,0,8" IsShowFinderButtonOnly="True" FinderModel="{Binding ScriptBulk.FinderModelForConfig}"/>
+              <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Text="馬券購入条件（集計のみ、フォーメーション）" Margin="0,24,0,0"
+                          Visibility="{Binding ScriptBulk.IsAnalysisTableMode.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+              <StackPanel Orientation="Horizontal" Margin="80,0,0,0"
+                          Visibility="{Binding ScriptBulk.IsAnalysisTableMode.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+                <StackPanel.Resources>
+                  <Style TargetType="ContentControl">
+                    <Setter Property="RenderTransform">
+                      <Setter.Value>
+                        <TransformGroup>
+                          <ScaleTransform ScaleX="0.7" ScaleY="0.7"/>
+                          <TranslateTransform X="22" Y="4"/>
+                        </TransformGroup>
+                      </Setter.Value>
+                    </Setter>
+                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                  </Style>
+                  <Style TargetType="Border">
+                    <Setter Property="Width" Value="48"/>
+                  </Style>
+                </StackPanel.Resources> 
+                <Border><ContentControl Template="{StaticResource MarkDoubleCircle}"/></Border>
+                <Border><ContentControl Template="{StaticResource MarkCircle}"/></Border>
+                <Border><ContentControl Template="{StaticResource MarkFilledTriangle}"/></Border>
+                <Border><ContentControl Template="{StaticResource MarkTriangle}"/></Border>
+                <Border><ContentControl Template="{StaticResource MarkDefault}"/></Border>
+                <Border><ContentControl Template="{StaticResource MarkDeleted}"/></Border>
+              </StackPanel>
+              <ItemsControl ItemsSource="{Binding ScriptBulk.BuySimulator.Items}"
+                            Visibility="{Binding ScriptBulk.IsAnalysisTableMode.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                      <Border Width="80" Background="{Binding TicketType,Converter={StaticResource TicketTypeBackgroundConv}}"
+                              Margin="8,2,16,2">
+                        <TextBlock Text="{Binding TicketType,Converter={StaticResource EnumsConv}}" VerticalAlignment="Center"
+                                   Foreground="{StaticResource BaseForeground}" FontSize="16" Margin="4,2"/>
+                      </Border>
+                      <ItemsControl ItemsSource="{Binding Marks}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <ItemsControl ItemsSource="{Binding Items}">
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                  <ToggleButton Content="{Binding Number}" IsChecked="{Binding IsChecked.Value,Mode=TwoWay}" Margin="0,2,16,2"/>
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
             </StackPanel>
           </Border>
         </Popup>
