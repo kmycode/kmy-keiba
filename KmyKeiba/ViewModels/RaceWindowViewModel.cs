@@ -37,8 +37,6 @@ namespace KmyKeiba.ViewModels
 
     #region RaceDetail
 
-    public ICommand? UpdateRaceInfoCommand { get; }
-
     public ICommand? SetWeatherCommand { get; }
 
     public ICommand? SetConditionCommand { get; }

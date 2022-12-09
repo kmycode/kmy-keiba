@@ -78,6 +78,7 @@ namespace KmyKeiba.ViewModels
         .Subscribe(_ => ThreadUtil.InvokeOnUiThread(async () =>
         {
           await this.RaceList.UpdateListAsync();
+          OpenRaceRequest.Default.Update();
         })).AddTo(this._disposables);
       Observable.FromEvent<EventHandler, EventArgs>(
         e => (s, a) => e(a),
@@ -252,11 +253,6 @@ namespace KmyKeiba.ViewModels
     #endregion
 
     #region RaceDetail
-
-    public ICommand UpdateRaceInfoCommand =>
-      this._updateRaceInfoCommand ??=
-        new ReactiveCommand().WithSubscribe(() => this.model.UpdateCurrentRace());
-    private ReactiveCommand? _updateRaceInfoCommand;
 
     public ICommand SetWeatherCommand =>
       this._setWeatherCommand ??=

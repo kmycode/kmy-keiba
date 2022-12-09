@@ -92,6 +92,11 @@ namespace KmyKeiba.ViewModels
         new AsyncReactiveCommand().WithSubscribe(() => this.model.Info.Value != null ? this.model.Info.Value.Script.UpdateAsync() : Task.CompletedTask).AddTo(this._disposables);
     private AsyncReactiveCommand? _updateScriptCommand;
 
+    public ICommand UpdateRaceInfoCommand =>
+      this._updateRaceInfoCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.model.UpdateCurrentRace());
+    private ReactiveCommand? _updateRaceInfoCommand;
+
     #region 馬券
 
     public ICommand SetTrioBlockCommand =>
