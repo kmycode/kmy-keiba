@@ -28,6 +28,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     private readonly CompositeDisposable _disposables = new();
     public bool IsFreezeParentSelection { get; set; } = false;
     private readonly bool _isInitialized = false;
+    private bool _isBulk = false;
 
     public AnalysisTableRowData Data { get; }
 
@@ -352,17 +353,18 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this._isInitialized = true;
     }
 
-    public async Task LoadAsync(RaceData race, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly = false, bool isBilk = false, AggregateRaceFinder? aggregateFinder = null)
+    public async Task LoadAsync(RaceData race, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly = false, bool isBulk = false, AggregateRaceFinder? aggregateFinder = null)
     {
       this.IsLoaded.Value = false;
       this.IsLoading.Value = true;
+      this._isBulk = isBulk;
 
       List<Task> tasks = new();
       var keys = this.FinderModelForConfig.Input.Query.Value;
       var myWeights = weights.Where(w => w.Data.Id == this.Data.WeightId || w.Data.Id == this.Data.Weight2Id || w.Data.Id == this.Data.Weight3Id);
 
       // 一括実行時は意味のない行は調べない
-      if (isBilk)
+      if (isBulk)
       {
         if (this.Data.Output != AnalysisTableRowOutputType.Binary && this.Data.BaseWeight == default && this.Data.AlternativeValueIfEmpty == default)
         {
@@ -747,14 +749,18 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         this.SetPointOrEmpty(cell, items.Count, weights);
 
         var samples = items.Where(cell.SampleFilter).Take(10);
-        ThreadUtil.InvokeOnUiThread(() =>
+
+        if (!this._isBulk)
         {
-          cell.Samples.Clear();
-          foreach (var sample in samples)
+          ThreadUtil.InvokeOnUiThread(() =>
           {
-            cell.Samples.Add(sample);
-          }
-        });
+            cell.Samples.Clear();
+            foreach (var sample in samples)
+            {
+              cell.Samples.Add(sample);
+            }
+          });
+        }
       }
     }
 

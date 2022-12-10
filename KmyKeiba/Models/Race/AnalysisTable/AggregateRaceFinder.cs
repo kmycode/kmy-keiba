@@ -14,6 +14,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
   public class AggregateRaceFinder
   {
     private readonly Dictionary<string, List<CacheItem>> _caches = new();
+    private readonly List<CacheItem> _notProceedCaches = new();
 
     public async Task<AggregateRaceFinderCacheItem> FindRaceHorsesAsync(string keys, int sizeMax, RaceHorseAnalyzer horse, object? tag = null)
     {
@@ -57,7 +58,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           IEnumerable<CacheItem> caches;
           lock (cacheList)
           {
-            caches = cacheList.Where(c => c.Keys == keys && c.Horse.Race.StartTime < horse.Race.StartTime.AddMonths(1)).ToArray();
+            caches = cacheList.Where(c => c.Keys == keys && c.Horse.Race.StartTime > horse.Race.StartTime.AddMonths(-2)).ToArray();
           }
           if (caches.Any())
           {
@@ -165,9 +166,19 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             }
           }
 
+          var cacheItem = new CacheItem(keys, currentRaceKeys, horse, result) { Tag = tag, };
+          var removes = cacheList.Where(c => c.Horse.Race.StartTime <= horse.Race.StartTime.AddMonths(-2)).ToArray();
           lock (cacheList)
           {
-            cacheList.Add(new CacheItem(keys, currentRaceKeys, horse, result) { Tag = tag, });
+            foreach (var cache in removes)
+            {
+              cacheList.Remove(cache);
+            }
+            cacheList.Add(cacheItem);
+          }
+          lock (this._notProceedCaches)
+          {
+            this._notProceedCaches.Add(cacheItem);
           }
         }
       }
@@ -177,11 +188,17 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public void CompressCache()
     {
-      lock (this._caches)
+      lock (this._notProceedCaches)
       {
-        foreach (var cache in this._caches.SelectMany(c => c.Value).Where(c => c.Tag != null && c.QueryResult != null))
+        var removes = new List<CacheItem>();
+        foreach (var cache in this._notProceedCaches.Where(c => c.Tag != null && c.QueryResult != null))
         {
           cache.QueryResult = null;
+          removes.Add(cache);
+        }
+        foreach (var cache in removes)
+        {
+          this._notProceedCaches.Remove(cache);
         }
       }
     }

@@ -33,7 +33,13 @@
 
       <!--ラベル設定-->
       <Grid Grid.Column="1" Visibility="{Binding AnalysisTable.Config.ActiveWeight.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"
-            Margin="16,0,8,0" Grid.RowSpan="2" IsEnabled="{Binding CanSave.Value}">
+            Margin="16,0,8,0" Grid.RowSpan="2">
+        <Grid.IsEnabled>
+          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+            <Binding Path="CanSave.Value"/>
+            <Binding Path="DataContext.ScriptBulk.IsExecuting.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+          </MultiBinding>
+        </Grid.IsEnabled>
         <Grid.RowDefinitions>
           <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>

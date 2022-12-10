@@ -649,6 +649,7 @@ namespace KmyKeiba.Models.Race
             IsHorseHistorySameHorses = true,
             IsJrdbData = true,
             IsOddsTimeline = true,
+            IsLegacyTrendAnalyzer = true,
           };
           var horseInfos = await factory.ToAnalyzerAsync(db, cache);
           if (horseInfos == null)

@@ -35,6 +35,8 @@ namespace KmyKeiba.Models.Analysis
 
     public bool IsComparation { get; set; }
 
+    public bool IsLegacyTrendAnalyzer { get; set; }
+
     public List<IDisposable> Disposables { get; } = new List<IDisposable>();
 
     public IReadOnlyList<(RaceData, RaceHorseData)> HorseAllHistories { get; private set; }
@@ -153,14 +155,26 @@ namespace KmyKeiba.Models.Analysis
         var riderWinRate = await AnalysisUtil.GetRiderWinRateAsync(db, race, horse.RiderCode);
         var jrdb = jrdbHorses.FirstOrDefault(j => j.Key == horse.Key);
 
-        var analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate, jrdbHorse: jrdb)
+        RaceHorseAnalyzer analyzer;
+        if (this.IsLegacyTrendAnalyzer)
         {
-          TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse, histories),
-          TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
-          BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
-          DetailData = horseDetails.FirstOrDefault(h => h.Code == horse.Key),
-        };
-        analyzer.RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(analyzer);
+          analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate, jrdbHorse: jrdb)
+          {
+            TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse, histories),
+            TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
+            BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
+            DetailData = horseDetails.FirstOrDefault(h => h.Code == horse.Key),
+          };
+          analyzer.RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(analyzer);
+        }
+        else
+        {
+          analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate, jrdbHorse: jrdb)
+          {
+            BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
+            DetailData = horseDetails.FirstOrDefault(h => h.Code == horse.Key),
+          };
+        }
         analyzer.SetOddsTimeline(oddsTimeline);
         analyzer.ChangeIsCheck(CheckHorseUtil.IsChecked(horse.Key, HorseCheckType.CheckRace));
 
