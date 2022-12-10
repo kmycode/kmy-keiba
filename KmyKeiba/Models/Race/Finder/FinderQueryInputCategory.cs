@@ -3650,7 +3650,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (this.IsFinishedRaceOnly.Value)
       {
-        queries.Add("datastatus=5,6,7,101,102");
+        queries.Add("datastatus=5,6,7");
       }
       if (this.IsContainsFutureRaces.Value)
       {

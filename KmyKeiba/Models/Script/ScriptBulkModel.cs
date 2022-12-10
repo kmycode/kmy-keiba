@@ -59,6 +59,7 @@ namespace KmyKeiba.Models.Script
       this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Exacta));
       this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Trio));
       this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Trifecta));
+      this.FinderModelForConfig.Input.OtherSetting.IsFinishedRaceOnly.Value = true;
     }
 
     public void BeginExecute()
