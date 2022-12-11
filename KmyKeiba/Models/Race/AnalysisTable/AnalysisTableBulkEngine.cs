@@ -79,6 +79,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
                 var markData = sorted.Select(s => (s.MarkSuggestion.Value, s.Horse.Data.Number)).ToArray();
                 var result = simulator.CalcPayoff(payoff, odds, info.Horses, markData);
 
+                this.AddResultsToTicketTypeCollection(model, result);
+
                 item.PaidMoney.Value = result.PaidMoney;
                 item.PayoffMoney.Value = result.PayoffMoney;
                 item.Income.Value = result.Income;
@@ -131,6 +133,23 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
 
       this.IsFinished = true;
+    }
+
+    private void AddResultsToTicketTypeCollection(ScriptBulkModel model, AggregateBuySimulator.Result result)
+    {
+      foreach (var item in result.ResultPerTicketTypes.Join(model.ResultsPerTicketType, r => r.Key, r => r.TicketType, (r1, r2) => new { Result = r1, Model = r2, }))
+      {
+        item.Model.PaidMoney.Value += item.Result.Value.PaidMoney;
+        item.Model.PayoffMoney.Value += item.Result.Value.PayoffMoney;
+        item.Model.IncomeMoney.Value += item.Result.Value.Income;
+        item.Model.IncomeComparation.Value = AnalysisUtil.CompareValue(item.Model.IncomeMoney.Value, 1, -1);
+        item.Model.RecoveryRate.Value = (double)item.Model.PayoffMoney.Value / item.Model.PaidMoney.Value;
+      }
+      model.TotalResult.PaidMoney.Value += result.PaidMoney;
+      model.TotalResult.PayoffMoney.Value += result.PayoffMoney;
+      model.TotalResult.IncomeMoney.Value += result.Income;
+      model.TotalResult.IncomeComparation.Value = AnalysisUtil.CompareValue(model.TotalResult.IncomeMoney.Value, 1, -1);
+      model.TotalResult.RecoveryRate.Value = (double)model.TotalResult.PayoffMoney.Value / model.TotalResult.PaidMoney.Value;
     }
 
     public void EnableBulk()

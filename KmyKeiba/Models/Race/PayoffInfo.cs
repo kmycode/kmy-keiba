@@ -298,7 +298,12 @@ namespace KmyKeiba.Models.Race
     public short Number3 { get; init; }
   }
 
-  public class PayoffItemCollection<T> : ReactiveCollection<T> where T : PayoffItem
+  public interface IPayoffItemCollection
+  {
+    ReactiveProperty<int> HitMoneySum { get; }
+  }
+
+  public class PayoffItemCollection<T> : ReactiveCollection<T>, IPayoffItemCollection where T : PayoffItem
   {
     public ReactiveProperty<int> HitMoneySum { get; } = new();
 

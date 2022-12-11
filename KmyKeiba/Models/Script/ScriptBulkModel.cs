@@ -18,6 +18,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.System.Preview;
 using static KmyKeiba.Models.Script.ScriptBulkModel;
 
 namespace KmyKeiba.Models.Script
@@ -40,9 +41,13 @@ namespace KmyKeiba.Models.Script
 
     public ReactiveProperty<bool> IsError { get; } = new();
 
-    public ReactiveProperty<int> SumOfIncomes { get; } = new();
+    public ReactiveProperty<long> SumOfIncomes { get; } = new();
 
     public ReactiveProperty<ValueComparation> IncomeComparation { get; } = new();
+
+    public ReactiveCollection<TicketTypeResultItem> ResultsPerTicketType { get; } = new();
+
+    public TicketTypeResultItem TotalResult { get; } = new(TicketType.Unknown);
 
     public ReactiveProperty<bool> IsAnalysisTableMode { get; } = new(true);
 
@@ -60,6 +65,14 @@ namespace KmyKeiba.Models.Script
       this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Trio));
       this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Trifecta));
       this.FinderModelForConfig.Input.OtherSetting.IsFinishedRaceOnly.Value = true;
+
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.Single));
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.Place));
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.QuinellaPlace));
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.Quinella));
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.Exacta));
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.Trio));
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.Trifecta));
     }
 
     public void BeginExecute()
@@ -84,6 +97,12 @@ namespace KmyKeiba.Models.Script
       this.IsExecuting.Value = true;
       this.IsError.Value = false;
       this.SumOfIncomes.Value = 0;
+
+      this.TotalResult.Reset();
+      foreach (var result in this.ResultsPerTicketType)
+      {
+        result.Reset();
+      }
 
       short.TryParse(this.ThreadSize.Value, out var divitions);
       if (divitions < 1)
@@ -208,6 +227,33 @@ namespace KmyKeiba.Models.Script
       }
 
       this.IsCanceled = true;
+    }
+
+    public class TicketTypeResultItem
+    {
+      public TicketType TicketType { get; }
+
+      public ReactiveProperty<long> PaidMoney { get; } = new();
+
+      public ReactiveProperty<long> PayoffMoney { get; } = new();
+
+      public ReactiveProperty<long> IncomeMoney { get; } = new();
+
+      public ReactiveProperty<ValueComparation> IncomeComparation { get; } = new();
+
+      public ReactiveProperty<double> RecoveryRate { get; } = new();
+
+      public TicketTypeResultItem(TicketType type)
+      {
+        this.TicketType = type;
+      }
+
+      public void Reset()
+      {
+        this.PaidMoney.Value = this.PayoffMoney.Value = this.IncomeMoney.Value = 0;
+        this.IncomeComparation.Value = ValueComparation.Standard;
+        this.RecoveryRate.Value = double.NaN;
+      }
     }
 
     public interface IScriptBulkEngine : IDisposable
