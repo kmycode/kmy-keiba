@@ -46,7 +46,9 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           QueryKey.Subject,
           QueryKey.Age,
           QueryKey.Sex,
-          QueryKey.Odds,
+          QueryKey.Color,
+          QueryKey.WeightDiff,
+          QueryKey.RiderWeight,
         };
         if (!currentRaceKeys.All(c => enableKeys.Contains(c)))
         {
@@ -117,8 +119,14 @@ namespace KmyKeiba.Models.Race.AnalysisTable
                   case QueryKey.Sex:
                     isHit = ch.Data.Sex == horse.Data.Sex;
                     break;
-                  case QueryKey.Odds:
-                    isHit = ch.Data.Odds == horse.Data.Odds;
+                  case QueryKey.Color:
+                    isHit = ch.Data.Color == horse.Data.Color;
+                    break;
+                  case QueryKey.WeightDiff:
+                    isHit = ch.Data.WeightDiff == horse.Data.WeightDiff;
+                    break;
+                  case QueryKey.RiderWeight:
+                    isHit = ch.Data.RiderWeight == horse.Data.RiderWeight;
                     break;
                 }
 
@@ -167,13 +175,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           }
 
           var cacheItem = new CacheItem(keys, currentRaceKeys, horse, result) { Tag = tag, };
-          var removes = cacheList.Where(c => c.Horse.Race.StartTime <= horse.Race.StartTime.AddMonths(-2)).ToArray();
           lock (cacheList)
           {
-            foreach (var cache in removes)
-            {
-              cacheList.Remove(cache);
-            }
             cacheList.Add(cacheItem);
           }
           lock (this._notProceedCaches)
@@ -186,7 +189,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       return new AggregateRaceFinderCacheItem(result, null);
     }
 
-    public void CompressCache()
+    public void CompressCache(RaceData race)
     {
       lock (this._notProceedCaches)
       {
@@ -199,6 +202,18 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         foreach (var cache in removes)
         {
           this._notProceedCaches.Remove(cache);
+        }
+      }
+
+      foreach (var cacheList in this._caches.Select(c => c.Value))
+      {
+        lock (cacheList)
+        {
+          var removes = cacheList.Where(c => c.Horse.Race.StartTime <= race.StartTime.AddMonths(-2)).ToArray();
+          foreach (var cache in removes)
+          {
+            cacheList.Remove(cache);
+          }
         }
       }
     }
