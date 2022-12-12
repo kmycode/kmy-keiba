@@ -5,6 +5,9 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.AnalysisTable;
+using KmyKeiba.Models.Race.AnalysisTable.Script;
+using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.RList;
 using KmyKeiba.Models.Script;
@@ -114,6 +117,11 @@ namespace KmyKeiba.ViewModels
         // 各種初期化処理
         using var db = new MyContext();
         await FinderConfigUtil.InitializeAsync(db);
+        await AnalysisTableScriptUtil.InitializeAsync(db);
+        await FinderConfigUtil.InitializeAsync(db);
+        await ExternalNumberUtil.InitializeAsync(db);
+        await CheckHorseUtil.InitializeAsync(db);
+        await AnalysisTableUtil.InitializeAsync(db);
 
         // DBのプリセット
         await DatabasePresetModel.SetPresetsAsync();

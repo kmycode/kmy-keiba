@@ -165,7 +165,7 @@ namespace KmyKeiba.Models.Script
         var t = s;
         _ = Task.Run(() =>
         {
-          engine.DoAsync(this, items.Where(i => i.Index % divitions == t)).Wait();
+          engine.DoAsync(s, this, items.Where(i => i.Index % divitions == t)).Wait();
         });
 
         // 同時に始めるとInjectionManagerでIBuyer取得時にエラーが発生することがある
@@ -266,7 +266,7 @@ namespace KmyKeiba.Models.Script
 
       void EnableBulk();
 
-      Task DoAsync(ScriptBulkModel model, IEnumerable<ScriptResultItem> items);
+      Task DoAsync(int index, ScriptBulkModel model, IEnumerable<ScriptResultItem> items);
     }
 
     public interface IMLEngine
@@ -296,7 +296,7 @@ namespace KmyKeiba.Models.Script
         this.Engine.BulkConfig.SetBulk(true);
       }
 
-      public async Task DoAsync(ScriptBulkModel model, IEnumerable<ScriptResultItem> items)
+      public async Task DoAsync(int index, ScriptBulkModel model, IEnumerable<ScriptResultItem> items)
       {
         foreach (var item in items)
         {

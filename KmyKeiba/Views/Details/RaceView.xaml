@@ -386,6 +386,15 @@
                 </MultiBinding>
               </RadioButton.Visibility>
             </RadioButton>
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Content="スクリプト設定" Name="S_ATScript">
+              <RadioButton.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                  <Binding Path="IsMainWindow"/>
+                  <Binding Path="IsChecked" ElementName="IsOpenExpansionSettingButton"/>
+                </MultiBinding>
+              </RadioButton.Visibility>
+            </RadioButton>
           </UniformGrid>
           <ToggleButton Grid.Column="1" Name="IsOpenExpansionSettingButton" Content="設定" FontSize="16" Width="80"
                         Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"/>
@@ -404,6 +413,8 @@
                                          AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
           <ex:ExternalNumberConfigView Grid.Row="2" Grid.ColumnSpan="2" Visibility="{Binding IsChecked,ElementName=S_ExternalNumber,Converter={StaticResource BooleanVisibilityConv}}"
                                        ExternalNumber="{Binding ExternalNumber}"/>
+          <ex:AnalysisTableScriptConfigView Grid.Row="2" Grid.ColumnSpan="2" Visibility="{Binding IsChecked,ElementName=S_ATScript,Converter={StaticResource BooleanVisibilityConv}}"
+                                            AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
         </Grid>
 
         <!-- 結果・全体 -->

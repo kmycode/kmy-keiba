@@ -35,7 +35,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     {
     }
 
-    public async Task DoAsync(ScriptBulkModel model, IEnumerable<ScriptResultItem> items)
+    public async Task DoAsync(int index, ScriptBulkModel model, IEnumerable<ScriptResultItem> items)
     {
       this.ProgressMax.Value = new ReactiveProperty<int>(1);
       this.Progress.Value = new ReactiveProperty<int>();
@@ -102,12 +102,15 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             item.ErrorType.Value = ScriptBulkErrorType.NoRace;
           }
 
-          ++collectCount;
-          if (collectCount >= 6 && info != null)
+          if (index == 0)
           {
-            GC.Collect();
-            this._aggregateFinder.CompressCache(info.Data);
-            collectCount = 0;
+            ++collectCount;
+            if (collectCount >= 3 && info != null)
+            {
+              GC.Collect();
+              this._aggregateFinder.CompressCache(info.Data);
+              collectCount = 0;
+            }
           }
         }
         catch (Exception ex)

@@ -23,7 +23,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
       var relations = queries.QueryValueRelations;
       var currentRaceKeys = relations.Where(r => r.Type == QueryValueRelationType.CurrentRaceValue).Select(r => r.Key).ToList();
-      var canUseCache = true;
+      var isUseCache = true;
 
       this._caches.TryGetValue(keys, out var cacheList);
 
@@ -52,10 +52,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         };
         if (!currentRaceKeys.All(c => enableKeys.Contains(c)))
         {
-          canUseCache = false;
+          isUseCache = false;
         }
 
-        if (canUseCache && cacheList != null)
+        if (isUseCache && cacheList != null)
         {
           IEnumerable<CacheItem> caches;
           lock (cacheList)
@@ -154,13 +154,21 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         }
       }
 
+      var startTime = DateTime.Now;
+
       using var finder = new PureRaceFinder(horse);
       var result = await finder.FindRaceHorsesAsync(queries, sizeMax);
+
+      var endTime = DateTime.Now;
+      if (endTime - startTime < TimeSpan.FromMilliseconds(100))
+      {
+        isUseCache = false;
+      }
 
       // メモの編集などしないので、この時点で破棄しておく
       result.Dispose();
 
-      if (canUseCache)
+      if (isUseCache)
       {
         lock (this._caches)
         {

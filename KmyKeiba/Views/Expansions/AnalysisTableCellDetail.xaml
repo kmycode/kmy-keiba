@@ -10,6 +10,7 @@
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="auto"/>
+      <RowDefinition Height="auto"/>
       <RowDefinition/>
     </Grid.RowDefinitions>
     <Grid.ColumnDefinitions>
@@ -19,6 +20,10 @@
     <TextBlock Text="ポイント" FontSize="16" VerticalAlignment="Center" Margin="16,0,0,0" Foreground="{StaticResource SubForeground}"/>
     <TextBlock Text="{Binding Cell.Point.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=N4}" FontSize="32" FontWeight="Bold"
                Grid.Column="1" Margin="16,0,24,0" Background="{StaticResource BaseBackground}"/>
+    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="16,0,0,0" Visibility="{Binding Cell.IsAnalysisTableScriptError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+      <TextBlock Text="スクリプト実行でエラーが発生しました" Foreground="{StaticResource ErrorForeground}" FontSize="20"/>
+      <TextBlock Text="{Binding Cell.AnalysisTableErrorMessage.Value,ElementName=Root}" Foreground="{StaticResource ErrorForeground}" FontSize="16"/>
+    </StackPanel>
     <ItemsControl Grid.Row="1" Grid.ColumnSpan="2" Margin="4,8,4,4" ItemsSource="{Binding Cell.Samples,ElementName=Root}"
                   Style="{StaticResource TableList}" MaxHeight="364">
       <ItemsControl.ItemTemplate>

@@ -133,10 +133,11 @@
                   <TextBox Grid.Column="5" Grid.Row="0" FontSize="16" Text="{Binding AlternativeValueIfEmpty.Value,Mode=TwoWay}"
                            VerticalContentAlignment="Center" TextAlignment="Center"
                            Visibility="{Binding CanSetAlternativeValue.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-                  <TextBlock Grid.Row="0" Grid.Column="6" Text="外部指数" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
+                  
+                  <TextBlock Grid.Row="1" Grid.Column="0" Text="外部指数" Foreground="{StaticResource SubForeground}" FontSize="16"
                              VerticalAlignment="Center"
                              Visibility="{Binding CanSetExternalNumber.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-                  <ComboBox Grid.Column="7" Grid.Row="0" ItemsSource="{Binding AnalysisTable.Config.ExternalNumbers,ElementName=Root}"
+                  <ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding AnalysisTable.Config.ExternalNumbers,ElementName=Root}"
                             SelectedItem="{Binding SelectedExternalNumber.Value,Mode=TwoWay}"
                             Visibility="{Binding CanSetExternalNumber.Value,Converter={StaticResource BooleanVisibilityConv}}">
                     <ComboBox.ItemTemplate>
@@ -145,15 +146,27 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
-                  <TextBlock Grid.Row="0" Grid.Column="6" Text="拡張メモ" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="8,0,8,0"
+                  <TextBlock Grid.Row="1" Grid.Column="0" Text="拡張メモ" Foreground="{StaticResource SubForeground}" FontSize="16"
                              VerticalAlignment="Center"
                              Visibility="{Binding CanSetMemoConfig.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-                  <ComboBox Grid.Column="7" Grid.Row="0" ItemsSource="{Binding AnalysisTable.Config.MemoConfigs,ElementName=Root}"
+                  <ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding AnalysisTable.Config.MemoConfigs,ElementName=Root}"
                             SelectedItem="{Binding SelectedMemoConfig.Value,Mode=TwoWay}"
                             Visibility="{Binding CanSetMemoConfig.Value,Converter={StaticResource BooleanVisibilityConv}}">
                     <ComboBox.ItemTemplate>
                       <DataTemplate>
                         <TextBlock FontSize="16" Text="{Binding Header}"/>
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <TextBlock Grid.Row="1" Grid.Column="0" Text="スクリプト" Foreground="{StaticResource SubForeground}" FontSize="16"
+                             VerticalAlignment="Center"
+                             Visibility="{Binding CanSetAnalysisTableScript.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                  <ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding DataContext.AnalysisTableScriptConfig.Configs,ElementName=Root}"
+                            SelectedItem="{Binding SelectedAnalysisTableScript.Value,Mode=TwoWay}"
+                            Visibility="{Binding CanSetAnalysisTableScript.Value,Converter={StaticResource BooleanVisibilityConv}}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock FontSize="16" Text="{Binding Name.Value}"/>
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>

@@ -28,6 +28,8 @@ namespace KmyKeiba.Data.Db
 
     public uint ExternalNumberId { get; set; }
 
+    public uint AnalysisTableScriptId { get; set; }
+
     public uint MemoConfigId { get; set; }
 
     public uint Order { get; set; }
@@ -74,6 +76,11 @@ namespace KmyKeiba.Data.Db
     ExternalNumber = 301,
 
     ExpansionMemo = 302,
+
+    /// <summary>
+    /// 別途設定したスクリプト
+    /// </summary>
+    AnalysisTableScript = 303,
 
     // ここから馬のプロパティ
     RiderWeight = 401,

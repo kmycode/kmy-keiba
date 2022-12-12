@@ -139,6 +139,12 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         });
         RowOutputItems.Add(new AnalysisTableRowOutputItem
         {
+          Label = "スクリプト",
+          OutputType = AnalysisTableRowOutputType.AnalysisTableScript,
+          CanApplyWeight = false,
+        });
+        RowOutputItems.Add(new AnalysisTableRowOutputItem
+        {
           Label = "その他（馬の値）",
           OutputType = AnalysisTableRowOutputType.HorseValues,
         });

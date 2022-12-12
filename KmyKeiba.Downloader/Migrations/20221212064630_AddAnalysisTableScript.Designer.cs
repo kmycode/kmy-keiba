@@ -3,6 +3,7 @@ using System;
 using KmyKeiba.Downloader;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KmyKeiba.Downloader.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20221212064630_AddAnalysisTableScript")]
+    partial class AddAnalysisTableScript
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.0");
@@ -49,9 +52,6 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.Property<double>("AlternativeValueIfEmpty")
                         .HasColumnType("REAL");
-
-                    b.Property<uint>("AnalysisTableScriptId")
-                        .HasColumnType("INTEGER");
 
                     b.Property<double>("BaseWeight")
                         .HasColumnType("REAL");

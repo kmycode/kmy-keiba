@@ -8,6 +8,7 @@ using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
 using KmyKeiba.Models.Injection;
+using KmyKeiba.Models.Race.AnalysisTable.Script;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.Race.HorseMark;
@@ -634,10 +635,6 @@ namespace KmyKeiba.Models.Race
         try
         {
           var cache = RaceInfoCacheManager.TryGetCache(race.Key);
-          await FinderConfigUtil.InitializeAsync(db);
-          await ExternalNumberUtil.InitializeAsync(db);
-          await CheckHorseUtil.InitializeAsync(db);
-          await Race.AnalysisTable.AnalysisTableUtil.InitializeAsync(db);
 
           var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race);
 

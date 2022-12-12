@@ -4,6 +4,7 @@ using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.AnalysisTable.Script;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.Race.HorseMark;
@@ -33,6 +34,8 @@ namespace KmyKeiba.ViewModels
     public DownloaderModel Downloader => this.downloader;
 
     public ExternalNumberConfigModel ExternalNumber => ExternalNumberConfigModel.Default;
+
+    public AnalysisTableScriptConfigModel AnalysisTableScriptConfig => AnalysisTableScriptConfigModel.Default;
 
     public ReactiveProperty<RaceInfo?> Race => this.model.Info;
 
@@ -420,6 +423,20 @@ namespace KmyKeiba.ViewModels
     public ICommand LoadExternalNumbersCommand => this._loadExternalNumbersCommand ??=
       new ReactiveCommand<ExternalNumberConfigItem>(this.CanSave).WithSubscribe(obj => obj.BeginLoadDb()).AddTo(this._disposables);
     private ICommand? _loadExternalNumbersCommand;
+
+    #endregion
+
+    #region ATスクリプト
+
+    public ICommand AddAnalysisTableScriptCommand =>
+      this._addAnalysisTableScriptCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AnalysisTableScriptConfig.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableScriptCommand;
+
+    public ICommand RemoveAnalysisTableScriptCommand =>
+      this._removeAnalysisTableScriptCommand ??=
+        new AsyncReactiveCommand<Models.Race.AnalysisTable.Script.AnalysisTableScriptItem>(this.CanSave).WithSubscribe(obj => this.AnalysisTableScriptConfig.RemoveConfigAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeAnalysisTableScriptCommand;
 
     #endregion
 
