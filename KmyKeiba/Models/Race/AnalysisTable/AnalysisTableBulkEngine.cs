@@ -102,10 +102,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             item.ErrorType.Value = ScriptBulkErrorType.NoRace;
           }
 
-          this._aggregateFinder.CompressCache();
-          if (++collectCount >= 6)
+          ++collectCount;
+          if (collectCount >= 6 && info != null)
           {
             GC.Collect();
+            this._aggregateFinder.CompressCache(info.Data);
             collectCount = 0;
           }
         }
