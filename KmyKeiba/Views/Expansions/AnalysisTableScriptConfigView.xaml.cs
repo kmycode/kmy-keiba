@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Models.Race.AnalysisTable;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,6 +38,15 @@ namespace KmyKeiba.Views.Expansions
     public AnalysisTableScriptConfigView()
     {
       InitializeComponent();
+    }
+
+    private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+    {
+      Process.Start(new ProcessStartInfo
+      {
+        UseShellExecute = true,
+        FileName = e.Uri.ToString(),
+      });
     }
   }
 }

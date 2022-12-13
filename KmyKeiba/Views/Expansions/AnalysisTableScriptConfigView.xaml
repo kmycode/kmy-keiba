@@ -15,6 +15,7 @@
       <Grid.RowDefinitions>
         <RowDefinition/>
         <RowDefinition Height="auto"/>
+        <RowDefinition Height="auto"/>
       </Grid.RowDefinitions>
 
       <!--ラベル設定一覧-->
@@ -29,10 +30,13 @@
       </ItemsControl>
 
       <Button Grid.Row="1" FontSize="16" Content="スクリプトを追加" Width="200" Height="40" Command="{Binding AddAnalysisTableScriptCommand}"/>
-
+      <TextBlock Grid.Row="2" FontSize="20" Margin="0,16,0,0" TextAlignment="Center">
+        <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://github.com/kmycode/kmy-keiba/wiki/%E5%88%86%E6%9E%90%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%97%E3%83%88%E4%BE%8B%E4%B8%80%E8%A6%A7" Foreground="{StaticResource BaseForeground}">分析スクリプト例<LineBreak/><Run FontSize="14">（コピペで利用）</Run></Hyperlink>
+      </TextBlock>
+      
       <!--ラベル設定-->
       <Grid Grid.Column="1" Visibility="{Binding AnalysisTable.Config.ActiveAnalysisTableScript.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"
-            Margin="16,0,8,0" Grid.RowSpan="2">
+            Margin="16,0,8,0" Grid.RowSpan="3">
         <Grid.RowDefinitions>
           <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>
