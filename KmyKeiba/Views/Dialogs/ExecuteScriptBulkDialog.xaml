@@ -36,6 +36,10 @@
                  Text="{Binding ScriptBulk.ThreadSize.Value,ElementName=Root,Mode=TwoWay}" FontSize="20" Width="40"
                  VerticalAlignment="Center" TextAlignment="Center" Margin="0,0,32,0"
                  Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
+        <TextBlock FontSize="16" Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                   TextAlignment="Right" Width="140" Margin="0,0,24,0" VerticalAlignment="Center">
+          <Run FontSize="14" Foreground="{StaticResource SubForeground}">完了見込</Run> <Run Text="{Binding ScriptBulk.EstimateTime.Value,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=d日 HH:mm}"/>
+        </TextBlock>
         <ToggleButton Content="開始日付" Name="StartDateToggle" FontSize="16" Visibility="{Binding ScriptBulk.IsExecuting.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"/>
         <up:ImePopup Placement="Bottom" PlacementTarget="{Binding ElementName=StartDateToggle}"
                      Width="200" Height="170" IsOpen="{Binding IsChecked,ElementName=StartDateToggle}" StaysOpen="False">

@@ -55,6 +55,8 @@ namespace KmyKeiba.Models.Script
 
     public AggregateBuySimulator BuySimulator { get; } = new AggregateBuySimulator();
 
+    public ReactiveProperty<DateTime> EstimateTime { get; } = new(DateTime.MinValue);
+
     public ScriptBulkModel()
     {
       this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Single));
@@ -157,6 +159,7 @@ namespace KmyKeiba.Models.Script
         }
       });
 
+      var processingStartTime = DateTime.Now;
       for (var s = 0; s < divitions; s++)
       {
         var engine = engines[s];
@@ -168,13 +171,25 @@ namespace KmyKeiba.Models.Script
           engine.DoAsync(s, this, items.Where(i => i.Index % divitions == t)).Wait();
         });
 
-        // 同時に始めるとInjectionManagerでIBuyer取得時にエラーが発生することがある
+        // 同時に始めるとInjectionManagerでIBuyer取得時にエラーが発生することがある（スクリプト選択時）
         await Task.Delay(1000);
       }
 
       while (engines.Any(f => !f.IsFinished))
       {
         await Task.Delay(1000);
+
+        // 残り時間
+        if (items.Any(i => i.IsCompleted.Value || i.IsSkipped.Value || i.IsError.Value))
+        {
+          try
+          {
+            this.EstimateTime.Value = DateTime.Now + ((DateTime.Now - processingStartTime) * races.Length / items.Count(i => i.IsCompleted.Value || i.IsSkipped.Value || i.IsError.Value));
+          }
+          catch (Exception ex)
+          {
+          }
+        }
       }
 
       ScriptML? ml = null;
