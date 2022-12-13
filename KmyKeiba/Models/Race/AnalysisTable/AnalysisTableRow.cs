@@ -20,6 +20,7 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Forms.VisualStyles;
 
 namespace KmyKeiba.Models.Race.AnalysisTable
 {
@@ -50,6 +51,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<string> ValueScript { get; } = new();
 
+    public ReactiveProperty<string> AnalysisTableScriptParameter { get; } = new();
+
     public ReactiveProperty<AnalysisTableRowOutputType> Output { get; } = new();
 
     public ReadOnlyReactiveProperty<bool> CanSetExternalNumber { get; }
@@ -71,6 +74,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public ReadOnlyReactiveProperty<bool> CanSetAlternativeValue { get; }
 
     public ReadOnlyReactiveProperty<bool> CanSetScript { get; }
+
+    public ReadOnlyReactiveProperty<bool> CanSetAnalysisTableScriptParameter { get; }
 
     public ReactiveCollection<AnalysisTableCell> Cells { get; } = new();
 
@@ -131,6 +136,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.Limited.Value = data.RequestedSize.ToString();
       this.AlternativeValueIfEmpty.Value = data.AlternativeValueIfEmpty.ToString();
       this.ValueScript.Value = data.ValueScript;
+      this.AnalysisTableScriptParameter.Value = data.AnalysisTableScriptParameter;
 
       if (string.IsNullOrEmpty(this.ValueScript.Value))
       {
@@ -188,6 +194,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         .Where(o => o != null)
         .Select(o => o!.OutputType)
         .Select(o => o == AnalysisTableRowOutputType.JrdbValues).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+      this.CanSetAnalysisTableScriptParameter = this.CanSetAnalysisTableScript;
 
       async Task SetWeightAsync()
       {
@@ -346,6 +353,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         .CombineLatest(this.Limited)
         .CombineLatest(this.AlternativeValueIfEmpty)
         .CombineLatest(this.ValueScript)
+        .CombineLatest(this.AnalysisTableScriptParameter)
         .Skip(1).Subscribe(async _ =>
         {
           // TODO try catch
@@ -354,6 +362,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           this.Data.Name = this.Name.Value;
           this.Data.Output = this.Output.Value;
           this.Data.ValueScript = this.ValueScript.Value;
+          this.Data.AnalysisTableScriptParameter = this.AnalysisTableScriptParameter.Value;
           if (double.TryParse(this.BaseWeight.Value, out var bw))
           {
             this.Data.BaseWeight = bw;
@@ -807,7 +816,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
     }
 
-    private string GetScriptVariables(AnalysisTableCell cell, string? script = null)
+    private string GetScriptVariables(AnalysisTableCell cell, string? script = null, bool isAnalysisTableScript = false)
     {
       script ??= this.Data.ValueScript;
 
@@ -822,11 +831,14 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
       if (script.Contains("horses"))
       {
-        var scriptHorses = this.Cells.Select(c => new ScriptRaceHorse(c.Horse.Race.Key, c.Horse, false)).ToArray();
-        var horsesJson = JsonSerializer.Serialize(scriptHorses, ScriptManager.JsonOptions);
-        scriptVariables.Append("const horses=");
-        scriptVariables.Append(horsesJson);
-        scriptVariables.Append(';');
+        if (!isAnalysisTableScript)
+        {
+          var scriptHorses = this.Cells.Select(c => new ScriptRaceHorse(c.Horse.Race.Key, c.Horse, false)).ToArray();
+          var horsesJson = JsonSerializer.Serialize(scriptHorses, ScriptManager.JsonOptions);
+          scriptVariables.Append("const horses=");
+          scriptVariables.Append(horsesJson);
+          scriptVariables.Append(';');
+        }
       }
       if (script.Contains("horse"))
       {
@@ -906,6 +918,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       if (config != null && !string.IsNullOrWhiteSpace(config.Script.Value))
       {
         using var engine = new StringScriptEngine();
+        engine.AddHostObject("AnalysisTable", new AnalysisTableScriptHostObject
+        {
+          Parameter = this.Data.AnalysisTableScriptParameter,
+          Horses = this.Cells.Select(c => new ScriptRaceHorse(c.Horse.Race.Key, c.Horse, false)).ToArray(),
+        });
         var scriptVariables = this.GetScriptVariables(cell, config.Script.Value);
 
         try
@@ -1172,6 +1189,18 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     {
       this.FinderModelForConfig.Dispose();
       this._disposables.Dispose();
+    }
+
+    [NoDefaultScriptAccess]
+    public class AnalysisTableScriptHostObject
+    {
+      [ScriptMember("parameter")]
+      public string Parameter { get; init; } = string.Empty;
+
+      public IReadOnlyList<ScriptRaceHorse> Horses { get; init; } = Array.Empty<ScriptRaceHorse>();
+
+      [ScriptMember("horses")]
+      public string HorsesJson => JsonSerializer.Serialize(this.Horses, ScriptManager.JsonOptions);
     }
   }
 

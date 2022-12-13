@@ -218,6 +218,12 @@
                             CommandParameter="{Binding}" Margin="8,0,0,0"/>
                   </Grid>
 
+                  <TextBlock Grid.Column="0" Grid.Row="2" Text="パラメータ" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
+                             VerticalAlignment="Center"
+                             Visibility="{Binding CanSetAnalysisTableScriptParameter.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                  <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding AnalysisTableScriptParameter.Value,Mode=TwoWay}" FontSize="18" Margin="0,0,0,0"
+                           VerticalContentAlignment="Center" Grid.ColumnSpan="7"
+                           Visibility="{Binding CanSetAnalysisTableScriptParameter.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   <TextBlock Grid.Column="0" Grid.Row="2" Text="重み１" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0"
                              VerticalAlignment="Center"
                              Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
