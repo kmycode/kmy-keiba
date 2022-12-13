@@ -32,7 +32,7 @@
 
       <!--ラベル設定-->
       <Grid Grid.Column="1" Visibility="{Binding AnalysisTable.Config.ActiveAnalysisTableScript.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"
-            Margin="16,0,8,0" Grid.RowSpan="2" IsEnabled="{Binding CanSave.Value}">
+            Margin="16,0,8,0" Grid.RowSpan="2">
         <Grid.RowDefinitions>
           <RowDefinition Height="auto"/>
           <RowDefinition Height="auto"/>
@@ -40,7 +40,13 @@
           <RowDefinition/>
           <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-        <Grid Margin="0,8,0,32" IsEnabled="{Binding CanSave.Value}">
+        <Grid Margin="0,8,0,32">
+          <Grid.IsEnabled>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+              <Binding Path="CanSave.Value"/>
+              <Binding Path="DataContext.ScriptBulk.IsExecuting.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+            </MultiBinding>
+          </Grid.IsEnabled>
           <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition Width="auto"/>
@@ -54,11 +60,17 @@
         </Grid>
 
         <TextBox Text="{Binding AnalysisTable.Config.ActiveAnalysisTableScript.Value.Script.Value,Mode=TwoWay,ElementName=Root}"
-                 IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}"
                  AcceptsReturn="True" FontSize="18" FontFamily="MS Gothic" Grid.Row="3"
                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                 Padding="8"/>
+                 Padding="8">
+          <TextBox.IsReadOnly>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+              <Binding Path="CanSave.Value" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="DataContext.ScriptBulk.IsExecuting.Value" ElementName="Root"/>
+            </MultiBinding>
+          </TextBox.IsReadOnly>
+        </TextBox>
       </Grid>
     </Grid>
   </Grid>
