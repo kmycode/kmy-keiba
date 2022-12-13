@@ -53,6 +53,10 @@ namespace KmyKeiba.Downloader.Migrations
                     b.Property<uint>("AnalysisTableScriptId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("AnalysisTableScriptParameter")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<double>("BaseWeight")
                         .HasColumnType("REAL");
 

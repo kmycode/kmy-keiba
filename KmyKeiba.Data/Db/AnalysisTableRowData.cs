@@ -39,6 +39,8 @@ namespace KmyKeiba.Data.Db
     public double AlternativeValueIfEmpty { get; set; }
 
     public string ValueScript { get; set; } = string.Empty;
+
+    public string AnalysisTableScriptParameter { get; set; } = string.Empty;
   }
 
   public enum AnalysisTableRowOutputType : short
