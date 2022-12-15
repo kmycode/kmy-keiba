@@ -329,6 +329,9 @@ namespace KmyKeiba.Models.Script
     [JsonPropertyName("cornerRanking4")]
     public string CornerRanking4 => this._race.Corner4Result;
 
+    [JsonPropertyName("lapTimes")]
+    public string LapTimes => JsonSerializer.Serialize(this._race.LapTimes, ScriptManager.JsonOptions);
+
     [JsonPropertyName("topHorses")]
     public ScriptRaceHorse[]? TopHorses =>
       this._topHorses != null ? this._topHorses.Select(h => new ScriptRaceHorse(string.Empty, h, false)).ToArray() :

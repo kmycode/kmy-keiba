@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Data.Db;
+﻿using CefSharp.DevTools.Network;
+using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using Microsoft.ClearScript;
@@ -114,12 +115,18 @@ namespace KmyKeiba.Models.Script
     [JsonPropertyName("ua3hTimeDeviationValue")]
     public double UntilA3HTimeDeviationValue => this.IsTargetRace ? default : this._analyzer?.UntilA3HResultTimeDeviationValue ?? default;
 
+    [JsonPropertyName("pci")]
+    public double Pci => this._analyzer?.Pci ?? default;
+
     [JsonPropertyName("race")]
     public ScriptRace? Race => this.IsTargetRace ? null : this._isRaceGettable ?
       new ScriptRace(this._analyzer!.Race, this._analyzer.CurrentRace?.TopHorses.ToArray()) : null;
 
     [JsonPropertyName("history")]
     public ScriptHistory? History => this._analyzer?.History != null ? new ScriptHistory(this._targetRaceKey, this._analyzer.History) : ScriptHistory.Default;
+
+    [JsonPropertyName("extraData")]
+    public ScriptExtraData? ExtraData => this._analyzer?.ExtraData != null ? new ScriptExtraData(this._analyzer.ExtraData) : null;
 
     public ScriptRaceHorse(string targetRaceKey, RaceHorseAnalyzer horse, bool isRaceGettable = true)
     {
@@ -308,6 +315,22 @@ namespace KmyKeiba.Models.Script
       }
 
       public static ScriptHistory Default { get; } = new ScriptHistory(string.Empty, new RaceHorseAnalyzer.HistoryData(new RaceData(), new RaceHorseData(), Enumerable.Empty<RaceHorseAnalyzer>(), null));
+    }
+
+    public class ScriptExtraData
+    {
+      private readonly RaceHorseExtraData _data;
+
+      [JsonPropertyName("rpci")]
+      public double Rpci => this._data.Rpci;
+
+      [JsonPropertyName("pci3")]
+      public double Pci3 => this._data.Pci3;
+
+      public ScriptExtraData(RaceHorseExtraData extra)
+      {
+        this._data = extra;
+      }
     }
   }
 }
