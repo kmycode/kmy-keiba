@@ -179,6 +179,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.CanSetScript = this.SelectedOutput.Where(o => o != null).Select(o => o!.OutputType).Select(o =>
         o == AnalysisTableRowOutputType.ExpansionMemo ||
         o == AnalysisTableRowOutputType.ExternalNumber ||
+        o == AnalysisTableRowOutputType.AnalysisTableScript ||
         o == AnalysisTableRowOutputType.PlaceBetsRate ||
         o == AnalysisTableRowOutputType.WinRate ||
         o == AnalysisTableRowOutputType.RecoveryRate ||
@@ -918,7 +919,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       if (config != null && !string.IsNullOrWhiteSpace(config.Script.Value))
       {
         using var engine = new StringScriptEngine();
-        engine.AddHostObject("AnalysisTable", new AnalysisTableScriptHostObject
+        engine.AddHostObject("AnalysisTable", new AnalysisTableScriptHostObject(cell.Horse)
         {
           Parameter = this.Data.AnalysisTableScriptParameter,
           Horses = this.Cells.Select(c => new ScriptRaceHorse(c.Horse.Race.Key, c.Horse, false)).ToArray(),
@@ -931,6 +932,19 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           if (result is Task<object> tobj)
           {
             result = await tobj;
+          }
+          else if (result is Task<string> tsobj)
+          {
+            double.TryParse(await tsobj, out var dval);
+            result = dval;
+          }
+          else if (result is Task<double> tdobj)
+          {
+            result = tdobj;
+          }
+          else if (result is Task<int> tiobj)
+          {
+            result = tiobj;
           }
 
           if (result is int intval)
@@ -952,6 +966,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           else
           {
             cell.IsAnalysisTableScriptError.Value = true;
+            cell.AnalysisTableErrorMessage.Value = "不正な型が返されました";
           }
         }
         catch (ScriptEngineException ex)
@@ -1194,6 +1209,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     [NoDefaultScriptAccess]
     public class AnalysisTableScriptHostObject
     {
+      private readonly RaceHorseAnalyzer _horse;
+
       [ScriptMember("parameter")]
       public string Parameter { get; init; } = string.Empty;
 
@@ -1201,6 +1218,30 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
       [ScriptMember("horses")]
       public string HorsesJson => JsonSerializer.Serialize(this.Horses, ScriptManager.JsonOptions);
+
+      [ScriptMember("horse")]
+      public string HorseJson => JsonSerializer.Serialize(new ScriptRaceHorse(this._horse.Data.RaceKey, this._horse, false), ScriptManager.JsonOptions);
+
+      public AnalysisTableScriptHostObject(RaceHorseAnalyzer horse)
+      {
+        this._horse = horse;
+      }
+
+      [ScriptMember("updateBeforeRaceExtraDataAsync")]
+      public async Task UpdateBeforeRaceExtraDataAsync()
+      {
+        if (this._horse.History != null && this._horse.History.BeforeRaces.Any(br => br.ExtraData == null))
+        {
+          var raceKeys = this._horse.History.BeforeRaces.Where(br => br.ExtraData == null).Select(br => br.Race.Key).ToArray();
+
+          using var db = new MyContext();
+          var extraDataList = await db.RaceHorseExtras!.Where(e => raceKeys.Contains(e.RaceKey) && e.Key == this._horse.Data.Key).ToArrayAsync();
+          foreach (var race in extraDataList.Join(this._horse.History.BeforeRaces, e => e.RaceKey, br => br.Race.Key, (e, br) => new { ExtraData = e, RaceHorse = br, }))
+          {
+            race.RaceHorse.ExtraData = race.ExtraData;
+          }
+        }
+      }
     }
   }
 
