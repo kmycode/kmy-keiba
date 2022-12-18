@@ -266,6 +266,32 @@ namespace KmyKeiba.Downloader
           UnlhaFile(path!, dist);
         }
       }
+      else if (command == DownloaderCommand.CheckProcessId.GetCommandText())
+      {
+        _ = int.TryParse(args[1], out var beforeProcessNumber);
+        logger.Info($"プロセス {beforeProcessNumber} の動作確認");
+        var fileName = Path.Combine(Constrants.AppDataDir, $"process_{beforeProcessNumber}");
+
+        try
+        {
+          if (File.Exists(fileName))
+          {
+            File.Delete(fileName);
+          }
+
+          var process = Process.GetProcessById(beforeProcessNumber) ?? throw new NullReferenceException();
+          if (process.HasExited)
+          {
+            throw new InvalidOperationException();
+          }
+
+          File.WriteAllText(fileName, string.Empty);
+        }
+        catch (Exception ex)
+        {
+          logger.Warn($"プロセス {beforeProcessNumber} の動作確認に失敗しました", ex);
+        }
+      }
       else if (command == "kill")
       {
         _ = int.TryParse(args[1], out var beforeProcessNumber);

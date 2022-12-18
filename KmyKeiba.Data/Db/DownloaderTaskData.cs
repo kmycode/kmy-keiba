@@ -62,6 +62,9 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderCommand("unlha")]
     Unlha = 11,
+
+    [DownloaderCommand("checkprocess")]
+    CheckProcessId = 12,
   }
 
   public enum DownloaderError : short
@@ -124,6 +127,9 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderError("JV-Linkの動作が確認できません。管理者権限でKMY競馬を再起動してください")]
     NotRunningJVLinkAgent = 19,
+
+    [DownloaderError("ダウンローダが異常停止しました")]
+    NotRunningDownloader = 20,
   }
 
   internal class DownloaderCommandAttribute : Attribute

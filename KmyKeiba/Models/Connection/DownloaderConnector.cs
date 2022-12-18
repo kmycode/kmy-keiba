@@ -106,6 +106,7 @@ namespace KmyKeiba.Models.Connection
       }
 
       var tryCount = 0;
+      var tryCountForProcessCheck = 600;
       var loopStart = DateTime.Now;
       var lastProcessIdChecked = DateTime.Now;
       var isProcessStarted = false;
@@ -153,6 +154,16 @@ namespace KmyKeiba.Models.Connection
               {
                 await processing(item);
               }
+
+              if (isProcessStarted && ++tryCountForProcessCheck >= 1200)
+              {
+                var isRunning = await this.IsLaunchingProcessAsync(item.ProcessId);
+                if (!isRunning && !item.IsFinished)
+                {
+                  throw new DownloaderCommandException(DownloaderError.NotRunningDownloader);
+                }
+                tryCountForProcessCheck = 0;
+              }
             }
           }
           else
@@ -164,6 +175,11 @@ namespace KmyKeiba.Models.Connection
         {
           logger.Error($"タスク {taskDataId} が検出できませんでした", ex);
           throw new DownloaderCommandException(DownloaderError.ApplicationRuntimeError);
+        }
+        catch (DownloaderCommandException ex) when (ex.Error == DownloaderError.NotRunningDownloader)
+        {
+          logger.Error($"タスク {taskDataId} の実行が確認できませんでした", ex);
+          throw new DownloaderCommandException(ex.Error);
         }
         catch (Exception ex)
         {
@@ -179,6 +195,30 @@ namespace KmyKeiba.Models.Connection
 
         await Task.Delay(50);
       }
+    }
+
+    private async Task<bool> IsLaunchingProcessAsync(int processId)
+    {
+      logger.Info($"プロセス {processId} の起動を確認します");
+      var fileName = Path.Combine(Constrants.AppDataDir, $"process_{processId}");
+      if (File.Exists(fileName))
+      {
+        File.Delete(fileName);
+      }
+
+      var process = this.ExecuteDownloader(DownloaderCommand.CheckProcessId, processId.ToString());
+      if (process != null)
+      {
+        await process.WaitForExitAsync();
+
+        if (File.Exists(fileName))
+        {
+          File.Delete(fileName);
+          return true;
+        }
+      }
+
+      return false;
     }
 
     public async Task InitializeAsync()
