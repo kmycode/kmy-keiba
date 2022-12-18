@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "KMYã£în"
-#define MyAppVersion "4.5.0"
+#define MyAppVersion "4.5.1"
 #define MyAppPublisher "KMY (ê·Ç†Ç∑Ç©)"
 #define MyAppURL "https://github.com/kmycode/kmy-keiba"
 #define MyAppExeName "KmyKeiba.exe"
@@ -39,7 +39,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "C:\Users\tt\Documents\repo\KmyKeiba\dist\x64\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
-Source: "C:\Users\tt\Documents\repo\KmyKeiba\dist\x64\Release\script\*"; DestDir: "{app}\..\script"; Flags: ignoreversion recursesubdirs
+Source: "C:\Users\tt\Documents\repo\KmyKeiba\dist\x64\Release\script\*"; DestDir: "{app}\..\script"; Flags: ignoreversion recursesubdirs   
+Source: "C:\Users\tt\Documents\repo\KmyKeiba\dist\x64\Debug\basestandardtime.dat"; DestDir: "{app}"; Flags: ignoreversion                     
+Source: "C:\Users\tt\Documents\repo\KmyKeiba\dist\x64\Debug\runningstyle.mml"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
