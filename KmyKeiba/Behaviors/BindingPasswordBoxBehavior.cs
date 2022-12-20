@@ -37,23 +37,26 @@ namespace KmyKeiba.Behaviors
     protected override void OnAttached()
     {
       base.OnAttached();
-      this.AssociatedObject.TextInput += this.AssociatedObject_TextInput;
+      this.AssociatedObject.PasswordChanged += this.AssociatedObject_PasswordChanged;
     }
 
-    protected override void OnDetaching()
-    {
-      this.AssociatedObject.TextInput -= this.AssociatedObject_TextInput;
-      base.OnDetaching();
-    }
-
-    private void AssociatedObject_TextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+    private void AssociatedObject_PasswordChanged(object sender, RoutedEventArgs e)
     {
       this.Password = this.AssociatedObject.Password;
     }
 
+    protected override void OnDetaching()
+    {
+      this.AssociatedObject.PasswordChanged -= this.AssociatedObject_PasswordChanged;
+      base.OnDetaching();
+    }
+
     private void OnSourceUpdated()
     {
-      this.AssociatedObject.Password = this.Password;
+      if (this.AssociatedObject.Password != this.Password)
+      {
+        this.AssociatedObject.Password = this.Password;
+      }
     }
   }
 }

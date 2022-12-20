@@ -3,6 +3,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Generic;
 using KmyKeiba.Models.Data;
+using KmyKeiba.Models.Race.AnalysisTable.Script;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.Race.Memo;
@@ -44,6 +45,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public CheckableCollection<ExternalNumberConfigItem> ExternalNumbers { get; } = new();
 
     public ReactiveCollection<ExpansionMemoConfig> MemoConfigs { get; } = new();
+
+    public CheckableCollection<AnalysisTableScriptItem> AnalysisTableScripts => AnalysisTableScriptConfigModel.Default.Configs;
+
+    public ReactiveProperty<AnalysisTableScriptItem?> ActiveAnalysisTableScript => this.AnalysisTableScripts.ActiveItem;
 
     public ReactiveProperty<bool> IsBulkMode { get; } = new();
 

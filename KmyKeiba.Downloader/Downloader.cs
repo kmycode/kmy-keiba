@@ -159,7 +159,7 @@ namespace KmyKeiba.Downloader
       int.TryParse(parameters[0], out var startYear);
       int.TryParse(parameters[1], out var startMonth);
       var startDay = 0;
-      if (startMonth > 40)
+      if (startMonth > 100)
       {
         startDay = startMonth % 100;
         startMonth /= 100;
@@ -226,6 +226,13 @@ namespace KmyKeiba.Downloader
 
       var option = (DateTime.Now.Year * 12 + DateTime.Now.Month) - (startYear * 12 + startMonth) > 11 ? JVLinkOpenOption.Setup : JVLinkOpenOption.Normal;
 
+      // 開始日が最初から未来または今日に近い日であった場合、予定ダウンロードと見做す
+      var isPlan = false;
+      if (startDay > 0 && new DateTime(startYear, startMonth, Math.Max(1, startDay)).AddDays(7) > DateTime.Today)
+      {
+        isPlan = true;
+      }
+
       for (var year = startYear; year <= end.Year; year++)
       {
         for (var month = 1; month <= 12; month++)
@@ -278,7 +285,18 @@ namespace KmyKeiba.Downloader
           Console.WriteLine();
           Console.WriteLine();
 
+          if (isPlan)
+          {
+            logger.Info("予定ダウンロードだったため即時終了");
+            break;
+          }
+
           CheckShutdown(db);
+        }
+
+        if (isPlan)
+        {
+          break;
         }
       }
       /*
@@ -388,6 +406,9 @@ namespace KmyKeiba.Downloader
         .Where(r => raceKeys.Contains(r.RaceKey))
         .ToArrayAsync();
 
+      var isDownloadAfterThursdayData = await db.SystemData!.FirstOrDefaultAsync(s => s.Key == SettingKey.IsDownloadCentralOnThursdayAfterOnly);
+      var isDownloadAfterThursday = (isDownloadAfterThursdayData?.IntValue ?? 0) != 0;
+
       races = races.Where(r =>
       {
         if (type == "central")
@@ -405,6 +426,15 @@ namespace KmyKeiba.Downloader
           {
             // 夕方から売ってることがある
             return true;
+          }
+
+          if (!isDownloadAfterThursday)
+          {
+            if (today.AddDays(1) <= r.StartTime && r.StartTime < today.AddDays(2))
+            {
+              // とりあえず翌日のレースは全部取得
+              return true;
+            }
           }
 
           bool result;

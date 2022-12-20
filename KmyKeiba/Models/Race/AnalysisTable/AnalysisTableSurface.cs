@@ -97,7 +97,13 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public void UpdateRows()
     {
+      var oldRows = this.Rows.ToArray();
       this.Rows.Clear();
+      foreach (var row in oldRows)
+      {
+        row.Dispose();
+      }
+
       foreach (var row in AnalysisTableUtil.TableRowConfigs.Where(r => r.TableId == this.Data.Id).OrderBy(r => r.Order))
       {
         var item = new AnalysisTableRow(row, this, this._horses);
@@ -107,7 +113,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.ProgressMax.Value = this.Rows.Count;
     }
 
-    public async Task AnalysisAsync(MyContext db, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly, bool isBulk = false)
+    public async Task AnalysisAsync(MyContext db, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly, bool isBulk = false, AggregateRaceFinder? aggregateFinder = null)
     {
       this.IsLoading.Value = true;
       this.ProgressMax.Value = this.Rows.Count;
@@ -115,7 +121,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
       foreach (var row in this.Rows.OrderBy(r => r.Data.Output == AnalysisTableRowOutputType.Binary ? 0 : 1))
       {
-        await row.LoadAsync(this.Race, finders, weights, isCacheOnly, isBulk);
+        await row.LoadAsync(this.Race, finders, weights, isCacheOnly, isBulk, aggregateFinder);
         this.Progress.Value++;
       }
 

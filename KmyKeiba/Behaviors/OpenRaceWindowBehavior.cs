@@ -36,10 +36,12 @@ namespace KmyKeiba.Behaviors
                 if (e.OldValue is OpenRaceRequest old)
                 {
                   old.Requested -= view.OnRequested;
+                  old.RaceUpdated -= view.OnRaceUpdated;
                 }
                 if (e.NewValue is OpenRaceRequest @new)
                 {
                   @new.Requested += view.OnRequested;
+                  @new.RaceUpdated += view.OnRaceUpdated;
                 }
               }
             }));
@@ -121,6 +123,18 @@ namespace KmyKeiba.Behaviors
       window.Show();
 
       this._windows.Add(new WeakReference<RaceWindow>(window));
+    }
+
+    private void OnRaceUpdated(object? sender, EventArgs e)
+    {
+      foreach (var window in this._windows)
+      {
+        window.TryGetTarget(out var win);
+        if (win != null && win.DataContext is RaceViewModelBase vm)
+        {
+          vm.Race.Value?.CheckCanUpdateAsync();
+        }
+      }
     }
 
     private void OnMainWindowClosing()

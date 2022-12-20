@@ -729,7 +729,7 @@ namespace KmyKeiba.Models.Data
               }
             }
 
-            if (horse.Race.DataStatus <= RaceDataStatus.PreliminaryGradeFull)
+            if (horse.Race.DataStatus < RaceDataStatus.PreliminaryGradeFull)
             {
               horse.RaceHorse.ExtraDataState = HorseExtraDataState.UntilRace;
             }

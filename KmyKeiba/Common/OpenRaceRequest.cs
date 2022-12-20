@@ -11,6 +11,7 @@ namespace KmyKeiba.Common
     public static OpenRaceRequest Default { get; } = new();
 
     public event EventHandler<OpenRaceRequestEventArgs>? Requested;
+    public event EventHandler? RaceUpdated;
 
     public void Request(string key)
     {
@@ -25,6 +26,11 @@ namespace KmyKeiba.Common
     public void Request(string key, IReadOnlyList<string> horseKeys)
     {
       this.Requested?.Invoke(this, new OpenRaceRequestEventArgs(key, horseKeys));
+    }
+
+    public void Update()
+    {
+      this.RaceUpdated?.Invoke(this, EventArgs.Empty);
     }
   }
 

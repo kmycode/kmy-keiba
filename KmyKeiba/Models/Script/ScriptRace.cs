@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Wrappers;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.Finder;
 using Microsoft.ClearScript;
 using System;
 using System.Collections.Generic;
@@ -142,7 +143,7 @@ namespace KmyKeiba.Models.Script
     [ScriptMember("findRaceHorsesAsync")]
     public async Task<string> FindRaceHorsesAsync(string keys, int count, int offset = 0)
     {
-      var result = await this._race.Finder.FindRaceHorsesAsync(keys, count, offset, withoutFutureRacesForce: true);
+      var result = await ((IRaceFinder)this._race.Finder).FindRaceHorsesAsync(keys, count, offset, withoutFutureRacesForce: true);
       return JsonSerializer.Serialize(
         result.Items.Select(s => new ScriptRaceHorse(string.Empty, s.Data)).Take(count).ToArray(), ScriptManager.JsonOptions);
     }
@@ -327,6 +328,9 @@ namespace KmyKeiba.Models.Script
 
     [JsonPropertyName("cornerRanking4")]
     public string CornerRanking4 => this._race.Corner4Result;
+
+    [JsonPropertyName("lapTimes")]
+    public string LapTimes => JsonSerializer.Serialize(this._race.LapTimes, ScriptManager.JsonOptions);
 
     [JsonPropertyName("topHorses")]
     public ScriptRaceHorse[]? TopHorses =>

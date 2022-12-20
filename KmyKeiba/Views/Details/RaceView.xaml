@@ -156,7 +156,7 @@
             </RadioButton>
             <RadioButton FontSize="22" GroupName="{Binding UniqueId2,ElementName=Root}" Name="S_Expansion"
                          Visibility="{Binding Race.HasHorses.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
-              拡張
+              分析
               <ToggleButton.Style>
                 <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource LargeToggleButtonDefault}">
                   <Style.Triggers>
@@ -190,6 +190,7 @@
                 <MultiBinding Converter="{StaticResource MultiBooleanConv}">
                   <Binding Path="Race.IsWaitingResults.Value" ElementName="Root"/>
                   <Binding Path="Race.HasResults.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                  <Binding Path="Race.IsCanceled" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
                 </MultiBinding>
               </Border.Visibility>
               <TextBlock Text="結果待ち" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"/>
@@ -204,14 +205,19 @@
                 <TextBlock FontSize="22" Text="更新する" HorizontalAlignment="Center"/>
                 <TextBlock FontSize="16" Text="レース結果が届きました" Foreground="{StaticResource SubForeground}"
                            Visibility="{Binding Race.IsNewDataHasResults.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
-                <TextBlock FontSize="14" Text="分析結果はリセットされます" Foreground="{StaticResource BadForeground}"
-                           Visibility="{Binding Race.IsWillTrendAnalyzersResetedOnUpdate.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+                <TextBlock FontSize="14" Text="分析はリセットされます" Foreground="{StaticResource SubForeground}"/>
               </StackPanel>
             </Button>
 
             <!--投票-->
-            <StackPanel Orientation="Horizontal" Visibility="{Binding Race.IsBeforeLimitTime.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}" Margin="0,12,0,0"
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0"
                         HorizontalAlignment="Center">
+              <StackPanel.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                  <Binding Path="Race.IsBeforeLimitTime.Value" ElementName="Root"/>
+                  <Binding Path="Race.IsCanceled" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                </MultiBinding>
+              </StackPanel.Visibility>
               <TextBlock FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0">
                 投票<LineBreak/>締切
               </TextBlock>
@@ -229,16 +235,9 @@
                   <Binding Path="Race.HasHorses.Value" ElementName="Root"/>
                 </MultiBinding>
               </Panel.Visibility>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-              </Grid.ColumnDefinitions>
               <RadioButton FontSize="18" Content="全体" GroupName="{Binding UniqueId,ElementName=Root}"
-                           Style="{StaticResource HalfToggleButtonDefault}" Name="S_All"
+                           Style="{StaticResource ToggleButtonDefault}" Name="S_All"
                            IsChecked="{Binding IsSelectedAllHorses.Value,Mode=TwoWay}"/>
-              <RadioButton FontSize="18" Content="分析" GroupName="{Binding UniqueId,ElementName=Root}"
-                           Style="{StaticResource HalfToggleButtonDefault}" Name="S_AllAnalysis"
-                           Grid.Column="1"/>
             </Grid>
             <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}"
                           Visibility="{Binding IsChecked,ElementName=S_Predict,Converter={StaticResource BooleanVisibilityConv}}">
@@ -315,17 +314,6 @@
           </Control.Visibility>
         </uc:RaceExpectAllView>
 
-        <!--予想・分析-->
-        <uc:AnalysisTableGroupView TableGroup="{Binding Race.AnalysisTables,ElementName=Root}" Grid.Column="1">
-          <Control.Visibility>
-            <MultiBinding Converter="{StaticResource MultiBooleanConv}">
-              <Binding Path="IsChecked" ElementName="S_Predict"/>
-              <Binding Path="IsChecked" ElementName="S_AllAnalysis"/>
-              <Binding Path="Race.HasHorses.Value" ElementName="Root"/>
-            </MultiBinding>
-          </Control.Visibility>
-        </uc:AnalysisTableGroupView>
-
         <!--予想・各馬-->
         <uc:RaceExpectHorseView Race="{Binding Race,ElementName=Root}" RaceHorse="{Binding Race.ActiveHorse.Value,ElementName=Root}" Grid.Column="1">
           <Control.Visibility>
@@ -346,6 +334,10 @@
               <Binding Path="Race.HasHorses.Value" ElementName="Root"/>
             </MultiBinding>
           </Panel.Visibility>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="auto"/>
+          </Grid.ColumnDefinitions>
           <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition/>
@@ -355,37 +347,74 @@
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
                          Content="拡張メモ" Name="S_ExMemo" IsChecked="True"/>
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                         Content="拡張分析" Name="S_ExAnalysis"/>
+                         Content="分析" Name="S_ExAnalysis"/>
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                         Content="拡張集計" Name="S_ExAggregate"/>
+                         Content="集計" Name="S_ExAggregate"/>
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                         Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
-                         Content="拡張分析設定" Name="S_ExAnalysisConfig"/>
+                         Content="分析設定" Name="S_ExAnalysisConfig">
+              <RadioButton.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                  <Binding Path="IsMainWindow"/>
+                  <Binding Path="IsChecked" ElementName="IsOpenExpansionSettingButton"/>
+                </MultiBinding>
+              </RadioButton.Visibility>
+            </RadioButton>
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                         Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
-                         Content="拡張分析重み設定" Name="S_ExAnalysisWeightConfig"/>
+                         Content="分析重み設定" Name="S_ExAnalysisWeightConfig">
+              <RadioButton.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                  <Binding Path="IsMainWindow"/>
+                  <Binding Path="IsChecked" ElementName="IsOpenExpansionSettingButton"/>
+                </MultiBinding>
+              </RadioButton.Visibility>
+            </RadioButton>
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                         Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
-                         Content="重み区切り設定" Name="S_ExAnalysisDelimiterConfig"/>
+                         Content="重み区切り設定" Name="S_ExAnalysisDelimiterConfig">
+              <RadioButton.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                  <Binding Path="IsMainWindow"/>
+                  <Binding Path="IsChecked" ElementName="IsOpenExpansionSettingButton"/>
+                </MultiBinding>
+              </RadioButton.Visibility>
+            </RadioButton>
             <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
-                         Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"
-                         Content="外部指数設定" Name="S_ExternalNumber"/>
+                         Content="外部指数設定" Name="S_ExternalNumber">
+              <RadioButton.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                  <Binding Path="IsMainWindow"/>
+                  <Binding Path="IsChecked" ElementName="IsOpenExpansionSettingButton"/>
+                </MultiBinding>
+              </RadioButton.Visibility>
+            </RadioButton>
+            <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId3,ElementName=Root}"
+                         Content="スクリプト設定" Name="S_ATScript">
+              <RadioButton.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                  <Binding Path="IsMainWindow"/>
+                  <Binding Path="IsChecked" ElementName="IsOpenExpansionSettingButton"/>
+                </MultiBinding>
+              </RadioButton.Visibility>
+            </RadioButton>
           </UniformGrid>
+          <ToggleButton Grid.Column="1" Name="IsOpenExpansionSettingButton" Content="設定" FontSize="16" Width="80"
+                        Visibility="{Binding IsMainWindow,Converter={StaticResource BooleanVisibilityConv}}"/>
 
-          <ex:ExpansionMemoView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExMemo,Converter={StaticResource BooleanVisibilityConv}}"
+          <ex:ExpansionMemoView Grid.Row="1" Grid.ColumnSpan="2" Visibility="{Binding IsChecked,ElementName=S_ExMemo,Converter={StaticResource BooleanVisibilityConv}}"
                                 Race="{Binding Race,ElementName=Root}"/>
-          <ex:ExpansionAnalysisTableView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysis,Converter={StaticResource BooleanVisibilityConv}}"
+          <ex:ExpansionAnalysisTableView Grid.Row="1" Grid.ColumnSpan="2" Visibility="{Binding IsChecked,ElementName=S_ExAnalysis,Converter={StaticResource BooleanVisibilityConv}}"
                                          Race="{Binding Race,ElementName=Root}" AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
-          <ex:AnalysisTableConfigView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisConfig,Converter={StaticResource BooleanVisibilityConv}}"
+          <ex:AnalysisTableConfigView Grid.Row="1" Grid.ColumnSpan="2" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisConfig,Converter={StaticResource BooleanVisibilityConv}}"
                                       AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
-          <ex:AnalysisTableWeightConfigView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisWeightConfig,Converter={StaticResource BooleanVisibilityConv}}"
+          <ex:AnalysisTableWeightConfigView Grid.Row="2" Grid.ColumnSpan="2" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisWeightConfig,Converter={StaticResource BooleanVisibilityConv}}"
                                             AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
-          <ex:AnalysisTableDelimiterConfigView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisDelimiterConfig,Converter={StaticResource BooleanVisibilityConv}}"
+          <ex:AnalysisTableDelimiterConfigView Grid.Row="2" Grid.ColumnSpan="2" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisDelimiterConfig,Converter={StaticResource BooleanVisibilityConv}}"
                                                AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
-          <ex:AnalysisTableAggregateView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExAggregate,Converter={StaticResource BooleanVisibilityConv}}"
+          <ex:AnalysisTableAggregateView Grid.Row="2" Grid.ColumnSpan="2" Visibility="{Binding IsChecked,ElementName=S_ExAggregate,Converter={StaticResource BooleanVisibilityConv}}"
                                          AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
-          <ex:ExternalNumberConfigView Grid.Row="2" Visibility="{Binding IsChecked,ElementName=S_ExternalNumber,Converter={StaticResource BooleanVisibilityConv}}"
+          <ex:ExternalNumberConfigView Grid.Row="2" Grid.ColumnSpan="2" Visibility="{Binding IsChecked,ElementName=S_ExternalNumber,Converter={StaticResource BooleanVisibilityConv}}"
                                        ExternalNumber="{Binding ExternalNumber}"/>
+          <ex:AnalysisTableScriptConfigView Grid.Row="2" Grid.ColumnSpan="2" Visibility="{Binding IsChecked,ElementName=S_ATScript,Converter={StaticResource BooleanVisibilityConv}}"
+                                            AnalysisTable="{Binding Race.AnalysisTable.Value,ElementName=Root}"/>
         </Grid>
 
         <!-- 結果・全体 -->
@@ -422,7 +451,7 @@
       </Grid.Visibility>
       <Border>
         <TextBlock FontSize="32" Style="{StaticResource SubTextBlock}" Text="{Binding FirstMessage.Value}"
-                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                   HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
       </Border>
     </Grid>
 

@@ -3,10 +3,12 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
+using KmyKeiba.Models.Race.AnalysisTable.Script;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.Race.Memo;
 using KmyKeiba.Models.Script;
+using Microsoft.ClearScript;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -18,6 +20,7 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Forms.VisualStyles;
 
 namespace KmyKeiba.Models.Race.AnalysisTable
 {
@@ -28,12 +31,15 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     private readonly CompositeDisposable _disposables = new();
     public bool IsFreezeParentSelection { get; set; } = false;
     private readonly bool _isInitialized = false;
+    private bool _isBulk = false;
 
     public AnalysisTableRowData Data { get; }
 
     public AnalysisTableSurface Table { get; }
 
     public FinderModel FinderModelForConfig { get; }
+
+    public ReactiveProperty<bool> IsEdit { get; } = new();  // Viewでのみ使用
 
     public ReactiveProperty<string> Name { get; } = new();
 
@@ -45,9 +51,13 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<string> ValueScript { get; } = new();
 
+    public ReactiveProperty<string> AnalysisTableScriptParameter { get; } = new();
+
     public ReactiveProperty<AnalysisTableRowOutputType> Output { get; } = new();
 
     public ReadOnlyReactiveProperty<bool> CanSetExternalNumber { get; }
+
+    public ReadOnlyReactiveProperty<bool> CanSetAnalysisTableScript { get; }
 
     public ReadOnlyReactiveProperty<bool> CanSetMemoConfig { get; }
 
@@ -64,6 +74,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public ReadOnlyReactiveProperty<bool> CanSetAlternativeValue { get; }
 
     public ReadOnlyReactiveProperty<bool> CanSetScript { get; }
+
+    public ReadOnlyReactiveProperty<bool> CanSetAnalysisTableScriptParameter { get; }
 
     public ReactiveCollection<AnalysisTableCell> Cells { get; } = new();
 
@@ -90,6 +102,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public ReactiveProperty<ExpansionMemoConfig?> SelectedMemoConfig { get; } = new();
 
     public ReactiveProperty<ExternalNumberConfigItem?> SelectedExternalNumber { get; } = new();
+
+    public ReactiveProperty<AnalysisTableScriptItem?> SelectedAnalysisTableScript { get; } = new();
 
     public ReactiveProperty<bool> IsLoading { get; } = new();
 
@@ -122,6 +136,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.Limited.Value = data.RequestedSize.ToString();
       this.AlternativeValueIfEmpty.Value = data.AlternativeValueIfEmpty.ToString();
       this.ValueScript.Value = data.ValueScript;
+      this.AnalysisTableScriptParameter.Value = data.AnalysisTableScriptParameter;
 
       if (string.IsNullOrEmpty(this.ValueScript.Value))
       {
@@ -129,11 +144,13 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
 
       this.CanSetExternalNumber = this.Output.Select(o => o == AnalysisTableRowOutputType.ExternalNumber).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+      this.CanSetAnalysisTableScript = this.Output.Select(o => o == AnalysisTableRowOutputType.AnalysisTableScript).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetMemoConfig = this.Output.Select(o => o == AnalysisTableRowOutputType.ExpansionMemo).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetQuery = this.SelectedOutput.Where(o => o != null).Select(o => o!.OutputType).Select(o =>
         o != AnalysisTableRowOutputType.ExternalNumber &&
         o != AnalysisTableRowOutputType.FixedValue &&
         o != AnalysisTableRowOutputType.ExpansionMemo &&
+        o != AnalysisTableRowOutputType.AnalysisTableScript &&
         o != AnalysisTableRowOutputType.HorseValues &&
         o != AnalysisTableRowOutputType.JrdbValues)
         .ToReadOnlyReactiveProperty().AddTo(this._disposables);
@@ -156,11 +173,13 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         o == AnalysisTableRowOutputType.ShortestTime).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetAlternativeValue = this.SelectedOutput.Where(o => o != null).Select(o => o!.OutputType).Select(o =>
         o != AnalysisTableRowOutputType.ExpansionMemo &&
+        o != AnalysisTableRowOutputType.AnalysisTableScript &&
         o != AnalysisTableRowOutputType.HorseValues &&
         o != AnalysisTableRowOutputType.FixedValue).ToReadOnlyReactiveProperty().AddTo(this._disposables);
       this.CanSetScript = this.SelectedOutput.Where(o => o != null).Select(o => o!.OutputType).Select(o =>
         o == AnalysisTableRowOutputType.ExpansionMemo ||
         o == AnalysisTableRowOutputType.ExternalNumber ||
+        o == AnalysisTableRowOutputType.AnalysisTableScript ||
         o == AnalysisTableRowOutputType.PlaceBetsRate ||
         o == AnalysisTableRowOutputType.WinRate ||
         o == AnalysisTableRowOutputType.RecoveryRate ||
@@ -176,6 +195,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         .Where(o => o != null)
         .Select(o => o!.OutputType)
         .Select(o => o == AnalysisTableRowOutputType.JrdbValues).ToReadOnlyReactiveProperty().AddTo(this._disposables);
+      this.CanSetAnalysisTableScriptParameter = this.CanSetAnalysisTableScript;
 
       async Task SetWeightAsync()
       {
@@ -222,6 +242,16 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         using var db = new MyContext();
         db.AnalysisTableRows!.Attach(this.Data);
         this.Data.ExternalNumberId = this.SelectedExternalNumber.Value?.Data.Id ?? 0;
+        await db.SaveChangesAsync();
+      }).AddTo(this._disposables);
+
+      this.SelectedAnalysisTableScript.Value = AnalysisTableScriptConfigModel.Default.Configs.FirstOrDefault(c => c.Data.Id == this.Data.AnalysisTableScriptId);
+      this.SelectedAnalysisTableScript.Skip(1).Subscribe(async _ =>
+      {
+        // TODO try catch
+        using var db = new MyContext();
+        db.AnalysisTableRows!.Attach(this.Data);
+        this.Data.AnalysisTableScriptId = this.SelectedAnalysisTableScript.Value?.Data.Id ?? 0;
         await db.SaveChangesAsync();
       }).AddTo(this._disposables);
 
@@ -324,6 +354,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         .CombineLatest(this.Limited)
         .CombineLatest(this.AlternativeValueIfEmpty)
         .CombineLatest(this.ValueScript)
+        .CombineLatest(this.AnalysisTableScriptParameter)
         .Skip(1).Subscribe(async _ =>
         {
           // TODO try catch
@@ -332,6 +363,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           this.Data.Name = this.Name.Value;
           this.Data.Output = this.Output.Value;
           this.Data.ValueScript = this.ValueScript.Value;
+          this.Data.AnalysisTableScriptParameter = this.AnalysisTableScriptParameter.Value;
           if (double.TryParse(this.BaseWeight.Value, out var bw))
           {
             this.Data.BaseWeight = bw;
@@ -350,17 +382,18 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this._isInitialized = true;
     }
 
-    public async Task LoadAsync(RaceData race, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly = false, bool isBilk = false)
+    public async Task LoadAsync(RaceData race, IReadOnlyList<RaceFinder> finders, IReadOnlyList<AnalysisTableWeight> weights, bool isCacheOnly = false, bool isBulk = false, AggregateRaceFinder? aggregateFinder = null)
     {
       this.IsLoaded.Value = false;
       this.IsLoading.Value = true;
+      this._isBulk = isBulk;
 
       List<Task> tasks = new();
       var keys = this.FinderModelForConfig.Input.Query.Value;
       var myWeights = weights.Where(w => w.Data.Id == this.Data.WeightId || w.Data.Id == this.Data.Weight2Id || w.Data.Id == this.Data.Weight3Id);
 
       // 一括実行時は意味のない行は調べない
-      if (isBilk)
+      if (isBulk)
       {
         if (this.Data.Output != AnalysisTableRowOutputType.Binary && this.Data.BaseWeight == default && this.Data.AlternativeValueIfEmpty == default)
         {
@@ -416,6 +449,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           query += "|datastatus=5-7";
         }
 
+        // レース画面を開いたとき、自動でキャッシュからデータを読み込む（Finderキャッシュ機能が削除されたので現在はデッドコードである）
         var cache = item.Finder.TryFindRaceHorseCache(query);
         if (cache != null)
         {
@@ -439,6 +473,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         {
           var task = Task.Run(async () =>
           {
+            var isNeedAnalysis = true;
+
             if (this.Data.Output == AnalysisTableRowOutputType.FixedValue)
             {
               this.AnalysisFixedValue(1, myWeights, item.Cell, item.Finder);
@@ -480,6 +516,11 @@ namespace KmyKeiba.Models.Race.AnalysisTable
               {
                 this.SetPointOrEmpty(item.Cell, -1, myWeights);
               }
+            }
+            else if (this.Data.Output == AnalysisTableRowOutputType.AnalysisTableScript)
+            {
+              var value = await this.ExecuteAnalysisTableScriptAsync(item.Cell);
+              this.AnalysisFixedValue(value, myWeights, item.Cell, item.Finder);
             }
             else if (this.Data.Output == AnalysisTableRowOutputType.RiderWeight)
             {
@@ -630,8 +671,35 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             }
             else
             {
-              var source = await item.Finder.FindRaceHorsesAsync(query, size, withoutFutureRaces: true, withoutFutureRacesForce: true);
-              this.AnalysisSource(source, myWeights, item.Cell, item.Finder);
+              RaceHorseFinderQueryResult source;
+              if (aggregateFinder != null && (this.Data.Output == AnalysisTableRowOutputType.PlaceBetsRate ||
+                  this.Data.Output == AnalysisTableRowOutputType.RecoveryRate ||
+                  this.Data.Output == AnalysisTableRowOutputType.WinRate))
+              {
+                var result = await aggregateFinder.FindRaceHorsesAsync(keys + "|[tag]" + this.Data.Id, size, item.Cell.Horse, item.Cell);
+                source = result.QueryResult ?? RaceHorseFinderQueryResult.Empty;
+
+                if (result.Tag is AnalysisTableCell cell && cell != item.Cell)
+                {
+                  item.Cell.ComparationValue.Value = cell.ComparationValue.Value;
+                  item.Cell.SampleSize = cell.SampleSize;
+                  item.Cell.PointCalcValue.Value = cell.PointCalcValue.Value;
+                  item.Cell.ScriptValue.Value = cell.ScriptValue.Value;
+                  item.Cell.Comparation.Value = cell.Comparation.Value;
+                  item.Cell.Point.Value = cell.Point.Value;
+                  item.Cell.Weight = cell.Weight;
+                  isNeedAnalysis = false;
+                }
+              }
+              else
+              {
+                source = await ((IRaceFinder)item.Finder).FindRaceHorsesAsync(query, size, withoutFutureRaces: true, withoutFutureRacesForce: true);
+              }
+
+              if (isNeedAnalysis)
+              {
+                this.AnalysisSource(source, myWeights, item.Cell, item.Finder);
+              }
             }
           });
           tasks.Add(task);
@@ -715,14 +783,18 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         this.SetPointOrEmpty(cell, items.Count, weights);
 
         var samples = items.Where(cell.SampleFilter).Take(10);
-        ThreadUtil.InvokeOnUiThread(() =>
+
+        if (!this._isBulk)
         {
-          cell.Samples.Clear();
-          foreach (var sample in samples)
+          ThreadUtil.InvokeOnUiThread(() =>
           {
-            cell.Samples.Add(sample);
-          }
-        });
+            cell.Samples.Clear();
+            foreach (var sample in samples)
+            {
+              cell.Samples.Add(sample);
+            }
+          });
+        }
       }
     }
 
@@ -735,7 +807,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
       if (count < this.Data.RequestedSize || count == 0)
       {
-        var value = this.ExecuteScriptValue(this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight * weights.GetWeight(cell.Horse), cell);
+        var value = this.ExecuteScriptValue(this.Data.AlternativeValueIfEmpty * this.Data.BaseWeight, cell);
         cell.Point.Value = value;
         if (count == 0)
         {
@@ -743,6 +815,52 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         }
         cell.HasComparationValue.Value = true;
       }
+    }
+
+    private string GetScriptVariables(AnalysisTableCell cell, string? script = null, bool isAnalysisTableScript = false)
+    {
+      script ??= this.Data.ValueScript;
+
+      var scriptVariables = new StringBuilder();
+      if (script.Contains("race"))
+      {
+        var scriptRace = new ScriptRace(cell.Horse.Race);
+        var raceJson = scriptRace.ToJson();
+        scriptVariables.Append("const race=");
+        scriptVariables.Append(raceJson);
+        scriptVariables.Append(';');
+      }
+      if (script.Contains("horses"))
+      {
+        if (!isAnalysisTableScript)
+        {
+          var scriptHorses = this.Cells.Select(c => new ScriptRaceHorse(c.Horse.Race.Key, c.Horse, false)).ToArray();
+          var horsesJson = JsonSerializer.Serialize(scriptHorses, ScriptManager.JsonOptions);
+          scriptVariables.Append("const horses=");
+          scriptVariables.Append(horsesJson);
+          scriptVariables.Append(';');
+        }
+      }
+      if (script.Contains("horse"))
+      {
+        var scriptHorse = new ScriptRaceHorse(cell.Horse.Race.Key, cell.Horse, false);
+        var horseJson = scriptHorse.ToJson();
+        scriptVariables.Append("const horse=");
+        scriptVariables.Append(horseJson);
+        scriptVariables.Append(';');
+      }
+      if (script.Contains('$'))
+      {
+        var values = string.Join(';', this.Table.Rows
+          .Where(r => r.Data.Order < this.Data.Order)
+          .Select(r => new { RowId = r.Data.Id, Cell = r.Cells.FirstOrDefault(c => c.Horse.Data.Id == cell.Horse.Data.Id), })
+          .Where(c => c.Cell != null)
+          .Select(c => $"const ${c!.RowId}={(!string.IsNullOrEmpty(c.Cell!.ScriptValue.Value) ? c.Cell!.ScriptValue.Value : "0")}"));
+        scriptVariables.Append(values);
+        scriptVariables.Append(';');
+      }
+
+      return scriptVariables.ToString();
     }
 
     private double ExecuteScriptValue(double value, AnalysisTableCell cell)
@@ -754,42 +872,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         if (!string.IsNullOrWhiteSpace(this.Data.ValueScript) && this.Data.ValueScript.Trim() != "value")
         {
           using var engine = new StringScriptEngine();
-
-          var scriptVariables = new StringBuilder();
-          if (this.Data.ValueScript.Contains("race"))
-          {
-            var scriptRace = new ScriptRace(cell.Horse.Race);
-            var raceJson = scriptRace.ToJson();
-            scriptVariables.Append("const race=");
-            scriptVariables.Append(raceJson);
-            scriptVariables.Append(';');
-          }
-          if (this.Data.ValueScript.Contains("horses"))
-          {
-            var scriptHorses = this.Cells.Select(c => new ScriptRaceHorse(c.Horse.Race.Key, c.Horse, false)).ToArray();
-            var horsesJson = JsonSerializer.Serialize(scriptHorses, ScriptManager.JsonOptions);
-            scriptVariables.Append("const horses=");
-            scriptVariables.Append(horsesJson);
-            scriptVariables.Append(';');
-          }
-          if (this.Data.ValueScript.Contains("horse"))
-          {
-            var scriptHorse = new ScriptRaceHorse(cell.Horse.Race.Key, cell.Horse, false);
-            var horseJson = scriptHorse.ToJson();
-            scriptVariables.Append("const horse=");
-            scriptVariables.Append(horseJson);
-            scriptVariables.Append(';');
-          }
-          if (this.Data.ValueScript.Contains('$'))
-          {
-            var values = string.Join(';', this.Table.Rows
-              .Where(r => r.Data.Order < this.Data.Order)
-              .Select(r => new { RowId = r.Data.Id, Cell = r.Cells.FirstOrDefault(c => c.Horse.Data.Id == cell.Horse.Data.Id), })
-              .Where(c => c.Cell != null)
-              .Select(c => $"const ${c!.RowId}={(!string.IsNullOrEmpty(c.Cell!.ScriptValue.Value) ? c.Cell!.ScriptValue.Value : "0")}"));
-            scriptVariables.Append(values);
-            scriptVariables.Append(';');
-          }
+          var scriptVariables = this.GetScriptVariables(cell);
 
           try
           {
@@ -820,6 +903,83 @@ namespace KmyKeiba.Models.Race.AnalysisTable
             cell.IsScriptError.Value = true;
             logger.Error($"スクリプトエラー {value}", ex);
           }
+        }
+      }
+
+      return value;
+    }
+
+    private async Task<double> ExecuteAnalysisTableScriptAsync(AnalysisTableCell cell)
+    {
+      cell.IsAnalysisTableScriptError.Value = false;
+      cell.AnalysisTableErrorMessage.Value = string.Empty;
+      double value = default;
+
+      var config = AnalysisTableScriptConfigModel.Default.Configs.FirstOrDefault(c => c.Data.Id == this.Data.AnalysisTableScriptId);
+      if (config != null && !string.IsNullOrWhiteSpace(config.Script.Value))
+      {
+        using var engine = new StringScriptEngine();
+        engine.AddHostObject("AnalysisTable", new AnalysisTableScriptHostObject(cell.Horse)
+        {
+          Parameter = this.Data.AnalysisTableScriptParameter,
+          Horses = this.Cells.Select(c => new ScriptRaceHorse(c.Horse.Race.Key, c.Horse, false)).ToArray(),
+        });
+        var scriptVariables = this.GetScriptVariables(cell, config.Script.Value);
+
+        try
+        {
+          var result = engine.Execute(scriptVariables + config.Script.Value);
+          if (result is Task<object> tobj)
+          {
+            result = await tobj;
+          }
+          else if (result is Task<string> tsobj)
+          {
+            double.TryParse(await tsobj, out var dval);
+            result = dval;
+          }
+          else if (result is Task<double> tdobj)
+          {
+            result = tdobj;
+          }
+          else if (result is Task<int> tiobj)
+          {
+            result = tiobj;
+          }
+
+          if (result is int intval)
+          {
+            value = intval;
+          }
+          else if (result is short sval)
+          {
+            value = sval;
+          }
+          else if (result is double doval)
+          {
+            value = doval;
+          }
+          else if (result is float fval)
+          {
+            value = fval;
+          }
+          else
+          {
+            cell.IsAnalysisTableScriptError.Value = true;
+            cell.AnalysisTableErrorMessage.Value = "不正な型が返されました";
+          }
+        }
+        catch (ScriptEngineException ex)
+        {
+          cell.IsAnalysisTableScriptError.Value = true;
+          cell.AnalysisTableErrorMessage.Value = ex.ErrorDetails;
+          logger.Error($"スクリプトエラー {value}", ex);
+        }
+        catch (Exception ex)
+        {
+          cell.IsAnalysisTableScriptError.Value = true;
+          cell.AnalysisTableErrorMessage.Value = ex.Message;
+          logger.Error($"スクリプトエラー {value}", ex);
         }
       }
 
@@ -1045,6 +1205,44 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.FinderModelForConfig.Dispose();
       this._disposables.Dispose();
     }
+
+    [NoDefaultScriptAccess]
+    public class AnalysisTableScriptHostObject
+    {
+      private readonly RaceHorseAnalyzer _horse;
+
+      [ScriptMember("parameter")]
+      public string Parameter { get; init; } = string.Empty;
+
+      public IReadOnlyList<ScriptRaceHorse> Horses { get; init; } = Array.Empty<ScriptRaceHorse>();
+
+      [ScriptMember("horses")]
+      public string HorsesJson => JsonSerializer.Serialize(this.Horses, ScriptManager.JsonOptions);
+
+      [ScriptMember("horse")]
+      public string HorseJson => JsonSerializer.Serialize(new ScriptRaceHorse(this._horse.Data.RaceKey, this._horse, false), ScriptManager.JsonOptions);
+
+      public AnalysisTableScriptHostObject(RaceHorseAnalyzer horse)
+      {
+        this._horse = horse;
+      }
+
+      [ScriptMember("updateBeforeRaceExtraDataAsync")]
+      public async Task UpdateBeforeRaceExtraDataAsync()
+      {
+        if (this._horse.History != null && this._horse.History.BeforeRaces.Any(br => br.ExtraData == null))
+        {
+          var raceKeys = this._horse.History.BeforeRaces.Where(br => br.ExtraData == null).Select(br => br.Race.Key).ToArray();
+
+          using var db = new MyContext();
+          var extraDataList = await db.RaceHorseExtras!.Where(e => raceKeys.Contains(e.RaceKey) && e.Key == this._horse.Data.Key).ToArrayAsync();
+          foreach (var race in extraDataList.Join(this._horse.History.BeforeRaces, e => e.RaceKey, br => br.Race.Key, (e, br) => new { ExtraData = e, RaceHorse = br, }))
+          {
+            race.RaceHorse.ExtraData = race.ExtraData;
+          }
+        }
+      }
+    }
   }
 
   public class AnalysisTableCell
@@ -1064,6 +1262,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public ReactiveProperty<bool> HasComparationValue { get; } = new();
 
     public ReactiveProperty<bool> IsSkipped { get; } = new();
+
+    public ReactiveProperty<bool> IsAnalysisTableScriptError { get; } = new();
+
+    public ReactiveProperty<string> AnalysisTableErrorMessage { get; } = new();
 
     public ReactiveProperty<bool> IsScriptError { get; } = new();
 

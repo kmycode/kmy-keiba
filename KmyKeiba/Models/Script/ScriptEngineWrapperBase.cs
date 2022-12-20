@@ -93,6 +93,11 @@ namespace KmyKeiba.Models.Script
 #endif
     }
 
+    public void AddHostObject(string name, object obj)
+    {
+      this.Engine.AddHostObject(name, obj);
+    }
+
     public object Execute(string script)
     {
       // DocumentLoader.Default.DiscardCachedDocuments();

@@ -54,7 +54,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.Aggregate = new AnalysisTableAggregater(this, horses);
       this.InitializeTables();
 
-      Task.Run(() => this.AnalysisTableCacheOnly());
+      if (cache != null)
+      {
+        Task.Run(() => this.AnalysisTableCacheOnly());
+      }
     }
 
     private void InitializeTables()
@@ -129,7 +132,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       await this.AnalysisTableAsync(table);
     }
 
-    public async Task AnalysisTableAsync(AnalysisTableSurface table, bool isBulk = false)
+    public async Task AnalysisTableAsync(AnalysisTableSurface table, bool isBulk = false, AggregateRaceFinder? aggregateFinder = null)
     {
       //this.ReloadTables();
       var newTable = this.Tables.FirstOrDefault(t => t.Data.Id == table.Data.Id);
@@ -139,7 +142,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
 
       using var db = new MyContext();
-      await newTable.AnalysisAsync(db, this._finders, this.Weights, false, isBulk);
+      await newTable.AnalysisAsync(db, this._finders, this.Weights, false, isBulk, aggregateFinder);
     }
 
     public AnalysisTableCache ToCache()

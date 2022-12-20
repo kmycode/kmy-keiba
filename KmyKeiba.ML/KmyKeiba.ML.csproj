@@ -8,12 +8,12 @@
     <BaseOutputPath>..\dist\x64</BaseOutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <VersionPrefix>4.3.1</VersionPrefix>
+    <VersionPrefix>4.5.1</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Keras.NET" Version="3.8.6" />
-    <PackageReference Include="Microsoft.ClearScript" Version="7.2.5" />
+    <PackageReference Include="Microsoft.ClearScript" Version="7.3.5" />
   </ItemGroup>
 
   <ItemGroup>

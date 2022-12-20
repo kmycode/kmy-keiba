@@ -3,12 +3,12 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Analysis.Generic;
-using KmyKeiba.Models.Analysis.Table;
 using KmyKeiba.Models.Common;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Image;
 using KmyKeiba.Models.Injection;
+using KmyKeiba.Models.Race.AnalysisTable.Script;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.Race.HorseMark;
@@ -76,8 +76,6 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<RaceHorseAnalyzer?> ActiveHorse { get; } = new();
 
-    public AnalysisTableList AnalysisTables { get; } = new();
-
     public ReactiveProperty<bool> HasAnalysisTables { get; } = new();
 
     public ReactiveCollection<RaceCorner> Corners { get; } = new();
@@ -117,8 +115,6 @@ namespace KmyKeiba.Models.Race
     public ReactiveProperty<bool> CanUpdate { get; } = new();
 
     public ReactiveProperty<bool> IsNewDataHasResults { get; } = new();
-
-    public ReactiveProperty<bool> IsWillTrendAnalyzersResetedOnUpdate { get; } = new();
 
     public ReactiveProperty<bool> CanBuy { get; } = new();
 
@@ -180,8 +176,6 @@ namespace KmyKeiba.Models.Race
       this.WinnerTrendAnalyzers = new RaceWinnerHorseTrendAnalysisSelector(race);
       this.Finder = new RaceFinder(race);
       this.CourseSummaryImage.Race = race;
-
-      this.AnalysisTables.ObserveAddChanged().Subscribe(_ => this.HasAnalysisTables.Value = true).AddTo(this._disposables);
 
       var buyLimitTime = this.Data.StartTime.AddMinutes(-2);
       logger.Debug($"購入締め切り: {buyLimitTime} レース開始: {race.StartTime}");
@@ -449,7 +443,6 @@ namespace KmyKeiba.Models.Race
       {
         // 天候馬場を手動で変更したとき
         this.CanUpdate.Value = true;
-        this.IsWillTrendAnalyzersResetedOnUpdate.Value = true;
         return;
       }
 
@@ -478,7 +471,6 @@ namespace KmyKeiba.Models.Race
           if (isUpdate)
           {
             this.CanUpdate.Value = isUpdate;
-            this.IsWillTrendAnalyzersResetedOnUpdate.Value = this.IsWillResetTrendAnalyzersDataOnUpdate(newData);
             this.IsNewDataHasResults.Value = this.Data.DataStatus <= RaceDataStatus.Horses2 && newData.DataStatus >= RaceDataStatus.PreliminaryGrade3;
           }
 
@@ -533,16 +525,6 @@ namespace KmyKeiba.Models.Race
       return type;
     }
 
-    private bool IsWillResetTrendAnalyzersDataOnUpdate(RaceData newData)
-    {
-      if (this.IsAvoidCaching)
-      {
-        return true;
-      }
-
-      return IsWillResetTrendAnalyzersDataOnUpdate(this.Data, newData);
-    }
-
     public async Task BuyAsync()
     {
       if (!this.CanBuy.Value || this.Tickets.Value == null)
@@ -582,14 +564,7 @@ namespace KmyKeiba.Models.Race
 
     public void UpdateCache()
     {
-      if (!this.IsWillTrendAnalyzersResetedOnUpdate.Value)
-      {
-        RaceInfoCacheManager.UpdateCache(this.Data.Key, this.AnalysisTable.Value?.ToCache());
-      }
-      else
-      {
-        RaceInfoCacheManager.UpdateCache(this.Data.Key, null);
-      }
+      RaceInfoCacheManager.UpdateCache(this.Data.Key, null);
     }
 
     public void Dispose()
@@ -597,7 +572,6 @@ namespace KmyKeiba.Models.Race
       this._disposables.Dispose();
       this.RaceAnalyzer.Value?.Dispose();
       this.TrendAnalyzers.Dispose();
-      this.AnalysisTables.Dispose();
       this.AnalysisTable.Value?.Dispose();
       this.Finder.Dispose();
       this.FinderModel.Value?.Dispose();
@@ -609,6 +583,8 @@ namespace KmyKeiba.Models.Race
       this.Odds.Value?.Dispose();
       this.Tickets.Value?.Dispose();
       this.Payoff?.Dispose();
+
+      //Models.Analysis.RaceAnalyzer.OutputLogCount();
     }
 
     public static async Task<RaceInfo?> FromKeyAsync(string key, bool withTransaction = true, bool isCache = true)
@@ -659,143 +635,33 @@ namespace KmyKeiba.Models.Race
         try
         {
           var cache = RaceInfoCacheManager.TryGetCache(race.Key);
-          await FinderConfigUtil.InitializeAsync(db);
-          await ExternalNumberUtil.InitializeAsync(db);
-          await CheckHorseUtil.InitializeAsync(db);
-          await Race.AnalysisTable.AnalysisTableUtil.InitializeAsync(db);
 
-          var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == race.Key).ToArrayAsync();
-          var jrdbHorses = await db.JrdbRaceHorses!.Where(j => j.RaceKey == race.Key).ToArrayAsync();
-          logger.Info($"馬の数: {horses.Length}, レース情報に記録されている馬の数: {race.HorsesCount}, JRDB: {jrdbHorses.Length}");
-
-          var horseKeys = horses.Select(h => h.Key).ToArray();
-          var horseAllHistories = cache?.HorseAllHistories;
-          if (horseAllHistories == null)
-          {
-            horseAllHistories = (await db.RaceHorses!
-              .Where(rh => horseKeys.Contains(rh.Key))
-              .Where(rh => rh.Key != "0000000000")
-              .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, })
-              .Where(d => d.Race.StartTime < race.StartTime)
-              .OrderByDescending(d => d.Race.StartTime)
-              .ToArrayAsync())
-              .Select(d => (d.Race, d.RaceHorse))
-              .ToArray();
-          }
           var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race);
-          logger.Debug($"馬の過去レースの総数: {horseAllHistories.Count}");
 
-          // 時系列オッズ
-          var oddsTimeline = await db.SingleOddsTimelines!.Where(o => o.RaceKey == race.Key).ToArrayAsync();
-          logger.Debug($"時系列オッズ {oddsTimeline.Length}件");
-
-          // 各馬の情報
-          var horseDetails = cache?.HorseDetails;
-          if (horseDetails == null)
+          var factory = new RaceHorseAnalyzerRaceListFactory(race.Key)
           {
-            var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
-            horseDetails = await db.Horses!
-              .Where(h => horseKeys.Contains(h.Code))
-              .ToArrayAsync();
-          }
-          var horseHistorySameHorses = cache?.HorseHistorySameHorses;
-          if (horseHistorySameHorses == null)
+            IsComparation = true,
+            IsDetail = true,
+            IsHorseAllHistories = true,
+            IsHorseHistorySameHorses = true,
+            IsJrdbData = true,
+            IsOddsTimeline = true,
+            IsLegacyTrendAnalyzer = true,
+          };
+          var horseInfos = await factory.ToAnalyzerAsync(db, cache);
+          if (horseInfos == null)
           {
-            var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
-            horseHistorySameHorses = await db.RaceHorses!
-              .Where(h => horseHistoryKeys.Contains(h.RaceKey))
-              .Where(h => h.ResultOrder >= 1 && h.ResultOrder <= 5)
-              .ToArrayAsync();
+            throw new InvalidOperationException();
           }
-          logger.Debug($"馬の過去レースの同走馬数: {horseHistorySameHorses.Count}");
-
-          var horseInfos = new List<RaceHorseAnalyzer>();
-          foreach (var horse in horses)
+          foreach (var obj in factory.Disposables)
           {
-            var histories = new List<RaceHorseAnalyzer>();
-            foreach (var history in horseAllHistories.Where(h => h.RaceHorse.Key == horse.Key))
-            {
-              var historyStandardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, history.Race);
-              var sameHorses = horseHistorySameHorses.Where(h => h.RaceKey == history.RaceHorse.RaceKey);
-              histories.Add(new RaceHorseAnalyzer(history.Race, history.RaceHorse, sameHorses.ToArray(), historyStandardTime));
-            }
-
-            var riderWinRate = await AnalysisUtil.GetRiderWinRateAsync(db, race, horse.RiderCode);
-            var jrdb = jrdbHorses.FirstOrDefault(j => j.Key == horse.Key);
-
-            var analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate, jrdbHorse: jrdb)
-            {
-              TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse, histories),
-              TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
-              BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
-              DetailData = horseDetails.FirstOrDefault(h => h.Code == horse.Key),
-            };
-            analyzer.RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(analyzer);
-            analyzer.SetOddsTimeline(oddsTimeline);
-            analyzer.ChangeIsCheck(CheckHorseUtil.IsChecked(horse.Key, HorseCheckType.CheckRace));
-
-            horseInfos.Add(analyzer);
-            logger.Debug($"馬 {horse.Name} の情報を登録");
+            info._disposables.Add(obj);
           }
-
           var sortedHorses = horseInfos.All(h => h.Data.Number == default) ? horseInfos.OrderBy(h => h.Data.Name) : horseInfos.OrderBy(h => h.Data.Number);
-          {
-            // タイム指数の相対評価
-            var timedvMax = horseInfos.Select(i => i.History?.TimeDeviationValue ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
-            var timedvMin = horseInfos.Select(i => i.History?.TimeDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
-            var a3htimedvMax = horseInfos.Select(i => i.History?.A3HTimeDeviationValue ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
-            var a3htimedvMin = horseInfos.Select(i => i.History?.A3HTimeDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
-            var ua3htimedvMax = horseInfos.Select(i => i.History?.UntilA3HTimeDeviationValue ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
-            var ua3htimedvMin = horseInfos.Select(i => i.History?.UntilA3HTimeDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
-            var pciMax = horseInfos.Select(i => i.History?.PciAverage ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
-            var pciMin = horseInfos.Select(i => i.History?.PciAverage ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
-            var pcidvMax = horseInfos.Select(i => i.History?.PciDeviationValue ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
-            var pcidvMin = horseInfos.Select(i => i.History?.PciDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
-            var riderPlaceRateMax = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderByDescending(v => v).Skip(2).FirstOrDefault();
-            var riderPlaceRateMin = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderBy(v => v).Skip(2).FirstOrDefault();
-            var resultA3hMax = horseInfos.Where(i => !i.IsAbnormalResult).Select(i => i.Data.AfterThirdHalongTime).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault().TotalSeconds + 0.001;  // 等価比較対策
-            var resultA3hMin = horseInfos.Where(i => !i.IsAbnormalResult).Select(i => i.Data.AfterThirdHalongTime).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault().TotalSeconds - 0.001;
-            foreach (var horse in horseInfos)
-            {
-              if (horse.Data.AfterThirdHalongTime != default && !horse.IsAbnormalResult)
-              {
-                // 書式指定子の「f」は四捨五入してくれないようなので
-                // 古いバージョンでダウンロードしたデータには浮動小数点数の除算時のゴミが残っているので、手動で四捨五入する
-                var ticks = (int)Math.Round(horse.Data.AfterThirdHalongTime.Ticks / 1000000.0) * 1000000;
-                horse.Data.AfterThirdHalongTime = TimeSpan.FromTicks(ticks);
-                horse.ResultA3HTimeComparation = AnalysisUtil.CompareValue(horse.Data.AfterThirdHalongTime.TotalSeconds, resultA3hMax, resultA3hMin, true);
-              }
+          var horses = horseInfos.Select(h => h.Data).ToArray();
+          var jrdbHorses = horseInfos.Where(h => h.JrdbData != null).Select(h => h.JrdbData!).ToArray();
+          var horseKeys = horses.Select(h => h.Key).ToArray();
 
-              if (horse.History != null)
-              {
-                if (horse.History.BeforeRaces.Where(r => r.Data.ResultTime.TotalSeconds > 0).Take(10)
-                  .Count(r => r.Race.TrackGround != race.TrackGround || r.Race.TrackType != race.TrackType || Math.Abs(r.Race.Distance - race.Distance) >= 400) >= 4)
-                {
-                  // 条件の大きく異なるレース
-                  horse.History.TimeDVComparation = horse.History.A3HTimeDVComparation = horse.History.UntilA3HTimeDVComparation = horse.History.PciAverageComparation = ValueComparation.Warning;
-                }
-                else
-                {
-                  horse.History.TimeDVComparation = horse.History.TimeDeviationValue + 0.5 >= timedvMax ? ValueComparation.Good :
-                    horse.History.TimeDeviationValue - 0.5 <= timedvMin ? ValueComparation.Bad : ValueComparation.Standard;
-                  horse.History.A3HTimeDVComparation = horse.History.A3HTimeDeviationValue + 0.5 >= a3htimedvMax ? ValueComparation.Good :
-                    horse.History.A3HTimeDeviationValue - 0.5 <= a3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
-                  horse.History.UntilA3HTimeDVComparation = horse.History.UntilA3HTimeDeviationValue + 0.5 >= ua3htimedvMax ? ValueComparation.Good :
-                    horse.History.UntilA3HTimeDeviationValue - 0.5 <= ua3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
-                  horse.History.PciAverageComparation = AnalysisUtil.CompareValue(horse.History.PciAverage, pciMin, pciMax, true);
-                  horse.History.PciDVComparation = AnalysisUtil.CompareValue(horse.History.PciDeviationValue, pcidvMin, pcidvMax, true);
-                }
-              }
-              if (riderPlaceRateMax != 0)
-              {
-                horse.RiderPlaceBitsRateComparation = horse.RiderPlaceBitsRate + 0.02 >= riderPlaceRateMax ? ValueComparation.Good :
-                horse.RiderPlaceBitsRate - 0.02 <= riderPlaceRateMin ? ValueComparation.Bad : ValueComparation.Standard;
-              }
-
-              horse.FinderModel.Value = new FinderModel(race, horse, sortedHorses);
-            }
-          }
-          logger.Debug("馬のタイム指数相対評価を設定");
           info.SetHorsesDelay(horseInfos, standardTime);
           info.AnalysisTable.Value = new AnalysisTable.AnalysisTableModel(info.Data, sortedHorses.ToArray(), cache?.AnalysisTable);
 
@@ -836,25 +702,6 @@ namespace KmyKeiba.Models.Race
 
           // 印
           info.HorseMark.Value = await HorseMarkModel.CreateAsync(db, race.Key, jrdbHorses, sortedHorses.ToArray());
-
-          // 分析テーブル（旧式）
-          var analysisTables = new List<Analysis.Table.AnalysisTable>();
-          foreach (var table in ApplicationConfiguration.Current.Value.AnalysisTableGenerators)
-          {
-            analysisTables.Add(await table.GenerateAsync(info));
-          }
-          ThreadUtil.InvokeOnUiThread(() =>
-          {
-            foreach (var table in analysisTables)
-            {
-              info.AnalysisTables.Add(table);
-            }
-            var first = info.AnalysisTables.FirstOrDefault();
-            if (first != null)
-            {
-              first.IsActive.Value = true;
-            }
-          });
 
           // すべてのデータ読み込み完了
           info.IsLoadCompleted.Value = true;
@@ -899,7 +746,7 @@ namespace KmyKeiba.Models.Race
           // キャッシング
           if (isCache)
           {
-            RaceInfoCacheManager.Register(info, horseAllHistories, horseHistorySameHorses, horseDetails, trainings, woodTrainings,
+            RaceInfoCacheManager.Register(info, factory.HorseAllHistories, factory.HorseHistorySameRaceHorses, factory.HorseDetails, trainings, woodTrainings,
                /*info.Finder*/null, /*info.AnalysisTable.Value?.ToCache()*/null, info.Payoff?.Payoff, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
           }
         }

@@ -99,6 +99,8 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<AnalysisTableWeightRowData>? AnalysisTableWeightRows { get; set; }
 
+    public DbSet<AnalysisTableScriptData>? AnalysisTableScripts { get; set; }
+
     public DbSet<DelimiterData>? Delimiters { get; set; }
 
     public DbSet<DelimiterRowData>? DelimiterRows { get; set; }

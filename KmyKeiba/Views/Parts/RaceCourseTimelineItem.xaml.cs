@@ -47,6 +47,13 @@ namespace KmyKeiba.Views.Parts
       this.Update();
 
       this.MouseLeftButtonUp += (_, _) => this.Race?.OnSelected();
+      this.MouseRightButtonUp += (_, _) =>
+      {
+        if (this.Race != null)
+        {
+          OpenRaceRequest.Default.Request(this.Race.Key);
+        }
+      };
     }
 
     private void Update()

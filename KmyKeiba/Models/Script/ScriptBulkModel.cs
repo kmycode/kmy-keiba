@@ -5,6 +5,7 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
 using KmyKeiba.Models.Race.AnalysisTable;
+using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.Race.Tickets;
 using KmyKeiba.Shared;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.System.Preview;
 using static KmyKeiba.Models.Script.ScriptBulkModel;
 
 namespace KmyKeiba.Models.Script
@@ -39,11 +41,41 @@ namespace KmyKeiba.Models.Script
 
     public ReactiveProperty<bool> IsError { get; } = new();
 
-    public ReactiveProperty<int> SumOfIncomes { get; } = new();
+    public ReactiveProperty<long> SumOfIncomes { get; } = new();
 
     public ReactiveProperty<ValueComparation> IncomeComparation { get; } = new();
 
-    public ReactiveProperty<bool> IsAnalysisTableMode { get; } = new();
+    public ReactiveCollection<TicketTypeResultItem> ResultsPerTicketType { get; } = new();
+
+    public TicketTypeResultItem TotalResult { get; } = new(TicketType.Unknown);
+
+    public ReactiveProperty<bool> IsAnalysisTableMode { get; } = new(true);
+
+    public FinderModel FinderModelForConfig { get; } = new FinderModel(null, null, null);
+
+    public AggregateBuySimulator BuySimulator { get; } = new AggregateBuySimulator();
+
+    public ReactiveProperty<DateTime> EstimateTime { get; } = new(DateTime.MinValue);
+
+    public ScriptBulkModel()
+    {
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Single));
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Place));
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.QuinellaPlace));
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Quinella));
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Exacta));
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Trio));
+      this.BuySimulator.Items.Add(new AggregateBuyItem(TicketType.Trifecta));
+      this.FinderModelForConfig.Input.OtherSetting.IsFinishedRaceOnly.Value = true;
+
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.Single));
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.Place));
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.QuinellaPlace));
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.Quinella));
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.Exacta));
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.Trio));
+      this.ResultsPerTicketType.Add(new TicketTypeResultItem(TicketType.Trifecta));
+    }
 
     public void BeginExecute()
     {
@@ -51,7 +83,8 @@ namespace KmyKeiba.Models.Script
       {
         if (this.IsAnalysisTableMode.Value)
         {
-          await this.ExecuteAsync(() => new AnalysisTableBulkEngine());
+          var aggregateFinder = new AggregateRaceFinder();
+          await this.ExecuteAsync(() => new AnalysisTableBulkEngine(aggregateFinder, this.BuySimulator));
         }
         else
         {
@@ -66,6 +99,12 @@ namespace KmyKeiba.Models.Script
       this.IsExecuting.Value = true;
       this.IsError.Value = false;
       this.SumOfIncomes.Value = 0;
+
+      this.TotalResult.Reset();
+      foreach (var result in this.ResultsPerTicketType)
+      {
+        result.Reset();
+      }
 
       short.TryParse(this.ThreadSize.Value, out var divitions);
       if (divitions < 1)
@@ -88,16 +127,22 @@ namespace KmyKeiba.Models.Script
         return;
       }
 
-      using var db = new MyContext();
       var startTime = this.StartDate.Value;
       var endTime = this.EndDate.Value.AddDays(1);
-      var query = db.Races!
-        .Where(r => r.Course < RaceCourse.Foreign)
-        .Where(r => r.StartTime >= startTime && r.StartTime <= endTime && r.DataStatus >= RaceDataStatus.PreliminaryGrade);
-      var races = await query
+
+      using var db = new MyContext();
+
+      using var finder = new PureRaceFinder();
+      var reader = new ScriptKeysReader($"[from]{startTime:yyyyMMdd}|[to]{endTime:yyyyMMdd}|" + this.FinderModelForConfig.Input.Query.Value);
+      var queries = reader.GetQueries();
+      var finderResult = await finder.FindRaceHorsesAsync(queries, int.MaxValue);
+      var races = finderResult.Items
+        .Where(i => i.Race.DataStatus >= RaceDataStatus.PreliminaryGradeFull)
+        .GroupBy(i => i.Race.Key)
+        .Select(g => g.First().Race)
         .OrderBy(r => r.Course)
         .OrderBy(r => r.StartTime)
-        .ToArrayAsync();
+        .ToArray();
 
       var items = new List<ScriptResultItem>();
       var i = 0;
@@ -114,24 +159,37 @@ namespace KmyKeiba.Models.Script
         }
       });
 
+      var processingStartTime = DateTime.Now;
       for (var s = 0; s < divitions; s++)
       {
         var engine = engines[s];
         engine.EnableBulk();
 
         var t = s;
-        _ = Task.Run(async () =>
+        _ = Task.Run(() =>
         {
-          await engine.DoAsync(this, items.Where(i => i.Index % divitions == t));
+          engine.DoAsync(s, this, items.Where(i => i.Index % divitions == t)).Wait();
         });
 
-        // 同時に始めるとInjectionManagerでIBuyer取得時にエラーが発生することがある
+        // 同時に始めるとInjectionManagerでIBuyer取得時にエラーが発生することがある（スクリプト選択時）
         await Task.Delay(1000);
       }
 
       while (engines.Any(f => !f.IsFinished))
       {
         await Task.Delay(1000);
+
+        // 残り時間
+        if (items.Any(i => i.IsCompleted.Value || i.IsSkipped.Value || i.IsError.Value))
+        {
+          try
+          {
+            this.EstimateTime.Value = DateTime.Now + ((DateTime.Now - processingStartTime) * races.Length / items.Count(i => i.IsCompleted.Value || i.IsSkipped.Value || i.IsError.Value));
+          }
+          catch (Exception ex)
+          {
+          }
+        }
       }
 
       ScriptML? ml = null;
@@ -186,6 +244,33 @@ namespace KmyKeiba.Models.Script
       this.IsCanceled = true;
     }
 
+    public class TicketTypeResultItem
+    {
+      public TicketType TicketType { get; }
+
+      public ReactiveProperty<long> PaidMoney { get; } = new();
+
+      public ReactiveProperty<long> PayoffMoney { get; } = new();
+
+      public ReactiveProperty<long> IncomeMoney { get; } = new();
+
+      public ReactiveProperty<ValueComparation> IncomeComparation { get; } = new();
+
+      public ReactiveProperty<double> RecoveryRate { get; } = new();
+
+      public TicketTypeResultItem(TicketType type)
+      {
+        this.TicketType = type;
+      }
+
+      public void Reset()
+      {
+        this.PaidMoney.Value = this.PayoffMoney.Value = this.IncomeMoney.Value = 0;
+        this.IncomeComparation.Value = ValueComparation.Standard;
+        this.RecoveryRate.Value = double.NaN;
+      }
+    }
+
     public interface IScriptBulkEngine : IDisposable
     {
       ReactiveProperty<ReactiveProperty<int>?> ProgressMax { get; }
@@ -196,7 +281,7 @@ namespace KmyKeiba.Models.Script
 
       void EnableBulk();
 
-      Task DoAsync(ScriptBulkModel model, IEnumerable<ScriptResultItem> items);
+      Task DoAsync(int index, ScriptBulkModel model, IEnumerable<ScriptResultItem> items);
     }
 
     public interface IMLEngine
@@ -226,7 +311,7 @@ namespace KmyKeiba.Models.Script
         this.Engine.BulkConfig.SetBulk(true);
       }
 
-      public async Task DoAsync(ScriptBulkModel model, IEnumerable<ScriptResultItem> items)
+      public async Task DoAsync(int index, ScriptBulkModel model, IEnumerable<ScriptResultItem> items)
       {
         foreach (var item in items)
         {

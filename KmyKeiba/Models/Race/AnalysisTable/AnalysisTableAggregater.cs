@@ -37,13 +37,14 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       Task.Run(async () => await this.LoadAsync());
     }
 
-    public async Task LoadAsync(bool isBulk = false)
+    public async Task LoadAsync(bool isBulk = false, AggregateRaceFinder? aggregateFinder = null)
     {
       this.IsLoading.Value = true;
 
       bool isCleared = false;
 
-      ThreadUtil.InvokeOnUiThread(() =>
+      // 一括実行時に画面が固まることがあるのでその対策
+      var reloadTask = (() =>
       {
         this.Tables.Clear();
         this._model.ReloadTables();
@@ -60,6 +61,14 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
         isCleared = true;
       });
+      if (isBulk)
+      {
+        reloadTask();
+      }
+      else
+      {
+        ThreadUtil.InvokeOnUiThread(reloadTask);
+      }
 
       while (!isCleared)
       {
@@ -86,7 +95,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       {
         IDisposable progress = table.Table.Progress.Subscribe(v => this.Progress.Value = lastTableProgress + v);
 
-        await this._model.AnalysisTableAsync(table.Table, isBulk);
+        await this._model.AnalysisTableAsync(table.Table, isBulk, aggregateFinder);
 
         progress.Dispose();
         lastTableProgress += table.Table.Progress.Value;
@@ -125,6 +134,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         }
       }
 
+      // 印をつける
       var hmax = this.Horses.OrderByDescending(c => c.TotalPoint.Value).ElementAtOrDefault(2)?.TotalPoint.Value ?? 0;
       var hmin = this.Horses.OrderBy(c => c.TotalPoint.Value).ElementAtOrDefault(2)?.TotalPoint.Value ?? double.MaxValue;
       var i = 1;
@@ -163,6 +173,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           horse.MarkSuggestion.Value = RaceHorseMark.Deleted;
         }
 
+        horse.Horse.AnalysisTableMark.Value = horse.MarkSuggestion.Value;
         i++;
       }
 

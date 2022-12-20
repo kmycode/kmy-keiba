@@ -7,7 +7,7 @@
     <BaseOutputPath>../dist</BaseOutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <VersionPrefix>4.3.1</VersionPrefix>
+    <VersionPrefix>4.5.1</VersionPrefix>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
@@ -20,13 +20,13 @@
 
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.14" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.6">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
-    <PackageReference Include="System.Text.Json" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
+    <PackageReference Include="System.Text.Json" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

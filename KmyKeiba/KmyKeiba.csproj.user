@@ -7,9 +7,6 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Views\Details\AnalysisTableGroupView.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Update="Views\Details\RaceCornerView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -62,6 +59,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Expansions\AnalysisTableDelimiterConfigView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Expansions\AnalysisTableScriptConfigView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Expansions\AnalysisTableWeightConfigView.xaml.cs">
@@ -171,9 +171,6 @@
     <Page Update="Resources\ThemeDark.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Details\AnalysisTableGroupView.xaml">
-      <SubType>Designer</SubType>
-    </Page>
     <Page Update="Views\Details\RaceCornerView.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -226,6 +223,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Expansions\AnalysisTableDelimiterConfigView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\AnalysisTableScriptConfigView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Expansions\AnalysisTableWeightConfigView.xaml">

@@ -184,13 +184,19 @@ namespace KmyKeiba.JVLink.Entities
       short.TryParse(uma.Jyuni4c.Trim(), out short corner4);
       short.TryParse(uma.Odds.Trim(), out short odds);
       int.TryParse(uma.IJyoCD.Trim(), out int abnormal);
-      int.TryParse(uma.Futan.Trim(), out int riderWeight);
       short.TryParse(uma.BaTaijyu.Trim(), out short weight);
       short.TryParse(uma.ZogenSa.Trim(), out short weightDiff);
       int.TryParse(uma.KyakusituKubun.Trim(), out int runningStyle);
       int.TryParse(uma.id.JyoCD.Trim(), out int course);
       short.TryParse(uma.KeiroCD, out var color);
       short.TryParse(uma.TimeDiff, out var timeDiff);
+
+      int.TryParse(uma.Futan.Trim(), out int riderWeight);
+      if (course == 83)
+      {
+        // ばんえい
+        riderWeight = Convert.ToInt16(uma.Futan.Trim(), 16) * 10;
+      }
 
       int.TryParse(uma.Time.Substring(0, 1), out int timeMinutes);
       int.TryParse(uma.Time.Substring(1, 2), out int timeSeconds);

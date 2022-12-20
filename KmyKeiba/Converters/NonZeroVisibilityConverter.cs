@@ -29,6 +29,10 @@ namespace KmyKeiba.Converters
       {
         return uiv == default ? Visibility.Collapsed : Visibility.Visible;
       }
+      if (value is long lv)
+      {
+        return lv == default ? Visibility.Collapsed : Visibility.Visible;
+      }
       if (value is double dv)
       {
         return dv == default ? Visibility.Collapsed : Visibility.Visible;

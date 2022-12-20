@@ -23,6 +23,82 @@ namespace KmyKeiba.Models.Analysis
     private readonly CompositeDisposable _disposables = new();
     private RaceHorseMatchResult? _matchResult;
 
+    /*
+     * メモリリーク確認用コード
+
+    #region checkmemoryleak
+
+    private static readonly Dictionary<string, LogDicData> _logdic = new();
+    private static long _newCount;
+    private static long _disposeCount;
+    private string _newStackTrace = string.Empty;
+    private bool _isDisposed;
+    private class LogDicData
+    {
+      public long Count { get; set; }
+    }
+    private static void IncrementLogCount(string stack)
+    {
+      if (_logdic.TryGetValue(stack, out var data))
+      {
+        data.Count++;
+      }
+      else
+      {
+        _logdic[stack] = new LogDicData { Count = 1, };
+      }
+    }
+    private static void DecrementLogCount(string stack)
+    {
+      if (_logdic.TryGetValue(stack, out var data))
+      {
+        data.Count--;
+      }
+      else
+      {
+        _logdic[stack] = new LogDicData { Count = -1, };
+      }
+    }
+    private static void IncrementNewCount(RaceAnalyzer self)
+    {
+      var stack = Environment.StackTrace;
+      self._newStackTrace = stack;
+
+      lock (_logdic)
+      {
+        _newCount++;
+        IncrementLogCount(stack);
+      }
+    }
+    private static void IncrementDisposeCount(RaceAnalyzer self)
+    {
+      if (self._isDisposed)
+      {
+        return;
+      }
+      self._isDisposed = true;
+
+      lock (_logdic)
+      {
+        _disposeCount++;
+        DecrementLogCount(self._newStackTrace);
+      }
+    }
+    public static void OutputLogCount()
+    {
+      System.Diagnostics.Debug.WriteLine($"  COUNT  New: {_newCount} / Dispose: {_disposeCount}");
+
+      lock (_logdic)
+      {
+        var text = string.Join("\n\n=========================\n\n", _logdic.Select(l => "【" + l.Value.Count + "】\n" + l.Key));
+        System.IO.File.WriteAllText("d:\\log.txt", text);
+      }
+    }
+
+    #endregion
+
+    */
+
     public RaceData Data { get; }
 
     public RaceSubjectInfo Subject { get; }
@@ -184,6 +260,10 @@ namespace KmyKeiba.Models.Analysis
       {
         h.Dispose();
       }
+      foreach (var m in this.Matches)
+      {
+        m.Dispose();
+      }
     }
 
     #region Commands
@@ -232,7 +312,7 @@ namespace KmyKeiba.Models.Analysis
     #endregion
   }
 
-  public class RaceHorseMatchResult
+  public class RaceHorseMatchResult : IDisposable
   {
     public RaceData Race => this.RaceAnalyzer.Data;
 
@@ -246,6 +326,11 @@ namespace KmyKeiba.Models.Analysis
     {
       this.RaceAnalyzer = new RaceAnalyzer(race, Array.Empty<RaceHorseData>(), AnalysisUtil.DefaultStandardTime);
       this.Subject = new RaceSubjectInfo(race);
+    }
+
+    public void Dispose()
+    {
+      this.RaceAnalyzer.Dispose();
     }
 
     public class Row

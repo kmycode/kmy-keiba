@@ -5,6 +5,10 @@ using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Connection;
 using KmyKeiba.Models.Data;
 using KmyKeiba.Models.Race;
+using KmyKeiba.Models.Race.AnalysisTable;
+using KmyKeiba.Models.Race.AnalysisTable.Script;
+using KmyKeiba.Models.Race.ExNumber;
+using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.RList;
 using KmyKeiba.Models.Script;
 using KmyKeiba.Shared;
@@ -37,7 +41,7 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<string> DownloaderErrorMessage => this.downloader.ErrorMessage;
 
-    public ReactiveProperty<bool> IsInitialized => this.downloader.IsInitialized;
+    public ReactiveProperty<bool> IsInitialized { get; } = new ReactiveProperty<bool>();
 
     public ReactiveProperty<bool> IsLongDownloadMonth => this.downloader.IsLongDownloadMonth;
 
@@ -77,6 +81,7 @@ namespace KmyKeiba.ViewModels
         .Subscribe(_ => ThreadUtil.InvokeOnUiThread(async () =>
         {
           await this.RaceList.UpdateListAsync();
+          OpenRaceRequest.Default.Update();
         })).AddTo(this._disposables);
       Observable.FromEvent<EventHandler, EventArgs>(
         e => (s, a) => e(a),
@@ -109,8 +114,20 @@ namespace KmyKeiba.ViewModels
           this.CurrentDialog.Value = DialogType.Download;
         }
 
+        // 各種初期化処理
+        using var db = new MyContext();
+        await FinderConfigUtil.InitializeAsync(db);
+        await AnalysisTableScriptUtil.InitializeAsync(db);
+        await FinderConfigUtil.InitializeAsync(db);
+        await ExternalNumberUtil.InitializeAsync(db);
+        await CheckHorseUtil.InitializeAsync(db);
+        await AnalysisTableUtil.InitializeAsync(db);
+
         // DBのプリセット
         await DatabasePresetModel.SetPresetsAsync();
+
+        // 初期化完了
+        this.IsInitialized.Value = true;
 
         // アップデートチェック
         await this.Update.CheckAsync();
@@ -244,11 +261,6 @@ namespace KmyKeiba.ViewModels
     #endregion
 
     #region RaceDetail
-
-    public ICommand UpdateRaceInfoCommand =>
-      this._updateRaceInfoCommand ??=
-        new ReactiveCommand().WithSubscribe(() => this.model.UpdateCurrentRace());
-    private ReactiveCommand? _updateRaceInfoCommand;
 
     public ICommand SetWeatherCommand =>
       this._setWeatherCommand ??=

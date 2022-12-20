@@ -117,6 +117,14 @@
                    VerticalAlignment="Center"/>
         <TextBlock FontSize="18" Text="{Binding FinderModel.CurrentGroup.Value.ExpandedData.After3hAverage,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=N1}"
                    Width="40" TextAlignment="Right" VerticalAlignment="Center"/>
+        <TextBlock Foreground="{StaticResource SubForeground}" FontSize="14" Text="人気平均" Margin="24,0,4,0"
+                   VerticalAlignment="Center"/>
+        <TextBlock FontSize="18" Text="{Binding FinderModel.CurrentGroup.Value.ExpandedData.PopularAverage,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=N1}"
+                   Width="40" TextAlignment="Right" VerticalAlignment="Center"/>
+        <TextBlock Foreground="{StaticResource SubForeground}" FontSize="14" Text="着順平均" Margin="24,0,4,0"
+                   VerticalAlignment="Center"/>
+        <TextBlock FontSize="18" Text="{Binding FinderModel.CurrentGroup.Value.ExpandedData.ResultOrderAverage,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=N1}"
+                   Width="40" TextAlignment="Right" VerticalAlignment="Center"/>
       </StackPanel>
       <StackPanel Orientation="Horizontal" Grid.Column="1" Margin="0,2,4,2">
         <ItemsControl ItemsSource="{Binding FinderModel.Tabs,ElementName=Root}">

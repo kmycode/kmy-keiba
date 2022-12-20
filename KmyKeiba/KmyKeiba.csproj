@@ -11,7 +11,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
-    <VersionPrefix>4.3.1</VersionPrefix>
+    <VersionPrefix>4.5.1</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,12 +19,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.Wpf.NetCore" Version="100.0.230" />
+    <PackageReference Include="CefSharp.Wpf.NetCore" Version="107.1.120" />
     <PackageReference Include="log4net" Version="2.0.14" />
-    <PackageReference Include="Microsoft.ClearScript" Version="7.2.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.6">
+    <PackageReference Include="Microsoft.ClearScript" Version="7.3.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

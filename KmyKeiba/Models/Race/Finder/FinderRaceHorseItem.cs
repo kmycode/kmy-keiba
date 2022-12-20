@@ -43,6 +43,9 @@ namespace KmyKeiba.Models.Race.Finder
         analyzer.CurrentRace?.TopHorses ?? Array.Empty<RaceHorseData>(),
         analyzer.CurrentRace?.StandardTime ?? AnalysisUtil.DefaultStandardTime);
 
+      // FindrRaceHorseItemにIDisposableがないので、この時点でDisposeしてしまう（レースメモなど検索画面への影響が出たら考える）
+      this.RaceAnalyzer.Dispose();
+
       if (analyzer.Race.Distance >= 800)
       {
         if (analyzer.CurrentRace != null)

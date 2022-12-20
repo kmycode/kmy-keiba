@@ -96,6 +96,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public double After3hAverage { get; }
 
+    public double PopularAverage { get; }
+
+    public double ResultOrderAverage { get; }
+
     public FinderRaceHorseGroupExpandedData(IEnumerable<FinderRaceHorseItem> group)
     {
       if (group.Any(i => i.RaceAnalyzer.NormalizedBefore3HaronTime != default))
@@ -105,6 +109,14 @@ namespace KmyKeiba.Models.Race.Finder
       if (group.Any(i => i.Analyzer.Race.AfterHaronTime3 != default))
       {
         this.After3hAverage = group.Select(i => (double)i.Analyzer.Race.AfterHaronTime3).Where(v => v != default).Average() / 10;
+      }
+      if (group.Any(i => i.Analyzer.Data.Popular != default))
+      {
+        this.PopularAverage = group.Select(i => (double)i.Analyzer.Data.Popular).Where(v => v != default).Average();
+      }
+      if (group.Any(i => i.Analyzer.Data.ResultOrder != default))
+      {
+        this.ResultOrderAverage = group.Select(i => (double)i.Analyzer.Data.ResultOrder).Where(v => v != default).Average();
       }
     }
   }

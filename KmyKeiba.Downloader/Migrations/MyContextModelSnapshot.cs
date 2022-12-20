@@ -15,7 +15,7 @@ namespace KmyKeiba.Downloader.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.5");
+            modelBuilder.HasAnnotation("ProductVersion", "7.0.0");
 
             modelBuilder.Entity("KmyKeiba.Data.Db.AnalysisTableData", b =>
                 {
@@ -49,6 +49,13 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.Property<double>("AlternativeValueIfEmpty")
                         .HasColumnType("REAL");
+
+                    b.Property<uint>("AnalysisTableScriptId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AnalysisTableScriptParameter")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<double>("BaseWeight")
                         .HasColumnType("REAL");
@@ -104,6 +111,31 @@ namespace KmyKeiba.Downloader.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("AnalysisTableRows");
+                });
+
+            modelBuilder.Entity("KmyKeiba.Data.Db.AnalysisTableScriptData", b =>
+                {
+                    b.Property<uint>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Script")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<ushort>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AnalysisTableScripts");
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.AnalysisTableWeightData", b =>

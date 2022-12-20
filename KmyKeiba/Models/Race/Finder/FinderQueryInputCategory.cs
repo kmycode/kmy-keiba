@@ -1468,12 +1468,12 @@ namespace KmyKeiba.Models.Race.Finder
 
     public FinderQueryBloodRelationInput BloodInput { get; } = new();
 
-    public ReactiveCollection<HorseItem> Horses { get; } = new();
-
-    public ReactiveProperty<HorseItem?> SelectedHorse { get; } = new();
+    public MultipleCheckableCollection<HorseItem> Horses { get; } = new();
 
     public HorseOfCurrentRaceInputCategory(IReadOnlyList<RaceHorseData>? raceHorses)
     {
+      this.Horses.AddTo(this.Disposables);
+
       if (raceHorses != null)
       {
         foreach (var horse in raceHorses)
@@ -1500,7 +1500,7 @@ namespace KmyKeiba.Models.Race.Finder
       this.IsActiveHorseSelf.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsActiveHorseRider.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.IsActiveHorseTrainer.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
-      this.SelectedHorse.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
+      this.Horses.ChangedItemObservable.Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
       this.BloodInput.AddTo(this.Disposables);
       this.BloodInput.ToObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
     }
@@ -1544,33 +1544,16 @@ namespace KmyKeiba.Models.Race.Finder
       {
         var key = this.IsHorseNumber.Value ? "horse" : this.IsRider.Value ? "rider" : "trainer";
 
-        if (this.SelectedHorse.Value != null)
+        if (this.Horses.Any(h => h.IsChecked.Value))
         {
-          // 最初からKeyを使えよといわれるかもしれないが、
-          // 検索条件の保存機能、読み込み機能を考慮してこのようにしている
-          // （Keyを使っちゃうと、他のレースで検索条件を読み込んだ時に意図しない動きをするかもしれない）
-          if (this.SelectedHorse.Value.Number != 0)
-          {
-            return $"{key}#{this.SelectedHorse.Value.Number}";
-          }
-          else
-          {
-            return $"{key}={this.SelectedHorse.Value.Key}";
-          }
+          return $"{key}#" + string.Join(',', this.Horses.Where(h => h.IsChecked.Value).Select(h => h.Number));
         }
       }
       if (this.IsHorseBlood.Value)
       {
-        if (this.SelectedHorse.Value != null)
+        if (this.Horses.Any(h => h.IsChecked.Value))
         {
-          if (this.SelectedHorse.Value.Number != 0)
-          {
-            return $"{HorseBloodUtil.ToStringCode(this.BloodInput.GetBloodType())}:#{this.SelectedHorse.Value.Number}";
-          }
-          else
-          {
-            return $"{HorseBloodUtil.ToStringCode(this.BloodInput.GetBloodType())}:{this.SelectedHorse.Value.Key}";
-          }
+          return $"{HorseBloodUtil.ToStringCode(this.BloodInput.GetBloodType())}:#" + string.Join(',', this.Horses.Where(h => h.IsChecked.Value).Select(h => h.Number));
         }
       }
       if (this.IsActiveHorseBlood.Value)
@@ -1581,8 +1564,12 @@ namespace KmyKeiba.Models.Race.Finder
       return string.Empty;
     }
 
-    public class HorseItem
+    public class HorseItem : IMultipleCheckableItem
     {
+      public ReactiveProperty<bool> IsChecked { get; } = new();
+
+      string? IMultipleCheckableItem.GroupName => null;
+
       public string Name { get; init; } = string.Empty;
 
       public short Number { get; init; }
@@ -3663,7 +3650,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       if (this.IsFinishedRaceOnly.Value)
       {
-        queries.Add("datastatus=5,6,7,101,102");
+        queries.Add("datastatus=5,6,7");
       }
       if (this.IsContainsFutureRaces.Value)
       {

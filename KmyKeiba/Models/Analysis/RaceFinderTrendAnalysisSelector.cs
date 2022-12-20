@@ -14,9 +14,9 @@ namespace KmyKeiba.Models.Analysis
   {
     public override string Name { get; } = string.Empty;
     public override RaceData Race { get; } = new();
-    private readonly RaceFinder _finder;
+    private readonly IRaceFinder _finder;
 
-    public RaceHorseTrendAnalysisSelectorWrapper(RaceFinder finder)
+    public RaceHorseTrendAnalysisSelectorWrapper(IRaceFinder finder)
     {
       this._finder = finder;
       base.OnFinishedInitialization();
