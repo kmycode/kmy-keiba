@@ -51,6 +51,8 @@ namespace KmyKeiba.Models.Script
 
     public ReactiveProperty<bool> IsAnalysisTableMode { get; } = new(true);
 
+    public ReactiveProperty<bool> IsRapidMode { get; } = new();
+
     public FinderModel FinderModelForConfig { get; } = new FinderModel(null, null, null);
 
     public AggregateBuySimulator BuySimulator { get; } = new AggregateBuySimulator();
@@ -84,7 +86,7 @@ namespace KmyKeiba.Models.Script
         if (this.IsAnalysisTableMode.Value)
         {
           var aggregateFinder = new AggregateRaceFinder();
-          await this.ExecuteAsync(() => new AnalysisTableBulkEngine(aggregateFinder, this.BuySimulator));
+          await this.ExecuteAsync(() => new AnalysisTableBulkEngine(aggregateFinder, this.BuySimulator, this.IsRapidMode.Value));
         }
         else
         {

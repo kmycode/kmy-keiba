@@ -21,14 +21,17 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public ReactiveProperty<ReactiveProperty<int>?> Progress { get; } = new();
 
+    private bool _isRapidMode;
+
     private readonly AggregateBuySimulator _simulator;
 
     public bool IsFinished { get; set; }
 
-    public AnalysisTableBulkEngine(AggregateRaceFinder aggregateFinder, AggregateBuySimulator simulator)
+    public AnalysisTableBulkEngine(AggregateRaceFinder aggregateFinder, AggregateBuySimulator simulator, bool isRapidMode)
     {
       this._aggregateFinder = aggregateFinder;
       this._simulator = simulator;
+      this._isRapidMode = isRapidMode;
     }
 
     public void Dispose()
@@ -43,6 +46,8 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
       using var db = new MyContext();
       await Race.AnalysisTable.AnalysisTableUtil.InitializeAsync(db);
+
+      var finder = this._isRapidMode ? this._aggregateFinder : null;
 
       foreach (var item in items)
       {
@@ -63,7 +68,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
           {
             this.Progress.Value = info.AnalysisTable.Value.Aggregate.Progress;
             this.ProgressMax.Value = info.AnalysisTable.Value.Aggregate.ProgressMax;
-            await info.AnalysisTable.Value.Aggregate.LoadAsync(isBulk: true, this._aggregateFinder);
+            await info.AnalysisTable.Value.Aggregate.LoadAsync(isBulk: true, finder);
 
             if (info.HasResults.Value)
             {
