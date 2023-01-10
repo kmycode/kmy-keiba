@@ -367,7 +367,7 @@ namespace KmyKeiba.JVLink.Entities
           TryMatchAge(reg, raceName);
         }
       }
-      else if (text.Contains("未勝利") || text.Contains("認未勝") || raceName.Contains("未勝利") || raceName.Contains("認未勝"))
+      else if (text.Contains("未勝利") || text.Contains("認未勝") || text.Contains("未受賞") || raceName.Contains("未勝利") || raceName.Contains("認未勝") || raceName.Contains("未受賞"))
       {
         subject.IsNotWon = true;
 
