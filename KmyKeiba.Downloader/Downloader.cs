@@ -225,6 +225,10 @@ namespace KmyKeiba.Downloader
       var mode = parameters[3];
 
       var option = (DateTime.Now.Year * 12 + DateTime.Now.Month) - (startYear * 12 + startMonth) > 11 ? JVLinkOpenOption.Setup : JVLinkOpenOption.Normal;
+      if (link.Type == JVLinkObjectType.Local)
+      {
+        option = JVLinkOpenOption.Normal;
+      }
 
       // 開始日が最初から未来または今日に近い日であった場合、予定ダウンロードと見做す
       var isPlan = false;
