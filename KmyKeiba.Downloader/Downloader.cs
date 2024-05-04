@@ -17,8 +17,8 @@ namespace KmyKeiba.Downloader
       try
       {
         var loader = new JVLinkLoader();
-        loader.StartLoad(JVLinkObject.Local, JVLinkDataspec.Race | JVLinkDataspec.Diff,
-          JVLinkOpenOption.Setup, null, new DateTime(2016, 1, 1), DateTime.Now, new string[] { "NR", "NS", });
+        loader.StartLoad(JVLinkObject.Local, JVLinkDataspec.Blod | JVLinkDataspec.Diff,
+          JVLinkOpenOption.Setup, null, new DateTime(2008, 1, 1), new DateTime(2008, 2, 1));
       }
       catch (Exception ex)
       {
@@ -225,10 +225,6 @@ namespace KmyKeiba.Downloader
       var mode = parameters[3];
 
       var option = (DateTime.Now.Year * 12 + DateTime.Now.Month) - (startYear * 12 + startMonth) > 11 ? JVLinkOpenOption.Setup : JVLinkOpenOption.Normal;
-      if (link.Type == JVLinkObjectType.Local)
-      {
-        option = JVLinkOpenOption.Normal;
-      }
 
       // 開始日が最初から未来または今日に近い日であった場合、予定ダウンロードと見做す
       var isPlan = false;

@@ -39,11 +39,11 @@ namespace KmyKeiba.JVLink.Entities
 
     public short Lap10Time { get; set; }
 
-    public static WoodtipTraining FromJV(JVData_Struct.JV_WC_WOODTIP tr)
+    public static WoodtipTraining FromJV(JVData_Struct.JV_WC_WOOD tr)
     {
       short.TryParse(tr.TresenKubun, out short center);
-      short.TryParse(tr.CourseCD, out short course);
-      short.TryParse(tr.Baba, out short baba);
+      short.TryParse(tr.Course, out short course);
+      short.TryParse(tr.BabaAround, out short baba);
       short.TryParse(tr.LapTime1, out short lap1);
       short.TryParse(tr.LapTime2, out short lap2);
       short.TryParse(tr.LapTime3, out short lap3);

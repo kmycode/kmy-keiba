@@ -252,16 +252,16 @@ namespace KmyKeiba.JVLink.Wrappers
     [JVLinkDataspec("RACE", JVLinkOpenOption.All)]
     Race = 0b10,
 
-    [JVLinkDataspec("DIFF", JVLinkOpenOption.WithoutThisWeek)]
+    [JVLinkDataspec("DIFN", JVLinkOpenOption.WithoutThisWeek)]
     Diff = 0b100,
 
-    [JVLinkDataspec("BLOD", JVLinkOpenOption.WithoutThisWeek)]
+    [JVLinkDataspec("BLDN", JVLinkOpenOption.WithoutThisWeek)]
     Blod = 0b1000,
 
     [JVLinkDataspec("MING", JVLinkOpenOption.WithoutThisWeek)]
     Ming = 0b1_0000,
 
-    [JVLinkDataspec("SNAP", JVLinkOpenOption.All)]
+    [JVLinkDataspec("SNPN", JVLinkOpenOption.All)]
     Snap = 0b10_0000,
 
     [JVLinkDataspec("SLOP", JVLinkOpenOption.WithoutThisWeek)]
@@ -270,7 +270,7 @@ namespace KmyKeiba.JVLink.Wrappers
     [JVLinkDataspec("YSCH", JVLinkOpenOption.WithoutThisWeek)]
     Ysch = 0b1000_0000,
 
-    [JVLinkDataspec("HOSE", JVLinkOpenOption.WithoutThisWeek)]
+    [JVLinkDataspec("HOSN", JVLinkOpenOption.WithoutThisWeek)]
     Hose = 0b1_0000_0000,
 
     [JVLinkDataspec("HOYU", JVLinkOpenOption.WithoutThisWeek)]

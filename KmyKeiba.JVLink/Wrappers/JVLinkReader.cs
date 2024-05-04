@@ -289,6 +289,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 break;
               }
             case "UM":
+            case "NU":
               {
                 var a = new JVData_Struct.JV_UM_UMA();
                 a.SetDataB(ref d);
@@ -349,7 +350,7 @@ namespace KmyKeiba.JVLink.Wrappers
               }
             case "WC":
               {
-                var a = new JVData_Struct.JV_WC_WOODTIP();
+                var a = new JVData_Struct.JV_WC_WOOD();
                 a.SetDataB(ref d);
                 var item = WoodtipTraining.FromJV(a);
 
@@ -467,6 +468,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 break;
               }
             case "KS":
+            case "NK":
               {
                 var a = new JVData_Struct.JV_KS_KISYU();
                 a.SetDataB(ref d);
@@ -476,6 +478,7 @@ namespace KmyKeiba.JVLink.Wrappers
                 break;
               }
             case "CH":
+            case "NC":
               {
                 var a = new JVData_Struct.JV_CH_CHOKYOSI();
                 a.SetDataB(ref d);

@@ -153,7 +153,7 @@ namespace KmyKeiba.Models.Connection
 
       this.DownloadingStatus =
         this.ProcessingStep
-          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates && p != Connection.ProcessingStep.MigrationFrom250 && p != Connection.ProcessingStep.MigrationFrom322 && p != Connection.ProcessingStep.HorseExtraData && p != Connection.ProcessingStep.MigrationFrom430)
+          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates && p != Connection.ProcessingStep.MigrationFrom250 && p != Connection.ProcessingStep.MigrationFrom322 && p != Connection.ProcessingStep.HorseExtraData && p != Connection.ProcessingStep.MigrationFrom430 && p != Connection.ProcessingStep.MigrationFrom500)
           .CombineLatest(this.LoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
           .CombineLatest(JrdbDownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)
           .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
@@ -470,6 +470,13 @@ namespace KmyKeiba.Models.Connection
           await ConfigUtil.SetIntValueAsync(db, SettingKey.DatabaseVersion, 430);
           dbver = 430;
         }
+        if (dbver < 500)
+        {
+          // TODO
+          // await this.ProcessAsync(DownloadLink.Both, this.ProcessingStep, false, Connection.ProcessingStep.MigrationFrom500);
+          // await ConfigUtil.SetIntValueAsync(db, SettingKey.DatabaseVersion, 500);
+          // dbver = 500;
+        }
 
         // 最初に最終起動からの差分を落とす
         // （真っ先にやらないと、ユーザーが先に過去データダウンロードを開始する可能性あり）
@@ -716,6 +723,12 @@ namespace KmyKeiba.Models.Connection
           step.Value = Connection.ProcessingStep.MigrationFrom430;
           logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
           await ShapeDatabaseModel.MigrateFrom430Async(isCanceled: this.IsCancelProcessing);
+        }
+        if (steps.HasFlag(Connection.ProcessingStep.MigrationFrom500) && !this.IsCancelProcessing.Value)
+        {
+          step.Value = Connection.ProcessingStep.MigrationFrom500;
+          logger.Info($"後処理進捗変更: {step.Value}, リンク: {link}, isRT: {isRt}");
+          await ShapeDatabaseModel.MigrateFrom500Async(isCanceled: this.IsCancelProcessing);
         }
         if (steps.HasFlag(Connection.ProcessingStep.RunningStyle) && !this.IsCancelProcessing.Value)
         {
@@ -1261,6 +1274,9 @@ namespace KmyKeiba.Models.Connection
 
     [Label("データをマイグレーション中 (from 4.3.0)")]
     MigrationFrom430 = 1024,
+
+    [Label("データをマイグレーション中 (from 5.0.0)")]
+    MigrationFrom500 = 2048,
 
     All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | HorseExtraData,
   }

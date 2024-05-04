@@ -50,6 +50,14 @@ namespace KmyKeiba.Downloader
         logger.Info("ログレベル: Info");
       }
 #else
+      var rootLogger = ((Hierarchy)logger.Logger.Repository).Root;
+      rootLogger.RemoveAllAppenders();
+      rootLogger.AddAppender(new log4net.Appender.ConsoleAppender
+      {
+        Layout = new log4net.Layout.PatternLayout { ConversionPattern = "%d [%t] %-5p %type{1} - %m%n", },
+        Name = "DebugConsole",
+      });
+      rootLogger.Level = log4net.Core.Level.All;
       logger.Info("ログレベル: All");
 #endif
 
@@ -87,6 +95,19 @@ namespace KmyKeiba.Downloader
       {
         logger.Warn("ソフトIDが見つからなかったので、デフォルト値を設定します");
       }
+
+#if DEBUGS
+      currentTask = new DownloaderTaskData
+      {
+        Command = DownloaderCommand.DownloadSetup,
+      };
+      var d = new MyContext();
+      d.DownloaderTasks!.Add(currentTask);
+      d.SaveChanges();
+      d.Dispose();
+      Test();
+      return;
+#endif
 
       var command = string.Empty;
       if (args.Length >= 1)
