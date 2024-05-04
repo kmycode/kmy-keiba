@@ -43,8 +43,8 @@
 
       <!--出馬表-->
       <Grid Margin="0,8,0,0" Visibility="{Binding IsChecked,ElementName=S_HorseList,Converter={StaticResource BooleanVisibilityConv}}">
-        <ItemsControl ItemsSource="{Binding Race.Horses,ElementName=Root}"
-                      Style="{StaticResource TableList}" Margin="0,0,4,0">
+        <ItemsControl Style="{StaticResource TableList}" Margin="0,0,4,0"
+                      x:Name="RaceHorsePillarList">
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <Grid>
@@ -624,7 +624,7 @@
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
-              <ItemsControl ItemsSource="{Binding Race.Odds.Value.CurrentTrifectas.Value.Columns,ElementName=Root}">
+              <ItemsControl ItemsSource="{Binding Race.Odds.Value.CurrentTrifectas.Value.Columns,ElementName=Root}" x:Name="TrifectaOddsView">
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
                     <StackPanel Orientation="Horizontal"/>
