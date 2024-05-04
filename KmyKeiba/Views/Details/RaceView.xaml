@@ -73,8 +73,34 @@
                      Visibility="{Binding Race.IsBanei,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
                      Text="{Binding Race.Data.BaneiMoisture,ElementName=Root,Converter={StaticResource DigitMinusConv}}"/>
         </StackPanel>
-        <TextBlock Grid.Column="5" Text="{Binding Race.Name,ElementName=Root}" FontSize="28" FontWeight="Bold"
-                   VerticalAlignment="Center" Margin="24,0,0,0"/>
+        <ToggleButton Grid.Column="5" Name="RaceName" Style="{StaticResource ListItemToggle}" WindowChrome.IsHitTestVisibleInChrome="True">
+          <ToggleButton.Template>
+            <ControlTemplate>
+              <Grid Background="{TemplateBinding Background}">
+                <TextBlock Text="{Binding Race.Name,ElementName=Root}" FontSize="28" FontWeight="Bold"
+                           VerticalAlignment="Center" Margin="24,0"/>
+              </Grid>
+            </ControlTemplate>
+          </ToggleButton.Template>
+        </ToggleButton>
+        <up:ImePopup PlacementTarget="{Binding ElementName=RaceName}" StaysOpen="False"
+                     IsOpen="{Binding IsChecked,ElementName=RaceName,Mode=TwoWay}" Placement="Bottom">
+          <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1"
+                  Width="auto" Height="auto" Background="{StaticResource BaseBackground}">
+            <Grid>
+              <TextBox TextWrapping="Wrap" AcceptsReturn="True" Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
+                       FontSize="16" MinHeight="160" MaxHeight="160" Width="400" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                       Margin="8,4" Text="{Binding Race.RaceAnalyzer.Value.Memo.Value,ElementName=Root,Mode=TwoWay}">
+                <TextBox.IsReadOnly>
+                  <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+                    <Binding Path="Race.RaceAnalyzer.Value.CanSave.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                    <Binding Path="Race.RaceAnalyzer.Value.IsMemoSaving.Value" ElementName="Root"/>
+                  </MultiBinding>
+                </TextBox.IsReadOnly>
+              </TextBox>
+            </Grid>
+          </Border>
+        </up:ImePopup>
         <ItemsControl Grid.Column="7" ItemsSource="{Binding Race.MemoEx.Value.RaceMemoSelections,ElementName=Root}"
                       Margin="0,0,440,0">
           <ItemsControl.ItemsPanel>
