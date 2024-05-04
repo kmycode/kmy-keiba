@@ -92,9 +92,6 @@ namespace KmyKeiba.ViewModels
           this.model.OnSelectedRaceUpdated();
         })).AddTo(this._disposables);
 
-      // TODO: いずれModelにうつす
-      ThemeUtil.Current = ApplicationTheme.Dark;
-
       // 構成スクリプト
       // 構成スクリプトがasync functionを返した場合、非同期実行になってしまい一部の設定が遅延反映になるかまたは無効
       // （サンプルではfunctionを返してるので大丈夫だと思うが）
