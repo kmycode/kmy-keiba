@@ -31,8 +31,8 @@
     <PackageReference Include="Microsoft.ML" Version="1.7.1" />
     <PackageReference Include="ReactiveProperty" Version="8.1.0" />
     <PackageReference Include="ReactiveProperty.WPF" Version="8.1.0" />
-    <PackageReference Include="SkiaSharp" Version="2.80.3" />
-    <PackageReference Include="SkiaSharp.Views.Wpf" Version="2.80.3" />
+    <PackageReference Include="SkiaSharp" Version="2.88.8" />
+    <PackageReference Include="SkiaSharp.Views.Wpf" Version="2.88.8" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="6.0.0" />
   </ItemGroup>
 
