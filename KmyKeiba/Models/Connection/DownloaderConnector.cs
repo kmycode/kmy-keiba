@@ -383,8 +383,12 @@ namespace KmyKeiba.Models.Connection
     {
       using (var db = new MyContext())
       {
+        await db.BeginTransactionAsync();
+
         await db.DownloaderTasks!.AddAsync(task);
         await db.SaveChangesAsync();
+
+        await db.CommitAsync();
       }
 
       logger.Info($"タスク発行 ID: {task.Id}, コマンド: {task.Command}, パラメータ: {task.Parameter}");

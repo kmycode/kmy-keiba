@@ -352,7 +352,7 @@
           </Control.Visibility>
         </uc:RaceExpectHorseView>
         
-        <!-- 拡張 -->
+        <!-- 分析 -->
         <Grid Grid.Column="1" Margin="8,0,0,0">
           <Panel.Visibility>
             <MultiBinding Converter="{StaticResource MultiBooleanConv}">
