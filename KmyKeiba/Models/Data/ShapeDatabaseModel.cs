@@ -859,17 +859,20 @@ namespace KmyKeiba.Models.Data
           var allTargets = query
             .Where(rh => rh.RaceKey.StartsWith(monthStr) && !rh.IsContainsRiderWinRate);
           var allRiderCodes = allTargets
-            .GroupBy(rh => rh.RiderCode)
-            .Select(g => g.Key);
+            .Select(rh => rh.RiderCode);
 
-          while (allTargets.Any())
+          var allRiderCodesFixed = allTargets.Any() ? (await allRiderCodes.ToArrayAsync()).Distinct().ToArray() : Enumerable.Empty<string>();
+
+          while (allRiderCodesFixed.Any())
           {
-            var targets = await allRiderCodes.Take(96).ToArrayAsync();
+            var targets = allRiderCodesFixed.Take(96).ToArray();
             var targetHorses = await query
               .Where(rh => rh.RaceKey.StartsWith(monthStr))
               .Where(rh => targets.Contains(rh.RiderCode))
               .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { rh.Id, rh.RiderCode, rh.ResultOrder, r.Distance, r.TrackType, r.TrackGround, Horse = rh, })
               .ToArrayAsync();
+
+            allRiderCodesFixed = allRiderCodesFixed.Skip(96);
 
             foreach (var riderCode in targets)
             {
