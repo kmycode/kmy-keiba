@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  [Index(nameof(RaceKey), nameof(Key))]
+  [Index(nameof(Key))]
+  [Index(nameof(RaceKey))]
   [Index(nameof(RiderCode))]
   [Index(nameof(TrainerCode))]
-  [Index(nameof(Key), nameof(RaceCount), nameof(RaceCountWithinRunning), nameof(RaceCountWithinRunningCompletely), nameof(RaceCountAfterLastRest))]
   public class RaceHorseData : DataBase<RaceHorse>
   {
     [StringLength(16)]
