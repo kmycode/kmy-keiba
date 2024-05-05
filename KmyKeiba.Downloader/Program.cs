@@ -321,6 +321,7 @@ namespace KmyKeiba.Downloader
 
         try
         {
+          // まずは指定された番号をキル
           if (beforeProcessNumber != 0)
           {
             Process.GetProcessById(beforeProcessNumber)?.Kill();
@@ -328,9 +329,23 @@ namespace KmyKeiba.Downloader
         }
         catch (Exception ex)
         {
-          // 切り捨てる
           logger.Warn($"プロセス {beforeProcessNumber} のキルに失敗しました", ex);
-          Console.WriteLine(ex.Message);
+
+          // 念のため、それっぽいプロセスが他に残っていないか確認
+          Process? psInLoop = null;
+          try
+          {
+            foreach (var ps in Process.GetProcesses().Where(p => p.ProcessName == "KmyKeiba.Downloader" && p.MainWindowTitle.Contains("Memory Leak")))
+            {
+              psInLoop = ps;
+              logger.Info($"プロセス {ps.Id} を発見したのでキルします");
+              ps.Kill();
+            }
+          }
+          catch (Exception ex2)
+          {
+            logger.Warn($"プロセス {psInLoop?.Id} のキルに失敗しました", ex2);
+          }
         }
       }
       else

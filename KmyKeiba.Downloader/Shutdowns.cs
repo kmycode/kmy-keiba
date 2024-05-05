@@ -95,7 +95,7 @@ namespace KmyKeiba.Downloader
       var myProcess = Process.GetCurrentProcess();
       var myProcessNumber = myProcess?.Id ?? 0;
 
-      logger.Info($"自分を殺すプロセスを開始します {myProcessNumber}");
+      logger.Info($"自分を殺すプロセスを開始します {myProcessNumber} Name:{myProcess?.ProcessName}");
       Process.Start(new ProcessStartInfo
       {
         FileName = "cmd",
