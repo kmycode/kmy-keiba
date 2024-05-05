@@ -459,6 +459,7 @@
       <Grid.Visibility>
         <MultiBinding Converter="{StaticResource MultiBooleanConv}">
           <Binding Path="IsLoaded.Value" Converter="{StaticResource NegativeConv}"/>
+          <Binding Path="IsModelError.Value" Converter="{StaticResource NegativeConv}"/>
           <Binding Path="IsFirstRaceLoadStarted.Value"/>
         </MultiBinding>
       </Grid.Visibility>
