@@ -1048,6 +1048,7 @@ namespace KmyKeiba.Models.Race.Finder
         new FinderQueryInputListItem<RaceGrade>("地方G2", RaceGrade.LocalGrade2_UC),
         new FinderQueryInputListItem<RaceGrade>("地方G3", RaceGrade.LocalGrade3_UC),
         new FinderQueryInputListItem<RaceGrade>("地方重賞", RaceGrade.LocalGrade_UC),
+        new FinderQueryInputListItem<RaceGrade>("地方特別", RaceGrade.LocalNonGradeSpecial),
         new FinderQueryInputListItem<RaceGrade>("地方OP", RaceGrade.LocalOpen_UC),
       });
     }
