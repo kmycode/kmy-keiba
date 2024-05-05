@@ -42,6 +42,7 @@ namespace KmyKeiba.Downloader
           var p = loader.Process.ToString().ToLower();
           if (p != task.Result)
           {
+            logger.Info($"ダウンロード状態が {p} に移行しました");
             try
             {
               SetTask(task, t =>
@@ -53,7 +54,6 @@ namespace KmyKeiba.Downloader
             {
               logger.Warn("ダウンロード状態のタスクへの書き込みでエラー", ex);
             }
-            logger.Info($"ダウンロード状態が {p} に移行しました");
           }
         }
 
@@ -65,14 +65,12 @@ namespace KmyKeiba.Downloader
           if (!isRealTime)
           {
             // SaveChangesが終わる前にトランザクション始まる？
-            Task.Delay(1000).Wait();
+            Task.Delay(500).Wait();
           }
         };
 
         while (!isLoaded)
         {
-          Console.Write($"\rDWN [{loader.Downloaded} / {loader.DownloadSize}] LD [{loader.Loaded} / {loader.LoadSize}] ENT({loader.LoadEntityCount}) SV [{loader.Saved} / {loader.SaveSize}] PC [{loader.Processed} / {loader.ProcessSize}]");
-
           UpdateProcess();
 
           loopCount++;
@@ -93,6 +91,10 @@ namespace KmyKeiba.Downloader
           catch (Exception ex)
           {
             logger.Error("タスクへの完了報告書き込みに失敗", ex);
+          }
+          finally
+          {
+            isDbLooping = false;
           }
         }
 
@@ -128,9 +130,14 @@ namespace KmyKeiba.Downloader
         isLoaded = true;
       }
 
-      while (isDbLooping)
+      var timeout = 200;
+      while (isDbLooping && timeout-- > 0)
       {
         Task.Delay(50).Wait();
+      }
+      if (timeout <= 0)
+      {
+        logger.Warn("ダウンロード・書き込み処理がタイムアウトしました");
       }
 
       if (!isHostTaskCanceled && !isHost)

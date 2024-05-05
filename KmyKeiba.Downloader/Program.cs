@@ -420,16 +420,24 @@ namespace KmyKeiba.Downloader
 
     private static void SetTask(DownloaderTaskData task, Action<DownloaderTaskData> changes)
     {
-      try
+      var tryCount = 10;
+      while (tryCount-- > 0)
       {
-        using var db = new MyContext();
-        db.DownloaderTasks!.Attach(task);
-        changes(task);
-        db.SaveChanges();
-      }
-      catch (Exception ex)
-      {
-        logger.Error("タスクへのデータ書き込みに失敗しました", ex);
+        try
+        {
+          using var db = new MyContext();
+          db.DownloaderTasks!.Attach(task);
+          changes(task);
+          db.SaveChanges();
+
+          break;
+        }
+        catch (Exception ex)
+        {
+          logger.Error($"タスクへのデータ書き込みに失敗しました", ex);
+          logger.Warn($"残り試行回数 {tryCount}");
+          Task.Delay(100).Wait();
+        }
       }
     }
 
