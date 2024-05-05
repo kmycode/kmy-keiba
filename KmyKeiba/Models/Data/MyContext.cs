@@ -18,7 +18,11 @@ namespace KmyKeiba.Models.Data
 
     public MyContext()
     {
-      this.ConnectionString = "Data Source=" + Constrants.DatabasePath;
+      this.ConnectionString = new SqliteConnectionStringBuilder()
+      {
+        DataSource = Constrants.DatabasePath,
+        Pooling = false,
+      }.ToString();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
