@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Keras.NET" Version="3.8.6" />
-    <PackageReference Include="Microsoft.ClearScript" Version="7.3.5" />
+    <PackageReference Include="Microsoft.ClearScript" Version="7.4.5" />
   </ItemGroup>
 
   <ItemGroup>
