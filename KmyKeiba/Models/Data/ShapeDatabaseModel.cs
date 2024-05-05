@@ -547,8 +547,8 @@ namespace KmyKeiba.Models.Data
         while (true)
         {
           var buffer = state == HorseExtraDataState.UntilRace ?
-            await notyetRaces.Take(96).ToArrayAsync() :
-            await finishedRaces.Take(96).ToArrayAsync();
+            await notyetRaces.Take(192).ToArrayAsync() :
+            await finishedRaces.Take(192).ToArrayAsync();
           if (!buffer.Any())
           {
             if (state < HorseExtraDataState.AfterRace)
@@ -559,9 +559,18 @@ namespace KmyKeiba.Models.Data
             break;
           }
 
+          var raceKeys = buffer.Select(b => b.RaceHorse.RaceKey).ToArray();
+          var existingDataCache = await db.RaceHorseExtras!.Where(e => raceKeys.Contains(e.RaceKey)).ToArrayAsync();
+          var sameRaceHorsesCache = await db.RaceHorses!
+            .Where(rh => raceKeys.Contains(rh.RaceKey) && rh.ResultOrder > 0)
+            .Select(rh => new { rh.RaceKey, rh.ResultOrder, rh.AfterThirdHalongTimeValue, rh.ResultTimeValue, })
+            .ToArrayAsync();
+
+          var newData = new List<RaceHorseExtraData>();
+
           foreach (var horse in buffer)
           {
-            var data = await db.RaceHorseExtras!.FirstOrDefaultAsync(e => e.RaceKey == horse.RaceHorse.RaceKey && e.Key == horse.RaceHorse.Key);
+            var data = existingDataCache.FirstOrDefault(e => e.RaceKey == horse.RaceHorse.RaceKey && e.Key == horse.RaceHorse.Key);
             if (data == null)
             {
               data = new RaceHorseExtraData
@@ -569,7 +578,7 @@ namespace KmyKeiba.Models.Data
                 RaceKey = horse.RaceHorse.RaceKey,
                 Key = horse.RaceHorse.Key,
               };
-              await db.RaceHorseExtras!.AddAsync(data);
+              newData.Add(data);
             }
             if (horse.RaceHorse.ExtraDataVersion < currentDataVersion)
             {
@@ -584,10 +593,10 @@ namespace KmyKeiba.Models.Data
             {
               if (horse.Race.DataStatus <= RaceDataStatus.Grade)
               {
-                var sameRaceHorses = await db.RaceHorses!
+                var sameRaceHorses = sameRaceHorsesCache
                   .Where(rh => rh.RaceKey == horse.Race.Key && rh.ResultOrder > 0)
                   .Select(rh => new { rh.ResultOrder, rh.AfterThirdHalongTimeValue, rh.ResultTimeValue, })
-                  .ToArrayAsync();
+                  .ToArray();
 
                 // PCI
                 try
@@ -747,6 +756,7 @@ namespace KmyKeiba.Models.Data
 
           progress.Value += buffer.Length;
 
+          await db.RaceHorseExtras!.AddRangeAsync(newData);
           await db.SaveChangesAsync();
           if (lastCommit + 10000 < progress.Value)
           {
@@ -953,6 +963,21 @@ namespace KmyKeiba.Models.Data
           }
 
           month = month.AddMonths(1);
+          await db.CommitAsync();
+        }
+
+        // 1986年以前のデータには何もしない
+        var legacyData = query.Where(rh => !rh.IsContainsRiderWinRate && rh.RaceKey.StartsWith("19"));
+        if (await legacyData.AnyAsync())
+        {
+          var list = await legacyData.ToListAsync();
+
+          foreach (var horse in legacyData)
+          {
+            horse.IsContainsRiderWinRate = true;
+          }
+
+          await db.SaveChangesAsync();
           await db.CommitAsync();
         }
       }
