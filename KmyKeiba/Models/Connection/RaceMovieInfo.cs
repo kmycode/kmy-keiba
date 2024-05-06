@@ -260,7 +260,7 @@ namespace KmyKeiba.Models.Connection
         IsLoading.Value = false;
       }
 
-      if (this._status == MovieStatus.Unchecked && (isNotFound || isAvailable))
+      if (this._status == MovieStatus.Unchecked && (isNotFound || isAvailable) && DownloaderModel.Instance.CanSaveOthers.Value)
       {
         try
         {
