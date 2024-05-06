@@ -38,7 +38,7 @@ namespace KmyKeiba.Models.Race.Tickets
       this.Mark = horse.Mark;
 
       this.IsEnabled = horse.Mark
-        .Select(m => m != RaceHorseMark.Deleted && horse.Data.AbnormalResult != RaceAbnormality.Scratched && horse.Data.AbnormalResult != RaceAbnormality.ExcludedByStarters)
+        .Select(m => horse.Data.AbnormalResult != RaceAbnormality.Scratched && horse.Data.AbnormalResult != RaceAbnormality.ExcludedByStarters)
         .ToReactiveProperty();
     }
 
@@ -66,7 +66,7 @@ namespace KmyKeiba.Models.Race.Tickets
       {
         void OnHorsesChanged()
         {
-          var isDeleted = horses.All(h => h.Mark.Value == RaceHorseMark.Deleted || h.Data.AbnormalResult == RaceAbnormality.Scratched || h.Data.AbnormalResult == RaceAbnormality.ExcludedByStarters);
+          var isDeleted = horses.All(h => h.Data.AbnormalResult == RaceAbnormality.Scratched || h.Data.AbnormalResult == RaceAbnormality.ExcludedByStarters);
           this.IsEnabled.Value = !isDeleted;
           if (!this.IsEnabled.Value && this.IsChecked.Value)
           {
