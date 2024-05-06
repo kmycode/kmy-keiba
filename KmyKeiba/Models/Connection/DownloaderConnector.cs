@@ -403,12 +403,6 @@ namespace KmyKeiba.Models.Connection
 
     private async Task OpenConfigAsync(DownloaderCommand command)
     {
-      if (this.IsBusy.Value)
-      {
-        logger.Warn("すでにダウンロード中です");
-        throw new InvalidOperationException();
-      }
-
       try
       {
         this.currentTask.Value = new DownloaderTaskData
@@ -446,7 +440,7 @@ namespace KmyKeiba.Models.Connection
       }
     }
 
-    public async Task CancelCurrentTaskAsync()
+    public void CancelCurrentTask()
     {
       if (!this.IsBusy.Value)
       {

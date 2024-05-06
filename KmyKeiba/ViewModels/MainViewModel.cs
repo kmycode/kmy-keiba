@@ -222,38 +222,38 @@ namespace KmyKeiba.ViewModels
 
     public ICommand MoveToNextDayCommand =>
       this._moveToNextDayCommand ??=
-        new ReactiveCommand().WithSubscribe(() => this.model.RaceList.MoveToNextDay());
+        new ReactiveCommand().WithSubscribe(this.model.RaceList.MoveToNextDay);
     private ReactiveCommand? _moveToNextDayCommand;
 
     public ICommand MoveToPrevDayCommand =>
       this._moveToPrevDayCommand ??=
-        new ReactiveCommand().WithSubscribe(() => this.model.RaceList.MoveToPrevDay());
+        new ReactiveCommand().WithSubscribe(this.model.RaceList.MoveToPrevDay);
     private ReactiveCommand? _moveToPrevDayCommand;
 
     public ICommand OpenJvlinkConfigCommand =>
       this._openJvlinkConfigCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(async p => await this.downloader.OpenJvlinkConfigAsync());
+        new AsyncReactiveCommand<object>().WithSubscribe(async _ => await this.downloader.OpenJvlinkConfigAsync());
     private AsyncReactiveCommand<object>? _openJvlinkConfigCommand;
 
     public ICommand OpenNvlinkConfigCommand =>
       this._openNvlinkConfigCommand ??=
-        new AsyncReactiveCommand<object>().WithSubscribe(async p => await this.downloader.OpenNvlinkConfigAsync());
+        new AsyncReactiveCommand<object>().WithSubscribe(async _ => await this.downloader.OpenNvlinkConfigAsync());
     private AsyncReactiveCommand<object>? _openNvlinkConfigCommand;
 
     public ICommand StartDownloadCommand =>
       this._startDownloadCommand ??=
-        new ReactiveCommand().WithSubscribe(() => this.downloader.BeginDownload());
+        new ReactiveCommand().WithSubscribe(this.downloader.BeginDownload);
     private ReactiveCommand? _startDownloadCommand;
 
     public ICommand ResetHorseExtraDataCommand =>
       this._resetHorseExtraDataCommand ??=
-        new ReactiveCommand().WithSubscribe(() => this.downloader.BeginResetHorseExtraData());
+        new ReactiveCommand().WithSubscribe(this.downloader.BeginResetHorseExtraData);
     private ICommand? _resetHorseExtraDataCommand;
 
     public ICommand CancelDownloadCommand =>
       this._cancelDownloadCommand ??=
-        new AsyncReactiveCommand<object>(this.downloader.CanCancel).WithSubscribe(async p => await this.downloader.CancelDownloadAsync());
-    private AsyncReactiveCommand<object>? _cancelDownloadCommand;
+        new ReactiveCommand<object>(this.downloader.CanCancel).WithSubscribe(_ => this.downloader.CancelDownload());
+    private ReactiveCommand<object>? _cancelDownloadCommand;
 
     #endregion
 
