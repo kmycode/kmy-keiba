@@ -153,14 +153,26 @@ namespace KmyKeiba.Models.Connection
 
       this.DownloadingStatus =
         this.ProcessingStep
-          .Select(p => p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates && p != Connection.ProcessingStep.MigrationFrom250 && p != Connection.ProcessingStep.MigrationFrom322 && p != Connection.ProcessingStep.HorseExtraData && p != Connection.ProcessingStep.MigrationFrom430 && p != Connection.ProcessingStep.MigrationFrom500)
+          .Select(p => p != Connection.ProcessingStep.StandardTime &&
+                       p != Connection.ProcessingStep.PreviousRaceDays &&
+                       p != Connection.ProcessingStep.RiderWinRates &&
+                       p != Connection.ProcessingStep.MigrationFrom250 &&
+                       p != Connection.ProcessingStep.MigrationFrom322 &&
+                       p != Connection.ProcessingStep.HorseExtraData &&
+                       p != Connection.ProcessingStep.MigrationFrom430 &&
+                       p != Connection.ProcessingStep.MigrationFrom500)
           .CombineLatest(this.LoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
           .CombineLatest(JrdbDownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)
           .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
           .ToReactiveProperty().AddTo(this._disposables);
       this.RTDownloadingStatus =
-        this.RTProcessingStep.Select(p => (p != Connection.ProcessingStep.StandardTime && p != Connection.ProcessingStep.PreviousRaceDays && p != Connection.ProcessingStep.RiderWinRates) ? StatusFeeling.Unknown : StatusFeeling.Bad)
-        .ToReactiveProperty().AddTo(this._disposables);
+        this.RTProcessingStep
+          .Select(p => p != Connection.ProcessingStep.StandardTime &&
+                       p != Connection.ProcessingStep.PreviousRaceDays &&
+                       p != Connection.ProcessingStep.RiderWinRates)
+          .CombineLatest(this.RTLoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
+          .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
+          .ToReactiveProperty().AddTo(this._disposables);
 
       this.JrdbId.Skip(2).Subscribe(async val => await ConfigUtil.SetStringValueAsync(SettingKey.JrdbId, val)).AddTo(this._disposables);
       this.JrdbPassword.Skip(2).Subscribe(async val => await ConfigUtil.SetStringValueAsync(SettingKey.JrdbPassword, val)).AddTo(this._disposables);
@@ -184,6 +196,7 @@ namespace KmyKeiba.Models.Connection
         }
       }
       this.LoadingProcess.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
+      this.RTLoadingProcess.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
       this.ProcessingStep.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
       JrdbDownloaderModel.Instance.CanSaveOthers.Subscribe(_ => UpdateCanSave()).AddTo(this._disposables);
       JrdbDownloaderModel.Instance.DownloadingYear.Skip(1).Subscribe(val => this.DownloadingYear.Value = val).AddTo(this._disposables);
