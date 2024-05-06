@@ -19,7 +19,7 @@
     </Grid.RowDefinitions>
     <TextBlock FontSize="36" FontWeight="Bold" Text="自動更新設定" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,24"/>
     <TextBlock Grid.Row="1" FontSize="28" Text="対象" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16"/>
-    <Grid Grid.Row="2" IsEnabled="{Binding Downloader.CanSaveOthers.Value}">
+    <Grid Grid.Row="2">
       <Grid.ColumnDefinitions>
         <ColumnDefinition/>
         <ColumnDefinition Width="200"/>
@@ -27,15 +27,17 @@
       <StackPanel>
         <StackPanel Orientation="Horizontal">
           <ToggleButton FontSize="16" Content="中央競馬" Width="100"
+                        IsEnabled="{Binding Downloader.CanSaveOthers.Value}"
                         IsChecked="{Binding Downloader.IsRTDownloadCentral.Value,Mode=TwoWay}"/>
           <Button FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
                   Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
                   Command="{Binding OpenJvlinkConfigCommand}"/>
           <ToggleButton FontSize="16" Content="木～日のみ稼働" Width="160" Margin="4,0,0,0"
+                        IsEnabled="{Binding Downloader.CanSaveOthers.Value}"
                         IsChecked="{Binding Downloader.IsRTDownloadCentralAfterThursdayOnly.Value,Mode=TwoWay}"
                         Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
         </StackPanel>
-        <StackPanel Orientation="Horizontal">
+        <StackPanel Orientation="Horizontal" IsEnabled="{Binding Downloader.CanSaveOthers.Value}">
           <ToggleButton FontSize="16" Content="JRDB" Width="100" Margin="0,8,0,0" HorizontalAlignment="Left"
                         Visibility="{Binding Downloader.IsRTDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
                         IsChecked="{Binding Downloader.IsRTDownloadJrdb.Value,Mode=TwoWay}"/>
@@ -46,6 +48,7 @@
       </StackPanel>
       <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Top">
         <ToggleButton FontSize="16" Content="地方競馬" Width="100"
+                      IsEnabled="{Binding Downloader.CanSaveOthers.Value}"
                       IsChecked="{Binding Downloader.IsRTDownloadLocal.Value,Mode=TwoWay}"/>
         <Button FontSize="16" Content="設定" Width="80" Margin="4,0,0,0"
                 Visibility="{Binding Downloader.IsRTDownloadLocal.Value,Converter={StaticResource BooleanVisibilityConv}}"

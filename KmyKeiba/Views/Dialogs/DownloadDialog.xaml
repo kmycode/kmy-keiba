@@ -54,9 +54,7 @@
             <Run Foreground="{StaticResource SubForeground}">※拡張情報の作成によって一部の検索条件・拡張分析項目が利用可能になります</Run>
           </TextBlock>
           <Button Command="{Binding ResetHorseExtraDataCommand}">
-            <TextBlock FontSize="16" TextAlignment="Center">
-              拡張情報をリセット
-            </TextBlock>
+            <TextBlock FontSize="16" TextAlignment="Center" Text="拡張情報をリセット"/>
           </Button>
           <TextBlock FontSize="16" TextWrapping="Wrap" Margin="0,8,0,24">
             <Run Foreground="{StaticResource SubForeground}">※拡張情報リセットは、新たにJRDBと契約した場合、さらに過去のデータをダウンロードした場合などにご利用ください。最新データ差分処理時にリセットは必要ありません</Run>
