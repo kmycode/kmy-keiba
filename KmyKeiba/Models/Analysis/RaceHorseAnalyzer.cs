@@ -592,22 +592,22 @@ namespace KmyKeiba.Models.Analysis
 
     public ICommand PlayRaceMovieCommand =>
       this._playRaceMovieCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsRaceError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayRaceAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsRaceError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayRaceAsync());
     private AsyncReactiveCommand<object>? _playRaceMovieCommand;
 
     public ICommand PlayPaddockCommand =>
       this._playPaddockCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsPaddockError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayPaddockAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsPaddockError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPaddockAsync());
     private AsyncReactiveCommand<object>? _playPaddockCommand;
 
     public ICommand PlayPatrolCommand =>
       this._playPatrolCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsPatrolError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayPatrolAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsPatrolError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPatrolAsync());
     private AsyncReactiveCommand<object>? _playPatrolCommand;
 
     public ICommand PlayMultiCamerasCommand =>
       this._playMultiCamerasCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsMultiCamerasError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayMultiCamerasAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsMultiCamerasError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayMultiCamerasAsync());
     private AsyncReactiveCommand<object>? _playMultiCamerasCommand;
 
     public ICommand OpenRaceWindowCommand =>
