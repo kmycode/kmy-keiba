@@ -47,7 +47,7 @@ namespace KmyKeiba.Downloader
         try
         {
           using var db = new MyContext();
-          var task = db.DownloaderTasks!.FirstOrDefault(t => t.Command == DownloaderCommand.DownloadRealTimeData &&
+          var task = DownloaderTaskDataExtensions.Enumerate().FirstOrDefault(t => t.Command == DownloaderCommand.DownloadRealTimeData &&
             !t.IsStarted && !t.IsCanceled && !t.IsFinished);
 
           if (task != null)
@@ -70,9 +70,9 @@ namespace KmyKeiba.Downloader
             }
           }
 
-          CheckCurrentTasks(db);
+          CheckCurrentTasks();
 
-          CheckShutdown(db, isForce: true);
+          CheckShutdown(isForce: true);
           Console.WriteLine("[HOST] Waiting new tasks... ");
           Task.Delay(1000).Wait();
         }
@@ -83,11 +83,10 @@ namespace KmyKeiba.Downloader
       }
     }
 
-    private static void CheckCurrentTasks(MyContext db)
+    private static void CheckCurrentTasks()
     {
-      var tasks = db.DownloaderTasks!.Where(t => !t.IsFinished && t.ProcessId != default).ToArray();
+      var tasks = DownloaderTaskDataExtensions.ToArray().Where(t => !t.IsFinished && t.ProcessId != default);
 
-      var isSave = false;
       foreach (var task in tasks)
       {
         try
@@ -100,13 +99,9 @@ namespace KmyKeiba.Downloader
           task.IsCanceled = true;
           task.IsFinished = true;
           task.Error = DownloaderError.ApplicationRuntimeError;
-          isSave = true;
+          DownloaderTaskDataExtensions.Save(task);
           logger.Warn($"タスク {task.Id} は、担当プロセス {task.ProcessId} が見つからないのでキャンセルしました");
         }
-      }
-      if (isSave)
-      {
-        db.SaveChanges();
       }
     }
 

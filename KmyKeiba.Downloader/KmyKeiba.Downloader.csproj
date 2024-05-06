@@ -42,4 +42,6 @@
 
   <Import Project="..\KmyKeiba.Shared\KmyKeiba.Shared.projitems" Label="Shared" />
 
+  <Import Project="..\KmyKeiba.Utils\KmyKeiba.Utils.projitems" Label="Shared" />
+
 </Project>

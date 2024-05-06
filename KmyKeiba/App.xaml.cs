@@ -27,6 +27,7 @@ namespace KmyKeiba
     public App()
     {
       Directory.CreateDirectory(Constrants.AppDataDir);
+      Directory.CreateDirectory(Constrants.DownloaderTaskDataDir);
 
       var selfPath = Assembly.GetEntryAssembly()?.Location ?? string.Empty;
       var selfPathDir = Path.GetDirectoryName(selfPath) ?? "./";

@@ -27,6 +27,8 @@ namespace KmyKeiba.Downloader
       selfPath = Assembly.GetEntryAssembly()?.Location.Replace("Downloader.dll", "Downloader.exe") ?? string.Empty;
       var selfPathDir = Path.GetDirectoryName(selfPath) ?? "./";
 
+      Directory.CreateDirectory(Constrants.DownloaderTaskDataDir);
+
       log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo(Path.Combine(selfPathDir, "log4net.config")));
       log4net.GlobalContext.Properties["pid"] = System.Diagnostics.Process.GetCurrentProcess().Id;
 
@@ -137,8 +139,7 @@ namespace KmyKeiba.Downloader
           }).Wait();
           logger.Info("DBのマイグレーション完了");
 
-          using var db = new MyContext();
-          db.DownloaderTasks!.RemoveRange(db.DownloaderTasks!);
+          DownloaderTaskDataExtensions.RemoveAll();
           var data = new DownloaderTaskData
           {
             Command = DownloaderCommand.Initialization,
@@ -146,8 +147,7 @@ namespace KmyKeiba.Downloader
             Error = version != Constrants.ApplicationVersion ? DownloaderError.InvalidVersion : DownloaderError.Succeed,
           };
           data.Result = data.Error.GetErrorText();
-          db.DownloaderTasks!.Add(data);
-          db.SaveChanges();
+          DownloaderTaskDataExtensions.Add(data);
 
           if (data.Error == DownloaderError.InvalidVersion)
           {
@@ -393,10 +393,10 @@ namespace KmyKeiba.Downloader
       }
 
       using var db = new MyContext();
-      var task = db.DownloaderTasks!.Find(id);
+      var task = DownloaderTaskDataExtensions.FindOrDefault(id);
       if (task == null)
       {
-        db.DownloaderTasks!.Add(new DownloaderTaskData
+        DownloaderTaskDataExtensions.Add(new DownloaderTaskData
         {
           Id = id,
           IsFinished = true,
@@ -425,10 +425,8 @@ namespace KmyKeiba.Downloader
       {
         try
         {
-          using var db = new MyContext();
-          db.DownloaderTasks!.Attach(task);
           changes(task);
-          db.SaveChanges();
+          DownloaderTaskDataExtensions.Save(task);
 
           break;
         }

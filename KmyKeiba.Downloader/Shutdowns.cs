@@ -11,14 +11,12 @@ namespace KmyKeiba.Downloader
 {
   internal partial class Program
   {
-    public static void CheckShutdown(MyContext? db = null, bool isForce = false)
+    public static void CheckShutdown(bool isForce = false)
     {
       if (!isCheckShutdown)
       {
         return;
       }
-
-      var isDispose = db == null;
 
       if (File.Exists(Constrants.ShutdownFilePath))
       {
@@ -41,11 +39,9 @@ namespace KmyKeiba.Downloader
         }
       }
 
-      db ??= new MyContext();
-
       if (currentTask != null)
       {
-        var task = db.DownloaderTasks!.FirstOrDefault(t => t.Id == currentTask.Id);
+        var task = DownloaderTaskDataExtensions.FindOrDefault(currentTask.Id);
         if (task != null && task.IsCanceled)
         {
           if (!isHost || isForce)
@@ -73,11 +69,6 @@ namespace KmyKeiba.Downloader
         {
           throw new TaskCanceledAndContinueProgramException();
         }
-      }
-
-      if (isDispose)
-      {
-        db.Dispose();
       }
     }
 
@@ -188,14 +179,13 @@ namespace KmyKeiba.Downloader
             }
           }
 
-          using var db = new MyContext();
-          db.DownloaderTasks!.Attach(currentTask);
           currentTask.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
           currentTask.IsStarted = false;
           currentTask.ProcessId = default;
-          await db.SaveChangesAsync();
+          DownloaderTaskDataExtensions.Save(currentTask);
+
           logger.Info(currentTask.Parameter);
-          CheckShutdown(db);
+          CheckShutdown();
         }
         else
         {
@@ -214,14 +204,13 @@ namespace KmyKeiba.Downloader
         int.TryParse(parameters[2], out var kind);
         int.TryParse(parameters[3], out var skip);
 
-        using var db = new MyContext();
-        db.DownloaderTasks!.Attach(currentTask);
         currentTask.Parameter = $"{parameters[0]},{parameters[1]},{kind},{skip + 1},{string.Join(',', parameters.Skip(4))}";
         currentTask.IsStarted = false;
         currentTask.ProcessId = default;
-        await db.SaveChangesAsync();
+        DownloaderTaskDataExtensions.Save(currentTask);
+
         logger.Info(currentTask.Parameter);
-        CheckShutdown(db);
+        CheckShutdown();
 
         shellParams.Add(currentTask.Id.ToString());
         shellParams.Add(myProcessNumber.ToString());
@@ -255,11 +244,9 @@ namespace KmyKeiba.Downloader
         Console.WriteLine(ex.Message);
         Console.WriteLine(ex.StackTrace);
 
-        using var db = new MyContext();
-        db.DownloaderTasks!.Attach(currentTask);
         currentTask.IsFinished = true;
         currentTask.Error = DownloaderError.ApplicationRuntimeError;
-        await db.SaveChangesAsync();
+        DownloaderTaskDataExtensions.Save(currentTask);
 
         return;
       }

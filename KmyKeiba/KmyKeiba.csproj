@@ -73,6 +73,8 @@
 
   <Import Project="..\KmyKeiba.Shared\KmyKeiba.Shared.projitems" Label="Shared" />
 
+  <Import Project="..\KmyKeiba.Utils\KmyKeiba.Utils.projitems" Label="Shared" />
+
   <ItemGroup>
     <PackageReference Update="chromiumembeddedframework.runtime.win-arm64" Version="123.0.6" />
   </ItemGroup>

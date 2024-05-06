@@ -3,16 +3,12 @@
   <PropertyGroup>
     <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
     <HasSharedItems>true</HasSharedItems>
-    <SharedGUID>485ac3aa-2254-4152-bf00-41a9aa418bfc</SharedGUID>
+    <SharedGUID>7540d37e-926b-4e15-9dc5-e2af95f47028</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>KmyKeiba.Shared</Import_RootNamespace>
+    <Import_RootNamespace>KmyKeiba.Utils</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Constrants.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)InjectionManager.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)Directory.Build.props" />
+    <Compile Include="$(MSBuildThisFileDirectory)DownloaderTaskDataExtensions.cs" />
   </ItemGroup>
 </Project>

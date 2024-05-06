@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,134 @@ namespace KmyKeiba.Data.Db
     public DownloaderError Error { get; set; }
 
     public string Result { get; set; } = string.Empty;
+
+    private static readonly string[] separators = ["\r\n", "\r", "\n"];
+
+    public static DownloaderTaskData? LoadFile(string filePath)
+    {
+      if (!File.Exists(filePath)) return null;
+
+      try
+      {
+        return FromString(File.ReadAllText(filePath));
+      }
+      catch (Exception ex)
+      {
+        throw new LoadDownloaderTaskDataException("タスクファイルの読み込みに失敗", ex);
+      }
+    }
+
+    public static void SaveFile(string filePath, DownloaderTaskData data)
+    {
+      try
+      {
+        File.WriteAllText(filePath, ToString(data));
+      }
+      catch (Exception ex)
+      {
+        throw new SaveDownloaderTaskDataException("タスクファイルへの書き込みに失敗", ex);
+      }
+    }
+
+    private static DownloaderTaskData FromString(string data)
+    {
+      var result = new DownloaderTaskData();
+
+      static bool ToBoolean(string val) => val.ToLower() == "true";
+
+      foreach (var pair in data
+        .Split(separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Select(l => l.Split('='))
+        .Where(l => l.Length == 2))
+      {
+        var key = pair[0];
+        var value = pair[1];
+
+        switch (key)
+        {
+          case "Command":
+            {
+              if (int.TryParse(value, out int command))
+              {
+                result.Command = (DownloaderCommand)command;
+              }
+            }
+            break;
+          case "Parameter":
+            result.Parameter = value;
+            break;
+          case "IsFinished":
+            result.IsFinished = ToBoolean(value);
+            break;
+          case "IsCanceled":
+            result.IsCanceled = ToBoolean(value);
+            break;
+          case "IsStarted":
+            result.IsStarted = ToBoolean(value);
+            break;
+          case "ProcessId":
+            {
+              if (int.TryParse(value, out int processId))
+              {
+                result.ProcessId = processId;
+              }
+            }
+            break;
+          case "Error":
+            {
+              if (int.TryParse(value, out int err))
+              {
+                result.Error = (DownloaderError)err;
+              }
+            }
+            break;
+          case "Result":
+            result.Result = value;
+            break;
+        }
+      }
+
+      return result;
+    }
+
+    private static string ToString(DownloaderTaskData data) =>
+      $@"Command={(int)data.Command}
+Parameter={data.Parameter}
+IsFinished={data.IsFinished}
+IsCanceled={data.IsCanceled}
+IsStarted={data.IsStarted}
+ProcessId={data.ProcessId}
+Error={(int)data.Error}
+Result={data.Result}";
+  }
+
+  public class DownloaderTaskDataException : Exception
+  {
+    protected DownloaderTaskDataException(string message, Exception original) : base(message, original)
+    {
+    }
+
+    protected DownloaderTaskDataException(string message) : base(message)
+    {
+    }
+  }
+
+  public class LoadDownloaderTaskDataException : DownloaderTaskDataException
+  {
+    public LoadDownloaderTaskDataException(string message, Exception original) : base(message, original)
+    {
+    }
+  }
+
+  public class SaveDownloaderTaskDataException : DownloaderTaskDataException
+  {
+    public SaveDownloaderTaskDataException(string message, Exception original) : base(message, original)
+    {
+    }
+
+    public SaveDownloaderTaskDataException(string message) : base(message)
+    {
+    }
   }
 
   public enum DownloaderCommand : short

@@ -493,7 +493,7 @@ namespace KmyKeiba.Downloader
           await SaveAsyncPrivate(chunk, dataSet, entityId, dataId, dataIdSelector);
 
           position = position.Skip(10000);
-          Program.CheckShutdown(db);
+          Program.CheckShutdown();
         }
       }
 
@@ -826,7 +826,7 @@ namespace KmyKeiba.Downloader
           }
 
           this.Processed++;
-          Program.CheckShutdown(db);
+          Program.CheckShutdown();
         }
 
         await db.SaveChangesAsync();
@@ -884,7 +884,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed++;
-            Program.CheckShutdown(db);
+            Program.CheckShutdown();
           }
 
           await AddDataAsync(data.HorseWeights.SelectMany(c => RaceChangeData.GetData(c)));
@@ -907,7 +907,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed++;
-            Program.CheckShutdown(db);
+            Program.CheckShutdown();
           }
 
           await AddDataAsync(data.RaceCourseChanges.Select(c => RaceChangeData.GetData(c)));
@@ -979,7 +979,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed++;
-            Program.CheckShutdown(db);
+            Program.CheckShutdown();
           }
 
           await AddDataAsync(data.CourseWeatherConditions.Select(c => RaceChangeData.GetData(c)));
@@ -999,7 +999,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed++;
-            Program.CheckShutdown(db);
+            Program.CheckShutdown();
           }
 
           await AddDataAsync(data.HorseAbnormalities.Select(c => RaceChangeData.GetData(c)));
@@ -1021,7 +1021,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed++;
-            Program.CheckShutdown(db);
+            Program.CheckShutdown();
           }
 
           await AddDataAsync(data.HorseRiderChanges.Select(c => RaceChangeData.GetData(c)));
@@ -1041,7 +1041,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed++;
-            Program.CheckShutdown(db);
+            Program.CheckShutdown();
           }
 
           await AddDataAsync(data.RaceStartTimeChanges.Select(c => RaceChangeData.GetData(c)));

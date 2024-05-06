@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers;
+using KmyKeiba.Shared;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -150,15 +151,12 @@ namespace KmyKeiba.Downloader
     {
       var end = DateTime.Now.AddMonths(1);
 
-      using var db = new MyContext();
-      db.DownloaderTasks!.Attach(task);
-
       var parameters = task.Parameter.Split(',');
       if (parameters.Length < 3)
       {
         task.Error = DownloaderError.ApplicationError;
         task.IsFinished = true;
-        await db.SaveChangesAsync();
+        DownloaderTaskDataExtensions.Save(task);
         logger.Error("タスクのパラメータが足りません");
         return;
       }
@@ -175,7 +173,7 @@ namespace KmyKeiba.Downloader
       {
         task.Error = DownloaderError.ApplicationError;
         task.IsFinished = true;
-        await db.SaveChangesAsync();
+        DownloaderTaskDataExtensions.Save(task);
         logger.Error($"開始年月が誤りです {parameters[0]} {parameters[1]}");
         return;
       }
@@ -185,7 +183,7 @@ namespace KmyKeiba.Downloader
       {
         task.Error = DownloaderError.ApplicationError;
         task.IsFinished = true;
-        await db.SaveChangesAsync();
+        DownloaderTaskDataExtensions.Save(task);
         logger.Error($"リンクの指定が誤りです {parameters[2]}");
         return;
       }
@@ -211,8 +209,13 @@ namespace KmyKeiba.Downloader
         // dataspec1 |= JVLinkDataspec.Nosi;
       }
 
-      var isNotDownloadBlod = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadHorseBloods);
-      var isNotDownloadSlop = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadTrainings);
+      SystemData? isNotDownloadBlod, isNotDownloadSlop;
+      using (var db = new MyContext())
+      {
+        isNotDownloadBlod = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadHorseBloods);
+        isNotDownloadSlop = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadTrainings);
+      }
+
       if (isNotDownloadBlod != null && isNotDownloadBlod.IntValue != 0)
       {
         dataspec1 &= ~JVLinkDataspec.Blod;
@@ -254,16 +257,14 @@ namespace KmyKeiba.Downloader
           }
 
           var start = new DateTime(year, month, System.Math.Max(1, startDay));
-
-          Console.WriteLine($"{year} 年 {month} 月");
+          
           logger.Info($"{year} 年 {month} 月");
 
           if (mode != "odds")
           {
             mode = "race";
             task.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
-            await db.SaveChangesAsync();
-            Console.WriteLine("race");
+            DownloaderTaskDataExtensions.Save(task);
             logger.Info("レースのダウンロードを開始します");
             loader.StartLoad(link,
               dataspec1,
@@ -276,8 +277,7 @@ namespace KmyKeiba.Downloader
 
           mode = "odds";
           task.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
-          await db.SaveChangesAsync();
-          Console.WriteLine("\nodds");
+          DownloaderTaskDataExtensions.Save(task);
           logger.Info("オッズのダウンロードを開始します");
           loader.StartLoad(link,
             dataspec2,
@@ -289,16 +289,13 @@ namespace KmyKeiba.Downloader
 
           mode = "race";
 
-          Console.WriteLine();
-          Console.WriteLine();
-
           if (isPlan)
           {
             logger.Info("予定ダウンロードだったため即時終了");
             break;
           }
 
-          CheckShutdown(db);
+          CheckShutdown();
         }
 
         if (isPlan)
@@ -319,218 +316,227 @@ namespace KmyKeiba.Downloader
     private static async Task RTLoadAsync(JVLinkLoader loader, DownloaderTaskData task)
     {
       MyContext? db = new();
-      db.DownloaderTasks!.Attach(task);
 
-      var parameters = task.Parameter.Split(',');
-      if (parameters.Length < 2)
+      try
       {
-        task.Error = DownloaderError.ApplicationError;
-        task.IsFinished = true;
-        await db.SaveChangesAsync();
-        logger.Error("タスクのパラメータが足りません");
-        return;
-      }
-
-      var date = parameters[0];
-      var type = parameters[1];
-      var spec = parameters[2];
-      var skip = parameters[3];
-
-      var link = type == "central" ? JVLinkObject.Central : type == "local" ? JVLinkObject.Local : null;
-      if (link == null)
-      {
-        task.Error = DownloaderError.ApplicationError;
-        task.IsFinished = true;
-        await db.SaveChangesAsync();
-        logger.Error($"リンクの指定が誤りです {parameters[2]}");
-        return;
-      }
-      if (link.Type == JVLinkObjectType.Unknown || link.IsError)
-      {
-        Shutdown(DownloaderError.NotInstalledCom);
-        return;
-      }
-
-      var todayFormat = DateTime.Today.ToString("yyyyMMdd");
-      if (date == "today")
-      {
-        date = todayFormat;
-      }
-      int.TryParse(date.AsSpan(0, 4), out var year);
-      int.TryParse(date.AsSpan(4, 2), out var month);
-      int.TryParse(date.AsSpan(6, 2), out var day);
-
-      var dataspecs = link.Type == JVLinkObjectType.Central ? new[]
-      {
-        JVLinkDataspec.RB12,
-        JVLinkDataspec.RB15,
-        JVLinkDataspec.RB30,
-        JVLinkDataspec.RB11,
-        JVLinkDataspec.RB14,
-        JVLinkDataspec.RB41,
-        JVLinkDataspec.RB13,
-        JVLinkDataspec.RB17,
-      } : new[]
-      {
-        JVLinkDataspec.RB12,
-        JVLinkDataspec.RB15,
-        JVLinkDataspec.RB30,
-        JVLinkDataspec.RB11,
-        JVLinkDataspec.RB14,
-        JVLinkDataspec.RB41,
-      };
-      int.TryParse(spec, out var startIndex);
-      if (startIndex == default || startIndex > dataspecs.Length)
-      {
-        // Restartメソッドを考慮し、エラーにはしない
-        task.IsFinished = true;
-        await db.SaveChangesAsync();
-        logger.Warn("このタスクはすでに完了している可能性があります");
-        return;
-      }
-
-      var start = new DateTime(year, month, day);
-      var today = DateTime.Today;
-      var now = DateTime.Now;
-
-      int.TryParse(skip, out var skipCount);
-      var query = db.Races!
-        .Where(r => r.StartTime.Date >= start)
-        .OrderBy(r => r.StartTime)
-        .Select(r => new { r.Key, r.StartTime, r.Course, r.Grade, r.DataStatus, });
-      var races = await query.ToArrayAsync();
-      if (!races.Any())
-      {
-        task.Error = DownloaderError.TargetsNotExists;
-        task.IsFinished = true;
-        await db.SaveChangesAsync();
-        logger.Warn($"以下の時刻以降のレースが存在しません 開始: {start}");
-        return;
-      }
-
-      var raceKeys = races.Select(r => r.Key).ToArray();
-      var oddsTImeline = await db.SingleOddsTimelines!
-        .Where(r => raceKeys.Contains(r.RaceKey))
-        .ToArrayAsync();
-
-      var isDownloadAfterThursdayData = await db.SystemData!.FirstOrDefaultAsync(s => s.Key == SettingKey.IsDownloadCentralOnThursdayAfterOnly);
-      var isDownloadAfterThursday = (isDownloadAfterThursdayData?.IntValue ?? 0) != 0;
-
-      races = races.Where(r =>
-      {
-        if (type == "central")
+        var parameters = task.Parameter.Split(',');
+        if (parameters.Length < 2)
         {
-          if (r.StartTime.Date == today)
-          {
-            return true;
-          }
-          if (today.DayOfWeek == DayOfWeek.Saturday && r.StartTime.DayOfWeek == DayOfWeek.Sunday)
-          {
-            // 日曜日のレースは土曜日発売
-            return true;
-          }
-          if (today.DayOfWeek == DayOfWeek.Friday && r.StartTime.DayOfWeek == DayOfWeek.Saturday && now.Hour >= 12)
-          {
-            // 夕方から売ってることがある
-            return true;
-          }
+          task.Error = DownloaderError.ApplicationError;
+          task.IsFinished = true;
+          DownloaderTaskDataExtensions.Save(task);
+          logger.Error("タスクのパラメータが足りません");
+          return;
+        }
 
-          if (!isDownloadAfterThursday)
+        var date = parameters[0];
+        var type = parameters[1];
+        var spec = parameters[2];
+        var skip = parameters[3];
+
+        var link = type == "central" ? JVLinkObject.Central : type == "local" ? JVLinkObject.Local : null;
+        if (link == null)
+        {
+          task.Error = DownloaderError.ApplicationError;
+          task.IsFinished = true;
+          DownloaderTaskDataExtensions.Save(task);
+          logger.Error($"リンクの指定が誤りです {parameters[2]}");
+          return;
+        }
+        if (link.Type == JVLinkObjectType.Unknown || link.IsError)
+        {
+          Shutdown(DownloaderError.NotInstalledCom);
+          return;
+        }
+
+        var todayFormat = DateTime.Today.ToString("yyyyMMdd");
+        if (date == "today")
+        {
+          date = todayFormat;
+        }
+        int.TryParse(date.AsSpan(0, 4), out var year);
+        int.TryParse(date.AsSpan(4, 2), out var month);
+        int.TryParse(date.AsSpan(6, 2), out var day);
+
+        var dataspecs = link.Type == JVLinkObjectType.Central ? new[]
+        {
+          JVLinkDataspec.RB12,
+          JVLinkDataspec.RB15,
+          JVLinkDataspec.RB30,
+          JVLinkDataspec.RB11,
+          JVLinkDataspec.RB14,
+          JVLinkDataspec.RB41,
+          JVLinkDataspec.RB13,
+          JVLinkDataspec.RB17,
+        } : new[]
           {
-            if (today.AddDays(1) <= r.StartTime && r.StartTime < today.AddDays(2))
+          JVLinkDataspec.RB12,
+          JVLinkDataspec.RB15,
+          JVLinkDataspec.RB30,
+          JVLinkDataspec.RB11,
+          JVLinkDataspec.RB14,
+          JVLinkDataspec.RB41,
+        };
+        int.TryParse(spec, out var startIndex);
+        if (startIndex == default || startIndex > dataspecs.Length)
+        {
+          // Restartメソッドを考慮し、エラーにはしない
+          task.IsFinished = true;
+          DownloaderTaskDataExtensions.Save(task);
+          logger.Warn("このタスクはすでに完了している可能性があります");
+          return;
+        }
+
+        var start = new DateTime(year, month, day);
+        var today = DateTime.Today;
+        var now = DateTime.Now;
+
+        int.TryParse(skip, out var skipCount);
+        var query = db.Races!
+          .Where(r => r.StartTime.Date >= start)
+          .OrderBy(r => r.StartTime)
+          .Select(r => new { r.Key, r.StartTime, r.Course, r.Grade, r.DataStatus, });
+        var races = await query.ToArrayAsync();
+        if (!races.Any())
+        {
+          task.Error = DownloaderError.TargetsNotExists;
+          task.IsFinished = true;
+          await db.SaveChangesAsync();
+          logger.Warn($"以下の時刻以降のレースが存在しません 開始: {start}");
+          return;
+        }
+
+        var raceKeys = races.Select(r => r.Key).ToArray();
+        var oddsTImeline = await db.SingleOddsTimelines!
+          .Where(r => raceKeys.Contains(r.RaceKey))
+          .ToArrayAsync();
+
+        var isDownloadAfterThursdayData = await db.SystemData!.FirstOrDefaultAsync(s => s.Key == SettingKey.IsDownloadCentralOnThursdayAfterOnly);
+        var isDownloadAfterThursday = (isDownloadAfterThursdayData?.IntValue ?? 0) != 0;
+
+        db?.Dispose();
+        db = null;
+
+        races = races.Where(r =>
+        {
+          if (type == "central")
+          {
+            if (r.StartTime.Date == today)
             {
-              // とりあえず翌日のレースは全部取得
               return true;
             }
-          }
+            if (today.DayOfWeek == DayOfWeek.Saturday && r.StartTime.DayOfWeek == DayOfWeek.Sunday)
+            {
+              // 日曜日のレースは土曜日発売
+              return true;
+            }
+            if (today.DayOfWeek == DayOfWeek.Friday && r.StartTime.DayOfWeek == DayOfWeek.Saturday && now.Hour >= 12)
+            {
+              // 夕方から売ってることがある
+              return true;
+            }
 
-          bool result;
-          if (r.Course <= RaceCourse.CentralMaxValue)
-          {
-            // 馬券が金曜日日販売になるのは一部のG1レースのみ
-            result = r.Grade == RaceGrade.Grade1 || r.Grade == RaceGrade.Grade2 || r.Grade == RaceGrade.Grade3;
+            if (!isDownloadAfterThursday)
+            {
+              if (today.AddDays(1) <= r.StartTime && r.StartTime < today.AddDays(2))
+              {
+                // とりあえず翌日のレースは全部取得
+                return true;
+              }
+            }
+
+            bool result;
+            if (r.Course <= RaceCourse.CentralMaxValue)
+            {
+              // 馬券が金曜日日販売になるのは一部のG1レースのみ
+              result = r.Grade == RaceGrade.Grade1 || r.Grade == RaceGrade.Grade2 || r.Grade == RaceGrade.Grade3;
+            }
+            else
+            {
+              result = r.Grade == RaceGrade.LocalGrade1 || r.Grade == RaceGrade.LocalGrade2 || r.Grade == RaceGrade.LocalGrade3 || r.Grade == RaceGrade.LocalNoNamedGrade;
+            }
+            return result;
           }
           else
           {
-            result = r.Grade == RaceGrade.LocalGrade1 || r.Grade == RaceGrade.LocalGrade2 || r.Grade == RaceGrade.LocalGrade3 || r.Grade == RaceGrade.LocalNoNamedGrade;
+            return r.StartTime.Date == start && r.Course >= RaceCourse.LocalMinValue;
           }
-          return result;
-        }
-        else
-        {
-          return r.StartTime.Date == start && r.Course >= RaceCourse.LocalMinValue;
-        }
-      }).ToArray();
+        }).ToArray();
 
-      var skiped = races.Skip(skipCount).ToArray();
-      if (!races.Any())
-      {
-        startIndex++;
-        skipCount = 0;
+        var skiped = races.Skip(skipCount).ToArray();
+        if (!races.Any())
+        {
+          startIndex++;
+          skipCount = 0;
+        }
+
+        logger.Info("リアルタイムデータのダウンロードを開始します");
+        for (var i = startIndex - 1; i < dataspecs.Length; i++)
+        {
+          logger.Info($"spec: {dataspecs[i]}");
+
+          var currentRaceIndex = 0;
+          var targets = races;
+          if (i == startIndex - 1)
+          {
+            targets = skiped;
+            currentRaceIndex = skipCount;
+          }
+
+          foreach (var race in targets)
+          {
+            var useKey = race.Key;
+            if (dataspecs[i] == JVLinkDataspec.RB14 || dataspecs[i] == JVLinkDataspec.RB12 || dataspecs[i] == JVLinkDataspec.RB15 || dataspecs[i] == JVLinkDataspec.RB11 || dataspecs[i] == JVLinkDataspec.RB13 || dataspecs[i] == JVLinkDataspec.RB17)
+            {
+              useKey = null;
+            }
+            else if (dataspecs[i] == JVLinkDataspec.RB30)
+            {
+              // オッズは各レースごとに落とすから時間がかかる。必要ないものは切り捨てる
+              if (race.DataStatus >= RaceDataStatus.PreliminaryGrade3)
+              {
+                continue;
+              }
+            }
+            else if (dataspecs[i] == JVLinkDataspec.RB41)
+            {
+              if (race.StartTime > now.AddMinutes(90))
+              {
+                continue;
+              }
+
+              // 発走直前の時系列オッズデータがあれば省略
+              var latestTimeline = oddsTImeline.Where(o => o.RaceKey == race.Key).OrderByDescending(o => o.Time).FirstOrDefault();
+              if (latestTimeline != null && !(race.Course <= RaceCourse.CentralMaxValue ? latestTimeline.Time < race.StartTime : latestTimeline.Time < race.StartTime.AddMinutes(-1)))
+              {
+                continue;
+              }
+            }
+
+            task.Parameter = $"{parameters[0]},{parameters[1]},{i + 1},{currentRaceIndex},{string.Join(',', parameters.Skip(4))}";
+            DownloaderTaskDataExtensions.Save(task);
+
+            CheckShutdown();
+
+            loader.StartLoad(link,
+              dataspecs[i],
+              JVLinkOpenOption.RealTime,
+              raceKey: useKey,
+              startTime: start,
+              endTime: null,
+              loadSpecs: null);
+
+            if (useKey == null)
+            {
+              break;
+            }
+            currentRaceIndex++;
+          }
+        }
       }
-
-      Console.WriteLine("realtime");
-      logger.Info("リアルタイムデータのダウンロードを開始します");
-      for (var i = startIndex - 1; i < dataspecs.Length; i++)
+      finally
       {
-        logger.Info($"spec: {dataspecs[i]}");
-
-        var currentRaceIndex = 0;
-        var targets = races;
-        if (i == startIndex - 1)
-        {
-          targets = skiped;
-          currentRaceIndex = skipCount;
-        }
-
-        foreach (var race in targets)
-        {
-          var useKey = race.Key;
-          if (dataspecs[i] == JVLinkDataspec.RB14 || dataspecs[i] == JVLinkDataspec.RB12 || dataspecs[i] == JVLinkDataspec.RB15 || dataspecs[i] == JVLinkDataspec.RB11 || dataspecs[i] == JVLinkDataspec.RB13 || dataspecs[i] == JVLinkDataspec.RB17)
-          {
-            useKey = null;
-          }
-          else if (dataspecs[i] == JVLinkDataspec.RB30)
-          {
-            // オッズは各レースごとに落とすから時間がかかる。必要ないものは切り捨てる
-            if (race.DataStatus >= RaceDataStatus.PreliminaryGrade3)
-            {
-              continue;
-            }
-          }
-          else if (dataspecs[i] == JVLinkDataspec.RB41)
-          {
-            if (race.StartTime > now.AddMinutes(90))
-            {
-              continue;
-            }
-
-            // 発走直前の時系列オッズデータがあれば省略
-            var latestTimeline = oddsTImeline.Where(o => o.RaceKey == race.Key).OrderByDescending(o => o.Time).FirstOrDefault();
-            if (latestTimeline != null && !(race.Course <= RaceCourse.CentralMaxValue ? latestTimeline.Time < race.StartTime : latestTimeline.Time < race.StartTime.AddMinutes(-1)))
-            {
-              continue;
-            }
-          }
-
-          task.Parameter = $"{parameters[0]},{parameters[1]},{i + 1},{currentRaceIndex},{string.Join(',', parameters.Skip(4))}";
-          await db.SaveChangesAsync();
-          CheckShutdown(db);
-
-          loader.StartLoad(link,
-            dataspecs[i],
-            JVLinkOpenOption.RealTime,
-            raceKey: useKey,
-            startTime: start,
-            endTime: null,
-            loadSpecs: null);
-
-          if (useKey == null)
-          {
-            break;
-          }
-          currentRaceIndex++;
-        }
+        db?.Dispose();
       }
     }
   }
