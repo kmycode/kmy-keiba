@@ -33,7 +33,7 @@ namespace KmyKeiba.Downloader
           logger.Warn($"前回のホストプログラム {processId} の起動を検出できませんでした");
         }
       }
-      File.WriteAllText(Constrants.RTHostFilePath, Process.GetCurrentProcess().Id.ToString());
+      File.WriteAllText(Constrants.RTHostFilePath, Environment.ProcessId.ToString());
 
       logger.Info("ホストプロセスを開始します");
       isHost = true;
@@ -60,7 +60,6 @@ namespace KmyKeiba.Downloader
               currentTask = task;
 
               logger.Info($"新しいタスク {task.Id} を検出");
-              Console.WriteLine($"タスク {task.Id} を開始します\n");
             }
 
             if (task.Command == DownloaderCommand.DownloadRealTimeData)
@@ -73,7 +72,7 @@ namespace KmyKeiba.Downloader
           CheckCurrentTasks();
 
           CheckShutdown(isForce: true);
-          Console.WriteLine("[HOST] Waiting new tasks... ");
+          logger.Debug("新しいタスクを待機中...");
           Task.Delay(1000).Wait();
         }
         catch (Exception ex)

@@ -357,10 +357,6 @@ namespace KmyKeiba.Downloader
         }
       });
 
-      // while (!loadTask.IsCompleted && loadException == null)
-      // {
-      // }
-
       this.LoadSize = reader.ReadCount;
       logger.Info($"データのロードを開始します　ロード数: {reader.ReadCount}");
       this.Process = LoadProcessing.Loading;
@@ -387,7 +383,7 @@ namespace KmyKeiba.Downloader
           var loadStartTime = DateTime.Now;
           logger.Info("ロード完了");
 
-          await LoadAfterAsync(data, isProcessing, isRealtime);
+          await LoadAfterAsync(data, isRealtime);
         });
       }
     }
@@ -448,7 +444,7 @@ namespace KmyKeiba.Downloader
       logger.Info("ロード処理が正常に完了しました");
     }
 
-    private async Task LoadAfterAsync(JVLinkReaderData data, bool isProcessing, bool isRealtime)
+    private async Task LoadAfterAsync(JVLinkReaderData data, bool isRealtime)
     {
       var saved = 0;
       this.SaveSize = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count
@@ -778,7 +774,7 @@ namespace KmyKeiba.Downloader
             extra.SetData(horse.Key, item.Key, horse.Number, item.Value.MiningTime, item.Value.MiningMatch);
           }
 
-          if (adds.Any())
+          if (adds.Count > 0)
           {
             await db.RaceHorseExtras!.AddRangeAsync(adds);
           }
@@ -793,7 +789,7 @@ namespace KmyKeiba.Downloader
       }
 
       // 単勝オッズを設定する（時系列オッズでない場合）
-      if (!this._specs.HasFlag(JVLinkDataspec.RB41) && data.SingleAndDoubleWinOdds.Any())
+      if (!this._specs.HasFlag(JVLinkDataspec.RB41) && data.SingleAndDoubleWinOdds.Count > 0)
       {
         var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.Value.RaceKey).ToArray();
         var oddsRaceHorses = await db.RaceHorses!
@@ -820,7 +816,7 @@ namespace KmyKeiba.Downloader
             oddsRaceHorses.Remove(horse);
           }
 
-          if (!oddsRaceHorses.Any())
+          if (oddsRaceHorses.Count == 0)
           {
             break;
           }

@@ -30,7 +30,7 @@ namespace KmyKeiba.Downloader
       Directory.CreateDirectory(Constrants.DownloaderTaskDataDir);
 
       log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo(Path.Combine(selfPathDir, "log4net.config")));
-      log4net.GlobalContext.Properties["pid"] = System.Diagnostics.Process.GetCurrentProcess().Id;
+      log4net.GlobalContext.Properties["pid"] = Environment.ProcessId;
 
       logger.Info("================================");
       logger.Info("==                            ==");
@@ -57,8 +57,6 @@ namespace KmyKeiba.Downloader
 
       Application.EnableVisualStyles();
 
-      Console.WriteLine("\n\n\n============= Start Program ==============\n");
-
       if (args.FirstOrDefault() != "kill")
       {
         object oldArgs = args;
@@ -76,7 +74,6 @@ namespace KmyKeiba.Downloader
         }
       }
       logger.Info($"コマンドラインパラメータ: {string.Join(',', args)}");
-      Console.WriteLine(string.Join(',', args));
 
       // JV-LinkのIDを設定
       var softwareId = InjectionManager.GetInstance<ICentralSoftwareIdGetter>(InjectionManager.CentralSoftwareIdGetter);
@@ -442,7 +439,7 @@ namespace KmyKeiba.Downloader
     private static void SetCurrentTask(DownloaderTaskData task)
     {
       currentTask = task;
-      SetTask(task, t => t.ProcessId = Process.GetCurrentProcess().Id);
+      SetTask(task, t => t.ProcessId = Environment.ProcessId);
     }
 
     [DllImport("user32.dll")]

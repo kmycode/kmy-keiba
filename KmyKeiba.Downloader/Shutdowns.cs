@@ -146,9 +146,6 @@ namespace KmyKeiba.Downloader
         return;
       }
 
-      Console.WriteLine();
-      Console.WriteLine();
-
       var shellParams = new List<string>();
       var parameters = currentTask.Parameter.Split(',');
 
@@ -241,8 +238,6 @@ namespace KmyKeiba.Downloader
       catch (Exception ex)
       {
         logger.Error("プロセス起動でエラーが発生しました", ex);
-        Console.WriteLine(ex.Message);
-        Console.WriteLine(ex.StackTrace);
 
         currentTask.IsFinished = true;
         currentTask.Error = DownloaderError.ApplicationRuntimeError;
