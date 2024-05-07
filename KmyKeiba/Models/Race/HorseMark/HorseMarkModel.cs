@@ -41,7 +41,7 @@ namespace KmyKeiba.Models.Race.HorseMark
     {
       if (marks == null)
       {
-        marks = this.Rows.Where(r => r.IsCustomMark).SelectMany(r => r.Cells).Select(c => c.Data);
+        marks = this.Rows.Where(r => r.IsCustomMark).SelectMany(r => r.Cells).Select(c => c.Data).ToArray();
       }
 
       var targetRows = this.Rows.Where(r => r.IsCustomMark).ToArray();
