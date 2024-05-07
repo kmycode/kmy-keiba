@@ -73,18 +73,27 @@ namespace KmyKeiba.JVLink.Entities
         {
           // 重賞or特別レースでは未勝利や新馬のような情報を表示する余裕がない
           // でも高知がたまに特別レースという名の新馬戦をぶちこんでくるので、特別レースは扱いを分ける
-          if (displayClass is RaceGrade &&
-            displayClass is not RaceGrade.LocalNonGradeSpecial &&
-            displayClass is not RaceGrade.NonGradeSpecial &&
-            displayClass is not RaceGrade.Listed &&
-            displayClass is not RaceGrade.LocalListed)
+          if (displayClass is RaceGrade grade)
           {
-            if (maxClass == RaceClass.Age)
+            if (grade != RaceGrade.Listed &&
+              grade != RaceGrade.LocalListed)
             {
-              // 年齢制限特別レースで年齢制限の表示ぷっちゃけいらない
-              return null;
+              if (grade != RaceGrade.LocalGrade1 &&
+                grade != RaceGrade.LocalGrade1_UC &&
+                grade != RaceGrade.LocalGrade2 &&
+                grade != RaceGrade.LocalGrade2_UC &&
+                grade != RaceGrade.LocalGrade3 &&
+                grade != RaceGrade.LocalGrade3_UC &&
+                grade != RaceGrade.LocalNoNamedGrade &&
+                grade != RaceGrade.LocalGrade_UC)
+              {
+                return maxClass;
+              }
+              else
+              {
+                return null;
+              }
             }
-            return maxClass;
           }
 
           if (this.IsNotWon)
@@ -138,12 +147,22 @@ namespace KmyKeiba.JVLink.Entities
     {
       get
       {
-        if (this.DisplayClass is RaceGrade grade)
+        var isLocalSpecial = false;
+        var displayClass = this.DisplayClass;
+
+        if (displayClass is RaceGrade grade)
         {
-          return grade.GetLabel();
+          isLocalSpecial = grade == RaceGrade.LocalNonGradeSpecial;
+
+          if (!isLocalSpecial)
+          {
+            return grade.GetLabel();
+          }
+
+          displayClass = this.SecondaryClass;
         }
 
-        if (this.DisplayClass is RaceClass cls)
+        if (displayClass is RaceClass cls)
         {
           if (cls == RaceClass.Age && this.AgeSubjects.Any())
           {
@@ -173,7 +192,7 @@ namespace KmyKeiba.JVLink.Entities
         }
 
         if (this.Grade != RaceGrade.Unknown && this.Grade != RaceGrade.Others &&
-          (string.IsNullOrEmpty(this.Name) || this.Grade != RaceGrade.NonGradeSpecial))
+          (string.IsNullOrEmpty(this.Name) || (this.Grade != RaceGrade.NonGradeSpecial && this.Grade != RaceGrade.LocalNonGradeSpecial)))
         {
           return this.Grade.GetLabel();
         }

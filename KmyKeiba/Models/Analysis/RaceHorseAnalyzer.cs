@@ -46,13 +46,7 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<FinderModel?> FinderModel { get; } = new();
 
-    public RaceHorseBloodTrendAnalysisSelectorMenu? BloodSelectors { get; init; }
-
-    public RaceHorseTrendAnalysisSelector? TrendAnalyzers { get; init; }
-
-    public RaceRiderTrendAnalysisSelector? RiderTrendAnalyzers { get; set; }
-
-    public RaceTrainerTrendAnalysisSelector? TrainerTrendAnalyzers { get; init; }
+    public RaceHorseBloodModel? BloodSelectors { get; init; }
 
     public ReactiveProperty<TrainingAnalyzer?> Training { get; } = new();
 
@@ -677,9 +671,6 @@ namespace KmyKeiba.Models.Analysis
     {
       this._disposables.Dispose();
       this.BloodSelectors?.Dispose();
-      this.RiderTrendAnalyzers?.Dispose();
-      this.TrainerTrendAnalyzers?.Dispose();
-      this.TrendAnalyzers?.Dispose();
       this.FinderModel.Value?.Dispose();
 
       if (this.History != null)

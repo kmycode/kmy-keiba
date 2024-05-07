@@ -239,11 +239,6 @@ namespace KmyKeiba.Models.Race.Finder
       return new FinderQueryResult<RaceAnalyzer>(list, raceQueries.GroupKey, raceQueries.MemoGroupInfo);
     }
 
-    public RaceHorseTrendAnalysisSelectorWrapper AsTrendAnalysisSelector()
-    {
-      return new RaceHorseTrendAnalysisSelectorWrapper(this);
-    }
-
     public void Dispose()
     {
     }

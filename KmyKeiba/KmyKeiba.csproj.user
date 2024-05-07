@@ -25,12 +25,6 @@
     <Compile Update="Views\Details\RaceView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Details\TrendAnalyzerAnalysisView.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Views\Details\TrendAnalyzerView.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Update="Views\Dialogs\AppSettingDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -187,12 +181,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Details\RaceView.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\Details\TrendAnalyzerAnalysisView.xaml">
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Views\Details\TrendAnalyzerView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Dialogs\AppSettingDialog.xaml">

@@ -87,11 +87,6 @@ namespace KmyKeiba.Models.Race.Finder
       return null;
     }
 
-    public RaceHorseTrendAnalysisSelectorWrapper AsTrendAnalysisSelector()
-    {
-      return this._finder.AsTrendAnalysisSelector();
-    }
-
     public void CopyFrom(RaceFinder others)
     {
       CopyFrom(others, others._finder.Race, others._finder.RaceHorse, others._finder.RaceHorseAnalyzer);

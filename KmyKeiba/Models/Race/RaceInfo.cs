@@ -66,10 +66,6 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveCollection<RaceCourseDetail> CourseDetails { get; } = new();
 
-    public RaceTrendAnalysisSelector TrendAnalyzers { get; }
-
-    public RaceWinnerHorseTrendAnalysisSelector WinnerTrendAnalyzers { get; }
-
     public ReactiveCollection<RaceHorseAnalyzer> Horses { get; } = new();
 
     public ReactiveCollection<RaceHorseAnalyzer> HorsesResultOrdered { get; } = new();
@@ -172,8 +168,6 @@ namespace KmyKeiba.Models.Race
       this.HasHaronTimes = race.AfterHaronTime3 != default || race.AfterHaronTime4 != default ||
         race.BeforeHaronTime3 != default || race.BeforeHaronTime4 != default;
 
-      this.TrendAnalyzers = new RaceTrendAnalysisSelector(race);
-      this.WinnerTrendAnalyzers = new RaceWinnerHorseTrendAnalysisSelector(race);
       this.Finder = new RaceFinder(race);
       this.CourseSummaryImage.Race = race;
 
@@ -571,7 +565,6 @@ namespace KmyKeiba.Models.Race
     {
       this._disposables.Dispose();
       this.RaceAnalyzer.Value?.Dispose();
-      this.TrendAnalyzers.Dispose();
       this.AnalysisTable.Value?.Dispose();
       this.Finder.Dispose();
       this.FinderModel.Value?.Dispose();
@@ -792,5 +785,20 @@ namespace KmyKeiba.Models.Race
 
     [Label("購入に失敗した可能性があります")]
     Failed,
+  }
+
+  [Flags]
+  public enum RaceUpdateType
+  {
+    None = 0,
+    Weather = 1,
+    Condition = 2,
+    Distance = 4,
+    Ground = 8,
+    Odds = 16,
+    Option = 32,
+    CornerDirection = 64,
+    Subject = 128,
+    All = int.MaxValue,
   }
 }

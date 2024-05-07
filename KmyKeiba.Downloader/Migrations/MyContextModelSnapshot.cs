@@ -38,7 +38,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AnalysisTables");
+                    b.ToTable("AnalysisTables", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.AnalysisTableRowData", b =>
@@ -110,7 +110,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AnalysisTableRows");
+                    b.ToTable("AnalysisTableRows", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.AnalysisTableScriptData", b =>
@@ -135,7 +135,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AnalysisTableScripts");
+                    b.ToTable("AnalysisTableScripts", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.AnalysisTableWeightData", b =>
@@ -156,7 +156,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AnalysisTableWeights");
+                    b.ToTable("AnalysisTableWeights", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.AnalysisTableWeightRowData", b =>
@@ -189,7 +189,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AnalysisTableWeightRows");
+                    b.ToTable("AnalysisTableWeightRows", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.BornHorseData", b =>
@@ -334,7 +334,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("Code", "MFBreedingCode");
 
-                    b.ToTable("BornHorses");
+                    b.ToTable("BornHorses", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.CheckHorseData", b =>
@@ -368,7 +368,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CheckHorses");
+                    b.ToTable("CheckHorses", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.DelimiterData", b =>
@@ -389,7 +389,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Delimiters");
+                    b.ToTable("Delimiters", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.DelimiterRowData", b =>
@@ -416,7 +416,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DelimiterRows");
+                    b.ToTable("DelimiterRows", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.ExactaOddsData", b =>
@@ -447,7 +447,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey");
 
-                    b.ToTable("ExactaOdds");
+                    b.ToTable("ExactaOdds", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.ExpansionMemoConfig", b =>
@@ -495,7 +495,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MemoConfigs");
+                    b.ToTable("MemoConfigs", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.ExternalNumberConfig", b =>
@@ -538,7 +538,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ExternalNumberConfigs");
+                    b.ToTable("ExternalNumberConfigs", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.ExternalNumberData", b =>
@@ -573,7 +573,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey");
 
-                    b.ToTable("ExternalNumbers");
+                    b.ToTable("ExternalNumbers", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.FinderConfigData", b =>
@@ -598,7 +598,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FinderConfigs");
+                    b.ToTable("FinderConfigs", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.FrameNumberOddsData", b =>
@@ -629,7 +629,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey");
 
-                    b.ToTable("FrameNumberOdds");
+                    b.ToTable("FrameNumberOdds", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.HorseBloodData", b =>
@@ -690,7 +690,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("Key", "Code");
 
-                    b.ToTable("HorseBloods");
+                    b.ToTable("HorseBloods", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.HorseBloodInfoData", b =>
@@ -723,7 +723,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("Key");
 
-                    b.ToTable("HorseBloodInfos");
+                    b.ToTable("HorseBloodInfos", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.HorseData", b =>
@@ -875,7 +875,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("Code", "MFBreedingCode");
 
-                    b.ToTable("Horses");
+                    b.ToTable("Horses", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.HorseMarkConfigData", b =>
@@ -899,7 +899,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HorseMarkConfigs");
+                    b.ToTable("HorseMarkConfigs", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.HorseMarkData", b =>
@@ -932,7 +932,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey");
 
-                    b.ToTable("HorseMarks");
+                    b.ToTable("HorseMarks", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.JrdbRaceHorseData", b =>
@@ -1278,7 +1278,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey", "Key");
 
-                    b.ToTable("JrdbRaceHorses");
+                    b.ToTable("JrdbRaceHorses", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.LearningDataCache", b =>
@@ -1304,7 +1304,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LearningDataCaches");
+                    b.ToTable("LearningDataCaches", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.MemoData", b =>
@@ -1360,7 +1360,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("Point", "Target1", "Key1");
 
-                    b.ToTable("Memos");
+                    b.ToTable("Memos", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.PointLabelData", b =>
@@ -1385,7 +1385,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PointLabels");
+                    b.ToTable("PointLabels", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.QuinellaOddsData", b =>
@@ -1416,7 +1416,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey");
 
-                    b.ToTable("QuinellaOdds");
+                    b.ToTable("QuinellaOdds", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.QuinellaPlaceOddsData", b =>
@@ -1451,7 +1451,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey");
 
-                    b.ToTable("QuinellaPlaceOdds");
+                    b.ToTable("QuinellaPlaceOdds", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.RaceChangeData", b =>
@@ -1479,7 +1479,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RaceChanges");
+                    b.ToTable("RaceChanges", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.RaceData", b =>
@@ -1679,7 +1679,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("StartTime");
 
-                    b.ToTable("Races");
+                    b.ToTable("Races", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.RaceHorseData", b =>
@@ -1881,7 +1881,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("TrainerCode");
 
-                    b.ToTable("RaceHorses");
+                    b.ToTable("RaceHorses", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.RaceHorseExtraData", b =>
@@ -2080,7 +2080,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey", "Key");
 
-                    b.ToTable("RaceHorseExtras");
+                    b.ToTable("RaceHorseExtras", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.RaceStandardTimeMasterData", b =>
@@ -2189,7 +2189,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("Course");
 
-                    b.ToTable("RaceStandardTimes");
+                    b.ToTable("RaceStandardTimes", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.RefundData", b =>
@@ -2513,7 +2513,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey");
 
-                    b.ToTable("Refunds");
+                    b.ToTable("Refunds", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.RiderData", b =>
@@ -2591,7 +2591,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Riders");
+                    b.ToTable("Riders", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.RiderWinRateMasterData", b =>
@@ -2674,7 +2674,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RiderCode");
 
-                    b.ToTable("RiderWinRates");
+                    b.ToTable("RiderWinRates", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.SingleOddsTimeline", b =>
@@ -2709,7 +2709,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey");
 
-                    b.ToTable("SingleOddsTimelines");
+                    b.ToTable("SingleOddsTimelines", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.SystemData", b =>
@@ -2730,7 +2730,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SystemData");
+                    b.ToTable("SystemData", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.TicketData", b =>
@@ -2778,7 +2778,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey");
 
-                    b.ToTable("Tickets");
+                    b.ToTable("Tickets", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.TrainerData", b =>
@@ -2831,7 +2831,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Trainers");
+                    b.ToTable("Trainers", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.TrainingData", b =>
@@ -2876,7 +2876,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("HorseKey");
 
-                    b.ToTable("Trainings");
+                    b.ToTable("Trainings", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.TrifectaOddsData", b =>
@@ -2907,7 +2907,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey");
 
-                    b.ToTable("TrifectaOdds");
+                    b.ToTable("TrifectaOdds", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.TrioOddsData", b =>
@@ -2938,7 +2938,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("RaceKey");
 
-                    b.ToTable("TrioOdds");
+                    b.ToTable("TrioOdds", (string)null);
                 });
 
             modelBuilder.Entity("KmyKeiba.Data.Db.WoodtipTrainingData", b =>
@@ -3007,7 +3007,7 @@ namespace KmyKeiba.Downloader.Migrations
 
                     b.HasIndex("HorseKey");
 
-                    b.ToTable("WoodtipTrainings");
+                    b.ToTable("WoodtipTrainings", (string)null);
                 });
 #pragma warning restore 612, 618
         }

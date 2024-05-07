@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Analysis
 {
-  public class RaceHorseBloodTrendAnalysisSelectorMenu : IDisposable
+  public class RaceHorseBloodModel : IDisposable
   {
     private readonly CompositeDisposable _disposables = new();
     private Dictionary<BloodType, string>? _bloodCode;
@@ -51,7 +51,7 @@ namespace KmyKeiba.Models.Analysis
 
     public bool IsRequestedInitialization => this._bloodCode == null;
 
-    public RaceHorseBloodTrendAnalysisSelectorMenu(RaceData race, RaceHorseData horse)
+    public RaceHorseBloodModel(RaceData race, RaceHorseData horse)
     {
       this.Race = race;
       this.RaceHorse = horse;
@@ -68,11 +68,11 @@ namespace KmyKeiba.Models.Analysis
           using var db = new MyContext();
           if (item.IsChecked.Value)
           {
-            await CheckHorseUtil.CheckAsync(db, item.Key, HorseCheckType.CheckBlood);
+            await CheckHorseUtil.CheckAsync(db, item.BloodKey, HorseCheckType.CheckBlood);
           }
           else
           {
-            await CheckHorseUtil.UncheckAsync(db, item.Key, HorseCheckType.CheckBlood);
+            await CheckHorseUtil.UncheckAsync(db, item.BloodKey, HorseCheckType.CheckBlood);
           }
 
           this.UpdateGenerationRates();
@@ -109,7 +109,7 @@ namespace KmyKeiba.Models.Analysis
         .AddTo(this._disposables);
     }
 
-    public void CopyFrom(RaceHorseBloodTrendAnalysisSelectorMenu old)
+    public void CopyFrom(RaceHorseBloodModel old)
     {
       if (old.IsRequestedInitialization)
       {
@@ -122,13 +122,12 @@ namespace KmyKeiba.Models.Analysis
         var items = new List<MenuItem>();
         foreach (var oldItem in old.MenuItems)
         {
-          var item = new MenuItem(new RaceHorseBloodTrendAnalysisSelector(this, this.Race, this.RaceHorse, oldItem.Selector.RelativeKey, oldItem.Selector.Name, oldItem.Type, oldItem.Selector.BloodKey))
+          var item = new MenuItem(oldItem.Name, oldItem.BloodKey)
           {
             Type = oldItem.Type,
             IsEnabled = oldItem.IsEnabled,
             IsChecked = { Value = oldItem.IsChecked.Value, },
           };
-          item.Selector.CopyFrom(oldItem.Selector);
           items.Add(item);
         }
         this.SetMenu(items);
@@ -154,11 +153,6 @@ namespace KmyKeiba.Models.Analysis
       }
       else
       {
-        foreach (var item in old.MenuItems
-          .Join(this.MenuItems, o => o.Type, n => n.Type, (o, n) => new { Old = o, New = n, }))
-        {
-          item.New.Selector.CopyFrom(item.Old.Selector);
-        }
       }
     }
 
@@ -171,7 +165,7 @@ namespace KmyKeiba.Models.Analysis
 
     public bool IsExistsHorseName(string name)
     {
-      return this.MenuItems.Any(i => i.Selector.Name == name);
+      return this.MenuItems.Any(i => i.Name == name);
     }
 
     public async Task InitializeBloodListAsync(MyContext db)
@@ -301,7 +295,7 @@ namespace KmyKeiba.Models.Analysis
           .Where(h => !string.IsNullOrEmpty(h.Name)))
         {
           this._horseKey.Add(d.Type, d.Key);
-          items.Add(new MenuItem(new RaceHorseBloodTrendAnalysisSelector(this, this.Race, this.RaceHorse, d.Key, d.Name, d.Type, d.BloodKey))
+          items.Add(new MenuItem(d.Name, d.BloodKey)
           {
             Type = d.Type,
             IsEnabled = !d.Key.All(k => k == '0'),
@@ -381,7 +375,7 @@ namespace KmyKeiba.Models.Analysis
       {
         return new GeneralBloodItem
         {
-          Key = await HorseBloodUtil.GetBloodCodeFromCodeAsync(db!, targetKey, type),
+          BloodKey = await HorseBloodUtil.GetBloodCodeFromCodeAsync(db!, targetKey, type),
           Name = await HorseBloodUtil.GetNameFromCodeAsync(db!, targetKey, type),
           IsMale = isMale,
         };
@@ -408,9 +402,9 @@ namespace KmyKeiba.Models.Analysis
       async Task SetTypeAsync(int index, BloodType type)
       {
         var item = this.MenuItems.FirstOrDefault(i => i.Type == type);
-        if (!string.IsNullOrEmpty(item?.Selector.Name))
+        if (!string.IsNullOrEmpty(item?.Name))
         {
-          await SetGenerationsAsync(item.Selector.BloodKey, index);
+          await SetGenerationsAsync(item.BloodKey, index);
         }
         else
         {
@@ -494,7 +488,7 @@ namespace KmyKeiba.Models.Analysis
       {
         foreach (var name in names)
         {
-          if (!CheckHorseUtil.IsChecked(name.Key, HorseCheckType.CheckBlood))
+          if (!CheckHorseUtil.IsChecked(name.BloodKey, HorseCheckType.CheckBlood))
           {
             if (name.IsChecked.Value)
             {
@@ -530,29 +524,11 @@ namespace KmyKeiba.Models.Analysis
       });
     }
 
-    public RaceHorseBloodTrendAnalysisSelector? GetSelector(BloodType type)
-    {
-      return this.MenuItems.FirstOrDefault(i => i.Type == type)?.Selector;
-    }
-
-    public RaceHorseBloodTrendAnalysisSelector? GetSelector(string scriptType)
-    {
-      var type = HorseBloodUtil.ToBloodType(scriptType);
-      return this.GetSelector(type);
-    }
-
-    public async Task<RaceHorseBloodTrendAnalysisSelector> GetSelectorForceAsync(string scriptType)
-    {
-      using var db = new MyContext();
-      await this.InitializeBloodListAsync(db);
-      return this.GetSelector(scriptType) ?? new RaceHorseBloodTrendAnalysisSelector(this, this.Race, this.RaceHorse, string.Empty, string.Empty, BloodType.Unknown, string.Empty);
-    }
-
     public interface IBloodCheckableItem : IMultipleCheckableItem
     {
       string Name { get; }
 
-      string Key { get; }
+      string BloodKey { get; }
 
       bool IsMale { get; }
     }
@@ -567,19 +543,18 @@ namespace KmyKeiba.Models.Analysis
 
       public bool IsEnabled { get; set; }
 
-      public string Name => this.Selector.Name;
+      public string Name { get; init; }
 
-      public string Key => this.Selector.BloodKey;
+      public string BloodKey { get; init; }
 
       public bool IsMale => this.Type == BloodType.Father || this.Type == BloodType.FatherFather || this.Type == BloodType.FatherFatherFather ||
         this.Type == BloodType.FatherMotherFather || this.Type == BloodType.MotherFather || this.Type == BloodType.MotherFatherFather ||
         this.Type == BloodType.MotherMotherFather;
 
-      public RaceHorseBloodTrendAnalysisSelector Selector { get; }
-
-      public MenuItem(RaceHorseBloodTrendAnalysisSelector selector)
+      public MenuItem(string name, string key)
       {
-        this.Selector = selector;
+        this.Name = name;
+        this.BloodKey = key;
       }
     }
 
@@ -591,11 +566,11 @@ namespace KmyKeiba.Models.Analysis
 
       public string Name { get; init; } = string.Empty;
 
-      public string Key { get; init; } = string.Empty;
+      public string BloodKey { get; init; } = string.Empty;
 
       public bool IsMale { get; init; }
 
-      public bool IsDisabled => string.IsNullOrEmpty(this.Key);
+      public bool IsDisabled => string.IsNullOrEmpty(this.BloodKey);
     }
 
     public class GenerationBloodItem
@@ -603,455 +578,6 @@ namespace KmyKeiba.Models.Analysis
       public string Name { get; init; } = string.Empty;
 
       public double Rate { get; set; }
-    }
-  }
-
-  public class RaceHorseBloodTrendAnalysisSelector : TrendAnalysisSelector<RaceHorseBloodTrendAnalysisSelector.Key, RaceHorseBloodTrendAnalyzer>
-  {
-    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
-
-    public enum Key
-    {
-      [IgnoreKey]
-      [ScriptParameterKey("self")]
-      BloodHorseSelf,      // 血統馬自身を指定するために内部でAnalyzerを管理する便宜上のキー
-
-      [Label("コース")]
-      [ScriptParameterKey("course")]
-      SameCourse,
-
-      [Label("地面")]
-      [ScriptParameterKey("ground")]
-      SameGround,
-
-      [Label("馬場状態")]
-      [ScriptParameterKey("condition")]
-      SameCondition,
-
-      [Label("天気")]
-      [ScriptParameterKey("weather")]
-      SameWeather,
-
-      [Label("条件")]
-      [ScriptParameterKey("subject")]
-      SameSubject,
-
-      [Label("格")]
-      [ScriptParameterKey("grade")]
-      SameGrade,
-
-      [Label("季節")]
-      [ScriptParameterKey("season")]
-      [IgnoreKey]
-      SameSeason,
-
-      [Label("距離")]
-      [ScriptParameterKey("distance")]
-      NearDistance,
-
-      [Label("向き")]
-      [ScriptParameterKey("direction")]
-      SameDirection,
-
-      [Label("複勝")]
-      [ScriptParameterKey("placebits")]
-      [GroupName("ResultOrder")]
-      PlaceBets,
-
-      [Label("着外")]
-      [ScriptParameterKey("losed")]
-      [GroupName("ResultOrder")]
-      Losed,
-
-      [Label("間隔")]
-      [ScriptParameterKey("interval")]
-      NearInterval,
-
-      [Label("年齢")]
-      [ScriptParameterKey("age")]
-      SameAge,
-
-      [Label("運営")]
-      [ScriptParameterKey("region")]
-      SameRegion,
-
-      [Label("重賞")]
-      [ScriptParameterKey("grades")]
-      Grades,
-
-      [Label("枠")]
-      [ScriptParameterKey("frame")]
-      Frame,
-
-      [Label("オッズ")]
-      [ScriptParameterKey("odds")]
-      [NotCacheKeyUntilRace]
-      Odds,
-    }
-
-    private IReadOnlyList<RaceHorseAnalyzer>? _allRaces;
-    private readonly CompositeDisposable _disposables = new();
-
-    public override string Name { get; }
-
-    public string BloodKey { get; }
-
-    public string RelativeKey { get; }
-
-    public override RaceData Race { get; }
-
-    public RaceHorseData RaceHorse { get; }
-
-    public RaceHorseBloodTrendAnalysisSelectorMenu Menu { get; }
-
-    public BloodType Type { get; }
-
-    public ReactiveProperty<bool> IsSameChildren { get; } = new(true);
-
-    protected override bool IsAutoLoad => false;
-
-    public RaceHorseBloodTrendAnalysisSelector(RaceHorseBloodTrendAnalysisSelectorMenu menu, RaceData race, RaceHorseData horse, string relativeKey, string relativeName, BloodType type, string bloodKey) : base(typeof(Key))
-    {
-      this.Menu = menu;
-      this.Race = race;
-      this.RaceHorse = horse;
-      this.RelativeKey = relativeKey;
-      this.Name = relativeName;
-      this.Type = type;
-      this.BloodKey = bloodKey;
-
-      this.IsSameChildren.Subscribe(isChecked =>
-      {
-        var item = this.IgnoreKeys.FirstOrDefault(k => k.Key == Key.BloodHorseSelf);
-        if (item != null)
-        {
-          item.IsChecked.Value = !isChecked;
-        }
-      }).AddTo(this._disposables);
-
-      base.OnFinishedInitialization();
-    }
-
-    protected override RaceHorseBloodTrendAnalyzer GenerateAnalyzer(int sizeMax)
-    {
-      return new RaceHorseBloodTrendAnalyzer(sizeMax, this.Race, this.RaceHorse);
-    }
-
-    protected override async Task InitializeAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseBloodTrendAnalyzer analyzer, int sizeMax, int offset, bool isLoadSameHorses)
-    {
-      if (keys.Contains(Key.BloodHorseSelf))
-      {
-        await this.InitializeBloodAnalyzerAsync(db, keys, analyzer, sizeMax, offset, isLoadSameHorses);
-        return;
-      }
-
-      /*
-      var query = db.Races!
-        .Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType)
-        .Join(db.RaceHorses!, r => r.Key, rh => rh.RaceKey, (r, rh) => new { Race = r, RaceHorse = rh, })
-        .Where(d => d.RaceHorse.RiderCode == this.RaceHorse.RiderCode);
-      */
-      var query = db.RaceHorses!
-        .Join(db.Races!.Where(r => r.StartTime < this.Race.StartTime && r.DataStatus != RaceDataStatus.Canceled && r.TrackType == this.Race.TrackType),
-          rh => rh.RaceKey, r => r.Key, (rh, r) => new { RaceHorse = rh, Race = r, });
-
-      IQueryable<HorseData> q1 = db.Horses!.Where(h => h.Id == 0);
-      IQueryable<BornHorseData> q2 = db.BornHorses!.Where(h => h.Id == 0);
-      
-      if (this.Type == BloodType.Father)
-      {
-        q1 = db.Horses!.Where(h => h.FatherBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.FatherBreedingCode == this.BloodKey);
-      }
-      else if (this.Type == BloodType.FatherFather)
-      {
-        q1 = db.Horses!.Where(h => h.FFBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.FFBreedingCode == this.BloodKey);
-      }
-      else if (this.Type == BloodType.FatherFatherFather)
-      {
-        q1 = db.Horses!.Where(h => h.FFFBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.FFFBreedingCode == this.BloodKey);
-      }
-      else if (this.Type == BloodType.FatherFatherMother)
-      {
-        q1 = db.Horses!.Where(h => h.FFMBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.FFMBreedingCode == this.BloodKey);
-      }
-      else if (this.Type == BloodType.FatherMother)
-      {
-        q1 = db.Horses!.Where(h => h.FMBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.FMBreedingCode == this.BloodKey);
-      }
-      else if (this.Type == BloodType.FatherMotherFather)
-      {
-        q1 = db.Horses!.Where(h => h.FMFBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.FMFBreedingCode == this.BloodKey);
-      }
-      else if (this.Type == BloodType.FatherMotherMother)
-      {
-        q1 = db.Horses!.Where(h => h.FMMBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.FMMBreedingCode == this.BloodKey);
-      }
-      else if (this.Type == BloodType.Mother)
-      {
-        q1 = db.Horses!.Where(h => h.MotherBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.MotherBreedingCode == this.BloodKey);
-      }
-      else if (this.Type == BloodType.MotherFather)
-      {
-        q1 = db.Horses!.Where(h => h.MFBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.MFBreedingCode == this.BloodKey);
-      }
-      else if (this.Type == BloodType.MotherFatherFather)
-      {
-        q1 = db.Horses!.Where(h => h.MFFBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.MFFBreedingCode == this.BloodKey);
-      }
-      else if (this.Type == BloodType.MotherFatherMother)
-      {
-        q1 = db.Horses!.Where(h => h.MFMBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.MFMBreedingCode == this.BloodKey);
-      }
-      else if (this.Type == BloodType.MotherMother)
-      {
-        q1 = db.Horses!.Where(h => h.MMBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.MMBreedingCode == this.BloodKey);
-      }
-      else if (this.Type == BloodType.MotherMotherFather)
-      {
-        q1 = db.Horses!.Where(h => h.MMFBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.MMFBreedingCode == this.BloodKey);
-      }
-      else if (this.Type == BloodType.MotherMotherMother)
-      {
-        q1 = db.Horses!.Where(h => h.MMMBreedingCode == this.BloodKey);
-        q2 = db.BornHorses!.Where(h => h.MMMBreedingCode == this.BloodKey);
-      }
-      else
-      {
-
-      }
-
-      if (keys.Contains(Key.SameCourse))
-      {
-        query = query.Where(r => r.Race.Course == this.Race.Course);
-      }
-      if (keys.Contains(Key.SameRegion))
-      {
-        if (this.Race.Course <= RaceCourse.CentralMaxValue)
-        {
-          query = query.Where(r => r.Race.Course <= RaceCourse.CentralMaxValue);
-        }
-        else
-        {
-          query = query.Where(r => r.Race.Course >= RaceCourse.LocalMinValue);
-        }
-      }
-      if (keys.Contains(Key.SameGround))
-      {
-        query = query.Where(r => r.Race.TrackGround == this.Race.TrackGround);
-      }
-      if (keys.Contains(Key.NearDistance))
-      {
-        var diff = this.Race.Course <= RaceCourse.CentralMaxValue ?
-          ApplicationConfiguration.Current.Value.NearDistanceDiffCentral :
-          ApplicationConfiguration.Current.Value.NearDistanceDiffLocal;
-        query = query.Where(r => r.Race.Distance >= this.Race.Distance - diff && r.Race.Distance <= this.Race.Distance + diff);
-      }
-      if (keys.Contains(Key.SameDirection))
-      {
-        query = query.Where(r => r.Race.TrackCornerDirection == this.Race.TrackCornerDirection);
-      }
-      if (keys.Contains(Key.SameSeason))
-      {
-        query = query.Where(r => r.Race.StartTime.Month % 12 / 3 == this.Race.StartTime.Month % 12 / 3);
-      }
-      if (keys.Contains(Key.SameCondition))
-      {
-        query = query.Where(r => r.Race.TrackCondition == this.Race.TrackCondition);
-      }
-      if (keys.Contains(Key.SameSubject))
-      {
-        query = query.Where(r => r.Race.SubjectName == this.Race.SubjectName &&
-                                 r.Race.SubjectAge2 == this.Race.SubjectAge2 &&
-                                 r.Race.SubjectAge3 == this.Race.SubjectAge3 &&
-                                 r.Race.SubjectAge4 == this.Race.SubjectAge4 &&
-                                 r.Race.SubjectAge5 == this.Race.SubjectAge5 &&
-                                 r.Race.SubjectAgeYounger == this.Race.SubjectAgeYounger);
-      }
-      if (keys.Contains(Key.SameGrade))
-      {
-        query = query.Where(r => r.Race.Grade == this.Race.Grade);
-      }
-      if (keys.Contains(Key.SameWeather))
-      {
-        query = query.Where(r => r.Race.TrackWeather == this.Race.TrackWeather);
-      }
-      if (keys.Contains(Key.PlaceBets))
-      {
-        query = query.Where(r => r.RaceHorse.ResultOrder >= 1 && r.RaceHorse.ResultOrder <= 3);
-      }
-      if (keys.Contains(Key.Losed))
-      {
-        query = query.Where(r => r.RaceHorse.ResultOrder > 5);
-      }
-      if (keys.Contains(Key.SameAge))
-      {
-        query = query.Where(r => r.RaceHorse.Age == this.RaceHorse.Age);
-      }
-      if (keys.Contains(Key.Grades))
-      {
-        query = query.Where(r => r.Race.Grade == RaceGrade.Grade1 || r.Race.Grade == RaceGrade.Grade2 || r.Race.Grade == RaceGrade.Grade3 ||
-                                 r.Race.Grade == RaceGrade.LocalGrade1 || r.Race.Grade == RaceGrade.LocalGrade2 || r.Race.Grade == RaceGrade.LocalGrade3);
-      }
-      if (keys.Contains(Key.NearInterval))
-      {
-        var (min, max) = AnalysisUtil.GetIntervalRange(this.RaceHorse.PreviousRaceDays);
-        query = query.Where(r => r.RaceHorse.PreviousRaceDays >= min && r.RaceHorse.PreviousRaceDays <= max);
-      }
-      if (keys.Contains(Key.Frame))
-      {
-        query = query.Where(r => r.RaceHorse.FrameNumber == this.RaceHorse.FrameNumber);
-      }
-      if (keys.Contains(Key.Odds))
-      {
-        var (min, max) = AnalysisUtil.GetOddsRange(this.RaceHorse.Odds);
-        query = query.Where(r => r.RaceHorse.Odds >= min && r.RaceHorse.Odds < max);
-      }
-
-      //var r0 = query
-      //  .Join(db.HorseBloods!, h => h.RaceHorse.Key, h => h.Code, (d, h) => new { d.Race, d.RaceHorse, BloodKey = h.Code, });
-      //var r1 = r0.Join(q1, d => d.BloodKey, q => q.Code, (d, q) => new { d.Race, d.RaceHorse, });
-      //var r2 = r0.Join(q2, d => d.BloodKey, q => q.Code, (d, q) => new { d.Race, d.RaceHorse, });
-      var r3 = query.Join(q2, d => d.RaceHorse.Key, q => q.Code, (d, q) => new { d.Race, d.RaceHorse, });
-
-      try
-      {
-        var races = await r3 //r2.Concat(r1)
-          .OrderByDescending(r => r.Race.StartTime)
-          .Skip(offset)
-          .Take(sizeMax)
-          .ToArrayAsync();
-        races = races.DistinctBy(r => r.RaceHorse.Key + r.RaceHorse.RaceKey).ToArray();
-        var raceHorses = Array.Empty<RaceHorseData>();
-        if (isLoadSameHorses)
-        {
-          var raceKeys = races.Select(r => r.Race.Key).ToArray();
-          raceHorses = await db.RaceHorses!
-            .Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 5 && raceKeys.Contains(rh.RaceKey))
-            .ToArrayAsync();
-        }
-
-        var list = new List<RaceHorseAnalyzer>();
-        foreach (var race in races)
-        {
-          list.Add(
-            new RaceHorseAnalyzer(
-              race.Race,
-              race.RaceHorse,
-              raceHorses.Where(rh => rh.RaceKey == race.Race.Key).ToArray(),
-              await AnalysisUtil.GetRaceStandardTimeAsync(db, race.Race)));
-        }
-        analyzer.SetSource(list);
-      }
-      catch (Exception ex)
-      {
-        logger.Error($"血統馬 {this.BloodKey}/{this.Type} のレース取得でエラー", ex);
-        this.IsError.Value = true;
-
-        throw new Exception("血統馬の解析中にエラーが発生しました", ex);
-      }
-    }
-
-    private async Task InitializeBloodAnalyzerAsync(MyContext db, IEnumerable<Key> keys, RaceHorseBloodTrendAnalyzer analyzer, int count, int offset, bool isLoadSameHorses)
-    {
-      // WARNING: 全体の総数が多くないと予想されるのでここでDBからすべて取得し、配分している
-      //          間違ってもこれをこのまま他のSelectorクラスにコピペしないように
-      if (this._allRaces == null)
-      {
-        var allRaces = await db.RaceHorses!
-          .Where(h => h.Key == this.RelativeKey)
-          .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { RaceHorse = rh, Race = r, })
-          .Where(d => d.Race.StartTime < this.Race.StartTime)
-          .OrderByDescending(d => d.Race.StartTime)
-          .ToArrayAsync();
-        var list = new List<RaceHorseAnalyzer>();
-        foreach (var race in allRaces)
-        {
-          var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race.Race);
-          list.Add(new RaceHorseAnalyzer(race.Race, race.RaceHorse, standardTime));
-        }
-        this._allRaces = list;
-      }
-
-      var query = this._allRaces.Where(r => r.Data.Key == this.RelativeKey);
-
-      if (keys.Contains(Key.SameCourse))
-      {
-        query = query.Where(r => r.Race.Course == this.Race.Course);
-      }
-      if (keys.Contains(Key.SameGround))
-      {
-        query = query.Where(r => r.Race.TrackGround == this.Race.TrackGround);
-      }
-      if (keys.Contains(Key.NearDistance))
-      {
-        var diff = this.Race.Course <= RaceCourse.CentralMaxValue ?
-          ApplicationConfiguration.Current.Value.NearDistanceDiffCentralInHorseGrade :
-          ApplicationConfiguration.Current.Value.NearDistanceDiffLocalInHorseGrade;
-        query = query.Where(r => r.Race.Distance >= this.Race.Distance - diff && r.Race.Distance <= this.Race.Distance + diff);
-      }
-      if (keys.Contains(Key.SameDirection))
-      {
-        query = query.Where(r => r.Race.TrackCornerDirection == this.Race.TrackCornerDirection);
-      }
-      if (keys.Contains(Key.SameSeason))
-      {
-        query = query.Where(r => r.Race.StartTime.Month % 12 / 3 == this.Race.StartTime.Month % 12 / 3);
-      }
-      if (keys.Contains(Key.SameCondition))
-      {
-        query = query.Where(r => r.Race.TrackCondition == this.Race.TrackCondition);
-      }
-      if (keys.Contains(Key.SameSubject))
-      {
-        query = query.Where(r => r.Race.SubjectName == this.Race.SubjectName &&
-                                 r.Race.SubjectAge2 == this.Race.SubjectAge2 &&
-                                 r.Race.SubjectAge3 == this.Race.SubjectAge3 &&
-                                 r.Race.SubjectAge4 == this.Race.SubjectAge4 &&
-                                 r.Race.SubjectAge5 == this.Race.SubjectAge5 &&
-                                 r.Race.SubjectAgeYounger == this.Race.SubjectAgeYounger);
-      }
-      if (keys.Contains(Key.SameGrade))
-      {
-        query = query.Where(r => r.Race.Grade == this.Race.Grade);
-      }
-      if (keys.Contains(Key.SameWeather))
-      {
-        query = query.Where(r => r.Race.TrackWeather == this.Race.TrackWeather);
-      }
-      if (keys.Contains(Key.PlaceBets))
-      {
-        query = query.Where(r => r.Data.ResultOrder >= 1 && r.Data.ResultOrder <= 3);
-      }
-      if (keys.Contains(Key.Losed))
-      {
-        query = query.Where(r => r.Data.ResultOrder > 5);
-      }
-      if (keys.Contains(Key.NearInterval))
-      {
-        var (min, max) = AnalysisUtil.GetIntervalRange(this.RaceHorse.PreviousRaceDays);
-        query = query.Where(r => r.Data.PreviousRaceDays >= min && r.Data.PreviousRaceDays <= max);
-      }
-
-      analyzer.SetSource(query);
-    }
-
-    public override void Dispose()
-    {
-      base.Dispose();
-      this._disposables.Dispose();
     }
   }
 }

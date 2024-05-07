@@ -173,6 +173,11 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Version);
     private ReactiveCommand? _openVersionDialogCommand;
 
+    public ICommand CloseDialogCommand =>
+      this._closeDialogCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Unknown);
+    private ReactiveCommand? _closeDialogCommand;
+
     public ICommand OpenCentralRaceLiveCommand =>
       this._openCentralRaceLiveCommand ??=
         new ReactiveCommand().WithSubscribe(() =>
@@ -196,21 +201,6 @@ namespace KmyKeiba.ViewModels
           });
         });
     private ReactiveCommand? _openLocalRaceLiveCommand;
-
-    public ICommand CloseDialogCommand =>
-      this._closeDialogCommand ??=
-        new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Unknown);
-    private ReactiveCommand? _closeDialogCommand;
-
-    public ICommand UpdateRtDataForceCommand =>
-      this._updateRtDataForceCommand ??=
-        new ReactiveCommand().WithSubscribe(() => this.downloader.UpdateRtDataForce());
-    private ReactiveCommand? _updateRtDataForceCommand;
-
-    public ICommand UpdateRtDataHeavyForceCommand =>
-      this._updateRtDataHeavyForceCommand ??=
-        new ReactiveCommand().WithSubscribe(() => this.downloader.UpdateRtDataHeavyForce());
-    private ReactiveCommand? _updateRtDataHeavyForceCommand;
 
     public ICommand BuyCommand =>
       this._buyCommand ??=
@@ -241,6 +231,10 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(this.model.RaceList.MoveToPrevDay);
     private ReactiveCommand? _moveToPrevDayCommand;
 
+    #endregion
+
+    #region Link連携・ダウンロード
+
     public ICommand OpenJvlinkConfigCommand =>
       this._openJvlinkConfigCommand ??=
         new AsyncReactiveCommand<object>().WithSubscribe(async _ => await this.downloader.OpenJvlinkConfigAsync());
@@ -253,18 +247,28 @@ namespace KmyKeiba.ViewModels
 
     public ICommand StartDownloadCommand =>
       this._startDownloadCommand ??=
-        new ReactiveCommand().WithSubscribe(this.downloader.BeginDownload);
+        new ReactiveCommand(this.downloader.IsRTBusy.Select(r => !r)).WithSubscribe(this.downloader.BeginDownload);
     private ReactiveCommand? _startDownloadCommand;
 
     public ICommand ResetHorseExtraDataCommand =>
       this._resetHorseExtraDataCommand ??=
-        new ReactiveCommand().WithSubscribe(this.downloader.BeginResetHorseExtraData);
+        new ReactiveCommand(this.downloader.IsRTBusy.Select(r => !r)).WithSubscribe(this.downloader.BeginResetHorseExtraData);
     private ICommand? _resetHorseExtraDataCommand;
 
     public ICommand CancelDownloadCommand =>
       this._cancelDownloadCommand ??=
         new ReactiveCommand<object>(this.downloader.CanCancel).WithSubscribe(_ => this.downloader.CancelDownload());
     private ReactiveCommand<object>? _cancelDownloadCommand;
+
+    public ICommand UpdateRtDataForceCommand =>
+      this._updateRtDataForceCommand ??=
+        new ReactiveCommand(this.downloader.IsBusy.Select(r => !r)).WithSubscribe(this.downloader.UpdateRtDataForce);
+    private ReactiveCommand? _updateRtDataForceCommand;
+
+    public ICommand UpdateRtDataHeavyForceCommand =>
+      this._updateRtDataHeavyForceCommand ??=
+        new ReactiveCommand(this.downloader.IsBusy.Select(r => !r)).WithSubscribe(this.downloader.UpdateRtDataHeavyForce);
+    private ReactiveCommand? _updateRtDataHeavyForceCommand;
 
     #endregion
 

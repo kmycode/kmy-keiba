@@ -160,18 +160,15 @@ namespace KmyKeiba.Models.Analysis
         {
           analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate, jrdbHorse: jrdb)
           {
-            TrendAnalyzers = new RaceHorseTrendAnalysisSelector(race, horse, histories),
-            TrainerTrendAnalyzers = new RaceTrainerTrendAnalysisSelector(race, horse),
-            BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
+            BloodSelectors = new RaceHorseBloodModel(race, horse),
             DetailData = horseDetails.FirstOrDefault(h => h.Code == horse.Key),
           };
-          analyzer.RiderTrendAnalyzers = new RaceRiderTrendAnalysisSelector(analyzer);
         }
         else
         {
           analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate, jrdbHorse: jrdb)
           {
-            BloodSelectors = new RaceHorseBloodTrendAnalysisSelectorMenu(race, horse),
+            BloodSelectors = new RaceHorseBloodModel(race, horse),
             DetailData = horseDetails.FirstOrDefault(h => h.Code == horse.Key),
           };
         }
