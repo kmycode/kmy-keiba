@@ -11,6 +11,7 @@ using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
 using KmyKeiba.Models.RList;
 using KmyKeiba.Models.Script;
+using KmyKeiba.Models.Setting;
 using KmyKeiba.Shared;
 using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
@@ -32,6 +33,8 @@ namespace KmyKeiba.ViewModels
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
     public ScriptBulkModel ScriptBulk { get; } = new();
+
+    public ReactiveProperty<AppSettingsModel?> AppSettings { get; } = new();
 
     public bool IsMainWindow => true;
 
@@ -126,6 +129,9 @@ namespace KmyKeiba.ViewModels
         // 初期化完了
         this.IsInitialized.Value = true;
 
+        // 初期化が終わったので設定可能に
+        this.AppSettings.Value = AppSettingsModel.Instance;
+
         // アップデートチェック
         await this.Update.CheckAsync();
       });
@@ -156,6 +162,11 @@ namespace KmyKeiba.ViewModels
       this._openScriptBulkDialogCommand ??=
         new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.ScriptBulk);
     private ReactiveCommand? _openScriptBulkDialogCommand;
+
+    public ICommand OpenSettingDialogCommand =>
+      this._openSettingDialogCommand ??=
+        new ReactiveCommand().WithSubscribe(() => this.CurrentDialog.Value = DialogType.Setting);
+    private ReactiveCommand? _openSettingDialogCommand;
 
     public ICommand OpenVersionDialogCommand =>
       this._openVersionDialogCommand ??=
@@ -270,6 +281,193 @@ namespace KmyKeiba.ViewModels
     private AsyncReactiveCommand<string>? _setConditionCommand;
 
     #endregion
+
+    #region 拡張分析テーブルの設定
+
+    public ICommand AddAnalysisTableConfigCommand =>
+      this._addAnalysisTableConfigCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.AddTableAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableConfigCommand;
+
+    public ICommand RemoveAnalysisTableConfigCommand =>
+      this._removeAnalysisTableConfigCommand ??=
+        new AsyncReactiveCommand<AnalysisTableSurface>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.RemoveTableAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeAnalysisTableConfigCommand;
+
+    public ICommand UpAnalysisTableConfigCommand =>
+      this._upAnalysisTableConfigCommand ??=
+        new AsyncReactiveCommand<AnalysisTableSurface>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.UpTableAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upAnalysisTableConfigCommand;
+
+    public ICommand DownAnalysisTableConfigCommand =>
+     this._downAnalysisTableConfigCommand ??=
+       new AsyncReactiveCommand<AnalysisTableSurface>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.DownTableAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downAnalysisTableConfigCommand;
+
+    public ICommand AddAnalysisTableRowConfigCommand =>
+      this._addAnalysisTableConfigItemCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.AddTableRowAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableConfigItemCommand;
+
+    public ICommand DeleteAnalysisTableRowConfigCommand =>
+      this._deleteAnalysisTableConfigItemCommand ??=
+        new AsyncReactiveCommand<AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.RemoveTableRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _deleteAnalysisTableConfigItemCommand;
+
+    public ICommand UpAnalysisTableRowConfigCommand =>
+      this._upAnalysisTableConfigItemCommand ??=
+        new AsyncReactiveCommand<AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.UpTableRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upAnalysisTableConfigItemCommand;
+
+    public ICommand DownAnalysisTableRowConfigCommand =>
+     this._downAnalysisTableConfigItemCommand ??=
+       new AsyncReactiveCommand<AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.DownTableRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downAnalysisTableConfigItemCommand;
+
+    public ICommand UnselectAnalysisTableRowWeightCommand =>
+      this._unselectAnalysisTableRowWeightCommand ??=
+        new ReactiveCommand<AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.UnselectTableRowWeight(obj)).AddTo(this._disposables);
+    private ICommand? _unselectAnalysisTableRowWeightCommand;
+
+    public ICommand UnselectAnalysisTableRowWeight2Command =>
+      this._unselectAnalysisTableRowWeight2Command ??=
+        new ReactiveCommand<AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.UnselectTableRowWeight2(obj)).AddTo(this._disposables);
+    private ICommand? _unselectAnalysisTableRowWeight2Command;
+
+    public ICommand UnselectAnalysisTableRowWeight3Command =>
+      this._unselectAnalysisTableRowWeight3Command ??=
+        new ReactiveCommand<AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.UnselectTableRowWeight3(obj)).AddTo(this._disposables);
+    private ICommand? _unselectAnalysisTableRowWeight3Command;
+
+    public ICommand UnselectAnalysisTableRowParentCommand =>
+      this._unselectAnalysisTableRowParentCommand ??=
+        new ReactiveCommand<AnalysisTableRow>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.UnselectTableRowParent(obj)).AddTo(this._disposables);
+    private ICommand? _unselectAnalysisTableRowParentCommand;
+
+    #endregion
+
+    #region 拡張分析の重み
+
+    public ICommand AddAnalysisTableWeightCommand =>
+      this._addAnalysisTableWeightCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.AddWeightAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableWeightCommand;
+
+    public ICommand RemoveAnalysisTableWeightCommand =>
+      this._removeAnalysisTableWeightCommand ??=
+        new AsyncReactiveCommand<AnalysisTableWeight>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.RemoveWeightAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeAnalysisTableWeightCommand;
+
+    public ICommand AddAnalysisTableWeightRowCommand =>
+      this._addAnalysisTableWeightRowCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.AddWeightRowAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableWeightRowCommand;
+
+    public ICommand DeleteAnalysisTableWeightRowCommand =>
+      this._deleteAnalysisTableWeightRowCommand ??=
+        new AsyncReactiveCommand<AnalysisTableWeightRow>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.RemoveTableWeightRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _deleteAnalysisTableWeightRowCommand;
+
+    public ICommand AddAnalysisTableWeightRowBulkCommand =>
+      this._addAnalysisTableWeightRowBulkCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.AddWeightRowsBulkAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableWeightRowBulkCommand;
+
+    public ICommand ReplaceAnalysisTableWeightRowBulkCommand =>
+      this._replaceAnalysisTableWeightRowBulkCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.ReplaceWeightRowsBulkAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _replaceAnalysisTableWeightRowBulkCommand;
+
+    public ICommand ClearAnalysisTableWeightRowsCommand =>
+      this._clearAnalysisTableWeightRowsCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.ClearWeightRowsAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _clearAnalysisTableWeightRowsCommand;
+
+    public ICommand UpAnalysisTableWeightRowCommand =>
+      this._upAnalysisTableWeightRowCommand ??=
+        new AsyncReactiveCommand<AnalysisTableWeightRow>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.UpTableWeightRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upAnalysisTableWeightRowCommand;
+
+    public ICommand DownAnalysisTableWeightRowCommand =>
+      this._downAnalysisTableWeightRowCommand ??=
+        new AsyncReactiveCommand<AnalysisTableWeightRow>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.DownTableWeightRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downAnalysisTableWeightRowCommand;
+
+    #endregion
+
+    #region 重みの区切り
+
+    public ICommand AddAnalysisTableDelimiterCommand =>
+      this._addAnalysisTableDelimiterCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.AddDelimiterAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableDelimiterCommand;
+
+    public ICommand RemoveAnalysisTableDelimiterCommand =>
+      this._removeAnalysisTableDelimiterCommand ??=
+        new AsyncReactiveCommand<ValueDelimiter>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.RemoveDelimiterAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeAnalysisTableDelimiterCommand;
+
+    public ICommand AddAnalysisTableDelimiterRowCommand =>
+      this._addAnalysisTableDelimiterRowCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.AddDelimiterRowAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableDelimiterRowCommand;
+
+    public ICommand DeleteAnalysisTableDelimiterRowCommand =>
+      this._deleteAnalysisTableDelimiterRowCommand ??=
+        new AsyncReactiveCommand<ValueDelimiterRow>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.RemoveDelimiterRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _deleteAnalysisTableDelimiterRowCommand;
+
+    public ICommand UpAnalysisTableDelimiterRowCommand =>
+      this._upAnalysisTableDelimiterRowCommand ??=
+        new AsyncReactiveCommand<ValueDelimiterRow>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.UpDelimiterRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upAnalysisTableDelimiterRowCommand;
+
+    public ICommand DownAnalysisTableDelimiterRowCommand =>
+      this._downAnalysisTableDelimiterRowCommand ??=
+        new AsyncReactiveCommand<ValueDelimiterRow>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.DownDelimiterRowAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downAnalysisTableDelimiterRowCommand;
+
+    public ICommand AddAnalysisTableSelectedDelimiterCommand =>
+      this._addAnalysisTableSelectedDelimiterCommand ??=
+        new ReactiveCommand().WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.AddSelectedDelimiter()).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableSelectedDelimiterCommand;
+
+    public ICommand RemoveAnalysisTableSelectedDelimiterCommand =>
+      this._removeAnalysisTableSelectedDelimiterCommand ??=
+        new ReactiveCommand().WithSubscribe(obj => this.AppSettings.Value?.AnalysisTableConfig.RemoveSelectedDelimiter()).AddTo(this._disposables);
+    private ICommand? _removeAnalysisTableSelectedDelimiterCommand;
+
+    #endregion
+
+    #region ATスクリプト
+
+    public ICommand AddAnalysisTableScriptCommand =>
+      this._addAnalysisTableScriptCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AnalysisTableScriptConfig.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addAnalysisTableScriptCommand;
+
+    public ICommand RemoveAnalysisTableScriptCommand =>
+      this._removeAnalysisTableScriptCommand ??=
+        new AsyncReactiveCommand<AnalysisTableScriptItem>(this.CanSave).WithSubscribe(obj => this.AnalysisTableScriptConfig.RemoveConfigAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeAnalysisTableScriptCommand;
+
+    #endregion
+
+    #region 外部指数
+
+    public ICommand AddExternalNumberConfigCommand => this._addExternalNumberConfigCommand ??=
+      new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.ExternalNumber.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addExternalNumberConfigCommand;
+
+    public ICommand RemoveExternalNumberConfigCommand => this._removeExternalNumberConfigCommand ??=
+      new AsyncReactiveCommand<ExternalNumberConfigItem>(this.CanSave).WithSubscribe(obj => this.ExternalNumber.RemoveConfigAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeExternalNumberConfigCommand;
+
+    public ICommand LoadExternalNumbersCommand => this._loadExternalNumbersCommand ??=
+      new ReactiveCommand<ExternalNumberConfigItem>(this.CanSave).WithSubscribe(obj => obj.BeginLoadDb()).AddTo(this._disposables);
+    private ICommand? _loadExternalNumbersCommand;
+
+    #endregion
   }
 
   public enum DialogType
@@ -278,6 +476,7 @@ namespace KmyKeiba.ViewModels
     Download,
     RTDownload,
     ScriptBulk,
+    Setting,
     Version,
     ErrorSavingMemo,
     ErrorConfigring,

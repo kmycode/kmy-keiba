@@ -22,17 +22,17 @@ namespace KmyKeiba.Views.Expansions
   /// </summary>
   public partial class AnalysisTableScriptConfigView : UserControl
   {
-    public static readonly DependencyProperty AnalysisTableProperty
+    public static readonly DependencyProperty AnalysisTableConfigProperty
     = DependencyProperty.Register(
-        nameof(AnalysisTable),
-        typeof(AnalysisTableModel),
+        nameof(AnalysisTableConfig),
+        typeof(AnalysisTableConfigModel),
         typeof(AnalysisTableScriptConfigView),
         new PropertyMetadata(null));
 
-    public AnalysisTableModel? AnalysisTable
+    public AnalysisTableConfigModel? AnalysisTableConfig
     {
-      get { return (AnalysisTableModel)GetValue(AnalysisTableProperty); }
-      set { SetValue(AnalysisTableProperty, value); }
+      get { return (AnalysisTableConfigModel)GetValue(AnalysisTableConfigProperty); }
+      set { SetValue(AnalysisTableConfigProperty, value); }
     }
 
     public AnalysisTableScriptConfigView()

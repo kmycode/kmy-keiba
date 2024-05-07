@@ -19,7 +19,7 @@
       </Grid.RowDefinitions>
 
       <!--ラベル設定一覧-->
-      <ItemsControl Style="{StaticResource TableList}" ItemsSource="{Binding AnalysisTable.Config.Weights,ElementName=Root}">
+      <ItemsControl Style="{StaticResource TableList}" ItemsSource="{Binding AnalysisTableConfig.Weights,ElementName=Root}">
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <RadioButton GroupName="{Binding UniqueId5,ElementName=Root}" Content="{Binding Name.Value}"
@@ -32,7 +32,7 @@
       <Button Grid.Row="1" FontSize="16" Content="重み設定を追加" Width="200" Height="40" Command="{Binding AddAnalysisTableWeightCommand}"/>
 
       <!--ラベル設定-->
-      <Grid Grid.Column="1" Visibility="{Binding AnalysisTable.Config.ActiveWeight.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"
+      <Grid Grid.Column="1" Visibility="{Binding AnalysisTableConfig.ActiveWeight.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"
             Margin="16,0,8,0" Grid.RowSpan="2">
         <Grid.IsEnabled>
           <MultiBinding Converter="{StaticResource MultiBooleanConv}">
@@ -52,11 +52,11 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="auto"/>
           </Grid.ColumnDefinitions>
-          <TextBox Text="{Binding AnalysisTable.Config.ActiveWeight.Value.Name.Value,Mode=TwoWay,ElementName=Root}"
+          <TextBox Text="{Binding AnalysisTableConfig.ActiveWeight.Value.Name.Value,Mode=TwoWay,ElementName=Root}"
                    IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}"
                    FontSize="20"/>
           <Button Grid.Column="1" Content="削除" VerticalAlignment="Bottom"
-                  Command="{Binding RemoveAnalysisTableWeightCommand}" CommandParameter="{Binding AnalysisTable.Config.ActiveWeight.Value,ElementName=Root}"/>
+                  Command="{Binding RemoveAnalysisTableWeightCommand}" CommandParameter="{Binding AnalysisTableConfig.ActiveWeight.Value,ElementName=Root}"/>
         </Grid>
 
         <Grid Grid.Row="1">
@@ -66,7 +66,7 @@
             <ColumnDefinition Width="auto"/>
           </Grid.ColumnDefinitions>
           <ToggleButton Content="重み区切りを指定して一括追加" FontSize="16" Name="AddBulkButton"
-                        IsChecked="{Binding AnalysisTable.Config.IsBulkMode.Value,ElementName=Root,Mode=TwoWay}"/>
+                        IsChecked="{Binding AnalysisTableConfig.IsBulkMode.Value,ElementName=Root,Mode=TwoWay}"/>
           <Button Grid.Column="2" Content="クリア" FontSize="16"
                   Visibility="{Binding IsChecked,ElementName=AddBulkButton,Converter={StaticResource BooleanVisibilityConv}}"
                   Command="{Binding ClearAnalysisTableWeightRowsCommand}"/>
@@ -90,8 +90,8 @@
                 <ColumnDefinition Width="120"/>
                 <ColumnDefinition Width="auto"/>
               </Grid.ColumnDefinitions>
-              <ComboBox ItemsSource="{Binding AnalysisTable.Config.Delimiters,ElementName=Root}"
-                        SelectedItem="{Binding AnalysisTable.Config.SelectedDelimiterForAdd.Value,ElementName=Root,Mode=TwoWay}">
+              <ComboBox ItemsSource="{Binding AnalysisTableConfig.Delimiters,ElementName=Root}"
+                        SelectedItem="{Binding AnalysisTableConfig.SelectedDelimiterForAdd.Value,ElementName=Root,Mode=TwoWay}">
                 <ComboBox.ItemTemplate>
                   <DataTemplate>
                     <TextBlock FontSize="16" Text="{Binding Name.Value}"/>
@@ -102,7 +102,7 @@
               <Button Grid.Column="2" FontSize="16" Content="削除" Margin="4,0,0,0" Command="{Binding RemoveAnalysisTableSelectedDelimiterCommand}"/>
             </Grid>
             <ScrollViewer Grid.Row="1" Width="200" Height="280" Margin="0,16,0,0">
-              <ItemsControl ItemsSource="{Binding AnalysisTable.Config.SelectedDelimiters,ElementName=Root}">
+              <ItemsControl ItemsSource="{Binding AnalysisTableConfig.SelectedDelimiters,ElementName=Root}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <RadioButton FontSize="16" Content="{Binding Name.Value}" Height="36" Padding="4,2" Style="{StaticResource ToggleButtonDefault}"
@@ -113,7 +113,7 @@
             </ScrollViewer>
             <ScrollViewer Grid.Row="1" Grid.Column="1" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto"
                           Height="280" Margin="0,16,0,0">
-              <ItemsControl ItemsSource="{Binding AnalysisTable.Config.ActiveSelectedDelimiter.Value.Rows,ElementName=Root}"
+              <ItemsControl ItemsSource="{Binding AnalysisTableConfig.ActiveSelectedDelimiter.Value.Rows,ElementName=Root}"
                             Margin="16,0,8,0">
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
@@ -136,7 +136,7 @@
           </Grid>
         </Border>
         
-        <ItemsControl Grid.Row="3" Style="{StaticResource TableList}" ItemsSource="{Binding AnalysisTable.Config.ActiveWeight.Value.Rows,ElementName=Root}">
+        <ItemsControl Grid.Row="3" Style="{StaticResource TableList}" ItemsSource="{Binding AnalysisTableConfig.ActiveWeight.Value.Rows,ElementName=Root}">
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <Grid Margin="0,16,0,0">

@@ -47,6 +47,7 @@
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
               </Grid.ColumnDefinitions>
               <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
                 <Button Width="80" Height="50" FontSize="24" Padding="0" Content="DL" Command="{Binding OpenDownloadDialogCommand}"/>
@@ -134,6 +135,13 @@
               </Button>
 
               <Button Grid.Column="3" Width="80" Height="50" Padding="0"
+                      Command="{Binding OpenSettingDialogCommand}" Margin="0,0,8,0">
+                <TextBlock FontSize="20" TextAlignment="Center">
+                  設定
+                </TextBlock>
+              </Button>
+
+              <Button Grid.Column="4" Width="80" Height="50" Padding="0"
                       Command="{Binding OpenVersionDialogCommand}" Margin="0,0,8,0">
                 <Grid>
                   <TextBlock FontSize="24" Text="Ver" Visibility="{Binding Update.CanUpdate.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
@@ -198,6 +206,12 @@
                 Background="{StaticResource BaseBackground}"
                 Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=ScriptBulk}">
           <ud:ExecuteScriptBulkDialog ScriptBulk="{Binding ScriptBulk}"/>
+        </Border>
+        <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="2"
+                Padding="24,8" Margin="48,60"
+                Background="{StaticResource BaseBackground}"
+                Visibility="{Binding CurrentDialog.Value,Converter={StaticResource EqualConv},ConverterParameter=Setting}">
+          <ud:AppSettingDialog AppSettings="{Binding AppSettings.Value}"/>
         </Border>
       </Grid>
 

@@ -99,22 +99,22 @@ namespace KmyKeiba.Downloader
         IJVLinkReader StartReadWithTimeout(Func<IJVLinkReader> reader)
         {
           var isSucceed = false;
-          var start = DateTime.Now;
-
-          var waitSeconds = link.Type == JVLinkObjectType.Local ?
-            (DateTime.Now - this.StartTime).TotalDays / 365 * 60 + 60 :  // 1年あたり60秒
-            60;
 
           Task.Run(async () =>
           {
+            var start = DateTime.Now;
+            var waitSeconds = link.Type == JVLinkObjectType.Local ?
+              (DateTime.Now - this.StartTime).TotalDays / 365 * 60 + 60 :  // 1年あたり60秒
+              60;
+
             while (!isSucceed)
             {
               await Task.Delay(1000);
 
               if (DateTime.Now - start > TimeSpan.FromSeconds(waitSeconds))
               {
-                logger.Warn("接続オープンに失敗したので強制終了します");
-                await Program.RestartProgramAsync(false, isForce: true);
+                logger.Warn($"接続オープンに失敗したので強制終了します {DateTime.Now - start} sec");
+                Program.RestartProgram(false, isForce: true);
               }
 
               Program.CheckShutdown(isForce: true);
@@ -195,6 +195,11 @@ namespace KmyKeiba.Downloader
         {
           Program.Shutdown(DownloaderError.LicenceKeyNotSet);
         }
+        else if (ex.Code == JVLinkLoadResult.AuthenticationError)
+        {
+          // 地方競馬ではライセンスキーの間違いはこっちのエラーになることがある
+          Program.Shutdown(DownloaderError.AuthenticationError);
+        }
         else if (ex.Code == JVLinkLoadResult.InMaintance)
         {
           Program.Shutdown(DownloaderError.InMaintance);
@@ -212,14 +217,14 @@ namespace KmyKeiba.Downloader
         }
         else
         {
-          _ = Program.RestartProgramAsync(false);
+          Program.RestartProgram(false);
         }
       }
       catch (JVLinkException<JVLinkReadResult> ex)
       {
         logger.Error($"データ読み込みでエラーが発生 {ex.Code}", ex);
 
-        _ = Program.RestartProgramAsync(false);
+        Program.RestartProgram(false);
       }
       catch (TaskCanceledAndContinueProgramException)
       {
@@ -234,7 +239,7 @@ namespace KmyKeiba.Downloader
       {
         logger.Error("不明なエラーが発生", ex);
 
-        _ = Program.RestartProgramAsync(false);
+        Program.RestartProgram(false);
       }
     }
 
@@ -284,7 +289,7 @@ namespace KmyKeiba.Downloader
           {
             throw JVLinkException.GetError((JVLinkLoadResult)reader.DownloadedCount);
           }
-          Program.RestartProgramAsync(false).Wait();
+          Program.RestartProgram(false);
         }
         else
         {
@@ -301,7 +306,7 @@ namespace KmyKeiba.Downloader
             if (stayCount >= 60_000)
             {
               logger.Warn($"ダウンロード数が {reader.DownloadedCount} から増えないのでタイムアウトします");
-              Program.RestartProgramAsync(false).Wait();
+              Program.RestartProgram(false);
             }
           }
         }
@@ -333,7 +338,7 @@ namespace KmyKeiba.Downloader
               loadTimeout += 80;
               if (loadTimeout >= 100_000)
               {
-                await Program.RestartProgramAsync(false);
+                Program.RestartProgram(false);
                 loadTimeout = 0;
               }
             }
@@ -416,14 +421,14 @@ namespace KmyKeiba.Downloader
             if (!isDisposed)
             {
               logger.Warn("接続のクローズが完了しないため、強制的に破棄します");
-              await Program.RestartProgramAsync(true, true);
+              Program.RestartProgram(true, true);
             }
           }
         }
         catch (Exception ex)
         {
           logger.Error("後処理の過程でエラーが発生", ex);
-          await Program.RestartProgramAsync(false);
+          Program.RestartProgram(false);
         }
       });
 

@@ -19,7 +19,7 @@
       </Grid.RowDefinitions>
 
       <!--ラベル設定一覧-->
-      <ItemsControl Style="{StaticResource TableList}" ItemsSource="{Binding AnalysisTable.Config.AnalysisTableScripts,ElementName=Root}">
+      <ItemsControl Style="{StaticResource TableList}" ItemsSource="{Binding AnalysisTableConfig.AnalysisTableScripts,ElementName=Root}">
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <RadioButton GroupName="{Binding UniqueId5,ElementName=Root}" Content="{Binding Name.Value}"
@@ -35,7 +35,7 @@
       </TextBlock>
       
       <!--ラベル設定-->
-      <Grid Grid.Column="1" Visibility="{Binding AnalysisTable.Config.ActiveAnalysisTableScript.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"
+      <Grid Grid.Column="1" Visibility="{Binding AnalysisTableConfig.ActiveAnalysisTableScript.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"
             Margin="16,0,8,0" Grid.RowSpan="3">
         <Grid.RowDefinitions>
           <RowDefinition Height="auto"/>
@@ -55,15 +55,15 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="auto"/>
           </Grid.ColumnDefinitions>
-          <TextBox Text="{Binding AnalysisTable.Config.ActiveAnalysisTableScript.Value.Name.Value,Mode=TwoWay,ElementName=Root}"
+          <TextBox Text="{Binding AnalysisTableConfig.ActiveAnalysisTableScript.Value.Name.Value,Mode=TwoWay,ElementName=Root}"
                    IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}"
                    FontSize="20"/>
           <Button Grid.Column="1" Content="削除" VerticalAlignment="Bottom"
                   Command="{Binding RemoveAnalysisTableScriptCommand}"
-                  CommandParameter="{Binding AnalysisTable.Config.ActiveAnalysisTableScript.Value,ElementName=Root}"/>
+                  CommandParameter="{Binding AnalysisTableConfig.ActiveAnalysisTableScript.Value,ElementName=Root}"/>
         </Grid>
 
-        <TextBox Text="{Binding AnalysisTable.Config.ActiveAnalysisTableScript.Value.Script.Value,Mode=TwoWay,ElementName=Root}"
+        <TextBox Text="{Binding AnalysisTableConfig.ActiveAnalysisTableScript.Value.Script.Value,Mode=TwoWay,ElementName=Root}"
                  AcceptsReturn="True" FontSize="18" FontFamily="MS Gothic" Grid.Row="3"
                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"

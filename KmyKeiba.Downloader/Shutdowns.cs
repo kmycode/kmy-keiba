@@ -105,7 +105,7 @@ namespace KmyKeiba.Downloader
       Environment.Exit(0);
     }
 
-    public static async Task RestartProgramAsync(bool isIncrement, bool isForce = false)
+    public static void RestartProgram(bool isIncrement, bool isForce = false)
     {
       logger.Info($"プログラムを再起動します インクリメント:{isIncrement}");
 

@@ -19,7 +19,7 @@
       </Grid.RowDefinitions>
 
       <!--ラベル設定一覧-->
-      <ItemsControl Style="{StaticResource TableList}" ItemsSource="{Binding AnalysisTable.Config.Tables,ElementName=Root}">
+      <ItemsControl Style="{StaticResource TableList}" ItemsSource="{Binding AnalysisTableConfig.Tables,ElementName=Root}">
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <RadioButton GroupName="{Binding UniqueId5,ElementName=Root}" Content="{Binding Name.Value}"
@@ -32,7 +32,7 @@
       <Button Grid.Row="1" FontSize="16" Content="テーブルを追加" Width="200" Height="40" Command="{Binding AddAnalysisTableConfigCommand}"/>
 
       <!--ラベル設定-->
-      <Grid Grid.Column="1" Visibility="{Binding AnalysisTable.Config.ActiveTable.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"
+      <Grid Grid.Column="1" Visibility="{Binding AnalysisTableConfig.ActiveTable.Value,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"
             Margin="16,0,8,0" Grid.RowSpan="2">
         <Grid.IsEnabled>
           <MultiBinding Converter="{StaticResource MultiBooleanConv}">
@@ -52,17 +52,17 @@
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="auto"/>
           </Grid.ColumnDefinitions>
-          <TextBox Text="{Binding AnalysisTable.Config.ActiveTable.Value.Name.Value,Mode=TwoWay,ElementName=Root}"
+          <TextBox Text="{Binding AnalysisTableConfig.ActiveTable.Value.Name.Value,Mode=TwoWay,ElementName=Root}"
                    IsReadOnly="{Binding CanSave.Value,Converter={StaticResource NegativeConv}}"
                    FontSize="20"/>
           <StackPanel Orientation="Horizontal" Grid.Column="1" Margin="8,0,16,0" VerticalAlignment="Center">
-            <Button FontSize="16" Content="上へ" Command="{Binding UpAnalysisTableConfigCommand}" CommandParameter="{Binding AnalysisTable.Config.ActiveTable.Value,ElementName=Root}"/>
-            <Button FontSize="16" Content="下へ" Command="{Binding DownAnalysisTableConfigCommand}" CommandParameter="{Binding AnalysisTable.Config.ActiveTable.Value,ElementName=Root}" Margin="4,0,0,0"/>
+            <Button FontSize="16" Content="上へ" Command="{Binding UpAnalysisTableConfigCommand}" CommandParameter="{Binding AnalysisTableConfig.ActiveTable.Value,ElementName=Root}"/>
+            <Button FontSize="16" Content="下へ" Command="{Binding DownAnalysisTableConfigCommand}" CommandParameter="{Binding AnalysisTableConfig.ActiveTable.Value,ElementName=Root}" Margin="4,0,0,0"/>
           </StackPanel>
           <Button Grid.Column="2" Content="削除" VerticalAlignment="Bottom"
-                  Command="{Binding RemoveAnalysisTableConfigCommand}" CommandParameter="{Binding AnalysisTable.Config.ActiveTable.Value,ElementName=Root}"/>
+                  Command="{Binding RemoveAnalysisTableConfigCommand}" CommandParameter="{Binding AnalysisTableConfig.ActiveTable.Value,ElementName=Root}"/>
         </Grid>
-        <ItemsControl Grid.Row="2" Style="{StaticResource TableList}" ItemsSource="{Binding AnalysisTable.Config.ActiveTable.Value.Rows,ElementName=Root}">
+        <ItemsControl Grid.Row="2" Style="{StaticResource TableList}" ItemsSource="{Binding AnalysisTableConfig.ActiveTable.Value.Rows,ElementName=Root}">
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <Grid Margin="0,0,0,32">
@@ -137,7 +137,7 @@
                   <TextBlock Grid.Row="1" Grid.Column="0" Text="外部指数" Foreground="{StaticResource SubForeground}" FontSize="16"
                              VerticalAlignment="Center"
                              Visibility="{Binding CanSetExternalNumber.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-                  <ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding AnalysisTable.Config.ExternalNumbers,ElementName=Root}"
+                  <ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding AnalysisTableConfig.ExternalNumbers,ElementName=Root}"
                             SelectedItem="{Binding SelectedExternalNumber.Value,Mode=TwoWay}"
                             Visibility="{Binding CanSetExternalNumber.Value,Converter={StaticResource BooleanVisibilityConv}}">
                     <ComboBox.ItemTemplate>
@@ -149,7 +149,7 @@
                   <TextBlock Grid.Row="1" Grid.Column="0" Text="拡張メモ" Foreground="{StaticResource SubForeground}" FontSize="16"
                              VerticalAlignment="Center"
                              Visibility="{Binding CanSetMemoConfig.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
-                  <ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding AnalysisTable.Config.MemoConfigs,ElementName=Root}"
+                  <ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding AnalysisTableConfig.MemoConfigs,ElementName=Root}"
                             SelectedItem="{Binding SelectedMemoConfig.Value,Mode=TwoWay}"
                             Visibility="{Binding CanSetMemoConfig.Value,Converter={StaticResource BooleanVisibilityConv}}">
                     <ComboBox.ItemTemplate>
@@ -206,7 +206,7 @@
                       <ColumnDefinition/>
                       <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
-                    <ComboBox ItemsSource="{Binding AnalysisTable.Config.ActiveTable.Value.ParentRowSelections,ElementName=Root}"
+                    <ComboBox ItemsSource="{Binding AnalysisTableConfig.ActiveTable.Value.ParentRowSelections,ElementName=Root}"
                               SelectedItem="{Binding SelectedParent.Value,Mode=TwoWay}">
                       <ComboBox.ItemTemplate>
                         <DataTemplate>
@@ -232,7 +232,7 @@
                       <ColumnDefinition/>
                       <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
-                    <ComboBox ItemsSource="{Binding AnalysisTable.Config.Weights,ElementName=Root}"
+                    <ComboBox ItemsSource="{Binding AnalysisTableConfig.Weights,ElementName=Root}"
                               SelectedItem="{Binding Weight.Value,Mode=TwoWay}"
                               Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}">
                       <ComboBox.ItemTemplate>
@@ -253,7 +253,7 @@
                       <ColumnDefinition/>
                       <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
-                    <ComboBox ItemsSource="{Binding AnalysisTable.Config.Weights,ElementName=Root}"
+                    <ComboBox ItemsSource="{Binding AnalysisTableConfig.Weights,ElementName=Root}"
                               SelectedItem="{Binding Weight2.Value,Mode=TwoWay}"
                               Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}">
                       <ComboBox.ItemTemplate>
@@ -274,7 +274,7 @@
                       <ColumnDefinition/>
                       <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
-                    <ComboBox ItemsSource="{Binding AnalysisTable.Config.Weights,ElementName=Root}"
+                    <ComboBox ItemsSource="{Binding AnalysisTableConfig.Weights,ElementName=Root}"
                               SelectedItem="{Binding Weight3.Value,Mode=TwoWay}"
                               Visibility="{Binding CanSetWeight.Value,Converter={StaticResource BooleanVisibilityConv}}">
                       <ComboBox.ItemTemplate>
