@@ -66,25 +66,30 @@ namespace KmyKeiba.Models.Connection
 
     private DownloadStatus()
     {
+      var postProcesses = new[]
+      {
+        Connection.ProcessingStep.StandardTime,
+        Connection.ProcessingStep.PreviousRaceDays,
+        Connection.ProcessingStep.RiderWinRates,
+        Connection.ProcessingStep.HorseExtraData,
+        Connection.ProcessingStep.ResetHorseExtraData,
+        Connection.ProcessingStep.RunningStyle,
+        Connection.ProcessingStep.MigrationFrom250,
+        Connection.ProcessingStep.MigrationFrom322,
+        Connection.ProcessingStep.MigrationFrom430,
+        Connection.ProcessingStep.MigrationFrom500,
+      };
+
       this.DownloadingStatus =
         this.ProcessingStep
-          .Select(p => p != Connection.ProcessingStep.StandardTime &&
-                       p != Connection.ProcessingStep.PreviousRaceDays &&
-                       p != Connection.ProcessingStep.RiderWinRates &&
-                       p != Connection.ProcessingStep.MigrationFrom250 &&
-                       p != Connection.ProcessingStep.MigrationFrom322 &&
-                       p != Connection.ProcessingStep.HorseExtraData &&
-                       p != Connection.ProcessingStep.MigrationFrom430 &&
-                       p != Connection.ProcessingStep.MigrationFrom500)
+          .Select(p => !postProcesses.Contains(p))
           .CombineLatest(this.LoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
           .CombineLatest(JrdbDownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)
           .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
           .ToReactiveProperty();
       this.RTDownloadingStatus =
         this.RTProcessingStep
-          .Select(p => p != Connection.ProcessingStep.StandardTime &&
-                       p != Connection.ProcessingStep.PreviousRaceDays &&
-                       p != Connection.ProcessingStep.RiderWinRates)
+          .Select(p => !postProcesses.Contains(p))
           .CombineLatest(this.RTLoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
           .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
           .ToReactiveProperty();
