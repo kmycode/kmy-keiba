@@ -15,7 +15,7 @@
   appconfig.distanceDiffLocalInHorseGrade = 50;
 
   // 分析画面で分析に利用するデータの量。多いほどキャッシュのときにRAM容量を使う
-  appconfig.analysisTableSourceSize = 1000;
+  appconfig.analysisTableSourceSize = 500;
 
   // 分析画面で分析に利用するデータの量（useRaceHorseAnalyzerの場合）
   // useRaceHorseAnalyzerは１つのレースで複数の馬のデータを利用するが、馬の数だけデータの量にカウントされるので

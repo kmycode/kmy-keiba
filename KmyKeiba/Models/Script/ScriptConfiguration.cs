@@ -33,7 +33,7 @@ namespace KmyKeiba.Models.Script
     public int NearDistanceDiffLocalInHorseGrade { get; init; } = 50;
 
     [ScriptMember("analysisTableSourceSize")]
-    public int AnalysisTableSourceSize { get; set; } = 1000;
+    public int AnalysisTableSourceSize { get; set; } = 500;
 
     [ScriptMember("analysisTableRaceHorseSourceSize")]
     public int AnalysisTableRaceHorseSourceSize { get; set; } = 4000;

@@ -126,7 +126,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       var dummyRace = new RaceData();
       var finder = new FinderModel(dummyRace, RaceHorseAnalyzer.Empty, null)
       {
-        DefaultSize = 1000,
+        DefaultSize = 500,
       };
       this.FinderModelForConfig = finder;
 
