@@ -69,7 +69,6 @@ namespace KmyKeiba.Models.Connection.Connector
     public static MigrateFrom322Process MigrateFrom322 { get; } = new();
     public static MigrateFrom430Process MigrateFrom430 { get; } = new();
     public static MigrateFrom500Process MigrateFrom500 { get; } = new();
-    public static TrainRunningStyleProcess TrainRunningStyle { get; } = new();
     public static RunningStyleProcess RunningStyle { get; } = new();
     public static PreviousRaceDaysProcess PreviousRaceDays { get; } = new();
     public static RiderWinRatesProcess RiderWinRates { get; } = new();
@@ -81,7 +80,6 @@ namespace KmyKeiba.Models.Connection.Connector
     public static PostProcessingCollection AfterDownload { get; } =
     [
       RemoveInvalidData,
-      TrainRunningStyle,
       RunningStyle,
       PreviousRaceDays,
       RiderWinRates,
@@ -92,7 +90,6 @@ namespace KmyKeiba.Models.Connection.Connector
     public static PostProcessingCollection AfterRTDownload { get; } =
     [
       RemoveInvalidData,
-      TrainRunningStyle,
       RunningStyle,
     ];
   }
@@ -193,37 +190,18 @@ namespace KmyKeiba.Models.Connection.Connector
     }
   }
 
-  public class TrainRunningStyleProcess : IPostProcessing
-  {
-    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
-
-    public ProcessingStep Step => ProcessingStep.RunningStyle;
-
-    public Task RunAsync()
-    {
-      var state = DownloadStatus.Instance;
-
-      logger.Info($"後処理進捗変更: {this.Step}");
-      ShapeDatabaseModel.TrainRunningStyle(isForce: Connectors.Central.IsRunning.Value);
-
-      return Task.CompletedTask;
-    }
-  }
-
   public class RunningStyleProcess : IPostProcessing
   {
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
     public ProcessingStep Step => ProcessingStep.RunningStyle;
 
-    public Task RunAsync()
+    public async Task RunAsync()
     {
       var state = DownloadStatus.Instance;
 
       logger.Info($"後処理進捗変更: {this.Step}");
-      ShapeDatabaseModel.StartRunningStylePredicting();
-
-      return Task.CompletedTask;
+      await ShapeDatabaseModel.PredictRunningStyleAsync(state.IsCancelProcessing, state.ProcessingProgress, state.ProcessingProgressMax);
     }
   }
 

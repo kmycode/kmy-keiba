@@ -135,9 +135,6 @@ namespace KmyKeiba.Models.Connection
     [Label("データをマイグレーション中 (from 5.0.0)")]
     MigrationFrom500 = 2048,
 
-    [Label("脚質を計算中")]
-    TrainRunningStyle = 4096,
-
-    All = InvalidData | RunningStyle | TrainRunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | HorseExtraData,
+    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | HorseExtraData,
   }
 }

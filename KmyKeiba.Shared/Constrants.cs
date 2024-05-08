@@ -61,8 +61,6 @@ namespace KmyKeiba.Shared
 
     public static readonly string RTHostFilePath = Path.Combine(AppDataDir, "rthost");
 
-    public static readonly string RunningStyleTrainingFilePath = Path.Combine(AppDataDir, "runningstyle.mml");
-
     public static readonly string ApplicationVersion = Assembly.GetExecutingAssembly().GetName().Version!.ToString();
   }
 }
