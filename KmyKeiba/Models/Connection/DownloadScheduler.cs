@@ -111,7 +111,7 @@ namespace KmyKeiba.Models.Connection
         this._lastStandardTimeUpdatedYear = now.Year;
       }
 
-      if (now - this._lastUpdatedPreviousRace >= TimeSpan.FromDays(1) || this._isUpdateRtHeavyForce)
+      if (now - this._lastUpdatedPreviousRace >= TimeSpan.FromHours(8) || this._isUpdateRtHeavyForce)
       {
         await this.DownloadPreviousDayResultsAsync();
 

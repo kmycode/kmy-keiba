@@ -94,8 +94,8 @@ namespace KmyKeiba.Models.Connection
           .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
           .ToReactiveProperty();
 
-      this.LoadingProcess.Subscribe(_ => UpdateCanSave());
-      this.RTLoadingProcess.Subscribe(_ => UpdateCanSave());
+      this.DownloadingStatus.Subscribe(_ => UpdateCanSave());
+      this.RTDownloadingStatus.Subscribe(_ => UpdateCanSave());
       this.ProcessingStep.Subscribe(_ => UpdateCanSave());
       JrdbDownloaderModel.Instance.CanSaveOthers.Subscribe(_ => UpdateCanSave());
       JrdbDownloaderModel.Instance.DownloadingYear.Skip(1).Subscribe(val => this.DownloadingYear.Value = val);
