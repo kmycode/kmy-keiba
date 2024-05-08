@@ -147,19 +147,23 @@ namespace KmyKeiba.JVLink.Entities
     {
       get
       {
-        var isLocalSpecial = false;
         var displayClass = this.DisplayClass;
 
         if (displayClass is RaceGrade grade)
         {
-          isLocalSpecial = grade == RaceGrade.LocalNonGradeSpecial;
-
-          if (!isLocalSpecial)
+          if (grade != RaceGrade.LocalNonGradeSpecial && grade != RaceGrade.NonGradeSpecial)
           {
             return grade.GetLabel();
           }
 
-          displayClass = this.SecondaryClass;
+          if (!this.IsLocal && this.AgeSubjects.Any())
+          {
+            return this.AgeSubjects.Min(s => s.Age) + "歳";
+          }
+          else
+          {
+            displayClass = this.SecondaryClass;
+          }
         }
 
         if (displayClass is RaceClass cls)
