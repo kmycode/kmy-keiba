@@ -46,6 +46,8 @@ namespace KmyKeiba.Models.Connection
 
     private DownloaderConnector()
     {
+      DownloaderTaskDataExtensions.RemoveAll();
+
       this.IsBusy = this.currentTask.Select(t => t != null).ToReactiveProperty().AddTo(this._disposables);
       this.IsRTBusy = this.currentRTTask.Select(t => t != null).ToReactiveProperty().AddTo(this._disposables);
 

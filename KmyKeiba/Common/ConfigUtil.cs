@@ -23,6 +23,17 @@ namespace KmyKeiba.Common
       return data?.IntValue ?? default;
     }
 
+    public static async Task<bool> GetBooleanValueAsync(SettingKey key)
+    {
+      using var db = new MyContext();
+      return await GetBooleanValueAsync(db, key);
+    }
+
+    public static async Task<bool> GetBooleanValueAsync(MyContext db, SettingKey key)
+    {
+      return await GetIntValueAsync(db, key) != 0;
+    }
+
     public static async Task<string> GetStringValueAsync(MyContext db, SettingKey key)
     {
       var data = await db.SystemData!.FirstOrDefaultAsync(s => s.Key == key);
@@ -33,6 +44,12 @@ namespace KmyKeiba.Common
     {
       using var db = new MyContext();
       await SetIntValueAsync(db, key, value);
+    }
+
+    public static async Task SetBooleanValueAsync(SettingKey key, bool value)
+    {
+      using var db = new MyContext();
+      await SetBooleanValueAsync(db, key, value);
     }
 
     public static async Task SetStringValueAsync(SettingKey key, string value)
@@ -59,6 +76,9 @@ namespace KmyKeiba.Common
       }
       await db.SaveChangesAsync();
     }
+
+    public static Task SetBooleanValueAsync(MyContext db, SettingKey key, bool value)
+      => SetIntValueAsync(db, key, value ? 1 : 0);
 
     public static async Task SetStringValueAsync(MyContext db, SettingKey key, string value)
     {

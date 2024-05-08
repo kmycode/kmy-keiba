@@ -52,26 +52,26 @@
               <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
                 <Button Width="80" Height="50" FontSize="24" Padding="0" Content="DL" Command="{Binding OpenDownloadDialogCommand}"/>
                 <Border Width="240">
-                  <Grid Background="{Binding Downloader.DownloadingStatus.Value,Converter={StaticResource ValueComparationBackgroundConv}}">
+                  <Grid Background="{Binding Downloader.State.DownloadingStatus.Value,Converter={StaticResource ValueComparationBackgroundConv}}">
                     <Grid.Visibility>
                       <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
-                        <Binding Path="Downloader.IsDownloading.Value"/>
-                        <Binding Path="Downloader.IsError.Value"/>
+                        <Binding Path="Downloader.State.IsDownloading.Value"/>
+                        <Binding Path="Downloader.State.IsError.Value"/>
                       </MultiBinding>
                     </Grid.Visibility>
-                    <Grid Visibility="{Binding Downloader.IsError.Value,Converter={StaticResource NegativeVisibilityConv}}">
-                      <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}"
+                    <Grid Visibility="{Binding Downloader.State.IsError.Value,Converter={StaticResource NegativeVisibilityConv}}">
+                      <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.State.IsProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}"
                                  VerticalAlignment="Center" Margin="16,0,0,0">
-                        <Run Text="{Binding Downloader.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/> <Run Text="{Binding Downloader.DownloadingYear.Value}"/>年 <Run Text="{Binding Downloader.DownloadingMonth.Value}"/>月<LineBreak/>
-                        [<Run Text="{Binding Downloader.DownloadingType.Value,Converter={StaticResource LabelConv}}"/>] <Run Text="{Binding Downloader.LoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
+                        <Run Text="{Binding Downloader.State.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/> <Run Text="{Binding Downloader.State.DownloadingYear.Value}"/>年 <Run Text="{Binding Downloader.State.DownloadingMonth.Value}"/>月<LineBreak/>
+                        [<Run Text="{Binding Downloader.State.DownloadingType.Value,Converter={StaticResource LabelConv}}"/>] <Run Text="{Binding Downloader.State.LoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
                       </TextBlock>
-                      <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                      <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.State.IsProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}"
                                  VerticalAlignment="Center" Margin="16,0,0,0">
-                        <Run Text="{Binding Downloader.ProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
+                        <Run Text="{Binding Downloader.State.ProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
                       </TextBlock>
                     </Grid>
                     <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{StaticResource ErrorForeground}" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" Margin="8,0"
-                               Text="{Binding Downloader.ErrorMessage.Value}" Visibility="{Binding Downloader.IsError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                               Text="{Binding Downloader.State.ErrorMessage.Value}" Visibility="{Binding Downloader.State.IsError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </Grid>
                 </Border>
                 <Grid Width="80" Height="50">
@@ -80,29 +80,29 @@
                     <RowDefinition Height="auto"/>
                   </Grid.RowDefinitions>
                   <Button FontSize="20" Padding="0" Content="RT" Command="{Binding OpenRTDownloadDialogCommand}"/>
-                  <ToggleButton Grid.Row="1" FontSize="12" Padding="0" Content="一時停止" IsChecked="{Binding Downloader.IsRTPaused.Value,Mode=TwoWay}"/>
+                  <ToggleButton Grid.Row="1" FontSize="12" Padding="0" Content="一時停止" IsChecked="{Binding Downloader.State.IsRTPaused.Value,Mode=TwoWay}"/>
                 </Grid>
                 <Border Width="240">
-                  <Grid Background="{Binding Downloader.RTDownloadingStatus.Value,Converter={StaticResource ValueComparationBackgroundConv}}">
+                  <Grid Background="{Binding Downloader.State.RTDownloadingStatus.Value,Converter={StaticResource ValueComparationBackgroundConv}}">
                     <Grid.Visibility>
                       <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
-                        <Binding Path="Downloader.IsRTDownloading.Value"/>
-                        <Binding Path="Downloader.IsRTError.Value"/>
+                        <Binding Path="Downloader.State.IsRTDownloading.Value"/>
+                        <Binding Path="Downloader.State.IsRTError.Value"/>
                       </MultiBinding>
                     </Grid.Visibility>
-                    <Grid Visibility="{Binding Downloader.IsRTError.Value,Converter={StaticResource NegativeVisibilityConv}}">
-                      <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsRTProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}"
+                    <Grid Visibility="{Binding Downloader.State.IsRTError.Value,Converter={StaticResource NegativeVisibilityConv}}">
+                      <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.State.IsRTProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}"
                                  VerticalAlignment="Center" Margin="16,0,0,0">
-                        <Run Text="{Binding Downloader.RTDownloadingLink.Value,Converter={StaticResource LabelConv}}"/><LineBreak/>
-                        [<Run Text="{Binding Downloader.RTDownloadingDataspec.Value,Converter={StaticResource LabelConv}}"/>] <Run Text="{Binding Downloader.RTLoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
+                        <Run Text="{Binding Downloader.State.RTDownloadingLink.Value,Converter={StaticResource LabelConv}}"/><LineBreak/>
+                        [<Run Text="{Binding Downloader.State.RTDownloadingDataspec.Value,Converter={StaticResource LabelConv}}"/>] <Run Text="{Binding Downloader.State.RTLoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
                       </TextBlock>
-                      <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.IsRTProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                      <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.State.IsRTProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}"
                                  VerticalAlignment="Center" Margin="16,0,0,0">
-                        <Run Text="{Binding Downloader.RTProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
+                        <Run Text="{Binding Downloader.State.RTProcessingStep.Value,Converter={StaticResource LabelConv}}"/>
                       </TextBlock>
                     </Grid>
                     <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{StaticResource ErrorForeground}" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" Margin="8,0"
-                               Text="{Binding Downloader.RTErrorMessage.Value}" Visibility="{Binding Downloader.IsRTError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                               Text="{Binding Downloader.State.RTErrorMessage.Value}" Visibility="{Binding Downloader.State.IsRTError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </Grid>
                 </Border>
                 <StackPanel Orientation="Horizontal">

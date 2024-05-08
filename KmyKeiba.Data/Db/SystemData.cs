@@ -29,10 +29,10 @@ namespace KmyKeiba.Data.Db
     IsDownloadLocal = 4,
     IsRTDownloadCentral = 5,
     IsRTDownloadLocal = 6,
-    LastLaunchDate = 7,
+    // LastLaunchDate = 7,
     IsDownloadCentralOnThursdayAfterOnly = 8,
     LastUpdateStandardTimeYear = 9,
-    LastDownloadNormalDataHour = 10,
+    // LastDownloadNormalDataHour = 10,
     DatabaseVersion = 11,
     IsDownloadJrdb = 12,
     IsRTDownloadJrdb = 13,
@@ -42,5 +42,8 @@ namespace KmyKeiba.Data.Db
     IsNotDownloadHorseBloods = 17,
     IsNotDownloadTrainings = 18,
     IsNotBuildExtraData = 19,
+    LastDownloadPlanOfRaceDate = 20,
+    LastDownloadPreviousRaceDate = 21,
+    LastLaunchDateEx = 22,
   }
 }

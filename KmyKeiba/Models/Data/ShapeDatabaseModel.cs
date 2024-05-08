@@ -95,14 +95,8 @@ namespace KmyKeiba.Models.Data
       }
     }
 
-    public static async Task MakeStandardTimeMasterDataAsync(int startYear, DownloadLink link = DownloadLink.Both, ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
+    public static async Task MakeStandardTimeMasterDataAsync(int startYear, ReactiveProperty<bool>? isCanceled = null, ReactiveProperty<int>? progress = null, ReactiveProperty<int>? progressMax = null)
     {
-      if (link == DownloadLink.Both)
-      {
-        await MakeStandardTimeMasterDataAsync(startYear, DownloadLink.Central, isCanceled, progress, progressMax);
-        await MakeStandardTimeMasterDataAsync(startYear, DownloadLink.Local, isCanceled, progress, progressMax);
-      }
-
       logger.Debug("基準タイムマスターデータ作成中...");
 
       progress ??= new();
@@ -128,20 +122,6 @@ namespace KmyKeiba.Models.Data
           if (string.IsNullOrEmpty(course.GetName()))
           {
             continue;
-          }
-          if (link.HasFlag(DownloadLink.Central))
-          {
-            if (course > RaceCourse.CentralMaxValue)
-            {
-              continue;
-            }
-          }
-          if (link.HasFlag(DownloadLink.Local))
-          {
-            if (course < RaceCourse.LocalMinValue)
-            {
-              continue;
-            }
           }
 
           for (var year = startYear; year < DateTime.Today.Year - 1; year++)

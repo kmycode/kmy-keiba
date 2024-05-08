@@ -42,11 +42,11 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<bool> IsInitializationError => this.downloader.IsInitializationError;
 
-    public ReactiveProperty<string> DownloaderErrorMessage => this.downloader.ErrorMessage;
+    public ReactiveProperty<string> DownloaderErrorMessage => this.downloader.State.ErrorMessage;
 
     public ReactiveProperty<bool> IsInitialized { get; } = new ReactiveProperty<bool>();
 
-    public ReactiveProperty<bool> IsLongDownloadMonth => this.downloader.IsLongDownloadMonth;
+    public ReactiveProperty<bool> IsLongDownloadMonth => this.downloader.State.IsLongDownloadMonth;
 
     public ReactiveProperty<string> FirstMessage => this.model.FirstMessage;
 
@@ -142,7 +142,7 @@ namespace KmyKeiba.ViewModels
     public void OnApplicationExit()
     {
       logger.Debug("アプリ終了処理開始");
-      this.downloader.Dispose();
+      DownloaderConnector.Instance.Dispose();
       logger.Debug("アプリ終了処理完了");
     }
 
@@ -247,27 +247,27 @@ namespace KmyKeiba.ViewModels
 
     public ICommand StartDownloadCommand =>
       this._startDownloadCommand ??=
-        new ReactiveCommand(this.downloader.IsRTBusy.Select(r => !r)).WithSubscribe(this.downloader.BeginDownload);
+        new ReactiveCommand(this.downloader.State.IsRTBusy.Select(r => !r)).WithSubscribe(this.downloader.BeginDownload);
     private ReactiveCommand? _startDownloadCommand;
 
     public ICommand ResetHorseExtraDataCommand =>
       this._resetHorseExtraDataCommand ??=
-        new ReactiveCommand(this.downloader.IsRTBusy.Select(r => !r)).WithSubscribe(this.downloader.BeginResetHorseExtraData);
+        new ReactiveCommand(this.downloader.State.IsRTBusy.Select(r => !r)).WithSubscribe(this.downloader.BeginResetHorseExtraData);
     private ICommand? _resetHorseExtraDataCommand;
 
     public ICommand CancelDownloadCommand =>
       this._cancelDownloadCommand ??=
-        new ReactiveCommand<object>(this.downloader.CanCancel).WithSubscribe(_ => this.downloader.CancelDownload());
+        new ReactiveCommand<object>(this.downloader.State.CanCancel).WithSubscribe(_ => this.downloader.CancelDownload());
     private ReactiveCommand<object>? _cancelDownloadCommand;
 
     public ICommand UpdateRtDataForceCommand =>
       this._updateRtDataForceCommand ??=
-        new ReactiveCommand(this.downloader.IsBusy.Select(r => !r)).WithSubscribe(this.downloader.UpdateRtDataForce);
+        new ReactiveCommand(this.downloader.State.IsBusy.Select(r => !r)).WithSubscribe(this.downloader.UpdateRtDataForce);
     private ReactiveCommand? _updateRtDataForceCommand;
 
     public ICommand UpdateRtDataHeavyForceCommand =>
       this._updateRtDataHeavyForceCommand ??=
-        new ReactiveCommand(this.downloader.IsBusy.Select(r => !r)).WithSubscribe(this.downloader.UpdateRtDataHeavyForce);
+        new ReactiveCommand(this.downloader.State.IsBusy.Select(r => !r)).WithSubscribe(this.downloader.UpdateRtDataHeavyForce);
     private ReactiveCommand? _updateRtDataHeavyForceCommand;
 
     #endregion

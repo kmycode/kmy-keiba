@@ -369,7 +369,7 @@ namespace KmyKeiba.Downloader
           JVLinkDataspec.RB13,
           JVLinkDataspec.RB17,
         } : new[]
-          {
+        {
           JVLinkDataspec.RB12,
           JVLinkDataspec.RB15,
           JVLinkDataspec.RB30,
@@ -399,11 +399,21 @@ namespace KmyKeiba.Downloader
         var races = await query.ToArrayAsync();
         if (!races.Any())
         {
-          task.Error = DownloaderError.TargetsNotExists;
-          task.IsFinished = true;
-          await db.SaveChangesAsync();
-          logger.Warn($"以下の時刻以降のレースが存在しません 開始: {start}");
-          return;
+          dataspecs = link.Type == JVLinkObjectType.Central ? new[]
+          {
+            JVLinkDataspec.RB12,
+            JVLinkDataspec.RB15,
+            JVLinkDataspec.RB11,
+            JVLinkDataspec.RB14,
+            JVLinkDataspec.RB13,
+            JVLinkDataspec.RB17,
+          } : new[]
+          {
+            JVLinkDataspec.RB12,
+            JVLinkDataspec.RB15,
+            JVLinkDataspec.RB11,
+            JVLinkDataspec.RB14,
+          };
         }
 
         var raceKeys = races.Select(r => r.Key).ToArray();
