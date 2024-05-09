@@ -66,10 +66,23 @@ namespace KmyKeiba.Models.Race.Finder
       this.RaceHorse = horse;
       this.Input = new FinderQueryInput(race, horse?.Data, horse, horses?.Select(h => h.Data).ToArray());
 
-      // TODO いずれカスタマイズできるように
-      foreach (var preset in DatabasePresetModel.GetFinderRaceHorseColumns())
+      this.CurrentGroup.Subscribe(g =>
       {
-        this.RaceHorseColumns.Add(preset.Clone());
+        if (g != null && !g.Rows.Any() && g.Items.Any())
+        {
+          this.UpdateRows(g.Items.ToFinderRows(this.RaceHorseColumns));
+        }
+      });
+    }
+
+    private void UpdateColumnConfigs()
+    {
+      this.RaceHorseColumns.Clear();
+      this.Tabs.Clear();
+
+      foreach (var preset in FinderColumnConfigUtil.GenerateRaceHorseColumnList())
+      {
+        this.RaceHorseColumns.Add(preset);
       }
 
       if (this.RaceHorseColumns.Any())
@@ -87,20 +100,14 @@ namespace KmyKeiba.Models.Race.Finder
           this.Tabs.First().IsChecked.Value = true;
         }
 
-        this.Tabs.ActiveItem.Subscribe(_ => this.OnTabChanged());
+        this.Tabs.ActiveItem.Subscribe(_ => this.OnTabChanged()).AddTo(this._disposables);
       }
-
-      this.CurrentGroup.Subscribe(g =>
-      {
-        if (g != null && !g.Rows.Any() && g.Items.Any())
-        {
-          this.UpdateRows(g.Items.ToFinderRows(this.RaceHorseColumns));
-        }
-      });
     }
 
     public void BeginLoad()
     {
+      this.UpdateColumnConfigs();
+
       Task.Run(async () =>
       {
         this.IsError.Value = false;

@@ -20,6 +20,8 @@ namespace KmyKeiba.Views.ListItems
     public DataTemplate? RunningStyleTemplate { get; set; }
     public DataTemplate? CornerPlaceTemplate { get; set; }
     public DataTemplate? HorseNameTemplate { get; set; }
+    public DataTemplate? HorseMarkTemplate { get; set; }
+    public DataTemplate? HorseSexTemplate { get; set; }
 
     public override DataTemplate SelectTemplate(object item, DependencyObject container)
     {
@@ -35,6 +37,8 @@ namespace KmyKeiba.Views.ListItems
           FinderColumnType.RunningStyle => this.RunningStyleTemplate,
           FinderColumnType.CornerPlaces => this.CornerPlaceTemplate,
           FinderColumnType.HorseName => this.HorseNameTemplate,
+          FinderColumnType.HorseMark => this.HorseMarkTemplate,
+          FinderColumnType.HorseSex => this.HorseSexTemplate,
           _ => null,
         };
         if (template != null)

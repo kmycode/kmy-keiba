@@ -142,7 +142,7 @@ namespace KmyKeiba.Models.Connection
         isPostProcess = true;
       }
 
-      if (isPostProcess)
+      if (isPostProcess && this._connectors.Any(c => c.IsRTAvailable.Value))
       {
         await this.RTPostProcessingAsync();
       }

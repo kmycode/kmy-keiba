@@ -2,6 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:ui="clr-namespace:KmyKeiba.Views.ListItems"
                     xmlns:up="clr-namespace:KmyKeiba.Views.Parts">
+  <TransformGroup x:Key="MarkTransformForTemplate">
+    <ScaleTransform ScaleX="0.5" ScaleY="0.5"/>
+    <TranslateTransform X="5" Y="5"/>
+  </TransformGroup>
   <ui:FinderRowTemplateSelector x:Key="FinderRowTemplateSelector">
     <ui:FinderRowTemplateSelector.TextTemplate>
       <DataTemplate>
@@ -73,5 +77,20 @@
         </Border>
       </DataTemplate>
     </ui:FinderRowTemplateSelector.CornerPlaceTemplate>
+    <ui:FinderRowTemplateSelector.HorseMarkTemplate>
+      <DataTemplate>
+        <Border Width="40" Height="32"
+                Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <ContentControl Template="{Binding Value,Mode=OneWay,Converter={StaticResource HorseMarkConv}}" RenderTransform="{StaticResource MarkTransformForTemplate}" Height="32" Width="40"/>
+        </Border>
+      </DataTemplate>
+    </ui:FinderRowTemplateSelector.HorseMarkTemplate>
+    <ui:FinderRowTemplateSelector.HorseSexTemplate>
+      <DataTemplate>
+        <TextBlock Text="{Binding Value,Converter={StaticResource EnumsConv}}" Foreground="{Binding Value,Converter={StaticResource EnumsConv}}"
+                   Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                   Width="{Binding Column.Width}" FontSize="16" TextAlignment="Right" Margin="0,0,8,0"/>
+      </DataTemplate>
+    </ui:FinderRowTemplateSelector.HorseSexTemplate>
   </ui:FinderRowTemplateSelector>
 </ResourceDictionary>

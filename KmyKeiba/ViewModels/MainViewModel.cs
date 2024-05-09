@@ -118,13 +118,15 @@ namespace KmyKeiba.ViewModels
         using var db = new MyContext();
         await FinderConfigUtil.InitializeAsync(db);
         await AnalysisTableScriptUtil.InitializeAsync(db);
-        await FinderConfigUtil.InitializeAsync(db);
         await ExternalNumberUtil.InitializeAsync(db);
         await CheckHorseUtil.InitializeAsync(db);
         await AnalysisTableUtil.InitializeAsync(db);
 
         // DBのプリセット
-        await DatabasePresetModel.SetPresetsAsync();
+        await DatabasePresetModel.SetPresetsAsync(db);
+
+        // プリセット反映後の初期化処理
+        await FinderColumnConfigUtil.InitializeAsync(db);
 
         // 初期化完了
         this.IsInitialized.Value = true;
@@ -470,6 +472,42 @@ namespace KmyKeiba.ViewModels
     public ICommand LoadExternalNumbersCommand => this._loadExternalNumbersCommand ??=
       new ReactiveCommand<ExternalNumberConfigItem>(this.CanSave).WithSubscribe(obj => obj.BeginLoadDb()).AddTo(this._disposables);
     private ICommand? _loadExternalNumbersCommand;
+
+    #endregion
+
+    #region 検索結果カラム設定
+
+    public ICommand AddFinderColumnTabGroupCommand => this._addFinderColumnTabGroupCommand ??=
+      new ReactiveCommand(this.CanSave).WithSubscribe(_ => this.FinderColumnConfig.AddTab()).AddTo(this._disposables);
+    private ICommand? _addFinderColumnTabGroupCommand;
+
+    public ICommand UpFinderColumnTabGroupCommand => this._upFinderColumnTabGroupCommand ??=
+      new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.FinderColumnConfig.UpTabAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upFinderColumnTabGroupCommand;
+
+    public ICommand DownFinderColumnTabGroupCommand => this._downFinderColumnTabGroupCommand ??=
+      new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.FinderColumnConfig.DownTabAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downFinderColumnTabGroupCommand;
+
+    public ICommand RemoveFinderColumnTabGroupCommand => this._removeFinderColumnTabGroupCommand ??=
+      new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.FinderColumnConfig.RemoveTabAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeFinderColumnTabGroupCommand;
+
+    public ICommand AddFinderColumnCommand => this._addFinderColumnCommand ??=
+      new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.FinderColumnConfig.AddColumnAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addFinderColumnCommand;
+
+    public ICommand RemoveFinderColumnCommand => this._removeFinderColumnCommand ??=
+      new AsyncReactiveCommand<FinderColumnItem>(this.CanSave).WithSubscribe(column => this.FinderColumnConfig.RemoveColumnAsync(column) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeFinderColumnCommand;
+
+    public ICommand UpFinderColumnCommand => this._upFinderColumnCommand ??=
+      new AsyncReactiveCommand<FinderColumnItem>(this.CanSave).WithSubscribe(column => this.FinderColumnConfig.UpColumnAsync(column) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upFinderColumnCommand;
+
+    public ICommand DownFinderColumnCommand => this._downFinderColumnCommand ??=
+      new AsyncReactiveCommand<FinderColumnItem>(this.CanSave).WithSubscribe(column => this.FinderColumnConfig.DownColumnAsync(column) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downFinderColumnCommand;
 
     #endregion
   }
