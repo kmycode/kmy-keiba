@@ -255,8 +255,8 @@ namespace KmyKeiba.Models.Race.Finder
       new(FinderColumnProperty.Course, FinderColumnType.Text, 50, "場所", "競馬場の名前", h => h.Analyzer.Race.Course.GetName()),
       new(FinderColumnProperty.CourseInfo, FinderColumnType.CourseInfo, 70, "コース", "レースのコース (芝ダ/向き/距離)", h => h.Analyzer.Race),
       new(FinderColumnProperty.HorsesCount, FinderColumnType.NumericText, 40, "数", "登録された馬の数", h => h.Analyzer.Race.HorsesCount),
-      new(FinderColumnProperty.Weather, FinderColumnType.Text, 40, "天気", h => h.Analyzer.Race.TrackWeather.GetLabel() ?? string.Empty),
-      new(FinderColumnProperty.Condition, FinderColumnType.Text, 40, "馬場", "馬場 (良/稍重/重/不良)", h => h.Analyzer.Race.TrackCondition.GetLabel() ?? string.Empty),
+      new(FinderColumnProperty.Weather, FinderColumnType.Text, 40, "天気", h => h.Analyzer.Race.TrackWeather.ToLabelString() ?? string.Empty),
+      new(FinderColumnProperty.Condition, FinderColumnType.Text, 40, "馬場", "馬場 (良/稍重/重/不良)", h => h.Analyzer.Race.TrackCondition.ToLabelString() ?? string.Empty),
 
       new(FinderColumnProperty.HorseName, FinderColumnType.HorseName, 120, "馬名", h => new { h.Analyzer.Data.Name, h.Analyzer.Memo }),
       new(FinderColumnProperty.Popular, FinderColumnType.NumericText, 30, "人", "人気", h => h.Analyzer.Data.Popular, (h, v) => AnalysisUtil.CompareValue((short)v, h.Analyzer.Race.HorsesCount < 7 ? 2 : 3, 6, true)),
