@@ -62,58 +62,8 @@ KmyKeiba.setBulkBanei = function(value) {
   __bulk.item.isBanei = value;
 }
 
-KmyKeiba.mlTraining = function() {
-  return new MLTraining();
-}
-
-KmyKeiba.mlPrediction = function() {
-  return new MLPrediction();
-}
-
 KmyKeiba.__csDateTimeToDate = function(dateTime) {
   return new Date(dateTime);
-}
-
-
-function MLTraining(obj) {
-  if (!obj) {
-    this._obj = __ml.item;
-  } else {
-    this._obj = obj;
-  }
-}
-
-MLTraining.prototype.profile = function (name) {
-  return new MLTraining(this._obj.profile(name));
-}
-
-MLTraining.prototype.addRow = function(data, result) {
-  this._obj.addRow(JSON.stringify(data), result);
-}
-
-MLTraining.prototype.predictAsync = async function() {
-  // dummy
-  return [];
-}
-
-function MLPrediction(obj) {
-  if (!obj) {
-    this._obj = __mlp.item;
-  } else {
-    this._obj = obj;
-  }
-}
-
-MLPrediction.prototype.profile = function (name) {
-  return new MLPrediction(this._obj.profile(name));
-}
-
-MLPrediction.prototype.addRow = function(data) {
-  this._obj.addRow(JSON.stringify(data));
-}
-
-MLPrediction.prototype.predictAsync = async function () {
-  return JSON.parse(await this._obj.predictAsync());
 }
 
 
