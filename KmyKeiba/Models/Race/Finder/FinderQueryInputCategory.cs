@@ -2053,7 +2053,7 @@ namespace KmyKeiba.Models.Race.Finder
             return;
           }
 
-          horses.Take(500).ToArrayAsync().ContinueWith(t =>
+          horses.Take(100).ToArrayAsync().ContinueWith(t =>
           {
             if (t.IsCompletedSuccessfully)
             {
