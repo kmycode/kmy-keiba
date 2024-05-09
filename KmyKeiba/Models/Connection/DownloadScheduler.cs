@@ -101,6 +101,8 @@ namespace KmyKeiba.Models.Connection
       var now = DateTime.Now;
       var state = DownloadStatus.Instance;
 
+      var isPostProcess = false;
+
       if (!state.CanSaveOthers.Value || JrdbDownloaderModel.Instance.IsDownloading.Value) return;
 
       // 年を跨ぐ場合は基準タイムの更新も行う
@@ -117,6 +119,7 @@ namespace KmyKeiba.Models.Connection
 
         this._lastUpdatedPreviousRace = now;
         await ConfigUtil.SetStringValueAsync(SettingKey.LastDownloadPreviousRaceDate, now.ToString());
+        isPostProcess = true;
       }
 
       if (now - this._lastUpdatedPlanOfRace >= TimeSpan.FromHours(4) || this._isUpdateRtHeavyForce)
@@ -127,6 +130,7 @@ namespace KmyKeiba.Models.Connection
         await ConfigUtil.SetStringValueAsync(SettingKey.LastDownloadPlanOfRaceDate, now.ToString());
 
         this._isUpdateRtHeavyForce = false;
+        isPostProcess = true;
       }
 
       if (now - this._lastUpdatedToday >= TimeSpan.FromMinutes(5) || this._isUpdateRtForce)
@@ -135,6 +139,12 @@ namespace KmyKeiba.Models.Connection
 
         this._lastUpdatedToday = now;
         this._isUpdateRtForce = false;
+        isPostProcess = true;
+      }
+
+      if (isPostProcess)
+      {
+        await this.RTPostProcessingAsync();
       }
 
       this.IsWaitingNextRTUpdate.Value = true;
@@ -184,7 +194,18 @@ namespace KmyKeiba.Models.Connection
         today.AddDays(3),
       };
 
-      return await this.DownloadRTWithDaysAsync(days);
+      var isSucceed = await this.DownloadRTWithDaysAsync(days);
+
+      if (isSucceed)
+      {
+        // 地方競馬では通常データからでないと未来のレース予定を取得できない場合がある
+        if (Connectors.Local.IsRTAvailable.Value)
+        {
+          await Connectors.Local.DownloadAsync(new DateOnly(today.Year, today.Month, 1), DateOnly.MaxValue);
+        }
+      }
+
+      return isSucceed;
     }
 
     private async Task<bool> DownloadTodayNewsAsync()
@@ -223,9 +244,12 @@ namespace KmyKeiba.Models.Connection
         }
       }
 
-      await PostProcessing.RunAsync(DownloadStatus.Instance.RTProcessingStep, true, PostProcessings.AfterRTDownload);
-
       return isSucceed;
+    }
+
+    private async Task RTPostProcessingAsync()
+    {
+      await PostProcessing.RunAsync(DownloadStatus.Instance.RTProcessingStep, true, PostProcessings.AfterRTDownload);
     }
 
     public void UpdateRtDataForce()
