@@ -19,7 +19,6 @@ namespace KmyKeiba.Models.Analysis
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
     private static readonly Dictionary<RaceCourse, IReadOnlyList<RaceStandardTimeMasterData>> _standardData = new();
-    private static readonly Dictionary<string, IReadOnlyList<RiderWinRateMasterData>> _riderWinRateData = new();
 
     public static RaceStandardTimeMasterData DefaultStandardTime { get; } = new();
 
@@ -88,61 +87,6 @@ namespace KmyKeiba.Models.Analysis
     {
       logger.Info("基準タイムのキャッシュをリセット");
       _standardData.Clear();
-    }
-
-    public static async Task<RiderWinRateMasterData> GetRiderWinRateAsync(MyContext db, RaceData race, string riderCode)
-    {
-      // logger.Debug($"騎手の勝率情報 騎手コード: {riderCode}");
-
-      _riderWinRateData.TryGetValue(riderCode, out var list);
-
-      if (list == null)
-      {
-        list = await db.RiderWinRates!
-          .Where(rw => rw.RiderCode == riderCode)
-          .ToArrayAsync();
-        _riderWinRateData[riderCode] = list;
-        logger.Info($"騎手 {riderCode} 勝率情報キャッシュをDBから読み込みました 項目数: {list.Count}");
-      }
-
-      var raceMonth = new DateOnly(race.StartTime.Year, race.StartTime.Month, 1);
-      var query = list
-        .Select(rw => new { Month = new DateOnly(rw.Year, rw.Month, 1), Data = rw, })
-        .Where(rw => rw.Month < raceMonth && rw.Month >= raceMonth.AddYears(-1))
-        .Where(rw => race.Distance >= rw.Data.Distance && race.Distance < rw.Data.DistanceMax);
-
-      RiderWinRateMasterData item = query.Aggregate(new RiderWinRateMasterData
-      {
-        RiderCode = riderCode,
-      }, (a, b) =>
-      {
-        a.AllTurfCount += b.Data.AllTurfCount;
-        a.FirstTurfCount += b.Data.FirstDirtCount;
-        a.SecondTurfCount += b.Data.SecondTurfCount;
-        a.ThirdTurfCount += b.Data.ThirdTurfCount;
-        a.AllDirtCount += b.Data.AllDirtCount;
-        a.FirstDirtCount += b.Data.FirstDirtCount;
-        a.SecondDirtCount += b.Data.SecondDirtCount;
-        a.ThirdDirtCount += b.Data.ThirdDirtCount;
-        a.AllTurfSteepsCount += b.Data.AllTurfSteepsCount;
-        a.FirstTurfSteepsCount += b.Data.FirstDirtSteepsCount;
-        a.SecondTurfSteepsCount += b.Data.SecondTurfSteepsCount;
-        a.ThirdTurfSteepsCount += b.Data.ThirdTurfSteepsCount;
-        a.AllDirtSteepsCount += b.Data.AllDirtSteepsCount;
-        a.FirstDirtSteepsCount += b.Data.FirstDirtSteepsCount;
-        a.SecondDirtSteepsCount += b.Data.SecondDirtSteepsCount;
-        a.ThirdDirtSteepsCount += b.Data.ThirdDirtSteepsCount;
-        return a;
-      });
-
-      // logger.Info($"騎手 {riderCode} 勝率情報のサンプル数: {item.AllTurfCount} / {item.AllDirtCount} / {item.AllTurfSteepsCount} / {item.AllDirtSteepsCount}");
-      return item;
-    }
-
-    public static void ClearRiderWinRateCaches()
-    {
-      logger.Info("騎手勝率情報のキャッシュをリセット");
-      _riderWinRateData.Clear();
     }
 
     public static double CalcRoughRate(IReadOnlyList<RaceHorseData> topHorses)

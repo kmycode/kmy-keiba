@@ -69,8 +69,6 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<RaceStandardTimeMasterData>? RaceStandardTimes { get; set; }
 
-    public DbSet<RiderWinRateMasterData>? RiderWinRates { get; set; }
-
     public DbSet<TicketData>? Tickets { get; set; }
 
     public DbSet<RaceChangeData>? RaceChanges { get; set; }

@@ -88,17 +88,6 @@
             <TextBlock Grid.Column="3" Grid.Row="2" FontSize="24" Margin="0,8,0,0"
                        Text="{Binding RaceHorse.History.PrizeMoneyLabel,ElementName=Root}"/>
 
-            <TextBlock Grid.Column="4" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,0,24,0">
-              同距離・地面<LineBreak/>騎手複勝
-            </TextBlock>
-            <TextBlock Grid.Column="5" FontSize="24" Foreground="{Binding RaceHorse.RiderPlaceBitsRateComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
-                       Text="{Binding RaceHorse.RiderPlaceBitsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
-            <TextBlock Grid.Column="5" Grid.Row="1" FontSize="16">
-              <Run Text="１着" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderFirstCount,ElementName=Root,Mode=OneWay}"/>　
-              <Run Text="２着" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderSecondCount,ElementName=Root,Mode=OneWay}"/><LineBreak/>
-              <Run Text="３着" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderThirdCount,ElementName=Root,Mode=OneWay}"/>　
-              <Run Text="着外" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderLosedCount,ElementName=Root,Mode=OneWay}"/>
-            </TextBlock>
             <TextBlock Grid.Column="4" Grid.Row="2" Text="その他" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
             <StackPanel Grid.Column="5" Grid.Row="2" Orientation="Horizontal">
               <TextBlock FontSize="18" Visibility="{Binding RaceHorse.Data.IsBlinkers,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"

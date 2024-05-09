@@ -274,11 +274,6 @@
             <ContentControl Template="{Binding Horse.AnalysisTableMark.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource HorseMarkConv}}" RenderTransform="{StaticResource MarkTransform}"
                             HorizontalAlignment="Center"/>
           </StackPanel>
-          <StackPanel Width="60">
-            <TextBlock Text="騎手複勝" Foreground="{StaticResource SubForeground}" FontSize="12" HorizontalAlignment="Center"/>
-            <TextBlock Text="{Binding Horse.RiderPlaceBitsRate,ElementName=Root,StringFormat=P1}" FontSize="16" HorizontalAlignment="Center"
-                       Foreground="{Binding Horse.RiderPlaceBitsRateComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
-          </StackPanel>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Column="8" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
           <StackPanel Width="70" VerticalAlignment="Center">

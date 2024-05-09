@@ -94,9 +94,6 @@ namespace KmyKeiba.Models.Script
     [JsonPropertyName("memo")]
     public string Memo => this._horse.Memo ?? string.Empty;
 
-    [JsonPropertyName("riderPlaceBitsRate")]
-    public float RiderPlaceBitsRate => this._analyzer?.RiderPlaceBitsRate ?? default;
-
     [JsonPropertyName("runningStyle")]
     public short RunningStyle => this.IsTargetRace ? default : (short)this._horse.RunningStyle;
 

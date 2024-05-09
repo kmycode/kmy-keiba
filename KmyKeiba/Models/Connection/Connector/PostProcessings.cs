@@ -71,7 +71,6 @@ namespace KmyKeiba.Models.Connection.Connector
     public static MigrateFrom500Process MigrateFrom500 { get; } = new();
     public static RunningStyleProcess RunningStyle { get; } = new();
     public static PreviousRaceDaysProcess PreviousRaceDays { get; } = new();
-    public static RiderWinRatesProcess RiderWinRates { get; } = new();
     public static RaceSubjectInfosProcess RaceSubjectInfos { get; } = new();
     public static ResetHorseExtraDataProcess ResetHorseExtraData { get; } = new();
     public static HorseExtraDataProcess HorseExtraData { get; } = new();
@@ -82,7 +81,6 @@ namespace KmyKeiba.Models.Connection.Connector
       RemoveInvalidData,
       RunningStyle,
       PreviousRaceDays,
-      RiderWinRates,
       RaceSubjectInfos,
       HorseExtraData,
     ];
@@ -217,25 +215,6 @@ namespace KmyKeiba.Models.Connection.Connector
 
       logger.Info($"後処理進捗変更: {this.Step}");
       await ShapeDatabaseModel.SetHorseExtraDataAsync(
-        isCanceled: state.IsCancelProcessing,
-        progress: state.ProcessingProgress,
-        progressMax: state.ProcessingProgressMax
-      );
-    }
-  }
-
-  public class RiderWinRatesProcess : IPostProcessing
-  {
-    private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
-
-    public ProcessingStep Step => ProcessingStep.RiderWinRates;
-
-    public async Task RunAsync()
-    {
-      var state = DownloadStatus.Instance;
-
-      logger.Info($"後処理進捗変更: {this.Step}");
-      await ShapeDatabaseModel.SetRiderWinRatesAsync(
         isCanceled: state.IsCancelProcessing,
         progress: state.ProcessingProgress,
         progressMax: state.ProcessingProgressMax

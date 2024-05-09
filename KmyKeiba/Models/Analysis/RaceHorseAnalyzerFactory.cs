@@ -152,13 +152,12 @@ namespace KmyKeiba.Models.Analysis
           histories.Add(new RaceHorseAnalyzer(history.Race, history.RaceHorse, sameHorses.ToArray(), historyStandardTime).AddTo(this.Disposables));
         }
 
-        var riderWinRate = await AnalysisUtil.GetRiderWinRateAsync(db, race, horse.RiderCode);
         var jrdb = jrdbHorses.FirstOrDefault(j => j.Key == horse.Key);
 
         RaceHorseAnalyzer analyzer;
         if (this.IsLegacyTrendAnalyzer)
         {
-          analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate, jrdbHorse: jrdb)
+          analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, jrdbHorse: jrdb)
           {
             BloodSelectors = new RaceHorseBloodModel(race, horse),
             DetailData = horseDetails.FirstOrDefault(h => h.Code == horse.Key),
@@ -166,7 +165,7 @@ namespace KmyKeiba.Models.Analysis
         }
         else
         {
-          analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, riderWinRate, jrdbHorse: jrdb)
+          analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, jrdbHorse: jrdb)
           {
             BloodSelectors = new RaceHorseBloodModel(race, horse),
             DetailData = horseDetails.FirstOrDefault(h => h.Code == horse.Key),
@@ -192,8 +191,6 @@ namespace KmyKeiba.Models.Analysis
           var ua3htimedvMin = horseInfos.Select(i => i.History?.UntilA3HTimeDeviationValue ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
           var pciMax = horseInfos.Select(i => i.History?.PciAverage ?? default).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault();
           var pciMin = horseInfos.Select(i => i.History?.PciAverage ?? default).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault();
-          var riderPlaceRateMax = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderByDescending(v => v).Skip(2).FirstOrDefault();
-          var riderPlaceRateMin = horseInfos.Where(i => i.RiderAllCount > 0).Select(i => i.RiderPlaceBitsRate).OrderBy(v => v).Skip(2).FirstOrDefault();
           var resultA3hMax = horseInfos.Where(i => !i.IsAbnormalResult).Select(i => i.Data.AfterThirdHalongTime).Where(v => v != default).OrderBy(v => v).Skip(2).FirstOrDefault().TotalSeconds + 0.001;  // 等価比較対策
           var resultA3hMin = horseInfos.Where(i => !i.IsAbnormalResult).Select(i => i.Data.AfterThirdHalongTime).Where(v => v != default).OrderByDescending(v => v).Skip(2).FirstOrDefault().TotalSeconds - 0.001;
           foreach (var horse in horseInfos)
@@ -225,11 +222,6 @@ namespace KmyKeiba.Models.Analysis
                   horse.History.UntilA3HTimeDeviationValue - 0.5 <= ua3htimedvMin ? ValueComparation.Bad : ValueComparation.Standard;
                 horse.History.PciAverageComparation = AnalysisUtil.CompareValue(horse.History.PciAverage, pciMin, pciMax, true);
               }
-            }
-            if (riderPlaceRateMax != 0)
-            {
-              horse.RiderPlaceBitsRateComparation = horse.RiderPlaceBitsRate + 0.02 >= riderPlaceRateMax ? ValueComparation.Good :
-              horse.RiderPlaceBitsRate - 0.02 <= riderPlaceRateMin ? ValueComparation.Bad : ValueComparation.Standard;
             }
 
             horse.FinderModel.Value = new FinderModel(race, horse, sortedHorses);

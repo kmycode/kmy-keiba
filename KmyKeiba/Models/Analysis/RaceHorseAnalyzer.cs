@@ -64,20 +64,6 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<bool> CanSave => DownloaderModel.Instance.CanSaveOthers;
 
-    public float RiderPlaceBitsRate { get; } = new();
-
-    public ValueComparation RiderPlaceBitsRateComparation { get; set; }
-
-    public short RiderFirstCount { get; } = new();
-
-    public short RiderSecondCount { get; } = new();
-
-    public short RiderThirdCount { get; } = new();
-
-    public short RiderLosedCount { get; } = new();
-
-    public short RiderAllCount { get; } = new();
-
     public IReadOnlyList<RaceHorseCornerGrade> CornerGrades { get; } = Array.Empty<RaceHorseCornerGrade>();
 
     public ValueComparation ResultOrderComparation { get; }
@@ -525,56 +511,10 @@ namespace KmyKeiba.Models.Analysis
       this.CurrentRace = new CurrentRaceData(race, horse, sameRaceHorses, raceStandardTime);
     }
 
-    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalyzer> raceHistory, RaceStandardTimeMasterData? raceStandardTime, RiderWinRateMasterData riderWinRate, JrdbRaceHorseData? jrdbHorse = null)
+    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalyzer> raceHistory, RaceStandardTimeMasterData? raceStandardTime, JrdbRaceHorseData? jrdbHorse = null)
       : this(race, horse, sameRaceHorses, raceStandardTime, jrdbHorse)
     {
       this.History = new HistoryData(race, horse, raceHistory, jrdbHorse);
-
-      short allCount, firstCount, secondCount, thirdCount;
-      if (race.TrackType == TrackType.Flat)
-      {
-        if (race.TrackGround == TrackGround.Turf)
-        {
-          allCount = riderWinRate.AllTurfCount;
-          firstCount = riderWinRate.FirstTurfCount;
-          secondCount = riderWinRate.SecondTurfCount;
-          thirdCount = riderWinRate.ThirdTurfCount;
-        }
-        else
-        {
-          allCount = riderWinRate.AllDirtCount;
-          firstCount = riderWinRate.FirstDirtCount;
-          secondCount = riderWinRate.SecondDirtCount;
-          thirdCount = riderWinRate.ThirdDirtCount;
-        }
-      }
-      else
-      {
-        if (race.TrackGround == TrackGround.Turf)
-        {
-          allCount = riderWinRate.AllTurfSteepsCount;
-          firstCount = riderWinRate.FirstTurfSteepsCount;
-          secondCount = riderWinRate.SecondTurfSteepsCount;
-          thirdCount = riderWinRate.ThirdTurfSteepsCount;
-        }
-        else
-        {
-          allCount = riderWinRate.AllDirtSteepsCount;
-          firstCount = riderWinRate.FirstDirtSteepsCount;
-          secondCount = riderWinRate.SecondDirtSteepsCount;
-          thirdCount = riderWinRate.ThirdDirtSteepsCount;
-        }
-      }
-
-      if (allCount > 0)
-      {
-        this.RiderPlaceBitsRate = (firstCount + secondCount + thirdCount) / (float)allCount;
-        this.RiderFirstCount = firstCount;
-        this.RiderSecondCount = secondCount;
-        this.RiderThirdCount = thirdCount;
-        this.RiderLosedCount = (short)(allCount - firstCount - secondCount - thirdCount);
-        this.RiderAllCount = allCount;
-      }
     }
 
     #region Command
