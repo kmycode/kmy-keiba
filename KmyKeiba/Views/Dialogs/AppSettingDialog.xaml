@@ -31,6 +31,7 @@
           </Style>
         </StackPanel.Resources>
         <RadioButton Content="検索結果のカラム" Name="P_FinderColumn" IsChecked="True"/>
+        <RadioButton Content="保存された検索条件" Name="P_Finder"/>
         <RadioButton Content="拡張分析" Name="P_ExAnalysisConfig"/>
         <RadioButton Content="外部指数" Name="P_ExternalNumber"/>
       </StackPanel>
@@ -63,6 +64,8 @@
 
       <ex:ExternalNumberConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_ExternalNumber,Converter={StaticResource BooleanVisibilityConv}}"
                                    ExternalNumber="{Binding ExternalNumber}" Margin="0,-8,0,0"/>
+      <ex:FinderConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_Finder,Converter={StaticResource BooleanVisibilityConv}}"
+                           FinderConfig="{Binding AppSettings.FinderConfig,ElementName=Root}" Margin="0,-8,0,0"/>
       <ex:FinderColumnConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_FinderColumn,Converter={StaticResource BooleanVisibilityConv}}"
                                  ColumnConfig="{Binding FinderColumnConfig}" Margin="0,-8,0,0"/>
     </Grid>

@@ -1,4 +1,5 @@
 ﻿using KmyKeiba.Models.Race.AnalysisTable;
+using KmyKeiba.Models.Race.Finder;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,8 @@ namespace KmyKeiba.Models.Setting
     private static AppSettingsModel? _instance;
 
     public AnalysisTableConfigModel AnalysisTableConfig => AnalysisTableConfigModel.Instance;
+
+    public FinderConfigModel FinderConfig => FinderConfigModel.Instance;
 
     private AppSettingsModel() { }
   }

@@ -11,5 +11,7 @@ namespace KmyKeiba.Data.Db
     public string Name { get; set; } = string.Empty;
 
     public string Config { get; set; } = string.Empty;
+
+    public uint Order { get; set; }
   }
 }

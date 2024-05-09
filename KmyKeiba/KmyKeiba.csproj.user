@@ -76,6 +76,9 @@
     <Compile Update="Views\Expansions\FinderColumnConfigView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Expansions\FinderConfigView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\ListItems\RaceHorsePillar.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -235,6 +238,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Expansions\FinderColumnConfigView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\FinderConfigView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\ListItems\RaceHorsePillar.xaml">

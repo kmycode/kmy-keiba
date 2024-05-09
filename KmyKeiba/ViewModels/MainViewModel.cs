@@ -475,6 +475,26 @@ namespace KmyKeiba.ViewModels
 
     #endregion
 
+    #region 保存された検索条件の設定
+
+    public ICommand AddGeneralFinderConfigCommand => this._addGeneralFinderConfigCommand??=
+      new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.AppSettings.Value?.FinderConfig.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addGeneralFinderConfigCommand;
+
+    public ICommand RemoveGeneralFinderConfigCommand => this._removeGeneralFinderConfigCommand ??=
+      new AsyncReactiveCommand<FinderConfigItem>(this.CanSave).WithSubscribe(item => this.AppSettings.Value?.FinderConfig.RemoveConfigAsync(item) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _removeGeneralFinderConfigCommand;
+
+    public ICommand UpGeneralFinderConfigCommand => this._upGeneralFinderConfigCommand ??=
+      new AsyncReactiveCommand<FinderConfigItem>(this.CanSave).WithSubscribe(item => this.AppSettings.Value?.FinderConfig.UpConfigAsync(item) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upGeneralFinderConfigCommand;
+
+    public ICommand DownGeneralFinderConfigCommand => this._downGeneralFinderConfigCommand ??=
+      new AsyncReactiveCommand<FinderConfigItem>(this.CanSave).WithSubscribe(item => this.AppSettings.Value?.FinderConfig.DownConfigAsync(item) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downGeneralFinderConfigCommand;
+
+    #endregion
+
     #region 検索結果カラム設定
 
     public ICommand AddFinderColumnTabGroupCommand => this._addFinderColumnTabGroupCommand ??=
