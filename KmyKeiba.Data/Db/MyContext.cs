@@ -129,7 +129,12 @@ namespace KmyKeiba.Data.Db
 
     public async Task BeginTransactionAsync()
     {
-      this._transaction = await this.Database.BeginTransactionAsync();
+      this._transaction = await this.GenerateTransactionAsync();
+    }
+
+    protected virtual async Task<IDbContextTransaction> GenerateTransactionAsync()
+    {
+      return await this.Database.BeginTransactionAsync();
     }
 
     public async Task TryBeginTransactionAsync()

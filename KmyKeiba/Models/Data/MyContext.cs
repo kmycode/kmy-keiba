@@ -2,9 +2,11 @@
 using KmyKeiba.Shared;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -30,6 +32,11 @@ namespace KmyKeiba.Models.Data
       //base.OnConfiguring(optionsBuilder);
       //optionsBuilder.UseMySql(this.ConnectionString, null);
       optionsBuilder.UseSqlite(this.ConnectionString);
+    }
+
+    protected override Task<IDbContextTransaction> GenerateTransactionAsync()
+    {
+      return this.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead);
     }
 
     public async Task<int> SaveChangesAsync(int timeout = 0)
