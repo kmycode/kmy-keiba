@@ -198,10 +198,15 @@ namespace KmyKeiba.Models.Connection
 
       if (isSucceed)
       {
-        // 地方競馬では通常データからでないと未来のレース予定を取得できない場合がある
-        if (Connectors.Local.IsRTAvailable.Value)
+        // 通常レース予定は今週データから取得するのだが、地方・中央ともに通常データ取得でもいけるかも
+        var connectors = new IConnector[]
         {
-          await Connectors.Local.DownloadAsync(new DateOnly(today.Year, today.Month, 1), DateOnly.MaxValue);
+          Connectors.Central,
+          Connectors.Local,
+        };
+        foreach (var connector in connectors.Where(c => c.IsRTAvailable.Value))
+        {
+          await connector.DownloadAsync(new DateOnly(today.Year, today.Month, 1));
         }
       }
 
