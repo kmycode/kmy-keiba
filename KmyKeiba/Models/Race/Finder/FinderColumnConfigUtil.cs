@@ -260,6 +260,9 @@ namespace KmyKeiba.Models.Race.Finder
 
       new(FinderColumnProperty.HorseName, FinderColumnType.HorseName, 120, "馬名", h => new { h.Analyzer.Data.Name, h.Analyzer.Memo }),
       new(FinderColumnProperty.Popular, FinderColumnType.NumericTextWithoutZero, 30, "人", "人気", h => h.Analyzer.Data.Popular, (h, v) => AnalysisUtil.CompareValue((short)v, h.Analyzer.Race.HorsesCount < 7 ? 2 : 3, 6, true)),
+      new(FinderColumnProperty.SingleOdds, FinderColumnType.NumericTextWithoutZero, 50, "オッズ", "単勝オッズ", h => h.Analyzer.Data.Odds, v => ((short)v / 10.0).ToString("N1"), (h, v) => AnalysisUtil.CompareValue((short)v, 50, 15)),
+      new(FinderColumnProperty.PlaceOddsMin, FinderColumnType.NumericTextWithoutZero, 50, "複オ小", "複勝オッズ（最小）", h => h.Analyzer.Data.PlaceOddsMin, v => ((short)v / 10.0).ToString("N1"), (h, v) => AnalysisUtil.CompareValue((short)v, 50, 15)),
+      new(FinderColumnProperty.PlaceOddsMax, FinderColumnType.NumericTextWithoutZero, 50, "複オ大", "複勝オッズ（最大）", h => h.Analyzer.Data.PlaceOddsMax, v => ((short)v / 10.0).ToString("N1"), (h, v) => AnalysisUtil.CompareValue((short)v, 50, 15)),
       new(FinderColumnProperty.Weight, FinderColumnType.NumericTextWithoutZero, 40, "体重", h => h.Analyzer.Data.Weight),
       new(FinderColumnProperty.WeightDiff, FinderColumnType.NumericText, 30, "重変", "体重変化", h => h.Analyzer.Data.Weight == 0 ? (short)-999 : h.Analyzer.Data.WeightDiff, v => (v is short iv && iv == -999) ? string.Empty : v, (h, v) => AnalysisUtil.CompareValue((short)v, 3, -3, true)),
       new(FinderColumnProperty.RiderWeight, FinderColumnType.NumericText, 30, "斤量", h => h.Analyzer.Data.RiderWeight / 10.0),

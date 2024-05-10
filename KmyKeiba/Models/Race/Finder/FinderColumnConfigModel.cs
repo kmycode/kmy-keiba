@@ -72,6 +72,9 @@ namespace KmyKeiba.Models.Race.Finder
           FinderColumnProperty.RiderWeight,
           FinderColumnProperty.Age,
           FinderColumnProperty.Sex,
+          FinderColumnProperty.SingleOdds,
+          FinderColumnProperty.PlaceOddsMin,
+          FinderColumnProperty.PlaceOddsMax,
         ]
       },
       { FinderColumnPropertyGroup.RaceHorseResult,

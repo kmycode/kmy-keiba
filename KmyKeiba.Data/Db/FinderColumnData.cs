@@ -72,5 +72,8 @@ namespace KmyKeiba.Data.Db
     Weather = 53,
     Condition = 54,
     GoalOrder = 55,
+    SingleOdds = 56,
+    PlaceOddsMin = 57,
+    PlaceOddsMax = 58,
   }
 }
