@@ -63,13 +63,18 @@
           <TextBlock Text="{Binding Race.Data.Distance,ElementName=Root}" HorizontalAlignment="Center"
                      FontSize="14" Height="18"/>
         </StackPanel>
-        <StackPanel Grid.Column="4" VerticalAlignment="Center" Width="48">
-          <TextBlock FontSize="16" TextAlignment="Center" Margin="16,0,0,0"
-                     Text="{Binding Race.Weather.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
-          <TextBlock FontSize="16" TextAlignment="Center" Margin="16,0,0,0"
-                     Visibility="{Binding Race.IsBanei,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"
-                     Text="{Binding Race.Condition.Value,ElementName=Root,Converter={StaticResource TrackConv}}"/>
-          <TextBlock FontSize="16" TextAlignment="Center" Margin="16,0,0,0"
+        <StackPanel Grid.Column="4" VerticalAlignment="Center" Width="48" Margin="16,0,0,0">
+          <Border Margin="16,0,0,0">
+            <up:RaceWeatherIcon Weather="{Binding Race.Weather.Value,ElementName=Root}">
+              <up:RaceWeatherIcon.LayoutTransform>
+                <ScaleTransform ScaleX="0.032" ScaleY="0.032"/>
+              </up:RaceWeatherIcon.LayoutTransform>
+            </up:RaceWeatherIcon>
+          </Border>
+          <up:RaceCourseConditionIcon Condition="{Binding Race.Condition.Value,ElementName=Root}"
+                                      Visibility="{Binding Race.IsBanei,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"
+                                      Width="16" Height="16" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+          <TextBlock FontSize="16" TextAlignment="Center"
                      Visibility="{Binding Race.IsBanei,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
                      Text="{Binding Race.Data.BaneiMoisture,ElementName=Root,Converter={StaticResource DigitMinusConv}}"/>
         </StackPanel>

@@ -92,5 +92,26 @@
                    Width="{Binding Column.Width}" FontSize="16" TextAlignment="Right" Margin="0,0,8,0"/>
       </DataTemplate>
     </ui:FinderRowTemplateSelector.HorseSexTemplate>
+    <ui:FinderRowTemplateSelector.RaceCourseWeatherTemplate>
+      <DataTemplate>
+        <Border Width="{Binding Column.Width}"
+                Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <up:RaceWeatherIcon Weather="{Binding Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <up:RaceWeatherIcon.LayoutTransform>
+              <ScaleTransform ScaleX="0.032" ScaleY="0.032"/>
+            </up:RaceWeatherIcon.LayoutTransform>
+          </up:RaceWeatherIcon>
+        </Border>
+      </DataTemplate>
+    </ui:FinderRowTemplateSelector.RaceCourseWeatherTemplate>
+    <ui:FinderRowTemplateSelector.RaceCourseConditionTemplate>
+      <DataTemplate>
+        <Border Width="48"
+                Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <up:RaceCourseConditionIcon Condition="{Binding Value}" Width="20" Height="18"
+                                      HorizontalAlignment="Center"/>
+        </Border>
+      </DataTemplate>
+    </ui:FinderRowTemplateSelector.RaceCourseConditionTemplate>
   </ui:FinderRowTemplateSelector>
 </ResourceDictionary>

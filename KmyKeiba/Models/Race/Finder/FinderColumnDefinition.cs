@@ -125,13 +125,28 @@ namespace KmyKeiba.Models.Race.Finder
   public static class FinderColumnDefinition
   {
     public static FinderColumnDefinition<T> Create<T>(int tab, FinderColumnType type, int width, string header, Func<T, object> value, Func<T, object, ValueComparation>? comparation = null)
-      => new FinderColumnDefinition<T>(tab, type, width, header, value, FinderColumnToString, comparation);
+      => new FinderColumnDefinition<T>(tab,
+                                       type,
+                                       width,
+                                       header,
+                                       value,
+                                       type == FinderColumnType.NumericTextWithoutZero ? NonZeroValueToString : FinderColumnToString,
+                                       comparation);
 
     public static FinderColumnDefinition<T> Create<T>(int tab, FinderColumnType type, int width, string header, Func<T, object> value, Func<object, object> toString, Func<T, object, ValueComparation>? comparation = null)
       => new FinderColumnDefinition<T>(tab, type, width, header, value, toString, comparation);
 
     private static object FinderColumnToString(object value)
     {
+      return value;
+    }
+
+    private static object NonZeroValueToString(object value)
+    {
+      if (value is short sv) return sv == 0 ? string.Empty : value;
+      if (value is int iv) return iv == 0 ? string.Empty : value;
+      if (value is float fv) return fv == 0 ? string.Empty : value;
+      if (value is double dv) return dv == 0 ? string.Empty : value;
       return value;
     }
 
@@ -182,6 +197,7 @@ namespace KmyKeiba.Models.Race.Finder
     Unknown,
     Text,
     NumericText,
+    NumericTextWithoutZero,
     BoldText,
     BoldNumericText,
     RunningStyle,
@@ -191,6 +207,8 @@ namespace KmyKeiba.Models.Race.Finder
     HorseName,
     HorseMark,
     HorseSex,
+    RaceCourseWeather,
+    RaceCourseCondition,
   }
 
   public enum CellTextAlignment
