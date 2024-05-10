@@ -206,7 +206,7 @@ namespace KmyKeiba.Models.Connection
         };
         foreach (var connector in connectors.Where(c => c.IsRTAvailable.Value))
         {
-          await connector.DownloadAsync(new DateOnly(today.Year, today.Month, 1));
+          await connector.DownloadAsync(new DateOnly(today.Year, today.Month, 1), DateOnly.FromDateTime(DateTime.Today));
         }
       }
 
