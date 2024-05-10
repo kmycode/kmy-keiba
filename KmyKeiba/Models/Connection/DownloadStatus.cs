@@ -90,7 +90,7 @@ namespace KmyKeiba.Models.Connection
       this.RTDownloadingStatus =
         this.RTProcessingStep
           .Select(p => !postProcesses.Contains(p))
-          .CombineLatest(this.RTLoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
+          //.CombineLatest(this.RTLoadingProcess, (step, process) => step && process != LoadingProcessValue.Writing)
           .Select(b => b ? StatusFeeling.Standard : StatusFeeling.Bad)
           .ToReactiveProperty();
 
