@@ -98,11 +98,11 @@
         次回更新まで <Run Text="{Binding Downloader.Scheduler.NextRTUpdateSeconds.Value}"/> 秒
       </TextBlock>
       <ToggleButton Grid.Column="2" Content="一時停止" FontSize="16" Width="100" VerticalAlignment="Bottom"
-                    IsChecked="{Binding Downloader.Config.IsRTPaused.Value,Mode=TwoWay}" Margin="0,0,8,0"/>
+                    IsChecked="{Binding Downloader.State.IsRTPaused.Value,Mode=TwoWay}" Margin="0,0,8,0"/>
       <Button Grid.Column="3" Content="今すぐ更新 (予定含む)" FontSize="14" Width="160" VerticalAlignment="Stretch" Command="{Binding UpdateRtDataHeavyForceCommand}"
-              IsEnabled="{Binding Downloader.State.IsWaitingNextRTUpdate.Value}" Margin="0,0,8,0"/>
+              IsEnabled="{Binding Downloader.Scheduler.IsWaitingNextRTUpdate.Value}" Margin="0,0,8,0"/>
       <Button Grid.Column="4" Content="今すぐ更新" FontSize="16" Width="110" VerticalAlignment="Bottom" Command="{Binding UpdateRtDataForceCommand}"
-              IsEnabled="{Binding Downloader.State.IsWaitingNextRTUpdate.Value}"/>
+              IsEnabled="{Binding Downloader.Scheduler.IsWaitingNextRTUpdate.Value}"/>
     </Grid>
   </Grid>
 </UserControl>

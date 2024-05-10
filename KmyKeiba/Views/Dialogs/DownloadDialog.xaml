@@ -139,9 +139,9 @@
     <Grid Grid.Row="1" Visibility="{Binding Downloader.State.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}">
       <StackPanel Margin="0,24,0,0">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-          <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="中央" Visibility="{Binding Downloader.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}" Margin="8,0"/>
-          <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="地方" Visibility="{Binding Downloader.IsDownloadLocal.Value,Converter={StaticResource BooleanVisibilityConv}}" Margin="8,0"/>
-          <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="JRDB" Visibility="{Binding Downloader.IsDownloadJrdb.Value,Converter={StaticResource BooleanVisibilityConv}}" Margin="8,0"/>
+          <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="中央" Visibility="{Binding Downloader.Config.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}" Margin="8,0"/>
+          <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="地方" Visibility="{Binding Downloader.Config.IsDownloadLocal.Value,Converter={StaticResource BooleanVisibilityConv}}" Margin="8,0"/>
+          <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Text="JRDB" Visibility="{Binding Downloader.Config.IsDownloadJrdb.Value,Converter={StaticResource BooleanVisibilityConv}}" Margin="8,0"/>
         </StackPanel>
         <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Margin="0,0,0,24" TextAlignment="Center">
           <Run Text="{Binding Downloader.Config.StartYear.Value}"/>年<Run Text="{Binding Downloader.Config.StartMonth.Value}"/>月開始
@@ -164,14 +164,14 @@
           この月は処理に非常に時間がかかります。<LineBreak/>焦らずお待ちください...
         </TextBlock>
         <TextBlock Foreground="{StaticResource SubForeground}" Margin="0,16,0,0" FontSize="16" TextAlignment="Center"
-                   Visibility="{Binding Downloader.HasProcessingProgress.Value,Converter={StaticResource BooleanVisibilityConv}}">
-          [ <Run Text="{Binding Downloader.ProcessingProgress.Value}"/> / <Run Text="{Binding Downloader.ProcessingProgressMax.Value}"/> ]
+                   Visibility="{Binding Downloader.State.HasProcessingProgress.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          [ <Run Text="{Binding Downloader.State.ProcessingProgress.Value}"/> / <Run Text="{Binding Downloader.State.ProcessingProgressMax.Value}"/> ]
         </TextBlock>
       </StackPanel>
     </Grid>
     <Border Grid.Row="2" Height="60" Margin="0,0,0,16">
       <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{StaticResource ErrorForeground}" FontSize="20" TextWrapping="Wrap"
-                 Text="{Binding Downloader.ErrorMessage.Value}" Visibility="{Binding Downloader.IsError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+                 Text="{Binding Downloader.State.ErrorMessage.Value}" Visibility="{Binding Downloader.State.IsError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
     </Border>
     <TextBlock Style="{StaticResource TextBlockDefault}" FontSize="16" Grid.Row="3" Margin="0,0,0,16">
       処理はバックグラウンドで実行されます。問題が発生した場合は、画面下部に表示されます。<LineBreak/>
@@ -194,7 +194,7 @@
       <Button Content="開始" Grid.Column="3" FontSize="20" Width="100" Command="{Binding StartDownloadCommand}"
               Visibility="{Binding Downloader.State.IsDownloading.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
       <Button Grid.Column="3" FontSize="14" Content="中止" Width="80" Height="32" VerticalAlignment="Bottom" Command="{Binding CancelDownloadCommand}"
-              IsEnabled="{Binding Downloader.IsCancelProcessing.Value,Converter={StaticResource NegativeConv}}"
+              IsEnabled="{Binding Downloader.State.IsCancelProcessing.Value,Converter={StaticResource NegativeConv}}"
               Visibility="{Binding Downloader.State.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
     </Grid>
   </Grid>
