@@ -543,7 +543,7 @@ namespace KmyKeiba.Models.Race.Finder
       }
       catch (Exception ex)
       {
-
+        // TODO
       }
     }
   }

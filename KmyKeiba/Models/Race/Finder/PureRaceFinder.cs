@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race.Finder
@@ -27,15 +28,15 @@ namespace KmyKeiba.Models.Race.Finder
 
     public RaceHorseAnalyzer? RaceHorseAnalyzer { get; }
 
-    async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false)
+    async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false, CancellationToken cancellationToken = default)
     {
       var reader = new ScriptKeysReader(keys);
       var raceQueries = reader.GetQueries(this.Race, this.RaceHorse, this.RaceHorseAnalyzer);
 
-      return await this.FindRaceHorsesAsync(raceQueries, sizeMax, offset, isLoadSameHorses, withoutFutureRaces, withoutFutureRacesForce);
+      return await this.FindRaceHorsesAsync(raceQueries, sizeMax, offset, isLoadSameHorses, withoutFutureRaces, withoutFutureRacesForce, cancellationToken);
     }
 
-    Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(ScriptKeysParseResult raceQueries, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false);
+    Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(ScriptKeysParseResult raceQueries, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false, CancellationToken cancellationToken = default);
   }
 
   public sealed class PureRaceFinder : IRaceFinder
@@ -69,7 +70,7 @@ namespace KmyKeiba.Models.Race.Finder
       this.RaceHorseAnalyzer = horse;
     }
 
-    public async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(ScriptKeysParseResult raceQueries, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false)
+    public async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(ScriptKeysParseResult raceQueries, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false, CancellationToken cancellationToken = default)
     {
       var keys = raceQueries.Keys;
       if (raceQueries.Limit != default) sizeMax = raceQueries.Limit;
@@ -150,7 +151,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       var racesData = await racesDataQuery
         .Take(sizeMax)
-        .ToArrayAsync();
+        .ToArrayAsync(cancellationToken);
 
       // ドロップアウトの条件にマッチするか確認する
       foreach (var q in raceQueries.Queries.Where(q => q is DropoutScriptKeyQuery))

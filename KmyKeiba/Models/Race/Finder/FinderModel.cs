@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -46,6 +47,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsError { get; } = new();
 
+    public ReactiveProperty<bool> IsCanceled { get; } = new();
+
+    public ReactiveProperty<bool> CanCancel { get; } = new();
+
     public RaceData? Race => this._finder.Race;
 
     public RaceHorseAnalyzer? RaceHorse { get; }
@@ -53,6 +58,8 @@ namespace KmyKeiba.Models.Race.Finder
     public bool HasRace => this.Race != null;
 
     public bool HasRaceHorse => this.RaceHorse != null;
+
+    private CancellationTokenSource? _cancellationTokenSource;
 
     public int DefaultSize
     {
@@ -111,12 +118,18 @@ namespace KmyKeiba.Models.Race.Finder
       Task.Run(async () =>
       {
         this.IsError.Value = false;
+        this.IsCanceled.Value = false;
+        this.CanCancel.Value = true;
         this.IsLoading.Value = true;
+
+        this._cancellationTokenSource = new();
 
         try
         {
           this.Columns.Value = this.RaceHorseColumns;
-          var data = await ((IRaceFinder)this._finder).FindRaceHorsesAsync(this.Keys.Value, 3000);
+          var data = await ((IRaceFinder)this._finder).FindRaceHorsesAsync(this.Keys.Value, 3000, cancellationToken: this._cancellationTokenSource.Token);
+          this.CanCancel.Value = false;
+
           var allItems = data.AsItems();
 
           IEnumerable<IEnumerable<FinderRaceHorseItem>> SplitData(int size)
@@ -344,6 +357,12 @@ namespace KmyKeiba.Models.Race.Finder
 
           this.OnTabChanged();
         }
+        catch (TaskCanceledException ex)
+        {
+          logger.Error("検索がキャンセルされました", ex);
+          this.CanCancel.Value = false;
+          this.IsCanceled.Value = true;
+        }
         catch (Exception ex)
         {
           logger.Error("検索でエラーが発生しました", ex);
@@ -354,6 +373,12 @@ namespace KmyKeiba.Models.Race.Finder
           this.IsLoading.Value = false;
         }
       });
+    }
+
+    public void CancelLoad()
+    {
+      this._cancellationTokenSource?.Cancel();
+      this.CanCancel.Value = false;
     }
 
     internal Task<FinderQueryResult<RaceAnalyzer>> FindRacesAsync(string keys, int count, int offset)

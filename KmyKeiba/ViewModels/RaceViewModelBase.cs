@@ -103,6 +103,11 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand().WithSubscribe(() => this.model.UpdateCurrentRace());
     private ReactiveCommand? _updateRaceInfoCommand;
 
+    public ICommand CancelSearchCommand =>
+      this._cancelSearchCommand ??=
+        new ReactiveCommand<FinderModel>().WithSubscribe((finder) => finder?.CancelLoad()).AddTo(this._disposables);
+    private ReactiveCommand<FinderModel>? _cancelSearchCommand;
+
     #region 馬券
 
     public ICommand SetTrioBlockCommand =>

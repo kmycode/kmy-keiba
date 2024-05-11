@@ -14,6 +14,14 @@ namespace KmyKeiba.Models.Connection.Connector
 
     public override DownloadLink Link => DownloadLink.Central;
 
+    private static readonly IReadOnlyList<DayOfWeek> _blockWeekdays =
+    [
+      DayOfWeek.Thursday,
+      DayOfWeek.Friday,
+      DayOfWeek.Saturday,
+      DayOfWeek.Sunday,
+    ];
+
     protected override bool CanDownloadRT
     {
       get
@@ -23,13 +31,7 @@ namespace KmyKeiba.Models.Connection.Connector
           return true;
         }
 
-        return new[]
-        {
-          DayOfWeek.Thursday,
-          DayOfWeek.Friday,
-          DayOfWeek.Saturday,
-          DayOfWeek.Sunday,
-        }.Contains(DateTime.Today.DayOfWeek);
+        return _blockWeekdays.Contains(DateTime.Today.DayOfWeek);
       }
     }
 
