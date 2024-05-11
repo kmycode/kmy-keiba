@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Data.Db;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using Microsoft.EntityFrameworkCore;

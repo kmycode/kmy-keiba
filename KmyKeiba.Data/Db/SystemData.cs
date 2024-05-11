@@ -45,5 +45,6 @@ namespace KmyKeiba.Data.Db
     LastDownloadPlanOfRaceDate = 20,
     LastDownloadPreviousRaceDate = 21,
     LastLaunchDateEx = 22,
+    DefaultRaceSearchSetting = 23,
   }
 }

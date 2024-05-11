@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
              xmlns:ex="clr-namespace:KmyKeiba.Views.Expansions"
+             xmlns:sa="clr-namespace:KmyKeiba.Views.Settings"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
   <Grid Background="{StaticResource BaseBackground}">
@@ -30,7 +31,8 @@
             <Setter Property="FontSize" Value="16"/>
           </Style>
         </StackPanel.Resources>
-        <RadioButton Content="検索結果のカラム" Name="P_FinderColumn" IsChecked="True"/>
+        <RadioButton Content="一般" Name="P_General" IsChecked="True"/>
+        <RadioButton Content="検索結果のカラム" Name="P_FinderColumn"/>
         <RadioButton Content="保存された検索条件" Name="P_Finder"/>
         <RadioButton Content="拡張分析" Name="P_ExAnalysisConfig"/>
         <RadioButton Content="外部指数" Name="P_ExternalNumber"/>
@@ -68,6 +70,8 @@
                            FinderConfig="{Binding AppSettings.FinderConfig,ElementName=Root}" Margin="0,-8,0,0"/>
       <ex:FinderColumnConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_FinderColumn,Converter={StaticResource BooleanVisibilityConv}}"
                                  ColumnConfig="{Binding FinderColumnConfig}" Margin="0,-8,0,0"/>
+      <sa:GeneralConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_General,Converter={StaticResource BooleanVisibilityConv}}"
+                            GeneralConfig="{Binding AppSettings.GeneralConfig,ElementName=Root}" Margin="0,-8,0,0"/>
     </Grid>
     
     <Grid Grid.Row="2" Margin="0,0,0,16">

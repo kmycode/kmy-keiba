@@ -300,6 +300,11 @@ namespace KmyKeiba.Models.Race.Finder
         .Where(q => !string.IsNullOrEmpty(q)));
     }
 
+    public void CopyFrom(FinderQueryInput input)
+    {
+      this.Deserialize(input.Serialize(false), false);
+    }
+
     public string Serialize(bool isIndent, bool isDiffOnly = false)
     {
       var indent = isIndent ? " " : string.Empty;

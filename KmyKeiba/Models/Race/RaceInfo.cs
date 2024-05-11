@@ -15,6 +15,7 @@ using KmyKeiba.Models.Race.HorseMark;
 using KmyKeiba.Models.Race.Memo;
 using KmyKeiba.Models.Race.Tickets;
 using KmyKeiba.Models.Script;
+using KmyKeiba.Models.Setting;
 using KmyKeiba.Shared;
 using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
@@ -235,7 +236,10 @@ namespace KmyKeiba.Models.Race
     private void SetHorsesDelay(IReadOnlyList<RaceHorseAnalyzer> horses, RaceStandardTimeMasterData standardTime)
     {
       var sortedHorses = (horses.All(h => h.Data.Number == default) ? horses.OrderBy(h => h.Data.Name) : horses.OrderBy(h => h.Data.Number)).ToArray();
-      this.FinderModel.Value = new FinderModel(this.Data, null, sortedHorses);
+
+      var finderModel = new FinderModel(this.Data, null, sortedHorses);
+      finderModel.Input.CopyFrom(AppGeneralConfig.Instance.DefaultRaceSetting.Input);
+      this.FinderModel.Value = finderModel;
 
       foreach (var horse in horses)
       {

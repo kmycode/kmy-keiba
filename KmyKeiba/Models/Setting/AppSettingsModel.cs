@@ -18,6 +18,8 @@ namespace KmyKeiba.Models.Setting
 
     public FinderConfigModel FinderConfig => FinderConfigModel.Instance;
 
+    public AppGeneralConfig GeneralConfig => AppGeneralConfig.Instance;
+
     private AppSettingsModel() { }
   }
 }

@@ -116,6 +116,7 @@ namespace KmyKeiba.ViewModels
 
         // 各種初期化処理
         using var db = new MyContext();
+        await AppGeneralConfig.Instance.InitializeAsync(db);
         await FinderConfigUtil.InitializeAsync(db);
         await AnalysisTableScriptUtil.InitializeAsync(db);
         await ExternalNumberUtil.InitializeAsync(db);
