@@ -52,16 +52,16 @@
     <Compile Update="Views\Expansions\AnalysisTableCellDetail.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Expansions\AnalysisTableConfigView.xaml.cs">
+    <Compile Update="Views\Settings\AnalysisTableConfigView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Expansions\AnalysisTableDelimiterConfigView.xaml.cs">
+    <Compile Update="Views\Settings\AnalysisTableDelimiterConfigView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Expansions\AnalysisTableScriptConfigView.xaml.cs">
+    <Compile Update="Views\Settings\AnalysisTableScriptConfigView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Expansions\AnalysisTableWeightConfigView.xaml.cs">
+    <Compile Update="Views\Settings\AnalysisTableWeightConfigView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Expansions\ExpansionAnalysisTableView.xaml.cs">
@@ -70,13 +70,13 @@
     <Compile Update="Views\Expansions\ExpansionMemoView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Expansions\ExternalNumberConfigView.xaml.cs">
+    <Compile Update="Views\Settings\ExternalNumberConfigView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Expansions\FinderColumnConfigView.xaml.cs">
+    <Compile Update="Views\Settings\FinderColumnConfigView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Expansions\FinderConfigView.xaml.cs">
+    <Compile Update="Views\Settings\FinderConfigView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\ListItems\RaceHorsePillar.xaml.cs">
@@ -219,16 +219,16 @@
     <Page Update="Views\Expansions\AnalysisTableCellDetail.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Expansions\AnalysisTableConfigView.xaml">
+    <Page Update="Views\Settings\AnalysisTableConfigView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Expansions\AnalysisTableDelimiterConfigView.xaml">
+    <Page Update="Views\Settings\AnalysisTableDelimiterConfigView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Expansions\AnalysisTableScriptConfigView.xaml">
+    <Page Update="Views\Settings\AnalysisTableScriptConfigView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Expansions\AnalysisTableWeightConfigView.xaml">
+    <Page Update="Views\Settings\AnalysisTableWeightConfigView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Expansions\ExpansionAnalysisTableView.xaml">
@@ -237,13 +237,13 @@
     <Page Update="Views\Expansions\ExpansionMemoView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Expansions\ExternalNumberConfigView.xaml">
+    <Page Update="Views\Settings\ExternalNumberConfigView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Expansions\FinderColumnConfigView.xaml">
+    <Page Update="Views\Settings\FinderColumnConfigView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Expansions\FinderConfigView.xaml">
+    <Page Update="Views\Settings\FinderConfigView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\ListItems\RaceHorsePillar.xaml">

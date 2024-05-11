@@ -14,18 +14,18 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace KmyKeiba.Views.Expansions
+namespace KmyKeiba.Views.Settings
 {
   /// <summary>
-  /// AnalysisTableDelimiterConfigView.xaml の相互作用ロジック
+  /// AnalysisTableConfigView.xaml の相互作用ロジック
   /// </summary>
-  public partial class AnalysisTableDelimiterConfigView : UserControl
+  public partial class AnalysisTableConfigView : UserControl
   {
     public static readonly DependencyProperty AnalysisTableConfigProperty
     = DependencyProperty.Register(
         nameof(AnalysisTableConfig),
         typeof(AnalysisTableConfigModel),
-        typeof(AnalysisTableDelimiterConfigView),
+        typeof(AnalysisTableConfigView),
         new PropertyMetadata(null));
 
     public AnalysisTableConfigModel? AnalysisTableConfig
@@ -34,7 +34,9 @@ namespace KmyKeiba.Views.Expansions
       set { SetValue(AnalysisTableConfigProperty, value); }
     }
 
-    public AnalysisTableDelimiterConfigView()
+    public Guid UniqueId5 { get; } = Guid.NewGuid();
+
+    public AnalysisTableConfigView()
     {
       InitializeComponent();
     }

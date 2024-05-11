@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace KmyKeiba.Views.Expansions
+namespace KmyKeiba.Views.Settings
 {
   /// <summary>
   /// AnalysisTableWeightConfigView.xaml の相互作用ロジック

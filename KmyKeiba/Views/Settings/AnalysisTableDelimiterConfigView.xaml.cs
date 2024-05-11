@@ -1,7 +1,6 @@
 ﻿using KmyKeiba.Models.Race.AnalysisTable;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,18 +14,18 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace KmyKeiba.Views.Expansions
+namespace KmyKeiba.Views.Settings
 {
   /// <summary>
-  /// AnalysisTableScriptConfigView.xaml の相互作用ロジック
+  /// AnalysisTableDelimiterConfigView.xaml の相互作用ロジック
   /// </summary>
-  public partial class AnalysisTableScriptConfigView : UserControl
+  public partial class AnalysisTableDelimiterConfigView : UserControl
   {
     public static readonly DependencyProperty AnalysisTableConfigProperty
     = DependencyProperty.Register(
         nameof(AnalysisTableConfig),
         typeof(AnalysisTableConfigModel),
-        typeof(AnalysisTableScriptConfigView),
+        typeof(AnalysisTableDelimiterConfigView),
         new PropertyMetadata(null));
 
     public AnalysisTableConfigModel? AnalysisTableConfig
@@ -35,18 +34,9 @@ namespace KmyKeiba.Views.Expansions
       set { SetValue(AnalysisTableConfigProperty, value); }
     }
 
-    public AnalysisTableScriptConfigView()
+    public AnalysisTableDelimiterConfigView()
     {
       InitializeComponent();
-    }
-
-    private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
-    {
-      Process.Start(new ProcessStartInfo
-      {
-        UseShellExecute = true,
-        FileName = e.Uri.ToString(),
-      });
     }
   }
 }

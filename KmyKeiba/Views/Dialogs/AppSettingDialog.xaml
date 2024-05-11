@@ -54,21 +54,21 @@
           <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
                        Content="スクリプト設定" Name="S_ATScript"/>
         </UniformGrid>
-        <ex:AnalysisTableConfigView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisConfig,Converter={StaticResource BooleanVisibilityConv}}"
+        <sa:AnalysisTableConfigView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisConfig,Converter={StaticResource BooleanVisibilityConv}}"
                                     AnalysisTableConfig="{Binding AppSettings.AnalysisTableConfig,ElementName=Root}"/>
-        <ex:AnalysisTableWeightConfigView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisWeightConfig,Converter={StaticResource BooleanVisibilityConv}}"
+        <sa:AnalysisTableWeightConfigView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisWeightConfig,Converter={StaticResource BooleanVisibilityConv}}"
                                           AnalysisTableConfig="{Binding AppSettings.AnalysisTableConfig,ElementName=Root}"/>
-        <ex:AnalysisTableDelimiterConfigView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisDelimiterConfig,Converter={StaticResource BooleanVisibilityConv}}"
+        <sa:AnalysisTableDelimiterConfigView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisDelimiterConfig,Converter={StaticResource BooleanVisibilityConv}}"
                                              AnalysisTableConfig="{Binding AppSettings.AnalysisTableConfig,ElementName=Root}"/>
-        <ex:AnalysisTableScriptConfigView Grid.Row="2" Grid.ColumnSpan="2" Visibility="{Binding IsChecked,ElementName=S_ATScript,Converter={StaticResource BooleanVisibilityConv}}"
+        <sa:AnalysisTableScriptConfigView Grid.Row="2" Grid.ColumnSpan="2" Visibility="{Binding IsChecked,ElementName=S_ATScript,Converter={StaticResource BooleanVisibilityConv}}"
                                           AnalysisTableConfig="{Binding AppSettings.AnalysisTableConfig,ElementName=Root}"/>
       </Grid>
 
-      <ex:ExternalNumberConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_ExternalNumber,Converter={StaticResource BooleanVisibilityConv}}"
+      <sa:ExternalNumberConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_ExternalNumber,Converter={StaticResource BooleanVisibilityConv}}"
                                    ExternalNumber="{Binding ExternalNumber}" Margin="0,-8,0,0"/>
-      <ex:FinderConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_Finder,Converter={StaticResource BooleanVisibilityConv}}"
+      <sa:FinderConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_Finder,Converter={StaticResource BooleanVisibilityConv}}"
                            FinderConfig="{Binding AppSettings.FinderConfig,ElementName=Root}" Margin="0,-8,0,0"/>
-      <ex:FinderColumnConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_FinderColumn,Converter={StaticResource BooleanVisibilityConv}}"
+      <sa:FinderColumnConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_FinderColumn,Converter={StaticResource BooleanVisibilityConv}}"
                                  ColumnConfig="{Binding FinderColumnConfig}" Margin="0,-8,0,0"/>
       <sa:GeneralConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_General,Converter={StaticResource BooleanVisibilityConv}}"
                             GeneralConfig="{Binding AppSettings.GeneralConfig,ElementName=Root}" Margin="0,-8,0,0"/>
