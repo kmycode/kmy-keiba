@@ -475,6 +475,11 @@ namespace KmyKeiba.JVLink.Entities
       },
       new()
       {
+        Course = RaceCourse.Funabashi,
+        Length = 1250, LastStraightLineLength = 308,
+      },
+      new()
+      {
         Course = RaceCourse.Oi, Option = TrackOption.Inside, Direction = TrackCornerDirection.Right,
         Length = 1400, LastStraightLineLength = 286,
       },
