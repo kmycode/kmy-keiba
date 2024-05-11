@@ -1,4 +1,5 @@
-﻿using KmyKeiba.JVLink.Entities;
+﻿using KmyKeiba.Data.Entities;
+using KmyKeiba.JVLink.Entities;
 using KmyKeiba.JVLink.Wrappers.JVLib;
 using System;
 using System.Collections.Generic;
@@ -505,6 +506,15 @@ namespace KmyKeiba.JVLink.Wrappers
                 ReadDic(item, data.MiningMatches, item.RaceKey);
                 break;
               }
+            case "HS":
+              {
+                var a = new JVData_Struct.JV_HS_SALE();
+                a.SetDataB(ref d);
+                var item = HorseSale.FromJV(a);
+
+                ReadDic(item, data.HorseSales, item.Code + item.MarketCode + item.MarketStartDate);
+                break;
+              }
             default:
               this.ReadedEntityCount--;
               if (!this.isRealTime)
@@ -606,6 +616,8 @@ namespace KmyKeiba.JVLink.Wrappers
     public Dictionary<string, MiningMatch> MiningMatches { get; internal set; } = new();
 
     public Dictionary<string, MiningTime> MiningTimes { get; internal set; } = new();
+
+    public Dictionary<string, HorseSale> HorseSales { get; internal set; } = new();
   }
 
   class SimpleDistinctComparer<T> : IEqualityComparer<T>

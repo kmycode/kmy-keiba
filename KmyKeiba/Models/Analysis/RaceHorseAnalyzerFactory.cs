@@ -35,8 +35,6 @@ namespace KmyKeiba.Models.Analysis
 
     public bool IsComparation { get; set; }
 
-    public bool IsLegacyTrendAnalyzer { get; set; }
-
     public List<IDisposable> Disposables { get; } = new List<IDisposable>();
 
     public IReadOnlyList<(RaceData, RaceHorseData)> HorseAllHistories { get; private set; }
@@ -47,6 +45,9 @@ namespace KmyKeiba.Models.Analysis
 
     public IReadOnlyList<HorseData> HorseDetails { get; private set; }
       = Array.Empty<HorseData>();
+
+    public IReadOnlyList<HorseSaleData> HorseSales { get; private set; }
+      = Array.Empty<HorseSaleData>();
 
     public RaceHorseAnalyzerRaceListFactory(string raceKey)
     {
@@ -113,7 +114,6 @@ namespace KmyKeiba.Models.Analysis
       {
         if (this.IsDetail)
         {
-          var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
           horseDetails = await db.Horses!
             .Where(h => horseKeys.Contains(h.Code))
             .ToArrayAsync();
@@ -121,6 +121,20 @@ namespace KmyKeiba.Models.Analysis
         else
         {
           horseDetails = Array.Empty<HorseData>();
+        }
+      }
+      var horseSales = cache?.HorseSales;
+      if (horseSales == null)
+      {
+        if (this.IsDetail)
+        {
+          horseSales = await db.HorseSales!
+            .Where(h => horseKeys.Contains(h.Code))
+            .ToArrayAsync();
+        }
+        else
+        {
+          horseSales = Array.Empty<HorseSaleData>();
         }
       }
       var horseHistorySameHorses = cache?.HorseHistorySameHorses;
@@ -154,23 +168,12 @@ namespace KmyKeiba.Models.Analysis
 
         var jrdb = jrdbHorses.FirstOrDefault(j => j.Key == horse.Key);
 
-        RaceHorseAnalyzer analyzer;
-        if (this.IsLegacyTrendAnalyzer)
+        var analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, jrdbHorse: jrdb)
         {
-          analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, jrdbHorse: jrdb)
-          {
-            BloodSelectors = new RaceHorseBloodModel(race, horse),
-            DetailData = horseDetails.FirstOrDefault(h => h.Code == horse.Key),
-          };
-        }
-        else
-        {
-          analyzer = new RaceHorseAnalyzer(race, horse, horses, histories, standardTime, jrdbHorse: jrdb)
-          {
-            BloodSelectors = new RaceHorseBloodModel(race, horse),
-            DetailData = horseDetails.FirstOrDefault(h => h.Code == horse.Key),
-          };
-        }
+          BloodSelectors = new RaceHorseBloodModel(race, horse),
+          DetailData = horseDetails.FirstOrDefault(h => h.Code == horse.Key),
+          SaleData = horseSales.FirstOrDefault(h => h.Code == horse.Key),
+        };
         analyzer.SetOddsTimeline(oddsTimeline);
         analyzer.ChangeIsCheck(CheckHorseUtil.IsChecked(horse.Key, HorseCheckType.CheckRace));
 
@@ -233,6 +236,7 @@ namespace KmyKeiba.Models.Analysis
       this.HorseAllHistories = horseAllHistories;
       this.HorseHistorySameRaceHorses = horseHistorySameHorses;
       this.HorseDetails = horseDetails;
+      this.HorseSales = horseSales;
 
       return horseInfos;
     }

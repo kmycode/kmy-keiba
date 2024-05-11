@@ -38,6 +38,8 @@ namespace KmyKeiba.Models.Analysis
 
     public HorseData? DetailData { get; init; }
 
+    public HorseSaleData? SaleData { get; init; }
+
     public JrdbRaceHorseData? JrdbData { get; }
 
     public RaceHorseExtraData? ExtraData { get; set; }

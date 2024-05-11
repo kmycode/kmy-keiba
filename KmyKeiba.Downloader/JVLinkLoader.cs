@@ -651,6 +651,13 @@ namespace KmyKeiba.Downloader
         (d) => d.Code,
         (list) => e => list.Contains(e.Code));
       await db.CommitAsync();
+      logger.Info($"HorseSalesの保存を開始 {data.HorseSales.Count}");
+      await SaveDicAsync(data.HorseSales,
+        db.HorseSales!,
+        (e) => e.Code + e.MarketCode + e.MarketStartDate.ToString("yyyyMMdd"),
+        (d) => d.Code + d.MarketCode + d.MarketStartDate.ToString("yyyyMMdd"),
+        (list) => e => list.Contains(e.Code + e.MarketCode));
+      await db.CommitAsync();
       logger.Info($"Ridersの保存を開始 {data.Riders.Count}");
       await SaveDicAsync(data.Riders,
         db.Riders!,

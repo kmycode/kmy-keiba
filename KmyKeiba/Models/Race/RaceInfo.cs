@@ -639,7 +639,6 @@ namespace KmyKeiba.Models.Race
             IsHorseHistorySameHorses = true,
             IsJrdbData = true,
             IsOddsTimeline = true,
-            IsLegacyTrendAnalyzer = true,
           };
           var horseInfos = await factory.ToAnalyzerAsync(db, cache);
           if (horseInfos == null)
@@ -739,7 +738,7 @@ namespace KmyKeiba.Models.Race
           // キャッシング
           if (isCache)
           {
-            RaceInfoCacheManager.Register(info, factory.HorseAllHistories, factory.HorseHistorySameRaceHorses, factory.HorseDetails, trainings, woodTrainings,
+            RaceInfoCacheManager.Register(info, factory.HorseAllHistories, factory.HorseHistorySameRaceHorses, factory.HorseDetails, factory.HorseSales, trainings, woodTrainings,
                /*info.Finder*/null, /*info.AnalysisTable.Value?.ToCache()*/null, info.Payoff?.Payoff, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
           }
         }
