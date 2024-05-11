@@ -2,6 +2,7 @@
 using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Connection.Connector;
+using KmyKeiba.Models.Connection.PostProcess;
 using KmyKeiba.Models.Data;
 using Reactive.Bindings;
 using System;
@@ -14,7 +15,7 @@ using static KmyKeiba.Models.Analysis.RaceHorseMatchResult;
 
 namespace KmyKeiba.Models.Connection
 {
-  internal class DownloadScheduler
+    internal class DownloadScheduler
   {
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 

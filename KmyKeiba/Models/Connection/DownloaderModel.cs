@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Common;
 using KmyKeiba.Models.Connection.Connector;
+using KmyKeiba.Models.Connection.PostProcess;
 using KmyKeiba.Models.Data;
 using Reactive.Bindings;
 using System;
@@ -13,7 +14,7 @@ using static System.Windows.Forms.LinkLabel;
 
 namespace KmyKeiba.Models.Connection
 {
-  internal class DownloaderModel
+    internal class DownloaderModel
   {
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
@@ -105,6 +106,7 @@ namespace KmyKeiba.Models.Connection
         if (dbver < 250) initializations.Add(PostProcessings.MigrateFrom250);
         if (dbver < 322) initializations.Add(PostProcessings.MigrateFrom322);
         if (dbver < 430) initializations.Add(PostProcessings.MigrateFrom430);
+        // TODO: Until 5.0.0
         // if (dbver < 500) initializations.Add(PostProcessings.MigrateFrom500);
 
         await initializations.RunAsync(state.ProcessingStep);
