@@ -128,7 +128,9 @@ namespace KmyKeiba.Models.Race.Finder
         {
           this.Columns.Value = this.RaceHorseColumns;
           var data = await ((IRaceFinder)this._finder).FindRaceHorsesAsync(this.Keys.Value, 3000, cancellationToken: this._cancellationTokenSource.Token);
+
           this.CanCancel.Value = false;
+          this._cancellationTokenSource = null;
 
           var allItems = data.AsItems();
 
