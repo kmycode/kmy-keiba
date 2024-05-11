@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:KmyKeiba.Views.Parts"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="Root">
-  <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{Binding Item.IsMale,ElementName=Root,Converter={StaticResource BooleanBackgroundIsMaleConv}}" BorderThickness="1">
+  <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1">
     <!--
     <Border.ToolTip>
       <ToolTip Background="{StaticResource BaseBackground}">
@@ -17,7 +17,8 @@
     -->
     <ToggleButton IsChecked="{Binding Item.IsChecked.Value,ElementName=Root,Mode=TwoWay}"
                   IsEnabled="{Binding Item.IsDisabled,ElementName=Root,Converter={StaticResource NegativeConv}}"
-                  Visibility="{Binding Item,ElementName=Root,Converter={StaticResource NonNullVisibilityConv}}"
+                  Visibility="{Binding Item.IsEmpty,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"
+                  Background="{Binding Item.IsMale,ElementName=Root,Converter={StaticResource BooleanBackgroundIsMaleConv}}"
                   FontSize="32">
       <ToggleButton.Style>
         <Style TargetType="ToggleButton" BasedOn="{StaticResource ListItemToggleNotDisabled}">

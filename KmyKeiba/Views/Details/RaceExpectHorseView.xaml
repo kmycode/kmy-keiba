@@ -331,28 +331,6 @@
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
-      <!--
-      <ItemsControl Grid.Row="6" ItemsSource="{Binding RaceHorse.BloodSelectors.SixthGenerations.Value,ElementName=Root}">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <UniformGrid Columns="64"/>
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{Binding IsMale,Converter={StaticResource BooleanBackgroundIsMaleConv}}" BorderThickness="1">
-              <Border.ToolTip>
-                <ToolTip Background="{StaticResource BaseBackground}">
-                  <TextBlock Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
-                             FontSize="16" Text="{Binding Name}"/>
-                </ToolTip>
-              </Border.ToolTip>
-              <TextBlock Text="{Binding Name}" FontSize="10" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-            </Border>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-      -->
     </Grid>
 
     <!--調教-->

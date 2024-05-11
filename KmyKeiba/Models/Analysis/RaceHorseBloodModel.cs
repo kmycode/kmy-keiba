@@ -45,7 +45,6 @@ namespace KmyKeiba.Models.Analysis
 
     public MultipleCheckableCollection<GeneralBloodItem> FourthGenerations { get; } = new();
     public MultipleCheckableCollection<GeneralBloodItem> FifthGenerations { get; } = new();
-    public MultipleCheckableCollection<GeneralBloodItem> SixthGenerations { get; } = new();
 
     public ReactiveCollection<GenerationBloodItem> GenerationInfos { get; } = new();
 
@@ -101,12 +100,6 @@ namespace KmyKeiba.Models.Analysis
           await UpdateMenuItemAsync(item);
         })
         .AddTo(this._disposables);
-      this.SixthGenerations.ChangedItemObservable
-        .Subscribe(async item =>
-        {
-          await UpdateMenuItemAsync(item);
-        })
-        .AddTo(this._disposables);
     }
 
     public void CopyFrom(RaceHorseBloodModel old)
@@ -136,7 +129,6 @@ namespace KmyKeiba.Models.Analysis
         {
           this.FourthGenerations.Clear();
           this.FifthGenerations.Clear();
-          this.SixthGenerations.Clear();
           foreach (var item in old.FourthGenerations)
           {
             this.FourthGenerations.Add(item);
@@ -144,10 +136,6 @@ namespace KmyKeiba.Models.Analysis
           foreach (var item in old.FifthGenerations)
           {
             this.FifthGenerations.Add(item);
-          }
-          foreach (var item in old.SixthGenerations)
-          {
-            this.SixthGenerations.Add(item);
           }
         });
       }
@@ -369,14 +357,16 @@ namespace KmyKeiba.Models.Analysis
       using var db = new MyContext();
       var arr4 = new GeneralBloodItem[16];
       var arr5 = new GeneralBloodItem[32];
-      var arr6 = new GeneralBloodItem[64];
 
       async Task<GeneralBloodItem> GenerateItem(string targetKey, BloodType type, bool isMale)
       {
+        var name = await HorseBloodUtil.GetNameFromCodeAsync(db!, targetKey, type);
+        if (string.IsNullOrEmpty(name)) return GeneralBloodItem.Empty;
+
         return new GeneralBloodItem
         {
           BloodKey = await HorseBloodUtil.GetBloodCodeFromCodeAsync(db!, targetKey, type),
-          Name = await HorseBloodUtil.GetNameFromCodeAsync(db!, targetKey, type),
+          Name = name,
           IsMale = isMale,
         };
       }
@@ -389,14 +379,6 @@ namespace KmyKeiba.Models.Analysis
         arr5![index * 4 + 1] = await GenerateItem(targetKey, BloodType.FatherMother, false);
         arr5![index * 4 + 2] = await GenerateItem(targetKey, BloodType.MotherFather, true);
         arr5![index * 4 + 3] = await GenerateItem(targetKey, BloodType.MotherMother, false);
-        // arr6![index * 8] = await GenerateItem(targetKey, BloodType.FatherFatherFather, true);
-        // arr6![index * 8 + 1] = await GenerateItem(targetKey, BloodType.FatherFatherMother, false);
-        // arr6![index * 8 + 2] = await GenerateItem(targetKey, BloodType.FatherMotherFather, true);
-        // arr6![index * 8 + 3] = await GenerateItem(targetKey, BloodType.FatherMotherMother, false);
-        // arr6![index * 8 + 4] = await GenerateItem(targetKey, BloodType.MotherFatherFather, true);
-        // arr6![index * 8 + 5] = await GenerateItem(targetKey, BloodType.MotherFatherMother, false);
-        // arr6![index * 8 + 6] = await GenerateItem(targetKey, BloodType.MotherMotherFather, true);
-        // arr6![index * 8 + 7] = await GenerateItem(targetKey, BloodType.MotherMotherMother, false);
       }
 
       async Task SetTypeAsync(int index, BloodType type)
@@ -408,12 +390,12 @@ namespace KmyKeiba.Models.Analysis
         }
         else
         {
-          arr4![index * 2] = new GeneralBloodItem();
-          arr4![index * 2 + 1] = new GeneralBloodItem();
-          arr5![index * 4] = new GeneralBloodItem();
-          arr5![index * 4 + 1] = new GeneralBloodItem();
-          arr5![index * 4 + 2] = new GeneralBloodItem();
-          arr5![index * 4 + 3] = new GeneralBloodItem();
+          arr4![index * 2] = GeneralBloodItem.Empty;
+          arr4![index * 2 + 1] = GeneralBloodItem.Empty;
+          arr5![index * 4] = GeneralBloodItem.Empty;
+          arr5![index * 4 + 1] = GeneralBloodItem.Empty;
+          arr5![index * 4 + 2] = GeneralBloodItem.Empty;
+          arr5![index * 4 + 3] = GeneralBloodItem.Empty;
         }
       }
 
@@ -430,7 +412,6 @@ namespace KmyKeiba.Models.Analysis
       {
         this.FourthGenerations.Clear();
         this.FifthGenerations.Clear();
-        this.SixthGenerations.Clear();
         foreach (var item in arr4)
         {
           this.FourthGenerations.Add(item);
@@ -438,10 +419,6 @@ namespace KmyKeiba.Models.Analysis
         foreach (var item in arr5)
         {
           this.FifthGenerations.Add(item);
-        }
-        foreach (var item in arr6)
-        {
-          this.SixthGenerations.Add(item);
         }
 
         this.UpdateGenerationRates();
@@ -526,6 +503,8 @@ namespace KmyKeiba.Models.Analysis
 
     public interface IBloodCheckableItem : IMultipleCheckableItem
     {
+      bool IsEmpty { get; }
+
       string Name { get; }
 
       string BloodKey { get; }
@@ -536,6 +515,8 @@ namespace KmyKeiba.Models.Analysis
     public class MenuItem : IBloodCheckableItem
     {
       public ReactiveProperty<bool> IsChecked { get; } = new();
+
+      public bool IsEmpty { get; }
 
       public string? GroupName => null;
 
@@ -560,6 +541,10 @@ namespace KmyKeiba.Models.Analysis
 
     public class GeneralBloodItem : IBloodCheckableItem
     {
+      public static GeneralBloodItem Empty => new() { IsEmpty = true, };
+
+      public bool IsEmpty { get; private init; }
+
       public ReactiveProperty<bool> IsChecked { get; } = new();
 
       public string? GroupName => null;
