@@ -39,6 +39,20 @@ namespace KmyKeiba.Views.Parts
     public FinderRowListView()
     {
       InitializeComponent();
+
+      this.IsVisibleChanged += this.FinderRowListView_IsVisibleChanged;
+      this.Unloaded += this.FinderRowListView_Unloaded;
+    }
+
+    private void FinderRowListView_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+      this.OnFinderModelChanged();
+    }
+
+    private void FinderRowListView_Unloaded(object sender, RoutedEventArgs e)
+    {
+      this.IsVisibleChanged -= this.FinderRowListView_IsVisibleChanged;
+      this.Unloaded -= this.FinderRowListView_Unloaded;
     }
 
     private void OnFinderModelChanged()

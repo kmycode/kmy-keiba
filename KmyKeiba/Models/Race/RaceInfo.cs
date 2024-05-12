@@ -40,6 +40,7 @@ namespace KmyKeiba.Models.Race
     private static IBuyer? __buyer;
 
     private readonly CompositeDisposable _disposables = new();
+    private readonly List<uint> _delayLoadedHorses = new();
 
     public RaceData Data { get; }
 
@@ -299,6 +300,31 @@ namespace KmyKeiba.Models.Race
       this.ActiveHorse.Value = this.Horses.FirstOrDefault(h => h.Data.Id == id);
       logger.Debug($"ID {id} の馬 {this.ActiveHorse.Value?.Data.Name} を選択しました");
 
+      if (this.ActiveHorse.Value == null) return;
+
+      Task.Run(async () =>
+      {
+        if (this.ActiveHorse.Value.BloodSelectors?.IsRequestedInitialization == true)
+        {
+          using var db = new MyContext();
+          try
+          {
+            await this.ActiveHorse.Value.BloodSelectors.InitializeBloodListAsync(db);
+          }
+          catch (Exception ex)
+          {
+            logger.Warn($"{this.ActiveHorse.Value.Data.Name} の血統情報がロードできませんでした", ex);
+          }
+        }
+        else
+        {
+          this.ActiveHorse.Value.BloodSelectors?.UpdateGenerationRates();
+        }
+      });
+
+      if (this._delayLoadedHorses.Contains(id)) return;
+      this._delayLoadedHorses.Add(id);
+
       // 遅延でデータ読み込み
       if (this.ActiveHorse.Value != null)
       {
@@ -314,23 +340,6 @@ namespace KmyKeiba.Models.Race
         }
 
         Task.Run(async () => {
-          if (this.ActiveHorse.Value.BloodSelectors?.IsRequestedInitialization == true)
-          {
-            using var db = new MyContext();
-            try
-            {
-              await this.ActiveHorse.Value.BloodSelectors.InitializeBloodListAsync(db);
-            }
-            catch (Exception ex)
-            {
-              logger.Warn($"{this.ActiveHorse.Value.Data.Name} の血統情報がロードできませんでした", ex);
-            }
-          }
-          else
-          {
-            this.ActiveHorse.Value.BloodSelectors?.UpdateGenerationRates();
-          }
-
           var timeout = 0;
           while (this.ActiveHorse.Value.Training.Value == null && timeout < 30_000)
           {

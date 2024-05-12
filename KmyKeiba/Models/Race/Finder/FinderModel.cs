@@ -503,6 +503,7 @@ namespace KmyKeiba.Models.Race.Finder
     public void Dispose()
     {
       this.Input.Dispose();
+      this.Tabs.Dispose();
       this._finder.Dispose();
       this._disposables.Dispose();
     }
