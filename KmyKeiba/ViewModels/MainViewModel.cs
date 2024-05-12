@@ -90,10 +90,10 @@ namespace KmyKeiba.ViewModels
         e => (s, a) => e(a),
         dele => this.RaceList.SelectedRaceUpdated += dele,
         dele => this.RaceList.SelectedRaceUpdated -= dele)
-        .Subscribe(_ => ThreadUtil.InvokeOnUiThread(() =>
+        .Subscribe(_ =>
         {
           this.model.OnSelectedRaceUpdated();
-        })).AddTo(this._disposables);
+        }).AddTo(this._disposables);
 
       // 構成スクリプト
       // 構成スクリプトがasync functionを返した場合、非同期実行になってしまい一部の設定が遅延反映になるかまたは無効
