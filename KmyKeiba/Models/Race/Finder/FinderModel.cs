@@ -27,6 +27,8 @@ namespace KmyKeiba.Models.Race.Finder
     private readonly RaceFinder _finder;
     private readonly CompositeDisposable _disposables = new();
 
+    private static ReactiveProperty<int> ActiveTabId { get; } = new();
+
     public FinderQueryInput Input { get; }
 
     public ReactiveProperty<IEnumerable<IFinderColumnDefinition>> Columns { get; } = new();
@@ -79,7 +81,7 @@ namespace KmyKeiba.Models.Race.Finder
         {
           this.UpdateRows(g.Items.ToFinderRows(this.RaceHorseColumns));
         }
-      });
+      }).AddTo(this._disposables);
     }
 
     private void UpdateColumnConfigs()
@@ -104,7 +106,7 @@ namespace KmyKeiba.Models.Race.Finder
               TabId = i,
             });
           }
-          this.Tabs.First().IsChecked.Value = true;
+          this.SwitchActiveTab();
         }
 
         this.Tabs.ActiveItem.Subscribe(_ => this.OnTabChanged()).AddTo(this._disposables);
@@ -435,10 +437,32 @@ namespace KmyKeiba.Models.Race.Finder
       });
     }
 
-    private void ChangeTab(int tabId)
+    public void OnRendered()
+    {
+      this.SwitchActiveTab();
+    }
+
+    private void SwitchActiveTab()
+    {
+      if (this.Tabs.Count == 0) return;
+
+      var tab = this.Tabs.FirstOrDefault(t => t.TabId == ActiveTabId.Value) ?? this.Tabs.First();
+
+      this.SwitchTab(tab);
+    }
+
+    private void SwitchTab(int tabId)
     {
       var tab = this.Tabs.FirstOrDefault(t => t.TabId == tabId);
       if (tab != null)
+      {
+        this.SwitchTab(tab);
+      }
+    }
+
+    private void SwitchTab(FinderTab tab)
+    {
+      if (!tab.IsChecked.Value)
       {
         tab.IsChecked.Value = true;
         this.OnTabChanged();
@@ -448,6 +472,7 @@ namespace KmyKeiba.Models.Race.Finder
     private void OnTabChanged()
     {
       var id = this.Tabs.ActiveItem.Value?.TabId ?? 1;
+      ActiveTabId.Value = id;
 
       if (this.Columns.Value == null)
       {

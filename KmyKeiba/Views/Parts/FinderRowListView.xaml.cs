@@ -26,7 +26,7 @@ namespace KmyKeiba.Views.Parts
      nameof(FinderModel),
      typeof(FinderModel),
      typeof(FinderRowListView),
-     new PropertyMetadata(null));
+     new PropertyMetadata((sender, e) => (sender as FinderRowListView)?.OnFinderModelChanged()));
 
     public FinderModel? FinderModel
     {
@@ -38,7 +38,12 @@ namespace KmyKeiba.Views.Parts
 
     public FinderRowListView()
     {
-        InitializeComponent();
+      InitializeComponent();
+    }
+
+    private void OnFinderModelChanged()
+    {
+      this.FinderModel?.OnRendered();
     }
   }
 }
