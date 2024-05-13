@@ -166,6 +166,12 @@ namespace KmyKeiba.Models.Connection
           await Task.Delay(1000);
         }
 
+        if (!this._connectors.Any(c => c.IsRTAvailable.Value))
+        {
+          await Task.Delay(1000);
+          continue;
+        }
+
         this.NextRTUpdateSeconds.Value = 0;
 
         if (state.IsRTPaused.Value)

@@ -69,7 +69,7 @@
       <sa:FinderConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_Finder,Converter={StaticResource BooleanVisibilityConv}}"
                            FinderConfig="{Binding AppSettings.FinderConfig,ElementName=Root}" Margin="0,-8,0,0"/>
       <sa:FinderColumnConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_FinderColumn,Converter={StaticResource BooleanVisibilityConv}}"
-                                 ColumnConfig="{Binding FinderColumnConfig}" Margin="0,-8,0,0"/>
+                                 ColumnConfig="{Binding AppSettings.FinderColumnConfig,ElementName=Root}" Margin="0,-8,0,0"/>
       <sa:GeneralConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_General,Converter={StaticResource BooleanVisibilityConv}}"
                             GeneralConfig="{Binding AppSettings.GeneralConfig,ElementName=Root}" Margin="0,-8,0,0"/>
     </Grid>

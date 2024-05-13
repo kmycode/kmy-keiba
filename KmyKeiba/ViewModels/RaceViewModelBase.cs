@@ -36,8 +36,6 @@ namespace KmyKeiba.ViewModels
 
     public ExternalNumberConfigModel ExternalNumber => ExternalNumberConfigModel.Default;
 
-    public FinderColumnConfigModel FinderColumnConfig => FinderColumnConfigModel.Instance;
-
     public AnalysisTableScriptConfigModel AnalysisTableScriptConfig => AnalysisTableScriptConfigModel.Default;
 
     public ReactiveProperty<RaceInfo?> Race => this.model.Info;

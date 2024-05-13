@@ -59,16 +59,19 @@ namespace KmyKeiba.Models.Connection
         await downloader.InitializeAsync();
         this.IsInitialized.Value = true;
 
-        using var db = new MyContext();
-        await db.TryBeginTransactionAsync();
+        {
+          using var db = new MyContext();
+          await db.TryBeginTransactionAsync();
 
-        await DownloadConfig.Instance.InitializeAsync(db);
-        await Connectors.Jrdb.InitializeAsync(db);
+          await DownloadConfig.Instance.InitializeAsync(db);
+          await Connectors.Jrdb.InitializeAsync(db);
 
-        await this.MigrateDatabaseAsync(db);
+          await db.SaveChangesAsync();
+          await db.CommitAsync();
+        }
 
-        await db.SaveChangesAsync();
-        await db.CommitAsync();
+        // このメソッドは内部でトランザクションをおこなう
+        await this.MigrateDatabaseAsync();
 
         logger.Info("初期化完了、最新データのダウンロードを開始");
 
@@ -93,12 +96,12 @@ namespace KmyKeiba.Models.Connection
       return isFirstLaunch;
     }
 
-    private async Task MigrateDatabaseAsync(MyContext db)
+    private async Task MigrateDatabaseAsync()
     {
       var state = DownloadStatus.Instance;
 
       // データベースのマイグレーション処理を自動的に開始
-      var dbver = await ConfigUtil.GetIntValueAsync(db, SettingKey.DatabaseVersion);
+      var dbver = await ConfigUtil.GetIntValueAsync(SettingKey.DatabaseVersion);
 
       if (dbver < 500)
       {
@@ -111,7 +114,7 @@ namespace KmyKeiba.Models.Connection
 
         await initializations.RunAsync(state.ProcessingStep);
 
-        await ConfigUtil.SetIntValueAsync(db, SettingKey.DatabaseVersion, 500);
+        await ConfigUtil.SetIntValueAsync(SettingKey.DatabaseVersion, 500);
       }
     }
 

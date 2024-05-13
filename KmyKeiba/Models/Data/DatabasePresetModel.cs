@@ -14,15 +14,17 @@ namespace KmyKeiba.Models.Data
 {
   static class DatabasePresetModel
   {
-    public static async Task SetPresetsAsync(MyContext db)
+    public static async Task SetPresetsAsync()
     {
-      await SetExpansionMemoPresets(db);
-      await SetAnalysisTablePresets(db);
-      await SetFinderRaceHorseColumns(db);
+      await SetExpansionMemoPresets();
+      await SetAnalysisTablePresets();
+      await SetFinderRaceHorseColumns();
     }
 
-    private static async Task SetExpansionMemoPresets(MyContext db)
+    private static async Task SetExpansionMemoPresets()
     {
+      using var db = new MyContext();
+
       if (await db.MemoConfigs!.AnyAsync() || await db.Memos!.AnyAsync())
       {
         return;
@@ -244,14 +246,18 @@ namespace KmyKeiba.Models.Data
       await db.SaveChangesAsync();
     }
 
-    private static async Task SetAnalysisTablePresets(MyContext db)
+    private static async Task SetAnalysisTablePresets()
     {
-      if (await db.AnalysisTables!.AnyAsync() || await db.AnalysisTableWeights!.AnyAsync() || await db.Delimiters!.AnyAsync())
+      using (var db = new MyContext())
       {
-        return;
+        if (await db.AnalysisTables!.AnyAsync() || await db.AnalysisTableWeights!.AnyAsync() || await db.Delimiters!.AnyAsync())
+        {
+          return;
+        }
+
+        await AnalysisTableUtil.InitializeAsync(db);
       }
 
-      await AnalysisTableUtil.InitializeAsync(db);
       var config = AnalysisTableConfigModel.Instance;
 
       AnalysisTableSurface? table;
@@ -265,7 +271,7 @@ namespace KmyKeiba.Models.Data
         data(row);
       }
 
-      table = await config.AddTableAsync();
+      table = await config.AddTableAsync(false);
       if (table == null) return;
       table.Name.Value = "馬";
 
@@ -343,7 +349,7 @@ namespace KmyKeiba.Models.Data
         r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseRider.Value = true;
       });
 
-      table = await config.AddTableAsync();
+      table = await config.AddTableAsync(false);
       if (table == null) return;
       table.Name.Value = "競馬場";
 
@@ -405,7 +411,7 @@ namespace KmyKeiba.Models.Data
         r.FinderModelForConfig.Input.Popular.IsSetCurrentRaceHorseValue.Value = true;
       });
 
-      table = await config.AddTableAsync();
+      table = await config.AddTableAsync(false);
       if (table == null) return;
       table.Name.Value = "騎手";
 
@@ -484,8 +490,10 @@ namespace KmyKeiba.Models.Data
       });
     }
 
-    private static async Task SetFinderRaceHorseColumns(MyContext db)
+    private static async Task SetFinderRaceHorseColumns()
     {
+      using var db = new MyContext();
+
       if (await db.FinderColumns!.AnyAsync())
       {
         return;

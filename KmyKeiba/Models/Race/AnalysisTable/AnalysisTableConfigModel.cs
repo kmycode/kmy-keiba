@@ -98,7 +98,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       this.UpdateExternalNumberConfigs();
     }
 
-    public async Task<AnalysisTableSurface?> AddTableAsync()
+    public async Task<AnalysisTableSurface?> AddTableAsync(bool isUiThread = true)
     {
       try
       {
@@ -114,11 +114,19 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         AnalysisTableUtil.TableConfigs.Add(data);
         var table = new AnalysisTableSurface(new RaceData(), data, Array.Empty<RaceHorseAnalyzer>());
 
-        ThreadUtil.InvokeOnUiThread(() =>
+        if (isUiThread)
+        {
+          ThreadUtil.InvokeOnUiThread(() =>
+          {
+            this.Tables.Add(table);
+            table.IsChecked.Value = true;
+          });
+        }
+        else
         {
           this.Tables.Add(table);
           table.IsChecked.Value = true;
-        });
+        }
 
         return table;
       }

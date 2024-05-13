@@ -48,14 +48,11 @@ namespace KmyKeiba.Models.Race.Finder
         tabs[0].IsChecked.Value = true;
       }
 
-      ThreadUtil.InvokeOnUiThread(() =>
+      foreach (var tab in tabs)
       {
-        foreach (var tab in tabs)
-        {
-          Tabs.Add(tab);
-        }
-        FinderColumnConfigModel.Instance.Initialize();
-      });
+        Tabs.Add(tab);
+      }
+      FinderColumnConfigModel.Instance.Initialize();
 
       _isInitialized = true;
     }

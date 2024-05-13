@@ -68,6 +68,8 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<string> ErrorConfigringMessage { get; } = new();
 
+    private FinderColumnConfigModel FinderColumnConfig => FinderColumnConfigModel.Instance;
+
     public MainViewModel()
     {
       logger.Debug("アプリ関係オブジェクトの生成開始");
@@ -107,33 +109,39 @@ namespace KmyKeiba.ViewModels
       Task.Run(async () =>
       {
         var isFirst = await this.downloader.InitializeAsync();
-        if (isFirst)
-        {
-          // 初期設定画面
-          logger.Debug("初めての利用のようです。初期画面を表示します");
-          this.CurrentDialog.Value = DialogType.Download;
-        }
 
         // 各種初期化処理
-        using var db = new MyContext();
-        await AppGeneralConfig.Instance.InitializeAsync(db);
-        await FinderConfigUtil.InitializeAsync(db);
-        await AnalysisTableScriptUtil.InitializeAsync(db);
-        await ExternalNumberUtil.InitializeAsync(db);
-        await CheckHorseUtil.InitializeAsync(db);
-        await AnalysisTableUtil.InitializeAsync(db);
+        using (var db = new MyContext())
+        {
+          await AppGeneralConfig.Instance.InitializeAsync(db);
+          await FinderConfigUtil.InitializeAsync(db);
+          await AnalysisTableScriptUtil.InitializeAsync(db);
+          await ExternalNumberUtil.InitializeAsync(db);
+          await CheckHorseUtil.InitializeAsync(db);
+          await AnalysisTableUtil.InitializeAsync(db);
+        }
 
         // DBのプリセット
-        await DatabasePresetModel.SetPresetsAsync(db);
+        await DatabasePresetModel.SetPresetsAsync();
 
         // プリセット反映後の初期化処理
-        await FinderColumnConfigUtil.InitializeAsync(db);
+        using (var db = new MyContext())
+        {
+          await FinderColumnConfigUtil.InitializeAsync(db);
+        }
 
         // 初期化完了
         this.IsInitialized.Value = true;
 
         // 初期化が終わったので設定可能に
         this.AppSettings.Value = AppSettingsModel.Instance;
+
+        if (isFirst)
+        {
+          // 初期設定画面
+          logger.Debug("初めての利用のようです。初期画面を表示します");
+          this.CurrentDialog.Value = DialogType.Download;
+        }
 
         // アップデートチェック
         await this.Update.CheckAsync();
