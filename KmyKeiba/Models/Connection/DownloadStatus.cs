@@ -130,6 +130,10 @@ namespace KmyKeiba.Models.Connection
       int.TryParse(p[1], out var month);
       var mode = p[3];
 
+      this.HasProcessingProgress.Value = true;
+      this.ProcessingProgress.Value = task.Progress;
+      this.ProcessingProgressMax.Value = task.ProgressMax;
+
       this.DownloadingYear.Value = year;
       this.DownloadingMonth.Value = month;
 

@@ -25,9 +25,16 @@ namespace KmyKeiba.JVLink.Wrappers
 
     JVLinkObjectType Type { get; }
 
-    JVLinkReaderData Load(IEnumerable<string>? targetSpecs = null);
+    void Load(IEnumerable<string>? targetSpecs = null, bool isSequential = false);
 
     void StopLoading();
+
+    event EventHandler<JVLinkReadedEventArgs>? Readed;
+  }
+
+  public class JVLinkReadedEventArgs(JVLinkReaderData queue) : EventArgs
+  {
+    public JVLinkReaderData Queue { get; } = queue;
   }
 
   class EmptyJVLinkReader : IJVLinkReader
@@ -47,14 +54,15 @@ namespace KmyKeiba.JVLink.Wrappers
       this.link.IsOpen = false;
     }
 
-    public JVLinkReaderData Load(IEnumerable<string>? targetSpecs = null)
+    public void Load(IEnumerable<string>? targetSpecs = null, bool isSequential = false)
     {
-      return new JVLinkReaderData();
     }
 
     public void StopLoading()
     {
     }
+
+    public event EventHandler<JVLinkReadedEventArgs>? Readed;
   }
 
   class JVLinkReader : IJVLinkReader
@@ -79,6 +87,8 @@ namespace KmyKeiba.JVLink.Wrappers
 
     public DateTime EndDate { get; }
 
+    public event EventHandler<JVLinkReadedEventArgs>? Readed;
+
     static JVLinkReader()
     {
       // SJISを扱う
@@ -99,7 +109,7 @@ namespace KmyKeiba.JVLink.Wrappers
       this.EndDate = end ?? default;
     }
 
-    public JVLinkReaderData Load(IEnumerable<string>? targetSpecs = null)
+    public void Load(IEnumerable<string>? targetSpecs = null, bool isSequential = false)
     {
       var data = new JVLinkReaderData();
       var buffSize = 110000;
@@ -107,15 +117,18 @@ namespace KmyKeiba.JVLink.Wrappers
 
       var lastFileName = string.Empty;
       this.ReadedEntityCount = 0;
+      var savedEntityCount = 0;
+
+      var prevResult = 0;
 
       while (true)
       {
         if (this.isCanceled)
         {
-          return data;
+          return;
         }
 
-        var buff = Array.Empty<byte>();
+        var buff = new byte[buffSize];
         var result = this.link.Gets(ref buff, buffSize, out string fileName);
         if (result < -1)
         {
@@ -139,18 +152,9 @@ namespace KmyKeiba.JVLink.Wrappers
         }
         else if (result == 0)
         {
-          break;
-        }
-
-        // 地方競馬の場合、取得するファイルをファイル名で判別する（終端時刻が指定できないため）
-        var isSkip = false;
-        var fileDateStr = fileName.Substring(4, 6);
-        if (this.link.Type == JVLinkObjectType.Local && this.EndDate != DateTime.MinValue && int.TryParse(fileDateStr, out var fileDate))
-        {
-          var downloadEndDate = this.EndDate.Year * 100 + this.EndDate.Month;
-          if (fileDate > downloadEndDate)
+          if (prevResult == -1 || this.ReadedCount + 1 >= this.ReadCount)
           {
-            isSkip = true;
+            break;
           }
         }
 
@@ -178,12 +182,14 @@ namespace KmyKeiba.JVLink.Wrappers
         {
           if (this.link.Type == JVLinkObjectType.Local && this.EndDate != default)
           {
-            // 地方競馬UmaConnでは終端時刻を指定しても最新まですべて読み込んでしまう
+            // 地方競馬UmaConnでは終端時刻を指定しても最新まですべて読み込んでしまう TODO: ダウンロードを月ごとにする処理を削除する時に、これも削除
+            /*
             if (item.LastModified != default && (item.LastModified < this.StartDate || item.LastModified > this.EndDate))
             {
               this.ReadedEntityCount--;
               return;
             }
+            */
           }
 
           var oldItem = list.FirstOrDefault((r) => isEquals(r, item));
@@ -205,23 +211,10 @@ namespace KmyKeiba.JVLink.Wrappers
         void ReadDic<KEY, T>(T item, Dictionary<KEY, T> list, KEY key)
           where T : EntityBase where KEY : IComparable
         {
-          if (this.link.Type == JVLinkObjectType.Local && this.EndDate != default)
-          {
-            // 地方競馬UmaConnでは終端時刻を指定しても最新まですべて読み込んでしまう
-            // ファイル名ではじくようにしたのでこの処理は不要？
-            /*
-            if (item.LastModified != default && (item.LastModified < this.StartDate || item.LastModified > this.EndDate))
-            {
-              this.ReadedEntityCount--;
-              return;
-            }
-            */
-          }
-
           list.TryGetValue(key, out var oldItem);
           if (oldItem != null)
           {
-            if (oldItem.LastModified >= item.LastModified)
+            if (oldItem.LastModified >= item.LastModified && oldItem.DataStatus >= item.DataStatus)
             {
               return;
             }
@@ -230,7 +223,7 @@ namespace KmyKeiba.JVLink.Wrappers
           list[key] = item;
         }
 
-        if ((targetSpecs != null && targetSpecs.Any() && !targetSpecs.Contains(spec)) || isSkip)
+        if (targetSpecs != null && targetSpecs.Any() && !targetSpecs.Contains(spec))
         {
           if (!this.isRealTime)
           {
@@ -519,9 +512,33 @@ namespace KmyKeiba.JVLink.Wrappers
               this.ReadedEntityCount--;
               if (!this.isRealTime)
               {
-                this.link.Skip();
+                if (spec != "\0\0")
+                {
+                  this.link.Skip();
+                }
+                else
+                {
+                  spec = fileName.Substring(0, 2);
+                  if (targetSpecs != null && targetSpecs.Any() && !targetSpecs.Contains(spec))
+                  {
+                    this.link.Skip();
+                  }
+                }
               }
               break;
+          }
+
+          // 途中経過を報告
+          // 三連単は保存に非常に時間がかかるので、小分けする
+          // 1000は少なすぎるかもしれませんが、そもそも旧仕様では１ヶ月毎にデータを保存しており、
+          // 地方競馬は年間15000レースあるそうですから以下略
+          if (isSequential &&
+            (this.ReadedEntityCount - savedEntityCount >= 20_000 || (data.TrioOdds.Count + data.TrifectaOdds.Count) >= 1000))
+          {
+            this.Readed?.Invoke(this, new JVLinkReadedEventArgs(data));
+
+            data = new JVLinkReaderData();
+            savedEntityCount = this.ReadedEntityCount;
           }
         }
 
@@ -530,11 +547,13 @@ namespace KmyKeiba.JVLink.Wrappers
           this.ReadedCount++;
           lastFileName = fileName;
         }
+
+        prevResult = result;
       }
 
       this.ReadedCount = this.ReadCount;
 
-      return data;
+      this.Readed?.Invoke(this, new JVLinkReadedEventArgs(data));
     }
 
     public void StopLoading()

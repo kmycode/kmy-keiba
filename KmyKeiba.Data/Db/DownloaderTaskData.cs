@@ -13,6 +13,10 @@ namespace KmyKeiba.Data.Db
 
     public string Parameter { get; set; } = string.Empty;
 
+    public int Progress { get; set; }
+
+    public int ProgressMax { get; set; }
+
     public bool IsFinished { get; set; }
 
     public bool IsCanceled { get; set; }
@@ -89,6 +93,22 @@ namespace KmyKeiba.Data.Db
           case "IsStarted":
             result.IsStarted = ToBoolean(value);
             break;
+          case "Progress":
+            {
+              if (int.TryParse(value, out int progress))
+              {
+                result.Progress = progress;
+              }
+            }
+            break;
+          case "ProgressMax":
+            {
+              if (int.TryParse(value, out int progressMax))
+              {
+                result.ProgressMax = progressMax;
+              }
+            }
+            break;
           case "ProcessId":
             {
               if (int.TryParse(value, out int processId))
@@ -120,6 +140,8 @@ Parameter={data.Parameter}
 IsFinished={data.IsFinished}
 IsCanceled={data.IsCanceled}
 IsStarted={data.IsStarted}
+Progress={data.Progress}
+ProgressMax={data.ProgressMax}
 ProcessId={data.ProcessId}
 Error={(int)data.Error}
 Result={data.Result}";

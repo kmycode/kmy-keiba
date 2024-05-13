@@ -18,8 +18,8 @@ namespace KmyKeiba.Downloader
       try
       {
         var loader = new JVLinkLoader();
-        loader.StartLoad(JVLinkObject.Local, JVLinkDataspec.Blod | JVLinkDataspec.Diff,
-          JVLinkOpenOption.Setup, null, new DateTime(2008, 1, 1), new DateTime(2008, 2, 1));
+        loader.StartLoad(JVLinkObject.Local, JVLinkDataspec.Race | JVLinkDataspec.Diff,
+          JVLinkOpenOption.Setup, null, new DateTime(2018, 1, 1), new DateTime(2024, 2, 1));
       }
       catch (Exception ex)
       {
@@ -55,6 +55,26 @@ namespace KmyKeiba.Downloader
             {
               logger.Warn("ダウンロード状態のタスクへの書き込みでエラー", ex);
             }
+          }
+          else
+          {
+            try
+            {
+              SetTask(task, t =>
+              {
+                if (loader.Process == LoadProcessing.Downloading)
+                {
+                  task.ProgressMax = loader.DownloadSize;
+                  task.Progress = loader.Downloaded;
+                }
+                else
+                {
+                  task.ProgressMax = loader.LoadSize;
+                  task.Progress = loader.Loaded;
+                }
+              });
+            }
+            catch { }
           }
         }
 
@@ -195,6 +215,7 @@ namespace KmyKeiba.Downloader
 
       var specs1 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "BT", "JC", "HC", "WC", "KS", "CH", "NK", "NC", "NU", "HS", };
       var specs2 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", "HR", "TM", "DM", };
+      var specs = specs1.Concat(specs2).ToArray();
       var dataspec1 = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku;
       var dataspec2 = JVLinkDataspec.Race;
       if (parameters[2] == "central")
@@ -243,74 +264,21 @@ namespace KmyKeiba.Downloader
         isPlan = true;
       }
 
-      for (var year = startYear; year <= end.Year; year++)
-      {
-        for (var month = 1; month <= 12; month++)
-        {
-          if (year == startYear && month < startMonth)
-          {
-            continue;
-          }
-          if (year == end.Year && month > end.Month)
-          {
-            break;
-          }
+      var isDone = false;
 
-          var start = new DateTime(year, month, System.Math.Max(1, startDay));
-          
-          logger.Info($"{year} 年 {month} 月");
-
-          if (mode != "odds")
-          {
-            mode = "race";
-            task.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
-            DownloaderTaskDataExtensions.Save(task);
-            logger.Info("レースのダウンロードを開始します");
-            loader.StartLoad(link,
-              dataspec1,
-              option,
-              raceKey: null,
-              startTime: start,
-              endTime: start.AddMonths(1),
-              loadSpecs: specs1);
-          }
-
-          mode = "odds";
-          task.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
-          DownloaderTaskDataExtensions.Save(task);
-          logger.Info("オッズのダウンロードを開始します");
-          loader.StartLoad(link,
-            dataspec2,
-            option,
-            raceKey: null,
-            startTime: start,
-            endTime: start.AddMonths(1),
-            loadSpecs: specs2);
-
-          mode = "race";
-
-          if (isPlan)
-          {
-            logger.Info("予定ダウンロードだったため即時終了");
-            break;
-          }
-
-          CheckShutdown();
-        }
-
-        if (isPlan)
-        {
-          break;
-        }
-      }
-      /*
-      await loader.LoadAsync(JVLinkObject.Central,
-        JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff,
-        JVLinkOpenOption.Normal,
+      var start = new DateTime(startYear, startMonth, System.Math.Max(1, startDay));
+      mode = "race";
+      task.Parameter = $"{startYear},{startMonth},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
+      DownloaderTaskDataExtensions.Save(task);
+      logger.Info("レースのダウンロードを開始します");
+      loader.StartLoad(link,
+        dataspec1 | dataspec2,
+        option,
         raceKey: null,
-        startTime: DateTime.Today.AddMonths(-1),
-        endTime: null);
-      */
+        startTime: start,
+        endTime: DateTime.Now.AddMonths(1),
+        loadSpecs: null);
+      isDone = true;
     }
 
     private static async Task RTLoadAsync(JVLinkLoader loader, DownloaderTaskData task)

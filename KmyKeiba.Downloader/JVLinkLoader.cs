@@ -257,6 +257,12 @@ namespace KmyKeiba.Downloader
 
     private void StartLoad(IJVLinkReader reader, IEnumerable<string>? loadSpecs, bool isProcessing, bool isRealtime)
     {
+      this.DownloadData(reader);
+      this.LoadData(reader, isRealtime, loadSpecs);
+    }
+
+    private void DownloadData(IJVLinkReader reader)
+    {
       this.ResetProgresses();
 
       this.DownloadSize = reader.DownloadCount;
@@ -274,9 +280,12 @@ namespace KmyKeiba.Downloader
         Task.Delay(80).Wait();
 
         waitCount += 80;
-        if (waitCount > 10_000)
+
+        if (waitCount > 1_000)
         {
           Program.CheckShutdown();
+          // TODO: #285 進捗をアプリと共有
+          logger.Debug($"ダウンロード数 [{reader.DownloadedCount}/{reader.DownloadCount}]");
           waitCount = 0;
         }
         if (reader.DownloadedCount < 0)
@@ -312,18 +321,22 @@ namespace KmyKeiba.Downloader
         }
       }
       logger.Info("ダウンロードが完了しました");
+    }
 
-      waitCount = 0;
+    private void LoadData(IJVLinkReader reader, bool isRealtime, IEnumerable<string>? loadSpecs)
+    {
+      var waitCount = 0;
+      var isSaving = false;
 
-      JVLinkReaderData data = new();
       var isLoaded = false;
       var isLoadCanceled = false;
-      var loadTimeout = 0;
       var loadTask = Task.Run(async () =>
       {
-        try
+        var loadTimeout = 0;
+
+        while (!isLoaded)
         {
-          while (!isLoaded)
+          try
           {
             await Task.Delay(80);
 
@@ -338,61 +351,122 @@ namespace KmyKeiba.Downloader
               loadTimeout += 80;
               if (loadTimeout >= 100_000)
               {
-                Program.RestartProgram(false);
-                loadTimeout = 0;
+                // 保存が長すぎてロードが停止される場合あり
+                if (isSaving)
+                {
+                  loadTimeout = 0;
+                }
+                else
+                {
+                  Program.RestartProgram(false);
+                  loadTimeout = 0;
+                }
               }
             }
 
             waitCount += 80;
-            if (waitCount > 10_000)
+            if (waitCount > 1_000)
             {
               Program.CheckShutdown();
+              // TODO: #285 進捗をアプリと共有
+              logger.Debug($"ロード数 [{reader.ReadedCount}/{reader.ReadCount}] エンティティ {reader.ReadedEntityCount}");
               waitCount = 0;
             }
           }
-        }
-        catch (TaskCanceledAndContinueProgramException)
-        {
-          isLoadCanceled = true;
-          reader.StopLoading();
-        }
-        catch (Exception ex)
-        {
-          logger.Error("ロード監視でエラー発生", ex);
+          catch (TaskCanceledAndContinueProgramException)
+          {
+            logger.Warn("ロードがキャンセルされました");
+            isLoadCanceled = true;
+            reader.StopLoading();
+            break;
+          }
+          catch (Exception ex)
+          {
+            logger.Error("ロード監視でエラー発生", ex);
+          }
         }
       });
 
       this.LoadSize = reader.ReadCount;
       logger.Info($"データのロードを開始します　ロード数: {reader.ReadCount}");
       this.Process = LoadProcessing.Loading;
+
+      void onReaded(object? sender, JVLinkReadedEventArgs e)
+      {
+        try
+        {
+          Program.CheckShutdown();
+        }
+        catch (Exception ex)
+        {
+          logger.Error("部分ロード：シャットダウンチェックでエラーが発生しました。このまま処理を続行します", ex);
+        }
+
+        // 別のスレッドが保存処理中のさいにイベントの実行をブロックすることで
+        // JVLinkからロードされたオブジェクトを格納するRAMが増えすぎないようにする
+        while (isSaving)
+        {
+          Task.Delay(50).Wait();
+        }
+
+        isSaving = true;
+        var data = e.Queue;
+
+        Task.Run(async () =>
+        {
+          try
+          {
+            logger.Info("部分データの保存を開始します");
+            this.Process = LoadProcessing.Writing;
+            await this.SaveDataAsync(data, isRealtime);
+            logger.Info("部分データの保存を完了しました");
+          }
+          catch (Exception ex)
+          {
+            logger.Error("データの保存でエラーが発生しました", ex);
+          }
+          finally
+          {
+            this.Process = LoadProcessing.Loading;
+            isSaving = false;
+          }
+        });
+      };
+      reader.Readed += onReaded;
+
       try
       {
-        data = reader.Load(loadSpecs);
+        reader.Load(loadSpecs, true);
       }
       catch (Exception ex)
       {
         logger.Error("ロードでエラーが発生しました", ex);
         throw new Exception("Load error", ex);
       }
+      finally
+      {
+        reader.Readed -= onReaded;
+      }
       isLoaded = true;
-      Program.CheckShutdown();
 
       if (isLoadCanceled)
       {
+        logger.Warn("キャンセルによるロード完了");
         this.DisposeLink(reader, null);
       }
       else
       {
+        while (isSaving)
+        {
+          Task.Delay(50).Wait();
+        }
+
+        logger.Info("ロード完了");
         this.DisposeLink(reader, async () =>
         {
-          var loadStartTime = DateTime.Now;
-          logger.Info("ロード完了");
-
-          await LoadAfterAsync(data, isRealtime);
         });
       }
     }
-
 
     private void DisposeLink(IJVLinkReader reader, Func<Task>? processingAsync)
     {
@@ -449,7 +523,7 @@ namespace KmyKeiba.Downloader
       logger.Info("ロード処理が正常に完了しました");
     }
 
-    private async Task LoadAfterAsync(JVLinkReaderData data, bool isRealtime)
+    private async Task SaveDataAsync(JVLinkReaderData data, bool isRealtime)
     {
       var saved = 0;
       this.SaveSize = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count
@@ -469,8 +543,6 @@ namespace KmyKeiba.Downloader
         }
       });
       timer.Start();
-
-      this.Process = LoadProcessing.Writing;
 
       // トランザクションが始まるので、ここで待機しないとProgram.csからこの値をDBに保存できず、メインアプリにWritingが伝わらなくなる
       this.StartingTransaction?.Invoke(this, EventArgs.Empty);
@@ -703,6 +775,7 @@ namespace KmyKeiba.Downloader
         (e) => e.RaceKey,
         (d) => d.RaceKey,
         (list) => e => list.Contains(e.RaceKey));
+      await db.CommitAsync();
       logger.Info($"TrifectaOddsの保存を開始 {data.TrifectaOdds.Count}");
       await SaveDicAsync(data.TrifectaOdds,
         db.TrifectaOdds!,
@@ -742,7 +815,6 @@ namespace KmyKeiba.Downloader
       this.ProcessSize = 0;
       this.Processed = 0;
       this.ProcessSize += data.SingleAndDoubleWinOdds.Count;
-      this.Process = LoadProcessing.Processing;
 
       // マイニングを設定する
       {
@@ -837,8 +909,11 @@ namespace KmyKeiba.Downloader
           Program.CheckShutdown();
         }
 
+        logger.Debug("保存: SaveChangesAsync");
         await db.SaveChangesAsync();
+        logger.Debug("保存: CommitAsync");
         await db.CommitAsync();
+        logger.Debug("保存: END");
       }
 
       if (isRealtime)

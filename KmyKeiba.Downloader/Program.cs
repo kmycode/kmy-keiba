@@ -87,7 +87,14 @@ namespace KmyKeiba.Downloader
         logger.Warn("ソフトIDが見つからなかったので、デフォルト値を設定します");
       }
 
+      // ダウンローダをデバッグするときに使用。#if DEBUGS を #if DEBUG に変更することで有効化
+      // KMY競馬アプリ本体をデバッグするときは、必ず DEBUGS に戻したうえでダウンローダをビルドしておく
 #if DEBUGS
+      if (File.Exists(Constrants.ShutdownFilePath))
+      {
+        File.Delete(Constrants.ShutdownFilePath);
+      }
+
       var rootLogger = ((Hierarchy)logger.Logger.Repository).Root;
       rootLogger.RemoveAllAppenders();
       rootLogger.AddAppender(new log4net.Appender.ConsoleAppender
@@ -101,11 +108,12 @@ namespace KmyKeiba.Downloader
       {
         Command = DownloaderCommand.DownloadSetup,
       };
-      var d = new MyContext();
-      d.DownloaderTasks!.Add(currentTask);
-      d.SaveChanges();
-      d.Dispose();
+      DownloaderTaskDataExtensions.Add(currentTask);
+
       Test();
+
+      DownloaderTaskDataExtensions.Remove(currentTask);
+
       return;
 #endif
 

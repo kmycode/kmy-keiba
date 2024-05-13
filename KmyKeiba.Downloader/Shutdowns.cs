@@ -67,6 +67,7 @@ namespace KmyKeiba.Downloader
         }
         else
         {
+          logger.Warn("現在のタスクが設定されていません");
           throw new TaskCanceledAndContinueProgramException();
         }
       }

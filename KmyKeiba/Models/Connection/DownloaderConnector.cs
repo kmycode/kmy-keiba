@@ -156,12 +156,12 @@ namespace KmyKeiba.Models.Connection
 
               if (isProcessStarted && ++tryCountForProcessCheck >= 1200)
               {
+                tryCountForProcessCheck = 0;
                 var isRunning = await this.IsLaunchingProcessAsync(item.ProcessId);
                 if (!isRunning && !item.IsFinished)
                 {
                   throw new DownloaderCommandException(DownloaderError.NotRunningDownloader);
                 }
-                tryCountForProcessCheck = 0;
               }
             }
           }

@@ -91,6 +91,8 @@ namespace KmyKeiba.Models.Connection.Connector
 
         config.StartMonth.Value = startMonth;
         config.StartYear.Value = startYear;
+
+        state.HasProcessingProgress.Value = false;
       }
 
       logger.Info("ダウンロード処理を終了します");

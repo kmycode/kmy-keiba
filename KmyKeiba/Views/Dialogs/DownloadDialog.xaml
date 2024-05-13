@@ -148,7 +148,7 @@
         </TextBlock>
         <TextBlock Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16" FontSize="20" TextAlignment="Center"
                    Visibility="{Binding Downloader.State.IsProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}">
-          <Run Text="{Binding Downloader.State.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/> <Run Text="{Binding Downloader.State.DownloadingYear.Value}"/>年 <Run Text="{Binding Downloader.State.DownloadingMonth.Value}"/>月 [<Run Text="{Binding Downloader.State.DownloadingType.Value,Converter={StaticResource LabelConv}}"/>] <Run Text="{Binding Downloader.State.LoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
+          <Run Text="{Binding Downloader.State.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/> [<Run Text="{Binding Downloader.State.DownloadingType.Value,Converter={StaticResource LabelConv}}"/>] <Run Text="{Binding Downloader.State.LoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
         </TextBlock>
         <TextBlock Style="{StaticResource TextBlockDefault}" Margin="0,0,0,16" FontSize="20" TextAlignment="Center"
                    Visibility="{Binding Downloader.State.IsProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}">

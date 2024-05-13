@@ -172,9 +172,17 @@ namespace KmyKeiba.JVLink.Wrappers
 
       public int Gets(ref byte[] buff, int size, out string filename)
       {
+        /*
         object obj = buff;
         var r = this.link.JVGets(ref obj, size, out filename);
         buff = (byte[])obj;
+        */
+        var r = this.link.JVRead(out var bf, out size, out filename);
+        if (bf != null)
+        {
+          // buff = Encoding.UTF8.GetBytes(bf);
+          buff = Encoding.GetEncoding(932).GetBytes(bf);
+        }
         return r;
       }
 
