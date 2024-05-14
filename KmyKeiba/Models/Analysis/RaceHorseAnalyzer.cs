@@ -481,6 +481,7 @@ namespace KmyKeiba.Models.Analysis
       this.ResultOrderComparationWithLastCorner = corners.LastOrDefault().Type;
 
       this.Pci = AnalysisUtil.CalcPci(race, horse);
+      this.PciDVComparation = AnalysisUtil.CompareValue(this.Pci, 45, 55, true);
     }
 
     public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData? raceStandardTime, JrdbRaceHorseData? jrdbHorse = null)
