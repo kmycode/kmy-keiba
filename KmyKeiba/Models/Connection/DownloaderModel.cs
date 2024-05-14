@@ -166,14 +166,14 @@ namespace KmyKeiba.Models.Connection
         if (config.IsBuildMasterData.Value)
         {
           logger.Info("マスターデータ更新を開始");
-          await PostProcessings.AfterDownload.RunAsync(state.ProcessingStep);
         }
         else
         {
           logger.Info($"セットアップデータダウンロードを開始");
           await this._connectors.DownloadAsync(new DateOnly(config.StartYear.Value, config.StartMonth.Value, 1));
-          await PostProcessing.RunAsync(DownloadStatus.Instance.ProcessingStep, false, PostProcessings.AfterDownload);
         }
+
+        await PostProcessings.AfterDownload.RunAsync(state.ProcessingStep);
       });
     }
 
