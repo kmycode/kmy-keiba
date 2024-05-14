@@ -319,7 +319,7 @@
                   <ToggleButton.Template>
                     <ControlTemplate>
                       <Border Background="{TemplateBinding Background}">
-                        <StackPanel Orientation="Horizontal" Margin="2">
+                        <StackPanel Orientation="Horizontal">
 
                           <!--レース成績-->
                           <StackPanel Width="154" Height="62" Background="{Binding Data.ResultOrder,Converter={StaticResource OrderBackgroundConv}}">
