@@ -37,21 +37,25 @@
             </i:Interaction.Behaviors>
           </skia:SKElement>
 
-          <Button Command="{Binding Race.RaceAnalyzer.Value.PlayPaddockForceCommand,ElementName=Root}" Padding="4,8"
-                  Margin="0,24,0,16" Width="300">
-            <Button.Visibility>
-              <MultiBinding Converter="{StaticResource MultiBooleanConv}">
-                <Binding Path="Race.RaceAnalyzer.Value.Movie.IsPaddockForceError.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
-                <Binding Path="Race.IsLoadCompleted.Value" ElementName="Root"/>
-              </MultiBinding>
-            </Button.Visibility>
-            <StackPanel>
-              <TextBlock FontSize="20" Text="パドック映像" HorizontalAlignment="Center"/>
-              <TextBlock FontSize="14" Foreground="{StaticResource SubForeground}"
-                         Text="取得できませんでした。後でもう一度お試しください" HorizontalAlignment="Center"
-                         Visibility="{Binding Race.RaceAnalyzer.Value.Movie.IsPaddockError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
-            </StackPanel>
-          </Button>
+          <StackPanel Margin="0,24,0,16">
+            <Button Command="{Binding OpenNetKeibaRaceCommand}" Width="300" FontSize="20" Content="netkeibaで開く" Padding="4,8"/>
+
+            <Button Command="{Binding Race.RaceAnalyzer.Value.PlayPaddockForceCommand,ElementName=Root}"
+                    Margin="0,8,0,0" Width="300">
+              <Button.Visibility>
+                <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+                  <Binding Path="Race.RaceAnalyzer.Value.Movie.IsPaddockForceError.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+                  <Binding Path="Race.IsLoadCompleted.Value" ElementName="Root"/>
+                </MultiBinding>
+              </Button.Visibility>
+              <StackPanel>
+                <TextBlock FontSize="16" Text="パドック映像" HorizontalAlignment="Center"/>
+                <TextBlock FontSize="14" Foreground="{StaticResource SubForeground}" Margin="0,2,0,0"
+                           Text="取得できませんでした。後でもう一度お試しください" HorizontalAlignment="Center"
+                           Visibility="{Binding Race.RaceAnalyzer.Value.Movie.IsPaddockError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+              </StackPanel>
+            </Button>
+          </StackPanel>
         </StackPanel>
         
         <!-- コース詳細情報 -->

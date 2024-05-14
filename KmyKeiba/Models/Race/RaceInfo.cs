@@ -574,6 +574,40 @@ namespace KmyKeiba.Models.Race
       RaceInfoCacheManager.UpdateCache(this.Data.Key, null);
     }
 
+    public void OpenNetKeibaPage()
+    {
+      string raceId, url;
+      var race = this.Data;
+
+      if (race.Course >= RaceCourse.Foreign)
+      {
+        return;
+      }
+      else if (race.Course >= RaceCourse.LocalMinValue)
+      {
+        raceId = $"{race.StartTime:yyyy}{((short)race.Course):00}{race.StartTime:MMdd}{race.CourseRaceNumber:00}";
+        url = "https://nar.netkeiba.com/race/shutuba.html?race_id=" + raceId;
+      }
+      else
+      {
+        raceId = $"{race.StartTime:yyyy}{((short)race.Course):00}{race.Kaiji:00}{race.Nichiji:00}{race.CourseRaceNumber:00}";
+        url = "https://race.netkeiba.com/race/result.html?race_id=" + raceId;
+      }
+
+      try
+      {
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+          FileName = url,
+          UseShellExecute = true,
+        });
+      }
+      catch (Exception ex)
+      {
+        logger.Error($"レース {race.Key} netkeiba表示でエラー", ex);
+      }
+    }
+
     public void Dispose()
     {
       this._disposables.Dispose();
