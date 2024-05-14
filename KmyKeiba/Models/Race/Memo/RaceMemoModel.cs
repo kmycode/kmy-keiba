@@ -32,16 +32,6 @@ namespace KmyKeiba.Models.Race.Memo
     // 他のウィンドウのデータ
     private static readonly List<RaceMemoModel> _allModels = new();
 
-    private static async Task UpdateConfigsAsync(MyContext db)
-    {
-      if (!_isInitialized)
-      {
-        await MemoUtil.InitializeAsync(db);
-        await PointLabelModel.InitializeAsync(db);
-        _isInitialized = true;
-      }
-    }
-
     private static async Task ReloadAllModelsAsync(MyContext db, RaceMemoModel self)
     {
       foreach (var model in _allModels.Where(m => m != self))
@@ -148,7 +138,6 @@ namespace KmyKeiba.Models.Race.Memo
 
     public async Task LoadAsync(MyContext db)
     {
-      await UpdateConfigsAsync(db);
       try
       {
         if (DownloaderModel.Instance.CanSaveOthers.Value)

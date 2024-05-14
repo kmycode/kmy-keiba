@@ -9,6 +9,7 @@ using KmyKeiba.Models.Race.AnalysisTable;
 using KmyKeiba.Models.Race.AnalysisTable.Script;
 using KmyKeiba.Models.Race.ExNumber;
 using KmyKeiba.Models.Race.Finder;
+using KmyKeiba.Models.Race.Memo;
 using KmyKeiba.Models.RList;
 using KmyKeiba.Models.Script;
 using KmyKeiba.Models.Setting;
@@ -127,8 +128,13 @@ namespace KmyKeiba.ViewModels
         // プリセット反映後の初期化処理
         using (var db = new MyContext())
         {
+          await MemoUtil.InitializeAsync(db);
+          await PointLabelModel.InitializeAsync(db);
           await FinderColumnConfigUtil.InitializeAsync(db);
         }
+
+        // レースリストに拡張メモを反映
+        await this.RaceList.UpdateListAsync();
 
         // 初期化完了
         this.IsInitialized.Value = true;
@@ -140,6 +146,7 @@ namespace KmyKeiba.ViewModels
         {
           // 初期設定画面
           logger.Debug("初めての利用のようです。初期画面を表示します");
+          this.CanSave.Value = true;
           this.CurrentDialog.Value = DialogType.Download;
         }
 

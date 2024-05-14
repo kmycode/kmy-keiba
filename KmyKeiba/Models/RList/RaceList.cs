@@ -71,7 +71,6 @@ namespace KmyKeiba.Models.RList
         horses = horseData.Select(h => new RaceHorseData { Key = h.Key, RaceKey = h.RaceKey, Number = h.Number, FrameNumber = h.FrameNumber, AbnormalResult = h.AbnormalResult, }).ToArray();
         var horseKeys = horses.Select(h => h.Key).ToArray();
 
-        await MemoUtil.InitializeAsync(db);
         (memos, pointLabel) = await MemoUtil.GetRaceListMemosAsync(db, keys);
 
         await CheckHorseUtil.InitializeAsync(db);
