@@ -225,7 +225,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
         if (targetSpecs != null && targetSpecs.Any() && !targetSpecs.Contains(spec))
         {
-          if (!this.isRealTime)
+          if (!this.isRealTime && spec != "\0\0")
           {
             this.link.Skip();
           }
@@ -389,8 +389,15 @@ namespace KmyKeiba.JVLink.Wrappers
 
                 // Read(item, data.SingleAndDoubleWinOdds, (a, b) => a.RaceKey == b.RaceKey && a.Time == b.Time, new ComparableComparer<SingleAndDoubleWinOdds>(x => x?.RaceKey + x?.Time));
                 // Read(item2, data.FrameNumberOdds, (a, b) => a.RaceKey == b.RaceKey, new ComparableComparer<FrameNumberOdds>(x => x?.RaceKey));
-                ReadDic(item, data.SingleAndDoubleWinOdds, item.RaceKey + item.Time);
                 ReadDic(item2, data.FrameNumberOdds, item2.RaceKey);
+                if (item.IsDetermined)
+                {
+                  ReadDic(item, data.PlaceOdds, item.RaceKey);
+                }
+                if (this.isRealTime || !item.IsDetermined)
+                {
+                  ReadDic(item, data.SingleAndDoubleWinOdds, item.RaceKey + item.Time);
+                }
                 break;
               }
             case "O2":
@@ -593,6 +600,8 @@ namespace KmyKeiba.JVLink.Wrappers
     public Dictionary<string, BornHorse> BornHorses { get; internal set; } = new();
 
     public Dictionary<string, SingleAndDoubleWinOdds> SingleAndDoubleWinOdds { get; internal set; } = new();
+
+    public Dictionary<string, SingleAndDoubleWinOdds> PlaceOdds { get; internal set; } = new();
 
     public Dictionary<string, FrameNumberOdds> FrameNumberOdds { get; internal set; } = new();
 

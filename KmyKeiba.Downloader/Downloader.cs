@@ -213,15 +213,10 @@ namespace KmyKeiba.Downloader
         return;
       }
 
-      var specs1 = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "BT", "JC", "HC", "WC", "KS", "CH", "NK", "NC", "NU", "HS", };
-      var specs2 = new string[] { "O1", "O2", "O3", "O4", "O5", "O6", "HR", "TM", "DM", };
-      var specs = specs1.Concat(specs2).ToArray();
-      var dataspec1 = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku;
-      var dataspec2 = JVLinkDataspec.Race;
+      var dataspec = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku;
       if (parameters[2] == "central")
       {
-        dataspec1 |= JVLinkDataspec.Wood | JVLinkDataspec.Hose;
-        dataspec2 |= JVLinkDataspec.Ming;
+        dataspec |= JVLinkDataspec.Wood | JVLinkDataspec.Hose | JVLinkDataspec.Ming;
       }
       else
       {
@@ -239,12 +234,12 @@ namespace KmyKeiba.Downloader
 
       if (isNotDownloadBlod != null && isNotDownloadBlod.IntValue != 0)
       {
-        dataspec1 &= ~JVLinkDataspec.Blod;
+        dataspec &= ~JVLinkDataspec.Blod;
       }
       if (isNotDownloadSlop != null && isNotDownloadSlop.IntValue != 0)
       {
-        dataspec1 &= ~JVLinkDataspec.Slop;
-        dataspec1 &= ~JVLinkDataspec.Wood;
+        dataspec &= ~JVLinkDataspec.Slop;
+        dataspec &= ~JVLinkDataspec.Wood;
       }
 
       if (parameters[2] == "local" && startYear < 2005)
@@ -257,28 +252,19 @@ namespace KmyKeiba.Downloader
 
       var option = (DateTime.Now.Year * 12 + DateTime.Now.Month) - (startYear * 12 + startMonth) > 11 ? JVLinkOpenOption.Setup : JVLinkOpenOption.Normal;
 
-      // 開始日が最初から未来または今日に近い日であった場合、予定ダウンロードと見做す
-      var isPlan = false;
-      if (startDay > 0 && new DateTime(startYear, startMonth, Math.Max(1, startDay)).AddDays(7) > DateTime.Today)
-      {
-        isPlan = true;
-      }
-
-      var isDone = false;
-
       var start = new DateTime(startYear, startMonth, System.Math.Max(1, startDay));
       mode = "race";
       task.Parameter = $"{startYear},{startMonth},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
       DownloaderTaskDataExtensions.Save(task);
+
       logger.Info("レースのダウンロードを開始します");
       loader.StartLoad(link,
-        dataspec1 | dataspec2,
+        dataspec,
         option,
         raceKey: null,
         startTime: start,
         endTime: DateTime.Now.AddMonths(1),
         loadSpecs: null);
-      isDone = true;
     }
 
     private static async Task RTLoadAsync(JVLinkLoader loader, DownloaderTaskData task)
@@ -365,6 +351,8 @@ namespace KmyKeiba.Downloader
           .OrderBy(r => r.StartTime)
           .Select(r => new { r.Key, r.StartTime, r.Course, r.Grade, r.DataStatus, });
         var races = await query.ToArrayAsync();
+
+        // 今日以降のレースがない場合
         if (!races.Any())
         {
           dataspecs = link.Type == JVLinkObjectType.Central ? new[]
@@ -387,6 +375,10 @@ namespace KmyKeiba.Downloader
         var raceKeys = races.Select(r => r.Key).ToArray();
         var oddsTImeline = await db.SingleOddsTimelines!
           .Where(r => raceKeys.Contains(r.RaceKey))
+          .ToArrayAsync();
+        var placeOdds = await db.PlaceOdds!
+          .Where(r => raceKeys.Contains(r.RaceKey))
+          .Select(o => o.RaceKey)
           .ToArrayAsync();
 
         var isDownloadAfterThursdayData = await db.SystemData!.FirstOrDefaultAsync(s => s.Key == SettingKey.IsDownloadCentralOnThursdayAfterOnly);
@@ -471,7 +463,7 @@ namespace KmyKeiba.Downloader
             else if (dataspecs[i] == JVLinkDataspec.RB30)
             {
               // オッズは各レースごとに落とすから時間がかかる。必要ないものは切り捨てる
-              if (race.DataStatus >= RaceDataStatus.PreliminaryGrade3)
+              if (race.DataStatus >= RaceDataStatus.PreliminaryGrade3 && placeOdds.Contains(race.Key))
               {
                 continue;
               }

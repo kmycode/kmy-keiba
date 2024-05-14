@@ -145,6 +145,55 @@ ProgressMax={data.ProgressMax}
 ProcessId={data.ProcessId}
 Error={(int)data.Error}
 Result={data.Result}";
+
+    public DownloadParameter GetDownloadParameter()
+      => new DownloadParameter(this.Parameter);
+
+    public void SetDownloadParameter(DownloadParameter parameter)
+    {
+      this.Parameter = parameter.ToString();
+    }
+
+    public class DownloadParameter
+    {
+      public int StartYear { get; set; }
+
+      public int StartMonth { get; set; }
+
+      public LinkSoftware LinkSoftware { get; set; }
+
+      public string Mode { get; set; } = string.Empty;
+
+      public DownloadParameter(string parameter)
+      {
+        var parameters = parameter.Split(',');
+        if (parameters.Length <= 1) return;
+
+        int.TryParse(parameters[0], out var startYear);
+        this.StartYear = startYear;
+        if (parameters.Length == 1) return;
+
+        int.TryParse(parameters[1], out var startMonth);
+        this.StartMonth = startMonth;
+        if (parameters.Length == 2) return;
+
+        this.LinkSoftware = parameters[2] == "central" ? LinkSoftware.Central : LinkSoftware.Local;
+        if (parameters.Length == 3) return;
+
+        this.Mode = parameters[3];
+        if (parameters.Length == 4) return;
+      }
+
+      public override string ToString()
+        => $"{this.StartYear},{this.StartMonth},{(this.LinkSoftware == LinkSoftware.Central ? "central" : "local")},{this.Mode}";
+    }
+  }
+
+  public enum LinkSoftware
+  {
+    Unknown = 0,
+    Central = 1,
+    Local = 2,
   }
 
   public class DownloaderTaskDataException : Exception

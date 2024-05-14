@@ -135,6 +135,7 @@ namespace KmyKeiba.Models.Connection
     [Label("データをマイグレーション中 (from 5.0.0)")]
     MigrationFrom500 = 2048,
 
-    All = InvalidData | RunningStyle | StandardTime | PreviousRaceDays | RiderWinRates | RaceSubjectInfos | HorseExtraData,
+    [Label("複勝オッズをコピー中")]
+    CopyPlaceOdds = 4096,
   }
 }

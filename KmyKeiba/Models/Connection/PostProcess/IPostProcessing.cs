@@ -71,6 +71,7 @@ namespace KmyKeiba.Models.Connection.PostProcess
     public static ResetHorseExtraDataProcess ResetHorseExtraData { get; } = new();
     public static HorseExtraDataProcess HorseExtraData { get; } = new();
     public static StandardTimeProcess StandardTime { get; } = new();
+    public static CopyPlaceOddsPostProcess CopyPlaceOdds { get; } = new();
 
     public static PostProcessingCollection AfterDownload { get; } =
     [
@@ -79,6 +80,7 @@ namespace KmyKeiba.Models.Connection.PostProcess
       PreviousRaceDays,
       RaceSubjectInfos,
       HorseExtraData,
+      CopyPlaceOdds,
     ];
 
     public static PostProcessingCollection AfterRTDownload { get; } =

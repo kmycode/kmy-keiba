@@ -33,6 +33,8 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<SingleOddsTimeline>? SingleOddsTimelines { get; set; }
 
+    public DbSet<PlaceOddsData>? PlaceOdds { get; set; }
+
     public DbSet<FrameNumberOddsData>? FrameNumberOdds { get; set; }
 
     public DbSet<QuinellaOddsData>? QuinellaOdds { get; set; }

@@ -13,6 +13,15 @@ namespace KmyKeiba.JVLink.Entities
 
     public DateTime Time { get; set; }
 
+    public bool IsDetermined
+    {
+      get
+      {
+        var status = (OddsDataStatus)(short)this.DataStatus;
+        return status == OddsDataStatus.Determined || status == OddsDataStatus.DeterminedInMonday || status == OddsDataStatus.Last || status == OddsDataStatus.Canceled;
+      }
+    }
+
     public List<OddsData> Odds { get; } = new();
 
     public struct OddsData

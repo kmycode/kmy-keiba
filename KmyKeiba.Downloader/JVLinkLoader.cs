@@ -526,11 +526,11 @@ namespace KmyKeiba.Downloader
     private async Task SaveDataAsync(JVLinkReaderData data, bool isRealtime)
     {
       var saved = 0;
-      this.SaveSize = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count
-        + data.FrameNumberOdds.Count + data.QuinellaOdds.Count + data.QuinellaPlaceOdds.Count +
+      this.SaveSize = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count +
+         data.FrameNumberOdds.Count + data.QuinellaOdds.Count + data.QuinellaPlaceOdds.Count +
          data.TrifectaOdds.Count + data.TrioOdds.Count + data.BornHorses.Count +
-         data.Riders.Count + data.Trainers.Count +
-        data.Refunds.Count + data.Trainings.Count + data.WoodtipTrainings.Count + data.Horses.Count + data.HorseBloods.Count;
+         data.Riders.Count + data.Trainers.Count + data.PlaceOdds.Count +
+         data.Refunds.Count + data.Trainings.Count + data.WoodtipTrainings.Count + data.Horses.Count + data.HorseBloods.Count;
       logger.Info($"保存数: {this.SaveSize}");
 
       var timer = new ReactiveTimer(TimeSpan.FromMilliseconds(80));
@@ -797,6 +797,12 @@ namespace KmyKeiba.Downloader
         (e) => e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute,
         (d) => d.RaceKey + d.Time.Month + "_" + d.Time.Day + "_" + d.Time.Hour + "_" + d.Time.Minute,
         (list) => e => list.Contains(e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute));
+      logger.Info($"PlaceOddsの保存を開始 {data.PlaceOdds.Count}");
+      await SaveAsync(data.PlaceOdds.Select((o) => o.Value),
+        db.PlaceOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
       logger.Info($"Trainingsの保存を開始 {data.Trainings.Count}");
       await SaveDicAsync(data.Trainings,
         db.Trainings!,
@@ -906,14 +912,12 @@ namespace KmyKeiba.Downloader
           }
 
           this.Processed++;
-          Program.CheckShutdown();
         }
 
-        logger.Debug("保存: SaveChangesAsync");
+        Program.CheckShutdown();
+
         await db.SaveChangesAsync();
-        logger.Debug("保存: CommitAsync");
         await db.CommitAsync();
-        logger.Debug("保存: END");
       }
 
       if (isRealtime)
