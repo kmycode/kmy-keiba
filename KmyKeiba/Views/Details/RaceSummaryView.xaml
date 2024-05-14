@@ -95,12 +95,12 @@
               <ScaleTransform x:Key="WeatherIconTransform" ScaleX="0.06" ScaleY="0.06"/>
             </Grid.Resources>
             <TextBlock FontSize="20" Margin="0,12,24,0">
-              <Run Text="{Binding Race.Data.StartTime,ElementName=Root,StringFormat=M月d日}" FontSize="16"/> <Run Text="{Binding Race.Data.StartTime.Hour,ElementName=Root,Mode=OneWay}" FontSize="28"/>時<Run Text="{Binding Race.Data.StartTime.Minute,ElementName=Root,Mode=OneWay,StringFormat=00}" FontSize="28"/>分
+              <Run Text="{Binding Race.Data.StartTime,ElementName=Root,StringFormat=yyyy年M月d日}" FontSize="16"/> <Run Text="{Binding Race.Data.StartTime.Hour,ElementName=Root,Mode=OneWay}" FontSize="28"/>時<Run Text="{Binding Race.Data.StartTime.Minute,ElementName=Root,Mode=OneWay,StringFormat=00}" FontSize="28"/>分
             </TextBlock>
             <up:RaceWeatherIcon Weather="{Binding Race.Weather.Value,ElementName=Root}" Grid.Column="1"
                                 LayoutTransform="{StaticResource WeatherIconTransform}"
                                 VerticalAlignment="Bottom"/>
-            <up:RaceCourseConditionIcon Width="40" Condition="{Binding Race.Condition.Value,ElementName=Root}"
+            <up:RaceCourseConditionIcon Width="28" Condition="{Binding Race.Condition.Value,ElementName=Root}"
                                         Margin="8,0,0,0" Grid.Column="2" Height="32" VerticalAlignment="Bottom"/>
             <TextBlock Text="{Binding Race.Condition.Value,ElementName=Root,Converter={StaticResource TrackConv},ConverterParameter=Long}"
                        Visibility="{Binding Race.IsBanei,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"
