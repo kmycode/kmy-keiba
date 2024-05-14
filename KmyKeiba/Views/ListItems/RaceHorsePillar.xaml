@@ -158,7 +158,7 @@
             </Border>
           </up:ImePopup>
         </Grid>
-        <Grid Grid.Column="2" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
+        <Grid Grid.Column="2" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}" Width="36">
           <ContentControl Template="{Binding Horse.Mark.Value,ElementName=Root,Mode=OneWay,Converter={StaticResource HorseMarkConv}}" RenderTransform="{StaticResource MarkTransform}"/>
         </Grid>
         <Grid Grid.Column="2" Visibility="{Binding IsResult,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
