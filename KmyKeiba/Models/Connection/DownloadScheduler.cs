@@ -215,6 +215,8 @@ namespace KmyKeiba.Models.Connection
         {
           await connector.DownloadAsync(new DateOnly(today.Year, today.Month, 1), DateOnly.FromDateTime(DateTime.Today));
         }
+
+        await PostProcessings.AfterDownload.RunAsync(DownloadStatus.Instance.ProcessingStep);
       }
 
       return isSucceed;
