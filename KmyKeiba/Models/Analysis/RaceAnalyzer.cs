@@ -177,7 +177,7 @@ namespace KmyKeiba.Models.Analysis
           prizes.Add(new PrizeMoneyItem
           {
             Place = place,
-            PrizeMoney = ValueUtil.ToMoneyLabel((long)prizeRaws[i++] * 100),
+            PrizeMoney = (long)prizeRaws[i++] * 100,
           });
         }
       }
@@ -323,7 +323,7 @@ namespace KmyKeiba.Models.Analysis
   {
     public int Place { get; init; }
 
-    public string PrizeMoney { get; init; } = string.Empty;
+    public long PrizeMoney { get; init; }
   }
 
   public enum RacePace

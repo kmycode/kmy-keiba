@@ -302,8 +302,6 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class RaceHorseFinderResultAnalyzerSlim
   {
-    public double DisturbanceRate { get; }
-
     public double TimeDeviationValue { get; }
 
     public double A3HTimeDeviationValue { get; }
@@ -322,7 +320,6 @@ namespace KmyKeiba.Models.Race.Finder
     {
       if (other != null)
       {
-        this.DisturbanceRate = other.DisturbanceRate;
         this.TimeDeviationValue = other.TimeDeviationValue;
         this.A3HTimeDeviationValue = other.TimeDeviationValue;
         this.UntilA3HTimeDeviationValue = other.TimeDeviationValue;
@@ -338,9 +335,6 @@ namespace KmyKeiba.Models.Race.Finder
 
         if (count > 0)
         {
-          // 分析
-          this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(sourceItems);
-
           var timePoint = new StatisticSingleArray(sourceItems.Select(h => h.ResultTimeDeviationValue).Where(v => v != default).ToArray());
           var a3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.A3HResultTimeDeviationValue).Where(v => v != default).ToArray());
           var ua3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.UntilA3HResultTimeDeviationValue).Where(v => v != default).ToArray());

@@ -208,9 +208,6 @@ namespace KmyKeiba.Models.Script
       [JsonPropertyName("ua3hTimeDeviationValue")]
       public double UntilA3HTimeDeviationValue => this._history.UntilA3HTimeDeviationValue;
 
-      [JsonPropertyName("disturbanceRate")]
-      public double DisturbanceRate => this._history.DisturbanceRate;
-
       [JsonPropertyName("beforeRaces")]
       public ScriptRaceHorse[] BeforeRaces => this._history.BeforeRaces.Select(r => new ScriptRaceHorse(this._targetRaceKey, r)).ToArray();
 

@@ -227,7 +227,7 @@
                 <StackPanel Width="100">
                   <TextBlock Background="{StaticResource GoodBackground}" FontWeight="Bold" TextAlignment="Center"
                              Text="{Binding Place}" FontSize="16"/>
-                  <TextBlock Text="{Binding PrizeMoney}" TextAlignment="Center" FontSize="18" Margin="0,4,0,0"/>
+                  <TextBlock Text="{Binding PrizeMoney,Converter={StaticResource MoneyLabelConv}}" TextAlignment="Center" FontSize="18" Margin="0,4,0,0"/>
                 </StackPanel>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
