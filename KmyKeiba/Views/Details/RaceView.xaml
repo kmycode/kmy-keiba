@@ -93,9 +93,14 @@
           <Border BorderBrush="{StaticResource BaseBorderBrush}" BorderThickness="1"
                   Width="auto" Height="auto" Background="{StaticResource BaseBackground}">
             <Grid>
-              <TextBox TextWrapping="Wrap" AcceptsReturn="True" Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
+              <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition/>
+              </Grid.RowDefinitions>
+              <TextBlock FontSize="20" Text="レースのメモ" Margin="8,4"/>
+              <TextBox Grid.Row="1" TextWrapping="Wrap" AcceptsReturn="True" Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
                        FontSize="16" MinHeight="160" MaxHeight="160" Width="400" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                       Margin="8,4" Text="{Binding Race.RaceAnalyzer.Value.Memo.Value,ElementName=Root,Mode=TwoWay}">
+                       Margin="8,0,8,12" Text="{Binding Race.RaceAnalyzer.Value.Memo.Value,ElementName=Root,Mode=TwoWay}">
                 <TextBox.IsReadOnly>
                   <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
                     <Binding Path="Race.RaceAnalyzer.Value.CanSave.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>

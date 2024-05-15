@@ -156,17 +156,20 @@
       </StackPanel>
 
       <!--メモ-->
-      <TextBox Grid.Row="3" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
-               TextWrapping="Wrap" AcceptsReturn="True" Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
-               FontSize="16" MinHeight="160" MaxHeight="160" Width="800" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto"
-               Margin="0,40,0,0" Text="{Binding Race.RaceAnalyzer.Value.Memo.Value,ElementName=Root,Mode=TwoWay}">
-        <TextBox.IsReadOnly>
-          <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
-            <Binding Path="Race.RaceAnalyzer.Value.CanSave.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
-            <Binding Path="Race.RaceAnalyzer.Value.IsMemoSaving.Value" ElementName="Root"/>
-          </MultiBinding>
-        </TextBox.IsReadOnly>
-      </TextBox>
+      <StackPanel Grid.Row="3" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                  Margin="0,40,0,0">
+        <TextBlock Text="レースのメモ" FontSize="20" Width="800" Margin="0,0,0,4"/>
+        <TextBox TextWrapping="Wrap" AcceptsReturn="True" Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
+                 FontSize="16" MinHeight="160" MaxHeight="160" Width="800" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 Text="{Binding Race.RaceAnalyzer.Value.Memo.Value,ElementName=Root,Mode=TwoWay}">
+          <TextBox.IsReadOnly>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+              <Binding Path="Race.RaceAnalyzer.Value.CanSave.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="Race.RaceAnalyzer.Value.IsMemoSaving.Value" ElementName="Root"/>
+            </MultiBinding>
+          </TextBox.IsReadOnly>
+        </TextBox>
+      </StackPanel>
 
       <!--レース制限-->
       <Grid Grid.Row="2" HorizontalAlignment="Center" Margin="0,24,0,0"
