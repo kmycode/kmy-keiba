@@ -108,7 +108,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected virtual bool IsIgnorePropertyToSerializing(string propertyName)
     {
-      if (propertyName == nameof(Query) || propertyName == "Key" || propertyName == nameof(IsCustomized))
+      if (propertyName == nameof(Query) || propertyName == "Key" || propertyName == nameof(IsCustomized) || propertyName == "DefaultSize")
       {
         return true;
       }
@@ -3635,6 +3635,15 @@ namespace KmyKeiba.Models.Race.Finder
       }
     }
     private int _defaultSize = 3000;
+
+    public int LimitByAsInt
+    {
+      get
+      {
+        int.TryParse(this.LimitBy.Value, out var num);
+        return num;
+      }
+    }
 
     public OtherSettingInputCategory()
     {

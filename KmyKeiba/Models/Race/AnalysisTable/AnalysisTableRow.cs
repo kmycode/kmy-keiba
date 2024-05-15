@@ -438,7 +438,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         }
 
         var query = keys;
-        var size = this.FinderModelForConfig.DefaultSize;
+        var size = this.FinderModelForConfig.Input.OtherSetting.LimitByAsInt;
         if (this.Data.Output == AnalysisTableRowOutputType.Binary)
         {
           query += "|[currentonly]";
