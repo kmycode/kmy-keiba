@@ -47,6 +47,8 @@ namespace KmyKeiba.Models.Connection.Connector
 
     protected async Task DownloadAsync(DateOnly start, int startDay = 1)
     {
+      await this.UpdateDownloadYearConfigsAsync();
+
       var config = DownloadConfig.Instance;
       var state = DownloadStatus.Instance;
       var link = this.Link;
@@ -97,6 +99,8 @@ namespace KmyKeiba.Models.Connection.Connector
 
       logger.Info("ダウンロード処理を終了します");
     }
+
+    protected abstract Task UpdateDownloadYearConfigsAsync();
 
     protected async Task DownloadRTAsync(DateOnly date)
     {

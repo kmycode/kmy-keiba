@@ -11,6 +11,8 @@ namespace KmyKeiba.Models.Connection
   [Flags]
   public enum DownloadLink
   {
+    None = 0,
+
     [Label("中央")]
     Central = 0b01,
 

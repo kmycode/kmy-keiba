@@ -38,8 +38,8 @@ namespace KmyKeiba.Models.Connection.Connector
     {
       if (this._isInitializedObject) return;
 
-      this.JrdbId.Value = await ConfigUtil.GetStringValueAsync(db, SettingKey.JrdbId);
-      this.JrdbPassword.Value = await ConfigUtil.GetStringValueAsync(db, SettingKey.JrdbPassword);
+      this.JrdbId.Value = ConfigUtil.GetStringValue(SettingKey.JrdbId);
+      this.JrdbPassword.Value = ConfigUtil.GetStringValue(SettingKey.JrdbPassword);
 
       this.JrdbId.Skip(1).Subscribe(async val => await ConfigUtil.SetStringValueAsync(SettingKey.JrdbId, val));
       this.JrdbPassword.Skip(1).Subscribe(async val => await ConfigUtil.SetStringValueAsync(SettingKey.JrdbPassword, val));
@@ -55,7 +55,7 @@ namespace KmyKeiba.Models.Connection.Connector
     public async Task DownloadRTAsync(DateOnly start, DateOnly end)
     {
       var isDownload = true;
-      var isDownloadAfterThursday = (await ConfigUtil.GetIntValueAsync(SettingKey.IsDownloadCentralOnThursdayAfterOnly)) != 0;
+      var isDownloadAfterThursday = (ConfigUtil.GetIntValue(SettingKey.IsDownloadCentralOnThursdayAfterOnly)) != 0;
       if (isDownloadAfterThursday)
       {
         var weekday = DateTime.Today.DayOfWeek;

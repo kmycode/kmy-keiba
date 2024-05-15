@@ -23,8 +23,6 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> CanSaveOthers { get; } = new();
 
-    public ReactiveProperty<bool> IsLongDownloadMonth { get; } = new();
-
     public ReactiveProperty<bool> IsError { get; } = new();
     public ReactiveProperty<bool> IsRTError { get; } = new();
     public ReactiveProperty<string> ErrorMessage { get; } = new();
@@ -42,8 +40,6 @@ namespace KmyKeiba.Models.Connection
     public ReactiveProperty<DownloadingType> DownloadingType { get; } = new();
     public ReactiveProperty<DownloadLink> DownloadingLink { get; } = new();
     public ReactiveProperty<DownloadLink> RTDownloadingLink { get; } = new();
-    public ReactiveProperty<int> DownloadingYear { get; } = new();
-    public ReactiveProperty<int> DownloadingMonth { get; } = new();
 
     public ReactiveProperty<LoadingProcessValue> LoadingProcess { get; } = new();
     public ReactiveProperty<LoadingProcessValue> RTLoadingProcess { get; } = new();
@@ -98,8 +94,6 @@ namespace KmyKeiba.Models.Connection
       this.RTDownloadingStatus.Subscribe(_ => UpdateCanSave());
       this.ProcessingStep.Subscribe(_ => UpdateCanSave());
       JrdbDownloaderModel.Instance.CanSaveOthers.Subscribe(_ => UpdateCanSave());
-      JrdbDownloaderModel.Instance.DownloadingYear.Skip(1).Subscribe(val => this.DownloadingYear.Value = val);
-      JrdbDownloaderModel.Instance.DownloadingMonth.Skip(1).Subscribe(val => this.DownloadingMonth.Value = val);
     }
 
     private void UpdateCanSave()
@@ -134,9 +128,6 @@ namespace KmyKeiba.Models.Connection
       this.ProcessingProgress.Value = task.Progress;
       this.ProcessingProgressMax.Value = task.ProgressMax;
 
-      this.DownloadingYear.Value = year;
-      this.DownloadingMonth.Value = month;
-
       this.LoadingProcess.Value = task.Result switch
       {
         "opening" => LoadingProcessValue.Opening,
@@ -154,29 +145,6 @@ namespace KmyKeiba.Models.Connection
         "odds" => Connection.DownloadingType.Odds,
         _ => default,
       };
-
-      // 現在ダウンロード中の年月を保存する
-      if (!this._isInitializationDownloading)
-      {
-        if (task.Parameter.Contains("central") && (config.CentralDownloadedMonth.Value != month || config.CentralDownloadedYear.Value != year))
-        {
-          config.CentralDownloadedMonth.Value = month;
-          config.CentralDownloadedYear.Value = year;
-          using var db = new MyContext();
-          await ConfigUtil.SetIntValueAsync(db, SettingKey.LastDownloadCentralDate, year * 100 + month);
-          logger.Info($"{year}/{month:00} の中央競馬通常データダウンロード完了");
-
-          this.IsLongDownloadMonth.Value = year == 2002 && month == 12;
-        }
-        if (task.Parameter.Contains("local") && (config.LocalDownloadedMonth.Value != month || config.LocalDownloadedYear.Value != year))
-        {
-          config.LocalDownloadedMonth.Value = month;
-          config.LocalDownloadedYear.Value = year;
-          using var db = new MyContext();
-          await ConfigUtil.SetIntValueAsync(db, SettingKey.LastDownloadLocalDate, year * 100 + month);
-          logger.Info($"{year}/{month:00} の地方競馬通常データダウンロード完了");
-        }
-      }
     }
 
     public Task OnRTDownloadProgress(DownloaderTaskData task)

@@ -47,8 +47,6 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<bool> IsInitialized { get; } = new ReactiveProperty<bool>();
 
-    public ReactiveProperty<bool> IsLongDownloadMonth => this.downloader.State.IsLongDownloadMonth;
-
     public ReactiveProperty<string> FirstMessage => this.model.FirstMessage;
 
     public UpdateChecker Update { get; } = new();
@@ -109,12 +107,16 @@ namespace KmyKeiba.ViewModels
       ScriptManager.Initialize();
       Task.Run(async () =>
       {
+        // これはもう必ず最初に
+        await ConfigUtil.InitializeAsync();
         var isFirst = await this.downloader.InitializeAsync();
 
         // 各種初期化処理
         using (var db = new MyContext())
         {
+          // これは必ず最初に
           await AppGeneralConfig.Instance.InitializeAsync(db);
+
           await FinderConfigUtil.InitializeAsync(db);
           await AnalysisTableScriptUtil.InitializeAsync(db);
           await ExternalNumberUtil.InitializeAsync(db);

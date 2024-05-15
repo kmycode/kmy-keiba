@@ -25,7 +25,7 @@ namespace KmyKeiba.Models.Setting
     {
       if (_isInitialized) return;
 
-      var raceSetting = await ConfigUtil.GetStringValueAsync(db, SettingKey.DefaultRaceSearchSetting);
+      var raceSetting = ConfigUtil.GetStringValue(SettingKey.DefaultRaceSearchSetting);
       if (!string.IsNullOrEmpty(raceSetting))
       {
         this.DefaultRaceSetting.Input.Deserialize(raceSetting, false);

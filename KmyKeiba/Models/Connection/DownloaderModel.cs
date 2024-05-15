@@ -49,7 +49,6 @@ namespace KmyKeiba.Models.Connection
       logger.Info("ダウンローダの初期処理開始");
 
       var downloader = DownloaderConnector.Instance;
-      var state = DownloadStatus.Instance;
 
       // 初回起動
       var isFirstLaunch = !downloader.IsExistsDatabase;
@@ -101,7 +100,7 @@ namespace KmyKeiba.Models.Connection
       var state = DownloadStatus.Instance;
 
       // データベースのマイグレーション処理を自動的に開始
-      var dbver = await ConfigUtil.GetIntValueAsync(SettingKey.DatabaseVersion);
+      var dbver = ConfigUtil.GetIntValue(SettingKey.DatabaseVersion);
 
       if (dbver < 500)
       {

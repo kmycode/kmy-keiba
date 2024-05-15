@@ -44,10 +44,6 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsBuildExtraData { get; } = new();
 
-    public ReactiveProperty<int> CentralDownloadedYear { get; } = new();
-    public ReactiveProperty<int> CentralDownloadedMonth { get; } = new();
-    public ReactiveProperty<int> LocalDownloadedYear { get; } = new();
-    public ReactiveProperty<int> LocalDownloadedMonth { get; } = new();
     public ReactiveProperty<int> JrdbDownloadedYear { get; } = new();
     public ReactiveProperty<int> JrdbDownloadedMonth { get; } = new();
 
@@ -81,29 +77,21 @@ namespace KmyKeiba.Models.Connection
 
     private async Task LoadConfigsAsync(MyContext db)
     {
-      var central = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastDownloadCentralDate);
-      var local = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastDownloadLocalDate);
-      var jrdb = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastDownloadJrdbDate);
-      this.CentralDownloadedYear.Value = central / 100;
-      this.CentralDownloadedMonth.Value = central % 100;
-      this.LocalDownloadedYear.Value = local / 100;
-      this.LocalDownloadedMonth.Value = local % 100;
+      var jrdb = ConfigUtil.GetIntValue(SettingKey.LastDownloadJrdbDate);
       this.JrdbDownloadedYear.Value = jrdb / 100;
       this.JrdbDownloadedMonth.Value = jrdb % 100;
 
-      this.IsDownloadBlod.Value = await ConfigUtil.GetBooleanValueAsync(db, SettingKey.IsNotDownloadHorseBloods);
-      this.IsDownloadSlop.Value = await ConfigUtil.GetBooleanValueAsync(db, SettingKey.IsNotDownloadTrainings);
-      this.IsBuildExtraData.Value = await ConfigUtil.GetBooleanValueAsync(db, SettingKey.IsNotBuildExtraData);
+      this.IsDownloadBlod.Value = ConfigUtil.GetBooleanValue(SettingKey.IsNotDownloadHorseBloods);
+      this.IsDownloadSlop.Value = ConfigUtil.GetBooleanValue(SettingKey.IsNotDownloadTrainings);
+      this.IsBuildExtraData.Value = ConfigUtil.GetBooleanValue(SettingKey.IsNotBuildExtraData);
 
-      logger.Info($"設定 {nameof(SettingKey.LastDownloadCentralDate)}: {central}, {nameof(SettingKey.LastDownloadLocalDate)}: {local}");
-
-      this.IsDownloadCentral.Value = await ConfigUtil.GetBooleanValueAsync(db, SettingKey.IsDownloadCentral);
-      this.IsDownloadLocal.Value = await ConfigUtil.GetBooleanValueAsync(db, SettingKey.IsDownloadLocal);
-      this.IsDownloadJrdb.Value = await ConfigUtil.GetBooleanValueAsync(db, SettingKey.IsDownloadJrdb);
-      this.IsRTDownloadCentral.Value = await ConfigUtil.GetBooleanValueAsync(db, SettingKey.IsRTDownloadCentral);
-      this.IsRTDownloadLocal.Value = await ConfigUtil.GetBooleanValueAsync(db, SettingKey.IsRTDownloadLocal);
-      this.IsRTDownloadJrdb.Value = await ConfigUtil.GetBooleanValueAsync(db, SettingKey.IsRTDownloadJrdb);
-      this.IsRTDownloadCentralAfterThursdayOnly.Value = await ConfigUtil.GetBooleanValueAsync(db, SettingKey.IsDownloadCentralOnThursdayAfterOnly);
+      this.IsDownloadCentral.Value = ConfigUtil.GetBooleanValue(SettingKey.IsDownloadCentral);
+      this.IsDownloadLocal.Value = ConfigUtil.GetBooleanValue(SettingKey.IsDownloadLocal);
+      this.IsDownloadJrdb.Value = ConfigUtil.GetBooleanValue(SettingKey.IsDownloadJrdb);
+      this.IsRTDownloadCentral.Value = ConfigUtil.GetBooleanValue(SettingKey.IsRTDownloadCentral);
+      this.IsRTDownloadLocal.Value = ConfigUtil.GetBooleanValue(SettingKey.IsRTDownloadLocal);
+      this.IsRTDownloadJrdb.Value = ConfigUtil.GetBooleanValue(SettingKey.IsRTDownloadJrdb);
+      this.IsRTDownloadCentralAfterThursdayOnly.Value = ConfigUtil.GetBooleanValue(SettingKey.IsDownloadCentralOnThursdayAfterOnly);
 
       logger.Info($"設定 {nameof(SettingKey.IsDownloadCentral)}: {IsDownloadCentral.Value}, {nameof(SettingKey.IsDownloadLocal)}: {IsDownloadLocal.Value}, {nameof(SettingKey.IsDownloadJrdb)}: {IsDownloadJrdb.Value} / {nameof(SettingKey.IsRTDownloadCentral)}: {IsRTDownloadCentral.Value}, {nameof(SettingKey.IsRTDownloadLocal)}: {IsRTDownloadLocal.Value}, {nameof(SettingKey.IsRTDownloadJrdb)}: {IsRTDownloadJrdb.Value}");
     }
@@ -111,12 +99,14 @@ namespace KmyKeiba.Models.Connection
     private void InitializeStartDate()
     {
       // アプリ起動時デフォルトで設定されるダウンロード開始年月を設定する
-      var centralDownloadedYear = (this.IsDownloadCentral.Value && this.CentralDownloadedYear.Value != default) ? this.CentralDownloadedYear.Value : default;
-      var centralDownloadedMonth = (this.IsDownloadCentral.Value && this.CentralDownloadedYear.Value != default) ? this.CentralDownloadedMonth.Value : default;
-      var localDownloadedYear = (this.IsDownloadLocal.Value && this.LocalDownloadedYear.Value != default) ? this.LocalDownloadedYear.Value : default;
-      var localDownloadedMonth = (this.IsDownloadLocal.Value && this.LocalDownloadedYear.Value != default) ? this.LocalDownloadedMonth.Value : default;
-      var jrdbDownloadedYear = (this.IsDownloadJrdb.Value && this.JrdbDownloadedYear.Value != default) ? this.LocalDownloadedYear.Value : default;
-      var jrdbDownloadedMonth = (this.IsDownloadJrdb.Value && this.JrdbDownloadedYear.Value != default) ? this.LocalDownloadedMonth.Value : default;
+
+      var centralDate = ConfigUtil.GetIntValue(SettingKey.LastDownloadCentralDate);
+      var centralDownloadedYear = centralDate / 100;
+      var centralDownloadedMonth = centralDate % 100;
+      var localDate = ConfigUtil.GetIntValue(SettingKey.LastDownloadLocalDate);
+      var localDownloadedYear = localDate / 100;
+      var localDownloadedMonth = localDate % 100;
+
       logger.Debug($"保存されていたデータ: 中央競馬DL年月: {centralDownloadedYear * 100 + centralDownloadedMonth}, 地方競馬DL年月: {localDownloadedYear * 100 + localDownloadedMonth}");
 
       if (centralDownloadedYear != default && localDownloadedYear != default)

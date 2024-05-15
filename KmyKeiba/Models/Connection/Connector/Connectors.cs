@@ -41,10 +41,16 @@ namespace KmyKeiba.Models.Connection.Connector
     public static JrdbConnector Jrdb { get; } = new();
   }
 
-  public class ConnectorCollection : ReadOnlyCollection<IConnector>
+  public class ConnectorCollection : ReadOnlyCollection<IConnector>, IConnector
   {
     public ReactiveProperty<IConnector?> ActiveConnector { get; } = new();
     public ReactiveProperty<IConnector?> RTActiveConnector { get; } = new();
+    public DownloadLink Link => DownloadLink.None;
+    public ReactiveProperty<bool> IsAvailable => throw new NotSupportedException();
+    public ReactiveProperty<bool> IsRTAvailable => throw new NotSupportedException();
+    public ReactiveProperty<bool> IsRunning => throw new NotSupportedException();
+    public ReactiveProperty<bool> IsSaving => throw new NotSupportedException();
+    public ReactiveProperty<ConnectorErrorInfo?> Error => throw new NotSupportedException();
 
     public ConnectorCollection(IList<IConnector> list) : base(list)
     {

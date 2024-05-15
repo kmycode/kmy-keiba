@@ -1,4 +1,6 @@
-﻿using Reactive.Bindings;
+﻿using KmyKeiba.Common;
+using KmyKeiba.Data.Db;
+using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +37,18 @@ namespace KmyKeiba.Models.Connection.Connector
       }
     }
 
-    public ReactiveProperty<bool> IsLongDownloadMonth { get; } = new();
+    protected override async Task UpdateDownloadYearConfigsAsync()
+    {
+      var config = DownloadConfig.Instance;
+
+      var date = ConfigUtil.GetIntValue(SettingKey.LastDownloadCentralDate);
+      var year = date / 100;
+      var month = date % 100;
+
+      if (config.StartYear.Value != year || config.StartMonth.Value != month)
+      {
+        await ConfigUtil.SetIntValueAsync(SettingKey.LastDownloadCentralDate, year * 100 + month);
+      }
+    }
   }
 }

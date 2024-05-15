@@ -61,21 +61,21 @@ namespace KmyKeiba.Models.Connection
       using var db = new MyContext();
       await db.TryBeginTransactionAsync();
 
-      this._lastStandardTimeUpdatedYear = await ConfigUtil.GetIntValueAsync(db, SettingKey.LastUpdateStandardTimeYear);
+      this._lastStandardTimeUpdatedYear = ConfigUtil.GetIntValue(SettingKey.LastUpdateStandardTimeYear);
       logger.Info($"最後に標準タイムを更新した年: {this._lastStandardTimeUpdatedYear}");
 
       {
-        if (DateTime.TryParse(await ConfigUtil.GetStringValueAsync(db, SettingKey.LastDownloadPlanOfRaceDate), out var lastDownloadedPlanOfRaceDate))
+        if (DateTime.TryParse(ConfigUtil.GetStringValue(SettingKey.LastDownloadPlanOfRaceDate), out var lastDownloadedPlanOfRaceDate))
         {
           this._lastUpdatedPlanOfRace = lastDownloadedPlanOfRaceDate;
         }
 
-        if (DateTime.TryParse(await ConfigUtil.GetStringValueAsync(db, SettingKey.LastDownloadPreviousRaceDate), out var lastDownloadPreviousRaceDate))
+        if (DateTime.TryParse(ConfigUtil.GetStringValue(SettingKey.LastDownloadPreviousRaceDate), out var lastDownloadPreviousRaceDate))
         {
           this._lastUpdatedPreviousRace = lastDownloadPreviousRaceDate;
         }
 
-        if (DateTime.TryParse(await ConfigUtil.GetStringValueAsync(db, SettingKey.LastLaunchDateEx), out var lastLaunch))
+        if (DateTime.TryParse(ConfigUtil.GetStringValue(SettingKey.LastLaunchDateEx), out var lastLaunch))
         {
           logger.Info($"最終起動日: {lastLaunch:yyyy/MM/dd}");
 

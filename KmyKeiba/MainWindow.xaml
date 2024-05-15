@@ -62,7 +62,7 @@
                     <Grid Visibility="{Binding Downloader.State.IsError.Value,Converter={StaticResource NegativeVisibilityConv}}">
                       <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.State.IsProcessing.Value,Converter={StaticResource NegativeVisibilityConv}}"
                                  VerticalAlignment="Center" Margin="16,0,0,0">
-                        <Run Text="{Binding Downloader.State.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/> <Run Text="{Binding Downloader.State.DownloadingYear.Value}"/>年 <Run Text="{Binding Downloader.State.DownloadingMonth.Value}"/>月<LineBreak/>
+                        <Run Text="{Binding Downloader.State.DownloadingLink.Value,Converter={StaticResource LabelConv}}"/><LineBreak/>
                         [<Run Text="{Binding Downloader.State.DownloadingType.Value,Converter={StaticResource LabelConv}}"/>] <Run Text="{Binding Downloader.State.LoadingProcess.Value,Converter={StaticResource LabelConv}}"/>...
                       </TextBlock>
                       <TextBlock Style="{StaticResource SubTextBlock}" FontSize="16" Visibility="{Binding Downloader.State.IsProcessing.Value,Converter={StaticResource BooleanVisibilityConv}}"
