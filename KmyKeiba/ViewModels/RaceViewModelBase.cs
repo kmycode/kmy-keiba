@@ -58,7 +58,7 @@ namespace KmyKeiba.ViewModels
 
     public bool IsRunningAsAdministrator { get; } = JVLinkServiceWatcher.IsRunningAsAdministrator();
 
-    public string VersionNumber => Constrants.ApplicationVersion;
+    public string VersionNumber => Constrants.ApplicationVersion + Constrants.ApplicationVersionSuffix;
 
     public RaceViewModelBase()
     {

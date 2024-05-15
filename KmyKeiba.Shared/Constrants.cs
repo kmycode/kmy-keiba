@@ -62,5 +62,7 @@ namespace KmyKeiba.Shared
     public static readonly string RTHostFilePath = Path.Combine(AppDataDir, "rthost");
 
     public static readonly string ApplicationVersion = Assembly.GetExecutingAssembly().GetName().Version!.ToString();
+
+    public static readonly string ApplicationVersionSuffix = "-alpha";
   }
 }

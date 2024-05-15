@@ -37,7 +37,7 @@ namespace KmyKeiba.Downloader
       logger.Info("==            開始            ==");
       logger.Info("==                            ==");
       logger.Info("================================");
-      logger.Info($"Version: {Constrants.ApplicationVersion}");
+      logger.Info($"Version: {Constrants.ApplicationVersion}{Constrants.ApplicationVersionSuffix}");
 
 #if !DEBUG
       var rootLogger = ((Hierarchy)logger.Logger.Repository).Root;
@@ -161,14 +161,14 @@ namespace KmyKeiba.Downloader
           {
             Command = DownloaderCommand.Initialization,
             IsFinished = true,
-            Error = version != Constrants.ApplicationVersion ? DownloaderError.InvalidVersion : DownloaderError.Succeed,
+            Error = version != (Constrants.ApplicationVersion + Constrants.ApplicationVersionSuffix) ? DownloaderError.InvalidVersion : DownloaderError.Succeed,
           };
           data.Result = data.Error.GetErrorText();
           DownloaderTaskDataExtensions.Add(data);
 
           if (data.Error == DownloaderError.InvalidVersion)
           {
-            logger.Error($"バージョンが異なります アプリ:{version} ダウンローダ:{Constrants.ApplicationVersion}");
+            logger.Error($"バージョンが異なります アプリ:{version} ダウンローダ:{Constrants.ApplicationVersion}{Constrants.ApplicationVersionSuffix}");
           }
           if (data.Error == DownloaderError.Succeed)
           {

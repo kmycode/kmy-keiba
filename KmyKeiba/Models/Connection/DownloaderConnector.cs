@@ -230,7 +230,7 @@ namespace KmyKeiba.Models.Connection
         File.Delete(Constrants.ShutdownFilePath);
       }
 
-      this.ExecuteDownloader(DownloaderCommand.Initialization, Constrants.ApplicationVersion);
+      this.ExecuteDownloader(DownloaderCommand.Initialization, Constrants.ApplicationVersion + Constrants.ApplicationVersionSuffix);
 
       while (!File.Exists(Constrants.DatabasePath))
       {
@@ -254,7 +254,7 @@ namespace KmyKeiba.Models.Connection
 
             if (task.Error == DownloaderError.InvalidVersion)
             {
-              logger.Error($"ダウンローダとアプリのバージョンが異なります アプリのバージョン: {Constrants.ApplicationVersion}");
+              logger.Error($"ダウンローダとアプリのバージョンが異なります アプリのバージョン: {Constrants.ApplicationVersion}{Constrants.ApplicationVersionSuffix}");
               throw new DownloaderCommandException(task.Error, task.Result);
             }
 
