@@ -80,11 +80,23 @@ namespace KmyKeiba.Downloader
       if (softwareId != null)
       {
         JVLinkObject.CentralInitializationKey = softwareId.InitializationKey;
-        logger.Info("ソフトIDを設定しました");
+        logger.Info("JVLink: ソフトIDを設定しました");
       }
       else
       {
-        logger.Warn("ソフトIDが見つからなかったので、デフォルト値を設定します");
+        logger.Warn("JVLink: ソフトIDが見つからなかったので、デフォルト値を設定します");
+      }
+
+      // UmaConnのIDを設定
+      var localSoftwareId = InjectionManager.GetInstance<ILocalSoftwareIdGetter>(InjectionManager.LocalSoftwareIdGetter);
+      if (localSoftwareId != null)
+      {
+        JVLinkObject.LocalInitializationKey = localSoftwareId.InitializationKey;
+        logger.Info("UmaConn: ソフトIDを設定しました");
+      }
+      else
+      {
+        logger.Warn("UmaConn: ソフトIDが見つからなかったので、デフォルト値を設定します");
       }
 
       // ダウンローダをデバッグするときに使用。#if DEBUGS を #if DEBUG に変更することで有効化

@@ -229,7 +229,7 @@ namespace KmyKeiba.JVLink.Wrappers
 
       bool IJVLinkObject.IsOpen { get; set; }
 
-      public int Init() => this.link.NVInit("UNKNOWN");
+      public int Init() => this.link.NVInit(JVLinkObject.LocalInitializationKey);
 
       public int SetUIProperties() => this.link.NVSetUIProperties();
 

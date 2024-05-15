@@ -17,6 +17,7 @@ namespace KmyKeiba.Shared
     public const string Buyer = "KmyKeiba.Models.Injection.Private.KscBuyer";
 
     public const string CentralSoftwareIdGetter = "KmyKeiba.Downloader.Injection.Private.CentralSoftwareIdGetter";
+    public const string LocalSoftwareIdGetter = "KmyKeiba.Downloader.Injection.Private.LocalSoftwareIdGetter";
 
     public static T? GetInstance<T>(string typeName) where T : class
     {
