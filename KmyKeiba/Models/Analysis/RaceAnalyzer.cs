@@ -115,11 +115,6 @@ namespace KmyKeiba.Models.Analysis
 
     public IReadOnlyList<RunningStyle> RunningStyles { get; }
 
-    /// <summary>
-    /// 荒れ度
-    /// </summary>
-    public double RoughRate { get; }
-
     public double ResultTimeDeviationValue { get; }
 
     public double A3HResultTimeDeviationValue { get; }
@@ -166,8 +161,6 @@ namespace KmyKeiba.Models.Analysis
         db.Races!.Attach(this.Data);
         this.Data.Memo = m;
       }, this.Memo, this.IsMemoSaving).AddTo(this._disposables);
-
-      this.RoughRate = AnalysisUtil.CalcRoughRate(topHorses);
 
       var prizeRaws = this.Data.GetPrizeMoneys();
       var prizes = new List<PrizeMoneyItem>();

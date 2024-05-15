@@ -89,15 +89,6 @@ namespace KmyKeiba.Models.Analysis
       _standardData.Clear();
     }
 
-    public static double CalcRoughRate(IReadOnlyList<RaceHorseData> topHorses)
-    {
-      // logger.Debug($"レース荒れ度を計算 馬数: {topHorses.Count}");
-      return topHorses.Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 3)
-            .Select(rh => (double)rh.Popular * rh.Popular)
-            .Append(0)    // Sum時の例外防止
-            .Sum() / (1 * 1 + 2 * 2 + 3 * 3);
-    }
-
     public static double CalcDisturbanceRate(IEnumerable<RaceHorseAnalyzer> horses)
       => CalcDisturbanceRate(horses.Select(h => (h.Data.ResultOrder, h.Race.HorsesCount)).ToArray());
 

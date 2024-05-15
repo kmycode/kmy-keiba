@@ -349,8 +349,6 @@ namespace KmyKeiba.Models.Analysis
 
       public IReadOnlyList<RaceHorseData> TopHorses { get; }
 
-      public double RoughRate { get; }
-
       /// <summary>
       /// １着のタイム指数。レースのペースを決めるのに使う
       /// </summary>
@@ -374,7 +372,6 @@ namespace KmyKeiba.Models.Analysis
 
         this.TopHorse = sameRaceHorses.FirstOrDefault(h => h.ResultOrder == 1);
         this.TopHorses = sameRaceHorses.OrderBy(h => h.ResultOrder).ToArray();
-        this.RoughRate = AnalysisUtil.CalcRoughRate(sameRaceHorses.ToArray());
 
         if (raceStandardTime != null && raceStandardTime.SampleCount > 0 && _timeDeviationValueCalculator != null && this.TopHorse != null)
         {
