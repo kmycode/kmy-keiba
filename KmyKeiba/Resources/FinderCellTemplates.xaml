@@ -106,7 +106,7 @@
     </ui:FinderRowTemplateSelector.RaceCourseWeatherTemplate>
     <ui:FinderRowTemplateSelector.RaceCourseConditionTemplate>
       <DataTemplate>
-        <Border Width="48"
+        <Border Width="36"
                 Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
           <up:RaceCourseConditionIcon Condition="{Binding Value,Mode=OneTime}" Width="20" Height="18"
                                       HorizontalAlignment="Center"/>

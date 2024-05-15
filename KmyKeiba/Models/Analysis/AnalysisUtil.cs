@@ -167,6 +167,39 @@ namespace KmyKeiba.Models.Analysis
       return (min, max);
     }
 
+    public static RacePace CalcRacePace(RaceData race)
+    {
+      var lapTimes = race.GetLapTimes().Select(v => (int)v).ToArray();
+      if (lapTimes == null || lapTimes.Length < 2)
+      {
+        return RacePace.Unknown;
+      }
+
+      var halfPoint = lapTimes.Length / 2;
+      var beforeLapTimes = lapTimes.Take(halfPoint).Sum();
+      var afterLapTimes = lapTimes.Skip(halfPoint).Sum();
+
+      if (lapTimes.Length % 2 == 1)
+      {
+        var halfLapTime = lapTimes[halfPoint];
+        beforeLapTimes += halfLapTime / 2;
+        afterLapTimes -= halfLapTime / 2;
+      }
+
+      if (race.Distance % 200 != 0)
+      {
+        beforeLapTimes -= lapTimes[0];
+        beforeLapTimes += (short)((double)lapTimes[0] / (race.Distance % 200) * 200);
+      }
+
+      var d = beforeLapTimes - afterLapTimes;
+      return d >= 30 ? RacePace.VeryHigh :
+             d >= 10 ? RacePace.High :
+             d <= -30 ? RacePace.VeryLow :
+             d <= -10 ? RacePace.Low :
+             RacePace.Standard;
+    }
+
     public static ValueComparation CompareValue(double value, double good, double bad, bool isReverse = false)
     {
       if (isReverse)

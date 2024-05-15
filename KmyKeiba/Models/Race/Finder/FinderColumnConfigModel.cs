@@ -55,6 +55,7 @@ namespace KmyKeiba.Models.Race.Finder
       },
       { FinderColumnPropertyGroup.RaceResult,
         [
+          FinderColumnProperty.RacePace,
           FinderColumnProperty.Pci3,
           FinderColumnProperty.Rpci,
         ]

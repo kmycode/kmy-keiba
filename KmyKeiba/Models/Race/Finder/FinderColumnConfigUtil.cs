@@ -253,7 +253,7 @@ namespace KmyKeiba.Models.Race.Finder
       new(FinderColumnProperty.CourseInfo, FinderColumnType.CourseInfo, 70, "コース", "レースのコース (芝ダ/向き/距離)", h => h.Analyzer.Race),
       new(FinderColumnProperty.HorsesCount, FinderColumnType.NumericText, 40, "数", "登録された馬の数", h => h.Analyzer.Race.HorsesCount),
       new(FinderColumnProperty.Weather, FinderColumnType.RaceCourseWeather, 36, "天気", h => h.Analyzer.Race.TrackWeather),
-      new(FinderColumnProperty.Condition, FinderColumnType.RaceCourseCondition, 36, "馬場", "馬場 (良/稍重/重/不良)", h => h.Analyzer.Race.TrackCondition),
+      new(FinderColumnProperty.Condition, FinderColumnType.RaceCourseCondition, 30, "馬場", "馬場 (良/稍重/重/不良)", h => h.Analyzer.Race.TrackCondition),
 
       new(FinderColumnProperty.HorseName, FinderColumnType.HorseName, 120, "馬名", h => new { h.Analyzer.Data.Name, h.Analyzer.Memo }),
       new(FinderColumnProperty.Popular, FinderColumnType.NumericTextWithoutZero, 30, "人", "人気", h => h.Analyzer.Data.Popular, (h, v) => AnalysisUtil.CompareValue((short)v, h.Analyzer.Race.HorsesCount < 7 ? 2 : 3, 6, true)),
@@ -278,6 +278,12 @@ namespace KmyKeiba.Models.Race.Finder
       new(FinderColumnProperty.Before3HalongTimeNormalized, FinderColumnType.NumericText, 40, "前3H換", "前3ハロンタイム (距離に応じて置換)", h => h.RaceAnalyzer.NormalizedBefore3HaronTime / 10.0, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 35, 45, true)),
       new(FinderColumnProperty.Before4HalongTime, FinderColumnType.NumericText, 40, "前4H", "前4ハロンタイム", h => h.Analyzer.Race.BeforeHaronTime4 / 10.0, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 45, 55, true)),
       new(FinderColumnProperty.After4HalongTime, FinderColumnType.NumericText, 40, "後4H", "後4ハロンタイム", h => h.Analyzer.Race.AfterHaronTime4 / 10.0, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 45, 55, true)),
+      new(FinderColumnProperty.RacePace, FinderColumnType.NumericText, 30, "ペース", h => h.RaceAnalyzer.Pace, v => ((RacePace)v).GetShortLabel() ?? string.Empty, (h, v) =>
+      {
+        var pace = (RacePace)v;
+        return (pace == RacePace.VeryLow || pace == RacePace.Low) ? ValueComparation.Bad :
+               (pace == RacePace.VeryHigh || pace == RacePace.High) ? ValueComparation.Good : ValueComparation.Standard;
+      }),
       new(FinderColumnProperty.Pci, FinderColumnType.NumericText, 40, "PCI", h => h.Pci, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 45, 55, true)),
       new(FinderColumnProperty.Pci3, FinderColumnType.NumericText, 40, "PCI3", h => h.Pci3, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 45, 55, true)),
       new(FinderColumnProperty.Rpci, FinderColumnType.NumericText, 40, "RPCI", h => h.Rpci, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 45, 55, true)),

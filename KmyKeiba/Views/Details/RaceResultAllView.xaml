@@ -68,7 +68,7 @@
       <!-- 展開 -->
       <ScrollViewer HorizontalScrollBarVisibility="Auto" Visibility="{Binding IsChecked,ElementName=S_RaceResultSituation,Converter={StaticResource BooleanVisibilityConv}}">
         <StackPanel Margin="0,8,4,8">
-          <Grid Margin="0,0,0,32">
+          <Grid Margin="0,0,0,32" Height="80">
             <Grid.ColumnDefinitions>
               <ColumnDefinition/>
               <ColumnDefinition/>
@@ -76,8 +76,7 @@
               <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-              <RowDefinition/>
-              <RowDefinition/>
+              <RowDefinition Height="auto"/>
               <RowDefinition/>
             </Grid.RowDefinitions>
             <Grid.Resources>
@@ -85,16 +84,15 @@
                 <Setter Property="HorizontalAlignment" Value="Center"/>
               </Style>
             </Grid.Resources>
-            <TextBlock Grid.Row="0" Grid.Column="0" FontSize="16" Text="１着のタイム偏差値" Foreground="{StaticResource SubForeground}"/>
-            <TextBlock Grid.Row="1" Grid.Column="0" FontSize="32" Text="{Binding Race.RaceAnalyzer.Value.ResultTimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F2}"/>
-            <TextBlock Grid.Row="2" Grid.Column="0" FontSize="18" Text="{Binding Race.RaceAnalyzer.Value.Pace,ElementName=Root,Converter={StaticResource LabelConv}}"/>
-            <TextBlock Grid.Row="0" Grid.Column="1" FontSize="16" Text="１着の後３ハロンタイム偏差値" Foreground="{StaticResource SubForeground}"/>
-            <TextBlock Grid.Row="1" Grid.Column="1" FontSize="32" Text="{Binding Race.RaceAnalyzer.Value.A3HResultTimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F2}"/>
-            <TextBlock Grid.Row="2" Grid.Column="1" FontSize="18" Text="{Binding Race.RaceAnalyzer.Value.A3HPace,ElementName=Root,Converter={StaticResource LabelConv}}"/>
-            <TextBlock Grid.Row="0" Grid.Column="2" FontSize="16" Text="最大の後３ハロンタイム偏差値" Foreground="{StaticResource SubForeground}"/>
-            <TextBlock Grid.Row="1" Grid.Column="2" FontSize="32" Text="{Binding Race.RaceAnalyzer.Value.MaxA3HResultTimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F2}"/>
-            <TextBlock Grid.Row="2" Grid.Column="2" FontSize="18" Text="{Binding Race.RaceAnalyzer.Value.MaxA3HPace,ElementName=Root,Converter={StaticResource LabelConv}}"/>
-            <Grid Grid.RowSpan="3" Grid.Column="3">
+            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" FontSize="16" Text="レースのペース" Foreground="{StaticResource SubForeground}"
+                       Visibility="{Binding Race.HasLapTimes,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" FontSize="32"
+                       Text="{Binding Race.RaceAnalyzer.Value.Pace,ElementName=Root,Converter={StaticResource LabelConv},Mode=OneWay}"
+                       Foreground="{Binding Race.RaceAnalyzer.Value.Pace,ElementName=Root,Converter={StaticResource EnumsConv}}"
+                       Visibility="{Binding Race.HasLapTimes,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"/>
+            <TextBlock Grid.Row="0" Grid.Column="2" FontSize="16" Text="１着のタイム偏差値" Foreground="{StaticResource SubForeground}"/>
+            <TextBlock Grid.Row="1" Grid.Column="2" FontSize="24" Text="{Binding Race.RaceAnalyzer.Value.ResultTimeDeviationValue,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=F2}"/>
+            <Grid Grid.RowSpan="2" Grid.Column="3">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>

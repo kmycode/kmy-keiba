@@ -130,10 +130,6 @@ namespace KmyKeiba.Models.Analysis
 
     public RacePace Pace { get; }
 
-    public RacePace A3HPace { get; }
-
-    public RacePace MaxA3HPace { get; }
-
     public short NormalizedBefore3HaronTime { get; }
 
     public ReactiveProperty<string> Memo { get; } = new();
@@ -198,14 +194,7 @@ namespace KmyKeiba.Models.Analysis
       {
         this.TopHorse = new RaceHorseAnalyzer(race, topHorse, raceStandardTime);
 
-        this.Pace = this.TopHorse.ResultTimeDeviationValue < 38 ? RacePace.VeryLow :
-          this.TopHorse.ResultTimeDeviationValue < 45 ? RacePace.Low :
-          this.TopHorse.ResultTimeDeviationValue < 55 ? RacePace.Standard :
-          this.TopHorse.ResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
-        this.A3HPace = this.TopHorse.A3HResultTimeDeviationValue < 38 ? RacePace.VeryLow :
-          this.TopHorse.A3HResultTimeDeviationValue < 45 ? RacePace.Low :
-          this.TopHorse.A3HResultTimeDeviationValue < 55 ? RacePace.Standard :
-          this.TopHorse.A3HResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
+        this.Pace = AnalysisUtil.CalcRacePace(race);
         this.ResultTimeDeviationValue = this.TopHorse.ResultTimeDeviationValue;
         this.A3HResultTimeDeviationValue = this.TopHorse.A3HResultTimeDeviationValue;
         this.UntilA3HResultTimeDeviationValue = this.TopHorse.UntilA3HResultTimeDeviationValue;
@@ -214,10 +203,6 @@ namespace KmyKeiba.Models.Analysis
         if (maxA3HHorse != null)
         {
           var maxa3h = new RaceHorseAnalyzer(race, maxA3HHorse, raceStandardTime);
-          this.MaxA3HPace = maxa3h.A3HResultTimeDeviationValue < 38 ? RacePace.VeryLow :
-            maxa3h.A3HResultTimeDeviationValue < 45 ? RacePace.Low :
-            maxa3h.A3HResultTimeDeviationValue < 55 ? RacePace.Standard :
-            maxa3h.A3HResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
           this.MaxA3HResultTimeDeviationValue = maxa3h.A3HResultTimeDeviationValue;
         }
       }
@@ -350,19 +335,22 @@ namespace KmyKeiba.Models.Analysis
 
   public enum RacePace
   {
-    [Label("とても速い")]
+    [Label("不明", "?")]
+    Unknown,
+
+    [Label("とても速い", "VH")]
     VeryHigh,
 
-    [Label("速い")]
+    [Label("速い", "H")]
     High,
 
-    [Label("標準")]
+    [Label("標準", "M")]
     Standard,
 
-    [Label("遅い")]
+    [Label("遅い", "S")]
     Low,
 
-    [Label("とても遅い")]
+    [Label("とても遅い", "VS")]
     VeryLow,
   }
 }

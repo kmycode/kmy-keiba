@@ -771,6 +771,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceData? ShortestTimeRace { get; }
 
+    public RacePace ShortestTimeRacePace { get; }
+
     public RaceHorseData? ShortestTimeRaceHorse { get; }
 
     public RaceHorseAnalyzer? ShortestTimeRaceHorseAnalyzer { get; }
@@ -814,6 +816,7 @@ namespace KmyKeiba.Models.Analysis
             (int)System.Math.Round((float)shortestTime.Data.ResultTime.Ticks / shortestTime.Race.Distance * distance));
         }
         this.ShortestTimeRace = shortestTime.Race;
+        this.ShortestTimeRacePace = AnalysisUtil.CalcRacePace(shortestTime.Race);
         this.ShortestTimeRaceHorse = shortestTime.Data;
         this.ShortestTimeRaceHorseAnalyzer = shortestTime;
         this.ShortestTimeRaceSubject = shortestTime.Subject;

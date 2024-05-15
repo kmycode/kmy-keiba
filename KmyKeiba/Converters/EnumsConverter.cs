@@ -1,6 +1,7 @@
 ﻿using KmyKeiba.Common;
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
+using KmyKeiba.Models.Analysis;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -20,6 +21,10 @@ namespace KmyKeiba.Converters
     private static readonly Brush _castratedBrush = Application.Current.TryFindResource("CastratedForeground") as Brush ?? Brushes.Green;
     private static readonly Brush _miuraBrush = Application.Current.TryFindResource("TCMiuraForeground") as Brush ?? Brushes.Blue;
     private static readonly Brush _rittoBrush = Application.Current.TryFindResource("TCRittoForeground") as Brush ?? Brushes.Blue;
+
+    private static readonly Brush _baseBrush = Application.Current.TryFindResource("BaseForeground") as Brush ?? Brushes.Red;
+    private static readonly Brush _goodBrush = Application.Current.TryFindResource("GoodForeground") as Brush ?? Brushes.Red;
+    private static readonly Brush _badBrush = Application.Current.TryFindResource("BadForeground") as Brush ?? Brushes.Blue;
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
@@ -130,6 +135,26 @@ namespace KmyKeiba.Converters
       }
 
       #endregion
+
+      if (value is RacePace pace)
+      {
+        if (targetType == typeof(string))
+        {
+          return pace.GetLabel() ?? string.Empty;
+        }
+        if (targetType == typeof(Brush))
+        {
+          return pace switch
+          {
+            RacePace.VeryLow => _badBrush,
+            RacePace.Low => _badBrush,
+            RacePace.Standard => _baseBrush,
+            RacePace.High => _goodBrush,
+            RacePace.VeryHigh => _goodBrush,
+            _ => _baseBrush,
+          };
+        }
+      }
 
       throw new NotImplementedException();
     }

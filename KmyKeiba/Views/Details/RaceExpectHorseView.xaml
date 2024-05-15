@@ -158,8 +158,7 @@
               <TextBlock Width="60" Text="距離" TextAlignment="Center"/>
               <TextBlock Width="60" Text="持ち時計"/>
               <TextBlock Width="90" Text="距離換算"/>
-              <TextBlock Width="60" Text="T偏"/>
-              <TextBlock Width="60" Text="TOP偏"/>
+              <TextBlock Width="100" Text="レースのペース"/>
               <TextBlock Width="40" Text="着順"/>
               <TextBlock Width="50" Text="斤量"/>
               <TextBlock Width="30" Text="歳"/>
@@ -193,8 +192,7 @@
                         </Border>
                         <TextBlock Width="60" Text="{Binding ShortestTime,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss\\.f}"/>
                         <TextBlock Width="90" Text="{Binding ShortestTimeNormalized,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss\\.f}" FontSize="24"/>
-                        <TextBlock Width="60" Text="{Binding ShortestTimeRaceHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
-                        <TextBlock Width="60" Text="{Binding ShortestTimeRaceTopHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+                        <TextBlock Width="100" Text="{Binding ShortestTimeRacePace,Converter={StaticResource EnumsConv}}" Foreground="{Binding ShortestTimeRacePace,Converter={StaticResource EnumsConv}}"/>
                         <TextBlock Width="40" Text="{Binding ShortestTimeRaceHorse.ResultOrder}"/>
                         <TextBlock Width="50" Text="{Binding ShortestTimeRaceHorse.RiderWeight,Converter={StaticResource DigitMinusConv}}"/>
                         <TextBlock Width="30" Text="{Binding ShortestTimeRaceHorse.Age}"/>

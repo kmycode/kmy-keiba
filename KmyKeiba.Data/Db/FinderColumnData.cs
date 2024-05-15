@@ -75,5 +75,6 @@ namespace KmyKeiba.Data.Db
     SingleOdds = 56,
     PlaceOddsMin = 57,
     PlaceOddsMax = 58,
+    RacePace = 59,
   }
 }

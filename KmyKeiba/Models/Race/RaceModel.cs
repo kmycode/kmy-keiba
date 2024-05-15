@@ -117,15 +117,6 @@ namespace KmyKeiba.Models.Race
         try
         {
           await this.RaceList.UpdateListAsync();
-
-#if DEBUG
-          // UmaConnしか使ってない人用に中央競馬の一部のデータを埋め込み
-          var dataGenerator = InjectionManager.GetInstance<IInternalDataGenerator>(InjectionManager.InternalDataGenerator);
-          if (dataGenerator != null)
-          {
-            await dataGenerator.GenerateBaseStandardTimeDataAsync();
-          }
-#endif
         }
         catch (Exception ex)
         {
