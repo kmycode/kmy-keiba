@@ -25,7 +25,9 @@ namespace KmyKeiba.JVLink.Wrappers
 
     JVLinkObjectType Type { get; }
 
-    void Load(IEnumerable<string>? targetSpecs = null, bool isSequential = false);
+    void Load(IEnumerable<string>? targetSpecs = null, bool isSequential = false, IList<string>? skipFiles = null);
+
+    void Interrupt();
 
     void StopLoading();
 
@@ -54,11 +56,15 @@ namespace KmyKeiba.JVLink.Wrappers
       this.link.IsOpen = false;
     }
 
-    public void Load(IEnumerable<string>? targetSpecs = null, bool isSequential = false)
+    public void Load(IEnumerable<string>? targetSpecs = null, bool isSequential = false, IList<string>? skipFiles = null)
     {
     }
 
     public void StopLoading()
+    {
+    }
+
+    public void Interrupt()
     {
     }
 
@@ -70,6 +76,7 @@ namespace KmyKeiba.JVLink.Wrappers
     private readonly IJVLinkObject link;
     private readonly bool isRealTime;
     private bool isCanceled;
+    private bool isInterrupted;
 
     public JVLinkObjectType Type => this.link.Type;
 
@@ -109,13 +116,14 @@ namespace KmyKeiba.JVLink.Wrappers
       this.EndDate = end ?? default;
     }
 
-    public void Load(IEnumerable<string>? targetSpecs = null, bool isSequential = false)
+    public void Load(IEnumerable<string>? targetSpecs = null, bool isSequential = false, IList<string>? skipFiles = null)
     {
       var data = new JVLinkReaderData();
       var buffSize = 110000;
       var managedBuff = new byte[buffSize];
 
       var lastFileName = string.Empty;
+      var isSkipCurrentFile = false;
       this.ReadedEntityCount = 0;
       var savedEntityCount = 0;
 
@@ -141,6 +149,7 @@ namespace KmyKeiba.JVLink.Wrappers
             case -203:
               {
                 this.link.FileDelete(fileName);
+                skipFiles?.Remove(fileName);
                 // this.link.Close();
                 continue;
               }
@@ -156,6 +165,22 @@ namespace KmyKeiba.JVLink.Wrappers
           {
             break;
           }
+        }
+
+        if (fileName != lastFileName)
+        {
+          this.ReadedCount++;
+
+          if (skipFiles != null)
+          {
+            if (!isSkipCurrentFile)
+            {
+              skipFiles.Add(lastFileName);
+            }
+            isSkipCurrentFile = skipFiles.Contains(fileName);
+          }
+
+          lastFileName = fileName;
         }
 
         // var managedBuff = new byte[buff.Length];
@@ -222,13 +247,21 @@ namespace KmyKeiba.JVLink.Wrappers
 
           list[key] = item;
         }
-
+        
         if (targetSpecs != null && targetSpecs.Any() && !targetSpecs.Contains(spec))
         {
           if (!this.isRealTime && spec != "\0\0")
           {
             this.link.Skip();
           }
+        }
+        else if (isSkipCurrentFile)
+        {
+          if (this.link.Type == JVLinkObjectType.Central)
+          {
+            this.link.Skip();
+          }
+          // UmaConnはSkipするとなぜかSkipしていないファイルも読み込まれなくなることがある
         }
         else
         {
@@ -547,12 +580,11 @@ namespace KmyKeiba.JVLink.Wrappers
             data = new JVLinkReaderData();
             savedEntityCount = this.ReadedEntityCount;
           }
-        }
 
-        if (fileName != lastFileName)
-        {
-          this.ReadedCount++;
-          lastFileName = fileName;
+          if (this.isInterrupted)
+          {
+            break;
+          }
         }
 
         prevResult = result;
@@ -566,6 +598,11 @@ namespace KmyKeiba.JVLink.Wrappers
     public void StopLoading()
     {
       this.isCanceled = true;
+    }
+
+    public void Interrupt()
+    {
+      this.isInterrupted = true;
     }
 
     public void Dispose()

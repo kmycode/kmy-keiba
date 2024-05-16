@@ -49,13 +49,35 @@ namespace KmyKeiba.Shared
     }
 
     internal static void Save(DownloaderTaskData data)
+      => Save(data, ToFilePath(data.Id));
+
+    internal static void Save(DownloaderTaskData data, string path)
     {
       if (data.Id == default)
       {
         throw new SaveDownloaderTaskDataException("存在しないタスクデータを保存しようとしました");
       }
 
-      DownloaderTaskData.SaveFile(ToFilePath(data.Id), data);
+      DownloaderTaskData.SaveFile(path, data);
+    }
+
+    internal static void Interrupt(DownloaderTaskData data)
+    {
+      Save(data, Constrants.InterruptedTaskFilePath);
+    }
+
+    internal static DownloaderTaskData? Resume()
+    {
+      if (File.Exists(Constrants.InterruptedTaskFilePath))
+      {
+        var id = GenerateId();
+
+        File.Move(Constrants.InterruptedTaskFilePath, ToFilePath(id));
+
+        return FindOrDefault(id);
+      }
+
+      return default;
     }
 
     internal static void Remove(uint id)

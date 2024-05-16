@@ -21,6 +21,8 @@ namespace KmyKeiba.Data.Db
 
     public bool IsCanceled { get; set; }
 
+    public bool IsInterrupted { get; set; }
+
     public bool IsStarted { get; set; }
 
     public int ProcessId { get; set; }
@@ -28,6 +30,8 @@ namespace KmyKeiba.Data.Db
     public DownloaderError Error { get; set; }
 
     public string Result { get; set; } = string.Empty;
+
+    public List<string> SkipFiles { get; } = new();
 
     private static readonly string[] separators = ["\r\n", "\r", "\n"];
 
@@ -93,6 +97,9 @@ namespace KmyKeiba.Data.Db
           case "IsStarted":
             result.IsStarted = ToBoolean(value);
             break;
+          case "IsInterrupted":
+            result.IsInterrupted = ToBoolean(value);
+            break;
           case "Progress":
             {
               if (int.TryParse(value, out int progress))
@@ -128,6 +135,9 @@ namespace KmyKeiba.Data.Db
           case "Result":
             result.Result = value;
             break;
+          case "SkipFiles":
+            result.SkipFiles.AddRange(value.Split(','));
+            break;
         }
       }
 
@@ -139,12 +149,14 @@ namespace KmyKeiba.Data.Db
 Parameter={data.Parameter}
 IsFinished={data.IsFinished}
 IsCanceled={data.IsCanceled}
+IsInterrupted={data.IsInterrupted}
 IsStarted={data.IsStarted}
 Progress={data.Progress}
 ProgressMax={data.ProgressMax}
 ProcessId={data.ProcessId}
 Error={(int)data.Error}
-Result={data.Result}";
+Result={data.Result}
+SkipFiles={string.Join(',', data.SkipFiles)}";
 
     public DownloadParameter GetDownloadParameter()
       => new DownloadParameter(this.Parameter);
@@ -330,6 +342,9 @@ Result={data.Result}";
 
     [DownloaderError("ダウンローダが異常停止しました")]
     NotRunningDownloader = 20,
+
+    [DownloaderError("操作は中断されました")]
+    Interrupted = 21,
   }
 
   internal class DownloaderCommandAttribute : Attribute

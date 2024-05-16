@@ -38,6 +38,11 @@ namespace KmyKeiba.Models.Connection.Connector
       await this.DownloadRTAsync(start);
     }
 
+    public async Task ResumeDownloadAsync()
+    {
+      await this.DownloadAsync(DateOnly.FromDateTime(DateTime.Today), isResume: true);
+    }
+
     protected Task DownloadAsync()
     {
       var config = DownloadConfig.Instance;
@@ -45,7 +50,7 @@ namespace KmyKeiba.Models.Connection.Connector
       return this.DownloadAsync(new DateOnly(config.StartYear.Value, config.StartMonth.Value, 1));
     }
 
-    protected async Task DownloadAsync(DateOnly start, int startDay = 1)
+    protected async Task DownloadAsync(DateOnly start, int startDay = 1, bool isResume = false)
     {
       await this.UpdateDownloadYearConfigsAsync();
 
@@ -69,7 +74,15 @@ namespace KmyKeiba.Models.Connection.Connector
       try
       {
         state.DownloadingLink.Value = link;
-        await downloader.DownloadAsync(linkName, "race", startYear, startMonth, state.OnDownloadProgress, startDay);
+
+        if (isResume)
+        {
+          await downloader.ResumeTaskAsync(state.OnDownloadProgress);
+        }
+        else
+        {
+          await downloader.DownloadAsync(linkName, "race", startYear, startMonth, state.OnDownloadProgress, startDay);
+        }
         DownloaderModel.Instance.OnRacesUpdated();
 
         logger.Info("通常データのダウンロード完了");
@@ -91,8 +104,11 @@ namespace KmyKeiba.Models.Connection.Connector
         state.IsDownloading.Value = false;
         state.LoadingProcess.Value = LoadingProcessValue.Unknown;
 
-        config.StartMonth.Value = startMonth;
-        config.StartYear.Value = startYear;
+        if (!isResume)
+        {
+          config.StartMonth.Value = startMonth;
+          config.StartYear.Value = startYear;
+        }
 
         state.HasProcessingProgress.Value = false;
       }

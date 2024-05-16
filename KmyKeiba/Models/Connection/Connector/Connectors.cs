@@ -1,5 +1,7 @@
-﻿using Reactive.Bindings;
+﻿using KmyKeiba.Shared;
+using Reactive.Bindings;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -30,6 +32,8 @@ namespace KmyKeiba.Models.Connection.Connector
     Task DownloadRTAsync(DateOnly start, DateOnly end);
 
     Task DownloadRTAsync(DateOnly day) => this.DownloadRTAsync(day, DateOnly.FromDateTime(DateTime.Today));
+
+    Task ResumeDownloadAsync();
   }
 
   internal static class Connectors
@@ -61,6 +65,24 @@ namespace KmyKeiba.Models.Connection.Connector
       Connectors.Local,
       Connectors.Jrdb,
     ]);
+
+    public async Task ResumeDownloadAsync()
+    {
+      if (!DownloaderConnector.Instance.IsExistsInterruptedTask) return;
+
+      var interrupted = System.IO.File.ReadAllLines(Constrants.InterruptedTaskFilePath);
+      var task = interrupted.FirstOrDefault(i => i.StartsWith("Parameter="));
+      if (task == null) return;
+
+      var connector = task.Contains("central") ? Connectors.Central :
+                      task.Contains("local") ? Connectors.Local : default(IConnector);
+      if (connector == null) return;
+
+      this.ActiveConnector.Value = connector;
+      await connector.ResumeDownloadAsync();
+
+      this.ActiveConnector.Value = null;
+    }
 
     public async Task DownloadAsync(DateOnly start, DateOnly end)
     {

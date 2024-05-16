@@ -37,12 +37,10 @@ namespace KmyKeiba.Models.Connection
     public ReactiveProperty<bool> IsRTBusy { get; }
 
     public bool IsExistsDatabase
-    {
-      get
-      {
-        return File.Exists(Constrants.DatabasePath);
-      }
-    }
+      => File.Exists(Constrants.DatabasePath);
+
+    public bool IsExistsInterruptedTask
+      => File.Exists(Constrants.InterruptedTaskFilePath);
 
     private DownloaderConnector()
     {
@@ -122,7 +120,7 @@ namespace KmyKeiba.Models.Connection
             if (item.IsFinished)
             {
               logger.Info($"ダウンローダのタスク {taskDataId} 完了を検知しました");
-              if (!item.IsCanceled)
+              if (!item.IsCanceled && !item.IsInterrupted)
               {
                 DownloaderTaskDataExtensions.Remove(item);
                 logger.Info("正常終了");
@@ -396,6 +394,11 @@ namespace KmyKeiba.Models.Connection
         logger.Error($"タスクがエラーを返しました {task.Id} {result.Error} {result.Result}");
         throw new DownloaderCommandException(result.Error, result.Result);
       }
+      if (result.IsInterrupted)
+      {
+        logger.Warn($"タスクが中断されました {task.Id}");
+        throw new DownloaderCommandException(DownloaderError.Interrupted);
+      }
       if (result.IsCanceled)
       {
         logger.Warn($"タスクがキャンセルされました {task.Id}");
@@ -444,14 +447,9 @@ namespace KmyKeiba.Models.Connection
 
     public void CancelCurrentTask()
     {
-      if (!this.IsBusy.Value)
-      {
-        logger.Warn("キャンセルしようとしましたが、そのような状態ではないので処理を中止しました");
-        return;
-      }
-
       try
       {
+        this.currentTask.Value!.IsCanceled = true;
         DownloaderTaskDataExtensions.Save(this.currentTask.Value!);
 
         logger.Info($"タスク {this.currentTask.Value!.Id} をキャンセルしました");
@@ -462,6 +460,42 @@ namespace KmyKeiba.Models.Connection
       }
 
       this.currentTask.Value = null;
+    }
+
+    public void InterruptCurrentTask()
+    {
+      try
+      {
+        this.currentTask.Value!.IsInterrupted = true;
+        DownloaderTaskDataExtensions.Save(this.currentTask.Value!);
+
+        // 中断処理の続きはダウンローダがやる
+
+        logger.Info($"タスク {this.currentTask.Value!.Id} を中断しました");
+      }
+      catch (Exception ex)
+      {
+        logger.Warn($"タスク {this.currentTask.Value?.Id} の中断に失敗しました", ex);
+      }
+
+      this.currentTask.Value = null;
+    }
+
+    public async Task ResumeTaskAsync(Func<DownloaderTaskData, Task>? progressing = null)
+    {
+      try
+      {
+        var task = DownloaderTaskDataExtensions.Resume();
+        if (task == null) return;
+
+        this.currentTask.Value = task;
+
+        await this.PublishTaskAsync(task, progressing);
+      }
+      catch (Exception ex)
+      {
+        logger.Warn($"タスク {this.currentTask.Value?.Id} の再開に失敗しました", ex);
+      }
     }
 
     public void Dispose()

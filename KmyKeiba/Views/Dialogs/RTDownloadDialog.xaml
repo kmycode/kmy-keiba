@@ -70,6 +70,10 @@
             <TranslateTransform X="250"/>
           </up:MyProgressBar.RenderTransform>
         </up:MyProgressBar>
+        <TextBlock Foreground="{StaticResource SubForeground}" Margin="0,24,0,0" FontSize="16" TextAlignment="Center"
+                   Visibility="{Binding Downloader.State.HasProcessingProgress.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          [ <Run Text="{Binding Downloader.State.ProcessingProgress.Value}"/> / <Run Text="{Binding Downloader.State.ProcessingProgressMax.Value}"/> ]
+        </TextBlock>
       </StackPanel>
     </Grid>
     <Border Grid.Row="4" Height="60" Margin="0,0,0,16">

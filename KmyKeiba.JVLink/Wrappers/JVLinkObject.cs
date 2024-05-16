@@ -188,7 +188,7 @@ namespace KmyKeiba.JVLink.Wrappers
         var r = this.link.Init();
         if (r != 0)
         {
-          throw JVLinkException.GetError(JVLinkInitializeResult.Unknown);
+          throw JVLinkException.GetError((JVLinkInitializeResult)r);
         }
         this.hasInitialized = true;
       }

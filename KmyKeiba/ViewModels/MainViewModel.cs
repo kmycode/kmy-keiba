@@ -280,6 +280,16 @@ namespace KmyKeiba.ViewModels
         new ReactiveCommand<object>(this.downloader.State.CanCancel).WithSubscribe(_ => this.downloader.CancelDownload());
     private ReactiveCommand<object>? _cancelDownloadCommand;
 
+    public ICommand InterruptDownloadCommand =>
+      this._interruptDownloadCommand ??=
+        new ReactiveCommand<object>().WithSubscribe(_ => this.downloader.InterruptDownload());
+    private ReactiveCommand<object>? _interruptDownloadCommand;
+
+    public ICommand ResumeDownloadCommand =>
+      this._resumeDownloadCommand ??=
+        new ReactiveCommand<object>(this.downloader.CanSaveOthers).WithSubscribe(_ => this.downloader.ResumeDownload());
+    private ReactiveCommand<object>? _resumeDownloadCommand;
+
     public ICommand UpdateRtDataForceCommand =>
       this._updateRtDataForceCommand ??=
         new ReactiveCommand(this.downloader.State.IsBusy.Select(r => !r)).WithSubscribe(this.downloader.UpdateRtDataForce);

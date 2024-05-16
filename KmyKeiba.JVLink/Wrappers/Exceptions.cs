@@ -32,6 +32,15 @@ namespace KmyKeiba.JVLink.Wrappers
   {
     [JVLinkCode("不明")]
     Unknown,
+
+    [JVLinkCode("sidが設定されていない")]
+    SoftwareIdNotSet = -101,
+
+    [JVLinkCode("sidが64バイトを超えている")]
+    SoftwareIdTooLong = -102,
+
+    [JVLinkCode("sidが不正")]
+    InvalidSoftwareId = -103,
   }
 
   public enum JVLinkLoadResult

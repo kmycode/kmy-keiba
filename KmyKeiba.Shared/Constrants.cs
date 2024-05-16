@@ -55,6 +55,8 @@ namespace KmyKeiba.Shared
     }
     private static string? _databasePath;
 
+    public static readonly string InterruptedTaskFilePath = Path.Combine(AppDataDir, "interrupted_task");
+
     public static readonly string ShutdownFilePath = Path.Combine(AppDataDir, "req_shutdown");
 
     public static readonly string DebugFilePath = Path.Combine(AppDataDir, "debug");

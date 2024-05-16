@@ -17,9 +17,11 @@ namespace KmyKeiba.Downloader
     {
       try
       {
+        SkipFiles.Add("H1VM2018019920230808172347.jvd");
+
         var loader = new JVLinkLoader();
-        loader.StartLoad(JVLinkObject.Local, JVLinkDataspec.Race | JVLinkDataspec.Diff,
-          JVLinkOpenOption.Setup, null, new DateTime(2018, 1, 1), new DateTime(2024, 2, 1));
+        loader.StartLoad(JVLinkObject.Central, JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku,
+          JVLinkOpenOption.Setup, null, new DateTime(1986, 1, 1), new DateTime(1996, 2, 1));
       }
       catch (Exception ex)
       {
@@ -33,6 +35,15 @@ namespace KmyKeiba.Downloader
       var isLoaded = false;
       var isDbLooping = false;
 
+      if (task.SkipFiles.Any())
+      {
+        SkipFiles.AddRange(task.SkipFiles);
+        task.SkipFiles.Clear();
+        DownloaderTaskDataExtensions.Save(task);
+
+        logger.Info($"スキップファイル {SkipFiles.Count}");
+      }
+
       Task.Run(() =>
       {
         var loopCount = 0;
@@ -40,6 +51,16 @@ namespace KmyKeiba.Downloader
 
         void UpdateProcess()
         {
+          try
+          {
+            Program.CheckShutdown(canInterrupt: false);
+          }
+          catch
+          {
+            logger.Warn("シャットダウンのチェックに失敗");
+            return;
+          }
+
           var p = loader.Process.ToString().ToLower();
           if (p != task.Result)
           {
@@ -62,6 +83,9 @@ namespace KmyKeiba.Downloader
             {
               SetTask(task, t =>
               {
+                task.IsInterrupted = Program.IsInterrupted;
+                task.IsCanceled = Program.IsCanceled;
+
                 if (loader.Process == LoadProcessing.Downloading)
                 {
                   task.ProgressMax = loader.DownloadSize;
@@ -100,13 +124,14 @@ namespace KmyKeiba.Downloader
             logger.Info($"DWN [{loader.Downloaded} / {loader.DownloadSize}] LD [{loader.Loaded} / {loader.LoadSize}] ENT({loader.LoadEntityCount}) SV [{loader.Saved} / {loader.SaveSize}] PC [{loader.Processed} / {loader.ProcessSize}]");
           }
 
-          Task.Delay(800).Wait();
+          Task.Delay(1600).Wait();
         }
 
         if (!task.IsFinished)
         {
           try
           {
+            logger.Info("タスク終了情報を書き込み");
             SetTask(task, t => t.IsFinished = true);
           }
           catch (Exception ex)
@@ -183,7 +208,7 @@ namespace KmyKeiba.Downloader
 
       int.TryParse(parameters[0], out var startYear);
       int.TryParse(parameters[1], out var startMonth);
-      var startDay = 0;
+      var startDay = 1;
       if (startMonth > 100)
       {
         startDay = startMonth % 100;
@@ -213,7 +238,9 @@ namespace KmyKeiba.Downloader
         return;
       }
 
-      var dataspec = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop | JVLinkDataspec.Toku;
+      var specs = new string[] { "RA", "SE", "WH", "WE", "AV", "UM", "HN", "SK", "BT", "JC", "HC", "WC", "KS", "CH", "NK", "NC", "NU", "HS", "O1", "O2", "O3", "O4", "O5", "O6", "HR", "TM", "DM", };
+
+      var dataspec = JVLinkDataspec.Race | JVLinkDataspec.Blod | JVLinkDataspec.Diff | JVLinkDataspec.Slop;
       if (parameters[2] == "central")
       {
         dataspec |= JVLinkDataspec.Wood | JVLinkDataspec.Hose | JVLinkDataspec.Ming;
@@ -225,11 +252,12 @@ namespace KmyKeiba.Downloader
         // dataspec1 |= JVLinkDataspec.Nosi;
       }
 
-      SystemData? isNotDownloadBlod, isNotDownloadSlop;
+      SystemData? isNotDownloadBlod, isNotDownloadSlop, isNotDownloadMing;
       using (var db = new MyContext())
       {
         isNotDownloadBlod = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadHorseBloods);
         isNotDownloadSlop = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadTrainings);
+        isNotDownloadMing = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadMiningData);
       }
 
       if (isNotDownloadBlod != null && isNotDownloadBlod.IntValue != 0)
@@ -240,6 +268,10 @@ namespace KmyKeiba.Downloader
       {
         dataspec &= ~JVLinkDataspec.Slop;
         dataspec &= ~JVLinkDataspec.Wood;
+      }
+      if (isNotDownloadMing != null && isNotDownloadMing.IntValue != 0)
+      {
+        dataspec &= ~JVLinkDataspec.Ming;
       }
 
       if (parameters[2] == "local" && startYear < 2005)
@@ -257,14 +289,53 @@ namespace KmyKeiba.Downloader
       task.Parameter = $"{startYear},{startMonth},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
       DownloaderTaskDataExtensions.Save(task);
 
+      void CallLoad(JVLinkObject link, DateTime start, DateTime end)
+      {
+        loader.StartLoad(link,
+          dataspec,
+          option,
+          raceKey: null,
+          startTime: start,
+          endTime: end,
+          loadSpecs: link.Type == JVLinkObjectType.Central ? specs : null);
+      }
+
       logger.Info("レースのダウンロードを開始します");
-      loader.StartLoad(link,
-        dataspec,
-        option,
-        raceKey: null,
-        startTime: start,
-        endTime: DateTime.Now.AddMonths(1),
-        loadSpecs: null);
+      if (link.Type == JVLinkObjectType.Central)
+      {
+        // JV-Linkの謎の挙動
+        // JV-LinkのJVReadでは、ダウンロード期間が長くなるほど動作が非常に低速になる様子
+        // 開発者の環境の場合、1986年から2024年を指定すると1600ミリ秒間で約30件
+        // 2000年から2005年や2010年を指定すると1600ミリ秒間で約1000～2000件が読み取れた
+        // ダウンロードする期間を長くするほど、1200件、600件、100件みたいな感じで減っていった
+        // 1600ミリ秒あたり約30件は著しく実用的ではないと言わざるを得ず、
+        // 全く原因不明であるが、他に適切な方法もなさそうなので3年に分けてダウンロードします
+        //
+        // 参考：JV-Linkドキュメントに以下の記述あり
+        //   既知の障害について
+        //   ・dataspec を複数個指定した場合、個別に指定した場合と比較すると
+        //     「対象ファイル数が多い場合に JVRead の処理時間が遅くなる」という障害が
+        //     報告されています。処理時間が遅い場合には、 detaspec を個別に指定、
+        //     または Fromtime に読み出し開始ポイント時刻・終了ポイント時刻を指定して
+        //     回避してください。
+        while (start < end.AddDays(-1))
+        {
+          logger.Info($"{start.Year} - {end.Year} のダウンロード");
+          var tmpEnd = start.AddYears(3);
+          if (tmpEnd > end)
+          {
+            tmpEnd = end;
+          }
+
+          CallLoad(link, start, tmpEnd);
+
+          start = tmpEnd;
+        }
+      }
+      else
+      {
+        CallLoad(link, start, DateTime.Now.AddMonths(1));
+      }
     }
 
     private static async Task RTLoadAsync(JVLinkLoader loader, DownloaderTaskData task)
@@ -312,6 +383,11 @@ namespace KmyKeiba.Downloader
         int.TryParse(date.AsSpan(4, 2), out var month);
         int.TryParse(date.AsSpan(6, 2), out var day);
 
+        SystemData? isNotDownloadBlod, isNotDownloadSlop, isNotDownloadMing;
+        isNotDownloadBlod = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadHorseBloods);
+        isNotDownloadSlop = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadTrainings);
+        isNotDownloadMing = await db.SystemData!.FirstOrDefaultAsync(d => d.Key == SettingKey.IsNotDownloadMiningData);
+
         var dataspecs = link.Type == JVLinkObjectType.Central ? new[]
         {
           JVLinkDataspec.RB12,
@@ -331,6 +407,12 @@ namespace KmyKeiba.Downloader
           JVLinkDataspec.RB14,
           JVLinkDataspec.RB41,
         };
+
+        if (isNotDownloadMing != null && isNotDownloadMing.IntValue != 0)
+        {
+          dataspecs = dataspecs.Where(s => s != JVLinkDataspec.RB13 && s != JVLinkDataspec.RB17).ToArray();
+        }
+
         int.TryParse(spec, out var startIndex);
         if (startIndex == default || startIndex > dataspecs.Length)
         {

@@ -172,7 +172,7 @@ namespace KmyKeiba.Models.Connection
           await this._connectors.DownloadAsync(new DateOnly(config.StartYear.Value, config.StartMonth.Value, 1));
         }
 
-        await PostProcessings.AfterDownload.RunAsync(state.ProcessingStep);
+        await PostProcessing.RunAsync(state.ProcessingStep, false, PostProcessings.AfterDownload);
       });
     }
 
@@ -194,6 +194,24 @@ namespace KmyKeiba.Models.Connection
         state.IsCancelProcessing.Value = true;
       }
       logger.Warn("ダウンロードが中止されました");
+    }
+
+    public void InterruptDownload()
+    {
+      if (JrdbDownloaderModel.Instance.IsDownloading.Value) return;
+
+      DownloaderConnector.Instance.InterruptCurrentTask();
+      DownloadStatus.Instance.HasInterruptedDownloadTask.Value = true;
+    }
+
+    public void ResumeDownload()
+    {
+      DownloadStatus.Instance.HasInterruptedDownloadTask.Value = false;
+
+      Task.Run(async () =>
+      {
+        await this._connectors.ResumeDownloadAsync();
+      });
     }
 
     public void BeginResetHorseExtraData()

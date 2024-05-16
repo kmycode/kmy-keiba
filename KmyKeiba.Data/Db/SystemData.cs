@@ -46,5 +46,6 @@ namespace KmyKeiba.Data.Db
     LastDownloadPreviousRaceDate = 21,
     LastLaunchDateEx = 22,
     DefaultRaceSearchSetting = 23,
+    IsNotDownloadMiningData = 24,
   }
 }

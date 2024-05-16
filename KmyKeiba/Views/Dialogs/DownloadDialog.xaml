@@ -67,12 +67,15 @@
               <Binding Path="Downloader.Config.IsDownloadLocal.Value"/>
             </MultiBinding>
           </StackPanel.Visibility>
-          <TextBlock FontSize="28" Text="ダウンロードオプション" Style="{StaticResource TextBlockDefault}" Margin="0,32,0,16"/>
-          <StackPanel Orientation="Horizontal" Margin="8,0,0,16">
+          <TextBlock FontSize="28" Text="ダウンロードオプション" Style="{StaticResource TextBlockDefault}" Margin="0,32,0,16"
+                     Visibility="{Binding Downloader.Config.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
+          <StackPanel Orientation="Horizontal" Margin="8,0,0,16"
+                      Visibility="{Binding Downloader.Config.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}">
             <ToggleButton FontSize="16" Content="血統" IsChecked="{Binding Downloader.Config.IsDownloadBlod.Value,Mode=TwoWay}"
                           IsEnabled="{Binding CanSave.Value}"/>
             <ToggleButton FontSize="16" Content="調教" IsChecked="{Binding Downloader.Config.IsDownloadSlop.Value,Mode=TwoWay}"
-                          Visibility="{Binding Downloader.Config.IsDownloadCentral.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                          IsEnabled="{Binding CanSave.Value}" Margin="8,0,0,0"/>
+            <ToggleButton FontSize="16" Content="マイニング" IsChecked="{Binding Downloader.Config.IsDownloadMing.Value,Mode=TwoWay}"
                           IsEnabled="{Binding CanSave.Value}" Margin="8,0,0,0"/>
           </StackPanel>
         </StackPanel>
@@ -136,6 +139,8 @@
                      IsChecked="{Binding Downloader.Config.IsDownloadJrdb.Value,Mode=TwoWay}" GroupName="DownloadLink"/>
       </Grid>
     </Grid>
+    
+    <!-- ダウンロード中 -->
     <Grid Grid.Row="1" Visibility="{Binding Downloader.State.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}">
       <StackPanel Margin="0,24,0,0">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -165,6 +170,7 @@
         </TextBlock>
       </StackPanel>
     </Grid>
+    
     <Border Grid.Row="2" Height="60" Margin="0,0,0,16">
       <TextBlock Style="{StaticResource TextBlockDefault}" Foreground="{StaticResource ErrorForeground}" FontSize="20" TextWrapping="Wrap"
                  Text="{Binding Downloader.State.ErrorMessage.Value}" Visibility="{Binding Downloader.State.IsError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
@@ -176,6 +182,7 @@
       <Run FontWeight="Bold" Foreground="{StaticResource BadForeground}" Text="データ保存中は、印付けや購入など一部操作ができなくなります。"/><LineBreak/>
       途中で中央競馬セットアップダイアログが<Run FontWeight="Bold" Text="２回以上"/>出ることがあります。
     </TextBlock>
+    
     <Grid Grid.Row="4" Margin="0,0,0,16" Height="36">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="auto"/>
@@ -189,7 +196,19 @@
               Command="{Binding CloseDialogCommand}" Visibility="{Binding Downloader.State.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
       <Button Content="開始" Grid.Column="3" FontSize="20" Width="100" Command="{Binding StartDownloadCommand}"
               Visibility="{Binding Downloader.State.IsDownloading.Value,Converter={StaticResource NegativeVisibilityConv}}"/>
-      <Button Grid.Column="3" FontSize="14" Content="中止" Width="80" Height="32" VerticalAlignment="Bottom" Command="{Binding CancelDownloadCommand}"
+      <!--
+      <Button Grid.Column="2" FontSize="16" Content="再開" Width="80" Height="32" VerticalAlignment="Bottom" Command="{Binding ResumeDownloadCommand}" Margin="0,0,8,0">
+        <Button.Visibility>
+          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+            <Binding Path="Downloader.State.IsDownloading.Value" Converter="{StaticResource NegativeConv}"/>
+            <Binding Path="Downloader.State.HasInterruptedDownloadTask.Value"/>
+          </MultiBinding>
+        </Button.Visibility>
+      </Button>
+      <Button Grid.Column="2" FontSize="16" Content="中断" Width="80" Height="32" VerticalAlignment="Bottom" Command="{Binding InterruptDownloadCommand}"
+              Visibility="{Binding Downloader.State.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}" Margin="0,0,8,0"/>
+      -->
+      <Button Grid.Column="3" FontSize="16" Content="中止" Width="80" Height="32" VerticalAlignment="Bottom" Command="{Binding CancelDownloadCommand}"
               IsEnabled="{Binding Downloader.State.IsCancelProcessing.Value,Converter={StaticResource NegativeConv}}"
               Visibility="{Binding Downloader.State.IsDownloading.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
     </Grid>

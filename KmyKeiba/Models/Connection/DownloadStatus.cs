@@ -60,6 +60,8 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsRTPaused { get; } = new();
 
+    public ReactiveProperty<bool> HasInterruptedDownloadTask { get; } = new();
+
     private DownloadStatus()
     {
       var postProcesses = new[]
@@ -94,13 +96,15 @@ namespace KmyKeiba.Models.Connection
       this.RTDownloadingStatus.Subscribe(_ => UpdateCanSave());
       this.ProcessingStep.Subscribe(_ => UpdateCanSave());
       JrdbDownloaderModel.Instance.CanSaveOthers.Subscribe(_ => UpdateCanSave());
+
+      this.HasInterruptedDownloadTask.Value = DownloaderConnector.Instance.IsExistsInterruptedTask;
     }
 
     private void UpdateCanSave()
     {
       var canSave = this.DownloadingStatus.Value != StatusFeeling.Bad && this.RTDownloadingStatus.Value != StatusFeeling.Bad &&
         JrdbDownloaderModel.Instance.CanSaveOthers.Value;
-      var canCancel = canSave || this.IsProcessing.Value || !JrdbDownloaderModel.Instance.CanSaveOthers.Value;
+      var canCancel = !this.IsProcessing.Value || canSave;
       if (this.CanSaveOthers.Value != canSave || this.CanCancel.Value != canCancel)
       {
         // このプロパティはViewModel内のReactiveCommandのCanExecuteにも使われる

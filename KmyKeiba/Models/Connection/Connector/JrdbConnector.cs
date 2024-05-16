@@ -69,6 +69,10 @@ namespace KmyKeiba.Models.Connection.Connector
       }
     }
 
+    public async Task ResumeDownloadAsync()
+    {
+    }
+
     private async Task DownloadJrdbAsync(DateTime from, DateTime? to)
     {
       var state = DownloadStatus.Instance;

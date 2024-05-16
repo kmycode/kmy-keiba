@@ -11,7 +11,28 @@ namespace KmyKeiba.Downloader
 {
   internal partial class Program
   {
-    public static void CheckShutdown(bool isForce = false)
+    public static void SaveFileIfInterrupted()
+    {
+      if (currentTask == null) return;
+
+      var task = DownloaderTaskDataExtensions.FindOrDefault(currentTask.Id);
+      if (task == null || (!task.IsInterrupted && !Program.IsInterrupted)) return;
+
+      task.IsFinished = true;
+      DownloaderTaskDataExtensions.Save(task);
+
+      task.IsFinished = false;
+      task.IsInterrupted = false;
+      task.Result = "succeed";
+      task.SkipFiles.AddRange(SkipFiles);
+      DownloaderTaskDataExtensions.Interrupt(task);
+
+      logger.Info("タスク中断ファイルを作成");
+
+      task.IsFinished = true;
+    }
+
+    public static void CheckShutdown(bool isForce = false, bool canInterrupt = true)
     {
       if (!isCheckShutdown)
       {
@@ -42,17 +63,42 @@ namespace KmyKeiba.Downloader
       if (currentTask != null)
       {
         var task = DownloaderTaskDataExtensions.FindOrDefault(currentTask.Id);
-        if (task != null && task.IsCanceled)
+
+        if (task != null && (task.IsCanceled || task.IsInterrupted || Program.IsCanceled || Program.IsInterrupted))
         {
+          task.IsInterrupted |= Program.IsInterrupted;
+          task.IsCanceled |= Program.IsCanceled;
+
+          if (task.IsInterrupted)
+          {
+            currentTask.IsInterrupted = true;
+            Program.IsInterrupted = true;
+            if (!canInterrupt) return;
+
+            logger.Info("タスクの中断を検出");
+
+            SaveFileIfInterrupted();
+          }
+          if (task.IsCanceled)
+          {
+            currentTask.IsCanceled = true;
+            Program.IsCanceled = true;
+
+            logger.Info("タスクのキャンセルを検出");
+
+            task.IsFinished = true;
+            DownloaderTaskDataExtensions.Save(task);
+          }
+
           if (!isHost || isForce)
           {
-            logger.Warn("タスクが存在しないか、キャンセルされていたのでシャットダウンします");
+            logger.Warn("タスクがキャンセルされていたのでシャットダウンします");
             KillMe();
             //Environment.Exit(0);
           }
           else
           {
-            logger.Warn("タスクが存在しないか、キャンセルされていたので処理を中止します");
+            logger.Warn("タスクがキャンセルされていたので処理を中止します");
             throw new TaskCanceledAndContinueProgramException();
           }
         }

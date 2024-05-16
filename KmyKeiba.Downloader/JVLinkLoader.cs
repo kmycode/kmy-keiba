@@ -117,7 +117,7 @@ namespace KmyKeiba.Downloader
                 Program.RestartProgram(false, isForce: true);
               }
 
-              Program.CheckShutdown(isForce: true);
+              Program.CheckShutdown(isForce: true, canInterrupt: false);
             }
           });
 
@@ -367,7 +367,19 @@ namespace KmyKeiba.Downloader
             waitCount += 80;
             if (waitCount > 1_000)
             {
-              Program.CheckShutdown();
+              Program.CheckShutdown(canInterrupt: false);
+
+              if (Program.IsInterrupted)
+              {
+                logger.Warn("中断を検出したため、リーダーの中断を試みます");
+                reader.Interrupt();
+              }
+              else if (Program.IsCanceled)
+              {
+                logger.Warn("キャンセルを検出したため、リーダーの中断を試みます");
+                reader.StopLoading();
+              }
+
               // TODO: #285 進捗をアプリと共有
               logger.Debug($"ロード数 [{reader.ReadedCount}/{reader.ReadCount}] エンティティ {reader.ReadedEntityCount}");
               waitCount = 0;
@@ -395,7 +407,7 @@ namespace KmyKeiba.Downloader
       {
         try
         {
-          Program.CheckShutdown();
+          Program.CheckShutdown(canInterrupt: false);
         }
         catch (Exception ex)
         {
@@ -436,7 +448,11 @@ namespace KmyKeiba.Downloader
 
       try
       {
-        reader.Load(loadSpecs, true);
+        reader.Load(
+          targetSpecs: loadSpecs,
+          isSequential: true,
+          skipFiles: isRealtime ? null : Program.SkipFiles
+        );
       }
       catch (Exception ex)
       {
@@ -521,6 +537,8 @@ namespace KmyKeiba.Downloader
         Task.Delay(100).Wait();
       }
       logger.Info("ロード処理が正常に完了しました");
+
+      Program.SaveFileIfInterrupted();
     }
 
     private async Task SaveDataAsync(JVLinkReaderData data, bool isRealtime)
@@ -566,7 +584,7 @@ namespace KmyKeiba.Downloader
           await SaveAsyncPrivate(chunk, dataSet, entityId, dataId, dataIdSelector);
 
           position = position.Skip(10000);
-          Program.CheckShutdown();
+          Program.CheckShutdown(canInterrupt: false);
         }
       }
 
@@ -914,10 +932,12 @@ namespace KmyKeiba.Downloader
           this.Processed++;
         }
 
-        Program.CheckShutdown();
+        Program.CheckShutdown(canInterrupt: false);
 
         await db.SaveChangesAsync();
         await db.CommitAsync();
+
+        Program.CheckShutdown();
       }
 
       if (isRealtime)

@@ -21,6 +21,12 @@ namespace KmyKeiba.Downloader
     private static bool isCheckShutdown = true;
     private static bool isHost = false;
 
+    public static List<string> SkipFiles { get; private set; } = new();
+
+    public static bool IsCanceled { get; private set; }
+
+    public static bool IsInterrupted { get; private set; }
+
     [STAThread]
     public static void Main(string[] args)
     {
@@ -409,7 +415,6 @@ namespace KmyKeiba.Downloader
         return null;
       }
 
-      using var db = new MyContext();
       var task = DownloaderTaskDataExtensions.FindOrDefault(id);
       if (task == null)
       {
@@ -427,7 +432,7 @@ namespace KmyKeiba.Downloader
       {
         task.IsFinished = true;
         task.Error = DownloaderError.ApplicationError;
-        db.SaveChanges();
+        DownloaderTaskDataExtensions.Save(task);
         logger.Warn($"ID {id} のタスクは {task.Command} を期待していましたが、実際にコマンドラインパラメータとして送られてきたコマンドは {command} でした");
         return null;
       }

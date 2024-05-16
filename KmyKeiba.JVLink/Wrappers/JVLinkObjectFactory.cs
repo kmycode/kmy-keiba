@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -172,17 +173,22 @@ namespace KmyKeiba.JVLink.Wrappers
 
       public int Gets(ref byte[] buff, int size, out string filename)
       {
-        /*
-        object obj = buff;
-        var r = this.link.JVGets(ref obj, size, out filename);
-        buff = (byte[])obj;
-        */
         var r = this.link.JVRead(out var bf, out size, out filename);
         if (bf != null)
         {
           // buff = Encoding.UTF8.GetBytes(bf);
           buff = Encoding.GetEncoding(932).GetBytes(bf);
         }
+
+        // buff = (byte[])obj;
+
+        /*
+        object obj = buff;
+        var r = this.link.JVGets(ref obj, size, out filename);
+        buff = (byte[])obj;
+
+
+        */
         return r;
       }
 

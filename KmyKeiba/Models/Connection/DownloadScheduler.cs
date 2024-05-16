@@ -216,7 +216,7 @@ namespace KmyKeiba.Models.Connection
           await connector.DownloadAsync(new DateOnly(today.Year, today.Month, 1), DateOnly.FromDateTime(DateTime.Today));
         }
 
-        await PostProcessings.AfterDownload.RunAsync(DownloadStatus.Instance.ProcessingStep);
+        await PostProcessing.RunAsync(DownloadStatus.Instance.RTProcessingStep, true, PostProcessings.AfterDownload);
       }
 
       return isSucceed;
@@ -251,7 +251,7 @@ namespace KmyKeiba.Models.Connection
       {
         await this._connectors.DownloadRTAsync(day, day.AddDays(1));
 
-        if (state.IsError.Value)
+        if (state.IsRTError.Value)
         {
           isSucceed = false;
           break;

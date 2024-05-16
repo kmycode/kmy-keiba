@@ -41,6 +41,7 @@ namespace KmyKeiba.Models.Connection
 
     public ReactiveProperty<bool> IsDownloadSlop { get; } = new();
     public ReactiveProperty<bool> IsDownloadBlod { get; } = new();
+    public ReactiveProperty<bool> IsDownloadMing { get; } = new();
 
     public ReactiveProperty<bool> IsBuildExtraData { get; } = new();
 
@@ -51,38 +52,27 @@ namespace KmyKeiba.Models.Connection
     {
       this.StartYearSelection = Enumerable.Range(1986, DateTime.Now.Year - 1986 + 1).ToArray();
       this.StartMonthSelection = Enumerable.Range(1, 12).ToArray();
-
-      // 設定を保存
-      this.IsDownloadCentral.SkipWhile(_ => !this.IsInitialized.Value).Where(_ => !this.IsBuildMasterData.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsDownloadCentral, v));
-      this.IsDownloadLocal.SkipWhile(_ => !this.IsInitialized.Value).Where(_ => !this.IsBuildMasterData.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsDownloadLocal, v));
-      this.IsDownloadJrdb.SkipWhile(_ => !this.IsInitialized.Value).Where(_ => !this.IsBuildMasterData.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsDownloadJrdb, v));
-      this.IsRTDownloadCentralAfterThursdayOnly.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsDownloadCentralOnThursdayAfterOnly, v));
-      this.IsRTDownloadCentral.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsRTDownloadCentral, v));
-      this.IsRTDownloadLocal.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsRTDownloadLocal, v));
-      this.IsRTDownloadJrdb.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsRTDownloadJrdb, v));
-      this.IsDownloadBlod.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsNotDownloadHorseBloods, v));
-      this.IsDownloadSlop.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsNotDownloadTrainings, v));
-      this.IsBuildExtraData.SkipWhile(_ => !this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsNotBuildExtraData, v));
     }
 
     public async Task InitializeAsync(MyContext db)
     {
       if (this._isInitializedObject) return;
 
-      await this.LoadConfigsAsync(db);
+      this.LoadConfigs();
       this.InitializeStartDate();
 
       this._isInitializedObject = true;
     }
 
-    private async Task LoadConfigsAsync(MyContext db)
+    private void LoadConfigs()
     {
       var jrdb = ConfigUtil.GetIntValue(SettingKey.LastDownloadJrdbDate);
       this.JrdbDownloadedYear.Value = jrdb / 100;
       this.JrdbDownloadedMonth.Value = jrdb % 100;
 
-      this.IsDownloadBlod.Value = ConfigUtil.GetBooleanValue(SettingKey.IsNotDownloadHorseBloods);
-      this.IsDownloadSlop.Value = ConfigUtil.GetBooleanValue(SettingKey.IsNotDownloadTrainings);
+      this.IsDownloadBlod.Value = !ConfigUtil.GetBooleanValue(SettingKey.IsNotDownloadHorseBloods);
+      this.IsDownloadSlop.Value = !ConfigUtil.GetBooleanValue(SettingKey.IsNotDownloadTrainings);
+      this.IsDownloadMing.Value = !ConfigUtil.GetBooleanValue(SettingKey.IsNotDownloadMiningData);
       this.IsBuildExtraData.Value = ConfigUtil.GetBooleanValue(SettingKey.IsNotBuildExtraData);
 
       this.IsDownloadCentral.Value = ConfigUtil.GetBooleanValue(SettingKey.IsDownloadCentral);
@@ -94,6 +84,24 @@ namespace KmyKeiba.Models.Connection
       this.IsRTDownloadCentralAfterThursdayOnly.Value = ConfigUtil.GetBooleanValue(SettingKey.IsDownloadCentralOnThursdayAfterOnly);
 
       logger.Info($"設定 {nameof(SettingKey.IsDownloadCentral)}: {IsDownloadCentral.Value}, {nameof(SettingKey.IsDownloadLocal)}: {IsDownloadLocal.Value}, {nameof(SettingKey.IsDownloadJrdb)}: {IsDownloadJrdb.Value} / {nameof(SettingKey.IsRTDownloadCentral)}: {IsRTDownloadCentral.Value}, {nameof(SettingKey.IsRTDownloadLocal)}: {IsRTDownloadLocal.Value}, {nameof(SettingKey.IsRTDownloadJrdb)}: {IsRTDownloadJrdb.Value}");
+
+      this.SetPropertyEvents();
+    }
+
+    private void SetPropertyEvents()
+    {
+      // 設定を保存
+      this.IsDownloadCentral.Skip(1).Where(_ => this.IsInitialized.Value).Where(_ => !this.IsBuildMasterData.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsDownloadCentral, v));
+      this.IsDownloadLocal.Skip(1).Where(_ => this.IsInitialized.Value).Where(_ => !this.IsBuildMasterData.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsDownloadLocal, v));
+      this.IsDownloadJrdb.Skip(1).Where(_ => this.IsInitialized.Value).Where(_ => !this.IsBuildMasterData.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsDownloadJrdb, v));
+      this.IsRTDownloadCentralAfterThursdayOnly.Skip(1).Where(_ => this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsDownloadCentralOnThursdayAfterOnly, v));
+      this.IsRTDownloadCentral.Skip(1).Where(_ => this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsRTDownloadCentral, v));
+      this.IsRTDownloadLocal.Skip(1).Where(_ => this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsRTDownloadLocal, v));
+      this.IsRTDownloadJrdb.Skip(1).Where(_ => this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsRTDownloadJrdb, v));
+      this.IsDownloadBlod.Skip(1).Where(_ => this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsNotDownloadHorseBloods, !v));
+      this.IsDownloadSlop.Skip(1).Where(_ => this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsNotDownloadTrainings, !v));
+      this.IsDownloadMing.Skip(1).Where(_ => this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsNotDownloadMiningData, !v));
+      this.IsBuildExtraData.Skip(1).Where(_ => this.IsInitialized.Value).Subscribe(async v => await ConfigUtil.SetBooleanValueAsync(SettingKey.IsNotBuildExtraData, v));
     }
 
     private void InitializeStartDate()
