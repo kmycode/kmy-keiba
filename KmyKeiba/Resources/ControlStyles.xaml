@@ -1,5 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+                    xmlns:b="clr-namespace:KmyKeiba.Behaviors">
 
   <Style TargetType="Panel" x:Key="WindowTopPanel">
     <Setter Property="Background" Value="{StaticResource BaseBackground}"/>
@@ -174,6 +176,9 @@
                         VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
                         CanContentScroll="True">
             <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
+            <i:Interaction.Behaviors>
+              <b:ScrollSizeBehavior/>
+            </i:Interaction.Behaviors>
           </ScrollViewer>
         </ControlTemplate>
       </Setter.Value>
