@@ -48,6 +48,8 @@ namespace KmyKeiba.Models.Race.Memo
 
     public PointLabelModel LabelConfig => PointLabelModel.Default;
 
+    public ReactiveProperty<HorseTeamModel?> TeamModel { get; } = new();
+
     public RaceData Race { get; }
 
     public IReadOnlyList<RaceHorseAnalyzer> RaceHorses { get; }
@@ -253,6 +255,8 @@ namespace KmyKeiba.Models.Race.Memo
             this.RaceHorseMemos.Add(item);
           }
           this.UpdateRaceMemoSelections();
+
+        this.TeamModel.Value = new HorseTeamModel(this.RaceHorses, this.RaceHorseMemos);
         });
       }
       catch (Exception ex)
@@ -390,6 +394,8 @@ namespace KmyKeiba.Models.Race.Memo
           this.IsEditing.Value = false;
 
           AnalysisTableConfigModel.Instance.OnMemoConfigChanged();
+
+          this.TeamModel.Value?.OnHorseMemoConfigUpdated(this.editingConfig.Id);
         }
       }
     }
@@ -460,6 +466,8 @@ namespace KmyKeiba.Models.Race.Memo
           }
 
           AnalysisTableConfigModel.Instance.OnMemoConfigChanged();
+
+          this.TeamModel.Value?.OnHorseMemoConfigUpdated(this.editingConfig.Id);
         }
         catch (Exception ex)
         {
@@ -496,6 +504,8 @@ namespace KmyKeiba.Models.Race.Memo
             await ReloadAllModelsAsync(db, this);
 
             OnPointLabelOrderChangedForRaceList(exists, target);
+
+            this.TeamModel.Value?.OnHorseMemoConfigUpdated(this.editingConfig.Id);
           }
         }
       }
@@ -524,6 +534,8 @@ namespace KmyKeiba.Models.Race.Memo
             await ReloadAllModelsAsync(db, this);
 
             OnPointLabelOrderChangedForRaceList(exists, target);
+
+            this.TeamModel.Value?.OnHorseMemoConfigUpdated(this.editingConfig.Id);
           }
         }
       }
@@ -733,6 +745,7 @@ namespace KmyKeiba.Models.Race.Memo
     public void Dispose()
     {
       this._disposables.Dispose();
+      this.TeamModel.Value?.Dispose();
       this.Config.Dispose();
       _allModels.Remove(this);
     }
@@ -1312,6 +1325,26 @@ namespace KmyKeiba.Models.Race.Memo
         memo.Dispose();
       }
       */
+    }
+  }
+
+  public class RaceHorseSingleMemoItem : IDisposable
+  {
+    public RaceData Race { get; }
+
+    public RaceHorseAnalyzer RaceHorse { get; }
+
+    public RaceMemoItem Memo { get; }
+
+    public RaceHorseSingleMemoItem(RaceData race, RaceHorseAnalyzer raceHorse, RaceMemoItem memo)
+    {
+      this.Race = race;
+      this.RaceHorse = raceHorse;
+      this.Memo = memo;
+    }
+
+    public void Dispose()
+    {
     }
   }
 

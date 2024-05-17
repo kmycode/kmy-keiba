@@ -52,6 +52,12 @@
     <Compile Update="Views\Expansions\AnalysisTableCellDetail.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Expansions\ExpansionMemoHorseTeamSectionView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Expansions\ExpansionMemoLabelConfigView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Settings\AnalysisTableConfigView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -217,6 +223,12 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Expansions\AnalysisTableCellDetail.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\ExpansionMemoHorseTeamSectionView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Expansions\ExpansionMemoLabelConfigView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Settings\AnalysisTableConfigView.xaml">

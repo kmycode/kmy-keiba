@@ -220,40 +220,6 @@ namespace KmyKeiba.ViewModels
 
     #endregion
 
-    #region 拡張メモのラベル
-
-    public ICommand AddLabelConfigCommand =>
-      this._addLabelConfigCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
-    private ICommand? _addLabelConfigCommand;
-
-    public ICommand AddLabelConfigItemCommand =>
-      this._addLabelConfigItemCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.ActiveConfig.Value?.AddItemAsync() ?? Task.CompletedTask).AddTo(this._disposables);
-    private ICommand? _addLabelConfigItemCommand;
-
-    public ICommand DeleteLabelConfigItemCommand =>
-      this._deleteLabelConfigItemCommand ??=
-        new AsyncReactiveCommand<PointLabelConfigItem>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.ActiveConfig.Value?.RemoveItemAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
-    private ICommand? _deleteLabelConfigItemCommand;
-
-    public ICommand UpLabelConfigItemCommand =>
-      this._upLabelConfigItemCommand ??=
-        new AsyncReactiveCommand<PointLabelConfigItem>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.ActiveConfig.Value?.UpItemAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
-    private ICommand? _upLabelConfigItemCommand;
-
-    public ICommand DownLabelConfigItemCommand =>
-      this._downLabelConfigItemCommand ??=
-        new AsyncReactiveCommand<PointLabelConfigItem>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.ActiveConfig.Value?.DownItemAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
-    private ICommand? _downLabelConfigItemCommand;
-
-    public ICommand DeleteLabelConfigCommand =>
-      this._deleteLabelConfigCommand ??=
-        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.MemoEx.Value?.LabelConfig.DeleteConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
-    private ICommand? _deleteLabelConfigCommand;
-
-    #endregion
-
     #region 拡張分析テーブル
 
     public ICommand LoadExAnalysisTableCommand =>

@@ -36,6 +36,7 @@
         <RadioButton Content="保存された検索条件" Name="P_Finder"/>
         <RadioButton Content="拡張分析" Name="P_ExAnalysisConfig"/>
         <RadioButton Content="外部指数" Name="P_ExternalNumber"/>
+        <RadioButton Content="拡張メモのラベル" Name="P_PointLabel"/>
       </StackPanel>
 
       <Grid Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_ExAnalysisConfig,Converter={StaticResource BooleanVisibilityConv}}">
@@ -72,6 +73,8 @@
                                  ColumnConfig="{Binding AppSettings.FinderColumnConfig,ElementName=Root}" Margin="0,-8,0,0"/>
       <sa:GeneralConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_General,Converter={StaticResource BooleanVisibilityConv}}"
                             GeneralConfig="{Binding AppSettings.GeneralConfig,ElementName=Root}" Margin="0,-8,0,0"/>
+      <ex:ExpansionMemoLabelConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_PointLabel,Converter={StaticResource BooleanVisibilityConv}}"
+                                       LabelConfig="{Binding AppSettings.PointLabel,ElementName=Root}" Margin="0,-8,0,16"/>
     </Grid>
     
     <Grid Grid.Row="2" Margin="0,0,0,16">

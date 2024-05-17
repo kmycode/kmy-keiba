@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Models.Race.AnalysisTable;
 using KmyKeiba.Models.Race.Finder;
+using KmyKeiba.Models.Race.Memo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,8 @@ namespace KmyKeiba.Models.Setting
     public AppGeneralConfig GeneralConfig => AppGeneralConfig.Instance;
 
     public FinderColumnConfigModel FinderColumnConfig => FinderColumnConfigModel.Instance;
+
+    public PointLabelModel PointLabel => PointLabelModel.Default;
 
     private AppSettingsModel() { }
   }

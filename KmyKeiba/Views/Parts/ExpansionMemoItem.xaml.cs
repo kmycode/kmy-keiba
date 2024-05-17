@@ -73,6 +73,19 @@ new PropertyMetadata(null));
       set { SetValue(EditMemoConfigCommandProperty, value); }
     }
 
+    public bool IsAlwaysVisible
+    {
+      get { return (bool)GetValue(IsAlwaysVisibleProperty); }
+      set { SetValue(IsAlwaysVisibleProperty, value); }
+    }
+
+    public static readonly DependencyProperty IsAlwaysVisibleProperty
+= DependencyProperty.Register(
+nameof(IsAlwaysVisible),
+typeof(bool),
+typeof(ExpansionMemoItem),
+new PropertyMetadata(false));
+
     public ExpansionMemoItem()
         {
             InitializeComponent();

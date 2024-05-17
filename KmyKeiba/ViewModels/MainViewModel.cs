@@ -558,6 +558,40 @@ namespace KmyKeiba.ViewModels
     private ICommand? _downFinderColumnCommand;
 
     #endregion
+
+    #region 拡張メモのラベル
+
+    public ICommand AddLabelConfigCommand =>
+      this._addLabelConfigCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.PointLabel.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addLabelConfigCommand;
+
+    public ICommand AddLabelConfigItemCommand =>
+      this._addLabelConfigItemCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.PointLabel.ActiveConfig.Value?.AddItemAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _addLabelConfigItemCommand;
+
+    public ICommand DeleteLabelConfigItemCommand =>
+      this._deleteLabelConfigItemCommand ??=
+        new AsyncReactiveCommand<PointLabelConfigItem>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.PointLabel.ActiveConfig.Value?.RemoveItemAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _deleteLabelConfigItemCommand;
+
+    public ICommand UpLabelConfigItemCommand =>
+      this._upLabelConfigItemCommand ??=
+        new AsyncReactiveCommand<PointLabelConfigItem>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.PointLabel.ActiveConfig.Value?.UpItemAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _upLabelConfigItemCommand;
+
+    public ICommand DownLabelConfigItemCommand =>
+      this._downLabelConfigItemCommand ??=
+        new AsyncReactiveCommand<PointLabelConfigItem>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.PointLabel.ActiveConfig.Value?.DownItemAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _downLabelConfigItemCommand;
+
+    public ICommand DeleteLabelConfigCommand =>
+      this._deleteLabelConfigCommand ??=
+        new AsyncReactiveCommand<object>(this.CanSave).WithSubscribe(obj => this.AppSettings.Value?.PointLabel.DeleteConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+    private ICommand? _deleteLabelConfigCommand;
+
+    #endregion
   }
 
   public enum DialogType
