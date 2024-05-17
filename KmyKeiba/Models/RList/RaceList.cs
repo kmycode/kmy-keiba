@@ -40,6 +40,11 @@ namespace KmyKeiba.Models.RList
     {
       this.Date.Skip(1).Subscribe(async _ =>
       {
+        foreach (var item in this.Courses.SelectMany(c => c.Races))
+        {
+          item.Selected -= this.Item_Selected;
+        }
+
         this.Courses.Clear();
         await this.UpdateListAsync();
       }).AddTo(this._disposables);

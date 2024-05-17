@@ -631,21 +631,25 @@ namespace KmyKeiba.Models.Race
     {
       logger.Info($"{key} のレースを読み込みます");
 
-      using var db = new MyContext();
+      RaceData? race;
+      PayoffInfo? payoffInfo;
 
-      var race = await db.Races!.FirstOrDefaultAsync(r => r.Key == key);
-      if (race == null)
+      using (var db = new MyContext())
       {
-        logger.Warn("レースがDBから見つかりませんでした");
-        return null;
-      }
+        race = await db.Races!.FirstOrDefaultAsync(r => r.Key == key);
+        if (race == null)
+        {
+          logger.Warn("レースがDBから見つかりませんでした");
+          return null;
+        }
 
-      var payoff = await db.Refunds!.FirstOrDefaultAsync(r => r.RaceKey == key);
-      PayoffInfo? payoffInfo = null;
-      if (payoff != null)
-      {
-        logger.Debug("払い戻し情報が見つかりました");
-        payoffInfo = new PayoffInfo(payoff);
+        var payoff = await db.Refunds!.FirstOrDefaultAsync(r => r.RaceKey == key);
+        payoffInfo = null;
+        if (payoff != null)
+        {
+          logger.Debug("払い戻し情報が見つかりました");
+          payoffInfo = new PayoffInfo(payoff);
+        }
       }
 
       return await FromDataAsync(race, payoffInfo, withTransaction, isCache);
@@ -654,13 +658,6 @@ namespace KmyKeiba.Models.Race
     private static async Task<RaceInfo> FromDataAsync(RaceData race, PayoffInfo? payoff, bool withTransaction, bool isCache)
     {
       logger.Debug($"{race.Key} のレース情報を読み込みます");
-
-      var db = new MyContext();
-      if (DownloaderModel.Instance.CanSaveOthers.Value && withTransaction)
-      {
-        logger.Debug("念のためトランザクションを開始します");
-        await db.BeginTransactionAsync();
-      }
 
       var info = new RaceInfo(race, payoff);
 
@@ -672,8 +669,16 @@ namespace KmyKeiba.Models.Race
       // 以降の情報は遅延読み込み
       _ = Task.Run(async () =>
       {
+        using var db = new MyContext();
+
         try
         {
+          if (DownloaderModel.Instance.CanSaveOthers.Value && withTransaction)
+          {
+            logger.Debug("念のためトランザクションを開始します");
+            await db.BeginTransactionAsync();
+          }
+
           var cache = RaceInfoCacheManager.TryGetCache(race.Key);
 
           var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race);

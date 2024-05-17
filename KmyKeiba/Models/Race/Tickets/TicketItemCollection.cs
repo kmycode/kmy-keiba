@@ -44,7 +44,7 @@ namespace KmyKeiba.Models.Race.Tickets
           }
           this._disposableItems.Remove(i);
         }
-      });
+      }).AddTo(this._disposables);
     }
 
     public new void Dispose()

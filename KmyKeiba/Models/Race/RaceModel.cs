@@ -24,12 +24,9 @@ namespace KmyKeiba.Models.Race
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
     private readonly CompositeDisposable _disposables = new();
-    private IDisposable? ticketUpdated;
-    private IDisposable? horseCheckUpdated;
-    private IDisposable? memoChanged;
-    private IDisposable? memoChanged2;
+    private CompositeDisposable _currentRaceDisposables = new();
 
-    public ReactiveProperty<string> RaceKey { get; } = new(string.Empty);
+    private string _raceKey = string.Empty;
 
     public ReactiveProperty<RaceInfo?> Info { get; } = new();
 
@@ -74,7 +71,6 @@ namespace KmyKeiba.Models.Race
           "データ保存による操作不能がしつこい時は\n一時的に自動更新を止めることができます",
           "右下のVerボタンが緑色になっていれば\nアップデート可能です\nボタンを押すとダウンロード先リンクが表示されます",
           "[Ver.5変更点]\n拡張分析の各項目編集ならびに外部指数の設定は、\n設定画面に移動しました",
-          "[Ver.5変更点]\n蓄積データ／最新データのダウンロードは、\n同時に行えなくなりました",
         };
         var index = new Random().Next(firstMessages.Length);
         ApplicationConfiguration.Current.Skip(1).Select(c => c.IsFirstMessageVisible).Subscribe(v =>
@@ -92,20 +88,16 @@ namespace KmyKeiba.Models.Race
 
       this.RaceList.SelectedRaceKey.Subscribe(key =>
       {
-        logger.Info($"レースキー変更 {this.RaceKey.Value} -> {key}");
+        logger.Info($"レースキー変更 {this._raceKey} -> {key}");
         if (key != null)
         {
-          if (key != this.RaceKey.Value)
-          {
-            this.RaceKey.Value = key;
-            this.LoadCurrentRace();
-          }
+          this.SetRaceKey(key);
         }
         else
         {
           this.Info.Value = null;
         }
-      });
+      }).AddTo(this._disposables);
 
       logger.Info("メインモデル初期化完了");
     }
@@ -125,24 +117,6 @@ namespace KmyKeiba.Models.Race
       });
     }
 
-    public async Task ChangeHorseMarkAsync(RaceHorseMark mark, RaceHorseAnalyzer horse)
-    {
-      try
-      {
-        using var db = new MyContext();
-        db.RaceHorses!.Attach(horse.Data);
-
-        horse.Mark.Value = horse.Data.Mark = mark;
-
-        await db.SaveChangesAsync();
-        logger.Info($"{horse.Data.Name}(racekey:{horse.Data.RaceKey}) の星を変更しました {mark}");
-      }
-      catch (Exception ex)
-      {
-        logger.Error($"{horse.Data.Name}(racekey:{horse.Data.RaceKey}) の星を変更できませんでした {mark}", ex);
-      }
-    }
-
     public void OnSelectedRaceUpdated()
     {
       Task.Run(async () =>
@@ -154,14 +128,16 @@ namespace KmyKeiba.Models.Race
         }
         else
         {
-          logger.Warn($"選択中のレース {this.RaceKey.Value} が正常にロードされていません");
+          logger.Warn($"選択中のレース {this._raceKey} が正常にロードされていません");
         }
       });
     }
 
     public void SetRaceKey(string key)
     {
-      this.RaceKey.Value = key;
+      if (this._raceKey == key) return;
+
+      this._raceKey = key;
       this.LoadCurrentRace();
     }
 
@@ -230,16 +206,14 @@ namespace KmyKeiba.Models.Race
             RaceInfoCacheManager.Register(oldInfo);
           }
 
-          this.ticketUpdated?.Dispose();
           if (oldInfo?.Tickets.Value != null)
           {
             oldInfo.Tickets.Value.Tickets.TicketCountChanged -= this.Tickets_TicketCountChanged;
           }
-          this.memoChanged?.Dispose();
-          this.memoChanged2?.Dispose();
-          this.horseCheckUpdated?.Dispose();
+          this._currentRaceDisposables.Dispose();
+          this._currentRaceDisposables = new();
 
-          var raceKey = key ?? this.RaceKey.Value;
+          var raceKey = key ?? this._raceKey;
 
           var race = await RaceInfo.FromKeyAsync(raceKey);
           this.Info.Value = race;
@@ -253,21 +227,22 @@ namespace KmyKeiba.Models.Race
           if (this.Info.Value?.Payoff != null)
           {
             // 払い戻し情報をもとに、払い戻し額をレースリストに表示する
-            this.ticketUpdated = this.Info.Value.Payoff.Income.SkipWhile(i => i == 0).Subscribe(income =>
+            this.Info.Value.Payoff.Income.SkipWhile(i => i == 0).Subscribe(income =>
             {
               if (race != null)
               {
                 this.RaceList.UpdatePayoff(race.Data.Key, income, this.Info.Value.Payoff.PayMoneySum.Value > 0 || this.Info.Value.Payoff.ReturnMoneySum.Value > 0);
               }
-            });
+            }).AddTo(this._currentRaceDisposables);
           }
           else
           {
             // レースリストには、購入した馬券の点数をそのまま表示する
             race!.WaitTicketsAndCallback(tickets =>
             {
-              this.ticketUpdated = tickets.Tickets.CollectionChangedAsObservable()
-                .Subscribe(_ => this.Tickets_TicketCountChanged(null, EventArgs.Empty));
+              tickets.Tickets.CollectionChangedAsObservable()
+                .Subscribe(_ => this.Tickets_TicketCountChanged(null, EventArgs.Empty))
+                .AddTo(this._currentRaceDisposables);
 
               // FromEventPatternはなぜか動かない
               tickets.Tickets.TicketCountChanged += this.Tickets_TicketCountChanged;
@@ -313,25 +288,25 @@ namespace KmyKeiba.Models.Race
           {
             await Task.Delay(100);
           }
-          this.memoChanged = Observable.FromEventPattern<PointLabelChangedEventArgs>(
+          Observable.FromEventPattern<PointLabelChangedEventArgs>(
             ev => race.MemoEx.Value.PointLabelChangedForRaceList += ev,
             ev => race.MemoEx.Value.PointLabelChangedForRaceList -= ev)
           .Subscribe(ev =>
           {
             this.RaceList.UpdateColor(ev.EventArgs.Color, ev.EventArgs.IsVisible);
-          });
-          this.memoChanged2 = Observable.FromEventPattern(
+          }).AddTo(this._currentRaceDisposables);
+          Observable.FromEventPattern(
             ev => race.MemoEx.Value.PointLabelOrderChangedForRaceList += ev,
             ev => race.MemoEx.Value.PointLabelOrderChangedForRaceList -= ev)
           .Subscribe(async _ =>
           {
             await this.RaceList.UpdateAllColorsAsync();
-          });
+          }).AddTo(this._currentRaceDisposables);
 
-          this.horseCheckUpdated = race.HasCheckedHorse.Subscribe(isChecked =>
+          race.HasCheckedHorse.Subscribe(isChecked =>
           {
             this.RaceList.UpdateHasCheckedHorse(race.Data.Key, isChecked);
-          });
+          }).AddTo(this._currentRaceDisposables);
         }
         catch (Exception ex)
         {
@@ -370,14 +345,11 @@ namespace KmyKeiba.Models.Race
 
     public void Dispose()
     {
-      logger.Info($"レース {this.RaceKey.Value} 保持中のモデルは破棄されます");
+      logger.Info($"レース {this._raceKey} 保持中のモデルは破棄されます");
       this._disposables.Dispose();
       this.Info.Value?.Dispose();
       this.RaceList.Dispose();
-      this.horseCheckUpdated?.Dispose();
-      this.memoChanged?.Dispose();
-      this.memoChanged2?.Dispose();
-      this.ticketUpdated?.Dispose();
+      this._currentRaceDisposables.Dispose();
       logger.Debug("破棄が完了しました");
     }
   }
