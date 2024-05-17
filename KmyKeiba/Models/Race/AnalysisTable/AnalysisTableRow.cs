@@ -695,6 +695,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
               {
                 source = await ((IRaceFinder)item.Finder).FindRaceHorsesAsync(query, size, withoutFutureRaces: true, withoutFutureRacesForce: true);
               }
+              source.Dispose();
 
               if (isNeedAnalysis)
               {

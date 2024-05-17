@@ -196,6 +196,7 @@ namespace KmyKeiba.Models.Analysis
         if (maxA3HHorse != null)
         {
           var maxa3h = new RaceHorseAnalyzer(race, maxA3HHorse, raceStandardTime);
+          maxa3h.Dispose();
           this.MaxA3HResultTimeDeviationValue = maxa3h.A3HResultTimeDeviationValue;
         }
       }

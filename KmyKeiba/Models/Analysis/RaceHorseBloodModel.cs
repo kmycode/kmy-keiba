@@ -148,6 +148,8 @@ namespace KmyKeiba.Models.Analysis
     {
       this._disposables.Dispose();
       this.MenuItems.Dispose();
+      this.FourthGenerations.Dispose();
+      this.FifthGenerations.Dispose();
       GC.SuppressFinalize(this);
     }
 

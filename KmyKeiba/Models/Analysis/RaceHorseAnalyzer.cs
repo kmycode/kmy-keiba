@@ -28,6 +28,8 @@ namespace KmyKeiba.Models.Analysis
     private static ITimeDeviationValueCalculator? _timeDeviationValueCalculator = InjectionManager.GetInstance<ITimeDeviationValueCalculator>(InjectionManager.TimeDeviationValueCalculator);
     private bool _isChecking;
 
+    private readonly CompositeDisposable _disposables = new();
+
     public static RaceHorseAnalyzer Empty { get; } = new(new RaceData(), new RaceHorseData());
 
     public RaceData Race { get; }
@@ -488,8 +490,6 @@ namespace KmyKeiba.Models.Analysis
     private ReactiveCommand<string>? _openRaceWindowCommand;
 
     #endregion
-
-    private readonly CompositeDisposable _disposables = new();
 
     public void ChangeIsCheck(bool status)
     {

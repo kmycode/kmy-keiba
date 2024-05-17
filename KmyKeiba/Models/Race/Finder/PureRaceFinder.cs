@@ -234,7 +234,9 @@ namespace KmyKeiba.Models.Race.Finder
       var list = new List<RaceAnalyzer>();
       foreach (var race in racesData)
       {
-        list.Add(new RaceAnalyzer(race, Array.Empty<RaceHorseData>(), await AnalysisUtil.GetRaceStandardTimeAsync(db, race)));
+        var analyzer = new RaceAnalyzer(race, Array.Empty<RaceHorseData>(), await AnalysisUtil.GetRaceStandardTimeAsync(db, race));
+        analyzer.Dispose();
+        list.Add(analyzer);
       }
 
       return new FinderQueryResult<RaceAnalyzer>(list, raceQueries.GroupKey, raceQueries.MemoGroupInfo);

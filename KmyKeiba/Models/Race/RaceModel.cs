@@ -115,6 +115,39 @@ namespace KmyKeiba.Models.Race
           logger.Error($"{this.RaceList.Date.Value} のリスト作成でエラーが発生しました", ex);
         }
       });
+
+      Task.Run(async () =>
+      {
+        return;
+
+        // TODO: メモリリークを調べる
+
+        var races = this.RaceList.Courses.SelectMany(c => c.Races);
+        while (races.Count() < 71) await Task.Delay(50);
+        races = races.ToArray();
+
+        try
+        {
+          foreach (var race in races)
+          {
+            var oldInfo = this.Info.Value;
+
+            ThreadUtil.InvokeOnUiThread(() =>
+            {
+              race.OnSelected();
+            });
+
+            while (this.Info.Value == oldInfo || this.Info.Value?.IsLoadCompleted.Value != true)
+            {
+              await Task.Delay(50);
+            }
+          }
+        }
+        catch (Exception ex)
+        {
+
+        }
+      });
     }
 
     public void OnSelectedRaceUpdated()
