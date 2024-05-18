@@ -42,6 +42,8 @@ namespace KmyKeiba.Models.Race
     private readonly CompositeDisposable _disposables = new();
     private readonly List<uint> _delayLoadedHorses = new();
 
+    private bool _isDisposed;
+
     public RaceData Data { get; }
 
     public ReactiveProperty<RaceAnalyzer?> RaceAnalyzer { get; } = new();
@@ -610,6 +612,8 @@ namespace KmyKeiba.Models.Race
 
     public void Dispose()
     {
+      this._isDisposed = true;
+
       this._disposables.Dispose();
       this.RaceAnalyzer.Value?.Dispose();
       this.AnalysisTable.Value?.Dispose();
@@ -691,16 +695,9 @@ namespace KmyKeiba.Models.Race
             IsHorseHistorySameHorses = true,
             IsJrdbData = true,
             IsOddsTimeline = true,
-          };
-          var horseInfos = await factory.ToAnalyzerAsync(db, cache);
-          if (horseInfos == null)
-          {
-            throw new InvalidOperationException();
-          }
-          foreach (var obj in factory.Disposables)
-          {
-            info._disposables.Add(obj);
-          }
+          }.AddTo(info._disposables);
+          var horseInfos = await factory.ToAnalyzerAsync(db, cache) ?? throw new InvalidOperationException();
+
           var sortedHorses = horseInfos.All(h => h.Data.Number == default) ? horseInfos.OrderBy(h => h.Data.Name) : horseInfos.OrderBy(h => h.Data.Number);
           var horses = horseInfos.Select(h => h.Data).ToArray();
           var jrdbHorses = horseInfos.Where(h => h.JrdbData != null).Select(h => h.JrdbData!).ToArray();
@@ -803,6 +800,12 @@ namespace KmyKeiba.Models.Race
         finally
         {
           db.Dispose();
+
+          // 遅延読み込み途中に別のレースが開かれた場合
+          if (info._isDisposed)
+          {
+            info.Dispose();
+          }
         }
       });
 

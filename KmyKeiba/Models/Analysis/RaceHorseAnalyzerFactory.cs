@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -17,9 +18,11 @@ using static KmyKeiba.JVLink.Entities.HorseWeight;
 
 namespace KmyKeiba.Models.Analysis
 {
-  internal class RaceHorseAnalyzerRaceListFactory
+  internal class RaceHorseAnalyzerRaceListFactory : IDisposable
   {
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
+    private readonly CompositeDisposable _disposables = new();
 
     public string? RaceKey { get; }
 
@@ -34,8 +37,6 @@ namespace KmyKeiba.Models.Analysis
     public bool IsHorseHistorySameHorses { get; set; }
 
     public bool IsComparation { get; set; }
-
-    public List<IDisposable> Disposables { get; } = new List<IDisposable>();
 
     public IReadOnlyList<(RaceData, RaceHorseData)> HorseAllHistories { get; private set; }
       = Array.Empty<(RaceData, RaceHorseData)>();
@@ -62,7 +63,7 @@ namespace KmyKeiba.Models.Analysis
         return Array.Empty<RaceHorseAnalyzer>();
       }
 
-      var horses = await db.RaceHorses!.Where(rh => rh.RaceKey == this.RaceKey).ToArrayAsync();
+      var horses = await db.RaceHorses!.AsNoTracking().Where(rh => rh.RaceKey == this.RaceKey).ToArrayAsync();
       var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race);
 
       IReadOnlyList<JrdbRaceHorseData> jrdbHorses = Array.Empty<JrdbRaceHorseData>();
@@ -80,6 +81,7 @@ namespace KmyKeiba.Models.Analysis
         if (this.IsHorseAllHistories)
         {
           horseAllHistories = (await db.RaceHorses!
+            .AsNoTracking()
             .Where(rh => horseKeys.Contains(rh.Key))
             .Where(rh => rh.Key != "0000000000")
             .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, })
@@ -144,6 +146,7 @@ namespace KmyKeiba.Models.Analysis
         {
           var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
           horseHistorySameHorses = await db.RaceHorses!
+            .AsNoTracking()
             .Where(h => horseHistoryKeys.Contains(h.RaceKey))
             .Where(h => h.ResultOrder >= 1 && h.ResultOrder <= 5)
             .ToArrayAsync();
@@ -163,7 +166,7 @@ namespace KmyKeiba.Models.Analysis
         {
           var historyStandardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, history.Race);
           var sameHorses = horseHistorySameHorses.Where(h => h.RaceKey == history.RaceHorse.RaceKey);
-          histories.Add(new RaceHorseAnalyzer(history.Race, history.RaceHorse, sameHorses.ToArray(), historyStandardTime).AddTo(this.Disposables));
+          histories.Add(new RaceHorseAnalyzer(history.Race, history.RaceHorse, sameHorses.ToArray(), historyStandardTime).AddTo(this._disposables));
         }
 
         var jrdb = jrdbHorses.FirstOrDefault(j => j.Key == horse.Key);
@@ -240,5 +243,7 @@ namespace KmyKeiba.Models.Analysis
 
       return horseInfos;
     }
+
+    public void Dispose() => this._disposables.Dispose();
   }
 }
