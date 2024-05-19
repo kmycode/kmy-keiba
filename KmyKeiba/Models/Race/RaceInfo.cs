@@ -136,8 +136,6 @@ namespace KmyKeiba.Models.Race
 
     public string Name => this.Subject.DisplayName;
 
-    public bool IsAvoidCaching { get; private set; }
-
     public RaceMovieInfo Movie => this._movie ??= new(this.Data);
     private RaceMovieInfo? _movie;
 
@@ -372,8 +370,6 @@ namespace KmyKeiba.Models.Race
 
         await db.SaveChangesAsync();
 
-        this.IsAvoidCaching = true;
-        RaceInfoCacheManager.Remove(this.Data.Key);
         await this.CheckCanUpdateAsync();
 
         logger.Debug($"天気情報を {this.Weather.Value} に変更しました key: {key}");
@@ -400,8 +396,6 @@ namespace KmyKeiba.Models.Race
 
         await db.SaveChangesAsync();
 
-        this.IsAvoidCaching = true;
-        RaceInfoCacheManager.Remove(this.Data.Key);
         await this.CheckCanUpdateAsync();
 
         logger.Debug($"馬場状態を {this.Weather.Value} に変更しました key: {key}");
@@ -410,11 +404,6 @@ namespace KmyKeiba.Models.Race
       {
         logger.Warn($"馬場状態を {key} に変更できませんでした", ex);
       }
-    }
-
-    public static bool IsUpdateNeeded(RaceData old, IReadOnlyList<RaceHorseData> oldHorses, RaceInfo @new)
-    {
-      return IsUpdateNeeded(old, @new.Data, oldHorses, @new.Horses.Select(h => h.Data).ToArray());
     }
 
     public static bool IsUpdateNeeded(RaceData old, RaceData @new, IReadOnlyList<RaceHorseData> oldHorses, IReadOnlyList<RaceHorseData> newHorses)
@@ -448,13 +437,6 @@ namespace KmyKeiba.Models.Race
 
     public async Task CheckCanUpdateAsync()
     {
-      if (this.IsAvoidCaching)
-      {
-        // 天候馬場を手動で変更したとき
-        this.CanUpdate.Value = true;
-        return;
-      }
-
       // LastModifiedに時刻は記録されないので、各項目を比較するしかない
       try
       {
@@ -571,11 +553,6 @@ namespace KmyKeiba.Models.Race
         });
     }
 
-    public void UpdateCache()
-    {
-      RaceInfoCacheManager.UpdateCache(this.Data.Key, null);
-    }
-
     public void OpenNetKeibaPage()
     {
       string raceId, url;
@@ -684,8 +661,6 @@ namespace KmyKeiba.Models.Race
             await db.BeginTransactionAsync();
           }
 
-          var cache = RaceInfoCacheManager.TryGetCache(race.Key);
-
           var standardTime = await AnalysisUtil.GetRaceStandardTimeAsync(db, race);
 
           var factory = new RaceHorseAnalyzerRaceListFactory(race.Key)
@@ -697,7 +672,7 @@ namespace KmyKeiba.Models.Race
             IsJrdbData = true,
             IsOddsTimeline = true,
           }.AddTo(info._disposables);
-          var horseInfos = await factory.ToAnalyzerAsync(db, cache) ?? throw new InvalidOperationException();
+          var horseInfos = await factory.ToAnalyzerAsync(db) ?? throw new InvalidOperationException();
 
           var sortedHorses = horseInfos.All(h => h.Data.Number == default) ? horseInfos.OrderBy(h => h.Data.Name) : horseInfos.OrderBy(h => h.Data.Number);
           var horses = horseInfos.Select(h => h.Data).ToArray();
@@ -705,15 +680,15 @@ namespace KmyKeiba.Models.Race
           var horseKeys = horses.Select(h => h.Key).ToArray();
 
           info.SetHorsesDelay(horseInfos, standardTime);
-          info.AnalysisTable.Value = new AnalysisTable.AnalysisTableModel(info.Data, sortedHorses.ToArray(), cache?.AnalysisTable);
+          info.AnalysisTable.Value = new AnalysisTable.AnalysisTableModel(info.Data, sortedHorses.ToArray(), null);
 
           // オッズ
-          var frameOdds = cache?.Refund != null ? cache.FrameNumberOdds : await db.FrameNumberOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
-          var quinellaPlaceOdds = cache?.Refund != null ? cache.QuinellaPlaceOdds : await db.QuinellaPlaceOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
-          var quinellaOdds = cache?.Refund != null ? cache.QuinellaOdds : await db.QuinellaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
-          var exactaOdds = cache?.Refund != null ? cache.ExactaOdds : await db.ExactaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
-          var trioOdds = cache?.Refund != null ? cache.TrioOdds : await db.TrioOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
-          var trifectaOdds = cache?.Refund != null ? cache.TrifectaOdds : await db.TrifectaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+          var frameOdds = await db.FrameNumberOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+          var quinellaPlaceOdds = await db.QuinellaPlaceOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+          var quinellaOdds = await db.QuinellaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+          var exactaOdds = await db.ExactaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+          var trioOdds = await db.TrioOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
+          var trifectaOdds = await db.TrifectaOdds!.FirstOrDefaultAsync(o => o.RaceKey == race.Key);
           info.Odds.Value = new OddsInfo(horses, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
           logger.Info($"オッズ 枠連:{frameOdds != null} ワイド:{quinellaPlaceOdds != null} 馬連:{quinellaOdds != null} 馬単:{exactaOdds != null} 三連複:{trioOdds != null} 三連単:{trifectaOdds != null}");
 
@@ -768,28 +743,21 @@ namespace KmyKeiba.Models.Race
 
           // 調教
           var historyStartDate = race.StartTime.AddMonths(-3);
-          var trainings = cache?.Trainings ?? await db.Trainings!
+          var trainings = await db.Trainings!
             .Where(t => horseKeys.Contains(t.HorseKey) && t.StartTime <= race.StartTime && t.StartTime > historyStartDate)
             .OrderByDescending(t => t.StartTime)
             .ToArrayAsync();
-          var woodTrainings = cache?.WoodtipTrainings ?? await db.WoodtipTrainings!
+          var woodTrainings = await db.WoodtipTrainings!
             .Where(t => horseKeys.Contains(t.HorseKey) && t.StartTime <= race.StartTime && t.StartTime > historyStartDate)
             .OrderByDescending(t => t.StartTime)
             .ToArrayAsync();
-          logger.Info($"坂路調教: {trainings.Count}, ウッドチップ調教: {woodTrainings.Count}");
+          logger.Info($"坂路調教: {trainings.Length}, ウッドチップ調教: {woodTrainings.Length}");
           foreach (var horse in horseInfos)
           {
             horse.Training.Value = new TrainingAnalyzer(
               trainings.Where(t => t.HorseKey == horse.Data.Key).ToArray(),
               woodTrainings.Where(t => t.HorseKey == horse.Data.Key).ToArray()
               );
-          }
-
-          // キャッシング
-          if (isCache)
-          {
-            RaceInfoCacheManager.Register(info, factory.HorseAllHistories, factory.HorseHistorySameRaceHorses, factory.HorseDetails, factory.HorseSales, trainings, woodTrainings,
-               /*info.Finder*/null, /*info.AnalysisTable.Value?.ToCache()*/null, info.Payoff?.Payoff, frameOdds, quinellaPlaceOdds, quinellaOdds, exactaOdds, trioOdds, trifectaOdds);
           }
         }
         catch (Exception ex)

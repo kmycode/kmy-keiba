@@ -55,7 +55,7 @@ namespace KmyKeiba.Models.Analysis
       this.RaceKey = raceKey;
     }
 
-    public async Task<IReadOnlyList<RaceHorseAnalyzer>> ToAnalyzerAsync(MyContext db, RaceInfoCache? cache = null)
+    public async Task<IReadOnlyList<RaceHorseAnalyzer>> ToAnalyzerAsync(MyContext db)
     {
       var race = await db.Races!.FirstOrDefaultAsync(r => r.Key == this.RaceKey);
       if (race == null)
@@ -75,32 +75,21 @@ namespace KmyKeiba.Models.Analysis
 
       var horseKeys = horses.Select(h => h.Key).ToArray();
 
-      var horseAllHistories = cache?.HorseAllHistories;
-      if (horseAllHistories == null)
+      var horseAllHistories = Array.Empty<(RaceData Race, RaceHorseData RaceHorse)>();
+      if (this.IsHorseAllHistories)
       {
-        if (this.IsHorseAllHistories)
-        {
-          horseAllHistories = (await db.RaceHorses!
-            .AsNoTracking()
-            .Where(rh => horseKeys.Contains(rh.Key))
-            .Where(rh => rh.Key != "0000000000")
-            .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, })
-            .Where(d => d.Race.StartTime < race.StartTime)
-            .OrderByDescending(d => d.Race.StartTime)
-            .ToArrayAsync())
-            .Select(d => (d.Race, d.RaceHorse))
-            .ToArray();
-          logger.Debug($"馬の過去レースの総数: {horseAllHistories.Count}");
-        }
-        else
-        {
-          horseAllHistories = Array.Empty<(RaceData, RaceHorseData)>();
-        }
+        horseAllHistories = (await db.RaceHorses!
+          .AsNoTracking()
+          .Where(rh => horseKeys.Contains(rh.Key))
+          .Where(rh => rh.Key != "0000000000")
+          .Join(db.Races!, rh => rh.RaceKey, r => r.Key, (rh, r) => new { Race = r, RaceHorse = rh, })
+          .Where(d => d.Race.StartTime < race.StartTime)
+          .OrderByDescending(d => d.Race.StartTime)
+          .ToArrayAsync())
+          .Select(d => (d.Race, d.RaceHorse))
+          .ToArray();
       }
-      else
-      {
-        logger.Debug($"馬の過去レースの総数: {horseAllHistories.Count}");
-      }
+      logger.Debug($"馬の過去レースの総数: {horseAllHistories.Length}");
 
       // 時系列オッズ
       var oddsTimeline = Array.Empty<SingleOddsTimeline>();
@@ -111,52 +100,33 @@ namespace KmyKeiba.Models.Analysis
       }
 
       // 各馬の情報
-      var horseDetails = cache?.HorseDetails;
-      if (horseDetails == null)
+      var horseDetails = Array.Empty<HorseData>();
+      if (this.IsDetail)
       {
-        if (this.IsDetail)
-        {
-          horseDetails = await db.Horses!
-            .Where(h => horseKeys.Contains(h.Code))
-            .ToArrayAsync();
-        }
-        else
-        {
-          horseDetails = Array.Empty<HorseData>();
-        }
+        horseDetails = await db.Horses!
+          .Where(h => horseKeys.Contains(h.Code))
+          .ToArrayAsync();
       }
-      var horseSales = cache?.HorseSales;
-      if (horseSales == null)
+
+      var horseSales = Array.Empty<HorseSaleData>();
+      if (this.IsDetail)
       {
-        if (this.IsDetail)
-        {
-          horseSales = await db.HorseSales!
-            .Where(h => horseKeys.Contains(h.Code))
-            .ToArrayAsync();
-        }
-        else
-        {
-          horseSales = Array.Empty<HorseSaleData>();
-        }
+        horseSales = await db.HorseSales!
+          .Where(h => horseKeys.Contains(h.Code))
+          .ToArrayAsync();
       }
-      var horseHistorySameHorses = cache?.HorseHistorySameHorses;
-      if (horseHistorySameHorses == null)
+
+      var horseHistorySameHorses = Array.Empty<RaceHorseData>();
+      if (this.IsHorseHistorySameHorses)
       {
-        if (this.IsHorseHistorySameHorses)
-        {
-          var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
-          horseHistorySameHorses = await db.RaceHorses!
-            .AsNoTracking()
-            .Where(h => horseHistoryKeys.Contains(h.RaceKey))
-            .Where(h => h.ResultOrder >= 1 && h.ResultOrder <= 5)
-            .ToArrayAsync();
-        }
-        else
-        {
-          horseHistorySameHorses = Array.Empty<RaceHorseData>();
-        }
+        var horseHistoryKeys = horseAllHistories.Select(h => h.RaceHorse.RaceKey).ToArray();
+        horseHistorySameHorses = await db.RaceHorses!
+          .AsNoTracking()
+          .Where(h => horseHistoryKeys.Contains(h.RaceKey))
+          .Where(h => h.ResultOrder >= 1 && h.ResultOrder <= 5)
+          .ToArrayAsync();
       }
-      logger.Debug($"馬の過去レースの同走馬数: {horseHistorySameHorses.Count}");
+      logger.Debug($"馬の過去レースの同走馬数: {horseHistorySameHorses.Length}");
 
       var horseInfos = new List<RaceHorseAnalyzer>();
       foreach (var horse in horses)

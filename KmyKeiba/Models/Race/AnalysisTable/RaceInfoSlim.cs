@@ -103,7 +103,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         IsHorseAllHistories = true,
         IsJrdbData = true,
       }.AddTo(info._disposables);
-      var horseInfos = await factory.ToAnalyzerAsync(db, null);
+      var horseInfos = await factory.ToAnalyzerAsync(db);
       if (horseInfos == null)
       {
         throw new InvalidOperationException();

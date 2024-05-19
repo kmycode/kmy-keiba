@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race
 {
+  [Obsolete("キャッシュ機能自体を削除", true)]
   internal static class RaceInfoCacheManager
   {
     private static readonly List<RaceInfoCache> _caches = new();
@@ -147,6 +148,7 @@ namespace KmyKeiba.Models.Race
     }
   }
 
+  [Obsolete("キャッシュ機能自体を削除", true)]
   internal class RaceInfoCache
   {
     public RaceData Data { get; }
