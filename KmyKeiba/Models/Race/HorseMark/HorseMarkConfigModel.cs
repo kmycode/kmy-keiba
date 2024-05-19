@@ -59,6 +59,7 @@ namespace KmyKeiba.Models.Race.HorseMark
       }
       catch (Exception ex)
       {
+        // TODO: 画面に表示
         logger.Error("印設定の追加でエラー", ex);
       }
     }
@@ -86,6 +87,7 @@ namespace KmyKeiba.Models.Race.HorseMark
       }
       catch (Exception ex)
       {
+        // TODO: 画面に表示
         logger.Error("印設定の削除でエラー", ex);
       }
     }
@@ -94,11 +96,10 @@ namespace KmyKeiba.Models.Race.HorseMark
     {
       try
       {
-        var prev = this.Configs.TakeWhile(c => c != config).LastOrDefault();
-        if (prev == null)
-        {
-          return;
-        }
+        var index = this.Configs.IndexOf(config);
+        if (index < 1) return;
+
+        var prev = this.Configs[index - 1];
 
         using var db = new MyContext();
         db.HorseMarkConfigs!.Attach(prev.Data);
@@ -110,12 +111,11 @@ namespace KmyKeiba.Models.Race.HorseMark
 
         await db.SaveChangesAsync();
 
-        var index = this.Configs.IndexOf(config);
-        this.Configs.Remove(prev);
-        this.Configs.Insert(index, prev);
+        this.Configs.Move(index, index - 1);
       }
       catch (Exception ex)
       {
+        // TODO: 画面に表示
         logger.Error("印設定の並べ替えでエラー", ex);
       }
     }
@@ -124,11 +124,10 @@ namespace KmyKeiba.Models.Race.HorseMark
     {
       try
       {
-        var next = this.Configs.SkipWhile(c => c != config).ElementAtOrDefault(1);
-        if (next == null)
-        {
-          return;
-        }
+        var index = this.Configs.IndexOf(config);
+        if (index < 0 || index >= this.Configs.Count - 1) return;
+
+        var next = this.Configs[index + 1];
 
         using var db = new MyContext();
         db.HorseMarkConfigs!.Attach(next.Data);
@@ -140,12 +139,11 @@ namespace KmyKeiba.Models.Race.HorseMark
 
         await db.SaveChangesAsync();
 
-        var index = this.Configs.IndexOf(config);
-        this.Configs.Remove(next);
-        this.Configs.Insert(index, next);
+        this.Configs.Move(index, index + 1);
       }
       catch (Exception ex)
       {
+        // TODO: 画面に表示
         logger.Error("印設定の並べ替えでエラー", ex);
       }
     }

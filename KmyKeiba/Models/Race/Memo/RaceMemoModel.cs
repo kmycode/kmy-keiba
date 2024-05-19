@@ -46,7 +46,7 @@ namespace KmyKeiba.Models.Race.Memo
 
     public RaceMemoConfig Config { get; } = new();
 
-    public PointLabelModel LabelConfig => throw new InvalidOperationException("このプロパティはViewModelに移動します");
+    public PointLabelModel LabelConfig => throw new NotSupportedException("このプロパティはViewModelに移動します");
 
     public ReactiveProperty<HorseTeamModel?> TeamModel { get; } = new();
 

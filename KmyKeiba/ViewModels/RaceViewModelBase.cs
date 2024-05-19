@@ -40,6 +40,9 @@ namespace KmyKeiba.ViewModels
 
     public PointLabelModel LabelConfig => PointLabelModel.Default;
 
+    public HorseMarkConfigModel HorseMarkConfig => HorseMarkConfigModel.Instance;
+
+
     public ReactiveProperty<RaceInfo?> Race => this.model.Info;
 
     public ReactiveProperty<bool> IsLoaded => this.model.IsLoaded;
@@ -271,22 +274,22 @@ namespace KmyKeiba.ViewModels
 
     public ICommand AddMarkConfigCommand =>
       this._addMarkConfigCommand ??=
-        new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.model.Info.Value?.HorseMark.Value?.Config.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand(this.CanSave).WithSubscribe(_ => this.HorseMarkConfig.AddConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _addMarkConfigCommand;
 
     public ICommand RemoveMarkConfigCommand =>
       this._removeMarkConfigCommand ??=
-        new AsyncReactiveCommand(this.CanSave).WithSubscribe(() => this.model.Info.Value?.HorseMark.Value?.Config.RemoveConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand(this.CanSave).WithSubscribe(() => this.HorseMarkConfig.RemoveConfigAsync() ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _removeMarkConfigCommand;
 
     public ICommand UpMarkConfigCommand =>
       this._upMarkConfigCommand ??=
-        new AsyncReactiveCommand<HorseMarkConfig>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.HorseMark.Value?.Config.UpConfigAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<HorseMarkConfig>(this.CanSave).WithSubscribe(obj => this.HorseMarkConfig.UpConfigAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _upMarkConfigCommand;
 
     public ICommand DownMarkConfigCommand =>
       this._downMarkConfigCommand ??=
-        new AsyncReactiveCommand<HorseMarkConfig>(this.CanSave).WithSubscribe(obj => this.model.Info.Value?.HorseMark.Value?.Config.DownConfigAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
+        new AsyncReactiveCommand<HorseMarkConfig>(this.CanSave).WithSubscribe(obj => this.HorseMarkConfig.DownConfigAsync(obj) ?? Task.CompletedTask).AddTo(this._disposables);
     private ICommand? _downMarkConfigCommand;
 
     #endregion

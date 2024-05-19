@@ -25,7 +25,7 @@ namespace KmyKeiba.Models.Race.HorseMark
     private readonly IReadOnlyList<RaceHorseAnalyzer> _horses;
     private readonly string _raceKey;
 
-    public HorseMarkConfigModel Config => HorseMarkConfigModel.Instance;
+    public HorseMarkConfigModel Config => throw new NotSupportedException("ViewModelに移動");
 
     public ReactiveCollection<HorseMarkRow> Rows { get; } = new();
 
@@ -34,7 +34,10 @@ namespace KmyKeiba.Models.Race.HorseMark
       this._raceKey = raceKey;
       this._horses = horses;
 
-      this.Config.Configs.CollectionChangedAsObservable().Subscribe(_ => this.OnMarkConfigChanged(null)).AddTo(this._disposables);
+      HorseMarkConfigModel.Instance.Configs
+        .CollectionChangedAsObservable()
+        .Subscribe(_ => this.OnMarkConfigChanged(null))
+        .AddTo(this._disposables);
     }
 
     private void OnMarkConfigChanged(IEnumerable<HorseMarkData>? marks)
