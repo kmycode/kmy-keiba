@@ -161,7 +161,7 @@
             <ToggleButton Content="ラベル置換する" Width="160"
                           IsChecked="{Binding Race.MemoEx.Value.Config.IsUseLabel.Value,Mode=TwoWay,ElementName=Root}"/>
             <ComboBox Visibility="{Binding Race.MemoEx.Value.Config.IsUseLabel.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
-                      FontSize="16" ItemsSource="{Binding Race.MemoEx.Value.LabelConfig.Configs,ElementName=Root}" Width="200"
+                      FontSize="16" ItemsSource="{Binding LabelConfig.Configs}" Width="200"
                       SelectedItem="{Binding Race.MemoEx.Value.Config.SelectedLabel.Value,ElementName=Root,Mode=TwoWay}">
               <ComboBox.ItemTemplate>
                 <DataTemplate>

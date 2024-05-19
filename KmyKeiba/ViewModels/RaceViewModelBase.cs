@@ -38,6 +38,8 @@ namespace KmyKeiba.ViewModels
 
     public AnalysisTableScriptConfigModel AnalysisTableScriptConfig => AnalysisTableScriptConfigModel.Default;
 
+    public PointLabelModel LabelConfig => PointLabelModel.Default;
+
     public ReactiveProperty<RaceInfo?> Race => this.model.Info;
 
     public ReactiveProperty<bool> IsLoaded => this.model.IsLoaded;
