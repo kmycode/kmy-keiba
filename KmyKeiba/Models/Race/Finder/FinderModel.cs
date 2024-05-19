@@ -452,15 +452,6 @@ namespace KmyKeiba.Models.Race.Finder
       this.SwitchTab(tab);
     }
 
-    private void SwitchTab(int tabId)
-    {
-      var tab = this.Tabs.FirstOrDefault(t => t.TabId == tabId);
-      if (tab != null)
-      {
-        this.SwitchTab(tab);
-      }
-    }
-
     private void SwitchTab(FinderTab tab)
     {
       if (!tab.IsChecked.Value)

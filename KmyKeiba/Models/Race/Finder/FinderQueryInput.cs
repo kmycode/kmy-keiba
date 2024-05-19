@@ -537,7 +537,8 @@ namespace KmyKeiba.Models.Race.Finder
     public void Dispose()
     {
       this._disposables.Dispose();
-      IFinderQueryInputCategory? cate = null;
+
+      IFinderQueryInputCategory? cate = null; // デバッグ用
       try
       {
         foreach (var category in this._categories)

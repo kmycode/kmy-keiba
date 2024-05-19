@@ -116,12 +116,12 @@ namespace KmyKeiba.Models.Race
         }
       });
 
-      Task.Run(async () =>
+      // TODO: レース切替時のメモリリーク調査用のコード
+      // 現在この問題は発生していないため削除してもよいのだが、今後再発した場合のために残しておく
+#if DEBUG
+      return;
+      _ = Task.Run(async () =>
       {
-        return;
-
-        // TODO: メモリリークを調べる
-
         var races = this.RaceList.Courses.SelectMany(c => c.Races);
         while (races.Count() < 71) await Task.Delay(50);
         races = races.ToArray();
@@ -148,6 +148,7 @@ namespace KmyKeiba.Models.Race
 
         }
       });
+#endif
     }
 
     public void OnSelectedRaceUpdated()

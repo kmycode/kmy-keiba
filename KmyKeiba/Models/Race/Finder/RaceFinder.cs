@@ -90,10 +90,15 @@ namespace KmyKeiba.Models.Race.Finder
 
     public void CopyFrom(RaceFinder others)
     {
-      CopyFrom(others, others._finder.Race, others._finder.RaceHorse, others._finder.RaceHorseAnalyzer);
+      this._raceHorseCaches = others._raceHorseCaches;
     }
 
-    public static RaceFinder CopyFrom(RaceFinder old, RaceData? race = null, RaceHorseData? horse = null, RaceHorseAnalyzer? analyzer = null)
+    public RaceFinder Duplicate(RaceFinder others)
+    {
+      return Duplicate(others, others._finder.Race, others._finder.RaceHorse, others._finder.RaceHorseAnalyzer);
+    }
+
+    public static RaceFinder Duplicate(RaceFinder old, RaceData? race = null, RaceHorseData? horse = null, RaceHorseAnalyzer? analyzer = null)
     {
       var finder = analyzer == null ? new RaceFinder(race, horse) : new RaceFinder(analyzer);
       finder._raceHorseCaches = old._raceHorseCaches;

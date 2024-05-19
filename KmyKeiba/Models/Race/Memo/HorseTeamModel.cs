@@ -205,20 +205,26 @@ namespace KmyKeiba.Models.Race.Memo
         return;
       }
 
+      RaceHorseSingleMemoItem? oldTeamMemo = null;
+
       if (oldTeam != null)
       {
-        var oldTeamMemo = oldTeam.Memos.FirstOrDefault(m => m.RaceHorse.Data.Id == memo.RaceHorse.Data.Id);
+        oldTeamMemo = oldTeam.Memos.FirstOrDefault(m => m.RaceHorse.Data.Id == memo.RaceHorse.Data.Id);
         if (oldTeamMemo == null) return;
 
         oldTeam.Memos.Remove(oldTeamMemo);
       }
 
-      if (newTeam == null) return;
+      if (newTeam == null)
+      {
+        oldTeamMemo?.Dispose();
+        return;
+      }
 
       AddToNewTeam();
     }
 
-    public void Dispose() => this._disposables?.Dispose();
+    public void Dispose() => this._disposables.Dispose();
   }
 
   public class HorseTeamSection

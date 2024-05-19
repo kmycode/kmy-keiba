@@ -627,6 +627,7 @@ namespace KmyKeiba.Models.Race
       this.Odds.Value?.Dispose();
       this.Tickets.Value?.Dispose();
       this.Payoff?.Dispose();
+      this.HorseMark.Value?.Dispose();
 
       //Models.Analysis.RaceAnalyzer.OutputLogCount();
     }

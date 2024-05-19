@@ -201,6 +201,10 @@ namespace KmyKeiba.Models.Race.Tickets
     public void Dispose()
     {
       this._disposables.Dispose();
+      foreach (var ticket in this.Tickets)
+      {
+        ticket.Dispose();
+      }
       this.Tickets.Dispose();
     }
 

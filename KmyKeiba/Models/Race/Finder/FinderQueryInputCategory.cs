@@ -2012,6 +2012,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public HorseBloodInputCategory()
     {
+      this.Disposables.Add(this.HorseBlood);
       this.Configs.CollectionChangedAsObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
     }
 
@@ -3070,6 +3071,7 @@ namespace KmyKeiba.Models.Race.Finder
               var label = PointLabelModel.Default.Configs.FirstOrDefault(c => c.Data.Id == (uint)config.PointLabelId);
               if (label == null)
               {
+                item.Dispose();
                 continue;
               }
             }
@@ -3103,7 +3105,17 @@ namespace KmyKeiba.Models.Race.Finder
       this.Items.Clear();
     }
 
-    public class MemoConfigItem
+    public override void Dispose()
+    {
+      base.Dispose();
+
+      foreach (var item in this.Items)
+      {
+        item.Dispose();
+      }
+    }
+
+    public class MemoConfigItem : IDisposable
     {
       public ExpansionMemoConfig Config { get; }
 
@@ -3195,6 +3207,11 @@ namespace KmyKeiba.Models.Race.Finder
         }
 
         return $"memo/{string.Join('/', targets2)}/number:{this.Config.MemoNumber}/:{point}";
+      }
+
+      public void Dispose()
+      {
+        this.Point.Dispose();
       }
     }
   }

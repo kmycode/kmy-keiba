@@ -256,7 +256,7 @@ namespace KmyKeiba.Models.Race.Memo
           }
           this.UpdateRaceMemoSelections();
 
-        this.TeamModel.Value = new HorseTeamModel(this.RaceHorses, this.RaceHorseMemos);
+          this.TeamModel.Value = new HorseTeamModel(this.RaceHorses, this.RaceHorseMemos);
         });
       }
       catch (Exception ex)

@@ -142,6 +142,11 @@ namespace KmyKeiba.Models.Race.HorseMark
     public void Dispose()
     {
       this._disposables.Dispose();
+
+      foreach (var cell in this.Rows.SelectMany(r => r.Cells))
+      {
+        cell.Dispose();
+      }
     }
   }
 
