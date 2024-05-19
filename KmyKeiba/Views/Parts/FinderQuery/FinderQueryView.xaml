@@ -299,13 +299,13 @@
       <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_RaceSubject2,Converter={StaticResource BooleanVisibilityConv}}"
                     VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-          <Grid>
+          <Grid Width="350">
             <Grid.RowDefinitions>
               <RowDefinition Height="auto"/>
               <RowDefinition Height="auto"/>
               <RowDefinition/>
             </Grid.RowDefinitions>
-            <Grid Width="350" Height="280"
+            <Grid Height="280"
                   Visibility="{Binding IsSubViewBeforeRace,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
               <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
