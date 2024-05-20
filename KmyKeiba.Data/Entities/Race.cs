@@ -858,6 +858,13 @@ namespace KmyKeiba.JVLink.Entities
     CentralMaxValue = 28,
   }
 
+  public static class RaceCourseExtensions
+  {
+    public static bool IsCentral(this RaceCourse course) => course <= RaceCourse.CentralMaxValue;
+    public static bool IsLocal(this RaceCourse course) => course >= RaceCourse.LocalMinValue && course < RaceCourse.Foreign;
+    public static bool IsForeign(this RaceCourse course) => course >= RaceCourse.Foreign;
+  }
+
   public enum TrackGround : short
   {
     Unknown = 0,

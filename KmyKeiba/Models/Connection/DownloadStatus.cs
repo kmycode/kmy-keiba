@@ -119,7 +119,7 @@ namespace KmyKeiba.Models.Connection
       }
     }
 
-    public async Task OnDownloadProgress(DownloaderTaskData task)
+    public Task OnDownloadProgress(DownloaderTaskData task)
     {
       var config = DownloadConfig.Instance;
 
@@ -149,6 +149,8 @@ namespace KmyKeiba.Models.Connection
         "odds" => Connection.DownloadingType.Odds,
         _ => default,
       };
+
+      return Task.CompletedTask;
     }
 
     public Task OnRTDownloadProgress(DownloaderTaskData task)
