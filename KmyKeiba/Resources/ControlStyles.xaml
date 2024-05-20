@@ -26,6 +26,11 @@
   <Style TargetType="TextBox" x:Key="TextBoxDefault">
     <Setter Property="Foreground" Value="{StaticResource BaseForeground}"/>
     <Setter Property="Background" Value="{StaticResource BaseBackground}"/>
+    <Style.Triggers>
+      <Trigger Property="IsReadOnly" Value="True">
+        <Setter Property="BorderBrush" Value="Black"/>
+      </Trigger>
+    </Style.Triggers>
   </Style>
   <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxDefault}"/>
   <Style TargetType="PasswordBox" x:Key="PasswordBoxDefault">
