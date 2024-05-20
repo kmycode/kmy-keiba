@@ -28,20 +28,20 @@ namespace KmyKeiba.Models.Analysis
 
     public MultipleCheckableCollection<MenuItem> MenuItems { get; } = new();
 
-    public ReactiveProperty<MenuItem?> Father { get; } = new();
-    public ReactiveProperty<MenuItem?> FatherFather { get; } = new();
-    public ReactiveProperty<MenuItem?> FatherFatherFather { get; } = new();
-    public ReactiveProperty<MenuItem?> FatherFatherMother { get; } = new();
-    public ReactiveProperty<MenuItem?> FatherMother { get; } = new();
-    public ReactiveProperty<MenuItem?> FatherMotherFather { get; } = new();
-    public ReactiveProperty<MenuItem?> FatherMotherMother { get; } = new();
-    public ReactiveProperty<MenuItem?> Mother { get; } = new();
-    public ReactiveProperty<MenuItem?> MotherFather { get; } = new();
-    public ReactiveProperty<MenuItem?> MotherFatherFather { get; } = new();
-    public ReactiveProperty<MenuItem?> MotherFatherMother { get; } = new();
-    public ReactiveProperty<MenuItem?> MotherMother { get; } = new();
-    public ReactiveProperty<MenuItem?> MotherMotherFather { get; } = new();
-    public ReactiveProperty<MenuItem?> MotherMotherMother { get; } = new();
+    public ReactiveProperty<MenuItem?> Father { get; } = new(MenuItem.Empty);
+    public ReactiveProperty<MenuItem?> FatherFather { get; } = new(MenuItem.Empty);
+    public ReactiveProperty<MenuItem?> FatherFatherFather { get; } = new(MenuItem.Empty);
+    public ReactiveProperty<MenuItem?> FatherFatherMother { get; } = new(MenuItem.Empty);
+    public ReactiveProperty<MenuItem?> FatherMother { get; } = new(MenuItem.Empty);
+    public ReactiveProperty<MenuItem?> FatherMotherFather { get; } = new(MenuItem.Empty);
+    public ReactiveProperty<MenuItem?> FatherMotherMother { get; } = new(MenuItem.Empty);
+    public ReactiveProperty<MenuItem?> Mother { get; } = new(MenuItem.Empty);
+    public ReactiveProperty<MenuItem?> MotherFather { get; } = new(MenuItem.Empty);
+    public ReactiveProperty<MenuItem?> MotherFatherFather { get; } = new(MenuItem.Empty);
+    public ReactiveProperty<MenuItem?> MotherFatherMother { get; } = new(MenuItem.Empty);
+    public ReactiveProperty<MenuItem?> MotherMother { get; } = new(MenuItem.Empty);
+    public ReactiveProperty<MenuItem?> MotherMotherFather { get; } = new(MenuItem.Empty);
+    public ReactiveProperty<MenuItem?> MotherMotherMother { get; } = new(MenuItem.Empty);
 
     public MultipleCheckableCollection<GeneralBloodItem> FourthGenerations { get; } = new();
     public MultipleCheckableCollection<GeneralBloodItem> FifthGenerations { get; } = new();
@@ -100,48 +100,6 @@ namespace KmyKeiba.Models.Analysis
           await UpdateMenuItemAsync(item);
         })
         .AddTo(this._disposables);
-    }
-
-    public void CopyFrom(RaceHorseBloodModel old)
-    {
-      if (old.IsRequestedInitialization)
-      {
-        return;
-      }
-
-      if (this.IsRequestedInitialization)
-      {
-        this._bloodCode = old._bloodCode;
-        var items = new List<MenuItem>();
-        foreach (var oldItem in old.MenuItems)
-        {
-          var item = new MenuItem(oldItem.Name, oldItem.BloodKey)
-          {
-            Type = oldItem.Type,
-            IsEnabled = oldItem.IsEnabled,
-            IsChecked = { Value = oldItem.IsChecked.Value, },
-          };
-          items.Add(item);
-        }
-        this.SetMenu(items);
-
-        ThreadUtil.InvokeOnUiThread(() =>
-        {
-          this.FourthGenerations.Clear();
-          this.FifthGenerations.Clear();
-          foreach (var item in old.FourthGenerations)
-          {
-            this.FourthGenerations.Add(item);
-          }
-          foreach (var item in old.FifthGenerations)
-          {
-            this.FifthGenerations.Add(item);
-          }
-        });
-      }
-      else
-      {
-      }
     }
 
     public void Dispose()
@@ -512,19 +470,29 @@ namespace KmyKeiba.Models.Analysis
       string BloodKey { get; }
 
       bool IsMale { get; }
+
+      bool IsDisabled { get; }
     }
 
     public class MenuItem : IBloodCheckableItem
     {
+      public static MenuItem Empty { get; } = new(string.Empty, "00000000")
+      {
+        IsEnabled = false,
+        IsEmpty = true,
+      };
+
       public ReactiveProperty<bool> IsChecked { get; } = new();
 
-      public bool IsEmpty { get; }
+      public bool IsEmpty { get; private init; }
 
       public string? GroupName => null;
 
       public BloodType Type { get; init; }
 
       public bool IsEnabled { get; set; }
+
+      public bool IsDisabled => !this.IsEnabled;
 
       public string Name { get; init; }
 

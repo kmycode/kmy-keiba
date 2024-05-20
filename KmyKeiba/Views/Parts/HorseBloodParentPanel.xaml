@@ -15,28 +15,29 @@
       </ToolTip>
     </Border.ToolTip>
     -->
-    <ToggleButton IsChecked="{Binding Item.IsChecked.Value,ElementName=Root,Mode=TwoWay}"
-                  IsEnabled="{Binding Item.IsDisabled,ElementName=Root,Converter={StaticResource NegativeConv}}"
-                  Visibility="{Binding Item.IsEmpty,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"
-                  Background="{Binding Item.IsMale,ElementName=Root,Converter={StaticResource BooleanBackgroundIsMaleConv}}"
-                  FontSize="32">
-      <ToggleButton.Style>
-        <Style TargetType="ToggleButton" BasedOn="{StaticResource ListItemToggleNotDisabled}">
-          <Style.Triggers>
-            <Trigger Property="IsChecked" Value="True">
-              <Setter Property="Background" Value="#4400ffff"/>
-            </Trigger>
-          </Style.Triggers>
-        </Style>
-      </ToggleButton.Style>
-      <ToggleButton.Template>
-        <ControlTemplate>
-          <Border Background="{TemplateBinding Background}">
-            <TextBlock Text="{Binding Item.Name,ElementName=Root}" FontSize="{Binding FontSize,ElementName=Root}"
-                       VerticalAlignment="Center" HorizontalAlignment="Center" TextWrapping="Wrap"/>
-          </Border>
-        </ControlTemplate>
-      </ToggleButton.Template>
-    </ToggleButton>
+    <Border Visibility="{Binding Item.IsEmpty,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}"
+            Background="{Binding Item.IsMale,ElementName=Root,Converter={StaticResource BooleanBackgroundIsMaleConv}}">
+      <ToggleButton IsChecked="{Binding Item.IsChecked.Value,ElementName=Root,Mode=TwoWay}"
+                    IsEnabled="{Binding Item.IsDisabled,ElementName=Root,Converter={StaticResource NegativeConv}}"
+                    FontSize="32">
+        <ToggleButton.Style>
+          <Style TargetType="ToggleButton" BasedOn="{StaticResource ListItemToggleNotDisabled}">
+            <Style.Triggers>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Background" Value="#4400ffff"/>
+              </Trigger>
+            </Style.Triggers>
+          </Style>
+        </ToggleButton.Style>
+        <ToggleButton.Template>
+          <ControlTemplate>
+            <Border Background="{TemplateBinding Background}">
+              <TextBlock Text="{Binding Item.Name,ElementName=Root}" FontSize="{Binding FontSize,ElementName=Root}"
+                          VerticalAlignment="Center" HorizontalAlignment="Center" TextWrapping="Wrap"/>
+            </Border>
+          </ControlTemplate>
+        </ToggleButton.Template>
+      </ToggleButton>
+    </Border>
   </Border>
 </UserControl>
