@@ -859,6 +859,8 @@ namespace KmyKeiba.Models.Race.Memo
 
     public ReactiveProperty<bool> IsRaceHeaderCombo { get; } = new();
 
+    public ReactiveProperty<bool> IsHorseTeam { get; } = new();
+
     public RaceMemoConfig()
     {
       this.IsFilterRace
@@ -881,15 +883,19 @@ namespace KmyKeiba.Models.Race.Memo
         {
           this.IsRaceHeaderCombo.Value = false;
           var targets = this.GetTargets(false, true);
-          if (targets.Count == 1 && targets[0] == MemoTarget.Race && this.IsRaceTab.Value)
+          if (targets.Count == 1 && targets[0] == MemoTarget.Race && this.IsRaceTab.Value &&
+              (this.IsStylePoint.Value || this.IsStylePointAndMemo.Value) &&
+              this.IsUseLabel.Value && this.SelectedLabel.Value != null)
           {
-            if (this.IsStylePoint.Value || this.IsStylePointAndMemo.Value)
-            {
-              if (this.IsUseLabel.Value && this.SelectedLabel.Value != null)
-              {
-                this.IsRaceHeaderCombo.Value = true;
-              }
-            }
+            this.IsRaceHeaderCombo.Value = true;
+          }
+
+          this.IsHorseTeam.Value = false;
+          if (targets.Count > 0 && !this.IsRaceTab.Value &&
+              (this.IsStylePoint.Value || this.IsStylePointAndMemo.Value) &&
+              this.IsUseLabel.Value && this.SelectedLabel.Value != null)
+          {
+            this.IsHorseTeam.Value = true;
           }
         })
         .AddTo(this._disposables);

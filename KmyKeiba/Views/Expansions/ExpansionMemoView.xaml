@@ -184,7 +184,10 @@
             <TextBlock Text="{Binding Race.MemoEx.Value.Config.ErrorMessage.Value,Mode=OneWay,ElementName=Root}" FontSize="16" VerticalAlignment="Center" Foreground="{StaticResource ErrorForeground}"
                        Margin="16,0,16,0"/>
             <TextBlock Visibility="{Binding Race.MemoEx.Value.Config.IsRaceHeaderCombo.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}" FontSize="16" VerticalAlignment="Center"
-                       Foreground="{StaticResource SubForeground}" Text="レース名の横に選択肢が表示されます"
+                       Foreground="{StaticResource SubForeground}" Text="画面上部レース名の横に選択肢が表示されます"
+                       Margin="16,0,16,0"/>
+            <TextBlock Visibility="{Binding Race.MemoEx.Value.Config.IsHorseTeam.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}" FontSize="16" VerticalAlignment="Center"
+                       Foreground="{StaticResource SubForeground}" Text="馬グループ画面で一覧を表示・編集できます"
                        Margin="16,0,16,0"/>
           </StackPanel>
         </Grid>
