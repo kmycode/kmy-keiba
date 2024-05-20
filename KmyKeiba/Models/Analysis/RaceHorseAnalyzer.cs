@@ -587,6 +587,7 @@ namespace KmyKeiba.Models.Analysis
     Good,
     Bad,
     Warning,
+    Exception,
   }
 
   public struct ResultOrderGradeMap

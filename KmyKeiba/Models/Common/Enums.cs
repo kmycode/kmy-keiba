@@ -13,5 +13,6 @@ namespace KmyKeiba.Models.Common
     Bad,
     Warning,
     Standard,
+    Exception,
   }
 }

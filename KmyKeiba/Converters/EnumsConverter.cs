@@ -25,6 +25,7 @@ namespace KmyKeiba.Converters
     private static readonly Brush _baseBrush = Application.Current.TryFindResource("BaseForeground") as Brush ?? Brushes.Red;
     private static readonly Brush _goodBrush = Application.Current.TryFindResource("GoodForeground") as Brush ?? Brushes.Red;
     private static readonly Brush _badBrush = Application.Current.TryFindResource("BadForeground") as Brush ?? Brushes.Blue;
+    private static readonly Brush _unknownBrush = Application.Current.TryFindResource("SubForeground") as Brush ?? Brushes.Gray;
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
@@ -151,6 +152,7 @@ namespace KmyKeiba.Converters
             RacePace.Standard => _baseBrush,
             RacePace.High => _goodBrush,
             RacePace.VeryHigh => _goodBrush,
+            RacePace.Unknown => _unknownBrush,
             _ => _baseBrush,
           };
         }
