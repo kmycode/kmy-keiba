@@ -196,8 +196,10 @@ namespace KmyKeiba.Models.Race.HorseMark
       this.Config = config;
       this.CanEdit = true;
 
-      this.Mark.Skip(1).Subscribe(async mark =>
+      this.Mark.Skip(1).Where(m => this.Data.Mark != m).Subscribe(async mark =>
       {
+        var oldMark = this.Data.Mark;
+
         try
         {
           using var db = new MyContext();
@@ -215,7 +217,11 @@ namespace KmyKeiba.Models.Race.HorseMark
         }
         catch (Exception ex)
         {
+          // TODO: エラーを画面に出す
           logger.Error("印の保存でエラー", ex);
+
+          this.Data.Mark = oldMark;
+          this.Mark.Value = oldMark;
         }
       }).AddTo(this._disposables);
 

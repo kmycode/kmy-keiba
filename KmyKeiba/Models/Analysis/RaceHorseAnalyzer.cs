@@ -501,10 +501,20 @@ namespace KmyKeiba.Models.Analysis
     private async Task ChangeHorseMarkAsync(string marks)
     {
       var mark = EnumUtil.ToHorseMark(marks);
+      var oldMark = this.Mark.Value;
 
-      using var db = new MyContext();
-      this.ChangeHorseMark(db, mark);
-      await db.SaveChangesAsync();
+      try
+      {
+        using var db = new MyContext();
+        this.ChangeHorseMark(db, mark);
+        await db.SaveChangesAsync();
+      }
+      catch (Exception ex)
+      {
+        // TODO: エラーを画面に出す
+        logger.Warn("印付けでエラー", ex);
+        this.Mark.Value = this.Data.Mark = oldMark;
+      }
     }
 
     public void ChangeHorseMark(MyContext db, RaceHorseMark mark)
