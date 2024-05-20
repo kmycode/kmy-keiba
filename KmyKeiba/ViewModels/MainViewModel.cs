@@ -96,14 +96,6 @@ namespace KmyKeiba.ViewModels
           this.model.OnSelectedRaceUpdated();
         }).AddTo(this._disposables);
 
-      // 構成スクリプト
-      // 構成スクリプトがasync functionを返した場合、非同期実行になってしまい一部の設定が遅延反映になるかまたは無効
-      // （サンプルではfunctionを返してるので大丈夫だと思うが）
-      // 参考: C#ではasyncメソッドはawaitされるまでの処理はすべて同期的に実行される。
-      //       このRunAsyncの中でawaitするのはスクリプトがasync functionを返した場合に限られるので、
-      //       それさえなければ動機メソッドと同等の振る舞いをすると期待
-      _ = ConfigureScript.RunAsync();
-
       ScriptManager.Initialize();
       Task.Run(async () =>
       {

@@ -14,6 +14,26 @@
       <TextBlock Text="レース予想画面におけるレースのデフォルト検索設定" FontSize="16" Margin="0,16,0,8"/>
       <up:FinderKeyInputView IsShowFinderButtonOnly="True" FinderModel="{Binding GeneralConfig.DefaultRaceSetting,ElementName=Root}"
                              IsPopupOnMouse="True"/>
+
+      <TextBlock Text="近い距離のレースを検索するときの誤差（中央）" FontSize="16" Margin="0,16,0,8"/>
+      <TextBox FontSize="16" Text="{Binding GeneralConfig.NearDistanceDiffCentral.Value,ElementName=Root,Mode=TwoWay}"
+               Width="200" HorizontalAlignment="Left" TextAlignment="Right"/>
+
+      <TextBlock Text="近い距離のレースを検索するときの誤差（地方）" FontSize="16" Margin="0,16,0,8"/>
+      <TextBox FontSize="16" Text="{Binding GeneralConfig.NearDistanceDiffLocal.Value,ElementName=Root,Mode=TwoWay}"
+               Width="200" HorizontalAlignment="Left" TextAlignment="Right"/>
+
+      <TextBlock Text="持ちタイムを検索するとき、何年前まで調べるか（中央）" FontSize="16" Margin="0,16,0,8"/>
+      <TextBox FontSize="16" Text="{Binding GeneralConfig.ShortestTimeNearYearCentral.Value,ElementName=Root,Mode=TwoWay}"
+               Width="200" HorizontalAlignment="Left" TextAlignment="Right"/>
+
+      <TextBlock Text="持ちタイムを検索するとき、何年前まで調べるか（地方）" FontSize="16" Margin="0,16,0,8"/>
+      <TextBox FontSize="16" Text="{Binding GeneralConfig.ShortestTimeNearYearLocal.Value,ElementName=Root,Mode=TwoWay}"
+               Width="200" HorizontalAlignment="Left" TextAlignment="Right"/>
+
+      <ToggleButton FontSize="16" Margin="0,32,0,8" HorizontalAlignment="Left"
+                    Content="一括検索ボタンをメイン画面に表示する" IsChecked="{Binding GeneralConfig.IsShowScriptBulkButton.Value,ElementName=Root,Mode=TwoWay}"/>
+      <TextBlock Text="一括実行機能は大変低速で、初心者にはおすすめできません" FontSize="16" Foreground="{StaticResource SubForeground}"/>
     </StackPanel>
   </ScrollViewer>
 </UserControl>

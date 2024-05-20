@@ -47,5 +47,10 @@ namespace KmyKeiba.Data.Db
     LastLaunchDateEx = 22,
     DefaultRaceSearchSetting = 23,
     IsNotDownloadMiningData = 24,
+    NearDistanceDiffCentral = 25,
+    NearDistanceDiffLocal = 26,
+    ShortestTimeNearYearCentral = 27,
+    ShortestTimeNearYearLocal = 28,
+    IsShowScriptBulkButton = 29,
   }
 }

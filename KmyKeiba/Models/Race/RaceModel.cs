@@ -73,17 +73,7 @@ namespace KmyKeiba.Models.Race
           "[Ver.5変更点]\n拡張分析の各項目編集ならびに外部指数の設定は、\n設定画面に移動しました",
         };
         var index = new Random().Next(firstMessages.Length);
-        ApplicationConfiguration.Current.Skip(1).Select(c => c.IsFirstMessageVisible).Subscribe(v =>
-        {
-          if (v)
-          {
-            this.FirstMessage.Value = firstMessages[index];
-          }
-          else
-          {
-            this.FirstMessage.Value = string.Empty;
-          }
-        }).AddTo(this._disposables);
+        this.FirstMessage.Value = firstMessages[index];
       }
 
       this.RaceList.SelectedRaceKey.Subscribe(key =>

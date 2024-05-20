@@ -105,7 +105,7 @@
                                Text="{Binding Downloader.State.RTErrorMessage.Value}" Visibility="{Binding Downloader.State.IsRTError.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
                   </Grid>
                 </Border>
-                <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal" Visibility="{Binding AppSettings.Value.GeneralConfig.IsShowScriptBulkButton.Value,Converter={StaticResource BooleanVisibilityConv}}">
                   <Button Width="90" Padding="0" Command="{Binding OpenScriptBulkDialogCommand}"
                           Margin="0,4">
                     <TextBlock FontSize="18" TextAlignment="Center">

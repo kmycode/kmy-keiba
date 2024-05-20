@@ -103,7 +103,7 @@ namespace KmyKeiba.Models.Race.Memo
       }).AddTo(this._disposables);
       this.IsEditing.Where(v => v).Subscribe(_ => this.IsCreating.Value = false).AddTo(this._disposables);
 
-      foreach (var num in Enumerable.Range(1, Math.Max(1, ApplicationConfiguration.Current.Value.ExpansionMemoGroupSize)))
+      foreach (var num in Enumerable.Range(1, Math.Max(1, ApplicationConfiguration.ExpansionMemoGroupSize)))
       {
         var group = new RaceHorseMemoGroupInfo(num);
         group.IsChecked.Where(c => c).Subscribe(c =>

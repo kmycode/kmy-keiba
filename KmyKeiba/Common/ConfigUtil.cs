@@ -46,13 +46,13 @@ namespace KmyKeiba.Common
       }
     }
 
-    public static int GetIntValue(SettingKey key)
+    public static int GetIntValue(SettingKey key, int defaultValue = default)
     {
       if (_caches.TryGetValue(key, out var data))
       {
         return data.IntValue;
       }
-      return default;
+      return defaultValue;
     }
 
     public static bool GetBooleanValue(SettingKey key)
