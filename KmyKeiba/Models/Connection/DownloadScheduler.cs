@@ -4,6 +4,7 @@ using KmyKeiba.Data.Db;
 using KmyKeiba.Models.Connection.Connector;
 using KmyKeiba.Models.Connection.PostProcess;
 using KmyKeiba.Models.Data;
+using Microsoft.EntityFrameworkCore;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
@@ -57,44 +58,75 @@ namespace KmyKeiba.Models.Connection
     private async Task FirstDownloadOnAppLaunchAsync()
     {
       this._isInitializationDownloading = true;
+      DateTime lastLaunch;
+      bool hasUnknownResultRaces = false;
 
-      using var db = new MyContext();
-      await db.TryBeginTransactionAsync();
-
-      this._lastStandardTimeUpdatedYear = ConfigUtil.GetIntValue(SettingKey.LastUpdateStandardTimeYear);
-      logger.Info($"最後に標準タイムを更新した年: {this._lastStandardTimeUpdatedYear}");
-
+      using (var db = new MyContext())
       {
-        if (DateTime.TryParse(ConfigUtil.GetStringValue(SettingKey.LastDownloadPlanOfRaceDate), out var lastDownloadedPlanOfRaceDate))
-        {
-          this._lastUpdatedPlanOfRace = lastDownloadedPlanOfRaceDate;
-        }
+        await db.TryBeginTransactionAsync();
 
-        if (DateTime.TryParse(ConfigUtil.GetStringValue(SettingKey.LastDownloadPreviousRaceDate), out var lastDownloadPreviousRaceDate))
-        {
-          this._lastUpdatedPreviousRace = lastDownloadPreviousRaceDate;
-        }
+        this._lastStandardTimeUpdatedYear = ConfigUtil.GetIntValue(SettingKey.LastUpdateStandardTimeYear);
+        logger.Info($"最後に標準タイムを更新した年: {this._lastStandardTimeUpdatedYear}");
 
-        if (DateTime.TryParse(ConfigUtil.GetStringValue(SettingKey.LastLaunchDateEx), out var lastLaunch))
         {
-          logger.Info($"最終起動日: {lastLaunch:yyyy/MM/dd}");
-
-          var minDate = DateTime.Today.AddMonths(-3);
-          if (lastLaunch < minDate)
+          if (DateTime.TryParse(ConfigUtil.GetStringValue(SettingKey.LastDownloadPlanOfRaceDate), out var lastDownloadedPlanOfRaceDate))
           {
-            lastLaunch = minDate;
-            logger.Info($"最終更新日が３か月より前だったので調整します {lastLaunch:yyyy/MM/dd}");
+            this._lastUpdatedPlanOfRace = lastDownloadedPlanOfRaceDate;
           }
+
+          if (DateTime.TryParse(ConfigUtil.GetStringValue(SettingKey.LastDownloadPreviousRaceDate), out var lastDownloadPreviousRaceDate))
+          {
+            this._lastUpdatedPreviousRace = lastDownloadPreviousRaceDate;
+          }
+
+          if (DateTime.TryParse(ConfigUtil.GetStringValue(SettingKey.LastLaunchDateEx), out lastLaunch))
+          {
+            logger.Info($"最終起動日: {lastLaunch:yyyy/MM/dd}");
+
+            var minDate = DateTime.Today.AddMonths(-3);
+            if (lastLaunch < minDate)
+            {
+              lastLaunch = minDate;
+              logger.Info($"最終更新日が３か月より前だったので調整します {lastLaunch:yyyy/MM/dd}");
+            }
+
+            if (lastLaunch.Date != DateTime.Today &&
+              await db.Races!.AnyAsync(r => r.StartTime >= lastLaunch && r.StartTime <= DateTime.Today && r.DataStatus < JVLink.Entities.RaceDataStatus.PreliminaryGradeFull))
+            {
+              hasUnknownResultRaces = true;
+            }
+          }
+
+          await ConfigUtil.SetStringValueAsync(db, SettingKey.LastLaunchDateEx, DateTime.Now.ToString());
         }
 
-        await ConfigUtil.SetStringValueAsync(db, SettingKey.LastLaunchDateEx, DateTime.Now.ToString());
+        logger.Info("初期ダウンロード完了");
+        this._isInitializationDownloading = false;
+
+        await db.SaveChangesAsync();
+        await db.CommitAsync();
       }
 
-      logger.Info("初期ダウンロード完了");
-      this._isInitializationDownloading = false;
+      // 前回起動から今日までのレース結果をダウンロード
+      if (hasUnknownResultRaces)
+      {
+        await this.DownloadLinkAsync(lastLaunch.Year, lastLaunch.Month);
+      }
+    }
 
-      await db.SaveChangesAsync();
-      await db.CommitAsync();
+    private async Task DownloadLinkAsync(int year, int month)
+    {
+      var connectors = new IConnector[]
+      {
+          Connectors.Central,
+          Connectors.Local,
+      };
+      foreach (var connector in connectors.Where(c => c.IsRTAvailable.Value))
+      {
+        await connector.DownloadAsync(new DateOnly(year, month, 1), DateOnly.FromDateTime(DateTime.Today));
+      }
+
+      await PostProcessing.RunAsync(DownloadStatus.Instance.RTProcessingStep, true, PostProcessings.AfterDownload);
     }
 
     private async Task UpdateDiffAsync()
@@ -206,17 +238,7 @@ namespace KmyKeiba.Models.Connection
       if (isSucceed)
       {
         // 通常レース予定は今週データから取得するのだが、地方・中央ともに通常データ取得でもいけるかも
-        var connectors = new IConnector[]
-        {
-          Connectors.Central,
-          Connectors.Local,
-        };
-        foreach (var connector in connectors.Where(c => c.IsRTAvailable.Value))
-        {
-          await connector.DownloadAsync(new DateOnly(today.Year, today.Month, 1), DateOnly.FromDateTime(DateTime.Today));
-        }
-
-        await PostProcessing.RunAsync(DownloadStatus.Instance.RTProcessingStep, true, PostProcessings.AfterDownload);
+        await this.DownloadLinkAsync(today.Year, today.Month);
       }
 
       return isSucceed;
