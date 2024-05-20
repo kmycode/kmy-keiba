@@ -33,7 +33,6 @@
         <TextBlock Margin="8,0,0,0">
           CefSharp.Wpf.NETCore<LineBreak/>
           FontAwesome<LineBreak/>
-          Keras.NET<LineBreak/>
           Microsoft.ClearScript<LineBreak/>
           Microsoft.EntityFrameworkCore<LineBreak/>
           Microsoft.EntityFrameworkCore.Design<LineBreak/>
