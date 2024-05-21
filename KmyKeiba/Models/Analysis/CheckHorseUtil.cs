@@ -30,7 +30,7 @@ namespace KmyKeiba.Models.Analysis
 
     public static bool IsChecked(string key, HorseCheckType type)
     {
-      return _checkedHorses.Any(h => h.Type == type && (h.Key == key || h.Code == key));
+      return _checkedHorses.Any(h => h.Type == type && h.Key == key);
     }
 
     public static async Task CheckAsync(MyContext db, string key, HorseCheckType type)
@@ -40,9 +40,8 @@ namespace KmyKeiba.Models.Analysis
         var item = new CheckHorseData
         {
           Type = type,
+          Key = key,
         };
-        if (key.Length == 10) item.Key = key;
-        else item.Code = key;
 
         await db.CheckHorses!.AddAsync(item);
         await db.SaveChangesAsync();
@@ -53,7 +52,7 @@ namespace KmyKeiba.Models.Analysis
 
     public static async Task UncheckAsync(MyContext db, string key, HorseCheckType type)
     {
-      var item = _checkedHorses.FirstOrDefault(h => h.Type == type && (h.Key == key || h.Code == key));
+      var item = _checkedHorses.FirstOrDefault(h => h.Type == type && h.Key == key);
       if (item != null)
       {
         db.CheckHorses!.Remove(item);
