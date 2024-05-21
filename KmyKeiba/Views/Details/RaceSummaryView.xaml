@@ -18,6 +18,7 @@
         <RowDefinition Height="auto"/>
         <RowDefinition Height="auto"/>
         <RowDefinition Height="auto"/>
+        <RowDefinition Height="auto"/>
         <RowDefinition/>
       </Grid.RowDefinitions>
 
@@ -155,22 +156,6 @@
         </StackPanel>
       </StackPanel>
 
-      <!--メモ-->
-      <StackPanel Grid.Row="3" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
-                  Margin="0,40,0,0">
-        <TextBlock Text="レースのメモ" FontSize="20" Width="800" Margin="0,0,0,4"/>
-        <TextBox TextWrapping="Wrap" AcceptsReturn="True" Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
-                 FontSize="16" MinHeight="160" MaxHeight="160" Width="800" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                 Text="{Binding Race.RaceAnalyzer.Value.Memo.Value,ElementName=Root,Mode=TwoWay}">
-          <TextBox.IsReadOnly>
-            <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
-              <Binding Path="Race.RaceAnalyzer.Value.CanSave.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
-              <Binding Path="Race.RaceAnalyzer.Value.IsMemoSaving.Value" ElementName="Root"/>
-            </MultiBinding>
-          </TextBox.IsReadOnly>
-        </TextBox>
-      </StackPanel>
-
       <!--レース制限-->
       <Grid Grid.Row="2" HorizontalAlignment="Center" Margin="0,24,0,0"
             Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}">
@@ -234,6 +219,116 @@
           </ItemsControl>
         </StackPanel>
       </Grid>
+
+      <!--メモ-->
+      <StackPanel Grid.Row="3" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+                  Margin="0,40,0,0">
+        <TextBlock Text="レースのメモ" FontSize="20" Width="800" Margin="0,0,0,4"/>
+        <TextBox TextWrapping="Wrap" AcceptsReturn="True" Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
+                 FontSize="16" MinHeight="160" MaxHeight="160" Width="800" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 Text="{Binding Race.RaceAnalyzer.Value.Memo.Value,ElementName=Root,Mode=TwoWay}">
+          <TextBox.IsReadOnly>
+            <MultiBinding Converter="{StaticResource MultiBooleanConv}" ConverterParameter="Or">
+              <Binding Path="Race.RaceAnalyzer.Value.CanSave.Value" ElementName="Root" Converter="{StaticResource NegativeConv}"/>
+              <Binding Path="Race.RaceAnalyzer.Value.IsMemoSaving.Value" ElementName="Root"/>
+            </MultiBinding>
+          </TextBox.IsReadOnly>
+        </TextBox>
+      </StackPanel>
+
+      <!--本日のレース傾向-->
+      <StackPanel Grid.Row="4" Margin="0,40,0,24" Width="800">
+        <StackPanel.Visibility>
+          <MultiBinding Converter="{StaticResource MultiBooleanConv}">
+            <Binding Path="Race.IsLoadCompleted.Value" ElementName="Root"/>
+            <Binding Path="Race.TodayTrend.Value.HasData" ElementName="Root"/>
+          </MultiBinding>
+        </StackPanel.Visibility>
+        <TextBlock FontSize="28" Margin="0,0,0,32">本日の <Run Text="{Binding Race.Data.Course,ElementName=Root,Converter={StaticResource CourseNameConv}}"/> でのレース傾向</TextBlock>
+
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition/>
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+          </Grid.RowDefinitions>
+
+          <TextBlock Text="枠番" Foreground="{StaticResource SubForeground}" FontSize="16"/>
+          <ItemsControl Grid.Column="1" ItemsSource="{Binding Race.TodayTrend.Value.GoodFrameNumbers,ElementName=Root}"
+                        Margin="0,0,0,24">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Width="60">
+                  <TextBlock Text="{Binding}" Height="32" FontSize="20" TextAlignment="Center"/>
+                  <Border Background="{Binding Converter={StaticResource FrameNumberBrushConv}}" Height="8"/>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Grid.Row="1" Text="好調騎手と今回の馬番" Foreground="{StaticResource SubForeground}" FontSize="16"/>
+          <ItemsControl Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Race.TodayTrend.Value.GoodRiders,ElementName=Root}"
+                        Margin="0,0,0,8">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding}" Height="40" Width="140" FontSize="20" Margin="0,0,16,0"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Grid.Row="2" Text="好調調教師と今回の馬番" Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,24,0"/>
+          <ItemsControl Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Race.TodayTrend.Value.GoodTrainers,ElementName=Root}"
+                        Margin="0,0,0,8">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding}" Height="40" Width="140" FontSize="20" Margin="0,0,16,0"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Grid.Row="3" Text="三連単の配当傾向" Foreground="{StaticResource SubForeground}" FontSize="16"/>
+          <TextBlock Grid.Row="3" Grid.Column="1" FontSize="20" Text="{Binding Race.TodayTrend.Value.RefundTrend,ElementName=Root,Converter={StaticResource LabelConv}}"
+                     Foreground="{Binding Race.TodayTrend.Value.RefundTrend,ElementName=Root,Converter={StaticResource EnumsConv}}"
+                     Margin="0,0,0,16"/>
+
+          <TextBlock Grid.Row="4" Text="最も多いレースペース" Foreground="{StaticResource SubForeground}" FontSize="16"/>
+          <TextBlock Grid.Row="4" Grid.Column="1" FontSize="20" Text="{Binding Race.TodayTrend.Value.MostRacePace,ElementName=Root,Converter={StaticResource LabelConv}}"
+                     Foreground="{Binding Race.TodayTrend.Value.MostRacePace,ElementName=Root,Converter={StaticResource EnumsConv}}"
+                     Margin="0,0,0,16"/>
+
+          <TextBlock Grid.Row="5" Text="優勝馬に最も多い脚質" Foreground="{StaticResource SubForeground}" FontSize="16"
+                     Margin="0,0,0,24"/>
+          <up:RunningStyleTip Grid.Row="5" Grid.Column="1" HorizontalAlignment="Left" Margin="0,0,0,24"
+                              RunningStyle="{Binding Race.TodayTrend.Value.MostRunningStyle,ElementName=Root}"/>
+
+          <TextBlock Grid.Row="6" Text="複勝馬に最も多い脚質" Foreground="{StaticResource SubForeground}" FontSize="16"/>
+          <up:RunningStyleTip Grid.Row="6" Grid.Column="1" HorizontalAlignment="Left"
+                              RunningStyle="{Binding Race.TodayTrend.Value.MostRunningStylePlace,ElementName=Root}"/>
+        </Grid>
+      </StackPanel>
 
       <!--ローディング-->
       <Border Grid.Row="2" Margin="0,56,0,0" Visibility="{Binding Race.IsLoadCompleted.Value,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">

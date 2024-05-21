@@ -2,6 +2,7 @@
 using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Entities;
 using KmyKeiba.Models.Analysis;
+using KmyKeiba.Models.Race;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -25,6 +26,7 @@ namespace KmyKeiba.Converters
     private static readonly Brush _baseBrush = Application.Current.TryFindResource("BaseForeground") as Brush ?? Brushes.Red;
     private static readonly Brush _goodBrush = Application.Current.TryFindResource("GoodForeground") as Brush ?? Brushes.Red;
     private static readonly Brush _badBrush = Application.Current.TryFindResource("BadForeground") as Brush ?? Brushes.Blue;
+    private static readonly Brush _warningBrush = Application.Current.TryFindResource("WarningForeground") as Brush ?? Brushes.Yellow;
     private static readonly Brush _unknownBrush = Application.Current.TryFindResource("SubForeground") as Brush ?? Brushes.Gray;
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -154,6 +156,20 @@ namespace KmyKeiba.Converters
             RacePace.VeryHigh => _goodBrush,
             RacePace.Unknown => _unknownBrush,
             _ => _baseBrush,
+          };
+        }
+      }
+
+      if (value is RaceRefundTrend trend)
+      {
+        if (targetType == typeof(Brush))
+        {
+          return trend switch
+          {
+            RaceRefundTrend.Normal => _baseBrush,
+            RaceRefundTrend.Warning => _warningBrush,
+            RaceRefundTrend.Turbulence => _badBrush,
+            _ => _unknownBrush,
           };
         }
       }

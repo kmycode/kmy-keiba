@@ -106,6 +106,8 @@ namespace KmyKeiba.Models.Race
 
     public ReactiveProperty<HorseMarkModel?> HorseMark { get; } = new();
 
+    public ReactiveProperty<CourseTrendInfo?> TodayTrend { get; } = new();
+
     public ReactiveProperty<AnalysisTable.AnalysisTableModel> AnalysisTable { get; } = new();
 
     public ScriptManager Script { get; }
@@ -719,6 +721,9 @@ namespace KmyKeiba.Models.Race
 
           // 印
           info.HorseMark.Value = await HorseMarkModel.CreateAsync(db, race.Key, jrdbHorses, sortedHorses.ToArray());
+
+          // 本日の競馬場トレンド
+          info.TodayTrend.Value = await CourseTrendInfo.GetDataUntilAsync(db, race, horses);
 
           // すべてのデータ読み込み完了
           info.IsLoadCompleted.Value = true;
