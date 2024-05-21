@@ -40,7 +40,7 @@ namespace KmyKeiba.Views.Details
         nameof(RaceHorse),
         typeof(RaceHorseAnalyzer),
         typeof(RaceExpectHorseView),
-        new PropertyMetadata(null));
+        new PropertyMetadata((sender, e) => (sender as RaceExpectHorseView)?.OnHorseChanged()));
 
     public RaceHorseAnalyzer? RaceHorse
     {
@@ -57,6 +57,24 @@ namespace KmyKeiba.Views.Details
     public RaceExpectHorseView()
     {
       InitializeComponent();
+
+      this.S_Finder.Checked += (sender, e) => this.OnHorseChanged();
+    }
+
+    private void OnHorseChanged()
+    {
+      if (this.RaceHorse == null)
+      {
+        this.FinderKeyInput.FinderModel = null;
+        this.FinderRowList.FinderModel = null;
+        return;
+      }
+
+      if (this.S_Finder.IsChecked == true)
+      {
+        this.FinderKeyInput.FinderModel = this.RaceHorse.FinderModel.Value;
+        this.FinderRowList.FinderModel = this.RaceHorse.FinderModel.Value;
+      }
     }
   }
 }

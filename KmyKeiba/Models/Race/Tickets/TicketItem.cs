@@ -258,7 +258,11 @@ namespace KmyKeiba.Models.Race.Tickets
 
     public static TicketItem? FromData(TicketData ticket, IReadOnlyList<RaceHorseData> horses, OddsInfo? odds)
     {
-      odds ??= new OddsInfo(horses, null, null, null, null, null, null);
+      if (odds == null)
+      {
+        odds = new OddsInfo(horses, null, null, null, null, null, null);
+        odds.Dispose();
+      }
 
       if (ticket.Type == TicketType.Single)
       {

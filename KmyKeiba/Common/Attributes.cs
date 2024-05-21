@@ -10,9 +10,17 @@ namespace KmyKeiba.Common
   {
     public string Label { get; }
 
+    public string? ShortLabel { get; }
+
     public LabelAttribute(string label)
     {
       this.Label = label;
+    }
+
+    public LabelAttribute(string label, string shortLabel)
+    {
+      this.Label = label;
+      this.ShortLabel = shortLabel;
     }
   }
 
@@ -22,6 +30,12 @@ namespace KmyKeiba.Common
     {
       var attribute = GetFieldAttribute<LabelAttribute>(obj);
       return attribute?.Label;
+    }
+
+    public static string? GetShortLabel(this Enum obj)
+    {
+      var attribute = GetFieldAttribute<LabelAttribute>(obj);
+      return attribute?.ShortLabel ?? attribute?.Label;
     }
 
     private static A? GetFieldAttribute<A>(object spec) where A : Attribute

@@ -1,4 +1,5 @@
-﻿using KmyKeiba.Models.Analysis;
+﻿using KmyKeiba.Data.Db;
+using KmyKeiba.Models.Analysis;
 using KmyKeiba.Models.Data;
 using Reactive.Bindings;
 using System;
@@ -66,16 +67,86 @@ namespace KmyKeiba.Models.Race.Finder
     }
   }
 
+  public class FinderColumnDefinitionBuilder<T>
+  {
+    public string Name { get; init; }
+
+    public FinderColumnProperty Property { get; init; }
+
+    public FinderColumnType Type { get; init; }
+
+    public int Width { get; init; }
+
+    public string Header { get; init; } = string.Empty;
+
+    public Func<T, object> Value { get; init; } = _ => string.Empty;
+
+    public Func<object, object>? ToStringFunc { get; init; }
+
+    public Func<T, object, ValueComparation>? Comparation { get; init; }
+
+    public FinderColumnDefinition<T> Build(int tab)
+    {
+      if (this.ToStringFunc == null)
+      {
+        return FinderColumnDefinition.Create(tab, this.Type, this.Width, this.Header, this.Value, this.Comparation);
+      }
+      return FinderColumnDefinition.Create(tab, this.Type, this.Width, this.Header, this.Value, this.ToStringFunc, this.Comparation);
+    }
+
+    public FinderColumnDefinitionBuilder(FinderColumnProperty property, FinderColumnType type, int width, string header, string name, Func<T, object> value, Func<object, object>? toStringFunc, Func<T, object, ValueComparation>? comparation = null)
+    {
+      this.Name = string.IsNullOrEmpty(name) ? header : name;
+      this.Property = property;
+      this.Type = type;
+      this.Width = width;
+      this.Header = header;
+      this.Value = value;
+      this.ToStringFunc = toStringFunc;
+      this.Comparation = comparation;
+    }
+
+    public FinderColumnDefinitionBuilder(FinderColumnProperty property, FinderColumnType type, int width, string header, Func<T, object> value, Func<object, object>? toStringFunc, Func<T, object, ValueComparation>? comparation = null)
+      : this(property, type, width, header, string.Empty, value, toStringFunc, comparation)
+    {
+    }
+
+    public FinderColumnDefinitionBuilder(FinderColumnProperty property, FinderColumnType type, int width, string header, string name, Func<T, object> value, Func<T, object, ValueComparation>? comparation = null)
+      : this(property, type, width, header, name, value, null, comparation)
+    {
+    }
+
+    public FinderColumnDefinitionBuilder(FinderColumnProperty property, FinderColumnType type, int width, string header, Func<T, object> value, Func<T, object, ValueComparation>? comparation = null)
+      : this(property, type, width, header, string.Empty, value, null, comparation)
+    {
+    }
+  }
+
   public static class FinderColumnDefinition
   {
     public static FinderColumnDefinition<T> Create<T>(int tab, FinderColumnType type, int width, string header, Func<T, object> value, Func<T, object, ValueComparation>? comparation = null)
-      => new FinderColumnDefinition<T>(tab, type, width, header, value, FinderColumnToString, comparation);
+      => new FinderColumnDefinition<T>(tab,
+                                       type,
+                                       width,
+                                       header,
+                                       value,
+                                       type == FinderColumnType.NumericTextWithoutZero ? NonZeroValueToString : FinderColumnToString,
+                                       comparation);
 
     public static FinderColumnDefinition<T> Create<T>(int tab, FinderColumnType type, int width, string header, Func<T, object> value, Func<object, object> toString, Func<T, object, ValueComparation>? comparation = null)
       => new FinderColumnDefinition<T>(tab, type, width, header, value, toString, comparation);
 
     private static object FinderColumnToString(object value)
     {
+      return value;
+    }
+
+    private static object NonZeroValueToString(object value)
+    {
+      if (value is short sv) return sv == 0 ? string.Empty : value;
+      if (value is int iv) return iv == 0 ? string.Empty : value;
+      if (value is float fv) return fv == 0 ? string.Empty : value;
+      if (value is double dv) return dv == 0 ? string.Empty : value;
       return value;
     }
 
@@ -126,6 +197,7 @@ namespace KmyKeiba.Models.Race.Finder
     Unknown,
     Text,
     NumericText,
+    NumericTextWithoutZero,
     BoldText,
     BoldNumericText,
     RunningStyle,
@@ -133,6 +205,10 @@ namespace KmyKeiba.Models.Race.Finder
     RaceSubject,
     CourseInfo,
     HorseName,
+    HorseMark,
+    HorseSex,
+    RaceCourseWeather,
+    RaceCourseCondition,
   }
 
   public enum CellTextAlignment

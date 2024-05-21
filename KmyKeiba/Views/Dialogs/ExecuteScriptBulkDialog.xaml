@@ -75,6 +75,8 @@
               <StackPanel.Resources>
                 <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockDefault}"/>
               </StackPanel.Resources>
+              <ToggleButton Content="高速モード" FontSize="16" IsChecked="{Binding ScriptBulk.IsRapidMode.Value,ElementName=Root,Mode=TwoWay}"
+                            Margin="0,8,0,8" HorizontalAlignment="Left"/>
               <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Text="レースの絞り込み条件"/>
               <up:FinderKeyInputView Margin="0,4,0,8" IsShowFinderButtonOnly="True" FinderModel="{Binding ScriptBulk.FinderModelForConfig}"/>
               <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Text="馬券購入条件（集計のみ、フォーメーション）" Margin="0,24,0,0"

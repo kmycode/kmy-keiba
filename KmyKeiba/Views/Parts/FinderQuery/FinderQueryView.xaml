@@ -50,16 +50,15 @@
           <TextBlock Foreground="{StaticResource SubForeground}" FontSize="16" Margin="0,0,8,0" Text="検索条件の保存" VerticalAlignment="Center"/>
           <TextBox FontSize="16" Text="{Binding FinderModel.Input.ConfigName.Value,ElementName=Root,Mode=TwoWay}" Width="180"/>
           <Button FontSize="16" Content="追加" Command="{Binding DataContext.AddFinderConfigCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding FinderModel,ElementName=Root}"/>
-          <Button FontSize="16" Content="読込" Margin="16,0,0,0" Command="{Binding DataContext.LoadFinderConfigCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding FinderModel,ElementName=Root}"/>
-          <ComboBox ItemsSource="{Binding FinderModel.Input.Configs,ElementName=Root}" Width="200"
+          <ComboBox ItemsSource="{Binding FinderModel.Input.Configs,ElementName=Root}" Width="200" Margin="16,0,0,0"
                     SelectedItem="{Binding FinderModel.Input.SelectedConfig.Value,ElementName=Root,Mode=TwoWay}">
             <ComboBox.ItemTemplate>
               <DataTemplate>
-                <TextBlock FontSize="16" Text="{Binding Name}"/>
+                <TextBlock FontSize="16" Text="{Binding Data.Name}"/>
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
-          <Button FontSize="16" Content="削除" Command="{Binding DataContext.RemoveFinderConfigCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding FinderModel,ElementName=Root}"/>
+          <Button FontSize="16" Content="読込" Command="{Binding DataContext.LoadFinderConfigCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding FinderModel,ElementName=Root}"/>
         </StackPanel>
         <TextBlock Grid.Row="1" Grid.Column="1" TextAlignment="Right"
                    Text="{Binding FinderModel.Input.ErrorMessage.Value,ElementName=Root}"
@@ -300,13 +299,13 @@
       <ScrollViewer Visibility="{Binding IsChecked,ElementName=S_RaceSubject2,Converter={StaticResource BooleanVisibilityConv}}"
                     VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto">
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-          <Grid>
+          <Grid Width="350">
             <Grid.RowDefinitions>
               <RowDefinition Height="auto"/>
               <RowDefinition Height="auto"/>
               <RowDefinition/>
             </Grid.RowDefinitions>
-            <Grid Width="350" Height="280"
+            <Grid Height="280"
                   Visibility="{Binding IsSubViewBeforeRace,ElementName=Root,Converter={StaticResource NegativeVisibilityConv}}">
               <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>

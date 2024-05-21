@@ -2,57 +2,61 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:ui="clr-namespace:KmyKeiba.Views.ListItems"
                     xmlns:up="clr-namespace:KmyKeiba.Views.Parts">
+  <TransformGroup x:Key="MarkTransformForTemplate">
+    <ScaleTransform ScaleX="0.5" ScaleY="0.5"/>
+    <TranslateTransform X="5" Y="5"/>
+  </TransformGroup>
   <ui:FinderRowTemplateSelector x:Key="FinderRowTemplateSelector">
     <ui:FinderRowTemplateSelector.TextTemplate>
       <DataTemplate>
-        <TextBlock Text="{Binding Value}" Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv}}"
+        <TextBlock Text="{Binding Value,Mode=OneTime}" Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv},Mode=OneTime}"
                    Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                   Width="{Binding Column.Width}" FontSize="16" TextAlignment="Left" Margin="0,0,8,0"/>
+                   Width="{Binding Column.Width,Mode=OneTime}" FontSize="16" TextAlignment="Left" Margin="0,0,8,0"/>
       </DataTemplate>
     </ui:FinderRowTemplateSelector.TextTemplate>
     <ui:FinderRowTemplateSelector.HorseNameTemplate>
       <DataTemplate>
         <Grid Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
-          <TextBlock Text="{Binding Value.Name}" Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv}}"
-                     Width="{Binding Column.Width}" FontSize="16" TextAlignment="Left" Margin="0,0,8,0"/>
+          <TextBlock Text="{Binding Value.Name,Mode=OneTime}" Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv},Mode=OneTime}"
+                     Width="{Binding Column.Width,Mode=OneTime}" FontSize="16" TextAlignment="Left" Margin="0,0,8,0"/>
           <Ellipse Grid.Column="1" Width="8" Height="8" Fill="{StaticResource NoticeForeground}" Margin="4,0,0,0" VerticalAlignment="Center"
-                   Visibility="{Binding Value.Memo.Value,Converter={StaticResource NonNullVisibilityConv}}" HorizontalAlignment="Right"/>
+                   Visibility="{Binding Value.Memo.Value,Converter={StaticResource NonNullVisibilityConv},Mode=OneTime}" HorizontalAlignment="Right"/>
         </Grid>
       </DataTemplate>
     </ui:FinderRowTemplateSelector.HorseNameTemplate>
     <ui:FinderRowTemplateSelector.NumericTextTemplate>
       <DataTemplate>
-        <TextBlock Text="{Binding Value}" Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv}}"
+        <TextBlock Text="{Binding Value,Mode=OneTime}" Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv},Mode=OneTime}"
                    Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                   Width="{Binding Column.Width}" FontSize="16" TextAlignment="Right" Margin="0,0,8,0"/>
+                   Width="{Binding Column.Width,Mode=OneTime}" FontSize="16" TextAlignment="Right" Margin="0,0,8,0"/>
       </DataTemplate>
     </ui:FinderRowTemplateSelector.NumericTextTemplate>
     <ui:FinderRowTemplateSelector.BoldTextTemplate>
       <DataTemplate>
-        <TextBlock Text="{Binding Value}" Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv}}"
+        <TextBlock Text="{Binding Value,Mode=OneTime}" Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv},Mode=OneTime}"
                    Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                   Width="{Binding Column.Width}" FontSize="16" TextAlignment="Left" FontWeight="Bold" Margin="0,0,8,0"/>
+                   Width="{Binding Column.Width,Mode=OneTime}" FontSize="16" TextAlignment="Left" FontWeight="Bold" Margin="0,0,8,0"/>
       </DataTemplate>
     </ui:FinderRowTemplateSelector.BoldTextTemplate>
     <ui:FinderRowTemplateSelector.BoldNumericTextTemplate>
       <DataTemplate>
-        <TextBlock Text="{Binding Value}" Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv}}"
+        <TextBlock Text="{Binding Value,Mode=OneTime}" Foreground="{Binding Comparation,Converter={StaticResource ValueComparationForegroundConv},Mode=OneTime}"
                    Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}"
-                   Width="{Binding Column.Width}" FontSize="16" TextAlignment="Right" FontWeight="Bold" Margin="0,0,8,0"/>
+                   Width="{Binding Column.Width,Mode=OneTime}" FontSize="16" TextAlignment="Right" FontWeight="Bold" Margin="0,0,8,0"/>
       </DataTemplate>
     </ui:FinderRowTemplateSelector.BoldNumericTextTemplate>
     <ui:FinderRowTemplateSelector.RaceSubjectTemplate>
       <DataTemplate>
-        <up:RaceSubjectIcon Subject="{Binding Value}" FontSize="16" Width="{Binding Column.Width}" Margin="0,0,8,0"
+        <up:RaceSubjectIcon Subject="{Binding Value,Mode=OneTime}" FontSize="16" Width="{Binding Column.Width,Mode=OneTime}" Margin="0,0,8,0"
                             Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
       </DataTemplate>
     </ui:FinderRowTemplateSelector.RaceSubjectTemplate>
     <ui:FinderRowTemplateSelector.CourseInfoTemplate>
       <DataTemplate>
-        <StackPanel Orientation="Horizontal" Width="{Binding Column.Width}" Margin="0,0,8,0"
+        <StackPanel Orientation="Horizontal" Width="{Binding Column.Width,Mode=OneTime}" Margin="0,0,8,0"
                     Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
           <Border Width="24">
-            <up:CourseSimpleImageView Race="{Binding Value}" HorizontalAlignment="Right"/>
+            <up:CourseSimpleImageView Race="{Binding Value,Mode=OneTime}" HorizontalAlignment="Right"/>
           </Border>
           <TextBlock Text="{Binding Value.Distance}" FontSize="14" Width="36" TextAlignment="Right"/>
         </StackPanel>
@@ -60,18 +64,54 @@
     </ui:FinderRowTemplateSelector.CourseInfoTemplate>
     <ui:FinderRowTemplateSelector.RunningStyleTemplate>
       <DataTemplate>
-        <up:RunningStyleTip RunningStyle="{Binding Value}" Width="{Binding Column.Width}" Margin="0,0,8,0"
+        <up:RunningStyleTip RunningStyle="{Binding Value,Mode=OneTime}" Width="{Binding Column.Width,Mode=OneTime}" Margin="0,0,8,0"
                             Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}"/>
       </DataTemplate>
     </ui:FinderRowTemplateSelector.RunningStyleTemplate>
     <ui:FinderRowTemplateSelector.CornerPlaceTemplate>
       <DataTemplate>
-        <Border Width="{Binding Column.Width}" Margin="0,0,8,0"
+        <Border Width="{Binding Column.Width,Mode=OneTime}" Margin="0,0,8,0"
                 Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
-          <up:CornerResultTip CornerGrades="{Binding Value}" WithResult="False"
+          <up:CornerResultTip CornerGrades="{Binding Value,Mode=OneTime}" WithResult="False"
                               FontSize="14" HorizontalAlignment="Right"/>
         </Border>
       </DataTemplate>
     </ui:FinderRowTemplateSelector.CornerPlaceTemplate>
+    <ui:FinderRowTemplateSelector.HorseMarkTemplate>
+      <DataTemplate>
+        <Border Width="40" Height="32"
+                Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <ContentControl Template="{Binding Value,Mode=OneTime,Converter={StaticResource HorseMarkConv}}" RenderTransform="{StaticResource MarkTransformForTemplate}" Height="32" Width="40"/>
+        </Border>
+      </DataTemplate>
+    </ui:FinderRowTemplateSelector.HorseMarkTemplate>
+    <ui:FinderRowTemplateSelector.HorseSexTemplate>
+      <DataTemplate>
+        <TextBlock Text="{Binding Value,Converter={StaticResource EnumsConv},Mode=OneTime}" Foreground="{Binding Value,Converter={StaticResource EnumsConv},Mode=OneTime}"
+                   Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}"
+                   Width="{Binding Column.Width,Mode=OneTime}" FontSize="16" TextAlignment="Right" Margin="0,0,8,0"/>
+      </DataTemplate>
+    </ui:FinderRowTemplateSelector.HorseSexTemplate>
+    <ui:FinderRowTemplateSelector.RaceCourseWeatherTemplate>
+      <DataTemplate>
+        <Border Width="{Binding Column.Width,Mode=OneTime}"
+                Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <up:RaceWeatherIcon Weather="{Binding Value,Mode=OneTime}" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <up:RaceWeatherIcon.LayoutTransform>
+              <ScaleTransform ScaleX="0.032" ScaleY="0.032"/>
+            </up:RaceWeatherIcon.LayoutTransform>
+          </up:RaceWeatherIcon>
+        </Border>
+      </DataTemplate>
+    </ui:FinderRowTemplateSelector.RaceCourseWeatherTemplate>
+    <ui:FinderRowTemplateSelector.RaceCourseConditionTemplate>
+      <DataTemplate>
+        <Border Width="36"
+                Visibility="{Binding Column.IsVisible.Value,Converter={StaticResource BooleanVisibilityConv}}">
+          <up:RaceCourseConditionIcon Condition="{Binding Value,Mode=OneTime}" Width="20" Height="18"
+                                      HorizontalAlignment="Center"/>
+        </Border>
+      </DataTemplate>
+    </ui:FinderRowTemplateSelector.RaceCourseConditionTemplate>
   </ui:FinderRowTemplateSelector>
 </ResourceDictionary>

@@ -19,7 +19,6 @@ namespace KmyKeiba.Models.Analysis
     private static readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
 
     private static readonly Dictionary<RaceCourse, IReadOnlyList<RaceStandardTimeMasterData>> _standardData = new();
-    private static readonly Dictionary<string, IReadOnlyList<RiderWinRateMasterData>> _riderWinRateData = new();
 
     public static RaceStandardTimeMasterData DefaultStandardTime { get; } = new();
 
@@ -90,86 +89,6 @@ namespace KmyKeiba.Models.Analysis
       _standardData.Clear();
     }
 
-    public static async Task<RiderWinRateMasterData> GetRiderWinRateAsync(MyContext db, RaceData race, string riderCode)
-    {
-      // logger.Debug($"騎手の勝率情報 騎手コード: {riderCode}");
-
-      _riderWinRateData.TryGetValue(riderCode, out var list);
-
-      if (list == null)
-      {
-        list = await db.RiderWinRates!
-          .Where(rw => rw.RiderCode == riderCode)
-          .ToArrayAsync();
-        _riderWinRateData[riderCode] = list;
-        logger.Info($"騎手 {riderCode} 勝率情報キャッシュをDBから読み込みました 項目数: {list.Count}");
-      }
-
-      var raceMonth = new DateOnly(race.StartTime.Year, race.StartTime.Month, 1);
-      var query = list
-        .Select(rw => new { Month = new DateOnly(rw.Year, rw.Month, 1), Data = rw, })
-        .Where(rw => rw.Month < raceMonth && rw.Month >= raceMonth.AddYears(-1))
-        .Where(rw => race.Distance >= rw.Data.Distance && race.Distance < rw.Data.DistanceMax);
-
-      RiderWinRateMasterData item = query.Aggregate(new RiderWinRateMasterData
-      {
-        RiderCode = riderCode,
-      }, (a, b) =>
-      {
-        a.AllTurfCount += b.Data.AllTurfCount;
-        a.FirstTurfCount += b.Data.FirstDirtCount;
-        a.SecondTurfCount += b.Data.SecondTurfCount;
-        a.ThirdTurfCount += b.Data.ThirdTurfCount;
-        a.AllDirtCount += b.Data.AllDirtCount;
-        a.FirstDirtCount += b.Data.FirstDirtCount;
-        a.SecondDirtCount += b.Data.SecondDirtCount;
-        a.ThirdDirtCount += b.Data.ThirdDirtCount;
-        a.AllTurfSteepsCount += b.Data.AllTurfSteepsCount;
-        a.FirstTurfSteepsCount += b.Data.FirstDirtSteepsCount;
-        a.SecondTurfSteepsCount += b.Data.SecondTurfSteepsCount;
-        a.ThirdTurfSteepsCount += b.Data.ThirdTurfSteepsCount;
-        a.AllDirtSteepsCount += b.Data.AllDirtSteepsCount;
-        a.FirstDirtSteepsCount += b.Data.FirstDirtSteepsCount;
-        a.SecondDirtSteepsCount += b.Data.SecondDirtSteepsCount;
-        a.ThirdDirtSteepsCount += b.Data.ThirdDirtSteepsCount;
-        return a;
-      });
-
-      // logger.Info($"騎手 {riderCode} 勝率情報のサンプル数: {item.AllTurfCount} / {item.AllDirtCount} / {item.AllTurfSteepsCount} / {item.AllDirtSteepsCount}");
-      return item;
-    }
-
-    public static void ClearRiderWinRateCaches()
-    {
-      logger.Info("騎手勝率情報のキャッシュをリセット");
-      _riderWinRateData.Clear();
-    }
-
-    public static double CalcRoughRate(IReadOnlyList<RaceHorseData> topHorses)
-    {
-      // logger.Debug($"レース荒れ度を計算 馬数: {topHorses.Count}");
-      return topHorses.Where(rh => rh.ResultOrder >= 1 && rh.ResultOrder <= 3)
-            .Select(rh => (double)rh.Popular * rh.Popular)
-            .Append(0)    // Sum時の例外防止
-            .Sum() / (1 * 1 + 2 * 2 + 3 * 3);
-    }
-
-    public static double CalcDisturbanceRate(IEnumerable<RaceHorseAnalyzer> horses)
-      => CalcDisturbanceRate(horses.Select(h => (h.Data.ResultOrder, h.Race.HorsesCount)).ToArray());
-
-    public static double CalcDisturbanceRate(IEnumerable<(RaceData Race, RaceHorseData Horse)> horses)
-      => CalcDisturbanceRate(horses.Select(h => (h.Horse.ResultOrder, h.Race.HorsesCount)).ToArray());
-
-    public static double CalcDisturbanceRate(IReadOnlyList<(short ResultOrder, short HorsesCount)> data)
-    {
-      // logger.Debug($"馬の乱調度を計算 馬数: {data.Count()}");
-      var statistic = new StatisticSingleArray(data
-        .Where(d => d.HorsesCount > 1 && d.ResultOrder >= 1)
-        .Select(d => (double)(d.ResultOrder - 1) / (d.HorsesCount - 1))
-        .ToArray());
-      return statistic.Deviation * 100;
-    }
-
     public static (int min, int max) GetIntervalRange(int interval)
     {
       if (interval <= 0)
@@ -221,6 +140,39 @@ namespace KmyKeiba.Models.Analysis
       }
 
       return (min, max);
+    }
+
+    public static RacePace CalcRacePace(RaceData race)
+    {
+      var lapTimes = race.GetLapTimes().Select(v => (int)v).ToArray();
+      if (lapTimes == null || lapTimes.Length < 2)
+      {
+        return RacePace.Unknown;
+      }
+
+      var halfPoint = lapTimes.Length / 2;
+      var beforeLapTimes = lapTimes.Take(halfPoint).Sum();
+      var afterLapTimes = lapTimes.Skip(halfPoint).Sum();
+
+      if (lapTimes.Length % 2 == 1)
+      {
+        var halfLapTime = lapTimes[halfPoint];
+        beforeLapTimes += halfLapTime / 2;
+        afterLapTimes -= halfLapTime / 2;
+      }
+
+      if (race.Distance % 200 != 0)
+      {
+        beforeLapTimes -= lapTimes[0];
+        beforeLapTimes += (short)((double)lapTimes[0] / (race.Distance % 200) * 200);
+      }
+
+      var d = beforeLapTimes - afterLapTimes;
+      return d >= 30 ? RacePace.VeryHigh :
+             d >= 10 ? RacePace.High :
+             d <= -30 ? RacePace.VeryLow :
+             d <= -10 ? RacePace.Low :
+             RacePace.Standard;
     }
 
     public static ValueComparation CompareValue(double value, double good, double bad, bool isReverse = false)

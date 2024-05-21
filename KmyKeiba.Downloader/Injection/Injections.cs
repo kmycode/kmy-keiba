@@ -10,4 +10,9 @@ namespace KmyKeiba.Downloader.Injection
   {
     string InitializationKey { get; }
   }
+
+  internal interface ILocalSoftwareIdGetter
+  {
+    string InitializationKey { get; }
+  }
 }

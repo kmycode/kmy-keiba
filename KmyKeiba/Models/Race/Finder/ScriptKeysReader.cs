@@ -842,9 +842,10 @@ namespace KmyKeiba.Models.Race.Finder
                   queries.Add(new RaceLambdaScriptKeyQuery(r => r.TrackCondition == race.TrackCondition));
                   break;
                 case QueryKey.Distance:
-                  var diff = race.Course <= RaceCourse.CentralMaxValue ?
-                    ApplicationConfiguration.Current.Value.NearDistanceDiffCentral :
-                    ApplicationConfiguration.Current.Value.NearDistanceDiffLocal;
+                  var diff = ConfigUtil.GetIntValue(
+                    race.Course <= RaceCourse.CentralMaxValue ?
+                      SettingKey.NearDistanceDiffCentral :
+                      SettingKey.NearDistanceDiffLocal, 50);
                   queries.Add(new RaceLambdaScriptKeyQuery(r => r.Distance >= race.Distance - diff && r.Distance <= race.Distance + diff));
                   break;
                 case QueryKey.TrackType:

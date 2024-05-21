@@ -51,6 +51,8 @@ namespace KmyKeiba.Models.Script
 
     public ReactiveProperty<bool> IsAnalysisTableMode { get; } = new(true);
 
+    public ReactiveProperty<bool> IsRapidMode { get; } = new();
+
     public FinderModel FinderModelForConfig { get; } = new FinderModel(null, null, null);
 
     public AggregateBuySimulator BuySimulator { get; } = new AggregateBuySimulator();
@@ -84,7 +86,7 @@ namespace KmyKeiba.Models.Script
         if (this.IsAnalysisTableMode.Value)
         {
           var aggregateFinder = new AggregateRaceFinder();
-          await this.ExecuteAsync(() => new AnalysisTableBulkEngine(aggregateFinder, this.BuySimulator));
+          await this.ExecuteAsync(() => new AnalysisTableBulkEngine(aggregateFinder, this.BuySimulator, this.IsRapidMode.Value));
         }
         else
         {
@@ -192,42 +194,9 @@ namespace KmyKeiba.Models.Script
         }
       }
 
-      ScriptML? ml = null;
-      foreach (var engine in engines.OfType<IMLEngine>())
-      {
-        if (ml == null)
-        {
-          ml = engine.ML;
-        }
-        else
-        {
-          ml.Merge(engine.ML);
-        }
-      }
       foreach (var engine in engines)
       {
         engine.Dispose();
-      }
-
-      if (!this.IsCanceled && ml != null && ml.HasTrainingData)
-      {
-        var profiles = ml.AllProfileNames;
-        foreach (var profile in profiles)
-        {
-          var isExistData = ml.SaveTrainingFile(profile, Path.Combine(Constrants.MLDir, "source.txt"), Path.Combine(Constrants.MLDir, "results.txt"));
-          if (isExistData)
-          {
-            await Process.Start(new ProcessStartInfo
-            {
-              FileName = "./KmyKeiba.ML.exe",
-              ArgumentList =
-            {
-              "training",
-              profile,
-            },
-            })!.WaitForExitAsync();
-          }
-        }
       }
 
       this.IsExecuting.Value = false;
@@ -284,12 +253,7 @@ namespace KmyKeiba.Models.Script
       Task DoAsync(int index, ScriptBulkModel model, IEnumerable<ScriptResultItem> items);
     }
 
-    public interface IMLEngine
-    {
-      ScriptML ML { get; }
-    }
-
-    public class EngineInfo : IScriptBulkEngine, IMLEngine
+    public class EngineInfo : IScriptBulkEngine
     {
       public ScriptEngineWrapper Engine { get; }
 
@@ -298,8 +262,6 @@ namespace KmyKeiba.Models.Script
       public ReactiveProperty<ReactiveProperty<int>?> Progress { get; } = new();
 
       public bool IsFinished { get; set; }
-
-      public ScriptML ML => this.Engine.ML;
 
       public EngineInfo(ScriptEngineWrapper engine)
       {

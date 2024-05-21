@@ -310,7 +310,7 @@ namespace KmyKeiba.Models.Connection
         return;
       }
 
-      if (trainingList.Any(t => !t.Movie.IsChecked) && DownloaderModel.Instance.CanSaveOthers.Value)
+      if (trainingList.Any(t => !t.Movie.IsChecked))
       {
         var horseKey = trainingList.First().HorseKey;
         try

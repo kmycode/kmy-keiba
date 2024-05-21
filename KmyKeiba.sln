@@ -30,6 +30,8 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "KmyKeiba.Setup", "KmyKeiba.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KmyKeiba.ML", "KmyKeiba.ML\KmyKeiba.ML.csproj", "{5DC07183-20E9-4EC0-B4D3-FFD1847FD125}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "KmyKeiba.Utils", "KmyKeiba.Utils\KmyKeiba.Utils.shproj", "{7540D37E-926B-4E15-9DC5-E2AF95F47028}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -139,6 +141,9 @@ Global
 		KmyKeiba.Shared\KmyKeiba.Shared.projitems*{485ac3aa-2254-4152-bf00-41a9aa418bfc}*SharedItemsImports = 13
 		KmyKeiba.Shared\KmyKeiba.Shared.projitems*{5dc07183-20e9-4ec0-b4d3-ffd1847fd125}*SharedItemsImports = 5
 		KmyKeiba.Shared\KmyKeiba.Shared.projitems*{696e5de9-5b60-468e-b128-e197c0727ec9}*SharedItemsImports = 5
+		KmyKeiba.Utils\KmyKeiba.Utils.projitems*{696e5de9-5b60-468e-b128-e197c0727ec9}*SharedItemsImports = 5
+		KmyKeiba.Utils\KmyKeiba.Utils.projitems*{7540d37e-926b-4e15-9dc5-e2af95f47028}*SharedItemsImports = 13
 		KmyKeiba.Shared\KmyKeiba.Shared.projitems*{f84fca84-b68c-4cf3-94e2-48e65050fe37}*SharedItemsImports = 5
+		KmyKeiba.Utils\KmyKeiba.Utils.projitems*{f84fca84-b68c-4cf3-94e2-48e65050fe37}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

@@ -12,4 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Constrants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InjectionManager.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Directory.Build.props" />
+  </ItemGroup>
 </Project>

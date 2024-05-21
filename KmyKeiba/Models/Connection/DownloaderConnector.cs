@@ -37,15 +37,15 @@ namespace KmyKeiba.Models.Connection
     public ReactiveProperty<bool> IsRTBusy { get; }
 
     public bool IsExistsDatabase
-    {
-      get
-      {
-        return File.Exists(Constrants.DatabasePath);
-      }
-    }
+      => File.Exists(Constrants.DatabasePath);
+
+    public bool IsExistsInterruptedTask
+      => File.Exists(Constrants.InterruptedTaskFilePath);
 
     private DownloaderConnector()
     {
+      DownloaderTaskDataExtensions.RemoveAll();
+
       this.IsBusy = this.currentTask.Select(t => t != null).ToReactiveProperty().AddTo(this._disposables);
       this.IsRTBusy = this.currentRTTask.Select(t => t != null).ToReactiveProperty().AddTo(this._disposables);
 
@@ -114,18 +114,15 @@ namespace KmyKeiba.Models.Connection
       {
         try
         {
-          // いちいち作らないと、外部によって更新されたデータが取得できなくなる（DbContext内部でオブジェクトをキャッシュしてる？）
-          using var db = new MyContext();
-          var item = await db.DownloaderTasks!.FindAsync(taskDataId);
+          var item = DownloaderTaskDataExtensions.FindOrDefault(taskDataId);
           if (item != null)
           {
             if (item.IsFinished)
             {
               logger.Info($"ダウンローダのタスク {taskDataId} 完了を検知しました");
-              if (!item.IsCanceled)
+              if (!item.IsCanceled && !item.IsInterrupted)
               {
-                db.Remove(item);
-                await db.SaveChangesAsync();
+                DownloaderTaskDataExtensions.Remove(item);
                 logger.Info("正常終了");
               }
               return item;
@@ -145,7 +142,7 @@ namespace KmyKeiba.Models.Connection
                 {
                   item.IsCanceled = true;
                   item.Error = DownloaderError.ConnectionTimeout;
-                  await db.SaveChangesAsync();
+                  DownloaderTaskDataExtensions.Save(item);
                   logger.Warn($"タスク {taskDataId} がタイムアウトしました。プロセスが割り当てられていません");
                   return item;
                 }
@@ -157,12 +154,12 @@ namespace KmyKeiba.Models.Connection
 
               if (isProcessStarted && ++tryCountForProcessCheck >= 1200)
               {
+                tryCountForProcessCheck = 0;
                 var isRunning = await this.IsLaunchingProcessAsync(item.ProcessId);
                 if (!isRunning && !item.IsFinished)
                 {
                   throw new DownloaderCommandException(DownloaderError.NotRunningDownloader);
                 }
-                tryCountForProcessCheck = 0;
               }
             }
           }
@@ -231,7 +228,7 @@ namespace KmyKeiba.Models.Connection
         File.Delete(Constrants.ShutdownFilePath);
       }
 
-      this.ExecuteDownloader(DownloaderCommand.Initialization, Constrants.ApplicationVersion);
+      this.ExecuteDownloader(DownloaderCommand.Initialization, Constrants.ApplicationVersion + Constrants.ApplicationVersionSuffix);
 
       while (!File.Exists(Constrants.DatabasePath))
       {
@@ -246,19 +243,16 @@ namespace KmyKeiba.Models.Connection
       {
         try
         {
-          using var db = new MyContext();
-
           // downloaderがtaskを完了させるのを待つ
-          var task = await db.DownloaderTasks!.FirstOrDefaultAsync(t => t.Command == DownloaderCommand.Initialization);
+          var task = DownloaderTaskDataExtensions.ToArray().FirstOrDefault(t => t.Command == DownloaderCommand.Initialization);
           if (task != null)
           {
-            db.DownloaderTasks!.Remove(task);
-            await db.SaveChangesAsync();
+            DownloaderTaskDataExtensions.Remove(task);
             logger.Debug("接続確認");
 
             if (task.Error == DownloaderError.InvalidVersion)
             {
-              logger.Error($"ダウンローダとアプリのバージョンが異なります アプリのバージョン: {Constrants.ApplicationVersion}");
+              logger.Error($"ダウンローダとアプリのバージョンが異なります アプリのバージョン: {Constrants.ApplicationVersion}{Constrants.ApplicationVersionSuffix}");
               throw new DownloaderCommandException(task.Error, task.Result);
             }
 
@@ -268,7 +262,15 @@ namespace KmyKeiba.Models.Connection
         catch (DownloaderCommandException ex)
         {
           logger.Fatal("初期化でエラーが発生しました", ex);
-          throw ex;
+
+          if (ex.InnerException == null)
+          {
+            throw new DownloaderCommandException(ex);
+          }
+          else
+          {
+            throw new DownloaderCommandException(ex, ex.InnerException);
+          }
         }
         catch (Exception ex)
         {
@@ -381,11 +383,7 @@ namespace KmyKeiba.Models.Connection
 
     private async Task PublishTaskAsync(DownloaderTaskData task, Func<DownloaderTaskData, Task>? progressing = null)
     {
-      using (var db = new MyContext())
-      {
-        await db.DownloaderTasks!.AddAsync(task);
-        await db.SaveChangesAsync();
-      }
+      DownloaderTaskDataExtensions.Add(task);
 
       logger.Info($"タスク発行 ID: {task.Id}, コマンド: {task.Command}, パラメータ: {task.Parameter}");
 
@@ -396,6 +394,11 @@ namespace KmyKeiba.Models.Connection
         logger.Error($"タスクがエラーを返しました {task.Id} {result.Error} {result.Result}");
         throw new DownloaderCommandException(result.Error, result.Result);
       }
+      if (result.IsInterrupted)
+      {
+        logger.Warn($"タスクが中断されました {task.Id}");
+        throw new DownloaderCommandException(DownloaderError.Interrupted);
+      }
       if (result.IsCanceled)
       {
         logger.Warn($"タスクがキャンセルされました {task.Id}");
@@ -405,12 +408,6 @@ namespace KmyKeiba.Models.Connection
 
     private async Task OpenConfigAsync(DownloaderCommand command)
     {
-      if (this.IsBusy.Value)
-      {
-        logger.Warn("すでにダウンロード中です");
-        throw new InvalidOperationException();
-      }
-
       try
       {
         this.currentTask.Value = new DownloaderTaskData
@@ -448,23 +445,14 @@ namespace KmyKeiba.Models.Connection
       }
     }
 
-    public async Task CancelCurrentTaskAsync()
+    public void CancelCurrentTask()
     {
-      if (!this.IsBusy.Value)
-      {
-        logger.Warn("キャンセルしようとしましたが、そのような状態ではないので処理を中止しました");
-        return;
-      }
-
       try
       {
-        using var db = new MyContext();
-        db.DownloaderTasks!.Attach(this.currentTask.Value!);
         this.currentTask.Value!.IsCanceled = true;
-        this.currentTask.Value!.IsFinished = true;
-        await db.SaveChangesAsync();
+        DownloaderTaskDataExtensions.Save(this.currentTask.Value!);
 
-        logger.Info($"タスク {this.currentTask.Value.Id} をキャンセルしました");
+        logger.Info($"タスク {this.currentTask.Value!.Id} をキャンセルしました");
       }
       catch (Exception ex)
       {
@@ -472,6 +460,42 @@ namespace KmyKeiba.Models.Connection
       }
 
       this.currentTask.Value = null;
+    }
+
+    public void InterruptCurrentTask()
+    {
+      try
+      {
+        this.currentTask.Value!.IsInterrupted = true;
+        DownloaderTaskDataExtensions.Save(this.currentTask.Value!);
+
+        // 中断処理の続きはダウンローダがやる
+
+        logger.Info($"タスク {this.currentTask.Value!.Id} を中断しました");
+      }
+      catch (Exception ex)
+      {
+        logger.Warn($"タスク {this.currentTask.Value?.Id} の中断に失敗しました", ex);
+      }
+
+      this.currentTask.Value = null;
+    }
+
+    public async Task ResumeTaskAsync(Func<DownloaderTaskData, Task>? progressing = null)
+    {
+      try
+      {
+        var task = DownloaderTaskDataExtensions.Resume();
+        if (task == null) return;
+
+        this.currentTask.Value = task;
+
+        await this.PublishTaskAsync(task, progressing);
+      }
+      catch (Exception ex)
+      {
+        logger.Warn($"タスク {this.currentTask.Value?.Id} の再開に失敗しました", ex);
+      }
     }
 
     public void Dispose()
@@ -499,6 +523,14 @@ namespace KmyKeiba.Models.Connection
     public DownloaderCommandException(DownloaderError error, string message, Exception inner) : base(message, inner)
     {
       this.Error = error;
+    }
+
+    public DownloaderCommandException(DownloaderCommandException original) : this(original.Error, original.Message)
+    {
+    }
+
+    public DownloaderCommandException(DownloaderCommandException original, Exception inner) : this(original.Error, original.Message, inner)
+    {
     }
   }
 

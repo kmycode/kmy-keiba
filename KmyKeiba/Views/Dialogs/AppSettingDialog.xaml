@@ -1,0 +1,84 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Dialogs.AppSettingDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KmyKeiba.Views.Dialogs"
+             xmlns:ex="clr-namespace:KmyKeiba.Views.Expansions"
+             xmlns:sa="clr-namespace:KmyKeiba.Views.Settings"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Name="Root">
+  <Grid Background="{StaticResource BaseBackground}">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto"/>
+      <RowDefinition/>
+      <RowDefinition Height="auto"/>
+    </Grid.RowDefinitions>
+    
+    <TextBlock FontSize="36" FontWeight="Bold" Text="KMY競馬の設定" Style="{StaticResource TextBlockDefault}" Margin="0,0,0,24"/>
+
+    <!-- メインの設定パネル -->
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="200"/>
+        <ColumnDefinition/>
+      </Grid.ColumnDefinitions>
+
+      <StackPanel Margin="0,0,16,0">
+        <StackPanel.Resources>
+          <Style TargetType="RadioButton" BasedOn="{StaticResource ToggleButtonDefault}">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="16"/>
+          </Style>
+        </StackPanel.Resources>
+        <RadioButton Content="一般" Name="P_General" IsChecked="True"/>
+        <RadioButton Content="検索結果のカラム" Name="P_FinderColumn"/>
+        <RadioButton Content="保存された検索条件" Name="P_Finder"/>
+        <RadioButton Content="拡張分析" Name="P_ExAnalysisConfig"/>
+        <RadioButton Content="外部指数" Name="P_ExternalNumber"/>
+        <RadioButton Content="拡張メモのラベル" Name="P_PointLabel"/>
+      </StackPanel>
+
+      <Grid Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_ExAnalysisConfig,Converter={StaticResource BooleanVisibilityConv}}">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="auto"/>
+          <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <UniformGrid Rows="1">
+          <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                       Content="分析設定" Name="S_ExAnalysisConfig" IsChecked="True"/>
+          <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                       Content="分析重み設定" Name="S_ExAnalysisWeightConfig"/>
+          <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                       Content="重み区切り設定" Name="S_ExAnalysisDelimiterConfig"/>
+          <RadioButton Style="{StaticResource TabBar}" GroupName="{Binding UniqueId,ElementName=Root}"
+                       Content="スクリプト設定" Name="S_ATScript"/>
+        </UniformGrid>
+        <sa:AnalysisTableConfigView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisConfig,Converter={StaticResource BooleanVisibilityConv}}"
+                                    AnalysisTableConfig="{Binding AppSettings.AnalysisTableConfig,ElementName=Root}"/>
+        <sa:AnalysisTableWeightConfigView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisWeightConfig,Converter={StaticResource BooleanVisibilityConv}}"
+                                          AnalysisTableConfig="{Binding AppSettings.AnalysisTableConfig,ElementName=Root}"/>
+        <sa:AnalysisTableDelimiterConfigView Grid.Row="1" Visibility="{Binding IsChecked,ElementName=S_ExAnalysisDelimiterConfig,Converter={StaticResource BooleanVisibilityConv}}"
+                                             AnalysisTableConfig="{Binding AppSettings.AnalysisTableConfig,ElementName=Root}"/>
+        <sa:AnalysisTableScriptConfigView Grid.Row="2" Grid.ColumnSpan="2" Visibility="{Binding IsChecked,ElementName=S_ATScript,Converter={StaticResource BooleanVisibilityConv}}"
+                                          AnalysisTableConfig="{Binding AppSettings.AnalysisTableConfig,ElementName=Root}"/>
+      </Grid>
+
+      <sa:ExternalNumberConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_ExternalNumber,Converter={StaticResource BooleanVisibilityConv}}"
+                                   ExternalNumber="{Binding ExternalNumber}" Margin="0,-8,0,0"/>
+      <sa:FinderConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_Finder,Converter={StaticResource BooleanVisibilityConv}}"
+                           FinderConfig="{Binding AppSettings.FinderConfig,ElementName=Root}" Margin="0,-8,0,0"/>
+      <sa:FinderColumnConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_FinderColumn,Converter={StaticResource BooleanVisibilityConv}}"
+                                 ColumnConfig="{Binding AppSettings.FinderColumnConfig,ElementName=Root}" Margin="0,-8,0,0"/>
+      <sa:GeneralConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_General,Converter={StaticResource BooleanVisibilityConv}}"
+                            GeneralConfig="{Binding AppSettings.GeneralConfig,ElementName=Root}" Margin="0,-8,0,0"/>
+      <ex:ExpansionMemoLabelConfigView Grid.Column="1" Visibility="{Binding IsChecked,ElementName=P_PointLabel,Converter={StaticResource BooleanVisibilityConv}}"
+                                       LabelConfig="{Binding AppSettings.PointLabel,ElementName=Root}" Margin="0,-8,0,16"/>
+    </Grid>
+    
+    <Grid Grid.Row="2" Margin="0,0,0,16">
+      <Button Content="閉じる" FontSize="16" Width="80" VerticalAlignment="Bottom" Command="{Binding CloseDialogCommand}"/>
+    </Grid>
+  </Grid>
+</UserControl>

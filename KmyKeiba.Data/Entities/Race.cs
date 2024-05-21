@@ -464,6 +464,44 @@ namespace KmyKeiba.JVLink.Entities
     Foreign = 102,
   }
 
+  public enum OddsDataStatus : short
+  {
+    /// <summary>
+    /// 中間
+    /// </summary>
+    RealTime = 1,
+
+    /// <summary>
+    /// 前日最終
+    /// </summary>
+    PreviousDay = 2,
+
+    /// <summary>
+    /// 最終
+    /// </summary>
+    Last = 3,
+
+    /// <summary>
+    /// 確定
+    /// </summary>
+    Determined = 4,
+
+    /// <summary>
+    /// 確定（月曜日）
+    /// </summary>
+    DeterminedInMonday = 5,
+
+    /// <summary>
+    /// 中止
+    /// </summary>
+    Canceled = 9,
+
+    /// <summary>
+    /// 削除
+    /// </summary>
+    Deleted = 0,
+  }
+
   class RaceCourseInfoAttribute : Attribute
   {
     public string Name { get; }
@@ -818,6 +856,13 @@ namespace KmyKeiba.JVLink.Entities
 
     LocalMinValue = 29,  // ほんとは30だけど便宜上
     CentralMaxValue = 28,
+  }
+
+  public static class RaceCourseExtensions
+  {
+    public static bool IsCentral(this RaceCourse course) => course <= RaceCourse.CentralMaxValue;
+    public static bool IsLocal(this RaceCourse course) => course >= RaceCourse.LocalMinValue && course < RaceCourse.Foreign;
+    public static bool IsForeign(this RaceCourse course) => course >= RaceCourse.Foreign;
   }
 
   public enum TrackGround : short

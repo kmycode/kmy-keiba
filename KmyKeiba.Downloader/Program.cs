@@ -21,21 +21,29 @@ namespace KmyKeiba.Downloader
     private static bool isCheckShutdown = true;
     private static bool isHost = false;
 
+    public static List<string> SkipFiles { get; private set; } = new();
+
+    public static bool IsCanceled { get; private set; }
+
+    public static bool IsInterrupted { get; private set; }
+
     [STAThread]
     public static void Main(string[] args)
     {
       selfPath = Assembly.GetEntryAssembly()?.Location.Replace("Downloader.dll", "Downloader.exe") ?? string.Empty;
       var selfPathDir = Path.GetDirectoryName(selfPath) ?? "./";
 
+      Directory.CreateDirectory(Constrants.DownloaderTaskDataDir);
+
       log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo(Path.Combine(selfPathDir, "log4net.config")));
-      log4net.GlobalContext.Properties["pid"] = System.Diagnostics.Process.GetCurrentProcess().Id;
+      log4net.GlobalContext.Properties["pid"] = Environment.ProcessId;
 
       logger.Info("================================");
       logger.Info("==                            ==");
       logger.Info("==            開始            ==");
       logger.Info("==                            ==");
       logger.Info("================================");
-      logger.Info($"Version: {Constrants.ApplicationVersion}");
+      logger.Info($"Version: {Constrants.ApplicationVersion}{Constrants.ApplicationVersionSuffix}");
 
 #if !DEBUG
       var rootLogger = ((Hierarchy)logger.Logger.Repository).Root;
@@ -55,8 +63,6 @@ namespace KmyKeiba.Downloader
 
       Application.EnableVisualStyles();
 
-      Console.WriteLine("\n\n\n============= Start Program ==============\n");
-
       if (args.FirstOrDefault() != "kill")
       {
         object oldArgs = args;
@@ -74,19 +80,60 @@ namespace KmyKeiba.Downloader
         }
       }
       logger.Info($"コマンドラインパラメータ: {string.Join(',', args)}");
-      Console.WriteLine(string.Join(',', args));
 
       // JV-LinkのIDを設定
       var softwareId = InjectionManager.GetInstance<ICentralSoftwareIdGetter>(InjectionManager.CentralSoftwareIdGetter);
       if (softwareId != null)
       {
         JVLinkObject.CentralInitializationKey = softwareId.InitializationKey;
-        logger.Info("ソフトIDを設定しました");
+        logger.Info("JVLink: ソフトIDを設定しました");
       }
       else
       {
-        logger.Warn("ソフトIDが見つからなかったので、デフォルト値を設定します");
+        logger.Warn("JVLink: ソフトIDが見つからなかったので、デフォルト値を設定します");
       }
+
+      // UmaConnのIDを設定
+      var localSoftwareId = InjectionManager.GetInstance<ILocalSoftwareIdGetter>(InjectionManager.LocalSoftwareIdGetter);
+      if (localSoftwareId != null)
+      {
+        JVLinkObject.LocalInitializationKey = localSoftwareId.InitializationKey;
+        logger.Info("UmaConn: ソフトIDを設定しました");
+      }
+      else
+      {
+        logger.Warn("UmaConn: ソフトIDが見つからなかったので、デフォルト値を設定します");
+      }
+
+      // ダウンローダをデバッグするときに使用。#if DEBUGS を #if DEBUG に変更することで有効化
+      // KMY競馬アプリ本体をデバッグするときは、必ず DEBUGS に戻したうえでダウンローダをビルドしておく
+#if DEBUGS
+      if (File.Exists(Constrants.ShutdownFilePath))
+      {
+        File.Delete(Constrants.ShutdownFilePath);
+      }
+
+      var rootLogger = ((Hierarchy)logger.Logger.Repository).Root;
+      rootLogger.RemoveAllAppenders();
+      rootLogger.AddAppender(new log4net.Appender.ConsoleAppender
+      {
+        Layout = new log4net.Layout.PatternLayout { ConversionPattern = "%d [%t] %-5p %type{1} - %m%n", },
+        Name = "DebugConsole",
+      });
+      rootLogger.Level = log4net.Core.Level.All;
+
+      currentTask = new DownloaderTaskData
+      {
+        Command = DownloaderCommand.DownloadSetup,
+      };
+      DownloaderTaskDataExtensions.Add(currentTask);
+
+      Test();
+
+      DownloaderTaskDataExtensions.Remove(currentTask);
+
+      return;
+#endif
 
       var command = string.Empty;
       if (args.Length >= 1)
@@ -115,21 +162,19 @@ namespace KmyKeiba.Downloader
           }).Wait();
           logger.Info("DBのマイグレーション完了");
 
-          using var db = new MyContext();
-          db.DownloaderTasks!.RemoveRange(db.DownloaderTasks!);
+          DownloaderTaskDataExtensions.RemoveAll();
           var data = new DownloaderTaskData
           {
             Command = DownloaderCommand.Initialization,
             IsFinished = true,
-            Error = version != Constrants.ApplicationVersion ? DownloaderError.InvalidVersion : DownloaderError.Succeed,
+            Error = version != (Constrants.ApplicationVersion + Constrants.ApplicationVersionSuffix) ? DownloaderError.InvalidVersion : DownloaderError.Succeed,
           };
           data.Result = data.Error.GetErrorText();
-          db.DownloaderTasks!.Add(data);
-          db.SaveChanges();
+          DownloaderTaskDataExtensions.Add(data);
 
           if (data.Error == DownloaderError.InvalidVersion)
           {
-            logger.Error($"バージョンが異なります アプリ:{version} ダウンローダ:{Constrants.ApplicationVersion}");
+            logger.Error($"バージョンが異なります アプリ:{version} ダウンローダ:{Constrants.ApplicationVersion}{Constrants.ApplicationVersionSuffix}");
           }
           if (data.Error == DownloaderError.Succeed)
           {
@@ -299,6 +344,7 @@ namespace KmyKeiba.Downloader
 
         try
         {
+          // まずは指定された番号をキル
           if (beforeProcessNumber != 0)
           {
             Process.GetProcessById(beforeProcessNumber)?.Kill();
@@ -306,9 +352,23 @@ namespace KmyKeiba.Downloader
         }
         catch (Exception ex)
         {
-          // 切り捨てる
           logger.Warn($"プロセス {beforeProcessNumber} のキルに失敗しました", ex);
-          Console.WriteLine(ex.Message);
+
+          // 念のため、それっぽいプロセスが他に残っていないか確認
+          Process? psInLoop = null;
+          try
+          {
+            foreach (var ps in Process.GetProcesses().Where(p => p.ProcessName == "KmyKeiba.Downloader" && p.MainWindowTitle.Contains("Memory Leak")))
+            {
+              psInLoop = ps;
+              logger.Info($"プロセス {ps.Id} を発見したのでキルします");
+              ps.Kill();
+            }
+          }
+          catch (Exception ex2)
+          {
+            logger.Warn($"プロセス {psInLoop?.Id} のキルに失敗しました", ex2);
+          }
         }
       }
       else
@@ -355,11 +415,10 @@ namespace KmyKeiba.Downloader
         return null;
       }
 
-      using var db = new MyContext();
-      var task = db.DownloaderTasks!.Find(id);
+      var task = DownloaderTaskDataExtensions.FindOrDefault(id);
       if (task == null)
       {
-        db.DownloaderTasks!.Add(new DownloaderTaskData
+        DownloaderTaskDataExtensions.Add(new DownloaderTaskData
         {
           Id = id,
           IsFinished = true,
@@ -373,7 +432,7 @@ namespace KmyKeiba.Downloader
       {
         task.IsFinished = true;
         task.Error = DownloaderError.ApplicationError;
-        db.SaveChanges();
+        DownloaderTaskDataExtensions.Save(task);
         logger.Warn($"ID {id} のタスクは {task.Command} を期待していましたが、実際にコマンドラインパラメータとして送られてきたコマンドは {command} でした");
         return null;
       }
@@ -383,23 +442,29 @@ namespace KmyKeiba.Downloader
 
     private static void SetTask(DownloaderTaskData task, Action<DownloaderTaskData> changes)
     {
-      try
+      var tryCount = 10;
+      while (tryCount-- > 0)
       {
-        using var db = new MyContext();
-        db.DownloaderTasks!.Attach(task);
-        changes(task);
-        db.SaveChanges();
-      }
-      catch (Exception ex)
-      {
-        logger.Error("タスクへのデータ書き込みに失敗しました", ex);
+        try
+        {
+          changes(task);
+          DownloaderTaskDataExtensions.Save(task);
+
+          break;
+        }
+        catch (Exception ex)
+        {
+          logger.Error($"タスクへのデータ書き込みに失敗しました", ex);
+          logger.Warn($"残り試行回数 {tryCount}");
+          Task.Delay(100).Wait();
+        }
       }
     }
 
     private static void SetCurrentTask(DownloaderTaskData task)
     {
       currentTask = task;
-      SetTask(task, t => t.ProcessId = Process.GetCurrentProcess().Id);
+      SetTask(task, t => t.ProcessId = Environment.ProcessId);
     }
 
     [DllImport("user32.dll")]

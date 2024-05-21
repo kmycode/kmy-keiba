@@ -27,6 +27,7 @@ namespace KmyKeiba
     public App()
     {
       Directory.CreateDirectory(Constrants.AppDataDir);
+      Directory.CreateDirectory(Constrants.DownloaderTaskDataDir);
 
       var selfPath = Assembly.GetEntryAssembly()?.Location ?? string.Empty;
       var selfPathDir = Path.GetDirectoryName(selfPath) ?? "./";
@@ -115,24 +116,6 @@ namespace KmyKeiba
       }
 
       base.OnExit(e);
-    }
-
-    [Obsolete("テーマはいったん廃止")]
-    private void ChangeTheme(ApplicationTheme theme)
-    {
-      logger.Info($"テーマを変更します: {theme}");
-
-      var name = theme == ApplicationTheme.Classic ? "Resources/ThemeClassic.xaml" :
-        theme == ApplicationTheme.Dark ? "Resources/ThemeDark.xaml" : "Resources/ThemeClassic.xaml";
-
-      ResourceDictionary dic = new ResourceDictionary
-      {
-        Source = new Uri(name, UriKind.Relative),
-      };
-      // this.Resources.MergedDictionaries.RemoveAt(0);
-      this.Resources.MergedDictionaries.Add(dic);
-
-      logger.Info("テーマ変更完了");
     }
   }
 }

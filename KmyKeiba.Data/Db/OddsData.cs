@@ -61,13 +61,83 @@ namespace KmyKeiba.Data.Db
       this.LastModified = race.LastModified;
       this.DataStatus = race.DataStatus;
       this.RaceKey = race.RaceKey;
-      this.Time = race.Time;this.SetOddsRaw(race);
+      this.Time = race.Time;
+      this.SetOddsRaw(race);
     }
 
     public override bool IsEquals(DataBase<SingleAndDoubleWinOdds> b)
     {
       var obj = (SingleOddsTimeline)b;
       return this.RaceKey == obj.RaceKey && this.Time == obj.Time;
+    }
+  }
+
+  [Index(nameof(RaceKey))]
+  [Index(nameof(IsCopied))]
+  public class PlaceOddsData : DataBase<SingleAndDoubleWinOdds>
+  {
+    [StringLength(20)]
+    public string RaceKey { get; set; } = string.Empty;
+    public byte[] PlaceOddsRaw { get; set; } = Array.Empty<byte>();
+
+    public bool IsCopied { get; set; }
+
+    private OddsItem[]? _placeOddsCache;
+
+    public OddsItem[] GetPlaceOdds()
+    {
+      if (this._placeOddsCache == null)
+      {
+        var list = new OddsItem[this.PlaceOddsRaw.Length / 4];
+        for (var i = 0; i < this.PlaceOddsRaw.Length / 4; i++)
+        {
+          var max = this.PlaceOddsRaw[i * 4] << 8 | this.PlaceOddsRaw[i * 4 + 1];
+          var min = this.PlaceOddsRaw[i * 4 + 2] << 8 | this.PlaceOddsRaw[i * 4 + 3];
+          list[i] = new OddsItem((short)(i + 1), (short)min, (short)max);
+        }
+        this._placeOddsCache = list;
+      }
+
+      return this._placeOddsCache;
+    }
+
+    public readonly struct OddsItem(short horseNumber, short min, short max)
+    {
+      public short HorseNumber { get; } = horseNumber;
+
+      public short Min { get; } = min;
+
+      public short Max { get; } = max;
+    }
+
+    private void SetOddsRaw(SingleAndDoubleWinOdds odds)
+    {
+      var entities = odds.Odds
+        .OrderBy(o => o.HorseNumber)
+        .ToArray();
+      var placeRaw = new byte[entities.Length * 4];
+      for (var i = 0; i < entities.Length; i++)
+      {
+        placeRaw[i * 4] = (byte)(entities[i].PlaceOddsMax >> 8 & 255);
+        placeRaw[i * 4 + 1] = (byte)(entities[i].PlaceOddsMax & 255);
+        placeRaw[i * 4 + 2] = (byte)(entities[i].PlaceOddsMin >> 8 & 255);
+        placeRaw[i * 4 + 3] = (byte)(entities[i].PlaceOddsMin & 255);
+      }
+      this.PlaceOddsRaw = placeRaw;
+    }
+
+    public override void SetEntity(SingleAndDoubleWinOdds race)
+    {
+      this.LastModified = race.LastModified;
+      this.DataStatus = race.DataStatus;
+      this.RaceKey = race.RaceKey;
+      this.SetOddsRaw(race);
+    }
+
+    public override bool IsEquals(DataBase<SingleAndDoubleWinOdds> b)
+    {
+      var obj = (PlaceOddsData)b;
+      return this.RaceKey == obj.RaceKey;
     }
   }
 

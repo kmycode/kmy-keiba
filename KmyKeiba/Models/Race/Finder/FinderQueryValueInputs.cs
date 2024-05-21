@@ -137,6 +137,52 @@ namespace KmyKeiba.Models.Race.Finder
         valuePrefix = ":";
       }
 
+      // 前走検索「対象レースと比較」「現在のレースと比較」のいずれかを選択している場合
+      if (this.IsCompareWithTargetRace.Value || this.IsCompareWithCurrentRace.Value || this.IsUseCurrentRaceValue.Value || this.IsUseCurrentRaceHorseValue.Value)
+      {
+        var left = "前走一覧画面で比較対象として設定したn走前";
+        var right = "前走一覧画面で設定したn走前";
+        if (this.IsUseCurrentRaceHorseValue.Value || this.IsUseCurrentRaceValue.Value)
+        {
+          left = "検索結果に出現する";
+          right = "現在の";
+        }
+        if (this.IsCompareWithCurrentRace.Value)
+        {
+          left = "検索結果に出現する";
+          right = "検索結果に出現するレースのn走前";
+        }
+        if (this.IsCompareWithTargetRace.Value)
+        {
+          left = "検索結果に出現するレースの(比較対象)n走前";
+          right = "検索結果に出現するレースのn走前";
+        }
+
+        var value = string.IsNullOrEmpty(this.Value.Value) ? "0" : this.Value.Value;
+        var maxValue = string.IsNullOrEmpty(this.MaxValue.Value) ? "0" : this.MaxValue.Value;
+
+        if (this.IsGreaterThan.Value || this.IsGreaterThanOrEqual.Value)
+        {
+          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値に {value} を足したもの以上である";
+        }
+        else if (this.IsLessThan.Value || this.IsLessThanOrEqual.Value)
+        {
+          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値に {value} を足したもの以下である";
+        }
+        else if (this.IsEqual.Value)
+        {
+          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値に {value} を足したものと等しい";
+        }
+        else if (this.IsNotEqual.Value)
+        {
+          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値に {value} を足したものと等しくない";
+        }
+        else if (this.IsRange.Value)
+        {
+          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値に {value} を足したもの以上で、{maxValue} を足したもの以下である";
+        }
+      }
+
       if (!decimal.TryParse(this.Value.Value, out var dmin))
       {
         if (this.CanCompareDefaultValue)
@@ -164,11 +210,6 @@ namespace KmyKeiba.Models.Race.Finder
           max = tmp;
         }
 
-        if (this.IsUseCurrentRaceHorseValue.Value || this.IsUseCurrentRaceValue.Value)
-        {
-          this.ComparationWithBeforeRaceComment.Value = $"当該レースの値は、現在レースの値に {min} ～ {max} を足した数値範囲内にある";
-        }
-
         this.IsCustomized.Value = true;
         return $"={valuePrefix}{min}-{max}";
       }
@@ -181,34 +222,6 @@ namespace KmyKeiba.Models.Race.Finder
         "=";
       var prefix = this.IsCompareWithCurrentRace.Value ? "$$" :
         this.IsCompareWithTargetRace.Value ? "$" : valuePrefix;
-
-      if (this.IsCompareWithTargetRace.Value || this.IsCompareWithCurrentRace.Value || this.IsUseCurrentRaceValue.Value || this.IsUseCurrentRaceHorseValue.Value)
-      {
-        var left = "比較対象";
-        var right = "前走";
-        if (this.IsUseCurrentRaceHorseValue.Value || this.IsUseCurrentRaceValue.Value)
-        {
-          left = "当該";
-          right = "現在";
-        }
-
-        if (this.IsGreaterThan.Value || this.IsGreaterThanOrEqual.Value)
-        {
-          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値より {this.Value.Value}以上 大きい";
-        }
-        else if (this.IsLessThan.Value || this.IsLessThanOrEqual.Value)
-        {
-          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値より {this.Value.Value}以上 小さい";
-        }
-        else if (this.IsEqual.Value)
-        {
-          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値に {this.Value.Value} を足したものと等しい";
-        }
-        else if (this.IsNotEqual.Value)
-        {
-          this.ComparationWithBeforeRaceComment.Value = $"{left}レースの値は、{right}レースの値に {this.Value.Value} を足したものと等しくない";
-        }
-      }
 
       this.IsCustomized.Value = true;
       return sign + prefix + min;

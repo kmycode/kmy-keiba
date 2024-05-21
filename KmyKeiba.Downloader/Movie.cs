@@ -1,5 +1,6 @@
 ﻿using KmyKeiba.Data.Db;
 using KmyKeiba.JVLink.Wrappers;
+using KmyKeiba.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -88,7 +89,6 @@ namespace KmyKeiba.Downloader
       logger.Info($"キー: {horseKey} の調教動画一覧を取得します");
 
       using var db = new MyContext();
-      db.DownloaderTasks!.Attach(task);
 
       try
       {
@@ -135,6 +135,7 @@ namespace KmyKeiba.Downloader
         logger.Error($"動画リストダウンロードでエラーが発生しました {ex.Code}", ex);
         task.Error = ex.Code.ToDownloaderError();
         task.Result = ex.Message;
+        DownloaderTaskDataExtensions.Save(task);
       }
       catch (Exception ex)
       {
@@ -142,7 +143,7 @@ namespace KmyKeiba.Downloader
       }
 
       task.IsFinished = true;
-      db.SaveChanges();
+      DownloaderTaskDataExtensions.Save(task);
     }
   }
 }

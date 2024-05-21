@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 
 namespace KmyKeiba.Data.Db
 {
-  [Index(nameof(RaceKey), nameof(Key))]
+  [Index(nameof(Key))]
+  [Index(nameof(RaceKey))]
   [Index(nameof(RiderCode))]
   [Index(nameof(TrainerCode))]
-  [Index(nameof(Key), nameof(RaceCount), nameof(RaceCountWithinRunning), nameof(RaceCountWithinRunningCompletely), nameof(RaceCountAfterLastRest))]
   public class RaceHorseData : DataBase<RaceHorse>
   {
     [StringLength(16)]
@@ -202,11 +202,6 @@ namespace KmyKeiba.Data.Db
     /// 一定日以上レース間隔のあいた直後のレースを 1 として、休養後のレース回数をカウントしていく
     /// </summary>
     public short RaceCountAfterLastRest { get; set; }
-
-    /// <summary>
-    /// 騎手の勝率マスターデータにこのデータは含まれているか
-    /// </summary>
-    public bool IsContainsRiderWinRate { get; set; }
 
     /// <summary>
     /// 勝負服の模様

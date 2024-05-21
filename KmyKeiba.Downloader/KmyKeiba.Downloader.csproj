@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x86;x64</Platforms>
@@ -10,19 +10,19 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <UseWindowsForms>true</UseWindowsForms>
-    <VersionPrefix>4.5.1</VersionPrefix>
+    <VersionPrefix>5.0.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="log4net" Version="2.0.14" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.0">
+    <PackageReference Include="log4net" Version="2.0.17" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.0" />
-    <PackageReference Include="ReactiveProperty" Version="8.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.4" />
+    <PackageReference Include="ReactiveProperty" Version="9.5.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,5 +41,7 @@
   </Target>
 
   <Import Project="..\KmyKeiba.Shared\KmyKeiba.Shared.projitems" Label="Shared" />
+
+  <Import Project="..\KmyKeiba.Utils\KmyKeiba.Utils.projitems" Label="Shared" />
 
 </Project>

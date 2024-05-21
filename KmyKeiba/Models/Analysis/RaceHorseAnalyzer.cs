@@ -28,6 +28,8 @@ namespace KmyKeiba.Models.Analysis
     private static ITimeDeviationValueCalculator? _timeDeviationValueCalculator = InjectionManager.GetInstance<ITimeDeviationValueCalculator>(InjectionManager.TimeDeviationValueCalculator);
     private bool _isChecking;
 
+    private readonly CompositeDisposable _disposables = new();
+
     public static RaceHorseAnalyzer Empty { get; } = new(new RaceData(), new RaceHorseData());
 
     public RaceData Race { get; }
@@ -38,6 +40,8 @@ namespace KmyKeiba.Models.Analysis
 
     public HorseData? DetailData { get; init; }
 
+    public HorseSaleData? SaleData { get; init; }
+
     public JrdbRaceHorseData? JrdbData { get; }
 
     public RaceHorseExtraData? ExtraData { get; set; }
@@ -46,13 +50,7 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<FinderModel?> FinderModel { get; } = new();
 
-    public RaceHorseBloodTrendAnalysisSelectorMenu? BloodSelectors { get; init; }
-
-    public RaceHorseTrendAnalysisSelector? TrendAnalyzers { get; init; }
-
-    public RaceRiderTrendAnalysisSelector? RiderTrendAnalyzers { get; set; }
-
-    public RaceTrainerTrendAnalysisSelector? TrainerTrendAnalyzers { get; init; }
+    public RaceHorseBloodModel? BloodSelectors { get; init; }
 
     public ReactiveProperty<TrainingAnalyzer?> Training { get; } = new();
 
@@ -70,20 +68,6 @@ namespace KmyKeiba.Models.Analysis
 
     public ReactiveProperty<bool> CanSave => DownloaderModel.Instance.CanSaveOthers;
 
-    public float RiderPlaceBitsRate { get; } = new();
-
-    public ValueComparation RiderPlaceBitsRateComparation { get; set; }
-
-    public short RiderFirstCount { get; } = new();
-
-    public short RiderSecondCount { get; } = new();
-
-    public short RiderThirdCount { get; } = new();
-
-    public short RiderLosedCount { get; } = new();
-
-    public short RiderAllCount { get; } = new();
-
     public IReadOnlyList<RaceHorseCornerGrade> CornerGrades { get; } = Array.Empty<RaceHorseCornerGrade>();
 
     public ValueComparation ResultOrderComparation { get; }
@@ -96,15 +80,9 @@ namespace KmyKeiba.Models.Analysis
 
     public TimeSpan UntilA3HResultTime { get; }
 
-    public ValueComparation ResultTimeDVComparation { get; set; }
-
-    public ValueComparation ResultA3HTimeDVComparation { get; set; }
-
     public ValueComparation ResultA3HTimeComparation { get; set; }
 
     public ValueComparation PciDVComparation { get; set; }
-
-    public double ResultTimePerMeter { get; }
 
     /// <summary>
     /// 結果からのタイム指数
@@ -122,8 +100,6 @@ namespace KmyKeiba.Models.Analysis
     public double A3HResultTimeDeviationValue { get; }
 
     public double Pci { get; }
-
-    public double PciDeviationValue { get; }
 
     public ReactiveProperty<bool> IsActive { get; } = new();
 
@@ -150,8 +126,6 @@ namespace KmyKeiba.Models.Analysis
 
       public IReadOnlyList<RaceHorseAnalyzer> BeforeFiveRaces { get; } = Array.Empty<RaceHorseAnalyzer>();
 
-      public bool HasHistories => this.BeforeRaces.Any();
-
       public RunningStyle RunningStyle { get; }
 
       public ResultOrderGradeMap AllGrade { get; }
@@ -167,14 +141,6 @@ namespace KmyKeiba.Models.Analysis
       public ResultOrderGradeMap SameConditionGrade { get; }
 
       public ResultOrderGradeMap SameRiderGrade { get; }
-
-      public ResultOrderGradeMap SprinterGrade { get; }
-
-      public ResultOrderGradeMap MylarGrade { get; }
-
-      public ResultOrderGradeMap ClassicDistanceGrade { get; }
-
-      public ResultOrderGradeMap SteyerGrade { get; }
 
       public ReactiveCollection<CourseHorseGrade> CourseGrades { get; } = new();
 
@@ -200,11 +166,6 @@ namespace KmyKeiba.Models.Analysis
       /// </summary>
       public double PciAverage { get; }
 
-      /// <summary>
-      /// 乱調度
-      /// </summary>
-      public double DisturbanceRate { get; }
-
       public ValueComparation TimeDVComparation { get; set; }
 
       public ValueComparation A3HTimeDVComparation { get; set; }
@@ -212,16 +173,6 @@ namespace KmyKeiba.Models.Analysis
       public ValueComparation UntilA3HTimeDVComparation { get; set; }
 
       public ValueComparation PciAverageComparation { get; set; }
-
-      /// <summary>
-      /// 距離適性
-      /// </summary>
-      public DistanceAptitude BestDistance { get; }
-
-      /// <summary>
-      /// ２番目の距離適性
-      /// </summary>
-      public DistanceAptitude SecondDistance { get; }
 
       public long PrizeMoney { get; }
 
@@ -254,7 +205,6 @@ namespace KmyKeiba.Models.Analysis
           this.TimeDeviationValue = MathUtil.AvoidNan(single?.ResultTimeDeviationValue ?? points.CalcRegressionValue(predictValue));
           this.A3HTimeDeviationValue = MathUtil.AvoidNan(single?.A3HResultTimeDeviationValue ?? pointsa3h.CalcRegressionValue(predictValue));
           this.UntilA3HTimeDeviationValue = MathUtil.AvoidNan(single?.UntilA3HResultTimeDeviationValue ?? pointsua3h.CalcRegressionValue(predictValue));
-          this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(targetRaces);
 
           var pcis = this.Before15Races.Select(h => h.Pci).Where(h => h != default);
           if (pcis.Any())
@@ -274,27 +224,9 @@ namespace KmyKeiba.Models.Analysis
               .FirstOrDefault();
           }
 
-          // 距離適性
-          this.SprinterGrade = new ResultOrderGradeMap(this.BeforeRaces
-            .Where(r => r.Race.Distance < 1400).Select(r => r.Data).ToArray());
-          this.MylarGrade = new ResultOrderGradeMap(this.BeforeRaces
-            .Where(r => r.Race.Distance >= 1400 && r.Race.Distance < 1800).Select(r => r.Data).ToArray());
-          this.ClassicDistanceGrade = new ResultOrderGradeMap(this.BeforeRaces
-            .Where(r => r.Race.Distance >= 1800 && r.Race.Distance < 2400).Select(r => r.Data).ToArray());
-          this.SteyerGrade = new ResultOrderGradeMap(this.BeforeRaces
-            .Where(r => r.Race.Distance >= 2400).Select(r => r.Data).ToArray());
-          var distances = new Dictionary<DistanceAptitude, ResultOrderGradeMap>
-          {
-            { DistanceAptitude.Sprinter, this.SprinterGrade },
-            { DistanceAptitude.Mylar, this.MylarGrade },
-            { DistanceAptitude.ClassicDistance, this.ClassicDistanceGrade },
-            { DistanceAptitude.Steyer, this.SteyerGrade },
-          };
-          var ranking = distances.OrderByDescending(d => d.Value.PlacingBetsRate).ToArray();
-          this.BestDistance = distances.All(d => d.Value.LoseCount == d.Value.AllCount) ? DistanceAptitude.Unknown :
-            ranking.ElementAt(0).Key;
-          this.SecondDistance = distances.Count(d => d.Value.LoseCount == d.Value.AllCount) >= 3 ? DistanceAptitude.Unknown :
-            ranking.ElementAt(1).Key;
+          var nearDistance = ConfigUtil.GetIntValue(
+            race.Course <= RaceCourse.CentralMaxValue ? SettingKey.NearDistanceDiffCentral : SettingKey.NearDistanceDiffLocal,
+            50);
 
           // 成績
           this.AllGrade = new ResultOrderGradeMap(this.BeforeRaces.Select(r => r.Data).ToArray());
@@ -303,11 +235,7 @@ namespace KmyKeiba.Models.Analysis
           this.SameGroundGrade = new ResultOrderGradeMap(this.BeforeRaces
             .Where(r => r.Race.TrackGround == race.TrackGround).Select(r => r.Data).ToArray());
           this.SameDistanceGrade = new ResultOrderGradeMap(this.BeforeRaces
-            .Where(r =>
-            {
-              var diff = race.Course <= RaceCourse.CentralMaxValue ? ApplicationConfiguration.Current.Value.NearDistanceDiffCentralInHorseGrade : ApplicationConfiguration.Current.Value.NearDistanceDiffLocalInHorseGrade;
-              return r.Race.Distance >= race.Distance - diff && r.Race.Distance <= race.Distance + diff;
-            }).Select(r => r.Data).ToArray());
+            .Where(r => r.Race.Distance >= race.Distance - nearDistance && r.Race.Distance <= race.Distance + nearDistance).Select(r => r.Data).ToArray());
           this.SameDirectionGrade = new ResultOrderGradeMap(this.BeforeRaces
             .Where(r => r.Race.TrackCornerDirection == race.TrackCornerDirection).Select(r => r.Data).ToArray());
           this.SameConditionGrade = new ResultOrderGradeMap(this.BeforeRaces
@@ -316,12 +244,12 @@ namespace KmyKeiba.Models.Analysis
             .Where(r => r.Data.RiderCode == horse.RiderCode).Select(r => r.Data).ToArray());
 
           // 競馬場ごとの成績
-          this.CourseGrades.Add(new CourseHorseGrade(race.Distance, race.TrackGround, this.BeforeRaces));
+          this.CourseGrades.Add(new CourseHorseGrade(race, race.Distance, race.TrackGround, this.BeforeRaces));
           foreach (var courseSource in this.BeforeRaces
             .Where(r => r.Data.AbnormalResult == RaceAbnormality.Unknown && r.Data.ResultTime != default)
             .GroupBy(r => r.Race.Course))
           {
-            var grade = new CourseHorseGrade(courseSource.Key, race.Distance, race.TrackGround, courseSource.ToArray())
+            var grade = new CourseHorseGrade(race, courseSource.Key, race.Distance, race.TrackGround, courseSource.ToArray())
             {
               IsCurrentCourse = courseSource.Key == race.Course,
             };
@@ -367,8 +295,6 @@ namespace KmyKeiba.Models.Analysis
 
       public IReadOnlyList<RaceHorseData> TopHorses { get; }
 
-      public double RoughRate { get; }
-
       /// <summary>
       /// １着のタイム指数。レースのペースを決めるのに使う
       /// </summary>
@@ -392,7 +318,6 @@ namespace KmyKeiba.Models.Analysis
 
         this.TopHorse = sameRaceHorses.FirstOrDefault(h => h.ResultOrder == 1);
         this.TopHorses = sameRaceHorses.OrderBy(h => h.ResultOrder).ToArray();
-        this.RoughRate = AnalysisUtil.CalcRoughRate(sameRaceHorses.ToArray());
 
         if (raceStandardTime != null && raceStandardTime.SampleCount > 0 && _timeDeviationValueCalculator != null && this.TopHorse != null)
         {
@@ -407,7 +332,6 @@ namespace KmyKeiba.Models.Analysis
       this.Data = horse;
       this.Subject = new RaceSubjectInfo(race);
       this.Mark.Value = horse.Mark;
-      this.ResultTimePerMeter = (double)horse.ResultTime.TotalSeconds / race.Distance;
       this.ResultOrderComparation = horse.ResultOrder >= 1 && horse.ResultOrder <= 3 ? ValueComparation.Good :
         horse.ResultOrder >= 8 || horse.ResultOrder >= race.HorsesCount * 0.7f ? ValueComparation.Bad : ValueComparation.Standard;
       if (race.Distance >= 800)
@@ -499,6 +423,7 @@ namespace KmyKeiba.Models.Analysis
       this.ResultOrderComparationWithLastCorner = corners.LastOrDefault().Type;
 
       this.Pci = AnalysisUtil.CalcPci(race, horse);
+      this.PciDVComparation = AnalysisUtil.CompareValue(this.Pci, 45, 55, true);
     }
 
     public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, RaceStandardTimeMasterData? raceStandardTime, JrdbRaceHorseData? jrdbHorse = null)
@@ -511,11 +436,6 @@ namespace KmyKeiba.Models.Analysis
           this.ResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
           this.A3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
           this.UntilA3HResultTimeDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetUntilA3HTimeDeviationValueAsync(race, horse, raceStandardTime).Result);
-
-          if (this.Pci != default)
-          {
-            this.PciDeviationValue = MathUtil.AvoidNan(_timeDeviationValueCalculator.GetPciDeviationValue(race, this.Pci, raceStandardTime));
-          }
         }
       }
       catch (Exception ex)
@@ -531,56 +451,10 @@ namespace KmyKeiba.Models.Analysis
       this.CurrentRace = new CurrentRaceData(race, horse, sameRaceHorses, raceStandardTime);
     }
 
-    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalyzer> raceHistory, RaceStandardTimeMasterData? raceStandardTime, RiderWinRateMasterData riderWinRate, JrdbRaceHorseData? jrdbHorse = null)
+    public RaceHorseAnalyzer(RaceData race, RaceHorseData horse, IEnumerable<RaceHorseData> sameRaceHorses, IEnumerable<RaceHorseAnalyzer> raceHistory, RaceStandardTimeMasterData? raceStandardTime, JrdbRaceHorseData? jrdbHorse = null)
       : this(race, horse, sameRaceHorses, raceStandardTime, jrdbHorse)
     {
       this.History = new HistoryData(race, horse, raceHistory, jrdbHorse);
-
-      short allCount, firstCount, secondCount, thirdCount;
-      if (race.TrackType == TrackType.Flat)
-      {
-        if (race.TrackGround == TrackGround.Turf)
-        {
-          allCount = riderWinRate.AllTurfCount;
-          firstCount = riderWinRate.FirstTurfCount;
-          secondCount = riderWinRate.SecondTurfCount;
-          thirdCount = riderWinRate.ThirdTurfCount;
-        }
-        else
-        {
-          allCount = riderWinRate.AllDirtCount;
-          firstCount = riderWinRate.FirstDirtCount;
-          secondCount = riderWinRate.SecondDirtCount;
-          thirdCount = riderWinRate.ThirdDirtCount;
-        }
-      }
-      else
-      {
-        if (race.TrackGround == TrackGround.Turf)
-        {
-          allCount = riderWinRate.AllTurfSteepsCount;
-          firstCount = riderWinRate.FirstTurfSteepsCount;
-          secondCount = riderWinRate.SecondTurfSteepsCount;
-          thirdCount = riderWinRate.ThirdTurfSteepsCount;
-        }
-        else
-        {
-          allCount = riderWinRate.AllDirtSteepsCount;
-          firstCount = riderWinRate.FirstDirtSteepsCount;
-          secondCount = riderWinRate.SecondDirtSteepsCount;
-          thirdCount = riderWinRate.ThirdDirtSteepsCount;
-        }
-      }
-
-      if (allCount > 0)
-      {
-        this.RiderPlaceBitsRate = (firstCount + secondCount + thirdCount) / (float)allCount;
-        this.RiderFirstCount = firstCount;
-        this.RiderSecondCount = secondCount;
-        this.RiderThirdCount = thirdCount;
-        this.RiderLosedCount = (short)(allCount - firstCount - secondCount - thirdCount);
-        this.RiderAllCount = allCount;
-      }
     }
 
     #region Command
@@ -592,22 +466,22 @@ namespace KmyKeiba.Models.Analysis
 
     public ICommand PlayRaceMovieCommand =>
       this._playRaceMovieCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsRaceError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayRaceAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsRaceError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayRaceAsync());
     private AsyncReactiveCommand<object>? _playRaceMovieCommand;
 
     public ICommand PlayPaddockCommand =>
       this._playPaddockCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsPaddockError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayPaddockAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsPaddockError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPaddockAsync());
     private AsyncReactiveCommand<object>? _playPaddockCommand;
 
     public ICommand PlayPatrolCommand =>
       this._playPatrolCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsPatrolError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayPatrolAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsPatrolError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPatrolAsync());
     private AsyncReactiveCommand<object>? _playPatrolCommand;
 
     public ICommand PlayMultiCamerasCommand =>
       this._playMultiCamerasCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsMultiCamerasError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayMultiCamerasAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsMultiCamerasError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayMultiCamerasAsync());
     private AsyncReactiveCommand<object>? _playMultiCamerasCommand;
 
     public ICommand OpenRaceWindowCommand =>
@@ -616,8 +490,6 @@ namespace KmyKeiba.Models.Analysis
     private ReactiveCommand<string>? _openRaceWindowCommand;
 
     #endregion
-
-    private readonly CompositeDisposable _disposables = new();
 
     public void ChangeIsCheck(bool status)
     {
@@ -629,10 +501,20 @@ namespace KmyKeiba.Models.Analysis
     private async Task ChangeHorseMarkAsync(string marks)
     {
       var mark = EnumUtil.ToHorseMark(marks);
+      var oldMark = this.Mark.Value;
 
-      using var db = new MyContext();
-      this.ChangeHorseMark(db, mark);
-      await db.SaveChangesAsync();
+      try
+      {
+        using var db = new MyContext();
+        this.ChangeHorseMark(db, mark);
+        await db.SaveChangesAsync();
+      }
+      catch (Exception ex)
+      {
+        // TODO: エラーを画面に出す
+        logger.Warn("印付けでエラー", ex);
+        this.Mark.Value = this.Data.Mark = oldMark;
+      }
     }
 
     public void ChangeHorseMark(MyContext db, RaceHorseMark mark)
@@ -677,9 +559,6 @@ namespace KmyKeiba.Models.Analysis
     {
       this._disposables.Dispose();
       this.BloodSelectors?.Dispose();
-      this.RiderTrendAnalyzers?.Dispose();
-      this.TrainerTrendAnalyzers?.Dispose();
-      this.TrendAnalyzers?.Dispose();
       this.FinderModel.Value?.Dispose();
 
       if (this.History != null)
@@ -718,24 +597,7 @@ namespace KmyKeiba.Models.Analysis
     Good,
     Bad,
     Warning,
-  }
-
-  public enum DistanceAptitude
-  {
-    [Label("不明")]
-    Unknown,
-
-    [Label("短距離")]
-    Sprinter,
-
-    [Label("マイル")]
-    Mylar,
-
-    [Label("中距離")]
-    ClassicDistance,
-
-    [Label("長距離")]
-    Steyer,
+    Exception,
   }
 
   public struct ResultOrderGradeMap
@@ -837,6 +699,8 @@ namespace KmyKeiba.Models.Analysis
 
     public RaceData? ShortestTimeRace { get; }
 
+    public RacePace ShortestTimeRacePace { get; }
+
     public RaceHorseData? ShortestTimeRaceHorse { get; }
 
     public RaceHorseAnalyzer? ShortestTimeRaceHorseAnalyzer { get; }
@@ -849,16 +713,19 @@ namespace KmyKeiba.Models.Analysis
 
     public double ShortestTimeRaceTopHorseDeviationValue { get; }
 
-    public CourseHorseGrade(RaceCourse course, short distance, TrackGround ground, IReadOnlyList<RaceHorseAnalyzer> source)
+    public CourseHorseGrade(RaceData currentRace, RaceCourse course, short distance, TrackGround ground, IReadOnlyList<RaceHorseAnalyzer> source)
     {
       var filtered = source.Where(s => s.Data.AbnormalResult == RaceAbnormality.Unknown && s.Data.ResultOrder > 0);
 
       this.Course = course;
       this.AllGrade = new ResultOrderGradeMap(filtered.Select(s => s.Data).ToArray());
 
-      var diff = course <= RaceCourse.CentralMaxValue ? ApplicationConfiguration.Current.Value.NearDistanceDiffCentralInHorseGrade : ApplicationConfiguration.Current.Value.NearDistanceDiffLocalInHorseGrade;
+      var diff = ConfigUtil.GetIntValue(course <= RaceCourse.CentralMaxValue ? SettingKey.NearDistanceDiffCentral : SettingKey.NearDistanceDiffLocal, 50);
+      var daysDiff = ConfigUtil.GetIntValue(course <= RaceCourse.CentralMaxValue ? SettingKey.ShortestTimeNearYearCentral : SettingKey.ShortestTimeNearYearLocal, 10) * 365;
       var nearDistanceRaces = filtered
-        .Where(s => System.Math.Abs(s.Race.Distance - distance) <= diff && s.Race.TrackGround == ground);
+        .Where(s => System.Math.Abs(s.Race.Distance - distance) <= diff && s.Race.TrackGround == ground)
+        .Where(s => s.Race.StartTime != default && currentRace.StartTime > s.Race.StartTime)
+        .Where(s => (currentRace.StartTime - s.Race.StartTime).TotalDays <= daysDiff);
       if (nearDistanceRaces.Any())
       {
         this.HasData = true;
@@ -880,6 +747,7 @@ namespace KmyKeiba.Models.Analysis
             (int)System.Math.Round((float)shortestTime.Data.ResultTime.Ticks / shortestTime.Race.Distance * distance));
         }
         this.ShortestTimeRace = shortestTime.Race;
+        this.ShortestTimeRacePace = AnalysisUtil.CalcRacePace(shortestTime.Race);
         this.ShortestTimeRaceHorse = shortestTime.Data;
         this.ShortestTimeRaceHorseAnalyzer = shortestTime;
         this.ShortestTimeRaceSubject = shortestTime.Subject;
@@ -889,7 +757,7 @@ namespace KmyKeiba.Models.Analysis
       }
     }
 
-    public CourseHorseGrade(short distance, TrackGround ground, IReadOnlyList<RaceHorseAnalyzer> source) : this(RaceCourse.All, distance, ground, source)
+    public CourseHorseGrade(RaceData currentRace, short distance, TrackGround ground, IReadOnlyList<RaceHorseAnalyzer> source) : this(currentRace, RaceCourse.All, distance, ground, source)
     {
     }
   }

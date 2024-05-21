@@ -40,6 +40,11 @@ namespace KmyKeiba.Models.RList
     {
       this.Date.Skip(1).Subscribe(async _ =>
       {
+        foreach (var item in this.Courses.SelectMany(c => c.Races))
+        {
+          item.Selected -= this.Item_Selected;
+        }
+
         this.Courses.Clear();
         await this.UpdateListAsync();
       }).AddTo(this._disposables);
@@ -71,7 +76,6 @@ namespace KmyKeiba.Models.RList
         horses = horseData.Select(h => new RaceHorseData { Key = h.Key, RaceKey = h.RaceKey, Number = h.Number, FrameNumber = h.FrameNumber, AbnormalResult = h.AbnormalResult, }).ToArray();
         var horseKeys = horses.Select(h => h.Key).ToArray();
 
-        await MemoUtil.InitializeAsync(db);
         (memos, pointLabel) = await MemoUtil.GetRaceListMemosAsync(db, keys);
 
         await CheckHorseUtil.InitializeAsync(db);
@@ -143,7 +147,11 @@ namespace KmyKeiba.Models.RList
             }
             else if (myTickets.Any())
             {
-              var ts = myTickets.Select(t => TicketItem.FromData(t, myHorses, null)).Where(t => t != null).Select(t => t!);
+              using var disposables = new CompositeDisposable();
+
+              var ts = myTickets.Select(t => TicketItem.FromData(t, myHorses, null)?.AddTo(disposables))
+                                .Where(t => t != null)
+                                .Select(t => t!);
               if (ts.SelectMany(t => t.Rows).Any())
               {
                 item.SetIncome(ts.Sum(t => t.Count.Value * t.Rows.Count * -100), true);
@@ -224,12 +232,16 @@ namespace KmyKeiba.Models.RList
 
     private void UpdatePayoff(RaceListItem item, IReadOnlyList<RaceHorseData> horses, IEnumerable<TicketData> tickets, RefundData refund)
     {
-      this.UpdatePayoff(item, tickets.Select(t => TicketItem.FromData(t, horses, null)).Where(t => t != null).Select(t => t!), horses, refund);
+      using var disposables = new CompositeDisposable();
+
+      this.UpdatePayoff(item, tickets.Select(t => TicketItem.FromData(t, horses, null)?.AddTo(disposables))
+                                     .Where(t => t != null)
+                                     .Select(t => t!), horses, refund);
     }
 
     private void UpdatePayoff(RaceListItem item, IEnumerable<TicketItem> tickets, IReadOnlyList<RaceHorseData> horses, RefundData refund)
     {
-      var payoff = new PayoffInfo(refund);
+      using var payoff = new PayoffInfo(refund);
       payoff.UpdateTicketsData(tickets.Where(t => t != null).OfType<TicketItem>().ToArray(), horses);
 
       var money = payoff.Income.Value;

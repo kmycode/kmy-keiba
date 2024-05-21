@@ -29,7 +29,11 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<BornHorseData>? BornHorses { get; set; }
 
+    public DbSet<HorseSaleData>? HorseSales { get; set; }
+
     public DbSet<SingleOddsTimeline>? SingleOddsTimelines { get; set; }
+
+    public DbSet<PlaceOddsData>? PlaceOdds { get; set; }
 
     public DbSet<FrameNumberOddsData>? FrameNumberOdds { get; set; }
 
@@ -44,8 +48,6 @@ namespace KmyKeiba.Data.Db
     public DbSet<TrifectaOddsData>? TrifectaOdds { get; set; }
 
     public DbSet<RefundData>? Refunds { get; set; }
-
-    public DbSet<LearningDataCache>? LearningDataCaches { get; set; }
 
     public DbSet<TrainingData>? Trainings { get; set; }
 
@@ -69,11 +71,7 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<RaceStandardTimeMasterData>? RaceStandardTimes { get; set; }
 
-    public DbSet<RiderWinRateMasterData>? RiderWinRates { get; set; }
-
     public DbSet<TicketData>? Tickets { get; set; }
-
-    public DbSet<DownloaderTaskData>? DownloaderTasks { get; set; }
 
     public DbSet<RaceChangeData>? RaceChanges { get; set; }
 
@@ -88,6 +86,8 @@ namespace KmyKeiba.Data.Db
     public DbSet<ExternalNumberConfig>? ExternalNumberConfigs { get; set; }
 
     public DbSet<FinderConfigData>? FinderConfigs { get; set; }
+
+    public DbSet<FinderColumnData>? FinderColumns { get; set; }
 
     public DbSet<CheckHorseData>? CheckHorses { get; set; }
 
@@ -131,7 +131,12 @@ namespace KmyKeiba.Data.Db
 
     public async Task BeginTransactionAsync()
     {
-      this._transaction = await this.Database.BeginTransactionAsync();
+      this._transaction = await this.GenerateTransactionAsync();
+    }
+
+    protected virtual async Task<IDbContextTransaction> GenerateTransactionAsync()
+    {
+      return await this.Database.BeginTransactionAsync();
     }
 
     public async Task TryBeginTransactionAsync()

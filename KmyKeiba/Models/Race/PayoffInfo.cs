@@ -115,10 +115,7 @@ namespace KmyKeiba.Models.Race
 
     public void SetTickets(BettingTicketInfo tickets, IReadOnlyList<RaceHorseData> horses)
     {
-      if (this._ticketsDisposables != null)
-      {
-        this._ticketsDisposables.Dispose();
-      }
+      this._ticketsDisposables?.Dispose();
 
       this._ticketsDisposables = new();
       this._tickets = tickets;

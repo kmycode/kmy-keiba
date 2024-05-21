@@ -25,7 +25,7 @@ namespace KmyKeiba.Models.Race.HorseMark
     private readonly IReadOnlyList<RaceHorseAnalyzer> _horses;
     private readonly string _raceKey;
 
-    public HorseMarkConfigModel Config => HorseMarkConfigModel.Instance;
+    public HorseMarkConfigModel Config => throw new NotSupportedException("ViewModelに移動");
 
     public ReactiveCollection<HorseMarkRow> Rows { get; } = new();
 
@@ -34,14 +34,17 @@ namespace KmyKeiba.Models.Race.HorseMark
       this._raceKey = raceKey;
       this._horses = horses;
 
-      this.Config.Configs.CollectionChangedAsObservable().Subscribe(_ => this.OnMarkConfigChanged(null)).AddTo(this._disposables);
+      HorseMarkConfigModel.Instance.Configs
+        .CollectionChangedAsObservable()
+        .Subscribe(_ => this.OnMarkConfigChanged(null))
+        .AddTo(this._disposables);
     }
 
     private void OnMarkConfigChanged(IEnumerable<HorseMarkData>? marks)
     {
       if (marks == null)
       {
-        marks = this.Rows.Where(r => r.IsCustomMark).SelectMany(r => r.Cells).Select(c => c.Data);
+        marks = this.Rows.Where(r => r.IsCustomMark).SelectMany(r => r.Cells).Select(c => c.Data).ToArray();
       }
 
       var targetRows = this.Rows.Where(r => r.IsCustomMark).ToArray();
@@ -142,6 +145,11 @@ namespace KmyKeiba.Models.Race.HorseMark
     public void Dispose()
     {
       this._disposables.Dispose();
+
+      foreach (var cell in this.Rows.SelectMany(r => r.Cells))
+      {
+        cell.Dispose();
+      }
     }
   }
 
@@ -188,8 +196,10 @@ namespace KmyKeiba.Models.Race.HorseMark
       this.Config = config;
       this.CanEdit = true;
 
-      this.Mark.Skip(1).Subscribe(async mark =>
+      this.Mark.Skip(1).Where(m => this.Data.Mark != m).Subscribe(async mark =>
       {
+        var oldMark = this.Data.Mark;
+
         try
         {
           using var db = new MyContext();
@@ -207,7 +217,11 @@ namespace KmyKeiba.Models.Race.HorseMark
         }
         catch (Exception ex)
         {
+          // TODO: エラーを画面に出す
           logger.Error("印の保存でエラー", ex);
+
+          this.Data.Mark = oldMark;
+          this.Mark.Value = oldMark;
         }
       }).AddTo(this._disposables);
 

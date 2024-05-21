@@ -108,7 +108,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     protected virtual bool IsIgnorePropertyToSerializing(string propertyName)
     {
-      if (propertyName == nameof(Query) || propertyName == "Key" || propertyName == nameof(IsCustomized))
+      if (propertyName == nameof(Query) || propertyName == "Key" || propertyName == nameof(IsCustomized) || propertyName == "DefaultSize")
       {
         return true;
       }
@@ -1048,6 +1048,7 @@ namespace KmyKeiba.Models.Race.Finder
         new FinderQueryInputListItem<RaceGrade>("地方G2", RaceGrade.LocalGrade2_UC),
         new FinderQueryInputListItem<RaceGrade>("地方G3", RaceGrade.LocalGrade3_UC),
         new FinderQueryInputListItem<RaceGrade>("地方重賞", RaceGrade.LocalGrade_UC),
+        new FinderQueryInputListItem<RaceGrade>("地方特別", RaceGrade.LocalNonGradeSpecial),
         new FinderQueryInputListItem<RaceGrade>("地方OP", RaceGrade.LocalOpen_UC),
       });
     }
@@ -2011,6 +2012,7 @@ namespace KmyKeiba.Models.Race.Finder
 
     public HorseBloodInputCategory()
     {
+      this.Disposables.Add(this.HorseBlood);
       this.Configs.CollectionChangedAsObservable().Subscribe(_ => this.UpdateQuery()).AddTo(this.Disposables);
     }
 
@@ -2052,7 +2054,7 @@ namespace KmyKeiba.Models.Race.Finder
             return;
           }
 
-          horses.Take(500).ToArrayAsync().ContinueWith(t =>
+          horses.Take(100).ToArrayAsync().ContinueWith(t =>
           {
             if (t.IsCompletedSuccessfully)
             {
@@ -3069,6 +3071,7 @@ namespace KmyKeiba.Models.Race.Finder
               var label = PointLabelModel.Default.Configs.FirstOrDefault(c => c.Data.Id == (uint)config.PointLabelId);
               if (label == null)
               {
+                item.Dispose();
                 continue;
               }
             }
@@ -3102,7 +3105,17 @@ namespace KmyKeiba.Models.Race.Finder
       this.Items.Clear();
     }
 
-    public class MemoConfigItem
+    public override void Dispose()
+    {
+      base.Dispose();
+
+      foreach (var item in this.Items)
+      {
+        item.Dispose();
+      }
+    }
+
+    public class MemoConfigItem : IDisposable
     {
       public ExpansionMemoConfig Config { get; }
 
@@ -3194,6 +3207,11 @@ namespace KmyKeiba.Models.Race.Finder
         }
 
         return $"memo/{string.Join('/', targets2)}/number:{this.Config.MemoNumber}/:{point}";
+      }
+
+      public void Dispose()
+      {
+        this.Point.Dispose();
       }
     }
   }
@@ -3634,6 +3652,15 @@ namespace KmyKeiba.Models.Race.Finder
       }
     }
     private int _defaultSize = 3000;
+
+    public int LimitByAsInt
+    {
+      get
+      {
+        int.TryParse(this.LimitBy.Value, out var num);
+        return num;
+      }
+    }
 
     public OtherSettingInputCategory()
     {

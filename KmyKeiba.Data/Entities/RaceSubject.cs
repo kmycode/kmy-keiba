@@ -73,18 +73,27 @@ namespace KmyKeiba.JVLink.Entities
         {
           // 重賞or特別レースでは未勝利や新馬のような情報を表示する余裕がない
           // でも高知がたまに特別レースという名の新馬戦をぶちこんでくるので、特別レースは扱いを分ける
-          if (displayClass is RaceGrade &&
-            displayClass is not RaceGrade.LocalNonGradeSpecial &&
-            displayClass is not RaceGrade.NonGradeSpecial &&
-            displayClass is not RaceGrade.Listed &&
-            displayClass is not RaceGrade.LocalListed)
+          if (displayClass is RaceGrade grade)
           {
-            if (maxClass == RaceClass.Age)
+            if (grade != RaceGrade.Listed &&
+              grade != RaceGrade.LocalListed)
             {
-              // 年齢制限特別レースで年齢制限の表示ぷっちゃけいらない
-              return null;
+              if (grade != RaceGrade.LocalGrade1 &&
+                grade != RaceGrade.LocalGrade1_UC &&
+                grade != RaceGrade.LocalGrade2 &&
+                grade != RaceGrade.LocalGrade2_UC &&
+                grade != RaceGrade.LocalGrade3 &&
+                grade != RaceGrade.LocalGrade3_UC &&
+                grade != RaceGrade.LocalNoNamedGrade &&
+                grade != RaceGrade.LocalGrade_UC)
+              {
+                return maxClass;
+              }
+              else
+              {
+                return null;
+              }
             }
-            return maxClass;
           }
 
           if (this.IsNotWon)
@@ -138,12 +147,26 @@ namespace KmyKeiba.JVLink.Entities
     {
       get
       {
-        if (this.DisplayClass is RaceGrade grade)
+        var displayClass = this.DisplayClass;
+
+        if (displayClass is RaceGrade grade)
         {
-          return grade.GetLabel();
+          if (grade != RaceGrade.LocalNonGradeSpecial && grade != RaceGrade.NonGradeSpecial)
+          {
+            return grade.GetLabel();
+          }
+
+          if (!this.IsLocal && this.AgeSubjects.Any())
+          {
+            return this.AgeSubjects.Min(s => s.Age) + "歳";
+          }
+          else
+          {
+            displayClass = this.SecondaryClass;
+          }
         }
 
-        if (this.DisplayClass is RaceClass cls)
+        if (displayClass is RaceClass cls)
         {
           if (cls == RaceClass.Age && this.AgeSubjects.Any())
           {
@@ -173,7 +196,7 @@ namespace KmyKeiba.JVLink.Entities
         }
 
         if (this.Grade != RaceGrade.Unknown && this.Grade != RaceGrade.Others &&
-          (string.IsNullOrEmpty(this.Name) || this.Grade != RaceGrade.NonGradeSpecial))
+          (string.IsNullOrEmpty(this.Name) || (this.Grade != RaceGrade.NonGradeSpecial && this.Grade != RaceGrade.LocalNonGradeSpecial)))
         {
           return this.Grade.GetLabel();
         }
@@ -188,7 +211,12 @@ namespace KmyKeiba.JVLink.Entities
           {
             return this.Age + "歳";
           }
-          return "OP";
+        }
+
+
+        if (this.Grade == RaceGrade.NonGradeSpecial || this.Grade == RaceGrade.LocalNonGradeSpecial)
+        {
+          return this.Grade.GetLabel();
         }
 
         return "OP";
@@ -367,7 +395,7 @@ namespace KmyKeiba.JVLink.Entities
           TryMatchAge(reg, raceName);
         }
       }
-      else if (text.Contains("未勝利") || text.Contains("認未勝") || raceName.Contains("未勝利") || raceName.Contains("認未勝"))
+      else if (text.Contains("未勝利") || text.Contains("認未勝") || text.Contains("未受賞") || raceName.Contains("未勝利") || raceName.Contains("認未勝") || raceName.Contains("未受賞"))
       {
         subject.IsNotWon = true;
 

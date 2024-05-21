@@ -24,6 +24,10 @@ namespace KmyKeiba.Shared
       Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "KMYsofts", "KMYKeiba", "ml");
 
+    public static readonly string DownloaderTaskDataDir = Path.Combine(
+      Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "KMYsofts", "KMYKeiba", "tasks");
+
     public static string DatabasePath
     {
       get
@@ -51,14 +55,16 @@ namespace KmyKeiba.Shared
     }
     private static string? _databasePath;
 
+    public static readonly string InterruptedTaskFilePath = Path.Combine(AppDataDir, "interrupted_task");
+
     public static readonly string ShutdownFilePath = Path.Combine(AppDataDir, "req_shutdown");
 
     public static readonly string DebugFilePath = Path.Combine(AppDataDir, "debug");
 
     public static readonly string RTHostFilePath = Path.Combine(AppDataDir, "rthost");
 
-    public static readonly string RunningStyleTrainingFilePath = Path.Combine(AppDataDir, "runningstyle.mml");
-
     public static readonly string ApplicationVersion = Assembly.GetExecutingAssembly().GetName().Version!.ToString();
+
+    public static readonly string ApplicationVersionSuffix = "-alpha";
   }
 }

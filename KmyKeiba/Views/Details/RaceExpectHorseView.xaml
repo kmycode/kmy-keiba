@@ -78,27 +78,13 @@
                        Foreground="{Binding RaceHorse.History.UntilA3HTimeDVComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"/>
             -->
 
-            <TextBlock Grid.Column="2" Text="距離１" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
-            <TextBlock Grid.Column="3" FontSize="24"
-                       Text="{Binding RaceHorse.History.BestDistance,ElementName=Root,Converter={StaticResource LabelConv}}"/>
-            <TextBlock Grid.Column="2" Text="距離２" Grid.Row="1" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
-            <TextBlock Grid.Column="3" Grid.Row="1" FontSize="24" Margin="0,8,0,0"
-                       Text="{Binding RaceHorse.History.SecondDistance,ElementName=Root,Converter={StaticResource LabelConv}}"/>
             <TextBlock Grid.Column="2" Text="賞金" Grid.Row="2" Foreground="{StaticResource SubForeground}" FontSize="14"/>
             <TextBlock Grid.Column="3" Grid.Row="2" FontSize="24" Margin="0,8,0,0"
-                       Text="{Binding RaceHorse.History.PrizeMoneyLabel,ElementName=Root}"/>
+                       Text="{Binding RaceHorse.History.PrizeMoney,ElementName=Root,Converter={StaticResource MoneyLabelConv}}"/>
 
-            <TextBlock Grid.Column="4" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,0,24,0">
-              同距離・地面<LineBreak/>騎手複勝
-            </TextBlock>
-            <TextBlock Grid.Column="5" FontSize="24" Foreground="{Binding RaceHorse.RiderPlaceBitsRateComparation,ElementName=Root,Converter={StaticResource ValueComparationForegroundConv}}"
-                       Text="{Binding RaceHorse.RiderPlaceBitsRate,ElementName=Root,Converter={StaticResource StringFormatConv},ConverterParameter=P1}"/>
-            <TextBlock Grid.Column="5" Grid.Row="1" FontSize="16">
-              <Run Text="１着" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderFirstCount,ElementName=Root,Mode=OneWay}"/>　
-              <Run Text="２着" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderSecondCount,ElementName=Root,Mode=OneWay}"/><LineBreak/>
-              <Run Text="３着" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderThirdCount,ElementName=Root,Mode=OneWay}"/>　
-              <Run Text="着外" Foreground="{StaticResource SubForeground}" FontSize="12"/>　<Run Text="{Binding RaceHorse.RiderLosedCount,ElementName=Root,Mode=OneWay}"/>
-            </TextBlock>
+            <TextBlock Grid.Column="4" Text="取引価格" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,0,24,0"/>
+            <TextBlock Grid.Column="5" FontSize="24"
+                       Text="{Binding RaceHorse.SaleData.Price,ElementName=Root,Converter={StaticResource MoneyLabelConv}}"/>
             <TextBlock Grid.Column="4" Grid.Row="2" Text="その他" Foreground="{StaticResource SubForeground}" FontSize="14" Margin="0,8,24,0"/>
             <StackPanel Grid.Column="5" Grid.Row="2" Orientation="Horizontal">
               <TextBlock FontSize="18" Visibility="{Binding RaceHorse.Data.IsBlinkers,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
@@ -166,8 +152,7 @@
               <TextBlock Width="60" Text="距離" TextAlignment="Center"/>
               <TextBlock Width="60" Text="持ち時計"/>
               <TextBlock Width="90" Text="距離換算"/>
-              <TextBlock Width="60" Text="T偏"/>
-              <TextBlock Width="60" Text="TOP偏"/>
+              <TextBlock Width="100" Text="レースのペース"/>
               <TextBlock Width="40" Text="着順"/>
               <TextBlock Width="50" Text="斤量"/>
               <TextBlock Width="30" Text="歳"/>
@@ -201,8 +186,7 @@
                         </Border>
                         <TextBlock Width="60" Text="{Binding ShortestTime,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss\\.f}"/>
                         <TextBlock Width="90" Text="{Binding ShortestTimeNormalized,Converter={StaticResource StringFormatConv},ConverterParameter=m\\:ss\\.f}" FontSize="24"/>
-                        <TextBlock Width="60" Text="{Binding ShortestTimeRaceHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
-                        <TextBlock Width="60" Text="{Binding ShortestTimeRaceTopHorseDeviationValue,Converter={StaticResource StringFormatConv},ConverterParameter=F1}"/>
+                        <TextBlock Width="100" Text="{Binding ShortestTimeRacePace,Converter={StaticResource EnumsConv}}" Foreground="{Binding ShortestTimeRacePace,Converter={StaticResource EnumsConv}}"/>
                         <TextBlock Width="40" Text="{Binding ShortestTimeRaceHorse.ResultOrder}"/>
                         <TextBlock Width="50" Text="{Binding ShortestTimeRaceHorse.RiderWeight,Converter={StaticResource DigitMinusConv}}"/>
                         <TextBlock Width="30" Text="{Binding ShortestTimeRaceHorse.Age}"/>
@@ -252,8 +236,8 @@
         <RowDefinition Height="auto"/>
         <RowDefinition/>
       </Grid.RowDefinitions>
-      <up:FinderKeyInputView FinderModel="{Binding RaceHorse.FinderModel.Value,ElementName=Root}" Margin="0,0,0,12"/>
-      <up:FinderRowListView FinderModel="{Binding RaceHorse.FinderModel.Value,ElementName=Root}" Grid.Row="1"/>
+      <up:FinderKeyInputView x:Name="FinderKeyInput" Margin="0,0,0,12"/>
+      <up:FinderRowListView x:Name="FinderRowList" Grid.Row="1"/>
     </Grid>
 
     <!-- 血統 -->
@@ -339,28 +323,6 @@
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
-      <!--
-      <ItemsControl Grid.Row="6" ItemsSource="{Binding RaceHorse.BloodSelectors.SixthGenerations.Value,ElementName=Root}">
-        <ItemsControl.ItemsPanel>
-          <ItemsPanelTemplate>
-            <UniformGrid Columns="64"/>
-          </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <Border BorderBrush="{StaticResource BaseBorderBrush}" Background="{Binding IsMale,Converter={StaticResource BooleanBackgroundIsMaleConv}}" BorderThickness="1">
-              <Border.ToolTip>
-                <ToolTip Background="{StaticResource BaseBackground}">
-                  <TextBlock Background="{StaticResource BaseBackground}" Foreground="{StaticResource BaseForeground}"
-                             FontSize="16" Text="{Binding Name}"/>
-                </ToolTip>
-              </Border.ToolTip>
-              <TextBlock Text="{Binding Name}" FontSize="10" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-            </Border>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-      -->
     </Grid>
 
     <!--調教-->

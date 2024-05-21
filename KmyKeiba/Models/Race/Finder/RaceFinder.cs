@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -46,7 +47,7 @@ namespace KmyKeiba.Models.Race.Finder
       this._finder.Dispose();
     }
 
-    public async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(ScriptKeysParseResult raceQueries, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false)
+    public async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(ScriptKeysParseResult raceQueries, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false, CancellationToken cancellationToken = default)
     {
       // キャッシュはここで返す
       if (!raceQueries.IsRealtimeResult && !raceQueries.IsContainsFutureRaces &&
@@ -55,7 +56,7 @@ namespace KmyKeiba.Models.Race.Finder
         return cache.Item2;
       }
 
-      var result = await this._finder.FindRaceHorsesAsync(raceQueries, sizeMax, offset, isLoadSameHorses, withoutFutureRaces, withoutFutureRacesForce);
+      var result = await this._finder.FindRaceHorsesAsync(raceQueries, sizeMax, offset, isLoadSameHorses, withoutFutureRaces, withoutFutureRacesForce, cancellationToken);
 
       if (!raceQueries.IsContainsFutureRaces && !raceQueries.IsRealtimeResult)
       {
@@ -87,17 +88,17 @@ namespace KmyKeiba.Models.Race.Finder
       return null;
     }
 
-    public RaceHorseTrendAnalysisSelectorWrapper AsTrendAnalysisSelector()
-    {
-      return this._finder.AsTrendAnalysisSelector();
-    }
-
     public void CopyFrom(RaceFinder others)
     {
-      CopyFrom(others, others._finder.Race, others._finder.RaceHorse, others._finder.RaceHorseAnalyzer);
+      this._raceHorseCaches = others._raceHorseCaches;
     }
 
-    public static RaceFinder CopyFrom(RaceFinder old, RaceData? race = null, RaceHorseData? horse = null, RaceHorseAnalyzer? analyzer = null)
+    public RaceFinder Duplicate(RaceFinder others)
+    {
+      return Duplicate(others, others._finder.Race, others._finder.RaceHorse, others._finder.RaceHorseAnalyzer);
+    }
+
+    public static RaceFinder Duplicate(RaceFinder old, RaceData? race = null, RaceHorseData? horse = null, RaceHorseAnalyzer? analyzer = null)
     {
       var finder = analyzer == null ? new RaceFinder(race, horse) : new RaceFinder(analyzer);
       finder._raceHorseCaches = old._raceHorseCaches;

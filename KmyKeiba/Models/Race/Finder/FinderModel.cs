@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -25,6 +26,8 @@ namespace KmyKeiba.Models.Race.Finder
 
     private readonly RaceFinder _finder;
     private readonly CompositeDisposable _disposables = new();
+
+    private static ReactiveProperty<int> ActiveTabId { get; } = new();
 
     public FinderQueryInput Input { get; }
 
@@ -46,6 +49,10 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ReactiveProperty<bool> IsError { get; } = new();
 
+    public ReactiveProperty<bool> IsCanceled { get; } = new();
+
+    public ReactiveProperty<bool> CanCancel { get; } = new();
+
     public RaceData? Race => this._finder.Race;
 
     public RaceHorseAnalyzer? RaceHorse { get; }
@@ -53,6 +60,8 @@ namespace KmyKeiba.Models.Race.Finder
     public bool HasRace => this.Race != null;
 
     public bool HasRaceHorse => this.RaceHorse != null;
+
+    private CancellationTokenSource? _cancellationTokenSource;
 
     public int DefaultSize
     {
@@ -66,10 +75,23 @@ namespace KmyKeiba.Models.Race.Finder
       this.RaceHorse = horse;
       this.Input = new FinderQueryInput(race, horse?.Data, horse, horses?.Select(h => h.Data).ToArray());
 
-      // TODO いずれカスタマイズできるように
-      foreach (var preset in DatabasePresetModel.GetFinderRaceHorseColumns())
+      this.CurrentGroup.Subscribe(g =>
       {
-        this.RaceHorseColumns.Add(preset.Clone());
+        if (g != null && !g.Rows.Any() && g.Items.Any())
+        {
+          this.UpdateRows(g.Items.ToFinderRows(this.RaceHorseColumns));
+        }
+      }).AddTo(this._disposables);
+    }
+
+    private void UpdateColumnConfigs()
+    {
+      this.RaceHorseColumns.Clear();
+      this.Tabs.Clear();
+
+      foreach (var preset in FinderColumnConfigUtil.GenerateRaceHorseColumnList())
+      {
+        this.RaceHorseColumns.Add(preset);
       }
 
       if (this.RaceHorseColumns.Any())
@@ -84,32 +106,35 @@ namespace KmyKeiba.Models.Race.Finder
               TabId = i,
             });
           }
-          this.Tabs.First().IsChecked.Value = true;
+          this.SwitchActiveTab();
         }
 
-        this.Tabs.ActiveItem.Subscribe(_ => this.OnTabChanged());
+        this.Tabs.ActiveItem.Subscribe(_ => this.OnTabChanged()).AddTo(this._disposables);
       }
-
-      this.CurrentGroup.Subscribe(g =>
-      {
-        if (g != null && !g.Rows.Any() && g.Items.Any())
-        {
-          this.UpdateRows(g.Items.ToFinderRows(this.RaceHorseColumns));
-        }
-      });
     }
 
     public void BeginLoad()
     {
+      this.UpdateColumnConfigs();
+
       Task.Run(async () =>
       {
         this.IsError.Value = false;
+        this.IsCanceled.Value = false;
+        this.CanCancel.Value = true;
         this.IsLoading.Value = true;
+
+        this._cancellationTokenSource = new();
 
         try
         {
           this.Columns.Value = this.RaceHorseColumns;
-          var data = await ((IRaceFinder)this._finder).FindRaceHorsesAsync(this.Keys.Value, 3000);
+          var data = await ((IRaceFinder)this._finder).FindRaceHorsesAsync(this.Keys.Value, 3000, cancellationToken: this._cancellationTokenSource.Token);
+          data.AddTo(this._disposables);
+
+          this.CanCancel.Value = false;
+          this._cancellationTokenSource = null;
+
           var allItems = data.AsItems();
 
           IEnumerable<IEnumerable<FinderRaceHorseItem>> SplitData(int size)
@@ -337,6 +362,12 @@ namespace KmyKeiba.Models.Race.Finder
 
           this.OnTabChanged();
         }
+        catch (TaskCanceledException ex)
+        {
+          logger.Error("検索がキャンセルされました", ex);
+          this.CanCancel.Value = false;
+          this.IsCanceled.Value = true;
+        }
         catch (Exception ex)
         {
           logger.Error("検索でエラーが発生しました", ex);
@@ -347,6 +378,12 @@ namespace KmyKeiba.Models.Race.Finder
           this.IsLoading.Value = false;
         }
       });
+    }
+
+    public void CancelLoad()
+    {
+      this._cancellationTokenSource?.Cancel();
+      this.CanCancel.Value = false;
     }
 
     internal Task<FinderQueryResult<RaceAnalyzer>> FindRacesAsync(string keys, int count, int offset)
@@ -401,10 +438,23 @@ namespace KmyKeiba.Models.Race.Finder
       });
     }
 
-    private void ChangeTab(int tabId)
+    public void OnRendered()
     {
-      var tab = this.Tabs.FirstOrDefault(t => t.TabId == tabId);
-      if (tab != null)
+      this.SwitchActiveTab();
+    }
+
+    private void SwitchActiveTab()
+    {
+      if (this.Tabs.Count == 0) return;
+
+      var tab = this.Tabs.FirstOrDefault(t => t.TabId == ActiveTabId.Value) ?? this.Tabs.First();
+
+      this.SwitchTab(tab);
+    }
+
+    private void SwitchTab(FinderTab tab)
+    {
+      if (!tab.IsChecked.Value)
       {
         tab.IsChecked.Value = true;
         this.OnTabChanged();
@@ -414,6 +464,7 @@ namespace KmyKeiba.Models.Race.Finder
     private void OnTabChanged()
     {
       var id = this.Tabs.ActiveItem.Value?.TabId ?? 1;
+      ActiveTabId.Value = id;
 
       if (this.Columns.Value == null)
       {
@@ -441,14 +492,10 @@ namespace KmyKeiba.Models.Race.Finder
       this._finder.ClearCache();
     }
 
-    public RaceHorseTrendAnalysisSelectorWrapper AsTrendAnalysisSelector()
-    {
-      return this._finder.AsTrendAnalysisSelector();
-    }
-
     public void Dispose()
     {
       this.Input.Dispose();
+      this.Tabs.Dispose();
       this._finder.Dispose();
       this._disposables.Dispose();
     }

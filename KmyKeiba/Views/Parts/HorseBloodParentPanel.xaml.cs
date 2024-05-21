@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using static KmyKeiba.Models.Analysis.RaceHorseBloodTrendAnalysisSelectorMenu;
+using static KmyKeiba.Models.Analysis.RaceHorseBloodModel;
 
 namespace KmyKeiba.Views.Parts
 {

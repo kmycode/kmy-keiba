@@ -11,14 +11,33 @@ namespace KmyKeiba.Downloader
 {
   internal partial class Program
   {
-    public static void CheckShutdown(MyContext? db = null, bool isForce = false)
+    public static void SaveFileIfInterrupted()
+    {
+      if (currentTask == null) return;
+
+      var task = DownloaderTaskDataExtensions.FindOrDefault(currentTask.Id);
+      if (task == null || (!task.IsInterrupted && !Program.IsInterrupted)) return;
+
+      task.IsFinished = true;
+      DownloaderTaskDataExtensions.Save(task);
+
+      task.IsFinished = false;
+      task.IsInterrupted = false;
+      task.Result = "succeed";
+      task.SkipFiles.AddRange(SkipFiles);
+      DownloaderTaskDataExtensions.Interrupt(task);
+
+      logger.Info("タスク中断ファイルを作成");
+
+      task.IsFinished = true;
+    }
+
+    public static void CheckShutdown(bool isForce = false, bool canInterrupt = true)
     {
       if (!isCheckShutdown)
       {
         return;
       }
-
-      var isDispose = db == null;
 
       if (File.Exists(Constrants.ShutdownFilePath))
       {
@@ -30,29 +49,56 @@ namespace KmyKeiba.Downloader
       if (currentTask != null)
       {
         var liveFileName = Path.Combine(Constrants.AppDataDir, "live");
+#if DEBUG
+        if (!File.Exists(liveFileName))
+#else
         if (!File.Exists(liveFileName) || File.GetLastWriteTime(liveFileName) < DateTime.Now.AddMinutes(-5))
+#endif
         {
           logger.Warn("ライブファイルが存在しないか、更新時刻を超過していたのでシャットダウンします");
           KillMe();
         }
       }
 
-      db ??= new MyContext();
-
       if (currentTask != null)
       {
-        var task = db.DownloaderTasks!.FirstOrDefault(t => t.Id == currentTask.Id);
-        if (task != null && task.IsCanceled)
+        var task = DownloaderTaskDataExtensions.FindOrDefault(currentTask.Id);
+
+        if (task != null && (task.IsCanceled || task.IsInterrupted || Program.IsCanceled || Program.IsInterrupted))
         {
+          task.IsInterrupted |= Program.IsInterrupted;
+          task.IsCanceled |= Program.IsCanceled;
+
+          if (task.IsInterrupted)
+          {
+            currentTask.IsInterrupted = true;
+            Program.IsInterrupted = true;
+            if (!canInterrupt) return;
+
+            logger.Info("タスクの中断を検出");
+
+            SaveFileIfInterrupted();
+          }
+          if (task.IsCanceled)
+          {
+            currentTask.IsCanceled = true;
+            Program.IsCanceled = true;
+
+            logger.Info("タスクのキャンセルを検出");
+
+            task.IsFinished = true;
+            DownloaderTaskDataExtensions.Save(task);
+          }
+
           if (!isHost || isForce)
           {
-            logger.Warn("タスクが存在しないか、キャンセルされていたのでシャットダウンします");
+            logger.Warn("タスクがキャンセルされていたのでシャットダウンします");
             KillMe();
             //Environment.Exit(0);
           }
           else
           {
-            logger.Warn("タスクが存在しないか、キャンセルされていたので処理を中止します");
+            logger.Warn("タスクがキャンセルされていたので処理を中止します");
             throw new TaskCanceledAndContinueProgramException();
           }
         }
@@ -67,13 +113,9 @@ namespace KmyKeiba.Downloader
         }
         else
         {
+          logger.Warn("現在のタスクが設定されていません");
           throw new TaskCanceledAndContinueProgramException();
         }
-      }
-
-      if (isDispose)
-      {
-        db.Dispose();
       }
     }
 
@@ -91,7 +133,7 @@ namespace KmyKeiba.Downloader
       var myProcess = Process.GetCurrentProcess();
       var myProcessNumber = myProcess?.Id ?? 0;
 
-      logger.Info($"自分を殺すプロセスを開始します {myProcessNumber}");
+      logger.Info($"自分を殺すプロセスを開始します {myProcessNumber} Name:{myProcess?.ProcessName}");
       Process.Start(new ProcessStartInfo
       {
         FileName = "cmd",
@@ -110,7 +152,7 @@ namespace KmyKeiba.Downloader
       Environment.Exit(0);
     }
 
-    public static async Task RestartProgramAsync(bool isIncrement, bool isForce = false)
+    public static void RestartProgram(bool isIncrement, bool isForce = false)
     {
       logger.Info($"プログラムを再起動します インクリメント:{isIncrement}");
 
@@ -151,9 +193,6 @@ namespace KmyKeiba.Downloader
         return;
       }
 
-      Console.WriteLine();
-      Console.WriteLine();
-
       var shellParams = new List<string>();
       var parameters = currentTask.Parameter.Split(',');
 
@@ -184,14 +223,13 @@ namespace KmyKeiba.Downloader
             }
           }
 
-          using var db = new MyContext();
-          db.DownloaderTasks!.Attach(currentTask);
           currentTask.Parameter = $"{year},{month},{parameters[2]},{mode},{string.Join(',', parameters.Skip(4))}";
           currentTask.IsStarted = false;
           currentTask.ProcessId = default;
-          await db.SaveChangesAsync();
+          DownloaderTaskDataExtensions.Save(currentTask);
+
           logger.Info(currentTask.Parameter);
-          CheckShutdown(db);
+          CheckShutdown();
         }
         else
         {
@@ -210,14 +248,13 @@ namespace KmyKeiba.Downloader
         int.TryParse(parameters[2], out var kind);
         int.TryParse(parameters[3], out var skip);
 
-        using var db = new MyContext();
-        db.DownloaderTasks!.Attach(currentTask);
         currentTask.Parameter = $"{parameters[0]},{parameters[1]},{kind},{skip + 1},{string.Join(',', parameters.Skip(4))}";
         currentTask.IsStarted = false;
         currentTask.ProcessId = default;
-        await db.SaveChangesAsync();
+        DownloaderTaskDataExtensions.Save(currentTask);
+
         logger.Info(currentTask.Parameter);
-        CheckShutdown(db);
+        CheckShutdown();
 
         shellParams.Add(currentTask.Id.ToString());
         shellParams.Add(myProcessNumber.ToString());
@@ -248,14 +285,10 @@ namespace KmyKeiba.Downloader
       catch (Exception ex)
       {
         logger.Error("プロセス起動でエラーが発生しました", ex);
-        Console.WriteLine(ex.Message);
-        Console.WriteLine(ex.StackTrace);
 
-        using var db = new MyContext();
-        db.DownloaderTasks!.Attach(currentTask);
         currentTask.IsFinished = true;
         currentTask.Error = DownloaderError.ApplicationRuntimeError;
-        await db.SaveChangesAsync();
+        DownloaderTaskDataExtensions.Save(currentTask);
 
         return;
       }

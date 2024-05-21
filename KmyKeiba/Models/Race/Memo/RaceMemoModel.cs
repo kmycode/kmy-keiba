@@ -32,16 +32,6 @@ namespace KmyKeiba.Models.Race.Memo
     // 他のウィンドウのデータ
     private static readonly List<RaceMemoModel> _allModels = new();
 
-    private static async Task UpdateConfigsAsync(MyContext db)
-    {
-      if (!_isInitialized)
-      {
-        await MemoUtil.InitializeAsync(db);
-        await PointLabelModel.InitializeAsync(db);
-        _isInitialized = true;
-      }
-    }
-
     private static async Task ReloadAllModelsAsync(MyContext db, RaceMemoModel self)
     {
       foreach (var model in _allModels.Where(m => m != self))
@@ -56,7 +46,9 @@ namespace KmyKeiba.Models.Race.Memo
 
     public RaceMemoConfig Config { get; } = new();
 
-    public PointLabelModel LabelConfig => PointLabelModel.Default;
+    public PointLabelModel LabelConfig => throw new NotSupportedException("このプロパティはViewModelに移動します");
+
+    public ReactiveProperty<HorseTeamModel?> TeamModel { get; } = new();
 
     public RaceData Race { get; }
 
@@ -111,7 +103,7 @@ namespace KmyKeiba.Models.Race.Memo
       }).AddTo(this._disposables);
       this.IsEditing.Where(v => v).Subscribe(_ => this.IsCreating.Value = false).AddTo(this._disposables);
 
-      foreach (var num in Enumerable.Range(1, Math.Max(1, ApplicationConfiguration.Current.Value.ExpansionMemoGroupSize)))
+      foreach (var num in Enumerable.Range(1, Math.Max(1, ApplicationConfiguration.ExpansionMemoGroupSize)))
       {
         var group = new RaceHorseMemoGroupInfo(num);
         group.IsChecked.Where(c => c).Subscribe(c =>
@@ -148,7 +140,6 @@ namespace KmyKeiba.Models.Race.Memo
 
     public async Task LoadAsync(MyContext db)
     {
-      await UpdateConfigsAsync(db);
       try
       {
         if (DownloaderModel.Instance.CanSaveOthers.Value)
@@ -264,6 +255,8 @@ namespace KmyKeiba.Models.Race.Memo
             this.RaceHorseMemos.Add(item);
           }
           this.UpdateRaceMemoSelections();
+
+          this.TeamModel.Value = new HorseTeamModel(this.RaceHorses, this.RaceHorseMemos);
         });
       }
       catch (Exception ex)
@@ -401,6 +394,8 @@ namespace KmyKeiba.Models.Race.Memo
           this.IsEditing.Value = false;
 
           AnalysisTableConfigModel.Instance.OnMemoConfigChanged();
+
+          this.TeamModel.Value?.OnHorseMemoConfigUpdated(this.editingConfig.Id);
         }
       }
     }
@@ -471,6 +466,8 @@ namespace KmyKeiba.Models.Race.Memo
           }
 
           AnalysisTableConfigModel.Instance.OnMemoConfigChanged();
+
+          this.TeamModel.Value?.OnHorseMemoConfigUpdated(this.editingConfig.Id);
         }
         catch (Exception ex)
         {
@@ -507,6 +504,8 @@ namespace KmyKeiba.Models.Race.Memo
             await ReloadAllModelsAsync(db, this);
 
             OnPointLabelOrderChangedForRaceList(exists, target);
+
+            this.TeamModel.Value?.OnHorseMemoConfigUpdated(this.editingConfig.Id);
           }
         }
       }
@@ -535,6 +534,8 @@ namespace KmyKeiba.Models.Race.Memo
             await ReloadAllModelsAsync(db, this);
 
             OnPointLabelOrderChangedForRaceList(exists, target);
+
+            this.TeamModel.Value?.OnHorseMemoConfigUpdated(this.editingConfig.Id);
           }
         }
       }
@@ -744,6 +745,7 @@ namespace KmyKeiba.Models.Race.Memo
     public void Dispose()
     {
       this._disposables.Dispose();
+      this.TeamModel.Value?.Dispose();
       this.Config.Dispose();
       _allModels.Remove(this);
     }
@@ -857,6 +859,8 @@ namespace KmyKeiba.Models.Race.Memo
 
     public ReactiveProperty<bool> IsRaceHeaderCombo { get; } = new();
 
+    public ReactiveProperty<bool> IsHorseTeam { get; } = new();
+
     public RaceMemoConfig()
     {
       this.IsFilterRace
@@ -879,15 +883,19 @@ namespace KmyKeiba.Models.Race.Memo
         {
           this.IsRaceHeaderCombo.Value = false;
           var targets = this.GetTargets(false, true);
-          if (targets.Count == 1 && targets[0] == MemoTarget.Race && this.IsRaceTab.Value)
+          if (targets.Count == 1 && targets[0] == MemoTarget.Race && this.IsRaceTab.Value &&
+              (this.IsStylePoint.Value || this.IsStylePointAndMemo.Value) &&
+              this.IsUseLabel.Value && this.SelectedLabel.Value != null)
           {
-            if (this.IsStylePoint.Value || this.IsStylePointAndMemo.Value)
-            {
-              if (this.IsUseLabel.Value && this.SelectedLabel.Value != null)
-              {
-                this.IsRaceHeaderCombo.Value = true;
-              }
-            }
+            this.IsRaceHeaderCombo.Value = true;
+          }
+
+          this.IsHorseTeam.Value = false;
+          if (targets.Count > 0 && !this.IsRaceTab.Value &&
+              (this.IsStylePoint.Value || this.IsStylePointAndMemo.Value) &&
+              this.IsUseLabel.Value && this.SelectedLabel.Value != null)
+          {
+            this.IsHorseTeam.Value = true;
           }
         })
         .AddTo(this._disposables);
@@ -1323,6 +1331,26 @@ namespace KmyKeiba.Models.Race.Memo
         memo.Dispose();
       }
       */
+    }
+  }
+
+  public class RaceHorseSingleMemoItem : IDisposable
+  {
+    public RaceData Race { get; }
+
+    public RaceHorseAnalyzer RaceHorse { get; }
+
+    public RaceMemoItem Memo { get; }
+
+    public RaceHorseSingleMemoItem(RaceData race, RaceHorseAnalyzer raceHorse, RaceMemoItem memo)
+    {
+      this.Race = race;
+      this.RaceHorse = raceHorse;
+      this.Memo = memo;
+    }
+
+    public void Dispose()
+    {
     }
   }
 

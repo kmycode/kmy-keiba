@@ -197,11 +197,21 @@
     <!--ローディング-->
     <Grid Grid.RowSpan="4" Visibility="{Binding FinderModel.IsLoading.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
           Background="{StaticResource BaseBackground}">
-      <up:MyProgressBar HorizontalAlignment="Center" VerticalAlignment="Center">
-        <up:MyProgressBar.RenderTransform>
-          <TranslateTransform X="-40" Y="-16"/>
-        </up:MyProgressBar.RenderTransform>
-      </up:MyProgressBar>
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <up:MyProgressBar HorizontalAlignment="Center">
+          <up:MyProgressBar.RenderTransform>
+            <TranslateTransform X="-40" Y="-16"/>
+          </up:MyProgressBar.RenderTransform>
+        </up:MyProgressBar>
+        <Button Content="キャンセル" FontSize="12" Margin="0,16,0,0" HorizontalAlignment="Center" Width="100"
+                Command="{Binding CancelSearchCommand}" CommandParameter="{Binding FinderModel,ElementName=Root}"
+                IsEnabled="{Binding FinderModel.CanCancel.Value,ElementName=Root}"/>
+      </StackPanel>
+    </Grid>
+    <Grid Grid.RowSpan="4" Visibility="{Binding FinderModel.IsCanceled.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
+          Background="{StaticResource BaseBackground}">
+      <TextBlock Foreground="{StaticResource SubForeground}" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Text="検索はキャンセルされました"/>
     </Grid>
     <Grid Grid.RowSpan="4" Visibility="{Binding FinderModel.IsError.Value,ElementName=Root,Converter={StaticResource BooleanVisibilityConv}}"
           Background="{StaticResource BaseBackground}">

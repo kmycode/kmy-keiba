@@ -26,7 +26,7 @@ namespace KmyKeiba.Views.Parts
      nameof(FinderModel),
      typeof(FinderModel),
      typeof(FinderRowListView),
-     new PropertyMetadata(null));
+     new PropertyMetadata((sender, e) => (sender as FinderRowListView)?.OnFinderModelChanged()));
 
     public FinderModel? FinderModel
     {
@@ -38,7 +38,26 @@ namespace KmyKeiba.Views.Parts
 
     public FinderRowListView()
     {
-        InitializeComponent();
+      InitializeComponent();
+
+      this.IsVisibleChanged += this.FinderRowListView_IsVisibleChanged;
+      this.Unloaded += this.FinderRowListView_Unloaded;
+    }
+
+    private void FinderRowListView_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+      this.OnFinderModelChanged();
+    }
+
+    private void FinderRowListView_Unloaded(object sender, RoutedEventArgs e)
+    {
+      this.IsVisibleChanged -= this.FinderRowListView_IsVisibleChanged;
+      this.Unloaded -= this.FinderRowListView_Unloaded;
+    }
+
+    private void OnFinderModelChanged()
+    {
+      this.FinderModel?.OnRendered();
     }
   }
 }

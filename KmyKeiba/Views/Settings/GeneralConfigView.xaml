@@ -1,0 +1,43 @@
+﻿<UserControl x:Class="KmyKeiba.Views.Settings.GeneralConfigView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KmyKeiba.Views.Settings"
+             xmlns:up="clr-namespace:KmyKeiba.Views.Parts"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Name="Root">
+  <ScrollViewer>
+    <StackPanel IsEnabled="{Binding CanSave.Value}">
+      <TextBlock Text="キャッシュの関係で、アプリを再起動しないと設定が正確に反映されない場合がございます" Style="{StaticResource SubTextBlock}" FontSize="16" Margin="0,0,0,8"/>
+
+      <TextBlock Text="レース予想画面におけるレースのデフォルト検索設定" FontSize="16" Margin="0,16,0,8"/>
+      <up:FinderKeyInputView IsShowFinderButtonOnly="True" FinderModel="{Binding GeneralConfig.DefaultRaceSetting,ElementName=Root}"
+                             IsPopupOnMouse="True"/>
+
+      <TextBlock Text="近い距離のレースを検索するときの誤差メートル" FontSize="16" Margin="0,32,0,4"/>
+      <StackPanel Orientation="Horizontal">
+        <TextBlock FontSize="14" Text="中央" Margin="0,0,8,0"/>
+        <TextBox FontSize="16" Text="{Binding GeneralConfig.NearDistanceDiffCentral.Value,ElementName=Root,Mode=TwoWay}"
+                 Width="120" HorizontalAlignment="Left" TextAlignment="Center"/>
+        <TextBlock FontSize="14" Text="地方" Margin="32,0,8,0"/>
+        <TextBox FontSize="16" Text="{Binding GeneralConfig.NearDistanceDiffLocal.Value,ElementName=Root,Mode=TwoWay}"
+                 Width="120" HorizontalAlignment="Left" TextAlignment="Center"/>
+      </StackPanel>
+
+      <TextBlock Text="持ちタイムを検索するとき、何年前まで調べるか" FontSize="16" Margin="0,32,0,4"/>
+      <StackPanel Orientation="Horizontal">
+        <TextBlock FontSize="14" Text="中央" Margin="0,0,8,0"/>
+        <TextBox FontSize="16" Text="{Binding GeneralConfig.ShortestTimeNearYearCentral.Value,ElementName=Root,Mode=TwoWay}"
+                 Width="120" HorizontalAlignment="Left" TextAlignment="Center"/>
+        <TextBlock FontSize="14" Text="地方" Margin="32,0,8,0"/>
+        <TextBox FontSize="16" Text="{Binding GeneralConfig.ShortestTimeNearYearLocal.Value,ElementName=Root,Mode=TwoWay}"
+                 Width="120" HorizontalAlignment="Left" TextAlignment="Center"/>
+      </StackPanel>
+
+      <ToggleButton FontSize="16" Margin="0,32,0,8" HorizontalAlignment="Left"
+                    Content="一括検索ボタンをメイン画面に表示する" IsChecked="{Binding GeneralConfig.IsShowScriptBulkButton.Value,ElementName=Root,Mode=TwoWay}"/>
+      <TextBlock Text="一括実行機能は大変低速で、初心者にはおすすめできません" FontSize="16" Foreground="{StaticResource SubForeground}"/>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

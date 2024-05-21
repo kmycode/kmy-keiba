@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,9 +13,15 @@ namespace KmyKeiba.Data.Db
 
     public string Parameter { get; set; } = string.Empty;
 
+    public int Progress { get; set; }
+
+    public int ProgressMax { get; set; }
+
     public bool IsFinished { get; set; }
 
     public bool IsCanceled { get; set; }
+
+    public bool IsInterrupted { get; set; }
 
     public bool IsStarted { get; set; }
 
@@ -23,6 +30,211 @@ namespace KmyKeiba.Data.Db
     public DownloaderError Error { get; set; }
 
     public string Result { get; set; } = string.Empty;
+
+    public List<string> SkipFiles { get; } = new();
+
+    private static readonly string[] separators = ["\r\n", "\r", "\n"];
+
+    public static DownloaderTaskData? LoadFile(string filePath)
+    {
+      if (!File.Exists(filePath)) return null;
+
+      try
+      {
+        return FromString(File.ReadAllText(filePath));
+      }
+      catch (Exception ex)
+      {
+        throw new LoadDownloaderTaskDataException("タスクファイルの読み込みに失敗", ex);
+      }
+    }
+
+    public static void SaveFile(string filePath, DownloaderTaskData data)
+    {
+      try
+      {
+        File.WriteAllText(filePath, ToString(data));
+      }
+      catch (Exception ex)
+      {
+        throw new SaveDownloaderTaskDataException("タスクファイルへの書き込みに失敗", ex);
+      }
+    }
+
+    private static DownloaderTaskData FromString(string data)
+    {
+      var result = new DownloaderTaskData();
+
+      static bool ToBoolean(string val) => val.ToLower() == "true";
+
+      foreach (var pair in data
+        .Split(separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Select(l => l.Split('='))
+        .Where(l => l.Length == 2))
+      {
+        var key = pair[0];
+        var value = pair[1];
+
+        switch (key)
+        {
+          case "Command":
+            {
+              if (int.TryParse(value, out int command))
+              {
+                result.Command = (DownloaderCommand)command;
+              }
+            }
+            break;
+          case "Parameter":
+            result.Parameter = value;
+            break;
+          case "IsFinished":
+            result.IsFinished = ToBoolean(value);
+            break;
+          case "IsCanceled":
+            result.IsCanceled = ToBoolean(value);
+            break;
+          case "IsStarted":
+            result.IsStarted = ToBoolean(value);
+            break;
+          case "IsInterrupted":
+            result.IsInterrupted = ToBoolean(value);
+            break;
+          case "Progress":
+            {
+              if (int.TryParse(value, out int progress))
+              {
+                result.Progress = progress;
+              }
+            }
+            break;
+          case "ProgressMax":
+            {
+              if (int.TryParse(value, out int progressMax))
+              {
+                result.ProgressMax = progressMax;
+              }
+            }
+            break;
+          case "ProcessId":
+            {
+              if (int.TryParse(value, out int processId))
+              {
+                result.ProcessId = processId;
+              }
+            }
+            break;
+          case "Error":
+            {
+              if (int.TryParse(value, out int err))
+              {
+                result.Error = (DownloaderError)err;
+              }
+            }
+            break;
+          case "Result":
+            result.Result = value;
+            break;
+          case "SkipFiles":
+            result.SkipFiles.AddRange(value.Split(','));
+            break;
+        }
+      }
+
+      return result;
+    }
+
+    private static string ToString(DownloaderTaskData data) =>
+      $@"Command={(int)data.Command}
+Parameter={data.Parameter}
+IsFinished={data.IsFinished}
+IsCanceled={data.IsCanceled}
+IsInterrupted={data.IsInterrupted}
+IsStarted={data.IsStarted}
+Progress={data.Progress}
+ProgressMax={data.ProgressMax}
+ProcessId={data.ProcessId}
+Error={(int)data.Error}
+Result={data.Result}
+SkipFiles={string.Join(',', data.SkipFiles)}";
+
+    public DownloadParameter GetDownloadParameter()
+      => new DownloadParameter(this.Parameter);
+
+    public void SetDownloadParameter(DownloadParameter parameter)
+    {
+      this.Parameter = parameter.ToString();
+    }
+
+    public class DownloadParameter
+    {
+      public int StartYear { get; set; }
+
+      public int StartMonth { get; set; }
+
+      public LinkSoftware LinkSoftware { get; set; }
+
+      public string Mode { get; set; } = string.Empty;
+
+      public DownloadParameter(string parameter)
+      {
+        var parameters = parameter.Split(',');
+        if (parameters.Length <= 1) return;
+
+        int.TryParse(parameters[0], out var startYear);
+        this.StartYear = startYear;
+        if (parameters.Length == 1) return;
+
+        int.TryParse(parameters[1], out var startMonth);
+        this.StartMonth = startMonth;
+        if (parameters.Length == 2) return;
+
+        this.LinkSoftware = parameters[2] == "central" ? LinkSoftware.Central : LinkSoftware.Local;
+        if (parameters.Length == 3) return;
+
+        this.Mode = parameters[3];
+        if (parameters.Length == 4) return;
+      }
+
+      public override string ToString()
+        => $"{this.StartYear},{this.StartMonth},{(this.LinkSoftware == LinkSoftware.Central ? "central" : "local")},{this.Mode}";
+    }
+  }
+
+  public enum LinkSoftware
+  {
+    Unknown = 0,
+    Central = 1,
+    Local = 2,
+  }
+
+  public class DownloaderTaskDataException : Exception
+  {
+    protected DownloaderTaskDataException(string message, Exception original) : base(message, original)
+    {
+    }
+
+    protected DownloaderTaskDataException(string message) : base(message)
+    {
+    }
+  }
+
+  public class LoadDownloaderTaskDataException : DownloaderTaskDataException
+  {
+    public LoadDownloaderTaskDataException(string message, Exception original) : base(message, original)
+    {
+    }
+  }
+
+  public class SaveDownloaderTaskDataException : DownloaderTaskDataException
+  {
+    public SaveDownloaderTaskDataException(string message, Exception original) : base(message, original)
+    {
+    }
+
+    public SaveDownloaderTaskDataException(string message) : base(message)
+    {
+    }
   }
 
   public enum DownloaderCommand : short
@@ -130,6 +342,9 @@ namespace KmyKeiba.Data.Db
 
     [DownloaderError("ダウンローダが異常停止しました")]
     NotRunningDownloader = 20,
+
+    [DownloaderError("操作は中断されました")]
+    Interrupted = 21,
   }
 
   internal class DownloaderCommandAttribute : Attribute

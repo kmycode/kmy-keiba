@@ -18,11 +18,6 @@ namespace KmyKeiba.Models.Injection
     double GetPciDeviationValue(RaceData race, double pci, RaceStandardTimeMasterData standardTime);
   }
 
-  public interface IInternalDataGenerator
-  {
-    public Task GenerateBaseStandardTimeDataAsync();
-  }
-
 
   public interface IBuyer
   {

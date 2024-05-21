@@ -99,25 +99,25 @@ namespace KmyKeiba.Downloader
         IJVLinkReader StartReadWithTimeout(Func<IJVLinkReader> reader)
         {
           var isSucceed = false;
-          var start = DateTime.Now;
-
-          var waitSeconds = link.Type == JVLinkObjectType.Local ?
-            (DateTime.Now - this.StartTime).TotalDays / 365 * 60 + 60 :  // 1年あたり60秒
-            60;
 
           Task.Run(async () =>
           {
+            var start = DateTime.Now;
+            var waitSeconds = link.Type == JVLinkObjectType.Local ?
+              (DateTime.Now - this.StartTime).TotalDays / 365 * 60 + 60 :  // 1年あたり60秒
+              60;
+
             while (!isSucceed)
             {
               await Task.Delay(1000);
 
               if (DateTime.Now - start > TimeSpan.FromSeconds(waitSeconds))
               {
-                logger.Warn("接続オープンに失敗したので強制終了します");
-                await Program.RestartProgramAsync(false, isForce: true);
+                logger.Warn($"接続オープンに失敗したので強制終了します {DateTime.Now - start} sec");
+                Program.RestartProgram(false, isForce: true);
               }
 
-              Program.CheckShutdown(isForce: true);
+              Program.CheckShutdown(isForce: true, canInterrupt: false);
             }
           });
 
@@ -195,6 +195,11 @@ namespace KmyKeiba.Downloader
         {
           Program.Shutdown(DownloaderError.LicenceKeyNotSet);
         }
+        else if (ex.Code == JVLinkLoadResult.AuthenticationError)
+        {
+          // 地方競馬ではライセンスキーの間違いはこっちのエラーになることがある
+          Program.Shutdown(DownloaderError.AuthenticationError);
+        }
         else if (ex.Code == JVLinkLoadResult.InMaintance)
         {
           Program.Shutdown(DownloaderError.InMaintance);
@@ -212,14 +217,14 @@ namespace KmyKeiba.Downloader
         }
         else
         {
-          _ = Program.RestartProgramAsync(false);
+          Program.RestartProgram(false);
         }
       }
       catch (JVLinkException<JVLinkReadResult> ex)
       {
         logger.Error($"データ読み込みでエラーが発生 {ex.Code}", ex);
 
-        _ = Program.RestartProgramAsync(false);
+        Program.RestartProgram(false);
       }
       catch (TaskCanceledAndContinueProgramException)
       {
@@ -234,7 +239,7 @@ namespace KmyKeiba.Downloader
       {
         logger.Error("不明なエラーが発生", ex);
 
-        _ = Program.RestartProgramAsync(false);
+        Program.RestartProgram(false);
       }
     }
 
@@ -251,6 +256,12 @@ namespace KmyKeiba.Downloader
     }
 
     private void StartLoad(IJVLinkReader reader, IEnumerable<string>? loadSpecs, bool isProcessing, bool isRealtime)
+    {
+      this.DownloadData(reader);
+      this.LoadData(reader, isRealtime, loadSpecs);
+    }
+
+    private void DownloadData(IJVLinkReader reader)
     {
       this.ResetProgresses();
 
@@ -269,9 +280,12 @@ namespace KmyKeiba.Downloader
         Task.Delay(80).Wait();
 
         waitCount += 80;
-        if (waitCount > 10_000)
+
+        if (waitCount > 1_000)
         {
           Program.CheckShutdown();
+          // TODO: #285 進捗をアプリと共有
+          logger.Debug($"ダウンロード数 [{reader.DownloadedCount}/{reader.DownloadCount}]");
           waitCount = 0;
         }
         if (reader.DownloadedCount < 0)
@@ -284,7 +298,7 @@ namespace KmyKeiba.Downloader
           {
             throw JVLinkException.GetError((JVLinkLoadResult)reader.DownloadedCount);
           }
-          Program.RestartProgramAsync(false).Wait();
+          Program.RestartProgram(false);
         }
         else
         {
@@ -301,24 +315,28 @@ namespace KmyKeiba.Downloader
             if (stayCount >= 60_000)
             {
               logger.Warn($"ダウンロード数が {reader.DownloadedCount} から増えないのでタイムアウトします");
-              Program.RestartProgramAsync(false).Wait();
+              Program.RestartProgram(false);
             }
           }
         }
       }
       logger.Info("ダウンロードが完了しました");
+    }
 
-      waitCount = 0;
+    private void LoadData(IJVLinkReader reader, bool isRealtime, IEnumerable<string>? loadSpecs)
+    {
+      var waitCount = 0;
+      var isSaving = false;
 
-      JVLinkReaderData data = new();
       var isLoaded = false;
       var isLoadCanceled = false;
-      var loadTimeout = 0;
       var loadTask = Task.Run(async () =>
       {
-        try
+        var loadTimeout = 0;
+
+        while (!isLoaded)
         {
-          while (!isLoaded)
+          try
           {
             await Task.Delay(80);
 
@@ -333,65 +351,138 @@ namespace KmyKeiba.Downloader
               loadTimeout += 80;
               if (loadTimeout >= 100_000)
               {
-                await Program.RestartProgramAsync(false);
-                loadTimeout = 0;
+                // 保存が長すぎてロードが停止される場合あり
+                if (isSaving)
+                {
+                  loadTimeout = 0;
+                }
+                else
+                {
+                  Program.RestartProgram(false);
+                  loadTimeout = 0;
+                }
               }
             }
 
             waitCount += 80;
-            if (waitCount > 10_000)
+            if (waitCount > 1_000)
             {
-              Program.CheckShutdown();
+              Program.CheckShutdown(canInterrupt: false);
+
+              if (Program.IsInterrupted)
+              {
+                logger.Warn("中断を検出したため、リーダーの中断を試みます");
+                reader.Interrupt();
+              }
+              else if (Program.IsCanceled)
+              {
+                logger.Warn("キャンセルを検出したため、リーダーの中断を試みます");
+                reader.StopLoading();
+              }
+
+              // TODO: #285 進捗をアプリと共有
+              logger.Debug($"ロード数 [{reader.ReadedCount}/{reader.ReadCount}] エンティティ {reader.ReadedEntityCount}");
               waitCount = 0;
             }
           }
-        }
-        catch (TaskCanceledAndContinueProgramException)
-        {
-          isLoadCanceled = true;
-          reader.StopLoading();
-        }
-        catch (Exception ex)
-        {
-          logger.Error("ロード監視でエラー発生", ex);
+          catch (TaskCanceledAndContinueProgramException)
+          {
+            logger.Warn("ロードがキャンセルされました");
+            isLoadCanceled = true;
+            reader.StopLoading();
+            break;
+          }
+          catch (Exception ex)
+          {
+            logger.Error("ロード監視でエラー発生", ex);
+          }
         }
       });
-
-      // while (!loadTask.IsCompleted && loadException == null)
-      // {
-      // }
 
       this.LoadSize = reader.ReadCount;
       logger.Info($"データのロードを開始します　ロード数: {reader.ReadCount}");
       this.Process = LoadProcessing.Loading;
+
+      void onReaded(object? sender, JVLinkReadedEventArgs e)
+      {
+        try
+        {
+          Program.CheckShutdown(canInterrupt: false);
+        }
+        catch (Exception ex)
+        {
+          logger.Error("部分ロード：シャットダウンチェックでエラーが発生しました。このまま処理を続行します", ex);
+        }
+
+        // 別のスレッドが保存処理中のさいにイベントの実行をブロックすることで
+        // JVLinkからロードされたオブジェクトを格納するRAMが増えすぎないようにする
+        while (isSaving)
+        {
+          Task.Delay(50).Wait();
+        }
+
+        isSaving = true;
+        var data = e.Queue;
+
+        Task.Run(async () =>
+        {
+          try
+          {
+            logger.Info("部分データの保存を開始します");
+            this.Process = LoadProcessing.Writing;
+            await this.SaveDataAsync(data, isRealtime);
+            logger.Info("部分データの保存を完了しました");
+          }
+          catch (Exception ex)
+          {
+            logger.Error("データの保存でエラーが発生しました", ex);
+          }
+          finally
+          {
+            this.Process = LoadProcessing.Loading;
+            isSaving = false;
+          }
+        });
+      };
+      reader.Readed += onReaded;
+
       try
       {
-        data = reader.Load(loadSpecs);
+        reader.Load(
+          targetSpecs: loadSpecs,
+          isSequential: true,
+          skipFiles: isRealtime ? null : Program.SkipFiles
+        );
       }
       catch (Exception ex)
       {
         logger.Error("ロードでエラーが発生しました", ex);
         throw new Exception("Load error", ex);
       }
+      finally
+      {
+        reader.Readed -= onReaded;
+      }
       isLoaded = true;
-      Program.CheckShutdown();
 
       if (isLoadCanceled)
       {
+        logger.Warn("キャンセルによるロード完了");
         this.DisposeLink(reader, null);
       }
       else
       {
+        while (isSaving)
+        {
+          Task.Delay(50).Wait();
+        }
+
+        logger.Info("ロード完了");
         this.DisposeLink(reader, async () =>
         {
-          var loadStartTime = DateTime.Now;
-          logger.Info("ロード完了");
-
-          await LoadAfterAsync(data, isProcessing, isRealtime);
         });
       }
     }
-
 
     private void DisposeLink(IJVLinkReader reader, Func<Task>? processingAsync)
     {
@@ -420,14 +511,14 @@ namespace KmyKeiba.Downloader
             if (!isDisposed)
             {
               logger.Warn("接続のクローズが完了しないため、強制的に破棄します");
-              await Program.RestartProgramAsync(true, true);
+              Program.RestartProgram(true, true);
             }
           }
         }
         catch (Exception ex)
         {
           logger.Error("後処理の過程でエラーが発生", ex);
-          await Program.RestartProgramAsync(false);
+          Program.RestartProgram(false);
         }
       });
 
@@ -446,16 +537,18 @@ namespace KmyKeiba.Downloader
         Task.Delay(100).Wait();
       }
       logger.Info("ロード処理が正常に完了しました");
+
+      Program.SaveFileIfInterrupted();
     }
 
-    private async Task LoadAfterAsync(JVLinkReaderData data, bool isProcessing, bool isRealtime)
+    private async Task SaveDataAsync(JVLinkReaderData data, bool isRealtime)
     {
       var saved = 0;
-      this.SaveSize = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count
-        + data.FrameNumberOdds.Count + data.QuinellaOdds.Count + data.QuinellaPlaceOdds.Count +
+      this.SaveSize = data.Races.Count + data.RaceHorses.Count + data.ExactaOdds.Count +
+         data.FrameNumberOdds.Count + data.QuinellaOdds.Count + data.QuinellaPlaceOdds.Count +
          data.TrifectaOdds.Count + data.TrioOdds.Count + data.BornHorses.Count +
-         data.Riders.Count + data.Trainers.Count +
-        data.Refunds.Count + data.Trainings.Count + data.WoodtipTrainings.Count + data.Horses.Count + data.HorseBloods.Count;
+         data.Riders.Count + data.Trainers.Count + data.PlaceOdds.Count +
+         data.Refunds.Count + data.Trainings.Count + data.WoodtipTrainings.Count + data.Horses.Count + data.HorseBloods.Count;
       logger.Info($"保存数: {this.SaveSize}");
 
       var timer = new ReactiveTimer(TimeSpan.FromMilliseconds(80));
@@ -468,8 +561,6 @@ namespace KmyKeiba.Downloader
         }
       });
       timer.Start();
-
-      this.Process = LoadProcessing.Writing;
 
       // トランザクションが始まるので、ここで待機しないとProgram.csからこの値をDBに保存できず、メインアプリにWritingが伝わらなくなる
       this.StartingTransaction?.Invoke(this, EventArgs.Empty);
@@ -493,7 +584,7 @@ namespace KmyKeiba.Downloader
           await SaveAsyncPrivate(chunk, dataSet, entityId, dataId, dataIdSelector);
 
           position = position.Skip(10000);
-          Program.CheckShutdown(db);
+          Program.CheckShutdown(canInterrupt: false);
         }
       }
 
@@ -650,6 +741,13 @@ namespace KmyKeiba.Downloader
         (d) => d.Code,
         (list) => e => list.Contains(e.Code));
       await db.CommitAsync();
+      logger.Info($"HorseSalesの保存を開始 {data.HorseSales.Count}");
+      await SaveDicAsync(data.HorseSales,
+        db.HorseSales!,
+        (e) => e.Code + e.MarketCode + e.MarketStartDate.ToString("yyyyMMdd"),
+        (d) => d.Code + d.MarketCode + d.MarketStartDate.ToString("yyyyMMdd"),
+        (list) => e => list.Contains(e.Code + e.MarketCode));
+      await db.CommitAsync();
       logger.Info($"Ridersの保存を開始 {data.Riders.Count}");
       await SaveDicAsync(data.Riders,
         db.Riders!,
@@ -695,6 +793,7 @@ namespace KmyKeiba.Downloader
         (e) => e.RaceKey,
         (d) => d.RaceKey,
         (list) => e => list.Contains(e.RaceKey));
+      await db.CommitAsync();
       logger.Info($"TrifectaOddsの保存を開始 {data.TrifectaOdds.Count}");
       await SaveDicAsync(data.TrifectaOdds,
         db.TrifectaOdds!,
@@ -716,6 +815,12 @@ namespace KmyKeiba.Downloader
         (e) => e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute,
         (d) => d.RaceKey + d.Time.Month + "_" + d.Time.Day + "_" + d.Time.Hour + "_" + d.Time.Minute,
         (list) => e => list.Contains(e.RaceKey + e.Time.Month + "_" + e.Time.Day + "_" + e.Time.Hour + "_" + e.Time.Minute));
+      logger.Info($"PlaceOddsの保存を開始 {data.PlaceOdds.Count}");
+      await SaveAsync(data.PlaceOdds.Select((o) => o.Value),
+        db.PlaceOdds!,
+        (e) => e.RaceKey,
+        (d) => d.RaceKey,
+        (list) => e => list.Contains(e.RaceKey));
       logger.Info($"Trainingsの保存を開始 {data.Trainings.Count}");
       await SaveDicAsync(data.Trainings,
         db.Trainings!,
@@ -734,7 +839,6 @@ namespace KmyKeiba.Downloader
       this.ProcessSize = 0;
       this.Processed = 0;
       this.ProcessSize += data.SingleAndDoubleWinOdds.Count;
-      this.Process = LoadProcessing.Processing;
 
       // マイニングを設定する
       {
@@ -778,7 +882,7 @@ namespace KmyKeiba.Downloader
             extra.SetData(horse.Key, item.Key, horse.Number, item.Value.MiningTime, item.Value.MiningMatch);
           }
 
-          if (adds.Any())
+          if (adds.Count > 0)
           {
             await db.RaceHorseExtras!.AddRangeAsync(adds);
           }
@@ -793,7 +897,7 @@ namespace KmyKeiba.Downloader
       }
 
       // 単勝オッズを設定する（時系列オッズでない場合）
-      if (!this._specs.HasFlag(JVLinkDataspec.RB41) && data.SingleAndDoubleWinOdds.Any())
+      if (!this._specs.HasFlag(JVLinkDataspec.RB41) && data.SingleAndDoubleWinOdds.Count > 0)
       {
         var oddsRaceKeys = data.SingleAndDoubleWinOdds.Select((o) => o.Value.RaceKey).ToArray();
         var oddsRaceHorses = await db.RaceHorses!
@@ -820,17 +924,20 @@ namespace KmyKeiba.Downloader
             oddsRaceHorses.Remove(horse);
           }
 
-          if (!oddsRaceHorses.Any())
+          if (oddsRaceHorses.Count == 0)
           {
             break;
           }
 
           this.Processed++;
-          Program.CheckShutdown(db);
         }
+
+        Program.CheckShutdown(canInterrupt: false);
 
         await db.SaveChangesAsync();
         await db.CommitAsync();
+
+        Program.CheckShutdown();
       }
 
       if (isRealtime)
@@ -884,7 +991,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed++;
-            Program.CheckShutdown(db);
+            Program.CheckShutdown();
           }
 
           await AddDataAsync(data.HorseWeights.SelectMany(c => RaceChangeData.GetData(c)));
@@ -907,7 +1014,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed++;
-            Program.CheckShutdown(db);
+            Program.CheckShutdown();
           }
 
           await AddDataAsync(data.RaceCourseChanges.Select(c => RaceChangeData.GetData(c)));
@@ -979,7 +1086,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed++;
-            Program.CheckShutdown(db);
+            Program.CheckShutdown();
           }
 
           await AddDataAsync(data.CourseWeatherConditions.Select(c => RaceChangeData.GetData(c)));
@@ -999,7 +1106,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed++;
-            Program.CheckShutdown(db);
+            Program.CheckShutdown();
           }
 
           await AddDataAsync(data.HorseAbnormalities.Select(c => RaceChangeData.GetData(c)));
@@ -1021,7 +1128,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed++;
-            Program.CheckShutdown(db);
+            Program.CheckShutdown();
           }
 
           await AddDataAsync(data.HorseRiderChanges.Select(c => RaceChangeData.GetData(c)));
@@ -1041,7 +1148,7 @@ namespace KmyKeiba.Downloader
             }
 
             this.Processed++;
-            Program.CheckShutdown(db);
+            Program.CheckShutdown();
           }
 
           await AddDataAsync(data.RaceStartTimeChanges.Select(c => RaceChangeData.GetData(c)));

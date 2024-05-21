@@ -84,9 +84,6 @@ namespace KmyKeiba.Data.Db
     public string InviteFrom { get; set; } = string.Empty;
 
     [StringLength(10)]
-    public string ProducingCode { get; set; } = string.Empty;
-
-    [StringLength(10)]
     public string OwnerCode { get; set; } = string.Empty;
 
     public override void SetEntity(BornHorse horse)

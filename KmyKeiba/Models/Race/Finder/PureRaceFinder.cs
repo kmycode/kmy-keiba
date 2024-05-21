@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace KmyKeiba.Models.Race.Finder
@@ -27,15 +28,15 @@ namespace KmyKeiba.Models.Race.Finder
 
     public RaceHorseAnalyzer? RaceHorseAnalyzer { get; }
 
-    async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false)
+    async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(string keys, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false, CancellationToken cancellationToken = default)
     {
       var reader = new ScriptKeysReader(keys);
       var raceQueries = reader.GetQueries(this.Race, this.RaceHorse, this.RaceHorseAnalyzer);
 
-      return await this.FindRaceHorsesAsync(raceQueries, sizeMax, offset, isLoadSameHorses, withoutFutureRaces, withoutFutureRacesForce);
+      return await this.FindRaceHorsesAsync(raceQueries, sizeMax, offset, isLoadSameHorses, withoutFutureRaces, withoutFutureRacesForce, cancellationToken);
     }
 
-    Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(ScriptKeysParseResult raceQueries, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false);
+    Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(ScriptKeysParseResult raceQueries, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false, CancellationToken cancellationToken = default);
   }
 
   public sealed class PureRaceFinder : IRaceFinder
@@ -69,7 +70,7 @@ namespace KmyKeiba.Models.Race.Finder
       this.RaceHorseAnalyzer = horse;
     }
 
-    public async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(ScriptKeysParseResult raceQueries, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false)
+    public async Task<RaceHorseFinderQueryResult> FindRaceHorsesAsync(ScriptKeysParseResult raceQueries, int sizeMax, int offset = 0, bool isLoadSameHorses = false, bool withoutFutureRaces = true, bool withoutFutureRacesForce = false, CancellationToken cancellationToken = default)
     {
       var keys = raceQueries.Keys;
       if (raceQueries.Limit != default) sizeMax = raceQueries.Limit;
@@ -150,7 +151,7 @@ namespace KmyKeiba.Models.Race.Finder
 
       var racesData = await racesDataQuery
         .Take(sizeMax)
-        .ToArrayAsync();
+        .ToArrayAsync(cancellationToken);
 
       // ドロップアウトの条件にマッチするか確認する
       foreach (var q in raceQueries.Queries.Where(q => q is DropoutScriptKeyQuery))
@@ -233,15 +234,12 @@ namespace KmyKeiba.Models.Race.Finder
       var list = new List<RaceAnalyzer>();
       foreach (var race in racesData)
       {
-        list.Add(new RaceAnalyzer(race, Array.Empty<RaceHorseData>(), await AnalysisUtil.GetRaceStandardTimeAsync(db, race)));
+        var analyzer = new RaceAnalyzer(race, Array.Empty<RaceHorseData>(), await AnalysisUtil.GetRaceStandardTimeAsync(db, race));
+        analyzer.Dispose();
+        list.Add(analyzer);
       }
 
       return new FinderQueryResult<RaceAnalyzer>(list, raceQueries.GroupKey, raceQueries.MemoGroupInfo);
-    }
-
-    public RaceHorseTrendAnalysisSelectorWrapper AsTrendAnalysisSelector()
-    {
-      return new RaceHorseTrendAnalysisSelectorWrapper(this);
     }
 
     public void Dispose()
@@ -306,8 +304,6 @@ namespace KmyKeiba.Models.Race.Finder
 
   public class RaceHorseFinderResultAnalyzerSlim
   {
-    public double DisturbanceRate { get; }
-
     public double TimeDeviationValue { get; }
 
     public double A3HTimeDeviationValue { get; }
@@ -326,7 +322,6 @@ namespace KmyKeiba.Models.Race.Finder
     {
       if (other != null)
       {
-        this.DisturbanceRate = other.DisturbanceRate;
         this.TimeDeviationValue = other.TimeDeviationValue;
         this.A3HTimeDeviationValue = other.TimeDeviationValue;
         this.UntilA3HTimeDeviationValue = other.TimeDeviationValue;
@@ -342,9 +337,6 @@ namespace KmyKeiba.Models.Race.Finder
 
         if (count > 0)
         {
-          // 分析
-          this.DisturbanceRate = AnalysisUtil.CalcDisturbanceRate(sourceItems);
-
           var timePoint = new StatisticSingleArray(sourceItems.Select(h => h.ResultTimeDeviationValue).Where(v => v != default).ToArray());
           var a3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.A3HResultTimeDeviationValue).Where(v => v != default).ToArray());
           var ua3htimePoint = new StatisticSingleArray(sourceItems.Select(h => h.UntilA3HResultTimeDeviationValue).Where(v => v != default).ToArray());

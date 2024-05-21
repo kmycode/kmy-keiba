@@ -184,9 +184,9 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ResidueInputCategory Residue { get; }
 
-    public ReactiveCollection<FinderConfigData> Configs => FinderConfigUtil.Configs;
+    public ReactiveCollection<FinderConfigItem> Configs => FinderConfigUtil.Configs;
 
-    public ReactiveProperty<FinderConfigData?> SelectedConfig { get; } = new();
+    public ReactiveProperty<FinderConfigItem?> SelectedConfig { get; } = new();
 
     public ReactiveProperty<string> ConfigName { get; } = new(string.Empty);
 
@@ -298,6 +298,11 @@ namespace KmyKeiba.Models.Race.Finder
       this.Query.Value = string.Join('|', this._categories
         .Select(c => c.Query.Value)
         .Where(q => !string.IsNullOrEmpty(q)));
+    }
+
+    public void CopyFrom(FinderQueryInput input)
+    {
+      this.Deserialize(input.Serialize(false), false);
     }
 
     public string Serialize(bool isIndent, bool isDiffOnly = false)
@@ -458,26 +463,15 @@ namespace KmyKeiba.Models.Race.Finder
 
     public async Task AddConfigAsync()
     {
-      var config = new FinderConfigData
+      var newItem = await FinderConfigModel.Instance.AddConfigAsync(this.ConfigName.Value, this.Serialize(false));
+
+      if (newItem != null)
       {
-        Name = this.ConfigName.Value,
-        Config = this.Serialize(false),
-      };
-
-      try
-      {
-        this.ErrorMessage.Value = string.Empty;
-
-        using var db = new MyContext();
-        await FinderConfigUtil.AddAsync(db, config);
-        //this.Configs.Add(config);
-
-        this.SelectedConfig.Value = config;
+        this.SelectedConfig.Value = newItem;
         this.ConfigName.Value = string.Empty;
       }
-      catch (Exception ex)
+      else
       {
-        logger.Error("検索条件保存でエラー発生", ex);
         this.ErrorMessage.Value = "検索条件の保存でエラーが発生しました";
       }
     }
@@ -489,18 +483,12 @@ namespace KmyKeiba.Models.Race.Finder
         return;
       }
 
-      try
+      if (await FinderConfigModel.Instance.RemoveConfigAsync(this.SelectedConfig.Value))
       {
-        this.ErrorMessage.Value = string.Empty;
-
-        using var db = new MyContext();
-        await FinderConfigUtil.RemoveAsync(db, this.SelectedConfig.Value);
-        //this.Configs.Remove(this.SelectedConfig.Value);
         this.SelectedConfig.Value = null;
       }
-      catch (Exception ex)
+      else
       {
-        logger.Error("検索条件削除でエラー発生", ex);
         this.ErrorMessage.Value = "検索条件の削除でエラーが発生しました";
       }
     }
@@ -516,7 +504,7 @@ namespace KmyKeiba.Models.Race.Finder
       {
         this.ErrorMessage.Value = string.Empty;
 
-        this.Deserialize(this.SelectedConfig.Value.Config);
+        this.Deserialize(this.SelectedConfig.Value.Data.Config);
       }
       catch (Exception ex)
       {
@@ -549,7 +537,8 @@ namespace KmyKeiba.Models.Race.Finder
     public void Dispose()
     {
       this._disposables.Dispose();
-      IFinderQueryInputCategory? cate = null;
+
+      IFinderQueryInputCategory? cate = null; // デバッグ用
       try
       {
         foreach (var category in this._categories)
@@ -560,7 +549,7 @@ namespace KmyKeiba.Models.Race.Finder
       }
       catch (Exception ex)
       {
-
+        // TODO
       }
     }
   }

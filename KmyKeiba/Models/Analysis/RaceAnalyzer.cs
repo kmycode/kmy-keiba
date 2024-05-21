@@ -115,11 +115,6 @@ namespace KmyKeiba.Models.Analysis
 
     public IReadOnlyList<RunningStyle> RunningStyles { get; }
 
-    /// <summary>
-    /// 荒れ度
-    /// </summary>
-    public double RoughRate { get; }
-
     public double ResultTimeDeviationValue { get; }
 
     public double A3HResultTimeDeviationValue { get; }
@@ -129,10 +124,6 @@ namespace KmyKeiba.Models.Analysis
     public double UntilA3HResultTimeDeviationValue { get; }
 
     public RacePace Pace { get; }
-
-    public RacePace A3HPace { get; }
-
-    public RacePace MaxA3HPace { get; }
 
     public short NormalizedBefore3HaronTime { get; }
 
@@ -171,8 +162,6 @@ namespace KmyKeiba.Models.Analysis
         this.Data.Memo = m;
       }, this.Memo, this.IsMemoSaving).AddTo(this._disposables);
 
-      this.RoughRate = AnalysisUtil.CalcRoughRate(topHorses);
-
       var prizeRaws = this.Data.GetPrizeMoneys();
       var prizes = new List<PrizeMoneyItem>();
       var i = 0;
@@ -188,7 +177,7 @@ namespace KmyKeiba.Models.Analysis
           prizes.Add(new PrizeMoneyItem
           {
             Place = place,
-            PrizeMoney = ValueUtil.ToMoneyLabel((long)prizeRaws[i++] * 100),
+            PrizeMoney = (long)prizeRaws[i++] * 100,
           });
         }
       }
@@ -198,14 +187,7 @@ namespace KmyKeiba.Models.Analysis
       {
         this.TopHorse = new RaceHorseAnalyzer(race, topHorse, raceStandardTime);
 
-        this.Pace = this.TopHorse.ResultTimeDeviationValue < 38 ? RacePace.VeryLow :
-          this.TopHorse.ResultTimeDeviationValue < 45 ? RacePace.Low :
-          this.TopHorse.ResultTimeDeviationValue < 55 ? RacePace.Standard :
-          this.TopHorse.ResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
-        this.A3HPace = this.TopHorse.A3HResultTimeDeviationValue < 38 ? RacePace.VeryLow :
-          this.TopHorse.A3HResultTimeDeviationValue < 45 ? RacePace.Low :
-          this.TopHorse.A3HResultTimeDeviationValue < 55 ? RacePace.Standard :
-          this.TopHorse.A3HResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
+        this.Pace = AnalysisUtil.CalcRacePace(race);
         this.ResultTimeDeviationValue = this.TopHorse.ResultTimeDeviationValue;
         this.A3HResultTimeDeviationValue = this.TopHorse.A3HResultTimeDeviationValue;
         this.UntilA3HResultTimeDeviationValue = this.TopHorse.UntilA3HResultTimeDeviationValue;
@@ -214,10 +196,7 @@ namespace KmyKeiba.Models.Analysis
         if (maxA3HHorse != null)
         {
           var maxa3h = new RaceHorseAnalyzer(race, maxA3HHorse, raceStandardTime);
-          this.MaxA3HPace = maxa3h.A3HResultTimeDeviationValue < 38 ? RacePace.VeryLow :
-            maxa3h.A3HResultTimeDeviationValue < 45 ? RacePace.Low :
-            maxa3h.A3HResultTimeDeviationValue < 55 ? RacePace.Standard :
-            maxa3h.A3HResultTimeDeviationValue < 62 ? RacePace.High : RacePace.VeryHigh;
+          maxa3h.Dispose();
           this.MaxA3HResultTimeDeviationValue = maxa3h.A3HResultTimeDeviationValue;
         }
       }
@@ -270,27 +249,27 @@ namespace KmyKeiba.Models.Analysis
 
     public ICommand PlayRaceMovieCommand =>
       this._playRaceMovieCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsRaceError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayRaceAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsRaceError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayRaceAsync());
     private AsyncReactiveCommand<object>? _playRaceMovieCommand;
 
     public ICommand PlayPaddockCommand =>
       this._playPaddockCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsPaddockError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayPaddockAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsPaddockError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPaddockAsync());
     private AsyncReactiveCommand<object>? _playPaddockCommand;
 
     public ICommand PlayPaddockForceCommand =>
       this._playPaddockForceCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsPaddockForceError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayPaddockForceAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsPaddockForceError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPaddockForceAsync());
     private AsyncReactiveCommand<object>? _playPaddockForceCommand;
 
     public ICommand PlayPatrolCommand =>
       this._playPatrolCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsPatrolError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayPatrolAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsPatrolError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayPatrolAsync());
     private AsyncReactiveCommand<object>? _playPatrolCommand;
 
     public ICommand PlayMultiCamerasCommand =>
       this._playMultiCamerasCommand ??=
-        new AsyncReactiveCommand<object>(this.Movie.IsMultiCamerasError.Select(e => !e).CombineLatest(DownloaderModel.Instance.CanSaveOthers, (a, b) => a && b)).WithSubscribe(async _ => await this.Movie.PlayMultiCamerasAsync());
+        new AsyncReactiveCommand<object>(this.Movie.IsMultiCamerasError.Select(e => !e)).WithSubscribe(async _ => await this.Movie.PlayMultiCamerasAsync());
     private AsyncReactiveCommand<object>? _playMultiCamerasCommand;
 
     public ICommand OpenRaceWindowCommand =>
@@ -345,24 +324,27 @@ namespace KmyKeiba.Models.Analysis
   {
     public int Place { get; init; }
 
-    public string PrizeMoney { get; init; } = string.Empty;
+    public long PrizeMoney { get; init; }
   }
 
   public enum RacePace
   {
-    [Label("とても速い")]
+    [Label("不明", "?")]
+    Unknown,
+
+    [Label("とても速い", "VH")]
     VeryHigh,
 
-    [Label("速い")]
+    [Label("速い", "H")]
     High,
 
-    [Label("標準")]
+    [Label("標準", "M")]
     Standard,
 
-    [Label("遅い")]
+    [Label("遅い", "S")]
     Low,
 
-    [Label("とても遅い")]
+    [Label("とても遅い", "VS")]
     VeryLow,
   }
 }

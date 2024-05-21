@@ -31,7 +31,7 @@ namespace KmyKeiba.Views.Details
         nameof(Race),
         typeof(RaceInfo),
         typeof(RaceExpectAllView),
-        new PropertyMetadata(null));
+        new PropertyMetadata((sender, e) => ((RaceExpectAllView)sender).OnConditionChanged()));
 
     public RaceInfo? Race
     {
@@ -73,6 +73,47 @@ namespace KmyKeiba.Views.Details
       InitializeComponent();
 
       this.Browser.LoadUrl("localfolder://cefsharp/dummy.html");
+
+      this.S_HorseList.Checked += this.RadioButton_Checked;
+      this.S_Odds.Checked += this.RadioButton_Checked;
+      this.IsVisibleChanged += this.RaceExpectAllView_IsVisibleChanged;
+    }
+
+    private void UpdateHeavyBindings()
+    {
+      if (this.Race == null)
+      {
+        return;
+      }
+
+      if (this.S_HorseList.IsChecked == true && this.RaceHorsePillarList.ItemsSource != this.Race.Horses)
+      {
+        this.RaceHorsePillarList.ItemsSource = this.Race.Horses;
+      }
+    }
+
+    private void RadioButton_Checked(object sender, RoutedEventArgs e)
+    {
+      this.UpdateHeavyBindings();
+    }
+
+    private void RaceExpectAllView_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+      this.UpdateHeavyBindings();
+    }
+
+    private void OnConditionChanged()
+    {
+      if (this.Race == null)
+      {
+        this.RaceHorsePillarList.ItemsSource = null;
+        return;
+      }
+
+      if (this.Visibility == Visibility.Visible)
+      {
+        this.UpdateHeavyBindings();
+      }
     }
   }
 }

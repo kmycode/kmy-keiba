@@ -248,13 +248,7 @@ namespace KmyKeiba.Models.Script
 
     protected ScriptObjectContainer<ScriptBulkConfig> BulkConfigContainer { get; } = new();
 
-    protected ScriptObjectContainer<ScriptML> MLContainer { get; } = new();
-
-    protected ScriptObjectContainer<ScriptMLPrediction> MLPredictionContainer { get; } = new();
-
     public ScriptBulkConfig BulkConfig => this.BulkConfigContainer.Item!;
-
-    public ScriptML ML => this.MLContainer.Item!;
 
     public ScriptEngineWrapper() : base("index.js")
     {
@@ -263,13 +257,9 @@ namespace KmyKeiba.Models.Script
       this.Engine.AddHostObject("__suggestion", this.SuggestionContainer);
       this.Engine.AddHostObject("__html", this.HtmlContainer);
       this.Engine.AddHostObject("__bulk", this.BulkConfigContainer);
-      this.Engine.AddHostObject("__ml", this.MLContainer);
-      this.Engine.AddHostObject("__mlp", this.MLPredictionContainer);
 
       this.HtmlContainer.SetItem(new ScriptHtml());
       this.BulkConfigContainer.SetItem(new ScriptBulkConfig());
-      this.MLContainer.SetItem(new ScriptML());
-      this.MLPredictionContainer.SetItem(new ScriptMLPrediction());
     }
 
     protected virtual object Execute(RaceInfo race)

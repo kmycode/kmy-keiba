@@ -2,18 +2,22 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
     <BaseOutputPath>..\dist\x64</BaseOutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <VersionPrefix>4.5.1</VersionPrefix>
+    <VersionPrefix>5.0.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Keras.NET" Version="3.8.5" />
-    <PackageReference Include="Microsoft.ClearScript" Version="7.3.5" />
+    <PackageReference Include="Microsoft.ClearScript" Version="7.4.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KmyKeiba.Data\KmyKeiba.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

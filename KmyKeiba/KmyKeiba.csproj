@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <Platforms>AnyCPU;x64;x86</Platforms>
@@ -11,7 +11,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
-    <VersionPrefix>4.5.1</VersionPrefix>
+    <VersionPrefix>5.0.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,21 +19,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.Wpf.NetCore" Version="107.1.120" />
-    <PackageReference Include="log4net" Version="2.0.14" />
-    <PackageReference Include="Microsoft.ClearScript" Version="7.3.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.0">
+    <PackageReference Include="CefSharp.Wpf.NetCore" Version="123.0.60" />
+    <PackageReference Include="log4net" Version="2.0.17" />
+    <PackageReference Include="Microsoft.ClearScript" Version="7.4.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.ML" Version="1.7.1" />
-    <PackageReference Include="ReactiveProperty" Version="8.1.0" />
-    <PackageReference Include="ReactiveProperty.WPF" Version="8.1.0" />
-    <PackageReference Include="SkiaSharp" Version="2.80.3" />
-    <PackageReference Include="SkiaSharp.Views.Wpf" Version="2.80.3" />
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="6.0.0" />
+    <PackageReference Include="ReactiveProperty" Version="9.5.0" />
+    <PackageReference Include="ReactiveProperty.WPF" Version="9.5.0" />
+    <PackageReference Include="SkiaSharp" Version="2.88.8" />
+    <PackageReference Include="SkiaSharp.Views.Wpf" Version="2.88.8" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,16 +43,7 @@
     <None Update="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="script\configure_sample.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="script\index_sample.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="script\index_sample_ml.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="script\mlconfigure_sample.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="script\official\kmykeiba.js">
@@ -72,5 +62,19 @@
   </ItemGroup>
 
   <Import Project="..\KmyKeiba.Shared\KmyKeiba.Shared.projitems" Label="Shared" />
+
+  <Import Project="..\KmyKeiba.Utils\KmyKeiba.Utils.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <PackageReference Update="chromiumembeddedframework.runtime.win-arm64" Version="123.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="chromiumembeddedframework.runtime.win-x64" Version="123.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="chromiumembeddedframework.runtime.win-x86" Version="123.0.6" />
+  </ItemGroup>
 
 </Project>

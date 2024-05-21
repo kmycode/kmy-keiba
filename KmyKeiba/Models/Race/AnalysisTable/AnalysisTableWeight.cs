@@ -170,6 +170,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public void Dispose()
     {
+      this.FinderModelForConfig.Dispose();
       this._disposables.Dispose();
     }
   }

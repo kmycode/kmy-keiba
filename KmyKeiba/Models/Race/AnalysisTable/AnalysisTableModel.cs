@@ -42,7 +42,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       }
       else
       {
-        foreach (var finder in cache.Finders.Join(horses, f => f.RaceHorse?.Key, h => h.Data.Key, (f, h) => RaceFinder.CopyFrom(f, null, null, h)))
+        foreach (var finder in cache.Finders.Join(horses, f => f.RaceHorse?.Key, h => h.Data.Key, (f, h) => RaceFinder.Duplicate(f, null, null, h)))
         {
           this._finders.Add(finder);
         }
@@ -152,6 +152,10 @@ namespace KmyKeiba.Models.Race.AnalysisTable
 
     public void Dispose()
     {
+      foreach (var finder in this._finders)
+      {
+        finder.Dispose();
+      }
       foreach (var table in this.Tables)
       {
         table.Dispose();

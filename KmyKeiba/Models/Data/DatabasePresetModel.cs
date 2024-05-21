@@ -16,13 +16,15 @@ namespace KmyKeiba.Models.Data
   {
     public static async Task SetPresetsAsync()
     {
-      using var db = new MyContext();
-      await SetExpansionMemoPresets(db);
-      await SetAnalysisTablePresets(db);
+      await SetExpansionMemoPresets();
+      await SetAnalysisTablePresets();
+      await SetFinderRaceHorseColumns();
     }
 
-    private static async Task SetExpansionMemoPresets(MyContext db)
+    private static async Task SetExpansionMemoPresets()
     {
+      using var db = new MyContext();
+
       if (await db.MemoConfigs!.AnyAsync() || await db.Memos!.AnyAsync())
       {
         return;
@@ -244,14 +246,18 @@ namespace KmyKeiba.Models.Data
       await db.SaveChangesAsync();
     }
 
-    private static async Task SetAnalysisTablePresets(MyContext db)
+    private static async Task SetAnalysisTablePresets()
     {
-      if (await db.AnalysisTables!.AnyAsync() || await db.AnalysisTableWeights!.AnyAsync() || await db.Delimiters!.AnyAsync())
+      using (var db = new MyContext())
       {
-        return;
+        if (await db.AnalysisTables!.AnyAsync() || await db.AnalysisTableWeights!.AnyAsync() || await db.Delimiters!.AnyAsync())
+        {
+          return;
+        }
+
+        await AnalysisTableUtil.InitializeAsync(db);
       }
 
-      await AnalysisTableUtil.InitializeAsync(db);
       var config = AnalysisTableConfigModel.Instance;
 
       AnalysisTableSurface? table;
@@ -265,7 +271,7 @@ namespace KmyKeiba.Models.Data
         data(row);
       }
 
-      table = await config.AddTableAsync();
+      table = await config.AddTableAsync(false);
       if (table == null) return;
       table.Name.Value = "馬";
 
@@ -343,7 +349,7 @@ namespace KmyKeiba.Models.Data
         r.FinderModelForConfig.Input.HorseOfCurrentRace.IsActiveHorseRider.Value = true;
       });
 
-      table = await config.AddTableAsync();
+      table = await config.AddTableAsync(false);
       if (table == null) return;
       table.Name.Value = "競馬場";
 
@@ -405,7 +411,7 @@ namespace KmyKeiba.Models.Data
         r.FinderModelForConfig.Input.Popular.IsSetCurrentRaceHorseValue.Value = true;
       });
 
-      table = await config.AddTableAsync();
+      table = await config.AddTableAsync(false);
       if (table == null) return;
       table.Name.Value = "騎手";
 
@@ -484,64 +490,72 @@ namespace KmyKeiba.Models.Data
       });
     }
 
-    public static IReadOnlyList<FinderColumnDefinition<FinderRaceHorseItem>> GetFinderRaceHorseColumns()
+    private static async Task SetFinderRaceHorseColumns()
     {
-      return new[]
+      using var db = new MyContext();
+
+      if (await db.FinderColumns!.AnyAsync())
       {
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.RaceSubject, 50, "", h => h.Analyzer.Subject.Subject),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.BoldText, 200, "レース名", h => h.Analyzer.Subject.DisplayName),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.Text, 70, "日付", h => h.Analyzer.Race.StartTime.ToString("yy/MM/dd")),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.Text, 50, "馬場", h => h.Analyzer.Race.Course.GetName()),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.CourseInfo, 70, "コース", h => h.Analyzer.Race),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.HorseName, 120, "馬名", h => new { h.Analyzer.Data.Name, h.Analyzer.Memo }),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.NumericText, 30, "人", h => h.Analyzer.Data.Popular, (h, v) => AnalysisUtil.CompareValue((short)v, h.Analyzer.Race.HorsesCount < 7 ? 2 : 3, 6, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.NumericText, 30, "着", h => h.Analyzer.Data.ResultOrder, (h, v) => AnalysisUtil.CompareValue((short)v, h.Analyzer.Race.HorsesCount < 7 ? 2 : 3, 6, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.NumericText, 50, "タイム", h => h.Analyzer.Data.ResultTime.ToString("mm\\:ss"), (h, v) => AnalysisUtil.CompareValue(h.Analyzer.ResultTimeDeviationValue, 65, 35)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.NumericText, 40, "T偏", h => h.Analyzer.ResultTimeDeviationValue.ToString("F1"), (h, v) => AnalysisUtil.CompareValue(h.Analyzer.ResultTimeDeviationValue, 65, 35)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.NumericText, 40, "A3HT", h => h.Analyzer.Data.AfterThirdHalongTime.ToString("ss\\.f"), (h, v) => AnalysisUtil.CompareValue(h.Analyzer.A3HResultTimeDeviationValue, 65, 35)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.NumericText, 40, "A3偏", h => h.Analyzer.A3HResultTimeDeviationValue.ToString("F1"), (h, v) => AnalysisUtil.CompareValue(h.Analyzer.A3HResultTimeDeviationValue, 65, 35)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.RunningStyle, 50, "脚質", h => h.Analyzer.Data.RunningStyle),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.CornerPlaces, 150, "コーナー順位", h => h.Analyzer.CornerGrades),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(1, FinderColumnType.Text, 70, "騎手", h => h.Analyzer.Data.RiderName),
+        return;
+      }
 
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.RaceSubject, 50, "", h => h.Analyzer.Subject.Subject),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.BoldText, 200, "レース名", h => h.Analyzer.Subject.DisplayName),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 40, "前3H", h => h.Analyzer.Race.BeforeHaronTime3 / 10.0, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 35, 45, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 40, "置換", h => h.RaceAnalyzer.NormalizedBefore3HaronTime / 10.0, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 35, 45, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 40, "前4H", h => h.Analyzer.Race.BeforeHaronTime4 / 10.0, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 45, 55, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 40, "後3H", h => h.Analyzer.Race.AfterHaronTime3 / 10.0, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 35, 45, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 40, "後4H", h => h.Analyzer.Race.AfterHaronTime4 / 10.0, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 45, 55, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 40, "PCI", h => h.Pci, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 45, 55, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 40, "PCI3", h => h.Pci3, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 45, 55, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 40, "RPCI", h => h.Rpci, v => ((double)v) != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 45, 55, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 70, "単払戻", h => h.Payoff?.SingleNumber1Money ?? 0, v => ((int)v) != default ? v : string.Empty, (h, v) => AnalysisUtil.CompareValue((int)v, 700, 150)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 70, "枠払戻", h => h.Payoff?.FrameNumber1Money ?? 0, v => ((int)v) != default ? v : string.Empty, (h, v) => AnalysisUtil.CompareValue((int)v, 700, 150)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 70, "連払戻", h => h.Payoff?.QuinellaNumber1Money ?? 0, v => ((int)v) != default ? v : string.Empty, (h, v) => AnalysisUtil.CompareValue((int)v, 3000, 1500)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 70, "単払戻", h => h.Payoff?.ExactaNumber1Money ?? 0, v => ((int)v) != default ? v : string.Empty, (h, v) => AnalysisUtil.CompareValue((int)v, 5000, 2000)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 70, "三複払", h => h.Payoff?.TrioNumber1Money ?? 0, v => ((int)v) != default ? v : string.Empty, (h, v) => AnalysisUtil.CompareValue((int)v, 10000, 2000)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(2, FinderColumnType.NumericText, 70, "三単払", h => h.Payoff?.TrifectaNumber1Money ?? 0, v => ((int)v) != default ? v : string.Empty, (h, v) => AnalysisUtil.CompareValue((int)v, 20000, 5000)),
+      var presets = new[]
+      {
+        new FinderColumnData { TabGroup = 1, Order = 1, Property = FinderColumnProperty.RaceSubject, },
+        new FinderColumnData { TabGroup = 1, Order = 2, Property = FinderColumnProperty.RaceName, },
+        new FinderColumnData { TabGroup = 1, Order = 3, Property = FinderColumnProperty.StartTime, },
+        new FinderColumnData { TabGroup = 1, Order = 4, Property = FinderColumnProperty.Course, },
+        new FinderColumnData { TabGroup = 1, Order = 5, Property = FinderColumnProperty.CourseInfo, },
+        new FinderColumnData { TabGroup = 1, Order = 6, Property = FinderColumnProperty.HorseName, },
+        new FinderColumnData { TabGroup = 1, Order = 7, Property = FinderColumnProperty.Popular, },
+        new FinderColumnData { TabGroup = 1, Order = 8, Property = FinderColumnProperty.ResultOrder, },
+        new FinderColumnData { TabGroup = 1, Order = 9, Property = FinderColumnProperty.ResultTime, },
+        new FinderColumnData { TabGroup = 1, Order = 10, Property = FinderColumnProperty.After3HalongTime, },
+        new FinderColumnData { TabGroup = 1, Order = 11, Property = FinderColumnProperty.RunningStyle, },
+        new FinderColumnData { TabGroup = 1, Order = 12, Property = FinderColumnProperty.CornerOrders, },
+        new FinderColumnData { TabGroup = 1, Order = 13, Property = FinderColumnProperty.RiderName, },
 
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.RaceSubject, 50, "", h => h.Analyzer.Subject.Subject),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.BoldText, 200, "レース名", h => h.Analyzer.Subject.DisplayName),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L1", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(0) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L2", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(1) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L3", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(2) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L4", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(3) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L5", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(4) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L6", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(5) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L7", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(6) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L8", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(7) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L9", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(8) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L10", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(9) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L11", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(10) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L12", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(11) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L13", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(12) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L14", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(13) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L15", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(14) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L16", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(15) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L17", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(16) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
-        FinderColumnDefinition.Create<FinderRaceHorseItem>(3, FinderColumnType.NumericText, 40, "L18", h => h.Analyzer.Race.GetLapTimes().ElementAtOrDefault(17) / 10.0, v => (double)v != default ? ((double)v).ToString("N1") : string.Empty, (h, v) => AnalysisUtil.CompareValue((double)v, 12, 15, true)),
+        new FinderColumnData { TabGroup = 2, Order = 1, Property = FinderColumnProperty.RaceSubject, },
+        new FinderColumnData { TabGroup = 2, Order = 2, Property = FinderColumnProperty.RaceName, },
+        new FinderColumnData { TabGroup = 2, Order = 3, Property = FinderColumnProperty.Before3HalongTime, },
+        new FinderColumnData { TabGroup = 2, Order = 4, Property = FinderColumnProperty.Before3HalongTimeNormalized, },
+        new FinderColumnData { TabGroup = 2, Order = 5, Property = FinderColumnProperty.Before4HalongTime, },
+        new FinderColumnData { TabGroup = 2, Order = 6, Property = FinderColumnProperty.After3HalongTime, },
+        new FinderColumnData { TabGroup = 2, Order = 7, Property = FinderColumnProperty.After4HalongTime, },
+        new FinderColumnData { TabGroup = 2, Order = 8, Property = FinderColumnProperty.Pci, },
+        new FinderColumnData { TabGroup = 2, Order = 9, Property = FinderColumnProperty.Pci3, },
+        new FinderColumnData { TabGroup = 2, Order = 10, Property = FinderColumnProperty.Rpci, },
+        new FinderColumnData { TabGroup = 2, Order = 11, Property = FinderColumnProperty.SinglePayoff, },
+        new FinderColumnData { TabGroup = 2, Order = 12, Property = FinderColumnProperty.FramePayoff, },
+        new FinderColumnData { TabGroup = 2, Order = 13, Property = FinderColumnProperty.QuinellaPayoff, },
+        new FinderColumnData { TabGroup = 2, Order = 14, Property = FinderColumnProperty.ExactaPayoff, },
+        new FinderColumnData { TabGroup = 2, Order = 15, Property = FinderColumnProperty.TrioPayoff, },
+        new FinderColumnData { TabGroup = 2, Order = 16, Property = FinderColumnProperty.TrifectaPayoff, },
+
+        new FinderColumnData { TabGroup = 3, Order = 1, Property = FinderColumnProperty.RaceSubject, },
+        new FinderColumnData { TabGroup = 3, Order = 2, Property = FinderColumnProperty.RaceName, },
+        new FinderColumnData { TabGroup = 3, Order = 3, Property = FinderColumnProperty.LapTime1, },
+        new FinderColumnData { TabGroup = 3, Order = 4, Property = FinderColumnProperty.LapTime2, },
+        new FinderColumnData { TabGroup = 3, Order = 5, Property = FinderColumnProperty.LapTime3, },
+        new FinderColumnData { TabGroup = 3, Order = 6, Property = FinderColumnProperty.LapTime4, },
+        new FinderColumnData { TabGroup = 3, Order = 7, Property = FinderColumnProperty.LapTime5, },
+        new FinderColumnData { TabGroup = 3, Order = 8, Property = FinderColumnProperty.LapTime6, },
+        new FinderColumnData { TabGroup = 3, Order = 9, Property = FinderColumnProperty.LapTime7, },
+        new FinderColumnData { TabGroup = 3, Order = 10, Property = FinderColumnProperty.LapTime8, },
+        new FinderColumnData { TabGroup = 3, Order = 11, Property = FinderColumnProperty.LapTime9, },
+        new FinderColumnData { TabGroup = 3, Order = 12, Property = FinderColumnProperty.LapTime10, },
+        new FinderColumnData { TabGroup = 3, Order = 13, Property = FinderColumnProperty.LapTime11, },
+        new FinderColumnData { TabGroup = 3, Order = 14, Property = FinderColumnProperty.LapTime12, },
+        new FinderColumnData { TabGroup = 3, Order = 15, Property = FinderColumnProperty.LapTime13, },
+        new FinderColumnData { TabGroup = 3, Order = 16, Property = FinderColumnProperty.LapTime14, },
+        new FinderColumnData { TabGroup = 3, Order = 17, Property = FinderColumnProperty.LapTime15, },
+        new FinderColumnData { TabGroup = 3, Order = 18, Property = FinderColumnProperty.LapTime16, },
+        new FinderColumnData { TabGroup = 3, Order = 19, Property = FinderColumnProperty.LapTime17, },
+        new FinderColumnData { TabGroup = 3, Order = 20, Property = FinderColumnProperty.LapTime18, },
       };
+
+      await db.FinderColumns!.AddRangeAsync(presets);
+      await db.SaveChangesAsync();
     }
   }
 }

@@ -126,7 +126,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
       var dummyRace = new RaceData();
       var finder = new FinderModel(dummyRace, RaceHorseAnalyzer.Empty, null)
       {
-        DefaultSize = 1000,
+        DefaultSize = 500,
       };
       this.FinderModelForConfig = finder;
 
@@ -438,7 +438,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
         }
 
         var query = keys;
-        var size = this.FinderModelForConfig.DefaultSize;
+        var size = this.FinderModelForConfig.Input.OtherSetting.LimitByAsInt;
         if (this.Data.Output == AnalysisTableRowOutputType.Binary)
         {
           query += "|[currentonly]";
@@ -695,6 +695,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
               {
                 source = await ((IRaceFinder)item.Finder).FindRaceHorsesAsync(query, size, withoutFutureRaces: true, withoutFutureRacesForce: true);
               }
+              source.Dispose();
 
               if (isNeedAnalysis)
               {

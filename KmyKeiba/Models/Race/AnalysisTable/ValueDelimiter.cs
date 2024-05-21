@@ -54,6 +54,7 @@ namespace KmyKeiba.Models.Race.AnalysisTable
     public void Dispose()
     {
       this._disposables.Dispose();
+      this.Rows.Dispose();
     }
   }
 

@@ -94,9 +94,6 @@ namespace KmyKeiba.Models.Script
     [JsonPropertyName("memo")]
     public string Memo => this._horse.Memo ?? string.Empty;
 
-    [JsonPropertyName("riderPlaceBitsRate")]
-    public float RiderPlaceBitsRate => this._analyzer?.RiderPlaceBitsRate ?? default;
-
     [JsonPropertyName("runningStyle")]
     public short RunningStyle => this.IsTargetRace ? default : (short)this._horse.RunningStyle;
 
@@ -140,97 +137,6 @@ namespace KmyKeiba.Models.Script
     {
       this._targetRaceKey = targetRaceKey;
       this._horse = horse;
-    }
-
-    [ScriptMember("getRiderSimilarRacesAsync")]
-    public async Task<string> LoadRiderTrendRacesAsync(string keys, int count = 300, int offset = 0)
-    {
-      var analyzer = this._analyzer?.RiderTrendAnalyzers?.BeginLoadByScript(keys, count, offset, true);
-      if (analyzer != null)
-      {
-        await analyzer.WaitAnalysisAsync();
-        return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRaceHorse(string.Empty, s)).Take(count).ToArray(), ScriptManager.JsonOptions);
-      }
-      return "[]";
-    }
-
-    [ScriptMember("getTrainerSimilarRacesAsync")]
-    public async Task<string> LoadTrainerTrendRacesAsync(string keys, int count = 300, int offset = 0)
-    {
-      var analyzer = this._analyzer?.TrainerTrendAnalyzers?.BeginLoadByScript(keys, count, offset);
-      if (analyzer != null)
-      {
-        await analyzer.WaitAnalysisAsync();
-        return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRaceHorse(string.Empty, s)).Take(count).ToArray(), ScriptManager.JsonOptions);
-      }
-      return "[]";
-    }
-
-    [ScriptMember("getBloodNamesAsync")]
-    public async Task<string> GetBloodNamesAsync()
-    {
-      var menu = this._analyzer?.BloodSelectors;
-      if (menu == null)
-      {
-        return "[]";
-      }
-
-      if (!menu.MenuItems.Any())
-      {
-        using MyContext db = new();
-        await menu.InitializeBloodListAsync(db);
-      }
-
-      var keys = new[]
-      {
-        BloodType.Father,
-        BloodType.FatherFather,
-        BloodType.FatherFatherFather,
-        BloodType.FatherFatherMother,
-        BloodType.FatherMother,
-        BloodType.FatherMotherFather,
-        BloodType.FatherMotherMother,
-        BloodType.Mother,
-        BloodType.MotherFather,
-        BloodType.MotherFatherFather,
-        BloodType.MotherFatherMother,
-        BloodType.MotherMother,
-        BloodType.MotherMotherFather,
-        BloodType.MotherMotherMother,
-      };
-
-      var names = new List<string>();
-      foreach (var key in keys)
-      {
-        var selector = menu.GetSelector(key);
-        names.Add(selector?.Name ?? string.Empty);
-      }
-
-      return JsonSerializer.Serialize(names, ScriptManager.JsonOptions);
-    }
-
-    [ScriptMember("getBloodHorseRacesAsync")]
-    public async Task<string> LoadBloodRacesAsync(string typeCode)
-    {
-      var analyzer = this._analyzer?.BloodSelectors?.GetSelector(typeCode)?.BeginLoad(Enumerable.Empty<RaceHorseBloodTrendAnalysisSelector.Key>().Append(RaceHorseBloodTrendAnalysisSelector.Key.BloodHorseSelf).ToArray(), 300, 0);
-      if (analyzer != null)
-      {
-        await analyzer.WaitAnalysisAsync();
-        return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRaceHorse(string.Empty, s)).ToArray(), ScriptManager.JsonOptions);
-      }
-      return "[]";
-    }
-
-    [ScriptMember("getSameBloodHorseRacesAsync")]
-    public async Task<string> LoadSameBloodRacesAsync(string typeCode, string keys, int count = 300, int offset = 0)
-    {
-      var analyzer = this._analyzer?.BloodSelectors?.GetSelector(typeCode)?.BeginLoadByScript(keys, count, offset);
-      if (analyzer != null)
-      {
-        await analyzer.WaitAnalysisAsync();
-        return JsonSerializer.Serialize(analyzer.Source.Select(s => new ScriptRaceHorse(string.Empty, s)).Take(count).ToArray(), ScriptManager.JsonOptions);
-      }
-      return "[]";
     }
 
     [ScriptMember("findRacesAsync")]
@@ -301,9 +207,6 @@ namespace KmyKeiba.Models.Script
 
       [JsonPropertyName("ua3hTimeDeviationValue")]
       public double UntilA3HTimeDeviationValue => this._history.UntilA3HTimeDeviationValue;
-
-      [JsonPropertyName("disturbanceRate")]
-      public double DisturbanceRate => this._history.DisturbanceRate;
 
       [JsonPropertyName("beforeRaces")]
       public ScriptRaceHorse[] BeforeRaces => this._history.BeforeRaces.Select(r => new ScriptRaceHorse(this._targetRaceKey, r)).ToArray();
