@@ -49,8 +49,6 @@ namespace KmyKeiba.Data.Db
 
     public DbSet<RefundData>? Refunds { get; set; }
 
-    public DbSet<LearningDataCache>? LearningDataCaches { get; set; }
-
     public DbSet<TrainingData>? Trainings { get; set; }
 
     public DbSet<WoodtipTrainingData>? WoodtipTrainings { get; set; }
