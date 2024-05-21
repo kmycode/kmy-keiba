@@ -98,9 +98,6 @@ namespace KmyKeiba.ViewModels
           this.model.OnSelectedRaceUpdated();
         }).AddTo(this._disposables);
 
-      this.InitializationMessage.Value = "スクリプトシステムを初期化中...";
-      ScriptManager.Initialize();
-
       Task.Run(async () =>
       {
         // これはもう必ず最初に
