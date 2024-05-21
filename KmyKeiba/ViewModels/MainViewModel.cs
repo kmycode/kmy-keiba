@@ -47,6 +47,8 @@ namespace KmyKeiba.ViewModels
 
     public ReactiveProperty<bool> IsInitialized { get; } = new ReactiveProperty<bool>();
 
+    public ReactiveProperty<string> InitializationMessage { get; } = new("初期化しています。しばらくお待ちください...");
+
     public ReactiveProperty<string> FirstMessage => this.model.FirstMessage;
 
     public UpdateChecker Update { get; } = new();
@@ -96,12 +98,17 @@ namespace KmyKeiba.ViewModels
           this.model.OnSelectedRaceUpdated();
         }).AddTo(this._disposables);
 
+      this.InitializationMessage.Value = "スクリプトシステムを初期化中...";
       ScriptManager.Initialize();
+
       Task.Run(async () =>
       {
         // これはもう必ず最初に
+        this.InitializationMessage.Value = "設定 A の読み込み中...";
         await ConfigUtil.InitializeAsync();
-        var isFirst = await this.downloader.InitializeAsync();
+
+        this.InitializationMessage.Value = "ダウンローダとの接続を初期化中...";
+        var isFirst = await this.downloader.InitializeAsync(this.InitializationMessage);
 
         // 各種初期化処理
         using (var db = new MyContext())
@@ -117,9 +124,11 @@ namespace KmyKeiba.ViewModels
         }
 
         // DBのプリセット
+        this.InitializationMessage.Value = "プリセットを設定中...";
         await DatabasePresetModel.SetPresetsAsync();
 
         // プリセット反映後の初期化処理
+        this.InitializationMessage.Value = "設定 B の読み込み中...";
         using (var db = new MyContext())
         {
           await MemoUtil.InitializeAsync(db);
@@ -128,9 +137,11 @@ namespace KmyKeiba.ViewModels
         }
 
         // レースリストに拡張メモを反映
+        this.InitializationMessage.Value = "レースタイムラインを初期化中...";
         await this.RaceList.UpdateListAsync();
 
         // 初期化完了
+        this.InitializationMessage.Value = "初期化は完了しました";
         this.IsInitialized.Value = true;
 
         // 初期化が終わったので設定可能に

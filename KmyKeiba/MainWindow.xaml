@@ -160,8 +160,12 @@
         </Grid>
 
         <Border Grid.ColumnSpan="2" Background="{StaticResource BaseBackground}" Visibility="{Binding IsInitialized.Value,Converter={StaticResource NegativeVisibilityConv}}">
-          <TextBlock FontSize="48" Text="初期化しています。しばらくお待ちください..." Foreground="{StaticResource SubForeground}"
-                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock FontSize="48" Text="初期化中です。しばらくお待ち下さい..." Foreground="{StaticResource SubForeground}"
+                       HorizontalAlignment="Center"/>
+            <TextBlock FontSize="24" Text="{Binding InitializationMessage.Value}" Margin="0,16,0,0"
+                       HorizontalAlignment="Center"/>
+          </StackPanel>
         </Border>
         <Border Grid.ColumnSpan="2" Background="{StaticResource BaseBackground}" Visibility="{Binding IsInitializationError.Value,Converter={StaticResource BooleanVisibilityConv}}">
           <TextBlock FontSize="48" Text="{Binding DownloaderErrorMessage.Value}" Foreground="{StaticResource ErrorForeground}"
