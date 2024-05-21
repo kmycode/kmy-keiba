@@ -211,7 +211,12 @@ namespace KmyKeiba.JVLink.Entities
           {
             return this.Age + "歳";
           }
-          return "OP";
+        }
+
+
+        if (this.Grade == RaceGrade.NonGradeSpecial || this.Grade == RaceGrade.LocalNonGradeSpecial)
+        {
+          return this.Grade.GetLabel();
         }
 
         return "OP";
