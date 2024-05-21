@@ -20,10 +20,6 @@ namespace KmyKeiba.Shared
       Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "KMYsofts", "KMYKeiba", "App");
 
-    public static readonly string MLDir = Path.Combine(
-      Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "KMYsofts", "KMYKeiba", "ml");
-
     public static readonly string DownloaderTaskDataDir = Path.Combine(
       Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "KMYsofts", "KMYKeiba", "tasks");
