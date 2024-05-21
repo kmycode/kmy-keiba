@@ -44,7 +44,7 @@ namespace KmyKeiba.Models.Connection
 
     public Task BeginRTDownloadLoopAsync()
     {
-      Task.Run(async () =>
+      _ = Task.Run(async () =>
       {
         await this.FirstDownloadOnAppLaunchAsync();
         await UpdateDiffAsync();
@@ -107,7 +107,11 @@ namespace KmyKeiba.Models.Connection
         }
       }
 
-      await ConfigUtil.SetStringValueAsync(SettingKey.LastLaunchDateEx, DateTime.Now.ToString());
+      using (var db = new MyContext())
+      {
+        await db.BeginTransactionAsync();
+        await ConfigUtil.SetStringValueAsync(db, SettingKey.LastLaunchDateEx, DateTime.Now.ToString());
+      }
     }
 
     private async Task DownloadLinkAsync(int year, int month, bool isCentral = true, bool isLocal = true)
@@ -118,7 +122,7 @@ namespace KmyKeiba.Models.Connection
           Connectors.Local,
       };
       if (!isCentral) connectors.Remove(Connectors.Central);
-      if (!isLocal) connectors.Add(Connectors.Local);
+      if (!isLocal) connectors.Remove(Connectors.Local);
       foreach (var connector in connectors.Where(c => c.IsRTAvailable.Value))
       {
         await connector.DownloadAsync(new DateOnly(year, month, 1), DateOnly.FromDateTime(DateTime.Today));
