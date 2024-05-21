@@ -33,8 +33,6 @@ namespace KmyKeiba.Models.Connection
     private bool _isUpdateRtForce;
     private bool _isUpdateRtHeavyForce;
 
-    private DownloadConfig Config => DownloadConfig.Instance;
-
     public ReactiveProperty<int> NextRTUpdateSeconds { get; } = new();
     public ReactiveProperty<bool> IsWaitingNextRTUpdate { get; } = new();
 
