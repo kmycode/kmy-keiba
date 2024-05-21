@@ -44,7 +44,7 @@ namespace KmyKeiba.Models.Connection
       logger.Debug("ダウンロードモデルの初期化");
     }
 
-    public async Task<bool> InitializeAsync()
+    public async Task<bool> InitializeAsync(IReactiveProperty<string> message)
     {
       logger.Info("ダウンローダの初期処理開始");
 
@@ -55,6 +55,7 @@ namespace KmyKeiba.Models.Connection
 
       try
       {
+        message.Value = "ダウンローダとの接続を初期化中...";
         await downloader.InitializeAsync();
         this.IsInitialized.Value = true;
 
@@ -62,6 +63,7 @@ namespace KmyKeiba.Models.Connection
           using var db = new MyContext();
           await db.TryBeginTransactionAsync();
 
+          message.Value = "ダウンロード設定を初期化中...";
           await DownloadConfig.Instance.InitializeAsync(db);
           await Connectors.Jrdb.InitializeAsync(db);
 
@@ -70,7 +72,7 @@ namespace KmyKeiba.Models.Connection
         }
 
         // このメソッドは内部でトランザクションをおこなう
-        await this.MigrateDatabaseAsync();
+        await this.MigrateDatabaseAsync(message);
 
         logger.Info("初期化完了、最新データのダウンロードを開始");
 
@@ -95,7 +97,7 @@ namespace KmyKeiba.Models.Connection
       return isFirstLaunch;
     }
 
-    private async Task MigrateDatabaseAsync()
+    private async Task MigrateDatabaseAsync(IReactiveProperty<string> message)
     {
       var state = DownloadStatus.Instance;
 
@@ -108,10 +110,10 @@ namespace KmyKeiba.Models.Connection
         if (dbver < 250) initializations.Add(PostProcessings.MigrateFrom250);
         if (dbver < 322) initializations.Add(PostProcessings.MigrateFrom322);
         if (dbver < 430) initializations.Add(PostProcessings.MigrateFrom430);
-        // TODO: Until 5.0.0
-        // if (dbver < 500) initializations.Add(PostProcessings.MigrateFrom500);
+        if (dbver < 500) initializations.Add(PostProcessings.MigrateFrom500);
 
-        await initializations.RunAsync(state.ProcessingStep);
+        message.Value = "データベースのマイグレーション中...";
+        await PostProcessing.RunAsync(state.ProcessingStep, false, initializations);
 
         await ConfigUtil.SetIntValueAsync(SettingKey.DatabaseVersion, 500);
       }

@@ -53,7 +53,7 @@ namespace KmyKeiba.Models.Connection.PostProcess
       {
         foreach (var target in db.Horses!.FromSql($"SELECT * FROM Horses WHERE length(FatherBreedingCode) = 8"))
         {
-          target.OwnerCode = $"{target.OwnerCode}00";
+          target.ProducingCode = $"{target.ProducingCode}00";
           target.FatherBreedingCode = $"{target.FatherBreedingCode.Substring(0, 3)}00{target.FatherBreedingCode.Substring(3, 5)}";
           target.MotherBreedingCode = $"{target.MotherBreedingCode.Substring(0, 3)}00{target.MotherBreedingCode.Substring(3, 5)}";
           target.FFBreedingCode = $"{target.FFBreedingCode.Substring(0, 3)}00{target.FFBreedingCode.Substring(3, 5)}";
@@ -73,9 +73,54 @@ namespace KmyKeiba.Models.Connection.PostProcess
           }
         }
 
+        foreach (var target in db.BornHorses!.FromSql($"SELECT * FROM BornHorses WHERE length(FatherBreedingCode) = 8"))
+        {
+          target.FatherBreedingCode = $"{target.FatherBreedingCode.Substring(0, 3)}00{target.FatherBreedingCode.Substring(3, 5)}";
+          target.MotherBreedingCode = $"{target.MotherBreedingCode.Substring(0, 3)}00{target.MotherBreedingCode.Substring(3, 5)}";
+          target.FFBreedingCode = $"{target.FFBreedingCode.Substring(0, 3)}00{target.FFBreedingCode.Substring(3, 5)}";
+          target.FMBreedingCode = $"{target.FMBreedingCode.Substring(0, 3)}00{target.FMBreedingCode.Substring(3, 5)}";
+          target.FFFBreedingCode = $"{target.FFFBreedingCode.Substring(0, 3)}00{target.FFFBreedingCode.Substring(3, 5)}";
+          target.FFMBreedingCode = $"{target.FFMBreedingCode.Substring(0, 3)}00{target.FFMBreedingCode.Substring(3, 5)}";
+          target.FMFBreedingCode = $"{target.FMFBreedingCode.Substring(0, 3)}00{target.FMFBreedingCode.Substring(3, 5)}";
+          target.FMMBreedingCode = $"{target.FMMBreedingCode.Substring(0, 3)}00{target.FMMBreedingCode.Substring(3, 5)}";
+          target.MFFBreedingCode = $"{target.MFFBreedingCode.Substring(0, 3)}00{target.MFFBreedingCode.Substring(3, 5)}";
+          target.MFMBreedingCode = $"{target.MFMBreedingCode.Substring(0, 3)}00{target.MFMBreedingCode.Substring(3, 5)}";
+          target.MMFBreedingCode = $"{target.MMFBreedingCode.Substring(0, 3)}00{target.MMFBreedingCode.Substring(3, 5)}";
+          target.MMMBreedingCode = $"{target.MMMBreedingCode.Substring(0, 3)}00{target.MMMBreedingCode.Substring(3, 5)}";
+
+          if (!await TrySaveAsync())
+          {
+            return;
+          }
+        }
+
+        foreach (var target in db.CheckHorses!.FromSql($"SELECT * FROM CheckHorses WHERE length(Key) = 8"))
+        {
+          target.Key = $"{target.Key.Substring(0, 3)}00{target.Key.Substring(3, 5)}";
+
+          if (!await TrySaveAsync())
+          {
+            return;
+          }
+        }
+
+#pragma warning disable CS0618 // 型またはメンバーが旧型式です
+        foreach (var target in db.CheckHorses!.Where(h => h.Code != string.Empty))
+        {
+          target.Key = target.Code;
+
+          if (!await TrySaveAsync())
+          {
+            return;
+          }
+        }
+#pragma warning restore CS0618 // 型またはメンバーが旧型式です
+
         foreach (var target in db.HorseBloods!.FromSql($"SELECT * FROM HorseBloods WHERE length(Key) = 8"))
         {
           target.Key = $"{target.Key.Substring(0, 3)}00{target.Key.Substring(3, 5)}";
+          target.FatherKey = $"{target.FatherKey.Substring(0, 3)}00{target.FatherKey.Substring(3, 5)}";
+          target.MotherKey = $"{target.MotherKey.Substring(0, 3)}00{target.MotherKey.Substring(3, 5)}";
 
           if (!await TrySaveAsync())
           {
@@ -98,7 +143,7 @@ namespace KmyKeiba.Models.Connection.PostProcess
       }
       catch (Exception ex)
       {
-        logger.Error("4.5.3からのマイグレーションでエラー", ex);
+        logger.Error("5.0.0へのマイグレーションでエラー", ex);
       }
     }
   }
