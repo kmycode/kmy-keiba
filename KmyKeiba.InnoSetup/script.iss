@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "KMYã£în"
-#define MyAppVersion "5.0.0-alpha1"
+#define MyAppVersion "5.0.0-alpha"
 #define MyAppPublisher "KMY (ê·Ç†Ç∑Ç©)"
 #define MyAppURL "https://github.com/kmycode/kmy-keiba"
 #define MyAppExeName "KmyKeiba.exe"
