@@ -55,8 +55,6 @@ namespace KmyKeiba.Models.Race.Finder
 
     public ValueComparation TrifectaRRComparation => this._result.TrifectaRRComparation;
 
-    public FinderRaceHorseGroupExpandedData? ExpandedData { get; set; }
-
     public FinderRaceHorseGroupItem(string key, IEnumerable<FinderRaceHorseItem> group)
     {
       this.GroupKey = key;
@@ -87,37 +85,6 @@ namespace KmyKeiba.Models.Race.Finder
 
     public FinderRaceHorseGroupItem(IGrouping<int, FinderRaceHorseItem> group) : this(group.Key.ToString(), group)
     {
-    }
-  }
-
-  public class FinderRaceHorseGroupExpandedData
-  {
-    public double Before3hAverage { get; }
-
-    public double After3hAverage { get; }
-
-    public double PopularAverage { get; }
-
-    public double ResultOrderAverage { get; }
-
-    public FinderRaceHorseGroupExpandedData(IEnumerable<FinderRaceHorseItem> group)
-    {
-      if (group.Any(i => i.RaceAnalyzer.NormalizedBefore3HaronTime != default))
-      {
-        this.Before3hAverage = group.Select(i => (double)i.RaceAnalyzer.NormalizedBefore3HaronTime).Where(v => v != default).Average() / 10;
-      }
-      if (group.Any(i => i.Analyzer.Race.AfterHaronTime3 != default))
-      {
-        this.After3hAverage = group.Select(i => (double)i.Analyzer.Race.AfterHaronTime3).Where(v => v != default).Average() / 10;
-      }
-      if (group.Any(i => i.Analyzer.Data.Popular != default))
-      {
-        this.PopularAverage = group.Select(i => (double)i.Analyzer.Data.Popular).Where(v => v != default).Average();
-      }
-      if (group.Any(i => i.Analyzer.Data.ResultOrder != default))
-      {
-        this.ResultOrderAverage = group.Select(i => (double)i.Analyzer.Data.ResultOrder).Where(v => v != default).Average();
-      }
     }
   }
 }
